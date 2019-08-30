@@ -39,7 +39,7 @@ const StandardScreen = (props: Props) => {
 }
 
 const MIN_BANNER_HEIGHT = 40
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.white,
@@ -52,6 +52,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.medium,
   },
   contentMargin: {marginTop: MIN_BANNER_HEIGHT},
-})
+}))
 
 export default HeaderHoc(StandardScreen)

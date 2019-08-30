@@ -49,7 +49,7 @@ type SeitanIKey string
 // "Seitan Packed Encrypted Key" All following 3 structs should be considered one.
 // When any changes, version has to be bumped up.
 type SeitanPKey struct {
-	_struct              bool `codec:",toarray"`
+	_struct              bool `codec:",toarray"` //nolint
 	Version              SeitanVersion
 	TeamKeyGeneration    keybase1.PerTeamKeyGeneration
 	RandomNonce          keybase1.BoxNonce
@@ -168,7 +168,7 @@ func generateTeamInviteID(secretKey []byte, payload []byte) (id SCTeamInviteID, 
 	out := mac.Sum(nil)
 	out = out[0:15]
 	out = append(out, libkb.InviteIDTag)
-	id = SCTeamInviteID(hex.EncodeToString(out[:]))
+	id = SCTeamInviteID(hex.EncodeToString(out))
 	return id, nil
 
 }
@@ -188,7 +188,7 @@ func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 func packAndEncryptKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce, packedKeyAndLabel []byte, version SeitanVersion) (pkey SeitanPKey, encoded string, err error) {
 	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
 	var naclNonce [libkb.NaclDHNonceSize]byte = nonce
-	encryptedKeyAndLabel := secretbox.Seal(nil, []byte(packedKeyAndLabel), &naclNonce, &encKey)
+	encryptedKeyAndLabel := secretbox.Seal(nil, packedKeyAndLabel, &naclNonce, &encKey)
 
 	pkey = SeitanPKey{
 		Version:              version,

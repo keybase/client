@@ -88,9 +88,9 @@ const load = () => {
       />
     ))
     .add('Picker as popup dropdown from button', () => (state, setState) => (
-      <Kb.Box2 direction="vertical" alignItems={'center'} style={{height: 600, justifyContent: 'flex-end'}}>
+      <Kb.Box2 direction="vertical" alignItems="center" style={{height: 600, justifyContent: 'flex-end'}}>
         <FloatingRolePicker
-          position={'top center'}
+          position="top center"
           open={state.opened}
           {...rolePickerProps({
             headerText: 'Add them as:',

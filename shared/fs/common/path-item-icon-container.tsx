@@ -7,6 +7,7 @@ import PathItemIcon, {Size} from './path-item-icon'
 export type OwnProps = {
   badge?: Types.PathItemBadge | null
   path: Types.Path
+  showTlfTypeIcon?: boolean
   size: Size
   style?: Styles.StylesCrossPlatform
 }

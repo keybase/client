@@ -349,7 +349,7 @@ func TestLoadAfterAcctReset1(t *testing.T) {
 
 	loadUpak := func() error {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false)
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false).WithForceMerkleServerPolling(true)
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
@@ -556,4 +556,26 @@ func TestUPAKUnstub(t *testing.T) {
 
 	assertAllLinks(libkb.StubModeUnstubbed)
 	assertAllLinks(libkb.StubModeStubbed)
+}
+
+func TestInvalidation(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	u := CreateAndSignupFakeUser(tc, "first")
+	upl := tc.G.GetUPAKLoader()
+	mctx := NewMetaContextForTest(tc)
+	arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID())
+	upak, _, err := upl.LoadV2(arg)
+	require.NoError(t, err)
+	require.NotNil(t, upak)
+	upl.Invalidate(mctx.Ctx(), u.UID())
+	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly()
+	_, _, err = upl.LoadV2(arg)
+	require.Error(t, err)
+	require.IsType(t, libkb.UserNotFoundError{}, err)
+	require.Contains(t, err.Error(), "cached user found, but it was stale, and cached only")
+	arg = libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(u.UID()).WithCachedOnly().WithStaleOK(true)
+	upak, _, err = upl.LoadV2(arg)
+	require.NoError(t, err)
+	require.NotNil(t, upak)
 }

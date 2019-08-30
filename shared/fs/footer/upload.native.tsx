@@ -23,7 +23,11 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
 
   _mounted = false
 
-  _animations = {
+  _animations: {
+    in: NativeAnimated.CompositeAnimation | null
+    loop: NativeAnimated.CompositeAnimation | null
+    out: NativeAnimated.CompositeAnimation | null
+  } = {
     in: null,
     loop: null,
     out: null,
@@ -117,7 +121,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   render() {
     const {files, totalSyncingBytes, timeLeft, debugToggleShow} = this.props
     return (
-      <React.Fragment>
+      <>
         {!!debugToggleShow && <Button onClick={debugToggleShow} label="Toggle" />}
         {this.state.showing && (
           <NativeAnimated.View style={{position: 'relative', top: this.state.uploadTop}}>
@@ -142,7 +146,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
             </Box>
           </NativeAnimated.View>
         )}
-      </React.Fragment>
+      </>
     )
   }
 }

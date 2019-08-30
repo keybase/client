@@ -32,8 +32,6 @@ import (
 )
 
 const (
-	// 10 GB maximum storage by default
-	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
 	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
 	defaultBlockCacheCapacity       int    = 8 * opt.MiB
@@ -170,10 +168,14 @@ type DiskBlockCacheStatus struct {
 	LocalDiskBytesAvailable uint64
 	LocalDiskBytesTotal     uint64
 
-	BlockDBStats   []string `json:",omitempty"`
-	MetaDBStats    []string `json:",omitempty"`
-	TLFDBStats     []string `json:",omitempty"`
-	LastUnrefStats []string `json:",omitempty"`
+	BlockDBStats        []string `json:",omitempty"`
+	MetaDBStats         []string `json:",omitempty"`
+	TLFDBStats          []string `json:",omitempty"`
+	LastUnrefStats      []string `json:",omitempty"`
+	MemCompActive       bool     `json:",omitempty"`
+	TableCompActive     bool     `json:",omitempty"`
+	MetaMemCompActive   bool     `json:",omitempty"`
+	MetaTableCompActive bool     `json:",omitempty"`
 }
 
 type lastUnrefEntry struct {
@@ -1255,6 +1257,8 @@ func (cache *DiskBlockCacheLocal) Status(
 	defer cache.lock.RUnlock()
 
 	var blockStats, metaStats, tlfStats, lastUnrefStats []string
+	var memCompActive, tableCompActive bool
+	var metaMemCompActive, metaTableCompActive bool
 	if err := cache.checkCacheLocked("Block(Status)"); err == nil {
 		blockStats, err = cache.blockDb.StatStrings()
 		if err != nil {
@@ -1272,6 +1276,21 @@ func (cache *DiskBlockCacheLocal) Status(
 		if err != nil {
 			cache.log.CDebugf(ctx, "Couldn't get last unref db stats: %+v", err)
 		}
+		var dbStats leveldb.DBStats
+		err = cache.blockDb.Stats(&dbStats)
+		if err != nil {
+			cache.log.CDebugf(
+				ctx, "Couldn't get block db compaction stats: %+v", err)
+		}
+		memCompActive, tableCompActive =
+			dbStats.MemCompactionActive, dbStats.TableCompactionActive
+		err = cache.metaDb.Stats(&dbStats)
+		if err != nil {
+			cache.log.CDebugf(
+				ctx, "Couldn't get meta db compaction stats: %+v", err)
+		}
+		metaMemCompActive, metaTableCompActive =
+			dbStats.MemCompactionActive, dbStats.TableCompactionActive
 	}
 
 	// The disk cache status doesn't depend on the chargedTo ID, and
@@ -1295,6 +1314,10 @@ func (cache *DiskBlockCacheLocal) Status(
 			LocalDiskBytesTotal:     totalBytes,
 			BlockDBStats:            blockStats,
 			MetaDBStats:             metaStats,
+			MemCompActive:           memCompActive,
+			TableCompActive:         tableCompActive,
+			MetaMemCompActive:       metaMemCompActive,
+			MetaTableCompActive:     metaTableCompActive,
 			TLFDBStats:              tlfStats,
 			LastUnrefStats:          lastUnrefStats,
 		},

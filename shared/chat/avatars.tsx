@@ -57,7 +57,7 @@ const MutedIcon = (p: {
 
 class Avatars extends React.Component<AvatarProps> {
   shouldComponentUpdate(nextProps: AvatarProps) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+    return !shallowEqual(this.props, nextProps, (_, __, key) => {
       if (key === 'participants') {
         return shallowEqual(this.props.participants, nextProps.participants)
       }
@@ -78,7 +78,6 @@ class Avatars extends React.Component<AvatarProps> {
           loadingColor: globalColors.greyLight,
           size: 32,
           skipBackground: isMobile,
-          skipBackgroundAfterLoaded: isMobile,
           username,
         } as const)
     )

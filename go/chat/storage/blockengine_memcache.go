@@ -43,7 +43,7 @@ func newBlockEngineMemCache() *blockEngineMemCacheImpl {
 	return &blockEngineMemCacheImpl{
 		blockCache: c,
 		logContext: newLogContext(),
-		lockTab:    &libkb.LockTable{},
+		lockTab:    libkb.NewLockTable(),
 	}
 }
 
@@ -73,7 +73,16 @@ func (b *blockEngineMemCacheImpl) getBlock(ctx context.Context, uid gregor1.UID,
 func (b *blockEngineMemCacheImpl) writeBlock(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, bl block) {
 	key := b.key(uid, convID, bl.BlockID)
-	b.blockCache.Add(key, bl)
+	lock := b.lockTab.AcquireOnName(ctx, b.logContext, key)
+	defer lock.Release(ctx)
+	var storedMsgs [blockSize]chat1.MessageUnboxed
+	for i := 0; i < blockSize; i++ {
+		storedMsgs[i] = bl.Msgs[i].DeepCopy()
+	}
+	b.blockCache.Add(key, block{
+		BlockID: bl.BlockID,
+		Msgs:    storedMsgs,
+	})
 }
 
 func (b *blockEngineMemCacheImpl) OnLogout(m libkb.MetaContext) error {

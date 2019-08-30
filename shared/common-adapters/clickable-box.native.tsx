@@ -1,8 +1,8 @@
 import * as React from 'react'
 import {Props} from './clickable-box'
 import Box from './box'
-import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import {collapseStyles, globalColors} from '../styles'
+import {NativeTouchableOpacity, NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import {collapseStyles} from '../styles'
 
 class ClickableBox extends React.Component<Props> {
   render() {
@@ -12,15 +12,13 @@ class ClickableBox extends React.Component<Props> {
       const clickStyle = collapseStyles([boxStyle, props.style])
       if (feedback) {
         return (
-          <TouchableOpacity
+          <NativeTouchableOpacity
             disabled={!props.onClick}
             onPress={props.onClick}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             onLongPress={props.onLongPress}
-            pointerEvents={props.pointerEvents}
             style={clickStyle}
-            underlayColor={props.underlayColor || globalColors.white}
             activeOpacity={
               // Auto generated from flowToTs. Please clean me!
               this.props.activeOpacity !== null && this.props.activeOpacity !== undefined
@@ -29,20 +27,19 @@ class ClickableBox extends React.Component<Props> {
             }
           >
             {props.children}
-          </TouchableOpacity>
+          </NativeTouchableOpacity>
         )
       } else {
         return (
-          <TouchableWithoutFeedback
+          <NativeTouchableWithoutFeedback
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
             style={clickStyle}
             onPress={props.onClick}
-            pointerEvents={props.pointerEvents}
             onLongPress={props.onLongPress}
           >
             {props.children}
-          </TouchableWithoutFeedback>
+          </NativeTouchableWithoutFeedback>
         )
       }
     } else {

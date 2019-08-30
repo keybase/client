@@ -5,11 +5,11 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
 import RenameTeam from '.'
 
-type OwnProps = Container.RouteProps< { teamname: string } >
+type OwnProps = Container.RouteProps<{teamname: string}>
 
 const mapStateToProps = (state, ownProps) => ({
   error: Container.anyErrors(state, Constants.teamRenameWaitingKey),
-  teamname: Container.getRouteProps(ownProps, 'teamname'),
+  teamname: Container.getRouteProps(ownProps, 'teamname', ''),
   title: 'Rename subteam',
   waiting: Container.anyWaiting(state, Constants.teamRenameWaitingKey),
 })
@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   // Auto generated from flowToTs. Please clean me!
   error:
     (stateProps.error === null || stateProps.error === undefined ? undefined : stateProps.error.message) ||

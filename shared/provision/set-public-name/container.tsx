@@ -1,49 +1,35 @@
 import * as ProvisionGen from '../../actions/provision-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/provision'
 import SetPublicName from '.'
-import {connect, withStateHandlers, compose, safeSubmit} from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
+import * as Container from '../../util/container'
+import * as LoginGen from '../../actions/login-gen'
+import HiddenString from '../../util/hidden-string'
 
-type OwnProps = {
-  deviceName: string
-  onChange: (text: string) => void
-} & RouteProps
-
-const mapStateToProps = state => ({
+const mapStateToProps = (state: Container.TypedState) => ({
   _existingDevices: state.provision.existingDevices,
+  configuredAccounts: state.config.configuredAccounts,
   error: state.provision.error.stringValue(),
+  waiting: Container.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
-  // TODO remove
-  onBack: () => {},
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
+  onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const submitEnabled = !!(ownProps.deviceName.length >= 3 && ownProps.deviceName.length <= 64)
-  const onSubmit = submitEnabled ? () => dispatchProps._onSubmit(ownProps.deviceName) : null
+export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => {
+  const loggedInAccounts = stateProps.configuredAccounts
+    .filter(account => account.hasStoredSecret)
+    .map(ac => ac.username)
   return {
-    deviceName: ownProps.deviceName,
     error: stateProps.error,
-    onBack: dispatchProps.onBack,
-    onChange: ownProps.onChange,
-    onSubmit,
+    onBack:
+      loggedInAccounts.size > 0
+        ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '')
+        : dispatchProps._onBack,
+    onSubmit: dispatchProps.onSubmit,
+    waiting: stateProps.waiting,
   }
-}
-
-export default compose(
-  withStateHandlers<any, any, any>(
-    {deviceName: ''},
-    {
-      onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
-    }
-  ),
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  safeSubmit(['onSubmit', 'onBack'], ['deviceName', 'error'])
-  // @ts-ignore
-)(SetPublicName)
+})(Container.safeSubmit(['onSubmit', 'onBack'], ['error'])(SetPublicName))

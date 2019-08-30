@@ -154,13 +154,13 @@ func (c *CmdLogSend) getFeedback() (err error) {
 func (c *CmdLogSend) outputInstructions(id keybase1.LogSendID) {
 	ui := c.G().UI.GetTerminalUI()
 
-	ui.Printf("\n\n------------\n")
-	ui.Printf("Success! Your log ID is:\n\n")
-	ui.Printf("  %s\n\n", id)
-	ui.Printf("Here's a URL to submit new bug reports containing this ID:\n\n")
-	ui.Output("  https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20" + string(id))
-	ui.Printf("\n\nThanks!\n")
-	ui.Printf("------------\n\n")
+	_, _ = ui.Printf("\n\n------------\n")
+	_, _ = ui.Printf("Success! Your log ID is:\n\n")
+	_, _ = ui.Printf("  %s\n\n", id)
+	_, _ = ui.Printf("Here's a URL to submit new bug reports containing this ID:\n\n")
+	_ = ui.Output("  https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20" + string(id))
+	_, _ = ui.Printf("\n\nThanks!\n")
+	_, _ = ui.Printf("------------\n\n")
 }
 
 func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {

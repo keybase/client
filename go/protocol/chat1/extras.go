@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"hash"
@@ -64,6 +65,10 @@ func MakeConvID(val string) (ConversationID, error) {
 
 func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
+}
+
+func (cid ConversationID) Bytes() []byte {
+	return []byte(cid)
 }
 
 func (cid ConversationID) IsNil() bool {
@@ -150,6 +155,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
 	MessageType_UNFURL,
+	MessageType_PIN,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -173,6 +179,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
 	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
 }
 
 func VisibleChatMessageTypes() []MessageType {
@@ -384,6 +392,13 @@ func (m MessageUnboxed) IsOutbox() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -475,6 +490,14 @@ func (m MessageUnboxed) ChannelMention() ChannelMention {
 	return m.Valid().ChannelMention
 }
 
+func (m MessageUnboxed) SenderIsBot() bool {
+	if m.IsValid() {
+		valid := m.Valid()
+		return gregor1.UIDPtrEq(valid.ClientHeader.BotUID, &valid.ClientHeader.Sender)
+	}
+	return false
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
@@ -551,7 +574,7 @@ const (
 // there.
 var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V4
 var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
-var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V1
+var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V2
 
 // ParseableVersion checks if this error has a version that is now able to be
 // understood by our client.
@@ -624,6 +647,10 @@ func (m *MsgEphemeralMetadata) String() string {
 		explodedBy = *m.ExplodedBy
 	}
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
+}
+
+func (m MessagePlaintext) SearchableText() string {
+	return m.MessageBody.SearchableText()
 }
 
 func (m MessagePlaintext) IsEphemeral() bool {
@@ -756,6 +783,13 @@ func (m UIMessage) IsValid() bool {
 func (m UIMessage) IsOutbox() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
+func (m UIMessage) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
 	}
 	return false
 }
@@ -1466,6 +1500,10 @@ func (r *JoinLeaveConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *PreviewConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1835,6 +1873,14 @@ func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *PreviewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PreviewConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *DeleteConversationLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2057,6 +2103,71 @@ func (r *LoadGalleryRes) GetRateLimit() []RateLimit {
 
 func (r *LoadGalleryRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
+}
+
+func (r *ListBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ListBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PinMessageRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PinMessageRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ClearBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *ClearBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *ClearBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AdvertiseBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetBotInfoRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
 }
 
 func (i EphemeralPurgeInfo) String() string {
@@ -2385,4 +2496,62 @@ func (c Coordinate) IsZero() bool {
 
 func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
+}
+
+func (b BotInfo) Hash() BotInfoHash {
+	hash := sha256Pool.Get().(hash.Hash)
+	defer sha256Pool.Put(hash)
+	hash.Reset()
+	sort.Slice(b.CommandConvs, func(i, j int) bool {
+		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
+		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
+		return ikey < jkey
+	})
+	for _, cconv := range b.CommandConvs {
+		hash.Write(cconv.ConvID)
+		hash.Write(cconv.Uid)
+		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
+	}
+	return BotInfoHash(hash.Sum(nil))
+}
+
+func (b BotInfoHash) Eq(h BotInfoHash) bool {
+	return bytes.Equal(b, h)
+}
+
+func (p AdvertiseCommandsParam) ToRemote(convID ConversationID, tlfID *TLFID) (res RemoteBotCommandsAdvertisement, err error) {
+	switch p.Typ {
+	case BotCommandsAdvertisementTyp_PUBLIC:
+		return NewRemoteBotCommandsAdvertisementWithPublic(RemoteBotCommandsAdvertisementPublic{
+			ConvID: convID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_CONVS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidConvs(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	case BotCommandsAdvertisementTyp_TLFID_MEMBERS:
+		if tlfID == nil {
+			return res, errors.New("no TLFID specified")
+		}
+		return NewRemoteBotCommandsAdvertisementWithTlfidMembers(RemoteBotCommandsAdvertisementTLFID{
+			ConvID: convID,
+			TlfID:  *tlfID,
+		}), nil
+	default:
+		return res, errors.New("unknown bot advertisement typ")
+	}
+}
+
+func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
+	return UserBotCommandOutput{
+		Name:                c.Name,
+		Description:         c.Description,
+		Usage:               c.Usage,
+		ExtendedDescription: c.ExtendedDescription,
+		Username:            username,
+	}
 }

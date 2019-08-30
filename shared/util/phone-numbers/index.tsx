@@ -1,9 +1,10 @@
 import {isMobile} from '../../constants/platform'
 import libphonenumber from 'google-libphonenumber'
 import countries from './country-data/countries.json'
-import supportedCodes from './sms-support/data.json'
+import _supportedCodes from './sms-support/data.json'
 import {emojiIndexByChar} from '../../common-adapters/markdown/emoji-gen'
 
+const supportedCodes: {[key: string]: boolean} = _supportedCodes
 const PNF = libphonenumber.PhoneNumberFormat
 export const PhoneNumberFormat = PNF
 
@@ -32,13 +33,15 @@ countries.forEach(curr => {
     curr.countryCallingCodes.length &&
     supported.includes(curr.alpha2)
   ) {
+    // @ts-ignore
+    const emojiText: string = emojiIndexByChar[curr.emoji || -1] || ''
     // see here for why we check status is 'assigned'
     // https://github.com/OpenBookPrices/country-data/tree/011dbb6658b0df5a36690af7086baa3e5c20c30c#status-notes
     countryDataRaw[curr.alpha2] = {
       alpha2: curr.alpha2,
       callingCode: curr.countryCallingCodes[0],
       emoji: curr.emoji || '',
-      emojiText: emojiIndexByChar[curr.emoji || -1] || '',
+      emojiText,
       example: phoneUtil.format(phoneUtil.getExampleNumber(curr.alpha2), PNF.NATIONAL),
       name: curr.name,
       pickerText:
@@ -55,7 +58,7 @@ countries.forEach(curr => {
 export const countryData: {[key: string]: CountryData} = countryDataRaw
 export const codeToCountry: {[key: string]: string} = codeToCountryRaw
 
-const canadianAreaCodes = {
+const canadianAreaCodes: {[key: string]: boolean} = {
   '204': true,
   '226': true,
   '236': true,
@@ -102,12 +105,13 @@ export const areaCodeIsCanadian = (input: string): boolean => {
   return !!canadianAreaCodes[input]
 }
 
-export const validateNumber = (rawNumber: string, region?: string) => {
+export const validateNumber = (rawNumber: string, region?: string | null) => {
   try {
-    const number = phoneUtil.parse(rawNumber, region)
-    const valid = phoneUtil.isValidNumberForRegion(number, region)
+    const phoneNumber = phoneUtil.parse(rawNumber, region || '')
+    const valid = phoneUtil.isValidNumber(phoneNumber)
     return {
-      e164: phoneUtil.format(number, PNF.E164),
+      e164: phoneUtil.format(phoneNumber, PNF.E164),
+      phoneNumber,
       valid,
     }
   } catch (e) {
@@ -116,9 +120,41 @@ export const validateNumber = (rawNumber: string, region?: string) => {
 }
 
 export const formatPhoneNumber = (rawNumber: string) => {
-  // TODO: support non-US numbers
-  const number = phoneUtil.parse(rawNumber, 'US')
-  return `+${number.getCountryCode()} ${phoneUtil.format(number, PNF.NATIONAL)}`
+  const phoneNumber = phoneUtil.parse(rawNumber, '')
+  return `+${phoneNumber.getCountryCode()} ${phoneUtil.format(phoneNumber, PNF.NATIONAL)}`
+}
+
+export const formatAnyPhoneNumbers = (rawText: string) => {
+  const found = rawText.match(/(\+)?(\d)+/)
+  const rawNumber = found ? found[0] : ''
+  const validatedNumber = validateNumber(rawNumber)
+  const phoneNumber = validatedNumber.phoneNumber
+  if (!validatedNumber.valid || !phoneNumber) return rawText
+  const replacement = `+${phoneNumber.getCountryCode()} ${phoneUtil.format(phoneNumber, PNF.NATIONAL)}`
+  return rawText.replace(rawNumber, replacement)
+}
+
+// Return phone number in international format, e.g. +1 800 555 0123
+// or e.164 if parsing fails
+export const e164ToDisplay = (e164: string): string => {
+  try {
+    const phoneNumber = phoneUtil.parse(e164)
+    if (phoneNumber.getCountryCode() === 1) {
+      return '+1 ' + phoneUtil.format(phoneNumber, PNF.NATIONAL)
+    }
+    return phoneUtil.format(phoneNumber, PNF.INTERNATIONAL)
+  } catch (e) {
+    return e164
+  }
 }
 
 export const AsYouTypeFormatter = libphonenumber.AsYouTypeFormatter
+
+export const formatPhoneNumberInternational = (rawNumber: string): string | undefined => {
+  try {
+    const phoneNumber = phoneUtil.parse(rawNumber)
+    return phoneUtil.format(phoneNumber, PNF.INTERNATIONAL)
+  } catch {
+    return undefined
+  }
+}

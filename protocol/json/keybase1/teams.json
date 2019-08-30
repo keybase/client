@@ -11,7 +11,8 @@
         "WRITER_2",
         "ADMIN_3",
         "OWNER_4",
-        "BOT_5"
+        "BOT_5",
+        "RESTRICTEDBOT_6"
       ]
     },
     {
@@ -276,6 +277,13 @@
             "items": "UserVersion"
           },
           "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "restrictedBots"
         }
       ]
     },
@@ -353,6 +361,13 @@
             "items": "TeamMemberDetails"
           },
           "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "restrictedBots"
         }
       ]
     },
@@ -433,6 +448,14 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": "TeamBotSettings",
+            "keys": "UserVersion"
+          },
+          "name": "restrictedBots"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "UserVersion"
           },
@@ -491,7 +514,7 @@
             "type": "array",
             "items": "UserVersion"
           },
-          "name": "onlyBots"
+          "name": "onlyRestrictedBots"
         },
         {
           "type": {
@@ -744,6 +767,18 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "needRotate"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleRoots"
         }
       ]
     },
@@ -1059,6 +1094,10 @@
             "keys": "Seqno"
           },
           "name": "tails"
+        },
+        {
+          "type": "Time",
+          "name": "skipUntil"
         }
       ]
     },
@@ -1392,6 +1431,14 @@
         {
           "type": "TeamRole",
           "name": "openTeamJoinAs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamBotSettings",
+            "keys": "UserVersion"
+          },
+          "name": "bots"
         },
         {
           "type": {
@@ -2046,6 +2093,14 @@
         {
           "type": "boolean",
           "name": "allowNameLookupBurstCache"
+        },
+        {
+          "type": "boolean",
+          "name": "skipAudit"
+        },
+        {
+          "type": "boolean",
+          "name": "skipNeedHiddenRotateCheck"
         }
       ]
     },
@@ -2427,6 +2482,34 @@
     },
     {
       "type": "record",
+      "name": "TeamBotSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "cmds"
+        },
+        {
+          "type": "boolean",
+          "name": "mentions"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "triggers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "convs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamRequestAccessResult",
       "fields": [
         {
@@ -2513,6 +2596,13 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "TeamBotSettings"
+          ],
+          "name": "botSettings"
         }
       ]
     },
@@ -2722,6 +2812,10 @@
         {
           "type": "boolean",
           "name": "deleteTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "pinMessage"
         }
       ]
     },
@@ -2769,6 +2863,34 @@
         {
           "type": "string",
           "name": "disabledReason"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberEmail",
+      "fields": [
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberUsername",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "role"
         }
       ]
     }
@@ -2961,6 +3083,13 @@
           "type": "TeamRole"
         },
         {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
+        },
+        {
           "name": "sendChatNotification",
           "type": "boolean"
         }
@@ -2987,6 +3116,13 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
         },
         {
           "name": "sendChatNotification",
@@ -3078,6 +3214,13 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
         }
       ],
       "response": null

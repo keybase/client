@@ -141,6 +141,9 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory 
 	} else {
 		found, err := i.readDiskBox(ctx, i.dbKey(uid), &ibox)
 		if err != nil {
+			if _, ok := err.(libkb.LoginRequiredError); ok {
+				return ibox, MiscError{Msg: err.Error()}
+			}
 			return ibox, NewInternalError(ctx, i.DebugLabeler,
 				"failed to read inbox: uid: %d err: %s", uid, err)
 		}
@@ -212,6 +215,9 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 			Public:      rc.Conv.IsPublic(),
 			MembersType: rc.Conv.GetMembersType(),
 		})
+		if len(writable) > 200 {
+			break
+		}
 	}
 	sif, err := i.sharedInboxFile(ctx, uid)
 	if err != nil {
@@ -341,7 +347,10 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 	}
 
 	hasher := sha1.New()
-	hasher.Write(dat)
+	_, err = hasher.Write(dat)
+	if err != nil {
+		return nil, NewInternalError(ctx, i.DebugLabeler, "failed to write query: %s", err.Error())
+	}
 	return hasher.Sum(nil), nil
 }
 
@@ -350,7 +359,9 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("MergeLocalMetadata: num convs: %d", len(convs)))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-
+	if len(convs) == 0 {
+		return nil
+	}
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
@@ -999,6 +1010,28 @@ func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1
 	return i.writeDiskInbox(ctx, uid, ibox)
 }
 
+func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text *string) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "MarkLocalRead: no conversation found: convID: %s", convID)
+		return nil
+	}
+	conv.LocalDraft = text
+	conv.Conv.Metadata.LocalVersion++
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
@@ -1526,8 +1559,7 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 		}
 		return 0, err
 	}
-	vers = chat1.InboxVers(ibox.InboxVersion)
-	return vers, nil
+	return ibox.InboxVersion, nil
 }
 
 func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, err Error) {

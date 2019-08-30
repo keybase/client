@@ -10,6 +10,7 @@ import Transaction from '../transaction/container'
 const stripePatternName = Styles.isMobile
   ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
   : 'pattern-stripes-blue-5-black-5-desktop.png'
+
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
 export type Props = {
@@ -19,7 +20,7 @@ export type Props = {
   onBack: () => void
   onLoadMore: () => void
   onMarkAsRead: () => void
-  sections: Array<{data: any; title: string | React.ReactNode; stripeHeader?: boolean}>
+  sections: Array<{data: any; title: string | React.ReactNode; kind: string; stripeHeader?: boolean}>
 }
 
 const HistoryPlaceholder = () => (
@@ -35,14 +36,14 @@ export const AssetSectionTitle = (props: {onSetupTrustline: () => void; thisDevi
     Your assets
     {!props.thisDeviceIsLockedOut && (
       <Kb.Text type="BodySmallSemibold">
-        &nbsp; (
+        &nbsp;(
         <Kb.Text
           className="hover-underline"
           onClick={props.onSetupTrustline}
           style={styles.clickable}
           type="BodySmallSemibold"
         >
-          manage
+          Manage
         </Kb.Text>
         )
       </Kb.Text>
@@ -74,9 +75,7 @@ class Wallet extends React.Component<Props> {
           gapStart={true}
         >
           <Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />
-          <Kb.Text type="BodySmall">
-            {section.title === 'Your assets' ? 'Loading assets...' : 'Loading payments...'}
-          </Kb.Text>
+          <Kb.Text type="BodySmall">Loading {section.kind}...</Kb.Text>
         </Kb.Box2>
       )
     } else if (item === 'noPayments') {
@@ -128,7 +127,11 @@ class Wallet extends React.Component<Props> {
     )
 
   _onEndReached = () => {
-    this.props.onLoadMore()
+    // React native's SectionList seems to call the onEndReached method twice each time it hits the end of the list
+    // so only dispatch the action if we aren't already waiting for more data
+    if (!this.props.loadingMore) {
+      this.props.onLoadMore()
+    }
   }
 
   render() {

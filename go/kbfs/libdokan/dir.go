@@ -308,13 +308,16 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		if c := lowerTranslateCandidate(oc, path[0]); c != "" {
 			var hit string
 			var nhits int
-			d.FindFiles(ctx, nil, c, func(ns *dokan.NamedStat) error {
+			err := d.FindFiles(ctx, nil, c, func(ns *dokan.NamedStat) error {
 				if strings.ToLower(ns.Name) == c {
 					hit = ns.Name
 					nhits++
 				}
 				return nil
 			})
+			if err != nil {
+				return nil, 0, dokan.ErrObjectNameNotFound
+			}
 			if nhits != 1 {
 				return nil, 0, dokan.ErrObjectNameNotFound
 			}
@@ -364,7 +367,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 
 		if newNode != nil {
 			d.folder.mu.Lock()
-			f, _ := d.folder.nodes[newNode.GetID()]
+			f := d.folder.nodes[newNode.GetID()]
 			d.folder.mu.Unlock()
 			// Symlinks don't have stored nodes, so they are impossible here.
 			switch x := f.(type) {

@@ -4,7 +4,7 @@ import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {quit, hideWindow} from '../util/quit-helper.desktop'
+import {quit} from '../desktop/app/ctl.desktop'
 import {loginTab, AppTab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -15,6 +15,12 @@ import {isWindows, isDarwin, isLinux} from '../constants/platform'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/fs'
+
+const hideWindow = () => {
+  SafeElectron.getRemote()
+    .getCurrentWindow()
+    .hide()
+}
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
@@ -27,7 +33,7 @@ const mapDispatchToProps = dispatch => ({
   },
   logIn: () => {
     dispatch(ConfigGen.createShowMain())
-    dispatch(RouteTreeGen.createNavigateTo({path: [loginTab]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [loginTab]}))
   },
   onHideDiskSpaceBanner: dispatch(FsGen.createShowHideDiskSpaceBanner({show: false})),
   onRekey: () => {
@@ -49,7 +55,7 @@ const mapDispatchToProps = dispatch => ({
     // In case dump log doesn't exit for us
     hideWindow()
     setTimeout(() => {
-      quit('quitButton')
+      quit()
     }, 2000)
   },
   refreshUserFileEdits: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),

@@ -1,3 +1,6 @@
 import * as React from 'react'
-const LongPressable = (p: any) => <div {...p} />
+
+const LongPressable = React.forwardRef((props, ref: React.Ref<HTMLDivElement>) => (
+  <div {...props} ref={ref} />
+))
 export default LongPressable

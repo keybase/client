@@ -2,8 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, isMobile, Route} from '../util/container'
-import {WithoutPopupProps, HocExtractProps} from '../common-adapters/popup-dialog-hoc'
-import {InferableComponentEnhancerWithProps, Matching} from 'react-redux'
+import {HocExtractProps} from '../common-adapters/popup-dialog-hoc'
 
 const dispatchProps = dispatch => ({
   onClosePopup: () => {
@@ -23,7 +22,7 @@ function Modal<P extends {}>(
   )(withPopup)
 }
 
-export function modalizeRoute(route: Route) {
+export function modalizeRoute<T extends Route>(route: T) {
   if (isMobile) {
     return route
   }

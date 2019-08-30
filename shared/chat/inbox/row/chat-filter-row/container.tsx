@@ -20,11 +20,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     filter: ownProps.query,
     isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
-    showNewTag: state.chat2.inboxShowNew,
+    showNewTag: isMobile && state.chat2.inboxShowNew, // PICNIC-403
   }
 }
 
-const mapDispatchToProps = (dispatch, {focusFilter}) => ({
+const mapDispatchToProps = dispatch => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(appendNewChatBuilder())

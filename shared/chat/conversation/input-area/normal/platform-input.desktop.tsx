@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
@@ -11,10 +12,10 @@ import WalletsIcon from './wallets-icon/container'
 import {PlatformInputPropsInternal} from './platform-input'
 import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
+import {BotCommandUpdateStatus} from './shared'
 
 type State = {
   emojiPickerOpen: boolean
-  hasText: boolean
 }
 
 class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
@@ -23,7 +24,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   _fileInput: HTMLInputElement | null = null
   state = {
     emojiPickerOpen: false,
-    hasText: false,
   }
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
@@ -94,7 +94,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
     this._lastText = text
     this.props.onChangeText(text)
   }
@@ -169,7 +168,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     this.props.toggleShowingMenu()
   }
 
-  render = () => {
+  render() {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
       hintText = 'Write an exploding message'
@@ -186,6 +185,12 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
         onKeyDown={this._globalKeyDownPressHandler}
         onKeyPress={this._globalKeyDownPressHandler}
       >
+        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
+          (this.props.suggestionsVisible ||
+            this.props.suggestBotCommandsUpdateStatus ===
+              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+            <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+          )}
         <Kb.Box style={styles.container}>
           <Kb.Box
             style={Styles.collapseStyles([
@@ -244,7 +249,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
-                className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+                className="mousetrap"
                 disabled={
                   // Auto generated from flowToTs. Please clean me!
                   this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
@@ -254,7 +259,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}
-                style={styles.input}
+                style={Styles.collapseStyles([styles.input, this.props.isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -320,8 +325,8 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
         <Picker
           autoFocus={true}
           onClick={onClick}
-          emoji={'ghost'}
-          title={'emojibase'}
+          emoji="ghost"
+          title="emojibase"
           backgroundImageFn={backgroundImageFn}
         />
       </Kb.Box>
@@ -329,7 +334,7 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -355,7 +360,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.black,
+      backgroundColor: Styles.globalColors.blackOrWhite,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
@@ -368,7 +373,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   cancelEditingText: {
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.blackOrBlack,
   },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -444,6 +449,9 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
     textAlign: 'left',
   },
+  inputEditing: {
+    color: Styles.globalColors.blackOrWhite,
+  },
   inputWrapper: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-end',
@@ -474,7 +482,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 6,
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {

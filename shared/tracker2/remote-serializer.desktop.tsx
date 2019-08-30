@@ -6,7 +6,8 @@ import shallowEqual from 'shallowequal'
 // We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
 export const serialize: any = {
   ...Avatar.serialize,
-  assertions: (v, o) => (v ? v.toJS() : v),
+  airdropIsLive: v => v,
+  assertions: v => (v ? v.toJS() : v),
   bio: v => v,
   followThem: v => v,
   followersCount: v => v,
@@ -28,17 +29,14 @@ export const serialize: any = {
   windowParam: v => v,
   windowPositionBottomRight: v => v,
   windowTitle: v => v,
+  youAreInAirdrop: v => v,
 }
 
 const initialState = {
   assertions: I.Map(),
-  config: {},
-  users: {
-    infoMap: I.Map(),
-  },
-  waiting: {
-    counts: I.Map(),
-  },
+  config: {following: I.Set()},
+  users: {infoMap: I.Map()},
+  waiting: {counts: I.Map()},
 }
 
 export const deserialize = (state: any = initialState, props: any) => {
@@ -56,23 +54,13 @@ export const deserialize = (state: any = initialState, props: any) => {
         }
       : {}),
     ...(props && props.teamShowcase
-      ? {
-          teamShowcase: I.List(props.teamShowcase.map(t => Constants.makeTeamShowcase(t))),
-        }
+      ? {teamShowcase: I.List(props.teamShowcase.map(t => Constants.makeTeamShowcase(t)))}
       : {}),
     ...(props && props.username
-      ? {
-          users: {
-            infoMap: I.Map([[props.username, {broken: false, fullname: props.fullname}]]),
-          },
-        }
+      ? {users: {infoMap: I.Map([[props.username, {broken: false, fullname: props.fullname}]])}}
       : {}),
     ...(props && Object.prototype.hasOwnProperty.call(props, 'waiting')
-      ? {
-          waiting: {
-            counts: I.Map([[Constants.waitingKey, props.waiting || 0]]),
-          },
-        }
+      ? {waiting: {counts: I.Map([[Constants.waitingKey, props.waiting || 0]])}}
       : {}),
   }
   return Avatar.deserialize(newState, props)

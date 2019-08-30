@@ -2,9 +2,9 @@
 
 protocol chatUi {
 
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
+  import idl "../keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../stellar1" as stellar1;
   import idl "common.avdl";
   import idl "unfurl.avdl";
   import idl "commands.avdl";
@@ -46,6 +46,7 @@ protocol chatUi {
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
+    union { null, string } draft;
 
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
@@ -62,8 +63,9 @@ protocol chatUi {
 
     enum UIParticipantType {
     NONE_0,
-    USER_1,
-    CONTACT_2 // phone number or email address
+    USER_1, // Keybase or SBS
+    PHONENO_2,
+    EMAIL_3
   }
 
   record UIParticipant {
@@ -71,6 +73,11 @@ protocol chatUi {
     string assertion;
     union { null, string } fullName;
     union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
+  }
+
+  record UIPinnedMessage {
+    UIMessage message;
+    string pinnerUsername;
   }
 
   record InboxUIItem {
@@ -84,6 +91,7 @@ protocol chatUi {
     string channel;
     string headline;
     string headlineDecorated;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     array<UIParticipant> participants;
     array<string> resetParticipants;
@@ -108,7 +116,12 @@ protocol chatUi {
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
+    // Command support
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
+
+    // Pinned message
+    union { null, UIPinnedMessage} pinnedMsg;
   }
 
   record InboxUIItemError {
@@ -155,8 +168,9 @@ protocol chatUi {
     string fromUsername;
     string toUsername;
     // for path payments
-    string sourceAmount;  
+    string sourceAmount;
     stellar1.Asset sourceAsset;
+    string issuerDescription;
   }
 
   record UIRequestInfo {
@@ -208,6 +222,8 @@ protocol chatUi {
     boolean isDeleteable;
     boolean isEditable;
     union { null, UIMessage } replyTo;
+    // TODO HOTPOT-330 convert to bot username
+    union { null, gregor1.UID } botUID;
   }
 
   record UIMessageOutbox {
@@ -301,8 +317,21 @@ protocol chatUi {
   void chatInboxConversation(int sessionID, string conv);
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
-  void chatThreadCached(int sessionID, union { null, string } thread) oneway;
-  void chatThreadFull(int sessionID, string thread) oneway;
+  enum UIChatThreadStatusTyp {
+    NONE_0,
+    SERVER_1,
+    VALIDATING_2,
+    VALIDATED_3
+  }
+  variant UIChatThreadStatus switch (UIChatThreadStatusTyp typ) {
+    case NONE: void;
+    case SERVER: void;
+    case VALIDATING: int;
+    case VALIDATED: void;
+  }
+  void chatThreadCached(int sessionID, union { null, string } thread);
+  void chatThreadFull(int sessionID, string thread);
+  void chatThreadStatus(int sessionID, UIChatThreadStatus status);
 
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
@@ -456,4 +485,11 @@ protocol chatUi {
     APPSETTINGS_0
   }
   void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
+  enum UIBotCommandsUpdateStatus {
+    UPTODATE_0,
+    UPDATING_1,
+    FAILED_2,
+    BLANK_3
+  }
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status);
 }

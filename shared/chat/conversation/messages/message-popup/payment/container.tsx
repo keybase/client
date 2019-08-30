@@ -66,12 +66,7 @@ const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps
 
 const sendMapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
-  onClaimLumens: () =>
-    dispatch(
-      Container.isMobile
-        ? RouteTreeGen.createNavigateTo({path: WalletConstants.rootWalletPath})
-        : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
-    ),
+  onClaimLumens: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) =>
     dispatch(WalletGen.createShowTransaction({accountID, paymentID})),
 })
@@ -110,13 +105,20 @@ const sendMergeProps = (
   const {_you: you} = stateProps
   const youAreSender = you === paymentInfo.fromUsername
   const youAreReceiver = you === paymentInfo.toUsername
+
+  const sourceAmountDesc = `${paymentInfo.sourceAmount} ${paymentInfo.sourceAsset.code || 'XLM'}`
+  const balanceChangeAmount =
+    paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
+      ? sourceAmountDesc
+      : paymentInfo.amountDescription
+
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     approxWorth: paymentInfo.worthAtSendTime,
     attachTo: ownProps.attachTo,
-    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
+    balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`,
     balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
-    bottomLine: '', // TODO on asset support in payment
+    bottomLine: paymentInfo.issuerDescription,
     cancelButtonLabel: 'Cancel',
     errorDetails:
       paymentInfo.status === 'error' ||

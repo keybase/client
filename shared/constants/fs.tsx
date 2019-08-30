@@ -299,12 +299,14 @@ export const makeDriverStatusDisabled = I.Record<Types._DriverStatusDisabled>({
 export const defaultDriverStatus = isLinux ? makeDriverStatusEnabled() : makeDriverStatusUnknown()
 
 export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManagerIntegration>({
+  directMountDir: '',
   driverStatus: defaultDriverStatus,
+  preferredMountDirs: I.List(),
   showingBanner: false,
 })
 
 export const makeKbfsDaemonStatus = I.Record<Types._KbfsDaemonStatus>({
-  online: false,
+  onlineStatus: Types.KbfsDaemonOnlineStatus.Unknown,
   rpcStatus: Types.KbfsDaemonRpcStatus.Unknown,
 })
 
@@ -346,7 +348,10 @@ export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
 export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
   PathType: RPCTypes.PathType.kbfs,
-  kbfs: Types.pathToString(path).substring('/keybase'.length) || '/',
+  kbfs: {
+    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+    path: Types.pathToString(path).substring('/keybase'.length) || '/',
+  },
 })
 
 export const pathTypeToTextType = (type: Types.PathType) =>
@@ -357,6 +362,11 @@ export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
     .split(' ')[0]
     .replace(/#/g, ',')
     .split(',')
+
+export const getUsernamesFromPath = (path: Types.Path): Array<string> => {
+  const elems = Types.getPathElements(path)
+  return elems.length < 3 ? [] : splitTlfIntoUsernames(elems[2])
+}
 
 export const humanReadableFileSize = (size: number) => {
   const kib = 1024
@@ -663,7 +673,7 @@ export const isOfflineUnsynced = (
   path: Types.Path
 ) =>
   flags.kbfsOfflineMode &&
-  !daemonStatus.online &&
+  daemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
   Types.getPathLevel(path) > 2 &&
   pathItem.prefetchStatus !== prefetchComplete
 
@@ -684,9 +694,9 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
 }
 
 export const escapePath = (path: Types.Path): string =>
-  Types.pathToString(path).replace(/(\\)|( )/g, (match, p1, p2) => `\\${p1 || p2}`)
+  Types.pathToString(path).replace(/(\\)|( )/g, (_, p1, p2) => `\\${p1 || p2}`)
 export const unescapePath = (escaped: string): Types.Path =>
-  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (match, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
+  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (_, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
 
 const makeParsedPathRoot = I.Record<Types._ParsedPathRoot>({kind: Types.PathKind.Root})
 export const parsedPathRoot: Types.ParsedPathRoot = makeParsedPathRoot()
@@ -935,9 +945,9 @@ export const getSyncStatusInMergeProps = (
   const tlfSyncConfig: Types.TlfSyncConfig = tlf.syncConfig
   // uploading state has higher priority
   if (uploadingPaths.has(path)) {
-    return kbfsDaemonStatus.online
-      ? Types.SyncStatusStatic.Uploading
-      : Types.SyncStatusStatic.AwaitingToUpload
+    return kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+      ? Types.SyncStatusStatic.AwaitingToUpload
+      : Types.SyncStatusStatic.Uploading
   }
   if (!isPathEnabledForSync(tlfSyncConfig, path)) {
     return Types.SyncStatusStatic.OnlineOnly
@@ -952,7 +962,7 @@ export const getSyncStatusInMergeProps = (
     case Types.PrefetchState.Complete:
       return Types.SyncStatusStatic.Synced
     case Types.PrefetchState.InProgress: {
-      if (!kbfsDaemonStatus.online) {
+      if (kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline) {
         return Types.SyncStatusStatic.AwaitingToSync
       }
       const inProgress: Types.PrefetchInProgress = pathItem.prefetchStatus
@@ -970,7 +980,7 @@ export const getSyncStatusInMergeProps = (
 export const makeActionsForDestinationPickerOpen = (
   index: number,
   path: Types.Path,
-  navigateAppend
+  navigateAppend: typeof RouteTreeGen.createNavigateAppend
 ): Array<TypedActions> => [
   FsGen.createSetDestinationPickerParentPath({
     index,
@@ -988,31 +998,23 @@ export const makeActionForOpenPathInFilesTab = (
   path: Types.Path
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
-export const putActionIfOnPathForNav1 = (action: TypedActions, routePath?: I.List<string> | null) => action
+export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
-export const makeActionsForShowSendLinkToChat = (
-  path: Types.Path,
-  routePath?: I.List<string> | null
-): Array<TypedActions> => [
+export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendLinkToChat({path}),
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendLinkToChat'}],
-    }),
-    routePath
+    })
   ),
 ]
 
-export const makeActionsForShowSendAttachmentToChat = (
-  path: Types.Path,
-  routePath?: I.List<string> | null
-): Array<TypedActions> => [
+export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendAttachmentToChat({path}),
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendAttachmentToChat'}],
-    }),
-    routePath
+    })
   ),
 ]
 
@@ -1020,12 +1022,12 @@ export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,
   overallSyncStatus: Types.OverallSyncStatus
 ): Types.MainBannerType =>
-  kbfsDaemonStatus.online
-    ? overallSyncStatus.diskSpaceStatus === 'error'
-      ? Types.MainBannerType.OutOfSpace
+  kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline
+    ? flags.kbfsOfflineMode
+      ? Types.MainBannerType.Offline
       : Types.MainBannerType.None
-    : flags.kbfsOfflineMode
-    ? Types.MainBannerType.Offline
+    : overallSyncStatus.diskSpaceStatus === 'error'
+    ? Types.MainBannerType.OutOfSpace
     : Types.MainBannerType.None
 
 export const isFolder = (path: Types.Path, pathItem: Types.PathItem) =>

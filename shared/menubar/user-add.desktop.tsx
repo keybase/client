@@ -69,7 +69,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
         }}
       />
       <Icon
-        type={'iconfont-folder-open'}
+        type="iconfont-folder-open"
         onClick={onSubmit}
         style={platformStyles({
           isElectron: desktopStyles.clickable,

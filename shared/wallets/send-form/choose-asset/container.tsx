@@ -34,7 +34,7 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   displayChoices: (stateProps.currencies || []).map(c => ({
     currencyCode: c.code,
     selected: c.code === stateProps.selected,

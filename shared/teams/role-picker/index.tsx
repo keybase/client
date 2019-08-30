@@ -32,11 +32,11 @@ type RoleRowProps = {
 }
 
 const RoleRow = (p: RoleRowProps) => (
-  <Kb.Box2 direction={'vertical'} fullWidth={true} alignItems={'flex-start'} style={styles.row}>
-    <Kb.Box2 direction={'vertical'} fullWidth={true} style={styles.rowChild}>
+  <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.row}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowChild}>
       <Kb.Box2
-        direction={'horizontal'}
-        alignItems={'center'}
+        direction="horizontal"
+        alignItems="center"
         fullWidth={true}
         style={p.disabledReason ? styles.disabledRow : undefined}
       >
@@ -63,7 +63,7 @@ type RolesMetaInfo = {
   extra?: Array<string>
   icon: React.ReactNode | null
 }
-const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaInfo => {
+const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
   switch (infoForRole) {
     case 'admin':
       return {
@@ -77,8 +77,8 @@ const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaI
           <Kb.Icon
             boxStyle={{paddingBottom: 0}}
             style={styles.roleIcon}
-            type={'iconfont-crown-admin'}
-            sizeType={'Small'}
+            type="iconfont-crown-admin"
+            sizeType="Small"
           />
         ),
       }
@@ -96,8 +96,8 @@ const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaI
           <Kb.Icon
             style={styles.roleIcon}
             boxStyle={{paddingBottom: 0}}
-            type={'iconfont-crown-owner'}
-            sizeType={'Small'}
+            type="iconfont-crown-owner"
+            sizeType="Small"
           />
         ),
       }
@@ -132,8 +132,7 @@ const rolesMetaInfo = (infoForRole: Role, selectedRole: Role | null): RolesMetaI
 const roleAbilities = (
   abilities: Array<string>,
   canDo: boolean,
-  addFinalPadding: boolean,
-  selected: boolean
+  addFinalPadding: boolean
 ): Array<React.ReactNode> => {
   return abilities.map((ability, i) => (
     <Kb.Box2
@@ -159,7 +158,7 @@ const roleAbilities = (
 
 const roleElementHelper = (selectedRole: Role | null) =>
   orderedRoles
-    .map(role => [role, rolesMetaInfo(role as Role, selectedRole)])
+    .map(role => [role, rolesMetaInfo(role as Role)])
     .map(([role, info]) => {
       // Using as to avoid lots of ts-ignore
       const roleInfo = info as RolesMetaInfo
@@ -167,8 +166,8 @@ const roleElementHelper = (selectedRole: Role | null) =>
         body:
           selectedRole === role
             ? [
-                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0, selectedRole === role),
-                roleAbilities(roleInfo.cants, false, true, selectedRole === role),
+                roleAbilities(roleInfo.cans, true, roleInfo.cants.length === 0),
+                roleAbilities(roleInfo.cants, false, true),
               ]
             : undefined,
         icon: roleInfo.icon,
@@ -216,7 +215,7 @@ const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null):
 const RolePicker = (props: Props) => {
   let selectedRole = props.selectedRole || props.presetRole
   return (
-    <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
+    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container}>
       {headerTextHelper(props.headerText)}
       {map(
         roleElementHelper(selectedRole || null),
@@ -253,7 +252,7 @@ const RolePicker = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   abilityCheck: Styles.platformStyles({
     common: {
       paddingRight: Styles.globalMargins.tiny,
@@ -341,7 +340,7 @@ const styles = Styles.styleSheetCreate({
   text: {
     textAlign: 'left',
   },
-})
+}))
 
 // Helper to use this as a floating box
 export type FloatingProps = {
@@ -365,7 +364,8 @@ export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.
     )
     return (
       <>
-        <Kb.Box ref={this._setRef}>{children}</Kb.Box>
+        {children}
+        <Kb.Box ref={this._setRef} />
         {open && (
           <Kb.FloatingBox
             attachTo={this._returnRef}
@@ -373,9 +373,9 @@ export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.
             onHidden={onCancel}
             hideKeyboard={true}
           >
-            <Kb.Box2 direction={'vertical'} fullHeight={Styles.isMobile} style={floatingContainerStyle}>
+            <Kb.Box2 direction="vertical" fullHeight={Styles.isMobile} style={floatingContainerStyle}>
               {Styles.isMobile && (
-                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction={'cancel'} title="Pick a role" />
+                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
               )}
               {wrappedPicker}
             </Kb.Box2>

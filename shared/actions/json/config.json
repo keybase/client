@@ -1,6 +1,6 @@
 {
   "prelude": [
-    "import {ConnectionType} from '../constants/types/config'",
+    "import * as Types from '../constants/types/config'",
     "import * as Tabs from '../constants/tabs'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as FsTypes from '../constants/types/fs'",
@@ -55,12 +55,8 @@
     },
     "changedFocus": {"appFocused": "boolean"},
     "changedActive": {"userActive": "boolean"},
-    "link": {"link": "string"},
     "mobileAppState": {"nextAppState": ["'active'", "'background'", "'inactive'"]},
     "showMain": {},
-    "loadAvatars": {"usernames": "Array<string>"},
-    "loadedAvatars": {"avatars": "I.Map<string, I.Map<number, string>>"},
-    "loadTeamAvatars": {"teamnames": "Array<string>"},
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
@@ -77,10 +73,8 @@
       "followees": "Array<string>"
     },
     "daemonError": {"daemonError": "Error | null"},
-    "setAccounts": {
-      "defaultUsername": "string",
-      "usernames": "Array<string>"
-    },
+    "setAccounts": { "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>" },
+    "setDefaultUsername": { "username": "string" },
     "globalError": {"globalError": "null | Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
@@ -91,14 +85,8 @@
       "startupFollowUser": "string",
       "startupSharePath": "FsTypes.LocalPath | null"
     },
-    "setOpenAtLogin": {
-      "open": "boolean",
-      "writeFile": "boolean"
-    },
-    "setNotifySound": {
-      "sound": "boolean",
-      "writeFile": "boolean"
-    },
+    "setOpenAtLogin": { "openAtLogin": "boolean", },
+    "setNotifySound": { "notifySound": "boolean", },
     "setDeletedSelf": {"deletedUsername": "string"},
     "persistRoute": {"path": "Array<any>"},
     "setNavigator": {"navigator": "any"},
@@ -123,8 +111,28 @@
     },
     "osNetworkStatusChanged": {
       "online": "boolean",
-      "type": "ConnectionType",
+      "type": "Types.ConnectionType",
       "isInit?": "boolean"
+    },
+    "setDarkModePreference": {
+      "preference": ["'system'", "'alwaysDark'", "'alwaysLight'", "undefined"]
+    },
+    "setSystemDarkMode": { "dark": "boolean" },
+    "updateHTTPSrvInfo": {
+      "address": "string",
+      "token": "string"
+    },
+    "remoteWindowWantsProps": {
+      "_description": "remote electron window wants props sent",
+      "component": "string",
+      "param": "string"
+    },
+    "updateWindowState": {
+      "_description": "main electron window wants to store its state",
+      "windowState": "Types.WindowState",
+    },
+    "setUseNativeFrame": {
+      "useNativeFrame": "boolean"
     }
   }
 }

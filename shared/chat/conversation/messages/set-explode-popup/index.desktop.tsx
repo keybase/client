@@ -26,12 +26,12 @@ const Item = (props: ItemProps) => {
     content = props.desc.text
   } else {
     content = (
-      <React.Fragment>
+      <>
         <Text type="Body" style={quantityTextStyle}>
           {words[0]}
         </Text>
         {' ' + words.slice(1).join(' ')}
-      </React.Fragment>
+      </>
     )
   }
   return (

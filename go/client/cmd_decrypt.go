@@ -19,7 +19,6 @@ import (
 type CmdDecrypt struct {
 	libkb.Contextified
 	filter     UnixFilter
-	recipients []string
 	spui       *SaltpackUI
 	opts       keybase1.SaltpackDecryptOptions
 	senderfile *FileSink

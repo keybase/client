@@ -81,7 +81,7 @@ func TestComputeSetBitsBigEndian(t *testing.T) {
 		{20000, []uint{32, 512, 1024, 2048, 16384}},
 	}
 	for _, test := range tests {
-		got := computeSetBitsBigEndian(uint(test.x))
+		got := computeSetBitsBigEndian(test.x)
 		if !reflect.DeepEqual(got, test.expected) {
 			t.Fatalf("Failed on input %d, expected %v, got %v.", test.x, test.expected, got)
 		}

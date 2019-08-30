@@ -8,9 +8,9 @@ import {Props, TextType} from './text'
 
 const modes = ['positive', 'negative']
 
-const styleMap = Object.keys(metaData).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
+const styleMap = Object.keys(metaData()).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
   (map, type) => {
-    const meta = metaData[type as TextType]
+    const meta = metaData()[type as TextType]
     modes.forEach(mode => {
       map[`${type}:${mode}`] = {
         ...fontSizeToSizeStyle(meta.fontSize),
@@ -20,11 +20,10 @@ const styleMap = Object.keys(metaData).reduce<{[key: string]: Styles.StylesCross
     })
     return map
   },
-  {
-    center: {textAlign: 'center'},
-  }
+  {center: {textAlign: 'center'}}
 )
 
+// @ts-ignore TODO fix styles
 const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
@@ -116,7 +115,7 @@ class Text extends Component<Props> {
         selectable={this.props.selectable}
         textBreakStrategy={this.props.textBreakStrategy}
         style={style}
-        {...lineClamp(this.props.lineClamp || null, this.props.ellipsizeMode || null)}
+        {...lineClamp(this.props.lineClamp || undefined, this.props.ellipsizeMode || undefined)}
         onPress={onPress}
         onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}
@@ -131,8 +130,8 @@ class Text extends Component<Props> {
 function _getStyle(
   type: TextType,
   negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null,
+  _?: number | null,
+  __?: boolean | null,
   // @ts-ignore the order of these parameters because this is used in a lot
   // of places
   forceUnderline: boolean
@@ -141,7 +140,7 @@ function _getStyle(
     return forceUnderline ? {textDecorationLine: 'underline'} : {}
   }
   // negative === true
-  const meta = metaData[type]
+  const meta = metaData()[type]
   const colorStyle = {color: meta.colorForBackground.negative}
   const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
 
@@ -150,13 +149,8 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(
-  type: TextType,
-  negative?: boolean,
-  lineClampNum?: number | null,
-  clickable?: boolean | null
-) {
-  const meta = metaData[type]
+function getStyle(type: TextType, negative?: boolean, _?: number | null, __?: boolean | null) {
+  const meta = metaData()[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
   const textDecoration = meta.isLink && negative ? {textDecorationLine: 'underline'} : {}

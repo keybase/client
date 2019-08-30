@@ -1,5 +1,7 @@
 import * as Saga from '../../util/saga'
 
+type NextURI = string
+
 export declare function showShareActionSheetFromURL(options: {
   url?: any | null
   message?: any | null
@@ -10,9 +12,9 @@ export declare function showShareActionSheetFromURL(options: {
 }>
 
 export declare function showShareActionSheetFromFile(fileURL: string): Promise<void>
-type NextURI = string
 export declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
+export declare function requestLocationPermission(): Promise<void>
 
 export declare function displayNewMessageNotification(
   text: string,

@@ -10,6 +10,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
+import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
 
 const initialState = Constants.makeState()
 
@@ -19,6 +20,7 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -26,7 +28,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({
         configuredAccounts: state.configuredAccounts,
         defaultUsername: action.payload.wasCurrentDevice // if revoking self find another name if it exists
-          ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
+          ? (state.configuredAccounts.find(n => n.username !== state.defaultUsername) || {username: ''})
+              .username
           : state.defaultUsername,
       })
     case Tracker2Gen.updatedDetails: {
@@ -206,26 +209,40 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
-    case ConfigGen.loadedAvatars:
-      return state.merge({avatars: state.avatars.merge(action.payload.avatars)})
     case ConfigGen.setNotifySound:
-      return state.merge({notifySound: action.payload.sound})
+      return state.merge({notifySound: action.payload.notifySound})
     case ConfigGen.setOpenAtLogin:
-      return state.merge({openAtLogin: action.payload.open})
+      return state.merge({openAtLogin: action.payload.openAtLogin})
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts: {
       // already have one?
       let defaultUsername = state.defaultUsername
-      if (action.payload.usernames.indexOf(defaultUsername) === -1) {
-        defaultUsername = action.payload.defaultUsername
+      let currentFound = action.payload.configuredAccounts.some(
+        account => account.username === defaultUsername
+      )
+
+      if (!currentFound) {
+        const defaultUsernames = action.payload.configuredAccounts
+          .filter(account => account.isCurrent)
+          .map(account => account.username)
+        defaultUsername = defaultUsernames[0] || ''
       }
 
       return state.merge({
-        configuredAccounts: I.List(action.payload.usernames),
+        configuredAccounts: I.List(
+          action.payload.configuredAccounts.map(account =>
+            Constants.makeConfiguredAccount({
+              hasStoredSecret: account.hasStoredSecret,
+              username: account.username,
+            })
+          )
+        ),
         defaultUsername,
       })
     }
+    case ConfigGen.setDefaultUsername:
+      return state.merge({defaultUsername: action.payload.username})
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
@@ -254,14 +271,32 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({
         runtimeStats: action.payload.params.stats,
       })
+    case ConfigGen.updateHTTPSrvInfo:
+      return state.merge({
+        httpSrvAddress: action.payload.address,
+        httpSrvToken: action.payload.token,
+      })
+    case EngineGen.keybase1NotifyTeamAvatarUpdated:
+      return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
     case ConfigGen.osNetworkStatusChanged:
       return state.set('osNetworkOnline', action.payload.online)
+    case ConfigGen.setDarkModePreference:
+      _setDarkModePreference(action.payload.preference)
+      return state.merge({darkModePreference: action.payload.preference})
+    case ConfigGen.setSystemDarkMode:
+      _setSystemIsDarkMode(action.payload.dark)
+      return state.merge({systemDarkMode: action.payload.dark})
+    case ConfigGen.remoteWindowWantsProps: {
+      const {component, param} = action.payload
+      return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
+    }
+    case ConfigGen.updateWindowState:
+      return state.merge({windowState: action.payload.windowState})
+    case ConfigGen.setUseNativeFrame:
+      return state.merge({useNativeFrame: action.payload.useNativeFrame})
     // Saga only actions
-    case ConfigGen.loadTeamAvatars:
-    case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:
-    case ConfigGen.link:
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:

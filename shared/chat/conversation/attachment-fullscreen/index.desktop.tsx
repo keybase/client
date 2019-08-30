@@ -10,7 +10,7 @@ import {
   OverlayParentHOC,
   OverlayParentProps,
 } from '../../../common-adapters'
-import MessagePopup from '../messages/message-popup/'
+import MessagePopup from '../messages/message-popup'
 import {
   collapseStyles,
   globalColors,
@@ -132,7 +132,21 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
     )
   }
 }
-const Fullscreen: any = KeyHandler(OverlayParentHOC(_Fullscreen as any))
+
+const Af = KeyHandler(OverlayParentHOC(_Fullscreen as any))
+const Fullscreen = (p: Props) => {
+  const {onNextAttachment, onPreviousAttachment, ...rest} = p
+  return (
+    <Af
+      hotkeys={['left', 'right']}
+      onHotkey={(cmd: string) => {
+        cmd === 'left' && onPreviousAttachment()
+        cmd === 'right' && onNextAttachment()
+      }}
+      {...rest}
+    />
+  )
+}
 
 const linkStyle = platformStyles({
   isElectron: {color: globalColors.black_50, cursor: 'pointer'},

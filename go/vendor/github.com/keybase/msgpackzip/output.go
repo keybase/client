@@ -28,7 +28,7 @@ func (o *outputter) outputArrayPrefix(i msgpackInt) (err error) {
 
 func (o *outputter) outputByte(b byte) error {
 	buf := []byte{b}
-	_, err := o.buf.Write(buf[:])
+	_, err := o.buf.Write(buf)
 	return err
 }
 
@@ -167,27 +167,13 @@ func (o *outputter) decoderHooks() msgpackDecoderHooks {
 			err := o.outputArrayPrefix(i)
 			return d, err
 		},
-		stringHook: func(l msgpackInt, s string) error {
-			return o.outputString(l, s)
-		},
-		binaryHook: func(l msgpackInt, b []byte) error {
-			return o.outputBinary(l, b)
-		},
-		nilHook: func() error {
-			return o.outputNil()
-		},
-		boolHook: func(b bool) error {
-			return o.outputBool(b)
-		},
-		intHook: func(i msgpackInt) error {
-			return o.outputInt(i)
-		},
-		float32Hook: func(b []byte) error {
-			return o.outputFloat32(b)
-		},
-		float64Hook: func(b []byte) error {
-			return o.outputFloat64(b)
-		},
+		stringHook:  o.outputString,
+		binaryHook:  o.outputBinary,
+		nilHook:     o.outputNil,
+		boolHook:    o.outputBool,
+		intHook:     o.outputInt,
+		float32Hook: o.outputFloat32,
+		float64Hook: o.outputFloat64,
 	}
 }
 

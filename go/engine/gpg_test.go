@@ -53,20 +53,25 @@ func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (
 	return false, nil
 }
 
-func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+func (g *gpgtestui) Sign(ctx context.Context, arg keybase1.SignArg) (string, error) {
+	mctx := g.MetaContext(ctx)
 	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
 	if err != nil {
 		return "", err
 	}
 	cli := g.G().GetGpgClient()
-	if err := cli.Configure(); err != nil {
+	if err := cli.Configure(mctx); err != nil {
 		return "", err
 	}
-	return cli.Sign(*fp, arg.Msg)
+	return cli.Sign(mctx, *fp, arg.Msg)
 }
 
 func (g *gpgtestui) GetTTY(_ context.Context) (string, error) {
 	return "", nil
+}
+
+func (g *gpgtestui) MetaContext(ctx context.Context) libkb.MetaContext {
+	return libkb.NewMetaContext(ctx, g.G())
 }
 
 type gpgTestUIBadSign struct {

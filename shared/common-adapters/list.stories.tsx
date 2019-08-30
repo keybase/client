@@ -15,7 +15,7 @@ const load = () =>
           bounces={true}
           indexAsKey={true}
           itemHeight={{height: 32, type: 'fixed'}}
-          renderItem={(index, item) => (
+          renderItem={(_, item) => (
             <Box2 direction="horizontal" style={styles.listItem} centerChildren={true} fullWidth={true}>
               <Text type="Body">{item}</Text>
             </Box2>
@@ -30,7 +30,7 @@ const load = () =>
           bounces={true}
           indexAsKey={true}
           itemHeight={{height: 32, type: 'fixed'}}
-          renderItem={(index, item) => (
+          renderItem={(_, item) => (
             <Box2 direction="horizontal" style={styles.listItem} centerChildren={true} fullWidth={true}>
               <Text type="Body">{item}</Text>
             </Box2>
@@ -93,7 +93,7 @@ class PropsChangeTester extends React.PureComponent<
             bounces={true}
             indexAsKey={true}
             itemHeight={{height: 32, type: 'fixed'}}
-            renderItem={(index, item) => (
+            renderItem={(_, item) => (
               <Box2 direction="horizontal" style={styles.listItem} centerChildren={true} fullWidth={true}>
                 <Text type="Body">{item.val.toString()}</Text>
               </Box2>
@@ -104,7 +104,7 @@ class PropsChangeTester extends React.PureComponent<
     )
   }
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   listContainer: {
     backgroundColor: Styles.globalColors.red,
     height: 300,
@@ -118,6 +118,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.greyDark,
     height: 64,
   },
-})
+}))
 
 export default load

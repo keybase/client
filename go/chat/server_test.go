@@ -18,6 +18,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/bots"
+	"github.com/keybase/client/go/kbhttp/manager"
+
 	"golang.org/x/net/context"
 
 	"encoding/base64"
@@ -119,14 +122,20 @@ func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.M
 					g.G().Log.CDebugf(ctx, "error unmarshaling team.sbs item: %s", err)
 					return err
 				}
-				teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+				err := teams.HandleSBSRequest(ctx, g.G().ExternalG(), msg)
+				if err != nil {
+					return err
+				}
 			case "team.change":
 				var msg []keybase1.TeamChangeRow
 				if err := json.Unmarshal(creation.Body().Bytes(), &msg); err != nil {
 					g.G().Log.CDebugf(ctx, "error unmarshaling team.change items: %s", err)
 					return err
 				}
-				teams.HandleChangeNotification(ctx, g.G().ExternalG(), msg, keybase1.TeamChangeSet{})
+				err := teams.HandleChangeNotification(ctx, g.G().ExternalG(), msg, keybase1.TeamChangeSet{})
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -153,7 +162,7 @@ func (g *gregorTestConnection) UpdateCategory(ctx context.Context, cat string, b
 	}
 	msg.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
 		Ranges_: []gregor1.MsgRange{
-			gregor1.MsgRange{
+			{
 				Category_:   gregor1.Category(cat),
 				SkipMsgIDs_: []gregor1.MsgID{msgID},
 			}},
@@ -277,14 +286,14 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("Team Stage Begin")
 	start := time.Now()
 	f(chat1.ConversationMembersType_TEAM)
-	t.Logf("Team Stage End: %v", time.Now().Sub(start))
+	t.Logf("Team Stage End: %v", time.Since(start))
 
 	t.Logf("Implicit Team Stage Begin")
 	os.Setenv("KEYBASE_FEATURES", "admin")
 	defer os.Setenv("KEYBASE_FEATURES", "")
 	start = time.Now()
 	f(chat1.ConversationMembersType_IMPTEAMNATIVE)
-	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
+	t.Logf("Implicit Team Stage End: %v", time.Since(start))
 }
 
 func runWithEphemeral(t *testing.T, mt chat1.ConversationMembersType, f func(ephemeralLifetime *gregor1.DurationSec)) {
@@ -435,6 +444,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
+	g.BotCommandManager.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -2028,6 +2039,7 @@ type serverChatListener struct {
 	subteamRename    chan []chat1.ConversationID
 	unfurlPrompt     chan chat1.MessageID
 	setStatus        chan chat1.SetStatusInfo
+	teamChangedByID  chan keybase1.TeamChangedByIDArg
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -2117,6 +2129,15 @@ func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.Con
 	msgID chat1.MessageID, domain string) {
 	n.unfurlPrompt <- msgID
 }
+func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
+	n.teamChangedByID <- keybase1.TeamChangedByIDArg{
+		TeamID:            teamID,
+		LatestSeqno:       latestSeqno,
+		ImplicitTeam:      implicitTeam,
+		Changes:           changes,
+		LatestHiddenSeqno: latestHiddenSeqno,
+	}
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -2147,6 +2168,7 @@ func newServerChatListener() *serverChatListener {
 		subteamRename:    make(chan []chat1.ConversationID, buf),
 		unfurlPrompt:     make(chan chat1.MessageID, buf),
 		setStatus:        make(chan chat1.SetStatusInfo, buf),
+		teamChangedByID:  make(chan keybase1.TeamChangedByIDArg, buf),
 	}
 }
 
@@ -2321,8 +2343,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			reactionUnboxed := unboxed
 			expectedReactionMap := chat1.ReactionMap{
 				Reactions: map[string]map[string]chat1.Reaction{
-					":+1:": map[string]chat1.Reaction{
-						users[0].Username: chat1.Reaction{
+					":+1:": {
+						users[0].Username: {
 							ReactionMsgID: reactionUnboxed.GetMessageID(),
 						},
 					},
@@ -2424,6 +2446,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
+				default:
+					// Nothing to do for other member types.
 				}
 				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
@@ -2453,6 +2477,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, topicName, unboxed.Valid().MessageBody.Metadata().ConversationTitle)
+				default:
+					// Nothing to do for other member types.
 				}
 				assertNotEphemeral(ephemeralLifetime, unboxed)
 			case <-time.After(20 * time.Second):
@@ -2477,6 +2503,8 @@ func TestChatSrvPostEditNonblock(t *testing.T) {
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			return
+		default:
+			// Fall through for other member types.
 		}
 		ctc := makeChatTestContext(t, "TestChatSrvPostEditNonblock", 1)
 		defer ctc.cleanup()
@@ -2750,8 +2778,10 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		// Basic
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.clock = clock
-		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
+		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		p := utils.PresentPagination(&chat1.Pagination{
 			Num: 1,
@@ -2928,8 +2958,10 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		// Basic
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.clock = clock
-		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
+		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		go func() {
 			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
@@ -3056,13 +3088,15 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		msgIDs := []chat1.MessageID{editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.clock = clock
-		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
+		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3114,7 +3148,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 		consumeNewMsgRemote(t, listener, chat1.MessageType_DELETE)
 		msgIDs = []chat1.MessageID{deleteMsgID, editMsgID1, msgID1, 1}
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 		cb = make(chan struct{})
 		go func() {
@@ -3377,13 +3411,15 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID3, editMsgID2, msgID2, editMsgID1, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg3)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg3})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.clock = clock
-		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
+		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3466,13 +3502,15 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 		msgIDs := []chat1.MessageID{msgID2, msgID1, 1}
 
 		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
+		err = cs.PushUnboxed(ctx, conv.Id, uid, []chat1.MessageUnboxed{msg1})
 		require.NoError(t, err)
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.clock = clock
-		ctc.as(t, users[0]).h.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
+		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3627,8 +3665,8 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.clock = clock
-		ctc.as(t, users[0]).h.cachedThreadDelay = &delay
+		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
+		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = &delay
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
 			chat1.GetThreadNonblockArg{
 				ConversationID:   conv.Id,
@@ -3698,6 +3736,99 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 	})
 }
 
+var errGetInboxNonblockFailingUI = errors.New("get outta here")
+
+type getInboxNonblockFailingUI struct {
+	*kbtest.ChatUI
+	failUnverified, failVerified bool
+}
+
+func (u *getInboxNonblockFailingUI) ChatInboxUnverified(ctx context.Context,
+	arg chat1.ChatInboxUnverifiedArg) error {
+	if u.failUnverified {
+		return errGetInboxNonblockFailingUI
+	}
+	return u.ChatUI.ChatInboxUnverified(ctx, arg)
+}
+
+func (u *getInboxNonblockFailingUI) ChatInboxConversation(ctx context.Context,
+	arg chat1.ChatInboxConversationArg) error {
+	if u.failVerified {
+		return errGetInboxNonblockFailingUI
+	}
+	return u.ChatUI.ChatInboxConversation(ctx, arg)
+}
+
+func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvGetInboxNonblockChatUIError", 2)
+	defer ctc.cleanup()
+
+	timeout := 2 * time.Second
+	users := ctc.users()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	tui := kbtest.NewChatUI()
+	ui := &getInboxNonblockFailingUI{ChatUI: tui, failUnverified: true, failVerified: true}
+	ctc.as(t, users[0]).h.mockChatUI = ui
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "HIIHIHIHI",
+	}))
+	_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+	require.Error(t, err)
+	require.Equal(t, errGetInboxNonblockFailingUI, err)
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case <-listener0.threadsStale:
+	case <-time.After(timeout):
+		require.Fail(t, "no inbox stale")
+	}
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{})
+	require.Error(t, err)
+	require.Equal(t, errGetInboxNonblockFailingUI, err)
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case <-listener0.inboxStale:
+	case <-time.After(timeout):
+		require.Fail(t, "no inbox stale")
+	}
+
+	ui.failUnverified = false
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+		chat1.GetInboxNonblockLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	select {
+	case <-ui.InboxCb:
+	case <-time.After(timeout):
+		require.Fail(t, "no untrusted inbox")
+	}
+	tc.Context().FetchRetrier.Force(ctx)
+	select {
+	case upds := <-listener0.threadsStale:
+		require.Equal(t, 1, len(upds))
+		require.Equal(t, conv.Id, upds[0].ConvID)
+	case <-time.After(timeout):
+		require.Fail(t, "no conv stale")
+	}
+}
+
 func TestChatSrvGetInboxNonblockError(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "GetInboxNonblockLocal", 1)
@@ -3712,12 +3843,15 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		for i := 0; i < numMsgs; i++ {
 			mustPostLocalForTest(t, ctc, users[0], conv, msg)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 		}
 		g := ctc.world.Tcs[users[0].Username].Context()
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
@@ -3810,7 +3944,9 @@ func TestChatSrvMakePreview(t *testing.T) {
 	}
 	ri := ctc.as(t, user).ri
 	tc := ctc.world.Tcs[user.Username]
-	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(), types.DummyAttachmentFetcher{},
+	tc.ChatG.AttachmentURLSrv = NewAttachmentHTTPSrv(tc.Context(),
+		manager.NewSrv(tc.Context().ExternalG()),
+		types.DummyAttachmentFetcher{},
 		func() chat1.RemoteInterface { return ri })
 	res, err := ctc.as(t, user).chatLocalHandler().MakePreview(context.TODO(), arg)
 	require.NoError(t, err)
@@ -4006,16 +4142,6 @@ func consumeExpunge(t *testing.T, listener *serverChatListener) chat1.ExpungeInf
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get expunge notification")
 		return chat1.ExpungeInfo{}
-	}
-}
-
-func consumeEphemeralPurge(t *testing.T, listener *serverChatListener) chat1.EphemeralPurgeNotifInfo {
-	select {
-	case x := <-listener.ephemeralPurge:
-		return x
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get ephemeralPurge notification")
-		return chat1.EphemeralPurgeNotifInfo{}
 	}
 }
 
@@ -4579,6 +4705,8 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 		case chat1.ConversationMembersType_KBFS:
 			t.Logf("skipping kbfs stage")
 			return
+		default:
+			// Fall through for other member types.
 		}
 		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
 
@@ -4769,6 +4897,8 @@ func TestChatSrvEphemeralConvRetention(t *testing.T) {
 		case chat1.ConversationMembersType_KBFS:
 			t.Logf("skipping kbfs stage")
 			return
+		default:
+			// Fall through for other member types.
 		}
 
 		ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
@@ -5297,45 +5427,61 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		conv, err := utils.GetVerifiedConv(ctx, tc.Context(), uid, convInfo.Id,
 			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
-		plarg := chat1.PostLocalArg{
-			ConversationID: convInfo.Id,
-			Msg: chat1.MessagePlaintext{
-				ClientHeader: chat1.MessageClientHeader{
-					Conv:        convInfo.Triple,
-					MessageType: chat1.MessageType_TEXT,
-					TlfName:     convInfo.TlfName,
-					Sender:      uid,
-				},
-				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-					Body: "PUSH",
-				}),
-			},
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &conv, nil)
-		require.NoError(t, err)
-		msg := prepareRes.Boxed
-		msg.ServerHeader = &chat1.MessageServerHeader{
-			MessageID: 10,
+
+		assertUnboxMobilePushNotif := func(msgArg chat1.MessagePlaintext, expectedMsg string) {
+
+			prepareRes, err := sender.Prepare(ctx, msgArg, mt, &conv, nil)
+			require.NoError(t, err)
+			msg := prepareRes.Boxed
+			msg.ServerHeader = &chat1.MessageServerHeader{
+				MessageID: 10,
+			}
+
+			mh := codec.MsgpackHandle{WriteExt: true}
+			var data []byte
+			enc := codec.NewEncoderBytes(&data, &mh)
+			require.NoError(t, enc.Encode(msg))
+			encMsg := base64.StdEncoding.EncodeToString(data)
+			unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
+				chat1.UnboxMobilePushNotificationArg{
+					ConvID:      convInfo.Id.String(),
+					MembersType: mt,
+					Payload:     encMsg,
+				})
+			require.NoError(t, err)
+			require.Equal(t, unboxRes, expectedMsg)
 		}
 
-		mh := codec.MsgpackHandle{WriteExt: true}
-		var data []byte
-		enc := codec.NewEncoderBytes(&data, &mh)
-		require.NoError(t, enc.Encode(msg))
-		encMsg := base64.StdEncoding.EncodeToString(data)
-		unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
-			chat1.UnboxMobilePushNotificationArg{
-				ConvID:      convInfo.Id.String(),
-				MembersType: mt,
-				Payload:     encMsg,
-			})
-		require.NoError(t, err)
-		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, convInfo.TlfName, "general"),
-			unboxRes)
+		// TEXT msg
+		msgArg := chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        convInfo.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     convInfo.TlfName,
+				Sender:      uid,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "PUSH",
+			}),
+		}
+		assertUnboxMobilePushNotif(msgArg, "PUSH")
+
+		// non-text type
+		msgArg = chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        convInfo.Triple,
+				MessageType: chat1.MessageType_HEADLINE,
+				TlfName:     convInfo.TlfName,
+				Sender:      uid,
+			},
+			MessageBody: chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
+				Headline: "hi",
+			}),
+		}
+		assertUnboxMobilePushNotif(msgArg, "")
 	})
 }
 
@@ -6405,6 +6551,8 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			switch mt {
 			case chat1.ConversationMembersType_KBFS:
 				return
+			default:
+				// Fall through for other member types.
 			}
 
 			ctc := makeChatTestContext(t, "SrvStellarMessages", 2)
@@ -6710,5 +6858,413 @@ func TestGlobalAppNotificationSettings(t *testing.T) {
 		for k, v := range expectedSettings {
 			require.Equal(t, v, s.Settings[k], fmt.Sprintf("Not equal %v", k))
 		}
+	})
+}
+
+func TestMessageDrafts(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestMessageDrafts", 1)
+	defer ctc.cleanup()
+
+	user := ctc.users()[0]
+	conv := mustCreateConversationForTest(t, ctc, user, chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+
+	draft := "NEW MESSAAGE"
+	require.NoError(t, ctc.as(t, user).chatLocalHandler().UpdateUnsentText(context.TODO(),
+		chat1.UpdateUnsentTextArg{
+			ConversationID: conv.Id,
+			TlfName:        conv.TlfName,
+			Text:           draft,
+		}))
+	ibres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
+		chat1.GetInboxAndUnboxLocalArg{
+			Query: &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{conv.Id},
+			},
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(ibres.Conversations))
+	require.NotNil(t, ibres.Conversations[0].Info.Draft)
+	require.Equal(t, draft, *ibres.Conversations[0].Info.Draft)
+
+	_, err = ctc.as(t, user).chatLocalHandler().PostLocalNonblock(context.TODO(), chat1.PostLocalNonblockArg{
+		ConversationID: conv.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     conv.TlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "HIHIHI",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	worked := false
+	for i := 0; i < 5; i++ {
+		ibres, err = ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(),
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(ibres.Conversations))
+		if ibres.Conversations[0].Info.Draft == nil {
+			worked = true
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	require.True(t, worked)
+}
+
+func TestTeamBotSettings(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+			if mt == chat1.ConversationMembersType_KBFS {
+				return
+			}
+			ctc := makeChatTestContext(t, "TeamBotSettings", 3)
+			defer ctc.cleanup()
+			users := ctc.users()
+
+			ui := kbtest.NewChatUI()
+			ctc.as(t, users[0]).h.mockChatUI = ui
+			tc := ctc.as(t, users[0])
+			listener := newServerChatListener()
+			ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+			botua := users[1]
+			botua2 := users[2]
+			ctx := context.TODO()
+
+			var err error
+			var created chat1.ConversationInfoLocal
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					mt)
+				consumeNewConversation(t, listener, first.Id)
+				topicName := "mike"
+				ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
+					chat1.NewConversationLocalArg{
+						TlfName:       first.TlfName,
+						TopicName:     &topicName,
+						TopicType:     chat1.TopicType_CHAT,
+						TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+						MembersType:   chat1.ConversationMembersType_TEAM,
+					})
+				require.NoError(t, err)
+				created = ncres.Conv.Info
+				consumeNewConversation(t, listener, created.Id)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
+				consumeNewPendingMsg(t, listener)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+			default:
+				created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+			}
+
+			botuaUID := botua.User.GetUID().ToBytes()
+			botuaUID2 := botua2.User.GetUID().ToBytes()
+			teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
+			require.NoError(t, err)
+			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
+				ID: teamID,
+			})
+			require.NoError(t, err)
+
+			botSettings := keybase1.TeamBotSettings{
+				Triggers: []string{".*"},
+			}
+			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua.Username,
+				keybase1.TeamRole_RESTRICTEDBOT, &botSettings)
+			require.NoError(t, err)
+			botSettings2 := keybase1.TeamBotSettings{
+				Mentions: true,
+			}
+			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
+				keybase1.TeamRole_RESTRICTEDBOT, &botSettings2)
+			require.NoError(t, err)
+
+			t.Logf("send a text message")
+			arg := chat1.PostTextNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Body:             "hi",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			var unboxed chat1.UIMessage
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
+
+			t.Logf("send ephemeral message")
+			arg = chat1.PostTextNonblockArg{
+				ConversationID:    created.Id,
+				TlfName:           created.TlfName,
+				TlfPublic:         created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Body:              "hi",
+				IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				EphemeralLifetime: ephemeralLifetime,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
+			require.NoError(t, err)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT) // pending message
+
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
+
+			textUnboxed := unboxed
+
+			t.Logf("react to the message")
+			// An ephemeralLifetime is added if we are reacting to an ephemeral message
+			reactionKey := ":+1:"
+			rarg := chat1.PostReactionNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       textUnboxed.GetMessageID(),
+				Body:             reactionKey,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_REACTION, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_REACTION)
+
+			t.Logf("edit the message")
+			// An ephemeralLifetime is added if we are editing an ephemeral message
+			targetMsgID := textUnboxed.GetMessageID()
+			earg := chat1.PostEditNonblockArg{
+				ConversationID: created.Id,
+				TlfName:        created.TlfName,
+				TlfPublic:      created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Target: chat1.EditTarget{
+					MessageID: &targetMsgID,
+				},
+				Body:             "hi2",
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostEditNonblock(tc.startCtx, earg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
+
+			// Repost a reaction and ensure it is deleted
+			t.Logf("repost reaction = delete reaction")
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostReactionNonblock(tc.startCtx, rarg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
+
+			t.Logf("delete the message")
+			darg := chat1.PostDeleteNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       textUnboxed.GetMessageID(),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
+
+			t.Logf("post headline")
+			headline := "SILENCE!"
+			harg := chat1.PostHeadlineNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				Headline:         headline,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.Nil(t, unboxed.Valid().BotUID)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
+
+			t.Logf("change name")
+			topicName := "NEWNAME"
+			marg := chat1.PostMetadataNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+				ChannelName:      topicName,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(tc.startCtx, marg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.Nil(t, unboxed.Valid().BotUID)
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_METADATA)
+
+			team, err = teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
+				ID: teamID,
+			})
+			require.NoError(t, err)
+
+			// take out botua1 by restricting them to a nonexistent conv.
+			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
+			err = team.PostTeamBotSettings(context.TODO(), map[keybase1.UserVersion]keybase1.TeamBotSettings{
+				botua.GetUserVersion(): botSettings,
+			})
+			require.NoError(t, err)
+			// wait for the teamchange to propagate
+			found := false
+			for !found {
+				select {
+				case teamChange := <-listener.teamChangedByID:
+					if teamChange.TeamID == team.ID &&
+						teamChange.LatestSeqno == 6 &&
+						teamChange.Changes.Misc &&
+						teamChange.ImplicitTeam == (mt != chat1.ConversationMembersType_TEAM) {
+						found = true
+					}
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no event received")
+				}
+			}
+
+			arg = chat1.PostTextNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Body:             "@" + botua2.Username,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
+			require.NoError(t, err)
+			consumeNewPendingMsg(t, listener)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().BotUID)
+				require.EqualValues(t, botuaUID2, *unboxed.Valid().BotUID)
+				require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
+
+			// send as a bot
+
+			// TODO HOTPOT-117 restrict messages RESTRICTEDBOT members receive.
+			// this part of the test fails since we cannot send a as
+			// RESTRICTEDBOT, because we try to unbox messages we don't have
+			// the keys for.
+			//larg := chat1.PostLocalArg{
+			//	ConversationID: created.Id,
+			//	Msg: chat1.MessagePlaintext{
+			//		ClientHeader: chat1.MessageClientHeader{
+			//			Conv:        created.Triple,
+			//			TlfName:     created.TlfName,
+			//			MessageType: chat1.MessageType_TEXT,
+			//		},
+			//		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "blah"}),
+			//	},
+			//}
+			//_, err = ctc.as(t, botua).chatLocalHandler().PostLocal(ctc.as(t, botua).startCtx, larg)
+			//require.Error(t, err)
+
+			//_, err = ctc.as(t, botua2).chatLocalHandler().PostLocal(ctc.as(t, botua2).startCtx, larg)
+			//require.NoError(t, err)
+			//consumeNewPendingMsg(t, listener)
+			//select {
+			//case info := <-listener.newMessageRemote:
+			//	unboxed = info.Message
+			//	require.True(t, unboxed.IsValid(), "invalid message")
+			//	require.NotNil(t, unboxed.Valid().BotUID)
+			//	require.EqualValues(t, botuaUID2, *unboxed.Valid().BotUID)
+			//	require.EqualValues(t, botuaUID2, unboxed.Valid().SenderUID)
+			//	require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
+			//case <-time.After(20 * time.Second):
+			//	require.Fail(t, "no event received")
+			//}
+			//consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
+		})
 	})
 }

@@ -166,11 +166,11 @@ func main() {
 		}
 		enabler := &libpages.ActivityStatsEnabler{
 			Durations: []libpages.NameableDuration{
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour, Name: "hourly"},
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour * 24, Name: "daily"},
-				libpages.NameableDuration{
+				{
 					Duration: time.Hour * 24 * 7, Name: "weekly"},
 			},
 			Interval: activityStatsReportInterval,
@@ -188,5 +188,5 @@ func main() {
 		StatsReporter:    statsReporter,
 	}
 
-	libpages.ListenAndServe(ctx, serverConfig, kbConfig)
+	_ = libpages.ListenAndServe(ctx, serverConfig, kbConfig)
 }

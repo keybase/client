@@ -27,9 +27,6 @@ const loadingProps = {
   showCoinsIcon: false,
 }
 
-// Info text for cancelable payments
-const makeCancelButtonInfo = (username: string) => `${username} can claim this when they set up their wallet.`
-
 // Get action phrase for sendPayment msg
 const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
   switch (status) {
@@ -75,16 +72,21 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         paymentInfo.sourceAmount.length && paymentInfo.delta === 'decrease'
           ? sourceAmountDesc
           : paymentInfo.amountDescription
+
+      const amountDescription = paymentInfo.sourceAmount
+        ? `${paymentInfo.amountDescription}/${paymentInfo.issuerDescription}`
+        : paymentInfo.amountDescription
+      const amount = paymentInfo.worth ? paymentInfo.worth : amountDescription
       return {
         _paymentID: paymentInfo.paymentID,
         action: paymentInfo.worth ? `${verb} Lumens worth` : verb,
-        amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
+        amount,
         approxWorth: paymentInfo.worthAtSendTime,
         balanceChange: completed
           ? `${WalletConstants.balanceChangeSign(paymentInfo.delta, balanceChangeAmount)}`
           : '',
         balanceChangeColor: WalletConstants.getBalanceChangeColor(paymentInfo.delta, paymentInfo.status),
-        cancelButtonInfo: paymentInfo.showCancel ? makeCancelButtonInfo(theirUsername) : '',
+        cancelButtonInfo: paymentInfo.showCancel ? WalletConstants.makeCancelButtonInfo(theirUsername) : '',
         cancelButtonLabel: paymentInfo.showCancel ? 'Cancel' : '',
         canceled,
         claimButtonLabel:
@@ -146,7 +148,7 @@ const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) =
   onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   action: stateProps.action,
   amount: stateProps.amount,
   approxWorth: stateProps.approxWorth,

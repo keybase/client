@@ -42,19 +42,20 @@ const (
 const ntstatusOk = C.NTSTATUS(0)
 
 func checkFileDirectoryFile(err error, isDir bool, createOptions uint32) {
-	if createOptions&createOptions&FileDirectoryFile != 0 && createOptions&FileNonDirectoryFile != 0 {
+	if createOptions&FileDirectoryFile != 0 && createOptions&FileNonDirectoryFile != 0 {
 		debugf("checkFileDirectoryFile both FileDirectoryFile FileNonDirectoryFile set")
 	}
-	if err == nil {
+	switch {
+	case err == nil:
 		if (!isDir && createOptions&FileDirectoryFile != 0) ||
 			(isDir && createOptions&FileNonDirectoryFile != 0) {
 			debugf("checkFileDirectoryFile INCONSISTENCY %v %08X", isDir, createOptions)
 		}
-	} else if err == ErrNotADirectory {
+	case err == ErrNotADirectory:
 		if createOptions&FileDirectoryFile == 0 {
 			debugf("checkFileDirectoryFile ErrNotADirectory but no createOptions&FileDirectoryFile")
 		}
-	} else if err == ErrFileIsADirectory {
+	case err == ErrFileIsADirectory:
 		if createOptions&FileNonDirectoryFile == 0 {
 			debugf("checkFileDirectoryFile ErrFileIsADirectory but no createOptions&FileNonDirectoryFile")
 		}
@@ -65,11 +66,11 @@ func checkFileDirectoryFile(err error, isDir bool, createOptions uint32) {
 func kbfsLibdokanCreateFile(
 	fname C.LPCWSTR,
 	psec C.PDOKAN_IO_SECURITY_CONTEXT,
-	DesiredAccess C.ACCESS_MASK,
-	FileAttributes C.ULONG,
-	ShareAccess C.ULONG,
+	DesiredAccess C.ACCESS_MASK, //nolint
+	FileAttributes C.ULONG, //nolint
+	ShareAccess C.ULONG, //nolint
 	cCreateDisposition C.ULONG,
-	CreateOptions C.ULONG,
+	CreateOptions C.ULONG, //nolint
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	var cd = CreateData{
 		DesiredAccess:     uint32(DesiredAccess),
@@ -139,10 +140,10 @@ func kbfsLibdokanCloseFile(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 //export kbfsLibdokanReadFile
 func kbfsLibdokanReadFile(
 	fname C.LPCWSTR,
-	Buffer C.LPVOID,
-	NumberOfBytesToRead C.DWORD,
-	NumberOfBytesRead C.LPDWORD,
-	Offset C.LONGLONG,
+	Buffer C.LPVOID, //nolint
+	NumberOfBytesToRead C.DWORD, //nolint
+	NumberOfBytesRead C.LPDWORD, //nolint
+	Offset C.LONGLONG, //nolint
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("ReadFile '%v' %d bytes @ %d %v", d16{fname}, NumberOfBytesToRead, Offset, *pfi)
 	ctx, cancel := getContext(pfi)
@@ -166,10 +167,10 @@ func kbfsLibdokanReadFile(
 //export kbfsLibdokanWriteFile
 func kbfsLibdokanWriteFile(
 	fname C.LPCWSTR,
-	Buffer C.LPCVOID,
-	NumberOfBytesToWrite C.DWORD,
-	NumberOfBytesWritten C.LPDWORD,
-	Offset C.LONGLONG,
+	Buffer C.LPCVOID, //nolint
+	NumberOfBytesToWrite C.DWORD, //nolint
+	NumberOfBytesWritten C.LPDWORD, //nolint
+	Offset C.LONGLONG, //nolint
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("WriteFile '%v' %d bytes @ %d %v", d16{fname}, NumberOfBytesToWrite, Offset, *pfi)
 	ctx, cancel := getContext(pfi)
@@ -237,8 +238,8 @@ var errFindNoSpace = errors.New("Find out of space")
 
 //export kbfsLibdokanFindFiles
 func kbfsLibdokanFindFiles(
-	PathName C.LPCWSTR,
-	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
+	PathName C.LPCWSTR, //nolint
+	FindData C.PFillFindData, //nolint call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
 	return kbfsLibdokanFindFilesImpl(PathName, "", FindData, pfi)
@@ -246,9 +247,9 @@ func kbfsLibdokanFindFiles(
 
 //export kbfsLibdokanFindFilesWithPattern
 func kbfsLibdokanFindFilesWithPattern(
-	PathName C.LPCWSTR,
-	SearchPattern C.LPCWSTR,
-	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
+	PathName C.LPCWSTR, //nolint
+	SearchPattern C.LPCWSTR, //nolint
+	FindData C.PFillFindData, //nolint call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	pattern := lpcwstrToString(SearchPattern)
 	debugf("FindFilesWithPattern '%v' %v %q", d16{PathName}, *pfi, pattern)
@@ -256,9 +257,9 @@ func kbfsLibdokanFindFilesWithPattern(
 }
 
 func kbfsLibdokanFindFilesImpl(
-	PathName C.LPCWSTR,
+	PathName C.LPCWSTR, //nolint
 	pattern string,
-	FindData C.PFillFindData,
+	FindData C.PFillFindData, //nolint
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
 	ctx, cancel := getContext(pfi)
@@ -438,10 +439,10 @@ func kbfsLibdokanUnlockFile(
 
 //export kbfsLibdokanGetDiskFreeSpace
 func kbfsLibdokanGetDiskFreeSpace(
-	FreeBytesAvailable *C.ULONGLONG,
-	TotalNumberOfBytes *C.ULONGLONG,
-	TotalNumberOfFreeBytes *C.ULONGLONG,
-	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	FreeBytesAvailable *C.ULONGLONG, //nolint
+	TotalNumberOfBytes *C.ULONGLONG, //nolint
+	TotalNumberOfFreeBytes *C.ULONGLONG, //nolint
+	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS { //nolint
 	debug("GetDiskFreeSpace", *FileInfo)
 	fs := getfs(FileInfo)
 	ctx, cancel := fs.WithContext(globalContext())
@@ -467,14 +468,14 @@ func kbfsLibdokanGetDiskFreeSpace(
 
 //export kbfsLibdokanGetVolumeInformation
 func kbfsLibdokanGetVolumeInformation(
-	VolumeNameBuffer C.LPWSTR,
-	VolumeNameSize C.DWORD, // in num of chars
-	VolumeSerialNumber C.LPDWORD,
-	MaximumComponentLength C.LPDWORD, // in num of chars
-	FileSystemFlags C.LPDWORD,
-	FileSystemNameBuffer C.LPWSTR,
-	FileSystemNameSize C.DWORD, // in num of chars
-	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	VolumeNameBuffer C.LPWSTR, //nolint
+	VolumeNameSize C.DWORD, //nolint in num of chars
+	VolumeSerialNumber C.LPDWORD, //nolint
+	MaximumComponentLength C.LPDWORD, //nolint in num of chars
+	FileSystemFlags C.LPDWORD, //nolint
+	FileSystemNameBuffer C.LPWSTR, //nolint
+	FileSystemNameSize C.DWORD, //nolint in num of chars
+	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS { //nolint
 	debug("GetVolumeInformation", VolumeNameSize, MaximumComponentLength, FileSystemNameSize, *FileInfo)
 	fs := getfs(FileInfo)
 	ctx, cancel := fs.WithContext(globalContext())
@@ -522,7 +523,7 @@ func kbfsLibdokanGetFileSecurity(
 	// A pointer to SECURITY_DESCRIPTOR buffer to be filled
 	output C.PSECURITY_DESCRIPTOR,
 	outlen C.ULONG, // length of Security descriptor buffer
-	LengthNeeded *C.ULONG,
+	LengthNeeded *C.ULONG, //nolint
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	var si winacl.SecurityInformation
 	if input != nil {
@@ -555,9 +556,9 @@ func kbfsLibdokanGetFileSecurity(
 //export kbfsLibdokanSetFileSecurity
 func kbfsLibdokanSetFileSecurity(
 	fname C.LPCWSTR,
-	SecurityInformation C.PSECURITY_INFORMATION,
-	SecurityDescriptor C.PSECURITY_DESCRIPTOR,
-	SecurityDescriptorLength C.ULONG,
+	SecurityInformation C.PSECURITY_INFORMATION, //nolint
+	SecurityDescriptor C.PSECURITY_DESCRIPTOR, //nolint
+	SecurityDescriptorLength C.ULONG, //nolint
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("SetFileSecurity TODO")
 	return ntstatusOk
@@ -660,6 +661,7 @@ func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
 	return nil
 }
 
+//nolint
 func dokanErrString(code int32) string {
 	switch code {
 	case C.kbfsLibDokan_ERROR:

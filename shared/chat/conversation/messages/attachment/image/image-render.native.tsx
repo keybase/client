@@ -47,7 +47,7 @@ export class ImageRender extends React.Component<Props, State> {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
               style={Styles.collapseStyles([styles.video, {height, width}])}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <Kb.NativeFastImage

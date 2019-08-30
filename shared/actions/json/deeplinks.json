@@ -1,0 +1,11 @@
+{
+  "prelude": [],
+  "actions": {
+    "handleKeybaseLink": {"link": "string"},
+    "link": {"link": "string"},
+    "setKeybaseLinkError": {
+      "_description": "Set the error field for a Keybase URL scheme link.",
+      "error": "string"
+    }
+  }
+}

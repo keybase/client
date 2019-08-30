@@ -54,15 +54,6 @@ type localTeamSettingsMap map[keybase1.TeamID]keybase1.KBFSTeamSettings
 
 type localImplicitTeamMap map[keybase1.TeamID]ImplicitTeamInfo
 
-func (m localImplicitTeamMap) getLocalImplicitTeam(
-	tid keybase1.TeamID) (ImplicitTeamInfo, error) {
-	team, ok := m[tid]
-	if !ok {
-		return ImplicitTeamInfo{}, NoSuchTeamError{tid.String()}
-	}
-	return team, nil
-}
-
 // DaemonLocal implements KeybaseDaemon using an in-memory user
 // and session store, and a given favorite store.
 type DaemonLocal struct {
@@ -102,11 +93,12 @@ func (dl *DaemonLocal) assertionToIDLocked(ctx context.Context,
 
 	for _, url := range urls {
 		var currID keybase1.UserOrTeamID
-		if url.IsUID() {
+		switch {
+		case url.IsUID():
 			currID = url.ToUID().AsUserOrTeam()
-		} else if url.IsTeamID() {
+		case url.IsTeamID():
 			currID = url.ToTeamID().AsUserOrTeam()
-		} else {
+		default:
 			key, val := url.ToKeyValuePair()
 			a := fmt.Sprintf("%s@%s", val, key)
 			if url.IsKeybase() && key != "team" {
@@ -541,17 +533,6 @@ func (dl *DaemonLocal) ChangeTeamNameForTest(
 	dl.asserts[newAssert] = id
 	delete(dl.asserts, oldAssert)
 	return tid, nil
-}
-
-// changeTeamNameForTestOrBust is like changeTeamNameForTest, but
-// panics if there's an error.
-func (dl *DaemonLocal) changeTeamNameForTestOrBust(
-	oldName, newName string) keybase1.TeamID {
-	tid, err := dl.ChangeTeamNameForTest(oldName, newName)
-	if err != nil {
-		panic(err)
-	}
-	return tid
 }
 
 // RemoveAssertionForTest removes the given assertion.  Should only be

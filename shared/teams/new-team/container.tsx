@@ -1,19 +1,19 @@
 import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import NewTeamDialog from './'
+import NewTeamDialog from '.'
 import {upperFirst} from 'lodash-es'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps< { makeSubteam: boolean; name: string } >
+type OwnProps = Container.RouteProps<{makeSubteam: boolean; name: string}>
 
 const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamCreationError),
   pending: WaitingConstants.anyWaiting(state, Constants.teamCreationWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   _onCreateNewTeam: (joinSubteam: boolean, teamname: string) =>
     dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname})),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
@@ -22,9 +22,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam') || false
-  const baseTeam = Container.getRouteProps(ownProps, 'name') || ''
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam', false)
+  const baseTeam = Container.getRouteProps(ownProps, 'name', '')
   return {
     ...stateProps,
     ...dispatchProps,
@@ -35,7 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  Container.withStateHandlers(({joinSubteam}: any) => ({joinSubteam: false, name: ''}), {
+  Container.withStateHandlers((_: any) => ({joinSubteam: false, name: ''}), {
     onJoinSubteamChange: () => (checked: boolean) => ({joinSubteam: checked}),
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   } as any),

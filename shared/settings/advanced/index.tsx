@@ -1,17 +1,17 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
+import {isDarwin, isMobile, isLinux} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import AppState from '../../app/app-state'
-import * as Types from '../../constants/types/wallets'
-import {maxUsernameLength} from '../../constants/signup'
+import {ProxySettings} from '../proxy/container'
+import {DarkModePreference} from '../../styles/dark-mode'
 
 type Props = {
   openAtLogin: boolean
+  darkModePreference: DarkModePreference
   lockdownModeEnabled: boolean | null
   onChangeLockdownMode: (arg0: boolean) => void
   onSetOpenAtLogin: (open: boolean) => void
@@ -21,15 +21,14 @@ type Props = {
   onTrace: (durationSeconds: number) => void
   onProcessorProfile: (durationSeconds: number) => void
   onBack: () => void
+  onSetDarkModePreference: (pref: DarkModePreference) => void
   setLockdownModeError: string
   settingLockdownMode: boolean
   traceInProgress: boolean
   processorProfileInProgress: boolean
-  proxyData: RPCTypes.ProxyData
   hasRandomPW: boolean
   useNativeFrame: boolean
-  onChangeUseNativeFrame: (arg0: boolean) => void
-  saveProxyData: (proxyData: RPCTypes.ProxyData) => void
+  onChangeUseNativeFrame: (use: boolean) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
   rememberPassword: boolean
@@ -37,19 +36,18 @@ type Props = {
   onToggleRuntimeStats: () => void
 }
 
-const stateUseNativeFrame = new AppState().state.useNativeFrame
-const initialUseNativeFrame =
-  stateUseNativeFrame !== null && stateUseNativeFrame !== undefined
-    ? stateUseNativeFrame
-    : defaultUseNativeFrame
+let initialUseNativeFrame: boolean | undefined
 
 const UseNativeFrame = (props: Props) => {
-  return !isMobile ? (
+  if (initialUseNativeFrame === undefined) {
+    initialUseNativeFrame = props.useNativeFrame
+  }
+  return isMobile ? null : (
     <>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
           checked={!props.useNativeFrame}
-          label={'Hide system window frame'}
+          label="Hide system window frame"
           onCheck={x => props.onChangeUseNativeFrame(!x)}
         />
       </Kb.Box>
@@ -59,13 +57,13 @@ const UseNativeFrame = (props: Props) => {
         </Kb.Text>
       )}
     </>
-  ) : null
+  )
 }
 
 const Advanced = (props: Props) => {
   const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
-    <Kb.ScrollView>
+    <Kb.ScrollView style={styles.scrollview}>
       <Kb.Box style={styles.advancedContainer}>
         <Kb.Box style={styles.progressContainer}>
           {props.settingLockdownMode && <Kb.ProgressIndicator />}
@@ -112,7 +110,32 @@ const Advanced = (props: Props) => {
             />
           </Kb.Box>
         )}
-        <ProxySettings {...props} />
+        <Kb.Divider style={styles.proxyDivider} />
+        <ProxySettings />
+        {flags.darkMode && (
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Divider style={styles.proxyDivider} />
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="Body">Dark mode</Kb.Text>
+              <Kb.RadioButton
+                label="Respect system settings"
+                disabled={!isDarwin}
+                selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
+                onSelect={() => props.onSetDarkModePreference('system')}
+              />
+              <Kb.RadioButton
+                label="Dark all the time"
+                selected={props.darkModePreference === 'alwaysDark'}
+                onSelect={() => props.onSetDarkModePreference('alwaysDark')}
+              />
+              <Kb.RadioButton
+                label="Light all the time 😎"
+                selected={props.darkModePreference === 'alwaysLight'}
+                onSelect={() => props.onSetDarkModePreference('alwaysLight')}
+              />
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Developer {...props} />
       </Kb.Box>
     </Kb.ScrollView>
@@ -188,7 +211,7 @@ class Developer extends React.Component<Props, State> {
           onClick={props.onExtraKBFSLogging}
         />
         {this._showPprofControls() && (
-          <React.Fragment>
+          <>
             <Kb.Button
               label="Toggle Runtime Stats"
               onClick={this.props.onToggleRuntimeStats}
@@ -208,7 +231,7 @@ class Developer extends React.Component<Props, State> {
             <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Kb.Text>
-          </React.Fragment>
+          </>
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button
@@ -245,137 +268,7 @@ class Developer extends React.Component<Props, State> {
   }
 }
 
-// A list so the order of the elements is fixed
-const proxyTypeList = ['noProxy', 'httpConnect', 'socks']
-const proxyTypeToDisplayName = {
-  httpConnect: 'HTTP(s) Connect',
-  noProxy: 'No proxy',
-  socks: 'SOCKS5',
-}
-
-type ProxyState = {
-  address: string
-  port: string
-  proxyType: string
-}
-
-class ProxySettings extends React.Component<Props, ProxyState> {
-  state = {
-    address: '',
-    port: '',
-    proxyType: 'noProxy',
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.proxyData !== this.props.proxyData) {
-      const addressPort = this.props.proxyData.addressWithPort.split(':')
-      const address = addressPort.slice(0, addressPort.length - 1).join(':')
-      var port = '8080'
-      if (addressPort.length >= 2) {
-        port = addressPort[addressPort.length - 1]
-      }
-
-      const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType]
-      this.setState({address, port, proxyType})
-    }
-  }
-
-  toggleCertPinning = () => {
-    if (this.certPinning()) {
-      this.props.onDisableCertPinning()
-    } else {
-      this.props.onEnableCertPinning()
-    }
-  }
-
-  saveProxySettings = () => {
-    const proxyData = {
-      addressWithPort: this.state.address + ':' + this.state.port,
-      certPinning: this.certPinning(),
-      proxyType: (RPCTypes.ProxyType[this.state.proxyType] as unknown) as RPCTypes.ProxyType,
-    }
-    this.props.saveProxyData(proxyData)
-  }
-
-  certPinning = (): boolean => {
-    if (this.props.allowTlsMitmToggle === null) {
-      if (this.props.proxyData) {
-        return this.props.proxyData.certPinning
-      } else {
-        return true // Default value
-      }
-    } else {
-      return !this.props.allowTlsMitmToggle
-    }
-  }
-
-  proxyTypeSelected = (proxyType: string) => {
-    var cb = () => {}
-    if (proxyType === 'noProxy') {
-      // Setting the proxy type to no proxy collapses the menu including the save button, so save immediately
-      cb = this.saveProxySettings
-    }
-    this.setState({proxyType}, cb)
-  }
-
-  renderProxySettings() {
-    if (this.state.proxyType === 'noProxy') {
-      return null
-    }
-    return (
-      <Kb.Box direction="vertical" style={styles.expandedProxyContainer}>
-        <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
-          <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-          <Kb.NewInput
-            placeholder="127.0.0.1"
-            onChangeText={address => this.setState({address})}
-            value={this.state.address}
-          />
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
-          <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-          <Kb.NewInput
-            placeholder="8080"
-            onChangeText={port => this.setState({port})}
-            value={this.state.port}
-          />
-        </Kb.Box2>
-        <Kb.Checkbox
-          checked={!this.certPinning()}
-          onCheck={this.toggleCertPinning}
-          label="Allow TLS Interception"
-          style={styles.proxySetting}
-        />
-        <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
-      </Kb.Box>
-    )
-  }
-
-  render() {
-    return (
-      <Kb.Box style={styles.proxyContainer}>
-        <Kb.Divider style={styles.proxyDivider} />
-        <Kb.Text type="BodyBig" style={styles.text}>
-          Proxy Settings
-        </Kb.Text>
-        <Kb.Box style={styles.flexButtons}>
-          {proxyTypeList.map(proxyType => (
-            <Kb.RadioButton
-              onSelect={() => this.proxyTypeSelected(proxyType)}
-              selected={this.state.proxyType === proxyType}
-              key={proxyType}
-              label={proxyTypeToDisplayName[proxyType]}
-              style={styles.radioButton}
-            />
-          ))}
-        </Kb.Box>
-        {this.renderProxySettings()}
-      </Kb.Box>
-    )
-  }
-}
-
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   advancedContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -408,17 +301,8 @@ const styles = Styles.styleSheetCreate({
   error: {
     color: Styles.globalColors.redDark,
   },
-  expandedProxyContainer: {
-    marginTop: Styles.globalMargins.small,
-  },
   filler: {
     flex: 1,
-  },
-  flexButtons: {
-    display: 'flex',
-    flexShrink: 0,
-    flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.tiny,
   },
   progressContainer: {
     ...Styles.globalStyles.flexBoxRow,
@@ -426,27 +310,18 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     minHeight: 32,
   },
-  proxyContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.medium,
-  },
   proxyDivider: {
     marginBottom: Styles.globalMargins.small,
     width: '100%',
   },
-  proxySetting: {
-    marginBottom: Styles.globalMargins.small,
-  },
-  radioButton: {
-    marginRight: Styles.globalMargins.medium,
+  scrollview: {
+    width: '100%',
   },
   text: Styles.platformStyles({
     isElectron: {
       cursor: 'default',
     },
   }),
-})
+}))
 
 export default Advanced

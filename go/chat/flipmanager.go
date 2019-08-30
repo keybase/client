@@ -213,7 +213,7 @@ func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	m.shutdownMu.Unlock()
 
 	go func(shutdownCh chan struct{}) {
-		m.dealer.Run(dealerCtx)
+		_ = m.dealer.Run(dealerCtx)
 		close(shutdownCh)
 	}(dealerShutdownCh)
 	go m.updateLoop(shutdownCh)
@@ -419,13 +419,11 @@ func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoi
 			})
 			continue
 		}
-		var hand []string
 		uiHand := chat1.UICoinFlipHand{
 			Target: target,
 		}
 		for di := deckIndex; di < deckIndex+handSize; di++ {
 			card := hmi.ShuffleItems[result.Shuffle[di]]
-			hand = append(hand, card)
 			cardIndex, err := m.cardIndex(card)
 			if err != nil {
 				m.Debug(ctx, "addCardHandResult: failed to get card: %s", err)
@@ -706,7 +704,10 @@ func (m *FlipManager) updateLoop(shutdownCh chan struct{}) {
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
-			m.handleUpdate(m.makeBkgContext(), msg, false)
+			err := m.handleUpdate(m.makeBkgContext(), msg, false)
+			if err != nil {
+				m.Debug(context.TODO(), "updateLoop: error handling update: %+v", err)
+			}
 		case <-shutdownCh:
 			m.Debug(context.Background(), "updateLoop: exiting")
 			return
@@ -1006,7 +1007,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return err
 	} else if elf != nil {
 		m.Debug(ctx, "StartFlip: setting ephemeral retention for conv: %v", *elf)
-		if m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+		if _, err := m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 			ConvID: conv.GetConvID(),
 			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf}),
 		}); err != nil {
@@ -1029,7 +1030,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
 			Text:   string(infoBody),
 			GameID: gameID,
-		}), chat1.MessageType_FLIP); err != nil {
+		}), chat1.MessageType_FLIP, keybase1.TLFVisibility_PRIVATE); err != nil {
 		return err
 	}
 
@@ -1414,6 +1415,8 @@ func (m *FlipManager) IsFlipConversationCreated(ctx context.Context, outboxID ch
 		switch status.status {
 		case types.FlipSendStatusSent:
 			convID = status.flipConvID
+		default:
+			// Nothing to do for other status types.
 		}
 		return convID, status.status
 	}
@@ -1620,8 +1623,8 @@ func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
 		}
 	}
 	var commitmentBuf, secretBuf bytes.Buffer
-	png.Encode(&commitmentBuf, commitmentImg)
-	png.Encode(&secretBuf, secretImg)
+	_ = png.Encode(&commitmentBuf, commitmentImg)
+	_ = png.Encode(&secretBuf, secretImg)
 	status.CommitmentVisualization = base64.StdEncoding.EncodeToString(commitmentBuf.Bytes())
 	status.RevealVisualization = base64.StdEncoding.EncodeToString(secretBuf.Bytes())
 }

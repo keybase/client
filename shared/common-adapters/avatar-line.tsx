@@ -1,7 +1,14 @@
 import * as React from 'react'
-import {AvatarSize} from '../common-adapters/avatar'
-import * as Kb from '../common-adapters'
+import Avatar, {AvatarSize} from './avatar'
+import {Box2} from './box'
+import Text from './text'
 import * as Styles from '../styles/index'
+
+const Kb = {
+  Avatar,
+  Box2,
+  Text,
+}
 
 type Props = {
   usernames: Array<string>
@@ -32,7 +39,7 @@ const AvatarLine = (props: Props) => {
             size={props.size}
             username={username}
             key={username}
-            borderColor="white"
+            borderColor={Styles.globalColors.white}
             style={styles.avatar}
           />
         ))
@@ -49,7 +56,7 @@ const styleMap = avatarSizes.reduce(
   (styles, size) => ({
     ...styles,
     [size]: {
-      horizontal: Styles.styleSheetCreate({
+      horizontal: Styles.styleSheetCreate(() => ({
         avatar: {
           marginRight: -size / 3,
         },
@@ -69,8 +76,8 @@ const styleMap = avatarSizes.reduce(
           color: Styles.globalColors.black_50,
           paddingRight: size / 5,
         },
-      }),
-      vertical: Styles.styleSheetCreate({
+      })),
+      vertical: Styles.styleSheetCreate(() => ({
         avatar: {
           marginBottom: -size / 3,
         },
@@ -90,7 +97,7 @@ const styleMap = avatarSizes.reduce(
           color: Styles.globalColors.black_50,
           paddingBottom: size / 5,
         },
-      }),
+      })),
     },
   }),
   {}

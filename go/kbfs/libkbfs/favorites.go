@@ -99,7 +99,8 @@ type Favorites struct {
 	// Channel that is full when there is already a refresh queued
 	refreshWaiting chan struct{}
 
-	wg kbfssync.RepeatedWaitGroup
+	wg     kbfssync.RepeatedWaitGroup
+	loopWG kbfssync.RepeatedWaitGroup
 
 	// cache tracks the favorites for this user, that we know about.
 	// It may not be consistent with the server's view of the user's
@@ -126,8 +127,8 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	log := config.MakeLogger("FAV")
 	if len(disableVal) > 0 && disableVal != "0" && disableVal != "false" &&
 		disableVal != "no" {
-		log.CDebugf(nil,
-			"Disable favorites due to env var %s=%s",
+		log.CDebugf(
+			context.TODO(), "Disable favorites due to env var %s=%s",
 			disableFavoritesEnvVar, disableVal)
 		return &Favorites{
 			config:   config,
@@ -282,8 +283,8 @@ func (f *Favorites) Initialize(ctx context.Context) {
 	// load cache from disk
 	err := f.readCacheFromDisk(ctx)
 	if err != nil {
-		f.log.CWarningf(nil,
-			"Failed to read cached favorites from disk: %v", err)
+		f.log.CWarningf(
+			ctx, "Failed to read cached favorites from disk: %v", err)
 	}
 
 	// launch background loop
@@ -396,6 +397,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer func() {
 		f.closeReq(req, err)
 		if changed {
+			f.config.SubscriptionManagerPublisher().FavoritesChanged()
 			f.config.Reporter().NotifyFavoritesChanged(req.ctx)
 		}
 	}()
@@ -599,6 +601,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 }
 
 func (f *Favorites) loop() {
+	f.loopWG.Add(1)
+	defer f.loopWG.Done()
 	bufferedTicker := time.NewTicker(favoritesBufferedReqInterval)
 	defer bufferedTicker.Stop()
 
@@ -608,7 +612,11 @@ func (f *Favorites) loop() {
 			if !ok {
 				return
 			}
-			f.handleReq(req)
+			err := f.handleReq(req)
+			if err != nil {
+				f.log.CDebugf(
+					context.TODO(), "Error handling request: %+v", err)
+			}
 		case <-bufferedTicker.C:
 			select {
 			case req, ok := <-f.bufferedReqChan:
@@ -619,7 +627,11 @@ func (f *Favorites) loop() {
 				// Don't block the wait group on buffered requests
 				// until we're actually processing one.
 				f.wg.Add(1)
-				f.handleReq(req)
+				err := f.handleReq(req)
+				if err != nil {
+					f.log.CDebugf(
+						context.TODO(), "Error handling request: %+v", err)
+				}
 			default:
 			}
 		}
@@ -644,7 +656,11 @@ func (f *Favorites) Shutdown() error {
 				"Could not close disk favorites cache: %v", err)
 		}
 	}
-	return f.wg.Wait(context.Background())
+	err := f.wg.Wait(context.Background())
+	if err != nil {
+		return err
+	}
+	return f.loopWG.Wait(context.Background())
 }
 
 func (f *Favorites) waitOnReq(ctx context.Context,

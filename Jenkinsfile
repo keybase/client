@@ -209,6 +209,9 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
                       }
+                      dir("go/fuzz") {
+                        sh "go build -tags gofuzz ./..."
+                      }
                       testGo("test_linux_go_", packagesToTest)
                     }
                   }},
@@ -451,6 +454,37 @@ def testGo(prefix, packagesToTest) {
     retry(5) {
       timeout(activity: true, time: 90, unit: 'SECONDS') {
         sh 'make -s lint'
+      }
+    }
+
+    println "Installing golangci-lint"
+    dir("..") {
+      retry(5) {
+        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
+      }
+    }
+
+
+    def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
+    if (hasKBFSChanges) {
+      println "Running golangci-lint on KBFS"
+      dir('kbfs') {
+        retry(5) {
+          timeout(activity: true, time: 180, unit: 'SECONDS') {
+          // Ignore the `dokan` directory since it contains lots of c code.
+          // Ignore the `protocol` directory, autogeneration has some critques
+          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+          }
+        }
+      }
+    }
+
+    if (env.CHANGE_TARGET) {
+      println("Running golangci-lint on new code")
+      fetchChangeTarget()
+      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+      timeout(activity: true, time: 360, unit: 'SECONDS') {
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
       }
     }
 

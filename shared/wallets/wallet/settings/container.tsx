@@ -3,6 +3,8 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/wallets'
+import {IconType} from '../../../common-adapters/icon.constants'
+import * as IconUtils from '../../../common-adapters/icon.shared'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -15,6 +17,15 @@ type OwnProps = Container.RouteProps
 const transformUrl = (accountID: string, url: string, username: string): string =>
   url.replace('%{accountId}', accountID).replace('%{username}', username)
 
+const toIconType = (iconFilename: string): IconType => {
+  const iconType = iconFilename as IconType
+  if (IconUtils.isValidIconType(iconType)) {
+    return iconType
+  } else {
+    return 'iconfont-identity-stellar'
+  }
+}
+
 const prepareExternalPartners = (
   externalPartners: I.List<Types.PartnerUrl>,
   accountID: string,
@@ -25,7 +36,7 @@ const prepareExternalPartners = (
       adminOnly: partner.adminOnly,
       description: partner.description,
       extra: partner.extra,
-      iconFilename: partner.iconFilename,
+      iconFilename: toIconType(partner.iconFilename),
       showDivider: index > 0,
       title: partner.title,
       url: transformUrl(accountID, partner.url, username),
@@ -47,11 +58,11 @@ const mapStateToProps = (state: Container.TypedState) => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
-  const secretKey = Constants.getSecretKey(state, accountID).stringValue()
+  const thisDeviceIsLockedOut = account.deviceReadOnly
+  const secretKey = !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
-  const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
   const externalPartners = Constants.getExternalPartners(state)
   return {
@@ -125,10 +136,14 @@ export default Container.compose(
         dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
       onDelete: () => dispatchProps._onDelete(stateProps.accountID),
       onEditName: () => dispatchProps._onEditName(stateProps.accountID),
-      onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
+      onLoadSecretKey: !stateProps.thisDeviceIsLockedOut
+        ? () => dispatchProps._onLoadSecretKey(stateProps.accountID)
+        : undefined,
       onMobileOnlyModeChange: (enabled: boolean) =>
         dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
-      onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
+      onSecretKeySeen: !stateProps.thisDeviceIsLockedOut
+        ? () => dispatchProps._onSecretKeySeen(stateProps.accountID)
+        : undefined,
       onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
       onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
       refresh: () => dispatchProps._refresh(stateProps.accountID),

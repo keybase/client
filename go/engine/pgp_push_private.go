@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -88,7 +89,7 @@ func (e *PGPPushPrivate) mkdir(m libkb.MetaContext, fs *keybase1.SimpleFSClient,
 	defer fs.SimpleFSClose(m.Ctx(), opid)
 	err = fs.SimpleFSOpen(m.Ctx(), keybase1.SimpleFSOpenArg{
 		OpID:  opid,
-		Dest:  keybase1.NewPathWithKbfs(path),
+		Dest:  keybase1.NewPathWithKbfsPath(path),
 		Flags: keybase1.OpenFlags_DIRECTORY,
 	})
 	return err
@@ -102,7 +103,7 @@ func (e *PGPPushPrivate) write(m libkb.MetaContext, fs *keybase1.SimpleFSClient,
 	defer fs.SimpleFSClose(m.Ctx(), opid)
 	err = fs.SimpleFSOpen(m.Ctx(), keybase1.SimpleFSOpenArg{
 		OpID:  opid,
-		Dest:  keybase1.NewPathWithKbfs(path),
+		Dest:  keybase1.NewPathWithKbfsPath(path),
 		Flags: keybase1.OpenFlags_WRITE,
 	})
 	if err != nil {
@@ -122,7 +123,7 @@ func (e *PGPPushPrivate) write(m libkb.MetaContext, fs *keybase1.SimpleFSClient,
 func (e *PGPPushPrivate) link(m libkb.MetaContext, fs *keybase1.SimpleFSClient, file string, link string) (err error) {
 	err = fs.SimpleFSSymlink(m.Ctx(), keybase1.SimpleFSSymlinkArg{
 		Target: file,
-		Link:   keybase1.NewPathWithKbfs(link),
+		Link:   keybase1.NewPathWithKbfsPath(link),
 	})
 	return err
 }
@@ -135,7 +136,7 @@ func (e *PGPPushPrivate) remove(m libkb.MetaContext, fs *keybase1.SimpleFSClient
 	defer fs.SimpleFSClose(m.Ctx(), opid)
 	err = fs.SimpleFSRemove(m.Ctx(), keybase1.SimpleFSRemoveArg{
 		OpID: opid,
-		Path: keybase1.NewPathWithKbfs(file),
+		Path: keybase1.NewPathWithKbfsPath(file),
 	})
 	if err != nil {
 		return err
@@ -145,7 +146,7 @@ func (e *PGPPushPrivate) remove(m libkb.MetaContext, fs *keybase1.SimpleFSClient
 }
 
 func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty string, fs *keybase1.SimpleFSClient) error {
-	armored, err := m.G().GetGpgClient().ImportKeyArmored(true /* secret */, fp, tty)
+	armored, err := m.G().GetGpgClient().ImportKeyArmored(m, true /* secret */, fp, tty)
 	if err != nil {
 		return err
 	}

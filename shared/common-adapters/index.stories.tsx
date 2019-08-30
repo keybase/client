@@ -11,6 +11,7 @@ import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
 import confirmModal from './confirm-modal/index.stories'
 import copyText from './copy-text.stories'
+import copyableText from './copyable-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
 import floatingMenu from './floating-menu/index.stories'
@@ -28,6 +29,7 @@ import newInput from './new-input.stories'
 import placeholder from './placeholder.stories'
 import plainInput from './plain-input.stories'
 import popupDialog from './popup-dialog.stories'
+import proofBrokenBanner from './proof-broken-banner.stories'
 import radiobutton from './radio-button.stories'
 import reload from './reload.stories'
 import saveIndicator from './save-indicator.stories'
@@ -54,6 +56,7 @@ const load = () => {
     choiceList,
     confirmModal,
     copyText,
+    copyableText,
     dropdown,
     formWithCheckbox,
     floatingMenu,
@@ -71,6 +74,7 @@ const load = () => {
     placeholder,
     plainInput,
     popupDialog,
+    proofBrokenBanner,
     radiobutton,
     reload,
     saveIndicator,

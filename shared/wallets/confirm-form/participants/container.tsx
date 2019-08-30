@@ -42,11 +42,11 @@ const mapStateToProps = state => {
   }
 }
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
   'Participants'
 )(ConfirmSend)

@@ -15,6 +15,11 @@ export const conversationIDKeyToString = (c: ConversationIDKey): string => c
 export const noConversationIDKey = stringToConversationIDKey('EMPTY')
 // A pending conversation that we're looking for a real convo or noConvo but don't know yet
 export const pendingWaitingConversationIDKey = stringToConversationIDKey('PENDING-WAITING')
+// We tried to create a conversation but it failed with an error
+export const pendingErrorConversationIDKey = stringToConversationIDKey('PENDING-ERROR')
 
 export const isValidConversationIDKey = (id: ConversationIDKey): boolean =>
-  !!id && id !== noConversationIDKey && id !== pendingWaitingConversationIDKey
+  !!id &&
+  id !== noConversationIDKey &&
+  id !== pendingWaitingConversationIDKey &&
+  id !== pendingErrorConversationIDKey

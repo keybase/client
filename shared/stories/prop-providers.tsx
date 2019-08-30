@@ -6,7 +6,6 @@ import {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/use
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
 import {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/menu'
-import * as _CopyText from '../common-adapters/copy-text'
 import {NameWithIconProps} from '../common-adapters/name-with-icon'
 import {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
 import {createPropProvider, action} from './storybook.shared'
@@ -99,10 +98,6 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[K i
   }),
 })
 
-const CopyText = () => ({
-  CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
-})
-
 const Channel = ({name, convID, key, style}) => ({
   convID,
   key,
@@ -165,7 +160,6 @@ export const Reloadable = () => ({
 
 export const Common = () => ({
   ...Avatar(),
-  ...CopyText(),
   ...NameWithIcon(),
   ...Reloadable(),
   ...Usernames(),
@@ -192,5 +186,11 @@ export const createStoreWithCommon = () => {
       following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
     }),
+    fs: root.fs.update('sfmi', sfmi =>
+      sfmi.merge({
+        directMountDir: '/Volumes/Keybase (meatball)',
+        preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
+      })
+    ),
   }
 }

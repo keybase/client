@@ -2,12 +2,12 @@
   "protocol": "common",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     }
@@ -160,7 +160,8 @@
         "SENDPAYMENT_14",
         "REQUESTPAYMENT_15",
         "UNFURL_16",
-        "FLIP_17"
+        "FLIP_17",
+        "PIN_18"
       ],
       "go": "nostring"
     },
@@ -613,9 +614,7 @@
           },
           "name": "resetList"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -760,6 +759,13 @@
             "ConversationCreatorInfo"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pinnedMsg"
         },
         {
           "type": "Expunge",
@@ -959,9 +965,7 @@
           "mpackkey": "u",
           "jsonkey": "u"
         }
-      ],
-      "mpackkey": "em",
-      "jsonkey": "em"
+      ]
     },
     {
       "type": "record",
@@ -991,9 +995,7 @@
           "mpackkey": "e",
           "jsonkey": "e"
         }
-      ],
-      "mpackkey": "pi",
-      "jsonkey": "pi"
+      ]
     },
     {
       "type": "record",
@@ -1094,6 +1096,15 @@
           "name": "pairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1180,6 +1191,15 @@
           "name": "hasPairwiseMacs",
           "mpackkey": "pm",
           "jsonkey": "pm"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1417,7 +1437,8 @@
         "SEARCHER_6",
         "INDEXED_SEARCH_7",
         "KBFSFILEACTIVITY_8",
-        "COINFLIP_9"
+        "COINFLIP_9",
+        "BOTCOMMANDS_10"
       ]
     },
     {
@@ -1792,6 +1813,33 @@
         {
           "type": "AssetTag",
           "name": "tag"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "BotCommandsAdvertisementTyp",
+      "symbols": [
+        "PUBLIC_0",
+        "TLFID_MEMBERS_1",
+        "TLFID_CONVS_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMember",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "keybase1.TeamMemberStatus",
+          "name": "status"
         }
       ]
     }

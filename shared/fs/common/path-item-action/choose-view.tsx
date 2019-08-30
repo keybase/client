@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Flow from '../../../util/flow'
@@ -11,21 +10,13 @@ type OwnProps = {
   floatingMenuProps: FloatingMenuProps
   mode: 'row' | 'screen'
   path: Types.Path
-  routePath: I.List<string>
 }
 type StateProps = {view: Types.PathItemActionMenuView}
 type Props = OwnProps & StateProps
 
 const ChooseView = (props: Props) => {
   if (props.view === Types.PathItemActionMenuView.Root || props.view === Types.PathItemActionMenuView.Share) {
-    return (
-      <Menu
-        routePath={props.routePath}
-        path={props.path}
-        mode={props.mode}
-        floatingMenuProps={props.floatingMenuProps}
-      />
-    )
+    return <Menu path={props.path} mode={props.mode} floatingMenuProps={props.floatingMenuProps} />
   } else if (
     props.view === Types.PathItemActionMenuView.ConfirmSaveMedia ||
     props.view === Types.PathItemActionMenuView.ConfirmSendToOtherApp

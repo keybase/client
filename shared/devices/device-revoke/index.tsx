@@ -12,9 +12,7 @@ export type Props = {
   waiting: boolean
 }
 
-class EndangeredTLFList extends React.Component<{
-  endangeredTLFs: Array<string>
-}> {
+class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}> {
   _renderTLFEntry = (index: number, tlf: string) => (
     <Kb.Box2 direction="horizontal" key={index} gap="tiny" fullWidth={true} style={styles.row}>
       <Kb.Text type="BodySemibold">•</Kb.Text>
@@ -26,14 +24,14 @@ class EndangeredTLFList extends React.Component<{
   render() {
     if (!this.props.endangeredTLFs.length) return null
     return (
-      <React.Fragment>
+      <>
         <Kb.Text center={true} type="Body">
           You may lose access to these folders forever:
         </Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.listContainer}>
           <Kb.List items={this.props.endangeredTLFs} renderItem={this._renderTLFEntry} indexAsKey={true} />
         </Kb.Box2>
-      </React.Fragment>
+      </>
     )
   }
 }
@@ -96,7 +94,7 @@ const DeviceRevoke = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {padding: Styles.globalMargins.small},
   endangeredTLFContainer: Styles.platformStyles({
     isElectron: {alignSelf: 'center'},
@@ -130,6 +128,6 @@ const styles = Styles.styleSheetCreate({
   tlf: Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'},
   }),
-})
+}))
 
 export default Kb.HeaderHoc(DeviceRevoke)

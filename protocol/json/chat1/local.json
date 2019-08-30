@@ -2,17 +2,17 @@
   "protocol": "local",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "path": "../stellar1",
       "type": "idl",
       "import_as": "stellar1"
     },
@@ -183,6 +183,13 @@
           "name": "replyTo"
         },
         {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "replyToUID"
+        },
+        {
           "type": {
             "type": "array",
             "items": "KnownUserMention"
@@ -299,6 +306,16 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessagePin",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageSystemType",
       "symbols": [
@@ -362,6 +379,13 @@
             "items": "string"
           },
           "name": "bots"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "restrictedBots"
         }
       ]
     },
@@ -641,7 +665,22 @@
     {
       "type": "record",
       "name": "MessageJoin",
-      "fields": []
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "joiners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "leavers"
+        }
+      ]
     },
     {
       "type": "record",
@@ -823,6 +862,13 @@
             "def": false
           },
           "body": "MessageFlip"
+        },
+        {
+          "label": {
+            "name": "PIN",
+            "def": false
+          },
+          "body": "MessagePin"
         }
       ]
     },
@@ -1098,6 +1144,15 @@
           "name": "ephemeralMetadata",
           "mpackkey": "em",
           "jsonkey": "em"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID",
+          "mpackkey": "b",
+          "jsonkey": "b"
         }
       ]
     },
@@ -1228,6 +1283,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "BodyPlaintextV2",
+      "fields": [
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "BodyPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "BodyPlaintext",
       "switch": {
@@ -1247,7 +1316,7 @@
             "name": "V2",
             "def": false
           },
-          "body": "BodyPlaintextUnsupported"
+          "body": "BodyPlaintextV2"
         },
         {
           "label": {
@@ -1615,6 +1684,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationPinnedMessage",
+      "fields": [
+        {
+          "type": "MessageUnboxed",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -1643,6 +1726,20 @@
             "MessageUnboxed"
           ],
           "name": "snippetMsg"
+        },
+        {
+          "type": [
+            null,
+            "ConversationPinnedMessage"
+          ],
+          "name": "pinnedMsg"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         },
         {
           "type": "keybase1.TLFVisibility",
@@ -1900,6 +1997,10 @@
         {
           "type": "ConversationCommandGroups",
           "name": "commands"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "botCommands"
         }
       ]
     },
@@ -2845,6 +2946,27 @@
     },
     {
       "type": "record",
+      "name": "PreviewConversationLocalRes",
+      "fields": [
+        {
+          "type": "InboxUIItem",
+          "name": "conv"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DeleteConversationLocalRes",
       "fields": [
         {
@@ -3181,6 +3303,165 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBotExtendedDescription",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "desktopBody",
+          "jsonkey": "desktop_body"
+        },
+        {
+          "type": "string",
+          "name": "mobileBody",
+          "jsonkey": "mobile_body"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBotCommandOutput",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "usage"
+        },
+        {
+          "type": [
+            null,
+            "UserBotExtendedDescription"
+          ],
+          "name": "extendedDescription",
+          "jsonkey": "extended_description"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserBotCommandInput",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
+          "name": "usage"
+        },
+        {
+          "type": [
+            null,
+            "UserBotExtendedDescription"
+          ],
+          "name": "extendedDescription",
+          "jsonkey": "extended_description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseCommandsParam",
+      "fields": [
+        {
+          "type": "BotCommandsAdvertisementTyp",
+          "name": "typ"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandInput"
+          },
+          "name": "commands"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "teamName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseBotCommandsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListBotCommandsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandOutput"
+          },
+          "name": "commands"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClearBotCommandsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PinMessageRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     }
@@ -4224,15 +4505,6 @@
       ],
       "response": "JoinLeaveConversationLocalRes"
     },
-    "previewConversationByIDLocal": {
-      "request": [
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": "JoinLeaveConversationLocalRes"
-    },
     "leaveConversationLocal": {
       "request": [
         {
@@ -4241,6 +4513,15 @@
         }
       ],
       "response": "JoinLeaveConversationLocalRes"
+    },
+    "previewConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PreviewConversationLocalRes"
     },
     "deleteConversationLocal": {
       "request": [
@@ -4644,6 +4925,69 @@
       "response": null
     },
     "locationDenied": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "advertiseBotCommandsLocal": {
+      "request": [
+        {
+          "name": "alias",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "advertisements",
+          "type": {
+            "type": "array",
+            "items": "AdvertiseCommandsParam"
+          }
+        }
+      ],
+      "response": "AdvertiseBotCommandsLocalRes"
+    },
+    "listBotCommandsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "ListBotCommandsLocalRes"
+    },
+    "clearBotCommandsLocal": {
+      "request": [],
+      "response": "ClearBotCommandsLocalRes"
+    },
+    "pinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "unpinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "ignorePinnedMessage": {
       "request": [
         {
           "name": "convID",

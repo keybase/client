@@ -155,12 +155,14 @@ func TestBlockCacheDeletePermanent(t *testing.T) {
 	testBcachePutWithBlock(t, id2, bcache, TransientEntry, block2)
 	testBcachePutWithBlock(t, id2, bcache, PermanentEntry, block2)
 
-	bcache.DeletePermanent(id1)
-	bcache.DeletePermanent(id2)
+	err := bcache.DeletePermanent(id1)
+	require.NoError(t, err)
+	err = bcache.DeletePermanent(id2)
+	require.NoError(t, err)
 	testExpectedMissing(t, id1, bcache)
 
 	// 2 should still be there
-	_, err := bcache.Get(BlockPointer{ID: id2})
+	_, err = bcache.Get(BlockPointer{ID: id2})
 	require.NoError(t, err)
 }
 

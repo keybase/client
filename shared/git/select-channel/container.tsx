@@ -1,12 +1,13 @@
 import * as GitGen from '../../actions/git-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {getChannelsWaitingKey, getTeamChannelInfos} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {HeaderOrPopup} from '../../common-adapters'
-import {connect, compose, lifecycle, withHandlers, withStateHandlers, RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import SelectChannel from '.'
 
-type OwnProps = RouteProps<{teamname: string; selected: boolean; repoID: string}>
+type OwnProps = Container.RouteProps<{teamname: string; selected: string; repoID: string}>
 
 export type SelectChannelProps = {
   teamname: string
@@ -14,67 +15,45 @@ export type SelectChannelProps = {
   selected: string
 }
 
-const mapStateToProps = (state, {routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  const selected = routeProps.get('selected')
-  const _channelInfos = getTeamChannelInfos(state, teamname)
-  return {
-    _channelInfos,
-    _selected: selected,
-    loaded: !!_channelInfos.size,
-    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
+export default Container.connect(
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const teamname = Container.getRouteProps(ownProps, 'teamname', '')
+    const selected = Container.getRouteProps(ownProps, 'selected', '')
+    const _channelInfos = getTeamChannelInfos(state, teamname)
+    return {
+      _channelInfos,
+      selected,
+      waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
+    }
+  },
+  (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
+    const teamname = Container.getRouteProps(ownProps, 'teamname', '')
+    const repoID = Container.getRouteProps(ownProps, 'repoID', '')
+    return {
+      onBack: undefined,
+      onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onLoad: () => dispatch(TeamsGen.createGetChannels({teamname})),
+      onSubmit: (channelName: string) =>
+        dispatch(
+          GitGen.createSetTeamRepoSettings({
+            channelName,
+            chatDisabled: false,
+            repoID: repoID,
+            teamname: teamname,
+          })
+        ),
+    }
+  },
+  (stateProps, dispatchProps, _: OwnProps) => {
+    const channelNames = stateProps._channelInfos
+      .map(info => info.channelname)
+      .valueSeq()
+      .toArray()
+    return {
+      ...dispatchProps,
+      channelNames,
+      selected: stateProps.selected,
+      waiting: stateProps.waiting,
+    }
   }
-}
-
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => {
-  const teamname = routeProps.get('teamname')
-  const repoID = routeProps.get('repoID')
-  return {
-    _onSubmit: (channelName: string) =>
-      dispatch(
-        GitGen.createSetTeamRepoSettings({
-          channelName,
-          chatDisabled: false,
-          repoID: repoID,
-          teamname: teamname,
-        })
-      ),
-    onCancel: () => dispatch(navigateUp()),
-    onLoad: () => dispatch(TeamsGen.createGetChannels({teamname})),
-  }
-}
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const channelNames = stateProps._channelInfos
-    .map(info => info.channelname)
-    .valueSeq()
-    .toArray()
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    channelNames,
-  }
-}
-
-// TODO Fix this. This is typed as any
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props.onLoad()
-    },
-  } as any),
-  withStateHandlers((props: any): any => ({selected: props._selected}), {
-    onSelect: () => (selected: string) => ({selected}),
-  }),
-  withHandlers({
-    onSubmit: ({_onSubmit, onCancel, selected}) => () => {
-      _onSubmit(selected)
-      onCancel()
-    },
-  } as any)
 )(HeaderOrPopup(SelectChannel))

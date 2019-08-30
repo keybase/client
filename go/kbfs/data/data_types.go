@@ -182,14 +182,10 @@ var ZeroPtr BlockPointer
 // IsValid returns whether the block pointer is valid. A zero block
 // pointer is considered invalid.
 func (p BlockPointer) IsValid() bool {
-	if !p.ID.IsValid() {
-		return false
-	}
+	return p.ID.IsValid()
 
 	// TODO: Should also check KeyGen, Ver, and Creator. (A
 	// bunch of tests use invalid values for one of these.)
-
-	return true
 }
 
 func (p BlockPointer) String() string {
@@ -287,11 +283,12 @@ func init() {
 // responsible for filling in `EntryInfo.SymPath`, if needed.
 func EntryInfoFromFileInfo(fi os.FileInfo) EntryInfo {
 	t := File
-	if fi.IsDir() {
+	switch {
+	case fi.IsDir():
 		t = Dir
-	} else if fi.Mode()&os.ModeSymlink != 0 {
+	case fi.Mode()&os.ModeSymlink != 0:
 		t = Sym
-	} else if fi.Mode()&0100 != 0 {
+	case fi.Mode()&0100 != 0:
 		t = Exec
 	}
 	mtime := fi.ModTime().UnixNano()

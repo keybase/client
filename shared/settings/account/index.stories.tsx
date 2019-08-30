@@ -7,15 +7,21 @@ import * as I from 'immutable'
 
 const props = {
   addedEmail: null,
+  addedPhone: false,
   contactKeys: I.List(),
   hasPassword: false,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
   onClearAddedEmail: Sb.action('onClearAddedEmail'),
+  onClearAddedPhone: Sb.action('onClearAddedPhone'),
+  onClearSupersededPhoneNumber: Sb.action('onClearSupersededPhoneNumber'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
   onManageContacts: Sb.action('onManageContacts'),
   onReload: Sb.action('onReload'),
   onSetPassword: Sb.action('onSetPassword'),
+  onStartPhoneConversation: Sb.action('onStartPhoneConversation'),
+  tooManyEmails: false,
+  tooManyPhones: false,
   waiting: false,
 }
 
@@ -29,14 +35,15 @@ const cc = {
 const contacts: {
   [K in string]: ContactRowProps;
 } = {
-  a: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, type: 'email', verified: true},
-  b: {...cc, address: 'cecile@keyba.se', primary: false, searchable: false, type: 'email', verified: true},
-  c: {...cc, address: 'cecile@keyba.se', primary: true, searchable: false, type: 'email', verified: true},
-  d: {...cc, address: 'cecile@keyba.se', primary: true, searchable: true, type: 'email', verified: false},
-  e: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, type: 'email', verified: false},
-  f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: true},
-  g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, type: 'phone', verified: true},
-  h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, type: 'phone', verified: false},
+  a: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, superseded: false, type: 'email', verified: true},
+  b: {...cc, address: 'cecile@keyba.se', primary: false, searchable: false, superseded: false, type: 'email', verified: true},
+  c: {...cc, address: 'cecile@keyba.se', primary: true, searchable: false, superseded: false, type: 'email', verified: true},
+  d: {...cc, address: 'cecile@keyba.se', primary: true, searchable: true, superseded: false, type: 'email', verified: false},
+  e: {...cc, address: 'cecile@keyba.se', primary: false, searchable: true, superseded: false, type: 'email', verified: false},
+  f: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: true},
+  g: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: false, superseded: false, type: 'phone', verified: true},
+  h: {...cc, address: '+33 6 76 38 86 97', primary: false, searchable: true, superseded: false, type: 'phone', verified: false},
+  i: {...cc, address: '+33 6 76 38 86 98', primary: false, searchable: false, superseded: true, type: 'phone', verified: false},
 }
 
 const confirmDeleteProps = {
@@ -53,12 +60,44 @@ const load = () => {
     .addDecorator(provider)
     .add('Empty', () => <AccountSettings {...props} />)
     .add('With password', () => <AccountSettings {...props} hasPassword={true} />)
-    .add('With email/phone', () => <AccountSettings {...props} contactKeys={I.List(Object.keys(contacts))} />)
-    .add('Confirm delete email', () => (
-      <ConfirmDeleteAddress {...confirmDeleteProps} address="cecile@keyba.se" type="email" />
+    .add('With email/phone including superseded', () => (
+      <AccountSettings
+        {...props}
+        contactKeys={I.List(Object.keys(contacts))}
+        supersededPhoneNumber={contacts.i.address}
+      />
     ))
-    .add('Confirm delete phone', () => (
-      <ConfirmDeleteAddress {...confirmDeleteProps} address="+33 6 76 38 86 97" type="phone" />
+    .add('Confirm delete email searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="cecile@keyba.se"
+        searchable={true}
+        type="email"
+      />
+    ))
+    .add('Confirm delete email not searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="cecile@keyba.se"
+        searchable={false}
+        type="email"
+      />
+    ))
+    .add('Confirm delete phone searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="+33 6 76 38 86 97"
+        searchable={true}
+        type="phone"
+      />
+    ))
+    .add('Confirm delete phone not searchable', () => (
+      <ConfirmDeleteAddress
+        {...confirmDeleteProps}
+        address="+33 6 76 38 86 97"
+        searchable={false}
+        type="phone"
+      />
     ))
 }
 

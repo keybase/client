@@ -1,9 +1,12 @@
 import * as React from 'react'
+import * as SearchGen from '../../actions/search-gen'
+import * as Container from '../../util/container'
+import ProfileSearch from '../search/bar'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/tracker2'
 import * as Types from '../../constants/types/tracker2'
 import * as Styles from '../../styles'
-import {chunk} from 'lodash-es'
+import {chunk, upperFirst} from 'lodash-es'
 import Bio from '../../tracker2/bio/container'
 import Assertion from '../../tracker2/assertion/container'
 import Actions from './actions/container'
@@ -14,6 +17,7 @@ import Folders from '../folders/container'
 import shallowEqual from 'shallowequal'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
+import {SiteIcon} from '../generic/shared'
 
 export type BackgroundColorType = 'red' | 'green' | 'blue'
 
@@ -22,20 +26,27 @@ export type Props = {
   backgroundColorType: BackgroundColorType
   followThem: boolean
   followers: Array<string> | null
-  followersCount: number
+  followersCount?: number
   following: Array<string> | null
-  followingCount: number
+  followingCount?: number
   notAUser: boolean
   onAddIdentity: (() => void) | null
   onBack: () => void
   onReload: () => void
   onSearch: () => void
-  onEditAvatar: (() => void) | null
+  onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
   reason: string
+  sbsAvatarUrl?: string
+  showAirdropBanner: boolean
   state: Types.DetailsState
   suggestionKeys: Array<string> | null
   userIsYou: boolean
   username: string
+  name: string // assertion value
+  service: string // assertion key (if SBS)
+  serviceIcon: readonly Types.SiteIcon[] | null
+  fullName: string | null // full name from external profile
+  title: string
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -52,18 +63,33 @@ const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
   }
 }
 
-const BioLayout = p => (
+const noopOnClick = () => {}
+
+type SbsTitleProps = {
+  serviceIcon: readonly Types.SiteIcon[] | null
+  sbsUsername: string
+}
+const SbsTitle = (p: SbsTitleProps) => (
+  <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center">
+    {p.serviceIcon && <SiteIcon set={p.serviceIcon} full={false} />}
+    <Kb.Text type="HeaderBig">{p.sbsUsername}</Kb.Text>
+  </Kb.Box2>
+)
+const BioLayout = (p: BioTeamProofsProps) => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
     <Kb.ConnectedNameWithIcon
+      onClick={p.title === p.username ? 'profile' : noopOnClick}
+      title={p.title !== p.username ? <SbsTitle sbsUsername={p.title} serviceIcon={p.serviceIcon} /> : null}
       username={p.username}
       underline={false}
       selectable={true}
       colorFollowing={true}
       notFollowingColorOverride={p.notAUser ? Styles.globalColors.black_50 : Styles.globalColors.orange}
       editableIcon={!!p.onEditAvatar}
-      onEditIcon={p.onEditAvatar}
+      onEditIcon={p.onEditAvatar || undefined}
       avatarSize={avatarSize}
       size="huge"
+      avatarImageOverride={p.sbsAvatarUrl}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
@@ -71,6 +97,35 @@ const BioLayout = p => (
     </Kb.Box2>
   </Kb.Box2>
 )
+
+const ProveIt = p => {
+  let doWhat: string
+  switch (p.service) {
+    case 'phone':
+      doWhat = 'verify their phone number'
+      break
+    case 'email':
+      doWhat = 'verify their e-mail address'
+      break
+    default:
+      doWhat = `prove their ${upperFirst(p.service)}`
+      break
+  }
+  const url = 'https://keybase.io/install'
+  return (
+    <>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Tell {p.fullName || p.name} to join Keybase and {doWhat}.
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={styles.proveIt}>
+        Send them this link:{' '}
+        <Kb.Text type="BodySmallPrimaryLink" onClickURL={url} selectable={true}>
+          {url}
+        </Kb.Text>
+      </Kb.Text>
+    </>
+  )
+}
 
 const Proofs = p => {
   let assertions: React.ReactNode
@@ -85,21 +140,10 @@ const Proofs = p => {
     assertions = null
   }
 
-  let proveIt: React.ReactNode = null
-
-  if (p.notAUser) {
-    const [name, service] = p.username.split('@')
-    proveIt = (
-      <Kb.Text type="BodySmall" style={styles.proveIt}>
-        Tell {name} to join Keybase and prove their {service}.
-      </Kb.Text>
-    )
-  }
-
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {assertions}
-      {proveIt}
+      {!!p.notAUser && !!p.service && <ProveIt {...p} />}
     </Kb.Box2>
   )
 }
@@ -108,8 +152,8 @@ type FriendshipTabsProps = {
   loading: boolean
   onChangeFollowing: (arg0: boolean) => void
   selectedFollowing: boolean
-  numFollowers: number
-  numFollowing: number
+  numFollowers: number | undefined
+  numFollowing: number | undefined
 }
 
 class FriendshipTabs extends React.Component<FriendshipTabsProps> {
@@ -130,8 +174,8 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
         }
       >
         {following
-          ? `Following${!this.props.loading ? ` (${this.props.numFollowing})` : ''}`
-          : `Followers${!this.props.loading ? ` (${this.props.numFollowers})` : ''}`}
+          ? `Following${!this.props.loading ? ` (${this.props.numFollowing || 0})` : ''}`
+          : `Followers${!this.props.loading ? ` (${this.props.numFollowers || 0})` : ''}`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -180,11 +224,17 @@ export type BioTeamProofsProps = {
   onAddIdentity: (() => void) | null
   assertionKeys: Array<string> | null
   backgroundColorType: BackgroundColorType
-  onEditAvatar: (() => void) | null
+  onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
   notAUser: boolean
   suggestionKeys: Array<string> | null
   username: string
   reason: string
+  name: string
+  sbsAvatarUrl?: string
+  service: string
+  serviceIcon: readonly Types.SiteIcon[] | null
+  fullName: string | null
+  title: string
 }
 export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
@@ -258,12 +308,45 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   }
 }
 
+const Header = ({onSearch}) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true}>
+    <ProfileSearch whiteText={true} onSearch={onSearch} />
+  </Kb.Box2>
+)
+const ConnectedHeader = Container.connect(
+  () => ({}),
+  dispatch => ({
+    onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)(Header)
+
 type State = {
   selectedFollowing: boolean
   width: number
 }
 
 class User extends React.Component<Props, State> {
+  static navigationOptions = () => ({
+    header: undefined,
+    headerBackIconColor: Styles.globalColors.white,
+    headerHideBorder: false,
+    headerStyle: {
+      backgroundColor: Styles.globalColors.transparent,
+      borderBottomColor: Styles.globalColors.transparent,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
+    },
+    headerTintColor: Styles.globalColors.white,
+    headerTitle: ConnectedHeader,
+    headerTitleContainerStyle: {
+      left: 60,
+      right: 20,
+    },
+    headerTransparent: true,
+    underNotch: true,
+  })
+
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -317,16 +400,22 @@ class User extends React.Component<Props, State> {
         assertionKeys={this.props.assertionKeys}
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
+        name={this.props.name}
+        service={this.props.service}
+        serviceIcon={this.props.serviceIcon}
         reason={this.props.reason}
+        sbsAvatarUrl={this.props.sbsAvatarUrl}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
         notAUser={this.props.notAUser}
+        fullName={this.props.fullName}
+        title={this.props.title}
       />
     ),
   }
 
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
-  _keyExtractor = (item, index) => index
+  _keyExtractor = (_, index) => index
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.username !== prevProps.username) {
@@ -359,6 +448,8 @@ class User extends React.Component<Props, State> {
       }
     }
 
+    const paddingTop = styles.container.paddingTop + (this.props.showAirdropBanner ? 70 : 0)
+
     return (
       <Kb.Reloadable
         reloadOnMount={true}
@@ -371,7 +462,11 @@ class User extends React.Component<Props, State> {
           direction="vertical"
           fullWidth={true}
           fullHeight={true}
-          style={Styles.collapseStyles([styles.container, colorTypeToStyle(this.props.backgroundColorType)])}
+          style={Styles.collapseStyles([
+            styles.container,
+            {paddingTop},
+            colorTypeToStyle(this.props.backgroundColorType),
+          ])}
         >
           <Kb.Box2 direction="vertical" style={styles.innerContainer}>
             {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
@@ -409,7 +504,7 @@ const usernameSelectedFollowing = {}
 const avatarSize = 128
 const headerHeight = Styles.isAndroid ? 30 : Styles.isIOS ? Styles.statusBarHeight + 46 : 80
 
-export const styles = Styles.styleSheetCreate({
+export const styles = Styles.styleSheetCreate(() => ({
   addIdentityButton: {
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
@@ -426,7 +521,7 @@ export const styles = Styles.styleSheetCreate({
   backgroundColor: {
     ...Styles.globalStyles.fillAbsolute,
     bottom: undefined,
-    height: (avatarSize / 2) + Styles.globalMargins.tiny,
+    height: avatarSize / 2 + Styles.globalMargins.tiny,
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
@@ -586,6 +681,6 @@ export const styles = Styles.styleSheetCreate({
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},
   typedBackgroundRed: {backgroundColor: Styles.globalColors.red},
-})
+}))
 
 export default User

@@ -7,7 +7,7 @@ import settings from './settings/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
-  Header: props => ({
+  Header: () => ({
     accountID: stringToAccountID('fakeAccountID'),
     isDefaultWallet: true,
     keybaseUser: 'cecileb',
@@ -39,7 +39,10 @@ const props = {
   onLoadMore: Sb.action('onLoadMore'),
   onMarkAsRead: Sb.action('onMarkRead'),
   refresh: Sb.action('refresh'),
-  sections: [{data: [], title: 'Your assets'}, {data: ['noPayments'], title: 'History'}],
+  sections: [
+    {data: [], kind: 'assets', title: 'Your assets'},
+    {data: ['noPayments'], kind: 'payments', title: 'History'},
+  ],
 }
 
 const load = () => {

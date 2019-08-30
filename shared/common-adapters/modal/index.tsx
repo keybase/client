@@ -1,16 +1,20 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
+import {LayoutChangeEvent} from 'react-native'
 import PopupDialog from '../popup-dialog'
 import ScrollView from '../scroll-view'
-import {Box2} from '../box'
+import {Box2, Box} from '../box'
 import BoxGrow from '../box-grow'
 import Text from '../text'
+import {useTimeout} from '../use-timers'
 
 const Kb = {
+  Box,
   Box2,
   BoxGrow,
   ScrollView,
   Text,
+  useTimeout,
 }
 
 type HeaderProps = {
@@ -68,36 +72,84 @@ Modal.defaultProps = {
   mode: 'Default',
 }
 
-// TODO centering title on mobile, maybe make a separate component? might be hard to do cross platform.
-const Header = (props: HeaderProps) => (
-  <Kb.Box2
-    direction="vertical"
-    style={Styles.collapseStyles([
-      props.icon ? styles.headerWithIcon : styles.header,
-      props.hideBorder && styles.headerHideBorder,
-      props.style,
-    ])}
-    fullWidth={true}
-  >
-    {!!props.icon && props.icon}
-    <Kb.Box2 direction="horizontal" alignItems="center" fullHeight={true} style={Styles.globalStyles.flexOne}>
-      {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
-      <Kb.Box2 direction="horizontal" style={styles.headerLeft}>
-        {!!props.leftButton && props.leftButton}
-      </Kb.Box2>
-      {typeof props.title === 'string' ? (
-        <Kb.Text type="Header" lineClamp={1}>
-          {props.title}
-        </Kb.Text>
-      ) : (
-        props.title
-      )}
-      <Kb.Box2 direction="horizontal" style={styles.headerRight}>
-        {!!props.rightButton && props.rightButton}
+const Header = (props: HeaderProps) => {
+  // On native, let the header sides layout for 100ms to measure which is wider.
+  // Then, set this as the `width` of the sides and let the center expand.
+  const [measured, setMeasured] = React.useState(false)
+  const setMeasuredLater = Kb.useTimeout(() => setMeasured(true), 100)
+  const [widerWidth, setWiderWidth] = React.useState(-1)
+  const onLayoutSide = React.useCallback(
+    (evt: LayoutChangeEvent) => {
+      if (measured) {
+        return
+      }
+      const {width} = evt.nativeEvent.layout
+      if (width > widerWidth) {
+        setWiderWidth(width)
+        setMeasuredLater()
+      }
+    },
+    [measured, widerWidth]
+  )
+  // end mobile only
+
+  const showTitle = measured || !Styles.isMobile
+  const useMeasuredStyles = measured && Styles.isMobile
+  return (
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([
+        props.icon ? styles.headerWithIcon : styles.header,
+        props.hideBorder && styles.headerHideBorder,
+        props.style,
+      ])}
+      fullWidth={true}
+    >
+      {!!props.icon && props.icon}
+      <Kb.Box2
+        direction="horizontal"
+        alignItems="center"
+        fullHeight={true}
+        style={Styles.globalStyles.flexOne}
+      >
+        {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            styles.headerLeft,
+            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
+          ])}
+        >
+          <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
+            {!!props.leftButton && props.leftButton}
+          </Kb.Box2>
+        </Kb.Box2>
+        {showTitle && (
+          <Kb.Box style={useMeasuredStyles ? styles.measured : undefined}>
+            {typeof props.title === 'string' ? (
+              <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} lineClamp={1} center={true}>
+                {props.title}
+              </Kb.Text>
+            ) : (
+              props.title
+            )}
+          </Kb.Box>
+        )}
+        <Kb.Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            styles.headerRight,
+            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
+          ])}
+        >
+          <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
+            {!!props.rightButton && props.rightButton}
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
-)
+  )
+}
 
 const Footer = (props: FooterProps & {wide: boolean}) => (
   <Kb.Box2
@@ -106,7 +158,7 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
     fullWidth={true}
     style={Styles.collapseStyles([
       styles.footer,
-      props.wide && styles.footerWide,
+      props.wide && !Styles.isMobile && styles.footerWide,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
@@ -115,75 +167,80 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
   </Kb.Box2>
 )
 
-const headerCommon = {
-  borderBottomColor: Styles.globalColors.black_10,
-  borderBottomWidth: 1,
-  borderStyle: 'solid' as const,
-}
+const styles = Styles.styleSheetCreate(() => {
+  const headerCommon = {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid' as const,
+  }
 
-const styles = Styles.styleSheetCreate({
-  footer: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-      minHeight: 56,
+  return {
+    footer: Styles.platformStyles({
+      common: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+        minHeight: 56,
+      },
+      isElectron: {
+        borderBottomLeftRadius: Styles.borderRadius,
+        borderBottomRightRadius: Styles.borderRadius,
+        overflow: 'hidden',
+      },
+    }),
+    footerBorder: {
+      borderStyle: 'solid',
+      borderTopColor: Styles.globalColors.black_10,
+      borderTopWidth: 1,
     },
-    isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      overflow: 'hidden',
+    footerWide: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
     },
-  }),
-  footerBorder: {
-    borderStyle: 'solid',
-    borderTopColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-  },
-  footerWide: {
-    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
-  },
-  header: {
-    ...headerCommon,
-    minHeight: 48,
-  },
-  headerHideBorder: {
-    borderWidth: 0,
-  },
-  headerLeft: {
-    flex: 1,
-    flexShrink: 0,
-    justifyContent: 'flex-start',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  headerRight: {
-    flex: 1,
-    flexShrink: 0,
-    justifyContent: 'flex-end',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  headerWithIcon: {
-    ...headerCommon,
-    minHeight: 64,
-  },
-  modeDefault: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 560,
-      overflow: 'hidden',
-      width: 400,
+    header: {
+      ...headerCommon,
+      minHeight: 48,
     },
-  }),
-  modeWide: Styles.platformStyles({
-    isElectron: {
-      height: 400,
-      overflow: 'hidden',
-      width: 560,
+    headerHideBorder: {
+      borderWidth: 0,
     },
-  }),
-  scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
-  scrollWide: Styles.platformStyles({
-    isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
-  }),
+    headerLeft: {
+      flex: 1,
+      justifyContent: 'flex-start',
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    headerRight: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+    headerWithIcon: {
+      ...headerCommon,
+      minHeight: 64,
+    },
+    measured: {
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+    },
+    modeDefault: Styles.platformStyles({
+      isElectron: {
+        maxHeight: 560,
+        overflow: 'hidden',
+        width: 400,
+      },
+    }),
+    modeWide: Styles.platformStyles({
+      isElectron: {
+        height: 400,
+        overflow: 'hidden',
+        width: 560,
+      },
+    }),
+    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
+    scrollWide: Styles.platformStyles({
+      isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
+    }),
+  }
 })
 
 export default Modal

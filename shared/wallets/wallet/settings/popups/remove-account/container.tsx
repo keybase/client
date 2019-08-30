@@ -6,40 +6,32 @@ import RemoveAccountPopup from '.'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
-const mapStateToProps = (state, ownProps) => {
-  const accountID = Container.getRouteProps(ownProps, 'accountID')
-  const account = Constants.getAccount(state, accountID)
+export default Container.namedConnect(
+  (state, ownProps: OwnProps) => {
+    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
+    const account = Constants.getAccount(state, accountID)
 
-  return {
-    accountID,
-    balance: account.balanceDescription,
-    name: account.name,
-  }
-}
-
-const mapDispatchToProps = dispatch => ({
-  _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-  _onDelete: (accountID: Types.AccountID) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {accountID},
-            selected: 'reallyRemoveAccount',
-          },
-        ],
-      })
-    )
+    return {
+      accountID,
+      balance: account.balanceDescription,
+      name: account.name,
+    }
   },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  balance: stateProps.balance,
-  name: stateProps.name,
-  onClose: () => dispatchProps._onClose(),
-  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-})
-
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'RemoveAccountPopup')(
-  RemoveAccountPopup
-)
+  dispatch => ({
+    _onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+    _onDelete: (accountID: Types.AccountID) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {accountID}, selected: 'reallyRemoveAccount'}],
+        })
+      )
+    },
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    balance: stateProps.balance,
+    name: stateProps.name,
+    onClose: () => dispatchProps._onClose(),
+    onDelete: () => dispatchProps._onDelete(stateProps.accountID),
+  }),
+  'RemoveAccountPopup'
+)(RemoveAccountPopup)

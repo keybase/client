@@ -40,10 +40,6 @@ const (
 	numPointersPerGCThresholdDefault = 100
 	// The most revisions to consider for each QR run.
 	numMaxRevisionsPerQR = 100
-
-	// The delay to wait for before trying a failed block deletion
-	// again. Used by enqueueBlocksToDeleteAfterShortDelay().
-	deleteBlocksRetryDelay = 10 * time.Millisecond
 )
 
 type blockDeleteType int
@@ -279,7 +275,8 @@ func (fbm *folderBlockManager) shutdown() {
 // this should be called when the operation finally succeeds.
 func (fbm *folderBlockManager) cleanUpBlockState(
 	md ReadOnlyRootMetadata, bps blockPutState, bdType blockDeleteType) {
-	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision(),
+	fbm.log.CDebugf(
+		context.TODO(), "Clean up md %d %s, bdType=%d", md.Revision(),
 		md.MergedStatus(), bdType)
 	expBackoff := backoff.NewExponentialBackOff()
 	// Never give up when trying to delete blocks; it might just take
@@ -291,7 +288,7 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 		bdType:  bdType,
 		backoff: expBackoff,
 	}
-	toDelete.blocks = append(toDelete.blocks, bps.ptrs()...)
+	toDelete.blocks = append(toDelete.blocks, bps.Ptrs()...)
 	fbm.enqueueBlocksToDelete(toDelete)
 }
 
@@ -776,8 +773,7 @@ func (fbm *folderBlockManager) archiveAllBlocksInMD(md ReadOnlyRootMetadata) {
 	// unblocked eventually, but no need for a short
 	// timeout.
 	ctx := fbm.ctxWithFBMID(context.Background())
-	ctx, cancel := context.WithTimeout(
-		context.Background(), data.BackgroundTaskTimeout)
+	ctx, cancel := context.WithTimeout(ctx, data.BackgroundTaskTimeout)
 	fbm.setArchiveCancel(cancel)
 	defer fbm.cancelArchive()
 
@@ -786,7 +782,7 @@ func (fbm *folderBlockManager) archiveAllBlocksInMD(md ReadOnlyRootMetadata) {
 	for iter != nil {
 		var ptrs []data.BlockPointer
 		ptrs, iter = fbm.getUnrefPointersFromMD(md, true, iter)
-		fbm.runUnlessShutdownWithCtx(
+		_ = fbm.runUnlessShutdownWithCtx(
 			ctx, func(ctx context.Context) (err error) {
 				fbm.log.CDebugf(
 					ctx, "Archiving %d block pointers as a result "+
@@ -814,7 +810,7 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 		case md := <-fbm.archiveChan:
 			fbm.archiveAllBlocksInMD(md)
 		case unpause := <-fbm.archivePauseChan:
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+			_ = fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
 				fbm.log.CInfof(ctx, "Archives paused")
 				// wait to be unpaused
 				select {
@@ -835,7 +831,7 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 	for {
 		select {
 		case toDelete := <-fbm.blocksToDeleteChan:
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+			_ = fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
 				ctx, cancel := context.WithTimeout(
 					ctx, data.BackgroundTaskTimeout)
 				fbm.setBlocksToDeleteCancel(cancel)
@@ -849,7 +845,7 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 				return nil
 			})
 		case unpause := <-fbm.blocksToDeletePauseChan:
-			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+			_ = fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
 				fbm.log.CInfof(ctx, "deleteBlocks paused")
 				select {
 				case <-unpause:
@@ -1112,12 +1108,15 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
-	} else if err := isReadableOrError(
+	}
+	if err := isReadableOrError(
 		ctx, fbm.config.KBPKI(), fbm.config, head.ReadOnly()); err != nil {
 		return err
-	} else if head.MergedStatus() != kbfsmd.Merged {
+	}
+	switch {
+	case head.MergedStatus() != kbfsmd.Merged:
 		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
-	} else if head.IsFinal() {
+	case head.IsFinal():
 		return kbfsmd.MetadataIsFinalError{}
 	}
 

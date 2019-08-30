@@ -13,7 +13,7 @@ import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {ConversationIDKey} from '../../../../constants/types/chat2'
 import {StylesCrossPlatform} from '../../../../styles'
-import RetentionPicker, {RetentionEntityType} from './'
+import RetentionPicker, {RetentionEntityType} from '.'
 
 export type OwnProps = {
   conversationIDKey?: ConversationIDKey
@@ -119,15 +119,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (
-  dispatch,
-  {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
-) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, entityType, teamname}: OwnProps) => ({
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
     dispatch(
-      RouteTreeGen.createNavigateTo({
+      RouteTreeGen.createNavigateAppend({
         path: [
           {
             props: {entityType, onCancel, onConfirm, policy},

@@ -68,7 +68,7 @@ export default class extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,
@@ -86,4 +86,4 @@ const styles = Styles.styleSheetCreate({
       position: 'absolute',
     },
   }),
-})
+}))

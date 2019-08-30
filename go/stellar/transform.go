@@ -71,14 +71,15 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		loc.ToUserType = stellar1.ParticipantType_SBS
 	}
 
-	if details.Currency != nil {
+	switch {
+	case details.Currency != nil:
 		amountDesc, err := FormatCurrency(mctx, details.Amount, *details.Currency, stellarnet.Round)
 		if err != nil {
 			amountDesc = details.Amount
 			mctx.Debug("error formatting external currency: %s", err)
 		}
 		loc.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
-	} else if details.Asset != nil {
+	case details.Asset != nil:
 		var code string
 		if details.Asset.IsNativeXLM() {
 			code = "XLM"
@@ -97,7 +98,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 			mctx.Debug("error formatting amount for asset: %s", err)
 		}
 		loc.AmountDescription = amountDesc
-	} else {
+	default:
 		return nil, errors.New("malformed request - currency/asset not defined")
 	}
 
@@ -256,6 +257,8 @@ func transformPaymentDirect(mctx libkb.MetaContext, acctID stellar1.AccountID, p
 	}
 	loc.Unread = p.Unread
 
+	loc.FromAirdrop = p.FromAirdrop
+
 	return loc, nil
 }
 
@@ -318,7 +321,13 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.ToType = stellar1.ParticipantType_STELLAR
 		loc.ToUsername = ""
 		loc.ToAccountName = ""
-		if p.Claim.ToPaymentStatus() == stellar1.PaymentStatus_CANCELED {
+		claimStatus := p.Claim.ToPaymentStatus()
+		if claimStatus != stellar1.PaymentStatus_ERROR {
+			// if there's a claim and it's not currently erroring, then hide the
+			// `cancel` button
+			loc.ShowCancel = false
+		}
+		if claimStatus == stellar1.PaymentStatus_CANCELED {
 			// canceled payment. blank out toAssertion and stow in originalToAssertion
 			// set delta to what it would have been had the payment completed
 			loc.ToAssertion = ""
@@ -334,7 +343,6 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		}
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
-			loc.ShowCancel = false
 			loc.StatusDetail = ""
 		} else {
 			claimantUsername, err := lookupUsername(mctx, p.Claim.To.Uid)
@@ -366,6 +374,8 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 	} else {
 		loc.NoteErr = fmt.Sprintf("error decrypting note: %s", err)
 	}
+
+	loc.FromAirdrop = p.FromAirdrop
 
 	return loc, nil
 }
@@ -550,18 +560,12 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		}
 	}
 	baseFee := getGlobal(mctx.G()).BaseFee(mctx)
-	canSubmitTx := availableInt > int64(baseFee)
 	// TODO: this is something that stellard can just tell us.
 	isFunded, err := hasPositiveLumenBalance(details.Balances)
 	if err != nil {
 		return empty, err
 	}
-
-	// 0.5 is the minimum balance necessary to create a trustline and 1.0 is the minimum reserve balance
-	balanceComparedToTrustlineMin, err := stellarnet.CompareStellarAmounts(balanceList(details.Balances).nativeBalanceDescription(mctx), "1.5")
-	if err != nil {
-		return empty, err
-	}
+	const trustlineReserveStroops int64 = stellarnet.StroopsPerLumen / 2
 
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
@@ -573,8 +577,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		AccountModeEditable: editable,
 		DeviceReadOnly:      readOnly,
 		IsFunded:            isFunded,
-		CanSubmitTx:         canSubmitTx,
-		CanAddTrustline:     balanceComparedToTrustlineMin == 1,
+		CanSubmitTx:         availableInt > int64(baseFee),
+		CanAddTrustline:     availableInt > int64(baseFee)+trustlineReserveStroops,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
@@ -616,19 +620,6 @@ func (a balanceList) balanceDescription(mctx libkb.MetaContext) (res string, err
 		res += " + more"
 	}
 	return res, nil
-}
-
-// Example: "56.0227002"
-func (a balanceList) nativeBalanceDescription(mctx libkb.MetaContext) (res string) {
-	for _, b := range a {
-		if b.Asset.IsNativeXLM() {
-			res = b.Amount
-		}
-	}
-	if res == "" {
-		res = "0"
-	}
-	return res
 }
 
 // TransformToAirdropStatus takes the result from api server status_check

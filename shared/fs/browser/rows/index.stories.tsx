@@ -138,7 +138,6 @@ export const rowsProvider = {
           ]
         : []),
     ]),
-    routePath: I.List(),
   }),
   ConnectedStillRow: ({
     path,
@@ -146,7 +145,6 @@ export const rowsProvider = {
   }: {
     destinationPickerIndex?: number
     path: Types.Path
-    routePath: I.List<string>
   }) => {
     const pathStr = Types.pathToString(path)
     return {
@@ -154,10 +152,15 @@ export const rowsProvider = {
       isEmpty: pathStr.includes('empty'),
       name: Types.getPathName(path),
       path,
-      routePath: I.List(),
       type: Types.PathType.Folder,
     }
   },
+  ConnectedTlfTypeRow: ({destinationPickerIndex, name}) => ({
+    badgeCount: 0,
+    destinationPickerIndex,
+    name,
+    path: Types.stringToPath(`/keybase/${name}`),
+  }),
   LoadFilesWhenNeeded: ({path}: any) => ({
     loadFavorites: Sb.action('loadFavorites'),
     loadFolderListWithRefreshTag: Sb.action('loadFolderListWithRefreshTag'),
@@ -165,7 +168,7 @@ export const rowsProvider = {
     path,
     syncingFoldersProgress: Constants.makeSyncingFoldersProgress(),
   }),
-  SortBar: ({path}: {path: Types.Path}) => ({
+  SortBar: () => ({
     folderIsPending: true,
     sortSetting: Types.SortSetting.NameAsc,
     sortSettingToAction: Sb.action('sortSettingToAction'),
@@ -191,11 +194,7 @@ const load = () =>
     .add('Rows', () => (
       <Box>
         <WrapRow key="1">
-          <ConnectedStillRow
-            name="a"
-            path={Types.stringToPath('/keybase/private/meatball/a')}
-            routePath={I.List([])}
-          />
+          <ConnectedStillRow name="a" path={Types.stringToPath('/keybase/private/meatball/a')} />
         </WrapRow>
         <WrapRow key="2">
           <EditingRow
@@ -288,7 +287,6 @@ const load = () =>
             intentIfDownloading={Types.DownloadIntent.None}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
-            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="download-save">
@@ -299,7 +297,6 @@ const load = () =>
             intentIfDownloading={Types.DownloadIntent.CameraRoll}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
-            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="download-share">
@@ -310,7 +307,6 @@ const load = () =>
             intentIfDownloading={Types.DownloadIntent.Share}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
-            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="13">
@@ -320,11 +316,7 @@ const load = () =>
           <PlaceholderRow type={Types.PathType.File} />
         </WrapRow>
         <WrapRow key="15">
-          <ConnectedStillRow
-            name="empty"
-            path={Types.stringToPath('/keybase/private/meatball/empty')}
-            routePath={I.List([])}
-          />
+          <ConnectedStillRow name="empty" path={Types.stringToPath('/keybase/private/meatball/empty')} />
         </WrapRow>
         <WrapRow key="16">
           <StillRow
@@ -333,7 +325,6 @@ const load = () =>
             type={Types.PathType.File}
             onOpen={Sb.action('onOpen')}
             isEmpty={false}
-            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="17">
@@ -342,7 +333,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private')}
             badgeCount={0}
             onOpen={Sb.action('onOpen')}
-            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="18">
@@ -351,7 +341,6 @@ const load = () =>
             path={Types.stringToPath('/keybase/private')}
             badgeCount={3}
             onOpen={Sb.action('onOpen')}
-            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="19">
@@ -361,7 +350,6 @@ const load = () =>
             isIgnored={false}
             isNew={true}
             onOpen={Sb.action('onOpen')}
-            routePath={I.List([])}
             usernames={I.List(['bob', 'charlie'])}
           />
         </WrapRow>
@@ -372,7 +360,6 @@ const load = () =>
             isIgnored={false}
             isNew={true}
             onOpen={Sb.action('onOpen')}
-            routePath={I.List([])}
             usernames={I.List(['bob', 'charlie'])}
           />
         </WrapRow>
@@ -383,7 +370,6 @@ const load = () =>
             isIgnored={false}
             isNew={true}
             onOpen={Sb.action('onOpen')}
-            routePath={I.List([])}
             usernames={I.List(['bob', 'charlie', 'david', 'eve', 'felicity', 'george'])}
           />
         </WrapRow>

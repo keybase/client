@@ -90,6 +90,25 @@ const stateToValueTextStyle = state => {
   }
 }
 
+const assertionColorToTextColor = (c: Types.AssertionColor) => {
+  switch (c) {
+    case 'blue':
+      return Styles.globalColors.blueDark
+    case 'red':
+      return Styles.globalColors.redDark
+    case 'black':
+      return Styles.globalColors.black
+    case 'green':
+      return Styles.globalColors.greenDark
+    case 'gray':
+      return Styles.globalColors.black_50
+    case 'yellow': // fallthrough
+    case 'orange':
+    default:
+      return Styles.globalColors.redDark
+  }
+}
+
 const assertionColorToColor = (c: Types.AssertionColor) => {
   switch (c) {
     case 'blue':
@@ -132,7 +151,7 @@ class _StellarValue extends React.PureComponent<
     return Styles.isMobile ? (
       <Kb.Text
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+        style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(this.props.color)}])}
       >
         {this.props.value}
       </Kb.Text>
@@ -142,7 +161,10 @@ class _StellarValue extends React.PureComponent<
           <Kb.Text
             type="BodyPrimaryLink"
             onClick={this.props.toggleShowingMenu}
-            style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+            style={Styles.collapseStyles([
+              styles.username,
+              {color: assertionColorToTextColor(this.props.color)},
+            ])}
           >
             {this.props.value}
           </Kb.Text>
@@ -191,7 +213,7 @@ const Value = (p: Props) => {
         style={Styles.collapseStyles([
           style,
           stateToValueTextStyle(p.state),
-          {color: assertionColorToColor(p.color)},
+          {color: assertionColorToTextColor(p.color)},
         ])}
       >
         {str}
@@ -303,7 +325,6 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    if (this.props.notAUser) return null
     const set = full ? this.props.siteIconFull : this.props.siteIcon
     if (!set) return null
     let child = <SiteIcon full={full} set={set} />
@@ -391,7 +412,7 @@ class Assertion extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
   crypto: Styles.platformStyles({
     isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
@@ -423,6 +444,6 @@ const styles = Styles.styleSheetCreate({
     common: {letterSpacing: 0.2},
     isElectron: {wordBreak: 'break-all'},
   }),
-})
+}))
 
 export default Assertion

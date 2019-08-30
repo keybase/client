@@ -530,11 +530,11 @@ func newConnectionWithTransportAndProtocolsWithLog(handler ConnectionHandler,
 		reconnectBackoff:              reconnectBackoff,
 		doCommandBackoff:              commandBackoff,
 		initialReconnectBackoffWindow: opts.InitialReconnectBackoffWindow,
-		wef:               opts.WrapErrorFunc,
-		tagsFunc:          opts.TagsFunc,
-		log:               log,
-		protocols:         opts.Protocols,
-		reconnectedBefore: opts.ForceInitialBackoff,
+		wef:                           opts.WrapErrorFunc,
+		tagsFunc:                      opts.TagsFunc,
+		log:                           log,
+		protocols:                     opts.Protocols,
+		reconnectedBefore:             opts.ForceInitialBackoff,
 	}
 	if !opts.DontConnectNow {
 		// start connecting now
@@ -575,7 +575,9 @@ func (c *Connection) connect(ctx context.Context) error {
 	server := NewServer(transport, c.wef)
 
 	for _, p := range c.protocols {
-		server.Register(p)
+		if err := server.Register(p); err != nil {
+			return err
+		}
 	}
 
 	// call the connect handler

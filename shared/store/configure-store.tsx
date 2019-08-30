@@ -10,7 +10,6 @@ import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
-import {TypedState, TypedDispatch, TypedActions} from '../util/container'
 
 let theStore: Store<any, any>
 
@@ -69,7 +68,7 @@ if (enableStoreLogging) {
 
 let lastError = new Error('')
 
-const errorCatching = store => next => action => {
+const errorCatching = () => next => action => {
   try {
     return next(action)
   } catch (error) {

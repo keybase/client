@@ -19,7 +19,6 @@ type State = {
   hasPreview: boolean
   imageSource: string
   loading: boolean
-  naturalImageHeight: number
   naturalImageWidth: number
   offsetLeft: number
   offsetTop: number
@@ -52,7 +51,6 @@ class EditAvatar extends React.Component<_Props, State> {
       hasPreview: false,
       imageSource: '',
       loading: false,
-      naturalImageHeight: 0,
       naturalImageWidth: 0,
       offsetLeft: 0,
       offsetTop: 0,
@@ -163,7 +161,6 @@ class EditAvatar extends React.Component<_Props, State> {
     }
 
     this.setState({
-      naturalImageHeight: e.currentTarget.naturalHeight,
       naturalImageWidth: e.currentTarget.naturalWidth,
       offsetLeft: width / -2 + VIEWPORT_CENTER,
       offsetTop: height / -2 + VIEWPORT_CENTER,
@@ -185,15 +182,21 @@ class EditAvatar extends React.Component<_Props, State> {
 
   _onRangeChange = (e: React.FormEvent<any>) => {
     const scale = parseFloat(e.currentTarget.value)
+    // likely unsafe to ref this.state but afraid to change this now
+    // eslint-disable-next-line
     const scaledImageHeight = this.state.startingImageHeight * scale
+    // eslint-disable-next-line
     const scaledImageWidth = this.state.startingImageWidth * scale
+    // eslint-disable-next-line
     const ratio = this.state.naturalImageWidth / scaledImageWidth
     const offsetLeft = clamp(
+      // eslint-disable-next-line
       VIEWPORT_CENTER - this.state.viewingCenterX / ratio,
       AVATAR_SIZE - scaledImageWidth,
       0
     )
     const offsetTop = clamp(
+      // eslint-disable-next-line
       VIEWPORT_CENTER - this.state.viewingCenterY / ratio,
       AVATAR_SIZE - scaledImageHeight,
       0
@@ -213,15 +216,15 @@ class EditAvatar extends React.Component<_Props, State> {
 
     const img = this._image.current
 
-    this.setState({
+    this.setState(s => ({
       dragStartX: e.pageX,
       dragStartY: e.pageY,
       // @ts-ignore codemode issue
-      dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
+      dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : s.dragStopX,
       // @ts-ignore codemode issue
-      dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : this.state.dragStopY,
+      dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : s.dragStopY,
       dragging: true,
-    })
+    }))
   }
 
   _onMouseUp = () => {
@@ -229,30 +232,37 @@ class EditAvatar extends React.Component<_Props, State> {
 
     const img = this._image.current
 
-    this.setState({
+    this.setState(s => ({
       // @ts-ignore codemode issue
-      dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
+      dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : s.dragStopX,
       // @ts-ignore codemode issue
-      dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : this.state.dragStopY,
+      dragStopY: img && img.style.top ? parseInt(img.style.top, 10) : s.dragStopY,
       dragging: false,
-    })
+    }))
   }
 
   _onMouseMove = (e: React.MouseEvent) => {
     if (!this.state.dragging || this.props.submitting) return
 
     const offsetLeft = clamp(
+      // eslint-disable-next-line
       this.state.dragStopX + e.pageX - this.state.dragStartX,
+      // eslint-disable-next-line
       AVATAR_SIZE - this.state.scaledImageWidth,
       0
     )
     const offsetTop = clamp(
+      // eslint-disable-next-line
       this.state.dragStopY + e.pageY - this.state.dragStartY,
+      // eslint-disable-next-line
       AVATAR_SIZE - this.state.scaledImageHeight,
       0
     )
+    // eslint-disable-next-line
     const ratio = this.state.naturalImageWidth / this.state.scaledImageWidth
+    // eslint-disable-next-line
     const viewingCenterX = (VIEWPORT_CENTER - this.state.offsetLeft) * ratio
+    // eslint-disable-next-line
     const viewingCenterY = (VIEWPORT_CENTER - this.state.offsetTop) * ratio
 
     this.setState({
@@ -401,40 +411,51 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 }
 
-const HoverBox = Styles.styled(Kb.Box)({
-  '&.filled': {
+const hoverStyles = Styles.styleSheetCreate(() => ({
+  dropping: {
+    backgroundColor: Styles.globalColors.blue_60,
+    borderColor: Styles.globalColors.blue_60,
+  },
+  droppingIcon: {color: Styles.globalColors.blue_60},
+  filled: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
     borderStyle: 'solid',
     cursor: '-webkit-grab',
   },
-  '&.filled:active': {cursor: '-webkit-grabbing'},
-  '&.filled:hover': {
+  filledHover: {
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.grey,
   },
-  '&:hover': {borderColor: Styles.globalColors.black_50},
-  '&:hover .icon': {color: Styles.globalColors.black_50},
-  '.dropping &': {
-    backgroundColor: Styles.globalColors.blue_60,
-    borderColor: Styles.globalColors.blue_60,
+  hover: {borderColor: Styles.globalColors.black_50},
+  hoverContainer: {
+    backgroundColor: Styles.globalColors.grey,
+    borderColor: Styles.globalColors.greyDark,
+    borderStyle: 'dotted',
+    borderWidth: AVATAR_BORDER_SIZE,
+    cursor: 'pointer',
+    height: AVATAR_CONTAINER_SIZE,
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.medium,
+    overflow: 'hidden',
+    position: 'relative',
+    width: AVATAR_CONTAINER_SIZE,
   },
-  '.dropping & .icon': {color: Styles.globalColors.blue_60},
-  backgroundColor: Styles.globalColors.grey,
-  borderColor: Styles.globalColors.greyDark,
-  borderStyle: 'dotted',
-  borderWidth: AVATAR_BORDER_SIZE,
-  cursor: 'pointer',
-  flex: 0,
-  height: AVATAR_CONTAINER_SIZE,
-  marginBottom: Styles.globalMargins.small,
-  marginTop: Styles.globalMargins.medium,
-  overflow: 'hidden',
-  position: 'relative',
-  width: AVATAR_CONTAINER_SIZE,
+  hoverIcon: {color: Styles.globalColors.black_50},
+}))
+
+const HoverBox = Styles.styled(Kb.Box)({
+  '&.filled': hoverStyles.filled,
+  '&.filled:active': {cursor: '-webkit-grabbing'},
+  '&.filled:hover': hoverStyles.filledHover,
+  '&:hover': hoverStyles.hover,
+  '&:hover .icon': hoverStyles.hoverIcon,
+  '.dropping &': hoverStyles.dropping,
+  '.dropping & .icon': hoverStyles.droppingIcon,
+  ...hoverStyles.hoverContainer,
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -471,6 +492,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.grey,
     justifyContent: 'center',
   },
-})
+}))
 
 export default HOCTimers(EditAvatar)

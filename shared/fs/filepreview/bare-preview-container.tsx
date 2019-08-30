@@ -1,24 +1,21 @@
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/fs'
-import {isMobile} from '../../constants/platform'
-import {getRouteProps, namedConnect, RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import BarePreview from './bare-preview'
 
-type OwnProps = RouteProps< { path: Types.Path } >
+type OwnProps = Container.RouteProps<{path: Types.Path}>
 
-const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
-  onBack: () => dispatch(navigateUp()),
-})
-
-const mergeProps = (stateProps, {onBack}, ownProps: OwnProps) => ({
-  onBack,
-  path: getRouteProps(ownProps, 'path') || Constants.defaultPath,
-  routePath: I.List(), // TODO fix ownProps.routePath,
-})
-
-const ConnectedBarePreview = isMobile
-  ? namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'BarePreview')(BarePreview)
+const ConnectedBarePreview = Container.isMobile
+  ? Container.namedConnect(
+      () => ({}),
+      dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
+      (_, {onBack}, ownProps: OwnProps) => ({
+        onBack,
+        path: Container.getRouteProps(ownProps, 'path', Constants.defaultPath),
+      }),
+      'BarePreview'
+    )(BarePreview)
   : () => null
 
 export default ConnectedBarePreview

@@ -108,13 +108,13 @@ const formMonths = (items: Array<AttachmentItem>): Array<Month> => {
 }
 
 const createLoadMoreSection = (
-  onLoadMore: () => void,
+  onLoadMore: undefined | (() => void),
   onRetry: () => void,
   status: Types.AttachmentViewStatus
 ): Section => {
   return {
     data: ['load more'],
-    renderItem: ({item, index}) => {
+    renderItem: () => {
       if (onLoadMore && status !== 'loading') {
         return (
           <Kb.Button
@@ -140,7 +140,7 @@ const createLoadMoreSection = (
       }
       return null
     },
-    renderSectionHeader: ({section}) => {
+    renderSectionHeader: () => {
       return null
     },
   }
@@ -216,7 +216,7 @@ export class MediaView {
     }
   }
 
-  _renderSectionHeader = (section, month: string, year: number) => {
+  _renderSectionHeader = (_, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -248,7 +248,7 @@ export class MediaView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
@@ -263,7 +263,7 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.ClickableBox onClick={item.onDownload} onLongPress={this.props.toggleShowingMenu}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
-            <Kb.Icon type={'icon-file-32'} style={Kb.iconCastPlatformStyles(styles.docIcon)} />
+            <Kb.Icon type="icon-file-32" style={Kb.iconCastPlatformStyles(styles.docIcon)} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
               <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
               {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
@@ -303,7 +303,7 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
 const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
 
 export class DocView {
-  _renderSectionHeader = (section, month: string, year: number) => {
+  _renderSectionHeader = (_, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -335,12 +335,12 @@ export class DocView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 
 export class LinkView {
-  _renderSectionHeader = (section, month: string, year: number) => {
+  _renderSectionHeader = (_, month: string, year: number) => {
     const label = `${month} ${year}`
     return <Kb.SectionDivider label={label} />
   }
@@ -408,7 +408,7 @@ export class LinkView {
       l.push(this._monthToSection(m))
       return l
     }, [])
-    return onLoadMore ? sections.concat(createLoadMoreSection(onLoadMore, onRetry, status)) : sections
+    return sections.concat(createLoadMoreSection(onLoadMore, onRetry, status))
   }
 }
 

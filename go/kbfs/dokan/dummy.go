@@ -52,6 +52,6 @@ const (
 	kbfsLibdokanUseFindFilesWithPattern
 )
 
-func currentProcessUserSid() (*winacl.SID, error) {
+func currentProcessUserSid() (*winacl.SID, error) { // nolint
 	return nil, errNotWindows
 }

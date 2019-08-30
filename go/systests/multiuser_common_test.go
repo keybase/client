@@ -66,9 +66,13 @@ func (u *smuUser) cleanup() {
 		d.tctx.Cleanup()
 		if d.service != nil {
 			d.service.Stop(0)
-			d.stop()
+			err := d.stop()
+			require.NoError(d.tctx.T, err)
 		}
 		for _, cl := range d.clones {
+			cl.Cleanup()
+		}
+		for _, cl := range d.usedClones {
 			cl.Cleanup()
 		}
 	}
@@ -77,14 +81,14 @@ func (u *smuUser) cleanup() {
 // smuDeviceWrapper wraps a mock "device", meaning an independent running service and
 // some connected clients.
 type smuDeviceWrapper struct {
-	ctx       *smuContext
-	tctx      *libkb.TestContext
-	clones    []*libkb.TestContext
-	deviceKey keybase1.PublicKey
-	stopCh    chan error
-	service   *service.Service
-	cli       rpc.GenericClient
-	xp        rpc.Transporter
+	ctx                *smuContext
+	tctx               *libkb.TestContext
+	clones, usedClones []*libkb.TestContext
+	deviceKey          keybase1.PublicKey
+	stopCh             chan error
+	service            *service.Service
+	cli                rpc.GenericClient
+	xp                 rpc.Transporter
 }
 
 func (d *smuDeviceWrapper) KID() keybase1.KID {
@@ -110,7 +114,8 @@ func (d *smuDeviceWrapper) stop() error {
 }
 
 func (d *smuDeviceWrapper) clearUPAKCache() {
-	d.tctx.G.LocalDb.Nuke()
+	_, err := d.tctx.G.LocalDb.Nuke()
+	require.NoError(d.tctx.T, err)
 	d.tctx.G.GetUPAKLoader().ClearMemory()
 }
 
@@ -185,20 +190,14 @@ func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	}
 	ret := d.clones[0]
 	d.clones = d.clones[1:]
+	// Hold a reference to this clone for cleanup
+	d.usedClones = append(d.usedClones, ret)
 	ui := genericUI{
 		g:          ret.G,
 		TerminalUI: smuTerminalUI{},
 	}
 	ret.G.SetUI(&ui)
 	return ret
-}
-
-func (smc *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
-	return smc.setupDeviceHelper(u, true)
-}
-
-func (smc *smuContext) setupDeviceNoPUK(u *smuUser) *smuDeviceWrapper {
-	return smc.setupDeviceHelper(u, false)
 }
 
 func (smc *smuContext) setupDeviceHelper(u *smuUser, puk bool) *smuDeviceWrapper {
@@ -234,10 +233,6 @@ func (smc *smuContext) newDevice(u *smuUser, numClones int) *smuDeviceWrapper {
 	return smc.newDeviceHelper(u, numClones, true)
 }
 
-func (smc *smuContext) newDeviceNoPUK(u *smuUser, numClones int) *smuDeviceWrapper {
-	return smc.newDeviceHelper(u, numClones, false)
-}
-
 func (smc *smuContext) newDeviceHelper(u *smuUser, numClones int, puk bool) *smuDeviceWrapper {
 	ret := smc.setupDeviceHelper(u, puk)
 	ret.startService(numClones)
@@ -251,10 +246,6 @@ func (u *smuUser) primaryDevice() *smuDeviceWrapper {
 
 func (d *smuDeviceWrapper) userClient() keybase1.UserClient {
 	return keybase1.UserClient{Cli: d.cli}
-}
-
-func (d *smuDeviceWrapper) loginClient() keybase1.LoginClient {
-	return keybase1.LoginClient{Cli: d.cli}
 }
 
 func (d *smuDeviceWrapper) ctlClient() keybase1.CtlClient {
@@ -354,9 +345,11 @@ func (u *smuUser) signupHelper(puk, paper bool) {
 	// Reconfigure config subsystem in Primary Global Context and also
 	// in all clones. This has to be done after signup because the
 	// username changes, and so does config filename.
-	dw.tctx.G.ConfigureConfig()
+	err := dw.tctx.G.ConfigureConfig()
+	require.NoError(ctx.t, err)
 	for _, clone := range dw.clones {
-		clone.G.ConfigureConfig()
+		err = clone.G.ConfigureConfig()
+		require.NoError(ctx.t, err)
 	}
 }
 
@@ -439,7 +432,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, keyGen keybase1.PerTeamK
 		kickTeamRekeyd(u.getPrimaryGlobalContext(), u.ctx.t)
 		time.Sleep(wait)
 		totalWait += wait
-		wait = wait * 2
+		wait *= 2
 	}
 	u.ctx.t.Fatalf("Failed to find the needed key generation (%d) after %s of waiting (%d iterations)", keyGen, totalWait, i)
 	return keybase1.TeamDetails{}
@@ -518,17 +511,6 @@ func (u *smuUser) loadTeam(teamname string, admin bool) *teams.Team {
 	return team
 }
 
-func (u *smuUser) loadTeamByID(teamID keybase1.TeamID, admin bool) *teams.Team {
-	team, err := teams.Load(context.Background(), u.getPrimaryGlobalContext(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      teamID.IsPublic(),
-		NeedAdmin:   admin,
-		ForceRepoll: true,
-	})
-	require.NoError(u.ctx.t, err)
-	return team
-}
-
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
@@ -545,10 +527,6 @@ func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
 
 func (u *smuUser) addAdmin(team smuTeam, w *smuUser) {
 	u.addTeamMember(team, w, keybase1.TeamRole_ADMIN)
-}
-
-func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
-	u.addTeamMember(team, w, keybase1.TeamRole_OWNER)
 }
 
 func (u *smuUser) editMember(team *smuTeam, username string, role keybase1.TeamRole) {
@@ -786,14 +764,6 @@ func (u *smuUser) readChatsWithDevice(team smuTeam, dev *smuDeviceWrapper, nMess
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
 	}
 	divDebug(u.ctx, "readChat success for %s", u.username)
-}
-
-func (u *smuUser) readLastChat(team smuTeam) string {
-	messages, err := u.readChatsWithErrorAndDevice(team, u.primaryDevice(), 1)
-	t := u.ctx.t
-	require.NoError(t, err)
-	require.Len(t, messages, 1)
-	return messages[0].Valid().MessageBody.Text().Body
 }
 
 func (u *smuUser) sendChat(t smuTeam, msg string) {

@@ -6,8 +6,6 @@ type OwnProps = {}
 
 export default Container.connect(
   () => ({}),
-  dispatch => ({
-    onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
-  }),
-  (s, d, o) => d
+  dispatch => ({onDelete: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']}))}),
+  (_, d, __: OwnProps) => d
 )(Delete)

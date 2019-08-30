@@ -71,6 +71,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
   _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
+  _onSwipeLeft: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
 })
 
 // Used to decide whether to show the author for sequential messages
@@ -100,12 +102,14 @@ const getUsernameToShow = (
       return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
     case 'systemAddedToTeam':
       return message.addee === you ? '' : message.addee
+    case 'systemLeft':
     case 'systemJoined':
-      return message.author === you ? '' : message.author
+      return ''
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
-    case 'systemLeft':
     case 'setDescription':
+      return message.author
+    case 'pin':
       return message.author
     case 'systemUsersAddedToConversation':
       return message.usernames.includes(you) ? '' : message.author
@@ -134,7 +138,7 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   return {allowCancelRetry, failureDescription, resolveByEdit}
 }
 
-const getDecorate = (message, you) => {
+const getDecorate = message => {
   switch (message.type) {
     case 'text':
       return !message.exploded && !message.errorReason
@@ -160,7 +164,7 @@ export default Container.namedConnect(
 
     // show send only if its possible we sent while you're looking at it
     const showSendIndicator = _you === message.author && message.ordinal !== message.id
-    const decorate = getDecorate(message, _you)
+    const decorate = getDecorate(message)
     const onCancel = allowCancelRetry
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : undefined
@@ -182,6 +186,7 @@ export default Container.namedConnect(
       failureDescription,
       forceAsh,
       hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+      isJoinLeave: message.type === 'systemJoined' || message.type === 'systemLeft',
       isLastInThread: stateProps.isLastInThread,
       isPendingPayment: stateProps.isPendingPayment,
       isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
@@ -193,6 +198,7 @@ export default Container.namedConnect(
         ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal)
         : undefined,
       onRetry,
+      onSwipeLeft: () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal),
       orangeLineAbove: stateProps.orangeLineAbove,
       previous: stateProps.previous,
       shouldShowPopup: stateProps.shouldShowPopup,

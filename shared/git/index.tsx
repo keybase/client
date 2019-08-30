@@ -1,11 +1,10 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import Row from './row/container'
 
 export type Props = {
-  expandedSet: I.Set<string>
+  expandedSet: Set<string>
   clearBadges: () => void
   loading: boolean
   onShowDelete: (id: string) => void
@@ -16,12 +15,9 @@ export type Props = {
   teams: Array<string>
 }
 
-class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
-  _menuItems = [
-    {
-      onClick: () => this.props.onNewPersonalRepo(),
-      title: 'New personal repository',
-    },
+class Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
+  private menuItems = [
+    {onClick: () => this.props.onNewPersonalRepo(), title: 'New personal repository'},
     {
       disabled: Styles.isMobile,
       onClick: Styles.isMobile ? undefined : () => this.props.onNewTeamRepo(),
@@ -30,16 +26,16 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
     },
   ]
 
-  _rowPropsToProps = (id: string) => ({
+  rowPropsToProps = (id: string) => ({
     expanded: this.props.expandedSet.has(id),
     id,
     onShowDelete: this.props.onShowDelete,
     onToggleExpand: this.props.onToggleExpand,
   })
 
-  _renderItem = ({item, section}) => <Row key={item} {...this._rowPropsToProps(item)} />
+  renderItem = ({item}) => <Row key={item} {...this.rowPropsToProps(item)} />
 
-  _renderSectionHeader = ({section}) => (
+  renderSectionHeader = ({section}) => (
     <Kb.SectionDivider label={section.title} showSpinner={section.loading} />
   )
 
@@ -63,8 +59,9 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
         )}
         <Kb.SectionList
           keyExtractor={item => (typeof item === 'string' ? item : item.title)}
-          renderItem={this._renderItem}
-          renderSectionHeader={this._renderSectionHeader}
+          extraData={this.props.expandedSet}
+          renderItem={this.renderItem}
+          renderSectionHeader={this.renderSectionHeader}
           sections={[
             {data: this.props.personals, loading: this.props.loading, title: 'Personal'},
             {data: this.props.teams, loading: this.props.loading, title: 'Team'},
@@ -73,7 +70,7 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
         <Kb.FloatingMenu
           attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
-          items={this._menuItems}
+          items={this.menuItems}
           onHidden={this.props.toggleShowingMenu}
           visible={this.props.showingMenu}
           position="bottom center"
@@ -83,7 +80,7 @@ class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {position: 'relative'},
   header: {
     ...Styles.globalStyles.flexBoxCenter,
@@ -91,6 +88,6 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     height: 48,
   },
-})
+}))
 
-export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(_Git))
+export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(Git))

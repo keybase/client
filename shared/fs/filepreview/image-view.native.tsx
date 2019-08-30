@@ -8,13 +8,12 @@ const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('wind
 type State = {
   width: number
   height: number
-  loaded: boolean
 }
 // TODO: I don't understand why the props were being included in the state
 //  so I took them out. Someone should sanity check that.
 
 class ImageView extends React.Component<ImageViewProps, State> {
-  state = {height: 0, loaded: false, width: 0}
+  state = {height: 0, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -22,14 +21,16 @@ class ImageView extends React.Component<ImageViewProps, State> {
   }
   componentDidMount() {
     this._mounted = true
-    Kb.NativeImage.getSize(this.props.url, (width, height) => {
-      if (this._mounted) {
-        this.setState({height, width})
-      }
-    })
+    Kb.NativeImage.getSize(
+      this.props.url,
+      (width, height) => {
+        if (this._mounted) {
+          this.setState({height, width})
+        }
+      },
+      () => {}
+    )
   }
-
-  _setLoaded = () => this.setState({loaded: true})
 
   render() {
     const {onLoadingStateChange} = this.props

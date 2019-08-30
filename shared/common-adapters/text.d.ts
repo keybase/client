@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {GestureResponderEvent} from 'react-native'
 import {StylesCrossPlatform} from '../styles'
 import {allTextTypes} from './text.shared'
 import * as CSS from '../styles/css'
@@ -51,7 +52,7 @@ type Props = {
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip' // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied,,
   lineClamp?: number | null
   negative?: boolean
-  onClick?: ((e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => void) | (() => void) | null
+  onClick?: ((e: React.BaseSyntheticEvent) => void) | null
   onClickURL?: string | null
   onLongPress?: () => void
   onLongPressURL?: string | null

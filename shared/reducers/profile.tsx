@@ -5,7 +5,7 @@ import * as Constants from '../constants/profile'
 import * as Validators from '../util/simple-validators'
 import {actionHasError} from '../util/container'
 
-const updateUsername = state => {
+const updateUsername = (state: Types.State) => {
   let username = state.username || ''
   let usernameValid = true
 
@@ -140,7 +140,6 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.submitUsername:
     case ProfileGen.uploadAvatar:
     case ProfileGen.editAvatar:
-      return state
     default:
       return state
   }

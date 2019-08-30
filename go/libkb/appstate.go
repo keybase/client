@@ -59,6 +59,8 @@ func (a *MobileAppState) updateLocked(state keybase1.MobileAppState) {
 		switch a.state {
 		case keybase1.MobileAppState_BACKGROUND:
 			a.G().RPCCanceler.CancelLiveContexts(RPCCancelerReasonBackground)
+		default:
+			// Nothing to do for other states.
 		}
 	} else {
 		a.G().Log.Debug("MobileAppState.Update: ignoring update: %v, we are currently in state: %v",

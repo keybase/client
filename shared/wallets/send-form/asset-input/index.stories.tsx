@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Kb from '../../../common-adapters'
-import * as Constants from '../../../constants/wallets'
 import {withStateHandlers} from '../../../util/container'
 import AssetInputBasic from './asset-input-basic'
 

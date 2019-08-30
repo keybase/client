@@ -2,6 +2,7 @@ package hidden
 
 import (
 	"fmt"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	storage "github.com/keybase/client/go/teams/storage"
@@ -12,7 +13,7 @@ import (
 // interface.
 type ChainManager struct {
 	// single-flight lock on TeamID
-	locktab libkb.LockTable
+	locktab *libkb.LockTable
 
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
@@ -261,6 +262,7 @@ func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamCh
 func NewChainManager(g *libkb.GlobalContext) *ChainManager {
 	return &ChainManager{
 		storage: storage.NewHiddenStorage(g),
+		locktab: libkb.NewLockTable(),
 	}
 }
 

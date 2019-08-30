@@ -583,7 +583,7 @@ func TestSweepObsoleteKeybaseInvites(t *testing.T) {
 		TeamID: teamObj.ID,
 		Score:  0,
 		Invitees: []keybase1.TeamInvitee{
-			keybase1.TeamInvitee{
+			{
 				InviteID:    invite.Id,
 				Uid:         bob.uid,
 				EldestSeqno: 1,
@@ -661,7 +661,7 @@ func teamInviteRemoveIfHigherRole(t *testing.T, waitForRekeyd bool) {
 			TeamID: teamID,
 			Score:  0,
 			Invitees: []keybase1.TeamInvitee{
-				keybase1.TeamInvitee{
+				{
 					InviteID:    invite.Id,
 					Uid:         rooUv.Uid,
 					EldestSeqno: rooUv.EldestSeqno,
@@ -716,9 +716,13 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 	roo.proveRooter()
 
 	// 3 links to created team, add roo, and add roo@rooter.
-	// + 2 links (rotate, change_membership) to add roo in startPUKless=false case;
+	// + 1 links (rotate, change_membership) to add roo in startPUKless=false case;
 	// or +2 links (change_membersip, cancel invite) to add roo in startPUKless=true case.
-	own.pollForTeamSeqnoLink(teamName.String(), keybase1.Seqno(5))
+	n := keybase1.Seqno(4)
+	if startPUKless {
+		n = keybase1.Seqno(5)
+	}
+	own.pollForTeamSeqnoLink(teamName.String(), n)
 
 	teamObj := own.loadTeamByID(teamID, true /* admin */)
 	// 0 total invites: rooter invite was completed, and keybase invite was sweeped
@@ -780,11 +784,11 @@ func proveGubbleUniverse(tc *libkb.TestContext, serviceName, endpoint string, us
 		res, err := g.GetAPI().Get(mctx, apiArg)
 		require.NoError(tc.T, err)
 		objects, err := jsonhelpers.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
-			keybase1.SelectorEntry{
+			{
 				IsKey: true,
 				Key:   "res",
 			},
-			keybase1.SelectorEntry{
+			{
 				IsKey: true,
 				Key:   "keybase_proofs",
 			},

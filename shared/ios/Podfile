@@ -26,15 +26,13 @@ target 'Keybase' do
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
-  
+
   pod 'lottie-ios', :path => '../node_modules/lottie-ios'
   pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
-  pod 'react-native-image-picker', :path => '../node_modules/react-native-image-picker'
   pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
   pod 'rn-fetch-blob', :path => '../node_modules/rn-fetch-blob'
   pod 'react-native-contacts', :path => '../node_modules/react-native-contacts'
   pod 'react-native-fast-image', :path => '../node_modules/react-native-fast-image'
-  pod 'react-native-camera', :path => '../node_modules/react-native-camera'
   pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
   pod 'react-native-webview', :path => '../node_modules/react-native-webview'
   pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'

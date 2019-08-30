@@ -5,8 +5,9 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
+import * as Message from './message'
 import {memoize} from '../../util/memoize'
-import {_ConversationMeta} from '../types/chat2/meta'
+import {_ConversationMeta, PinnedMessageInfo} from '../types/chat2/meta'
 import {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
@@ -73,8 +74,10 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: (i.localMetadata && i.localMetadata.headline) || '',
     descriptionDecorated: (i.localMetadata && i.localMetadata.headlineDecorated) || '',
+    draft: i.draft || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
+    isEmpty: false,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
@@ -235,7 +238,11 @@ const UIItemToRetentionPolicies = (
   return {retentionPolicy, teamRetentionPolicy}
 }
 
-export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
+export const inboxUIItemToConversationMeta = (
+  state: TypedState,
+  i: RPCChatTypes.InboxUIItem,
+  allowEmpty?: boolean
+) => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
@@ -280,16 +287,29 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   let cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
-
+  const conversationIDKey = Types.stringToConversationIDKey(i.convID)
+  let pinnedMsg: PinnedMessageInfo | null = null
+  if (i.pinnedMsg) {
+    const message = Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg.message)
+    if (message) {
+      pinnedMsg = {
+        message,
+        pinnerUsername: i.pinnedMsg.pinnerUsername,
+      }
+    }
+  }
   return makeConversationMeta({
+    botCommands: i.botCommands,
     cannotWrite,
     channelname: (isTeam && i.channel) || '',
     commands: i.commands,
-    conversationIDKey: Types.stringToConversationIDKey(i.convID),
+    conversationIDKey,
     description: i.headline,
     descriptionDecorated: i.headlineDecorated,
+    draft: i.draft || '',
     inboxLocalVersion: i.localVersion,
     inboxVersion: i.version,
+    isEmpty: i.isEmpty,
     isMuted: i.status === RPCChatTypes.ConversationStatus.muted,
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
@@ -299,12 +319,15 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
     participantToContactName: I.Map(
-      (i.participants || []).reduce<{[key: string]: string}>(
-        (map, part) => (part.contactName ? {...map, [part.assertion]: part.contactName} : map),
-        {}
-      )
+      (i.participants || []).reduce<{[key: string]: string}>((map, part) => {
+        if (part.contactName) {
+          map[part.assertion] = part.contactName
+        }
+        return map
+      }, {})
     ),
     participants: I.List((i.participants || []).map(part => part.assertion)),
+    pinnedMsg,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -324,14 +347,17 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 }
 
 export const makeConversationMeta = I.Record<_ConversationMeta>({
+  botCommands: {} as RPCChatTypes.ConversationCommandGroups,
   cannotWrite: false,
   channelname: '',
   commands: {} as RPCChatTypes.ConversationCommandGroups,
   conversationIDKey: noConversationIDKey,
   description: '',
   descriptionDecorated: '',
+  draft: '',
   inboxLocalVersion: -1,
   inboxVersion: -1,
+  isEmpty: false,
   isMuted: false,
   maxMsgID: -1,
   maxVisibleMsgID: -1,
@@ -343,6 +369,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   offline: false,
   participantToContactName: I.Map(),
   participants: I.List<string>(),
+  pinnedMsg: null,
   readMsgID: -1,
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
@@ -420,16 +447,28 @@ export const getChannelForTeam = (state: TypedState, teamname: string, channelna
     emptyMeta
   )
 
+const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
+
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
   if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin && commands.builtin) {
-    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands[commands.builtin] : []
+    return state.chat2.staticConfig
+      ? state.chat2.staticConfig.builtinCommands[commands.builtin]
+      : blankCommands
   } else {
-    return []
+    return blankCommands
   }
 }
 
-const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
+export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {botCommands} = getMeta(state, id)
+  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && botCommands.custom) {
+    return botCommands.custom.commands || blankCommands
+  } else {
+    return blankCommands
+  }
+}
+
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
@@ -445,7 +484,11 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
 
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
-  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
+  const backgroundColor = isSelected
+    ? globalColors.blue
+    : isMobile
+    ? globalColors.fastBlank
+    : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
   const subColor: AllowedColors = isError
     ? globalColors.redDark

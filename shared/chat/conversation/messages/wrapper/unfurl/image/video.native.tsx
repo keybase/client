@@ -17,7 +17,7 @@ export class Video extends React.Component<Props, State> {
       this.props.onClick()
       return
     }
-    this.setState({playingVideo: !this.state.playingVideo})
+    this.setState(s => ({playingVideo: !s.playingVideo}))
   }
 
   render() {
@@ -41,7 +41,7 @@ export class Video extends React.Component<Props, State> {
           onError={e => {
             logger.error(`Error loading vid: ${JSON.stringify(e)}`)
           }}
-          resizeMode="cover"
+          resizeMode="contain"
           style={Styles.collapseStyles([styles.player, this.props.style])}
           repeat={true}
           paused={!this.state.playingVideo}
@@ -56,7 +56,7 @@ export class Video extends React.Component<Props, State> {
           ])}
         >
           {!this.state.playingVideo && (
-            <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
+            <Kb.Icon type="icon-play-64" style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>
       </Kb.ClickableBox>

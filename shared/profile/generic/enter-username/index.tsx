@@ -141,6 +141,10 @@ type Props = {
 }
 
 class _EnterUsername extends React.Component<Props> {
+  static navigationOptions = {
+    gesturesEnabled: false,
+  }
+
   _waitingButtonKey = 0
   componentDidUpdate(prevProps: Props) {
     if (!this.props.waiting && prevProps.waiting) {
@@ -243,9 +247,10 @@ class _EnterUsername extends React.Component<Props> {
     )
   }
 }
+
 const EnterUsername = Kb.HeaderOrPopup(_EnterUsername)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: {left: Styles.globalMargins.small, position: 'absolute', top: Styles.globalMargins.small},
   borderBlue: {borderColor: Styles.globalColors.blue},
   borderRed: {borderColor: Styles.globalColors.red},
@@ -349,6 +354,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
-})
+}))
 
 export default EnterUsername

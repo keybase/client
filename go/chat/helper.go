@@ -43,6 +43,13 @@ func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName s
 		topicType, membersType, vis, h.ri, NewConvFindExistingNormal)
 }
 
+func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
+		topicType, membersType, vis, h.ri, NewConvFindExistingSkip)
+}
+
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
@@ -51,19 +58,21 @@ func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gr
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string) error {
+	tlfName string, text string, vis keybase1.TLFVisibility) error {
 	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
-	}), chat1.MessageType_TEXT)
+	}), chat1.MessageType_TEXT, vis)
 }
 
 func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
-	body chat1.MessageBody, msgType chat1.MessageType) error {
+	body chat1.MessageBody, msgType chat1.MessageType, vis keybase1.TLFVisibility) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
+	public := vis == keybase1.TLFVisibility_PUBLIC
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			TlfName:     tlfName,
+			TlfPublic:   public,
 			MessageType: msgType,
 		},
 		MessageBody: body,
@@ -310,7 +319,7 @@ func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -420,7 +429,7 @@ func newRecentConversationParticipants(g *globals.Context) *recentConversationPa
 
 func (r *recentConversationParticipants) getActiveScore(ctx context.Context, conv chat1.Conversation) float64 {
 	mtime := conv.GetMtime()
-	diff := time.Now().Sub(mtime.Time())
+	diff := time.Since(mtime.Time())
 	weeksAgo := diff.Seconds() / (time.Hour.Seconds() * 24 * 7)
 	val := 10.0 - math.Pow(1.6, weeksAgo)
 	if val < 1.0 {
@@ -475,7 +484,7 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 				NewConversationRetry(g, conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
 		}
 	} else {
-		pc := utils.PresentConversationLocal(ctx, conv, g.Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, g, uid, conv)
 		res = &pc
 	}
 	return res
@@ -790,7 +799,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	}
 
 	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
-		chat1.ConversationMember{
+		{
 			Uid:    uid,
 			ConvID: convID,
 		},
@@ -879,7 +888,7 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "PreviewConversation: IsMember err: %s", err.Error())
@@ -888,14 +897,14 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 	}
 	if alreadyIn {
 		debugger.Debug(ctx, "PreviewConversation: already in the conversation, no need to preview")
-		return nil
+		return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
 	}
 
 	if _, err = ri().PreviewConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
-		return err
+		return res, err
 	}
-	return nil
+	return utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceRemoteOnly)
 }
 
 type NewConvFindExistingMode int
@@ -1014,6 +1023,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		switch n.membersType {
 		case chat1.ConversationMembersType_TEAM:
 			n.topicName = &globals.DefaultTeamTopic
+		default:
+			// Nothing to do for other member types.
 		}
 	}
 
@@ -1091,6 +1102,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				}
 				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s",
 					len(convs), findErr)
+			default:
+				// Nothing to do for other error types.
 			}
 			return res, err
 		}
@@ -1110,7 +1123,10 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				n.Debug(ctx, "stale topic name state, trying again")
 				if !clearedCache {
 					n.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					n.G().InboxSource.Clear(ctx, n.uid)
+					err := n.G().InboxSource.Clear(ctx, n.uid)
+					if err != nil {
+						n.Debug(ctx, "Send: error clearing inbox: %+v", err)
+					}
 					clearedCache = true
 				}
 				continue

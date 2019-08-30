@@ -29,7 +29,7 @@ const getConversationText = (conv: Types.ConversationMeta): string => {
   return Constants.getRowParticipants(conv, '').join(',')
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   ...ownProps,
   selectedText: stateProps._conv ? getConversationText(stateProps._conv) : 'Choose a conversation',
 })

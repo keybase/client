@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -13,7 +12,6 @@ type DefaultViewProps = {
   sfmiEnabled: boolean
   path: Types.Path
   pathItem: Types.PathItem
-  routePath: I.List<string>
   showInSystemFileManager: () => void
 }
 
@@ -54,7 +52,6 @@ const DefaultView = (props: DefaultViewProps) => (
               type: 'component',
             }}
             path={props.path}
-            routePath={props.routePath}
             initView={Types.PathItemActionMenuView.Share}
             mode="screen"
           />

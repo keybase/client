@@ -176,7 +176,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 
 		// Now clear local store and make sure the server has reboxed userEK.
 		rawUserEKBoxStorage := NewUserEKBoxStorage()
-		rawUserEKBoxStorage.Delete(mctxY, userEKGenY)
+		err = rawUserEKBoxStorage.Delete(mctxY, userEKGenY)
+		require.NoError(t, err)
 		userEKBoxStorageY.ClearCache()
 
 		userEKYFetched, err := userEKBoxStorageY.Get(mctxY, userEKGenY, nil)

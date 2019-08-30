@@ -8,7 +8,7 @@ type OwnProps = {
   teamname: string
 }
 
-const mapStateToProps = (state, {teamname, id}: OwnProps) => {
+const mapStateToProps = (state, {teamname}: OwnProps) => {
   return {
     _invites: getTeamInvites(state, teamname),
     _members: getTeamMembers(state, teamname),

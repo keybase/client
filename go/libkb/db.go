@@ -21,6 +21,10 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatPinIgnore                  = 0xb3
+	DBTeambotKey                     = 0xb4
+	DBTeambotKeyWrongKID             = 0xb5
+	DBChatBotCommands                = 0xb6
 	DBSavedContacts                  = 0xb7
 	DBChatLocation                   = 0xb8
 	DBHiddenChainStorage             = 0xb9
@@ -101,7 +105,7 @@ func DbKeyNotificationDismiss(prefix string, username NormalizedUsername) DbKey 
 }
 
 // IsPermDbKey returns true for keys ignored by the leveldb cleaner and always
-// persisted to disk.  Ideally these keys handling some cleanup/size bounding
+// persisted to disk. Ideally these keys handling some cleanup/size bounding
 // themselves.
 func IsPermDbKey(typ ObjType) bool {
 	switch typ {
@@ -113,7 +117,10 @@ func IsPermDbKey(typ ObjType) bool {
 		DBChatReacji,
 		DBStellarDisclaimer,
 		DBChatIndex,
-		DBBoxAuditorPermanent:
+		DBBoxAuditorPermanent,
+		DBSavedContacts,
+		DBContactResolution,
+		DBTeambotKeyWrongKID:
 		return true
 	default:
 		return false
@@ -257,6 +264,9 @@ func (j *JSONLocalDb) Close() error           { return j.engine.Close() }
 func (j *JSONLocalDb) Nuke() (string, error)  { return j.engine.Nuke() }
 func (j *JSONLocalDb) Clean(force bool) error { return j.engine.Clean(force) }
 func (j *JSONLocalDb) Stats() string          { return j.engine.Stats() }
+func (j *JSONLocalDb) CompactionStats() (bool, bool, error) {
+	return j.engine.CompactionStats()
+}
 func (j *JSONLocalDb) KeysWithPrefixes(prefixes ...[]byte) (DBKeySet, error) {
 	return j.engine.KeysWithPrefixes(prefixes...)
 }

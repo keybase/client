@@ -1,4 +1,4 @@
-import {namedConnect, RouteProps} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import KextPermissionPopup from './kext-permission-popup'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -7,7 +7,7 @@ const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
 })
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   openSecurityPrefs: () => dispatch(FsGen.createOpenSecurityPreferences()),
 })
@@ -15,7 +15,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 export default namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({
+  (s, d, _: {}) => ({
     driverStatus: s.driverStatus,
     onCancel: d.onCancel,
     openSecurityPrefs: d.openSecurityPrefs,

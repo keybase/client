@@ -29,7 +29,7 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
 		s = ColorString(p.G(), "green", s)
-		p.w.Write([]byte(s))
+		_, _ = p.w.Write([]byte(s))
 	}
 
 	if signedAt.IsZero() {
@@ -46,7 +46,7 @@ func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
 		s = ColorString(p.G(), "green", s)
-		p.w.Write([]byte(s))
+		_, _ = p.w.Write([]byte(s))
 	}
 
 	if signedAt.IsZero() {

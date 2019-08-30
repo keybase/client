@@ -3,6 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {namedConnect} from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -41,11 +42,16 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
+  const prependText = state.chat2.prependTextMap.get(conversationIDKey)
   const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey, null)
   const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
   const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
   const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
+  const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
+    conversationIDKey,
+    RPCChatTypes.UIBotCommandsUpdateStatus.blank
+  )
   return {
     _containsLatestMessage,
     _editOrdinal: editInfo ? editInfo.ordinal : null,
@@ -62,6 +68,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isExploding,
     isSearching,
     minWriterRole: meta.minWriterRole,
+    prependText,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showCommandMarkdown,
@@ -71,6 +78,8 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
       Constants.getTyping(state, conversationIDKey).size !== 0 && !showGiphySearch && !showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestAllChannels: Constants.getAllChannels(state),
+    suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
+    suggestBotCommandsUpdateStatus,
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -80,6 +89,9 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  _clearPrependText: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: null}))
+  },
   _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
     dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: null}))
   },
@@ -151,8 +163,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
 
-  getUnsentText: () =>
-    stateProps.unsentText ? stateProps.unsentText.stringValue() : getUnsentText(stateProps.conversationIDKey),
+  getUnsentText: () => {
+    // if we have unsent text in the store, that wins, otherwise take what we have stored locally
+    const unsentText = stateProps.unsentText
+      ? stateProps.unsentText.stringValue()
+      : getUnsentText(stateProps.conversationIDKey)
+    // The store can also have text to prepend, so do that here
+    const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
+    // If we have nothing still, check to see if the service told us about a draft and fill that in
+    if (!ret) {
+      const meta = stateProps._metaMap.get(stateProps.conversationIDKey)
+      if (meta && meta.draft) {
+        return meta.draft
+      }
+    }
+    return ret
+  },
 
   isActiveForFocus: stateProps.isActiveForFocus,
   isEditExploded: stateProps.isEditExploded,
@@ -180,6 +206,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       ownProps.jumpToRecent()
     }
   },
+  prependText: stateProps.prependText ? stateProps.prependText.stringValue() : null,
 
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
@@ -195,8 +222,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
+    // The store text only lasts until we change it, so blow it away now
     if (stateProps.unsentText) {
       dispatchProps._clearUnsentText(stateProps.conversationIDKey)
+    }
+    if (stateProps.prependText) {
+      if (text !== stateProps.prependText.stringValue()) {
+        dispatchProps._clearPrependText(stateProps.conversationIDKey)
+      } else {
+        // don't set the uncontrolled text tracker to the prepend text by itself, since we want to be
+        // able to remove it if the person doesn't change it at all.
+        return
+      }
     }
     setUnsentText(stateProps.conversationIDKey, text)
   },
@@ -208,16 +245,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   showTypingStatus: stateProps.showTypingStatus,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestAllChannels: stateProps.suggestAllChannels,
+  suggestBotCommands: stateProps.suggestBotCommands,
+  suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestTeams: getTeams(stateProps._metaMap),
   suggestUsers: stateProps.suggestUsers,
-
+  unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
-
-  unsentTextRefresh: !!stateProps.unsentText,
 })
 
 export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Input')(Input)

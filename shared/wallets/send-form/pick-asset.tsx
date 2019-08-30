@@ -8,15 +8,13 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Header from './header'
 
-type Props = Container.RouteProps<
-  {
-    // ignored if username is set or isSender===true
-    accountID: string
-    // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
-    username: string
-    isSender: boolean
-  }
->
+type Props = Container.RouteProps<{
+  // ignored if username is set or isSender===true
+  accountID: string
+  // ignored if isSender===true; if empty, we assume this is for a non-keybaseUser account and just say "this account"
+  username: string
+  isSender: boolean
+}>
 
 const AssetList = ({accountID, isSender, username}) => {
   const acceptedAssets = Container.useSelector(state =>
@@ -62,7 +60,7 @@ const AssetList = ({accountID, isSender, username}) => {
         ]}
         bounces={true}
         itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
-        renderItem={(index, {assetID, selected}) => {
+        renderItem={(_, {assetID, selected}) => {
           const asset = assetID === 'XLM' ? 'native' : assetMap.get(assetID, Constants.emptyAssetDescription)
           return (
             <Kb.ListItem2
@@ -104,9 +102,9 @@ const AssetList = ({accountID, isSender, username}) => {
 }
 
 const PickAsset = (props: Props) => {
-  const accountID = props.navigation.getParam('accountID') || Types.noAccountID
-  const isSender = props.navigation.getParam('isSender')
-  const username = props.navigation.getParam('username')
+  const accountID = Container.getRouteProps(props, 'accountID', Types.noAccountID)
+  const isSender = Container.getRouteProps(props, 'isSender', false)
+  const username = Container.getRouteProps(props, 'username', '')
 
   const dispatch = Container.useDispatch()
   const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])

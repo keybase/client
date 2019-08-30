@@ -25,10 +25,11 @@ const Accepted = p =>
         'fade-anim-enter': true,
         'fade-anim-enter-active': p.state === 'accepted',
       })}
+      contentContainerStyle={styles.scrollViewContent}
     >
       <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
         <Kb.Box2 direction="vertical" style={styles.grow} />
-        <Kb.Icon type="icon-fancy-airdrop-star-shining-happy-120" style={styles.star} />
+        <Kb.Icon type="icon-fancy-airdrop-shining-120" style={styles.star} />
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="center">
           <Kb.Text negative={true} center={true} type="Header">
             You're in!
@@ -86,7 +87,7 @@ const Row = p => (
         <Kb.Icon
           type={p.valid ? 'iconfont-check' : 'iconfont-close'}
           color={p.valid ? Styles.globalColors.green : Styles.globalColors.red}
-          sizeType={'Default'}
+          sizeType="Default"
         />
       )}
     </Kb.Box2>
@@ -135,7 +136,7 @@ class Qualified extends React.PureComponent<Props, State> {
     this._kickNextLoad()
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     // got new rows or more to load
     if (!shallowEqual(this.props.rows, prevProps.rows)) {
       this.setState({rowIdxLoaded: -1})
@@ -158,13 +159,11 @@ class Qualified extends React.PureComponent<Props, State> {
     let description
 
     if (loading) {
-      starIcon = 'icon-fancy-airdrop-star-faded-loading-120'
+      starIcon = 'icon-fancy-airdrop-faded-120'
       description = 'Analyzing your account...'
     } else {
       starIcon =
-        this.props.state === 'qualified'
-          ? 'icon-fancy-airdrop-star-shining-happy-120'
-          : 'icon-fancy-airdrop-star-faded-sad-120'
+        this.props.state === 'qualified' ? 'icon-fancy-airdrop-shining-120' : 'icon-fancy-airdrop-faded-120'
 
       description =
         this.props.state === 'qualified'
@@ -179,6 +178,7 @@ class Qualified extends React.PureComponent<Props, State> {
           'fade-anim-enter': true,
           'fade-anim-enter-active': this.props.state !== 'accepted',
         })}
+        contentContainerStyle={styles.scrollViewContent}
       >
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
           <>
@@ -248,7 +248,7 @@ class Qualify extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonAccept: {flexGrow: 0},
   buttonAcceptLoading: {flexGrow: 0, opacity: 0},
   buttonClose: {
@@ -327,6 +327,9 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.medium,
   },
   scrollView: {...Styles.globalStyles.fillAbsolute},
+  scrollViewContent: {
+    flex: 1,
+  },
   star: {
     alignSelf: 'center',
     height: 120,
@@ -338,6 +341,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.medium,
   },
-})
+}))
 
 export default Qualify

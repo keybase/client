@@ -6,6 +6,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -41,13 +42,21 @@ func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalC
 }
 
 func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res keybase1.CurrentStatus, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	return status.GetCurrentStatus(mctx)
 }
 
-func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.ConfigValue, err error) {
+func (h ConfigHandler) GuiGetValue(ctx context.Context, path string) (ret keybase1.ConfigValue, err error) {
+	return h.getValue(ctx, path, h.G().Env.GetGUIConfig())
+}
+
+func (h ConfigHandler) GetValue(ctx context.Context, path string) (ret keybase1.ConfigValue, err error) {
+	return h.getValue(ctx, path, h.G().Env.GetConfig())
+}
+
+func (h ConfigHandler) getValue(_ context.Context, path string, reader libkb.JSONReader) (ret keybase1.ConfigValue, err error) {
 	var i interface{}
-	i, err = h.G().Env.GetConfig().GetInterfaceAtPath(path)
+	i, err = reader.GetInterfaceAtPath(path)
 	if err != nil {
 		return ret, err
 	}
@@ -76,8 +85,15 @@ func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.Co
 	return ret, err
 }
 
-func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (err error) {
-	w := h.G().Env.GetConfigWriter()
+func (h ConfigHandler) GuiSetValue(ctx context.Context, arg keybase1.GuiSetValueArg) (err error) {
+	return h.setValue(ctx, keybase1.SetValueArg(arg), h.G().Env.GetGUIConfig())
+}
+
+func (h ConfigHandler) SetValue(ctx context.Context, arg keybase1.SetValueArg) (err error) {
+	return h.setValue(ctx, arg, h.G().Env.GetConfigWriter())
+}
+
+func (h ConfigHandler) setValue(_ context.Context, arg keybase1.SetValueArg, w libkb.JSONWriter) (err error) {
 	if arg.Path == "users" {
 		err = fmt.Errorf("The field 'users' cannot be edited for fear of config corruption")
 		return err
@@ -101,25 +117,35 @@ func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (er
 		err = fmt.Errorf("Bad type for setting a value")
 	}
 	if err == nil {
-		h.G().ConfigReload()
+		reloadErr := h.G().ConfigReload()
+		if reloadErr != nil {
+			h.G().Log.Debug("setValue: error reloading: %+v", reloadErr)
+		}
 	}
 	return err
 }
 
-func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
-	h.G().Env.GetConfigWriter().DeleteAtPath(path)
-	h.G().ConfigReload()
-	return nil
+func (h ConfigHandler) GuiClearValue(ctx context.Context, path string) error {
+	return h.clearValue(ctx, path, h.G().Env.GetGUIConfig())
+}
+
+func (h ConfigHandler) ClearValue(ctx context.Context, path string) error {
+	return h.clearValue(ctx, path, h.G().Env.GetConfigWriter())
+}
+
+func (h ConfigHandler) clearValue(_ context.Context, path string, w libkb.JSONWriter) error {
+	w.DeleteAtPath(path)
+	return h.G().ConfigReload()
 }
 
 func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetClientStatus", func() error { return err })()
 	return libkb.GetClientStatus(mctx), nil
 }
 
 func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybase1.Config, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetConfig", func() error { return err })()
 	forkType := keybase1.ForkType_NONE
 	if h.svc != nil {
@@ -129,13 +155,13 @@ func (h ConfigHandler) GetConfig(ctx context.Context, sessionID int) (res keybas
 }
 
 func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *keybase1.FullStatus, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetFullStatus", func() error { return err })()
 	return status.GetFullStatus(mctx)
 }
 
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G())
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()
 
 	fstatus, err := status.GetFullStatus(mctx)
@@ -155,7 +181,7 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 }
 
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
-	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()))
+	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG"))
 	if err != nil {
 		return res, err
 	}
@@ -292,13 +318,22 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	if err := engine.RunEngine2(m, eng); err != nil {
 		return keybase1.BootstrapStatus{}, err
 	}
-	return eng.Status(), nil
+	status := eng.Status()
+	addr, err := h.svc.httpSrv.Addr()
+	if err != nil {
+		h.G().Log.CDebugf(ctx, "GetBootstrapStatus: failed to get HTTP server address: %s", err)
+	} else {
+		status.HttpSrvInfo = &keybase1.HttpSrvInfo{
+			Address: addr,
+			Token:   h.svc.httpSrv.Token(),
+		}
+	}
+	return status, nil
 }
 
 func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
 	// Queue up a load for follower info
-	h.svc.trackerLoader.Queue(ctx, uid)
-	return nil
+	return h.svc.trackerLoader.Queue(ctx, uid)
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
@@ -321,7 +356,10 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 	if err := w.SetRememberPassphrase(arg.Remember); err != nil {
 		return err
 	}
-	h.G().ConfigReload()
+	err = h.G().ConfigReload()
+	if err != nil {
+		return err
+	}
 
 	// replace the secret store
 	if err := h.G().ReplaceSecretStore(ctx); err != nil {
@@ -420,12 +458,21 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 		return fmt.Errorf("failed to convert proxy type into a string")
 	}
 
-	configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
-	configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
-	configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
+	err := configWriter.SetStringAtPath("proxy", arg.AddressWithPort)
+	if err != nil {
+		return err
+	}
+	err = configWriter.SetBoolAtPath("disable-cert-pinning", !arg.CertPinning)
+	if err != nil {
+		return err
+	}
+	err = configWriter.SetStringAtPath("proxy-type", proxyTypeStr)
+	if err != nil {
+		return err
+	}
 
 	// Reload the config file in order to actually start using the proxy
-	err := h.G().ConfigReload()
+	err = h.G().ConfigReload()
 	if err != nil {
 		return err
 	}
@@ -436,7 +483,10 @@ func (h ConfigHandler) SetProxyData(ctx context.Context, arg keybase1.ProxyData)
 func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 	configWriter := h.G().Env.GetConfigWriter()
 	curValue := h.G().Env.GetRuntimeStatsEnabled()
-	configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	err := configWriter.SetBoolAtPath("runtime_stats_enabled", !curValue)
+	if err != nil {
+		return err
+	}
 	if err := h.G().ConfigReload(); err != nil {
 		return err
 	}
@@ -446,4 +496,9 @@ func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 		h.svc.runtimeStats.Start(ctx)
 	}
 	return nil
+}
+
+func (h ConfigHandler) AppendGUILogs(ctx context.Context, content string) error {
+	_, err := io.WriteString(h.G().GetGUILogWriter(), content)
+	return err
 }

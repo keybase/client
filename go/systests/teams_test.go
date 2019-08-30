@@ -250,11 +250,14 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.NoError(tt.t, err)
 	err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications))
 	require.NoError(tt.t, err)
+	err = srv.Register(keybase1.NotifyTeambotProtocol(u.notifications))
+	require.NoError(tt.t, err)
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
 	err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 		Team:      true,
 		Badges:    true,
 		Ephemeral: true,
+		Teambot:   true,
 	})
 	require.NoError(tt.t, err)
 
@@ -262,7 +265,8 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
 
-	g.ConfigureConfig()
+	err = g.ConfigureConfig()
+	require.NoError(tt.t, err)
 
 	devices, backups := u.device.loadEncryptionKIDs()
 	require.Len(tt.t, devices, 1, "devices")
@@ -286,7 +290,8 @@ func (tt *teamTester) cleanup() {
 		if u.device.service != nil {
 			u.tc.T.Logf("in teamTester cleanup, stopping test user's service")
 			u.device.service.Stop(0)
-			u.device.stop()
+			err := u.device.stop()
+			require.NoError(u.tc.T, err)
 			u.tc.T.Logf("in teamTester cleanup, stopped test user's service")
 		}
 	}
@@ -366,15 +371,28 @@ func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
 	return res
 }
 
+func (u *userPlusDevice) addRestrictedBotTeamMember(team, username string, botSettings keybase1.TeamBotSettings) {
+	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
+	add.Team = team
+	add.Username = username
+	add.Role = keybase1.TeamRole_RESTRICTEDBOT
+	add.BotSettings = &botSettings
+	add.SkipChatNotification = u.suppressTeamChatAnnounce
+	err := add.Run()
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
+	if role.IsRestrictedBot() {
+		require.Fail(u.tc.T, "use addRestrictedBotTeamMember instead")
+	}
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team
 	add.Username = username
 	add.Role = role
 	add.SkipChatNotification = u.suppressTeamChatAnnounce
-	if err := add.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := add.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) removeTeamMember(team, username string) {
@@ -382,9 +400,8 @@ func (u *userPlusDevice) removeTeamMember(team, username string) {
 	rm.Team = team
 	rm.Username = username
 	rm.Force = true
-	if err := rm.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := rm.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) leave(team string) {
@@ -399,9 +416,8 @@ func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.T
 	change.Team = team
 	change.Username = username
 	change.Role = keybase1.TeamRole_OWNER
-	if err := change.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := change.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
@@ -409,9 +425,8 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	add.Team = team
 	add.Email = email
 	add.Role = role
-	if err := add.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := add.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) reAddUserAfterReset(team keybase1.TeamID, w *userPlusDevice) {
@@ -459,7 +474,7 @@ func (u *userPlusDevice) readInviteEmails(email string) []string {
 		u.tc.T.Fatal(err)
 	}
 	if n == 0 {
-		u.tc.T.Fatalf("no invite tokens for %s", email)
+		require.Fail(u.tc.T, fmt.Sprintf("no invite tokens for %s", email))
 	}
 
 	exp := make([]string, n)
@@ -492,15 +507,6 @@ func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeam
 	cli := u.teamsClient
 	res, err := cli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{
 		UserAssertion:        userAssertion,
-		IncludeImplicitTeams: includeImplicitTeams,
-	})
-	require.NoError(u.tc.T, err)
-	return res
-}
-
-func (u *userPlusDevice) teamListTeammates(includeImplicitTeams bool) keybase1.AnnotatedTeamList {
-	cli := u.teamsClient
-	res, err := cli.TeamListTeammates(context.TODO(), keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: includeImplicitTeams,
 	})
 	require.NoError(u.tc.T, err)
@@ -555,7 +561,7 @@ func (u *userPlusDevice) waitForTeamChangedGregor(teamID keybase1.TeamID, toSeqn
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForBadgeStateWithReset(numReset int) keybase1.BadgeState {
@@ -593,6 +599,10 @@ func (u *userPlusDevice) drainGregor() {
 }
 
 func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
+	u.waitForAnyRotateByID(teamID, toSeqno, keybase1.Seqno(0))
+}
+
+func (u *userPlusDevice) waitForAnyRotateByID(teamID keybase1.TeamID, toSeqno keybase1.Seqno, toHiddenSeqno keybase1.Seqno) {
 	u.tc.T.Logf("waiting for team rotate %s", teamID)
 
 	// jump start the clkr queue processing loop
@@ -603,7 +613,7 @@ func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keyba
 		select {
 		case arg := <-u.notifications.changeCh:
 			u.tc.T.Logf("rotate received: %+v", arg)
-			if arg.TeamID.Eq(teamID) && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
+			if arg.TeamID.Eq(teamID) && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno && (toHiddenSeqno == keybase1.Seqno(0) || toHiddenSeqno == arg.LatestHiddenSeqno) {
 				u.tc.T.Logf("rotate matched!")
 				return
 			}
@@ -611,7 +621,7 @@ func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keyba
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
@@ -628,7 +638,7 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(teamID keybase1.TeamID, to
 		case <-time.After(1 * time.Second * libkb.CITimeMultiplier(u.tc.G)):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", teamID))
 }
 
 func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
@@ -681,7 +691,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 			ForceRepoll: true,
 		})
 		if err != nil {
-			u.tc.T.Fatalf("error while loading team %q: %v", team, err)
+			require.Fail(u.tc.T, fmt.Sprintf("error while loading team %q: %v", team, err))
 		}
 
 		if after.CurrentSeqno() >= toSeqno {
@@ -692,7 +702,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLink(team string, toSeqno keybase1.Seqn
 		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team rotate %s", team))
 }
 
 func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeamArg, toSeqno keybase1.Seqno) {
@@ -700,7 +710,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeam
 	for i := 0; i < 20; i++ {
 		details, err := teams.Load(context.Background(), u.tc.G, args)
 		if err != nil {
-			u.tc.T.Fatalf("error while loading team %v: %v", args, err)
+			require.Fail(u.tc.T, fmt.Sprintf("error while loading team %v: %v", args, err))
 		}
 
 		if details.CurrentSeqno() >= toSeqno {
@@ -711,7 +721,7 @@ func (u *userPlusDevice) pollForTeamSeqnoLinkWithLoadArgs(args keybase1.LoadTeam
 		time.Sleep(500 * time.Millisecond * libkb.CITimeMultiplier(u.tc.G))
 	}
 
-	u.tc.T.Fatalf("timed out waiting for team %v seqno link %d", args, toSeqno)
+	require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team %v seqno link %d", args, toSeqno))
 }
 
 func (u *userPlusDevice) proveRooter() {
@@ -738,16 +748,6 @@ func (u *userPlusDevice) untrack(username string) {
 	untrackCmd.SetUser(username)
 	err := untrackCmd.Run()
 	require.NoError(u.tc.T, err)
-}
-
-func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
-	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      teamID.IsPublic(),
-		ForceRepoll: true,
-	})
-	require.NoError(u.tc.T, err)
-	return team.CurrentSeqno()
 }
 
 func (u *userPlusDevice) kickTeamRekeyd() {
@@ -895,7 +895,8 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	// the protocols in the genericUI below. If we reuse the previous
 	// socket, then the RPC protocols will not update, and we'll wind
 	// up reusing the old device name.
-	g.ResetSocket(true)
+	_, _, _, err := g.ResetSocket(true)
+	require.NoError(t, err)
 
 	devName := randomDevice()
 	g.Log.Debug("loginAfterResetHelper: new device name is %q", devName)
@@ -909,7 +910,7 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	g.SetUI(&ui)
 	loginCmd := client.NewCmdLoginRunner(g)
 	loginCmd.Username = u.username
-	err := loginCmd.Run()
+	err = loginCmd.Run()
 	require.NoError(t, err, "login after reset")
 }
 
@@ -991,19 +992,6 @@ func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID ke
 	require.NoError(t, err)
 }
 
-func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []keybase1.UID) {
-	arg := libkb.NewAPIArg("user/names")
-	arg.SessionType = libkb.APISessionTypeNONE
-	arg.Args = libkb.HTTPArgs{
-		"uids":     libkb.S{Val: libkb.UidsToString(uids)},
-		"no_cache": libkb.B{Val: true},
-	}
-	t.Logf("Calling user/names with uids: %v and no_cache: true to clear serverside uidmap cache", uids)
-	mctx := libkb.NewMetaContextTODO(g)
-	_, err := g.API.Post(mctx, arg)
-	require.NoError(t, err)
-}
-
 func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
 	return teams.Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
@@ -1020,22 +1008,28 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh         chan keybase1.TeamChangedByIDArg
-	abandonCh        chan keybase1.TeamID
-	badgeCh          chan keybase1.BadgeState
-	newTeamEKCh      chan keybase1.NewTeamEkArg
-	newTeambotEKCh   chan keybase1.NewTeambotEkArg
-	newlyAddedToTeam chan keybase1.TeamID
+	changeCh           chan keybase1.TeamChangedByIDArg
+	abandonCh          chan keybase1.TeamID
+	badgeCh            chan keybase1.BadgeState
+	newTeamEKCh        chan keybase1.NewTeamEkArg
+	newTeambotEKCh     chan keybase1.NewTeambotEkArg
+	teambotEKNeededCh  chan keybase1.TeambotEkNeededArg
+	newTeambotKeyCh    chan keybase1.NewTeambotKeyArg
+	teambotKeyNeededCh chan keybase1.TeambotKeyNeededArg
+	newlyAddedToTeam   chan keybase1.TeamID
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:         make(chan keybase1.TeamChangedByIDArg, 10),
-		abandonCh:        make(chan keybase1.TeamID, 10),
-		badgeCh:          make(chan keybase1.BadgeState, 10),
-		newTeamEKCh:      make(chan keybase1.NewTeamEkArg, 10),
-		newTeambotEKCh:   make(chan keybase1.NewTeambotEkArg, 10),
-		newlyAddedToTeam: make(chan keybase1.TeamID, 10),
+		changeCh:           make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:          make(chan keybase1.TeamID, 10),
+		badgeCh:            make(chan keybase1.BadgeState, 10),
+		newTeamEKCh:        make(chan keybase1.NewTeamEkArg, 10),
+		newTeambotEKCh:     make(chan keybase1.NewTeambotEkArg, 10),
+		teambotEKNeededCh:  make(chan keybase1.TeambotEkNeededArg, 10),
+		newTeambotKeyCh:    make(chan keybase1.NewTeambotKeyArg, 10),
+		teambotKeyNeededCh: make(chan keybase1.TeambotKeyNeededArg, 10),
+		newlyAddedToTeam:   make(chan keybase1.TeamID, 10),
 	}
 }
 
@@ -1078,6 +1072,21 @@ func (n *teamNotifyHandler) NewTeamEk(ctx context.Context, arg keybase1.NewTeamE
 
 func (n *teamNotifyHandler) NewTeambotEk(ctx context.Context, arg keybase1.NewTeambotEkArg) error {
 	n.newTeambotEKCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) TeambotEkNeeded(ctx context.Context, arg keybase1.TeambotEkNeededArg) error {
+	n.teambotEKNeededCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) NewTeambotKey(ctx context.Context, arg keybase1.NewTeambotKeyArg) error {
+	n.newTeambotKeyCh <- arg
+	return nil
+}
+
+func (n *teamNotifyHandler) TeambotKeyNeeded(ctx context.Context, arg keybase1.TeambotKeyNeededArg) error {
+	n.teambotKeyNeededCh <- arg
 	return nil
 }
 
@@ -1308,7 +1317,8 @@ func TestImpTeamLookupWithTrackingFailure(t *testing.T) {
 
 	t.Logf("make rooter unreachable")
 	g.XAPI = &flakeyRooterAPI{orig: g.XAPI, hardFail: true, G: g}
-	g.ProofCache.Reset()
+	err = g.ProofCache.Reset()
+	require.NoError(t, err)
 
 	t.Logf("lookup the implicit team while full identify is failing")
 	team2, err := alice.lookupImplicitTeam(true /*create*/, iTeamNameCreate, false /*isPublic*/)
@@ -1566,6 +1576,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	bob := tt.addUser("bob")
 	dodo := tt.addUser("dodo")
 	botua := tt.addUser("botua")
+	restrictedBotua := tt.addUser("rbot")
 	john := tt.addPuklessUser("john")
 	tt.logUserNames()
 	teamID, teamName := alice.createTeam2()
@@ -1577,6 +1588,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
 		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
 		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
+		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
 	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
 	require.NoError(t, err)
@@ -1589,6 +1601,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	require.Equal(t, members.Writers, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}})
 	require.Len(t, members.Readers, 0)
 	require.Equal(t, members.Bots, []keybase1.UserVersion{{Uid: botua.uid, EldestSeqno: 1}})
+	require.Equal(t, members.RestrictedBots, []keybase1.UserVersion{{Uid: restrictedBotua.uid, EldestSeqno: 1}})
 
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))
@@ -1668,7 +1681,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Len(t, members.Admins, 0)
 	require.Len(t, members.Writers, 0)
 	require.Len(t, members.Readers, 0)
-	require.Len(t, members.Bots, 0)
+	require.Len(t, members.RestrictedBots, 0)
 
 	role = keybase1.TeamRole_ADMIN
 	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), makeUserRolePairs(assertions, role))
@@ -1692,7 +1705,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Equal(t, bob.userVersion(), members.Admins[0])
 	require.Len(t, members.Writers, 0)
 	require.Len(t, members.Readers, 0)
-	require.Len(t, members.Bots, 0)
+	require.Len(t, members.RestrictedBots, 0)
 
 	invites := team.GetActiveAndObsoleteInvites()
 	t.Logf("invites: %s", spew.Sdump(invites))

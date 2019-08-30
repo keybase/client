@@ -136,6 +136,10 @@
         {
           "type": "IdentityVisibility",
           "name": "visibility"
+        },
+        {
+          "type": "UnixTime",
+          "name": "lastVerifyEmailDate"
         }
       ]
     },

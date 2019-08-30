@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
-import {useFsLoadEffect, TlfInfo, Filename} from '../../common'
+import {useFsPathMetadata, TlfInfo, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean
@@ -13,7 +13,7 @@ type TlfProps = StillCommonProps & {
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean
-  routePath: I.List<string>
+  mixedMode?: boolean
   usernames: I.List<string>
 }
 
@@ -27,7 +27,7 @@ const Content = (props: TlfProps) => (
           path={props.path}
         />
       </Kb.Box2>
-      <TlfInfo path={props.path} mode="row" />
+      <TlfInfo path={props.path} mode="row" mixedMode={props.mixedMode} />
     </Kb.Box2>
   </Kb.BoxGrow>
 )
@@ -40,34 +40,34 @@ const Avatars = (props: TlfProps) => (
     )}
   </Kb.Box>
 )
-const Tlf = (props: TlfProps) => {
-  useFsLoadEffect({
-    path: props.path,
-    wantPathMetadata: props.loadPathMetadata,
-  })
-  return (
-    <StillCommon
-      name={props.name}
-      path={props.path}
-      onOpen={props.onOpen}
-      inDestinationPicker={props.inDestinationPicker}
-      badge={props.isNew ? Types.PathItemBadgeType.New : null}
-      routePath={props.routePath}
-      showActionsWithGrow={true}
-    >
-      <Kb.Box style={rowStyles.itemBox}>
-        {Styles.isMobile ? (
-          <Content {...props} />
-        ) : (
-          <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <Content {...props} />
-            <Avatars {...props} />
-          </Kb.Box2>
-        )}
-      </Kb.Box>
-    </StillCommon>
-  )
+
+const FsPathMetadataLoader = ({path}: {path: Types.Path}) => {
+  useFsPathMetadata(path)
+  return null
 }
+
+const Tlf = (props: TlfProps) => (
+  <StillCommon
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+    badge={props.isNew ? Types.PathItemBadgeType.New : null}
+    showTlfTypeIcon={!!props.mixedMode}
+  >
+    {!!props.loadPathMetadata && <FsPathMetadataLoader path={props.path} />}
+    <Kb.Box style={rowStyles.itemBox}>
+      {Styles.isMobile ? (
+        <Content {...props} />
+      ) : (
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Content {...props} />
+          <Avatars {...props} />
+        </Kb.Box2>
+      )}
+    </Kb.Box>
+  </StillCommon>
+)
 
 const styles = Styles.styleSheetCreate({
   avatarBox: {marginRight: Styles.globalMargins.xsmall},

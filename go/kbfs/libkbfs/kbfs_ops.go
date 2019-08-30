@@ -79,7 +79,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
-		favs: NewFavorites(config),
+		favs:                  NewFavorites(config),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -200,7 +200,8 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 	}
 
 	if newStatus == nil {
-		fs.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+		fs.log.CDebugf(
+			context.TODO(), "Asking for an edit re-init after reconnection")
 		fs.editActivity.Add(1)
 		go fs.initTlfsForEditHistories()
 		go fs.initSyncedTlfs()
@@ -211,7 +212,8 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(
 func (fs *KBFSOpsStandard) PushStatusChange() {
 	fs.currentStatus.PushStatusChange()
 
-	fs.log.CDebugf(nil, "Asking for an edit re-init after status change")
+	fs.log.CDebugf(
+		context.TODO(), "Asking for an edit re-init after status change")
 	fs.editActivity.Add(1)
 	go fs.initTlfsForEditHistories()
 	go fs.initSyncedTlfs()
@@ -620,7 +622,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	if err := ops.doFavoritesOp(ctx, fop, handle); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
-		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+		fs.log.CDebugf(ctx, "Couldn't add favorite: %+v", err)
 	}
 
 	fs.opsLock.Lock()
@@ -635,14 +637,18 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	// Track under its name, so we can later tell it to remove itself
 	// from the favorites list.
 	fs.opsByFav[fav] = ops
-	ops.RegisterForChanges(&kbfsOpsFavoriteObserver{
+	err := ops.RegisterForChanges(&kbfsOpsFavoriteObserver{
 		kbfsOps: fs,
 		currFav: fav,
 	})
+	if err != nil {
+		fs.log.CDebugf(ctx, "Couldn't register for changes: %+v", err)
+	}
 	return ops
 }
 
-func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *tlfhandle.Handle) error {
+func (fs *KBFSOpsStandard) resetTlfID(
+	ctx context.Context, h *tlfhandle.Handle, newTlfID *tlf.ID) error {
 	if !h.IsBackedByTeam() {
 		return errors.WithStack(NonExistentTeamForHandleError{h})
 	}
@@ -652,26 +658,33 @@ func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *tlfhandle.Handle) 
 		return err
 	}
 
-	matches, epoch, err := h.TlfID().GetEpochFromTeamTLF(teamID)
-	if err != nil {
-		return err
-	}
-	if matches {
-		epoch++
+	var tlfID tlf.ID
+	if newTlfID != nil {
+		tlfID = *newTlfID
+		fs.log.CDebugf(ctx, "Resetting to TLF ID %s for TLF %s, %s",
+			tlfID, teamID, h.GetCanonicalName())
 	} else {
-		epoch = 0
-	}
+		matches, epoch, err := h.TlfID().GetEpochFromTeamTLF(teamID)
+		if err != nil {
+			return err
+		}
+		if matches {
+			epoch++
+		} else {
+			epoch = 0
+		}
 
-	// When creating a new TLF for an implicit team, always start with
-	// epoch 0.  A different path will handle TLF resets with an
-	// increased epoch, if necessary.
-	tlfID, err := tlf.MakeIDFromTeam(h.Type(), teamID, epoch)
-	if err != nil {
-		return err
-	}
+		// When creating a new TLF for an implicit team, always start with
+		// epoch 0.  A different path will handle TLF resets with an
+		// increased epoch, if necessary.
+		tlfID, err = tlf.MakeIDFromTeam(h.Type(), teamID, epoch)
+		if err != nil {
+			return err
+		}
 
-	fs.log.CDebugf(ctx, "Creating new TLF ID %s for team %s, %s",
-		tlfID, teamID, h.GetCanonicalName())
+		fs.log.CDebugf(ctx, "Creating new TLF ID %s for TLF %s, %s",
+			tlfID, teamID, h.GetCanonicalName())
+	}
 
 	err = fs.config.KBPKI().CreateTeamTLF(ctx, teamID, tlfID)
 	if err != nil {
@@ -692,7 +705,7 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 		return nil
 	}
 
-	return fs.resetTlfID(ctx, h)
+	return fs.resetTlfID(ctx, h, nil)
 }
 
 func (fs *KBFSOpsStandard) transformReadError(
@@ -1471,6 +1484,19 @@ func (fs *KBFSOpsStandard) TeamAbandoned(
 	}
 }
 
+// CheckMigrationPerms implements the KBFSOps interface for folderBranchOps.
+func (fs *KBFSOpsStandard) CheckMigrationPerms(
+	ctx context.Context, id tlf.ID) (err error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	// We currently only migrate on the master branch of a TLF.
+	ops := fs.getOps(
+		ctx, data.FolderBranch{Tlf: id, Branch: data.MasterBranch},
+		FavoritesOpNoChange)
+	return ops.CheckMigrationPerms(ctx, id)
+}
+
 // MigrateToImplicitTeam implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) MigrateToImplicitTeam(
 	ctx context.Context, id tlf.ID) error {
@@ -1554,7 +1580,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	fav := handle.ToFavorite()
-	if ops, ok := fs.opsByFav[fav]; ok {
+	if ops, ok := fs.opsByFav[fav]; ok { // nolint
 		ops.NewNotificationChannel(ctx, handle, convID, channelName)
 	} else if handle.TlfID() != tlf.NullID {
 		fs.editActivity.Add(1)
@@ -1579,7 +1605,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 
 // Reset implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Reset(
-	ctx context.Context, handle *tlfhandle.Handle) error {
+	ctx context.Context, handle *tlfhandle.Handle, newTlfID *tlf.ID) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1589,15 +1615,32 @@ func (fs *KBFSOpsStandard) Reset(
 	if err != nil {
 		return err
 	}
-	id, _, err := fs.config.MDServer().GetForHandle(
-		ctx, bareHandle, kbfsmd.Merged, nil)
-	if err == nil {
-		fs.log.CDebugf(ctx, "Folder %s can't be reset; still has ID %s",
-			handle.GetCanonicalPath(), id)
-		return errors.WithStack(FolderNotResetOnServer{handle})
-	} else if _, ok := errors.Cause(err).(kbfsmd.ServerErrorClassicTLFDoesNotExist); !ok {
-		// Return errors if they don't indicate the folder is new.
-		return err
+
+	if newTlfID != nil {
+		oldPath := handle.GetCanonicalPath()
+		fs.log.CDebugf(
+			ctx, "Checking that %s is an appropriate ID for TLF %s after reset",
+			*newTlfID, oldPath)
+		md, err := fs.config.MDOps().GetForTLF(ctx, *newTlfID, nil)
+		if err != nil {
+			return err
+		}
+		newPath := md.GetTlfHandle().GetCanonicalPath()
+		if newPath != oldPath {
+			return errors.Errorf("Cannot reset %s (%s) to TLF %s (%s)",
+				oldPath, handle.TlfID(), newPath, *newTlfID)
+		}
+	} else {
+		id, _, err := fs.config.MDServer().GetForHandle(
+			ctx, bareHandle, kbfsmd.Merged, nil)
+		if err == nil {
+			fs.log.CDebugf(ctx, "Folder %s can't be reset; still has ID %s",
+				handle.GetCanonicalPath(), id)
+			return errors.WithStack(FolderNotResetOnServer{handle})
+		} else if _, ok := errors.Cause(err).(kbfsmd.ServerErrorClassicTLFDoesNotExist); !ok {
+			// Return errors if they don't indicate the folder is new.
+			return err
+		}
 	}
 
 	fs.opsLock.Lock()
@@ -1606,6 +1649,8 @@ func (fs *KBFSOpsStandard) Reset(
 	fb := data.FolderBranch{Tlf: handle.TlfID(), Branch: data.MasterBranch}
 	ops, ok := fs.ops[fb]
 	if ok {
+		fs.config.MDServer().CancelRegistration(ctx, handle.TlfID())
+
 		err := ops.Reset(ctx, handle)
 		if err != nil {
 			return err
@@ -1622,7 +1667,7 @@ func (fs *KBFSOpsStandard) Reset(
 	// Reset the TLF by overwriting the TLF ID in the sigchain.  This
 	// assumes that the server is in implicit team mode for new TLFs,
 	// which at this point it should always be.
-	return fs.resetTlfID(ctx, handle)
+	return fs.resetTlfID(ctx, handle, newTlfID)
 }
 
 // ClearConflictView resets a TLF's journal and conflict DB to a non
@@ -1745,6 +1790,12 @@ func (fs *KBFSOpsStandard) AddRootNodeWrapper(f func(Node) Node) {
 	for _, op := range fs.ops {
 		op.addRootNodeWrapper(f)
 	}
+}
+
+// StatusOfServices implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) StatusOfServices() (map[string]error, chan StatusUpdate) {
+	return fs.currentStatus.CurrentStatus()
 }
 
 // Notifier:

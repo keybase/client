@@ -46,20 +46,20 @@ const SecretNoteAndPublicMemo = () => {
         secretNote={secretNote}
         onChangeSecretNote={onChangeSecretNote}
         toSelf={buildingAdvanced.recipientType === 'otherAccount'}
-        secretNoteError={'' /* TODO PICNIC-142 */}
+        secretNoteError=""
         maxLength={secretNoteMaxLength}
       />
       <PublicMemo
         publicMemo={publicMemo}
         onChangePublicMemo={onChangePublicMemo}
-        publicMemoError={'' /* TODO PICNIC-142 */}
+        publicMemoError=""
         maxLength={publicMemoMaxLength}
       />
     </>
   )
 }
 
-const SendBodyAdvanced = (props: SendBodyAdvancedProps) => (
+const SendBodyAdvanced = (_: SendBodyAdvancedProps) => (
   <Kb.Box2 fullWidth={true} direction="vertical" style={sharedStyles.container}>
     <Kb.ScrollView style={sharedStyles.scrollView}>
       <AssetInputRecipientAdvanced />

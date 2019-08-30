@@ -38,7 +38,7 @@ func NewExternalURLStoreAndInstall(g *libkb.GlobalContext) libkb.MerkleStore {
 func NewGlobalContextInit() *libkb.GlobalContext {
 	g := libkb.NewGlobalContext().Init()
 	g.SetProofServices(NewProofServices(g))
-	g.ConfigureMerkleClient()
+	_ = g.ConfigureMerkleClient()
 	pvl.NewPvlSourceAndInstall(g)
 	NewParamProofStoreAndInstall(g)
 	return g

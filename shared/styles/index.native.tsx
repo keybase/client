@@ -2,8 +2,13 @@ import {StyleSheet, Dimensions} from 'react-native'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 import {isIOS} from '../constants/platform'
 import globalColors from './colors'
-import {CollapsibleStyle} from './index.types'
+import styleSheetCreateProxy from './style-sheet-proxy'
 import * as Shared from './shared'
+
+type _Elem = Object | null | false | void
+// CollapsibleStyle is a generic version of ?StylesMobile and family,
+// slightly extended to support "isFoo && myStyle".
+export type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
 
 const font = isIOS
   ? {
@@ -22,7 +27,7 @@ const font = isIOS
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: 'normal'},
       fontTerminal: {fontFamily: 'SourceCodePro-Medium', fontWeight: 'normal'},
-      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
+      fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semibold', fontWeight: 'normal'},
       italic: {fontStyle: 'italic'},
     }
 
@@ -49,14 +54,16 @@ export const globalStyles = {
 
 export const statusBarHeight = iPhoneXHelper.getStatusBarHeight(true)
 export const hairlineWidth = StyleSheet.hairlineWidth
-export const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
+// @ts-ignore TODO fix native styles
+export const styleSheetCreate = obj => styleSheetCreateProxy(obj, o => StyleSheet.create(o))
+export {isDarkMode} from './dark-mode'
 export const collapseStyles = (
   styles: ReadonlyArray<CollapsibleStyle>
 ): ReadonlyArray<Object | null | false | void> => {
   return styles
 }
-export const transition = (...properties: Array<string>) => ({})
-export const backgroundURL = (...path: Array<string>) => ({})
+export const transition = () => ({})
+export const backgroundURL = () => ({})
 export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
@@ -69,7 +76,7 @@ export {
 } from './shared'
 export {default as glamorous} from '@emotion/native'
 export {default as styled, css as styledCss} from '@emotion/native'
-export {default as globalColors} from './colors'
+export {themed as globalColors} from './colors'
 export {default as classNames} from 'classnames'
 export const borderRadius = 6
 export const dimensionWidth = Dimensions.get('window').width

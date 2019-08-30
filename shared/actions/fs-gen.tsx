@@ -8,7 +8,6 @@ import * as ChatTypes from '../constants/types/chat2'
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
-export const clearRefreshTag = 'fs:clearRefreshTag'
 export const closeDestinationPicker = 'fs:closeDestinationPicker'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
@@ -33,6 +32,7 @@ export const finishManualConflictResolution = 'fs:finishManualConflictResolution
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
+export const getOnlineStatus = 'fs:getOnlineStatus'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const initSendLinkToChat = 'fs:initSendLinkToChat'
@@ -47,7 +47,6 @@ export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
-export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
@@ -57,13 +56,16 @@ export const overallSyncStatusChanged = 'fs:overallSyncStatusChanged'
 export const pathItemLoaded = 'fs:pathItemLoaded'
 export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
+export const pollJournalStatus = 'fs:pollJournalStatus'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
+export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
 export const sentLinkToChat = 'fs:sentLinkToChat'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
+export const setDirectMountDir = 'fs:setDirectMountDir'
 export const setDriverStatus = 'fs:setDriverStatus'
 export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
@@ -72,6 +74,7 @@ export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
 export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
+export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
@@ -89,9 +92,12 @@ export const showMoveOrCopy = 'fs:showMoveOrCopy'
 export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
+export const subscribeNonPath = 'fs:subscribeNonPath'
+export const subscribePath = 'fs:subscribePath'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
+export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
 export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
@@ -101,7 +107,6 @@ export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
 type _CancelDownloadPayload = {readonly key: string}
-type _ClearRefreshTagPayload = {readonly refreshTag: Types.RefreshTag}
 type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
@@ -142,12 +147,13 @@ type _FavoritesLoadedPayload = {
   readonly team: I.Map<string, Types.Tlf>
 }
 type _FinishManualConflictResolutionPayload = {readonly localViewTlfPath: Types.Path}
-type _FolderListLoadPayload = {readonly path: Types.Path; readonly refreshTag?: Types.RefreshTag}
+type _FolderListLoadPayload = {readonly path: Types.Path}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
   readonly pathItems: I.Map<Types.Path, Types.PathItem>
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
+type _GetOnlineStatusPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
 type _InitSendLinkToChatPayload = {readonly path: Types.Path}
@@ -159,14 +165,13 @@ type _JournalUpdatePayload = {
 type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
-type _LoadPathMetadataPayload = {readonly path: Types.Path; readonly refreshTag?: Types.RefreshTag | null}
+type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
 type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _NewFolderRowPayload = {readonly parentPath: Types.Path}
-type _NotifyTlfUpdatePayload = {readonly tlfPath: Types.Path}
 type _OpenAndUploadPayload = {readonly type: Types.OpenDialogType; readonly parentPath: Types.Path}
 type _OpenFilesFromWidgetPayload = {readonly path: Types.Path; readonly type: Types.PathType}
 type _OpenLocalPathInSystemFileManagerPayload = {readonly localPath: string}
@@ -179,13 +184,16 @@ type _OverallSyncStatusChangedPayload = {
 type _PathItemLoadedPayload = {readonly path: Types.Path; readonly pathItem: Types.PathItem}
 type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly parentPath: Types.Path}
 type _PlaceholderActionPayload = void
+type _PollJournalStatusPayload = void
 type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
+type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
 type _SentAttachmentToChatPayload = void
 type _SentLinkToChatPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
+type _SetDirectMountDirPayload = {readonly directMountDir: string}
 type _SetDriverStatusPayload = {readonly driverStatus: Types.DriverStatus}
 type _SetFolderViewFilterPayload = {readonly filter: string}
 type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
@@ -194,6 +202,7 @@ type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
 type _SetPathItemActionMenuDownloadKeyPayload = {readonly key: string | null}
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
 type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
+type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: I.List<string>}
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
@@ -211,6 +220,12 @@ type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path
 type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
+type _SubscribeNonPathPayload = {readonly subscriptionID: string; readonly topic: RPCTypes.SubscriptionTopic}
+type _SubscribePathPayload = {
+  readonly subscriptionID: string
+  readonly path: Types.Path
+  readonly topic: RPCTypes.PathSubscriptionTopic
+}
 type _TlfSyncConfigLoadedPayload = {
   readonly tlfType: Types.TlfType
   readonly tlfName: string
@@ -218,6 +233,7 @@ type _TlfSyncConfigLoadedPayload = {
 }
 type _TriggerSendLinkToChatPayload = void
 type _UninstallKBFSConfirmPayload = void
+type _UnsubscribePayload = {readonly subscriptionID: string}
 type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
 type _UploadStartedPayload = {readonly path: Types.Path}
 type _UploadWritingSuccessPayload = {readonly path: Types.Path}
@@ -229,10 +245,6 @@ type _WaitForKbfsDaemonPayload = void
 export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDownloadPayload => ({
   payload,
   type: cancelDownload,
-})
-export const createClearRefreshTag = (payload: _ClearRefreshTagPayload): ClearRefreshTagPayload => ({
-  payload,
-  type: clearRefreshTag,
 })
 export const createCloseDestinationPicker = (
   payload: _CloseDestinationPickerPayload
@@ -316,6 +328,10 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload): Folde
   type: folderListLoaded,
 })
 export const createFsError = (payload: _FsErrorPayload): FsErrorPayload => ({payload, type: fsError})
+export const createGetOnlineStatus = (payload: _GetOnlineStatusPayload): GetOnlineStatusPayload => ({
+  payload,
+  type: getOnlineStatus,
+})
 export const createHideSystemFileManagerIntegrationBanner = (
   payload: _HideSystemFileManagerIntegrationBannerPayload
 ): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
@@ -364,10 +380,6 @@ export const createNewFolderRow = (payload: _NewFolderRowPayload): NewFolderRowP
   payload,
   type: newFolderRow,
 })
-export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload): NotifyTlfUpdatePayload => ({
-  payload,
-  type: notifyTlfUpdate,
-})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload): OpenAndUploadPayload => ({
   payload,
   type: openAndUpload,
@@ -399,12 +411,19 @@ export const createPlaceholderAction = (payload: _PlaceholderActionPayload): Pla
   payload,
   type: placeholderAction,
 })
+export const createPollJournalStatus = (payload: _PollJournalStatusPayload): PollJournalStatusPayload => ({
+  payload,
+  type: pollJournalStatus,
+})
 export const createRefreshDriverStatus = (
   payload: _RefreshDriverStatusPayload
 ): RefreshDriverStatusPayload => ({payload, type: refreshDriverStatus})
 export const createRefreshLocalHTTPServerInfo = (
   payload: _RefreshLocalHTTPServerInfoPayload
 ): RefreshLocalHTTPServerInfoPayload => ({payload, type: refreshLocalHTTPServerInfo})
+export const createRefreshMountDirsAfter10s = (
+  payload: _RefreshMountDirsAfter10sPayload
+): RefreshMountDirsAfter10sPayload => ({payload, type: refreshMountDirsAfter10s})
 export const createSaveMedia = (payload: _SaveMediaPayload): SaveMediaPayload => ({payload, type: saveMedia})
 export const createSentAttachmentToChat = (
   payload: _SentAttachmentToChatPayload
@@ -420,6 +439,10 @@ export const createSetDebugLevel = (payload: _SetDebugLevelPayload): SetDebugLev
 export const createSetDestinationPickerParentPath = (
   payload: _SetDestinationPickerParentPathPayload
 ): SetDestinationPickerParentPathPayload => ({payload, type: setDestinationPickerParentPath})
+export const createSetDirectMountDir = (payload: _SetDirectMountDirPayload): SetDirectMountDirPayload => ({
+  payload,
+  type: setDirectMountDir,
+})
 export const createSetDriverStatus = (payload: _SetDriverStatusPayload): SetDriverStatusPayload => ({
   payload,
   type: setDriverStatus,
@@ -446,6 +469,9 @@ export const createSetPathSoftError = (payload: _SetPathSoftErrorPayload): SetPa
   payload,
   type: setPathSoftError,
 })
+export const createSetPreferredMountDirs = (
+  payload: _SetPreferredMountDirsPayload
+): SetPreferredMountDirsPayload => ({payload, type: setPreferredMountDirs})
 export const createSetSendAttachmentToChatConvID = (
   payload: _SetSendAttachmentToChatConvIDPayload
 ): SetSendAttachmentToChatConvIDPayload => ({payload, type: setSendAttachmentToChatConvID})
@@ -504,6 +530,14 @@ export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayl
 export const createStartManualConflictResolution = (
   payload: _StartManualConflictResolutionPayload
 ): StartManualConflictResolutionPayload => ({payload, type: startManualConflictResolution})
+export const createSubscribeNonPath = (payload: _SubscribeNonPathPayload): SubscribeNonPathPayload => ({
+  payload,
+  type: subscribeNonPath,
+})
+export const createSubscribePath = (payload: _SubscribePathPayload): SubscribePathPayload => ({
+  payload,
+  type: subscribePath,
+})
 export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
 ): TlfSyncConfigLoadedPayload => ({payload, type: tlfSyncConfigLoaded})
@@ -513,6 +547,10 @@ export const createTriggerSendLinkToChat = (
 export const createUninstallKBFSConfirm = (
   payload: _UninstallKBFSConfirmPayload
 ): UninstallKBFSConfirmPayload => ({payload, type: uninstallKBFSConfirm})
+export const createUnsubscribe = (payload: _UnsubscribePayload): UnsubscribePayload => ({
+  payload,
+  type: unsubscribe,
+})
 export const createUpload = (payload: _UploadPayload): UploadPayload => ({payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload): UploadStartedPayload => ({
   payload,
@@ -537,10 +575,6 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): Wai
 export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
   readonly type: typeof cancelDownload
-}
-export type ClearRefreshTagPayload = {
-  readonly payload: _ClearRefreshTagPayload
-  readonly type: typeof clearRefreshTag
 }
 export type CloseDestinationPickerPayload = {
   readonly payload: _CloseDestinationPickerPayload
@@ -614,6 +648,10 @@ export type FolderListLoadedPayload = {
   readonly type: typeof folderListLoaded
 }
 export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: typeof fsError}
+export type GetOnlineStatusPayload = {
+  readonly payload: _GetOnlineStatusPayload
+  readonly type: typeof getOnlineStatus
+}
 export type HideSystemFileManagerIntegrationBannerPayload = {
   readonly payload: _HideSystemFileManagerIntegrationBannerPayload
   readonly type: typeof hideSystemFileManagerIntegrationBanner
@@ -661,10 +699,6 @@ export type NewFolderNamePayload = {
   readonly type: typeof newFolderName
 }
 export type NewFolderRowPayload = {readonly payload: _NewFolderRowPayload; readonly type: typeof newFolderRow}
-export type NotifyTlfUpdatePayload = {
-  readonly payload: _NotifyTlfUpdatePayload
-  readonly type: typeof notifyTlfUpdate
-}
 export type OpenAndUploadPayload = {
   readonly payload: _OpenAndUploadPayload
   readonly type: typeof openAndUpload
@@ -701,6 +735,10 @@ export type PlaceholderActionPayload = {
   readonly payload: _PlaceholderActionPayload
   readonly type: typeof placeholderAction
 }
+export type PollJournalStatusPayload = {
+  readonly payload: _PollJournalStatusPayload
+  readonly type: typeof pollJournalStatus
+}
 export type RefreshDriverStatusPayload = {
   readonly payload: _RefreshDriverStatusPayload
   readonly type: typeof refreshDriverStatus
@@ -708,6 +746,10 @@ export type RefreshDriverStatusPayload = {
 export type RefreshLocalHTTPServerInfoPayload = {
   readonly payload: _RefreshLocalHTTPServerInfoPayload
   readonly type: typeof refreshLocalHTTPServerInfo
+}
+export type RefreshMountDirsAfter10sPayload = {
+  readonly payload: _RefreshMountDirsAfter10sPayload
+  readonly type: typeof refreshMountDirsAfter10s
 }
 export type SaveMediaPayload = {readonly payload: _SaveMediaPayload; readonly type: typeof saveMedia}
 export type SentAttachmentToChatPayload = {
@@ -725,6 +767,10 @@ export type SetDebugLevelPayload = {
 export type SetDestinationPickerParentPathPayload = {
   readonly payload: _SetDestinationPickerParentPathPayload
   readonly type: typeof setDestinationPickerParentPath
+}
+export type SetDirectMountDirPayload = {
+  readonly payload: _SetDirectMountDirPayload
+  readonly type: typeof setDirectMountDir
 }
 export type SetDriverStatusPayload = {
   readonly payload: _SetDriverStatusPayload
@@ -757,6 +803,10 @@ export type SetPathItemActionMenuViewPayload = {
 export type SetPathSoftErrorPayload = {
   readonly payload: _SetPathSoftErrorPayload
   readonly type: typeof setPathSoftError
+}
+export type SetPreferredMountDirsPayload = {
+  readonly payload: _SetPreferredMountDirsPayload
+  readonly type: typeof setPreferredMountDirs
 }
 export type SetSendAttachmentToChatConvIDPayload = {
   readonly payload: _SetSendAttachmentToChatConvIDPayload
@@ -820,6 +870,14 @@ export type StartManualConflictResolutionPayload = {
   readonly payload: _StartManualConflictResolutionPayload
   readonly type: typeof startManualConflictResolution
 }
+export type SubscribeNonPathPayload = {
+  readonly payload: _SubscribeNonPathPayload
+  readonly type: typeof subscribeNonPath
+}
+export type SubscribePathPayload = {
+  readonly payload: _SubscribePathPayload
+  readonly type: typeof subscribePath
+}
 export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
   readonly type: typeof tlfSyncConfigLoaded
@@ -832,6 +890,7 @@ export type UninstallKBFSConfirmPayload = {
   readonly payload: _UninstallKBFSConfirmPayload
   readonly type: typeof uninstallKBFSConfirm
 }
+export type UnsubscribePayload = {readonly payload: _UnsubscribePayload; readonly type: typeof unsubscribe}
 export type UploadPayload = {readonly payload: _UploadPayload; readonly type: typeof upload}
 export type UploadStartedPayload = {
   readonly payload: _UploadStartedPayload
@@ -858,7 +917,6 @@ export type WaitForKbfsDaemonPayload = {
 // prettier-ignore
 export type Actions =
   | CancelDownloadPayload
-  | ClearRefreshTagPayload
   | CloseDestinationPickerPayload
   | CommitEditPayload
   | CopyPayload
@@ -883,6 +941,7 @@ export type Actions =
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload
+  | GetOnlineStatusPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | InitSendLinkToChatPayload
@@ -897,7 +956,6 @@ export type Actions =
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
-  | NotifyTlfUpdatePayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
   | OpenLocalPathInSystemFileManagerPayload
@@ -907,13 +965,16 @@ export type Actions =
   | PathItemLoadedPayload
   | PickAndUploadPayload
   | PlaceholderActionPayload
+  | PollJournalStatusPayload
   | RefreshDriverStatusPayload
   | RefreshLocalHTTPServerInfoPayload
+  | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
   | SentAttachmentToChatPayload
   | SentLinkToChatPayload
   | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
+  | SetDirectMountDirPayload
   | SetDriverStatusPayload
   | SetFolderViewFilterPayload
   | SetIncomingShareLocalPathPayload
@@ -922,6 +983,7 @@ export type Actions =
   | SetPathItemActionMenuDownloadKeyPayload
   | SetPathItemActionMenuViewPayload
   | SetPathSoftErrorPayload
+  | SetPreferredMountDirsPayload
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
   | SetSendAttachmentToChatTitlePayload
@@ -939,9 +1001,12 @@ export type Actions =
   | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
+  | SubscribeNonPathPayload
+  | SubscribePathPayload
   | TlfSyncConfigLoadedPayload
   | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload
+  | UnsubscribePayload
   | UploadPayload
   | UploadStartedPayload
   | UploadWritingSuccessPayload

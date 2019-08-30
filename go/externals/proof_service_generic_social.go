@@ -134,11 +134,12 @@ func (c *GenericSocialProofConfig) checkURLWithValues(remoteUsername string) (st
 
 func (c *GenericSocialProofConfig) validateRemoteUsername(remoteUsername string) error {
 	uc := c.UsernameConfig
-	if len(remoteUsername) < uc.Min {
+	switch {
+	case len(remoteUsername) < uc.Min:
 		return fmt.Errorf("username must be at least %d characters, was %d", c.UsernameConfig.Min, len(remoteUsername))
-	} else if len(remoteUsername) > uc.Max {
+	case len(remoteUsername) > uc.Max:
 		return fmt.Errorf("username can be at most %d characters, was %d", c.UsernameConfig.Max, len(remoteUsername))
-	} else if !c.usernameRe.MatchString(strings.ToLower(remoteUsername)) {
+	case !c.usernameRe.MatchString(strings.ToLower(remoteUsername)):
 		return libkb.NewBadUsernameError(remoteUsername)
 	}
 	return nil
@@ -275,7 +276,7 @@ func (t *GenericSocialProofServiceType) GetPrompt() string {
 func (t *GenericSocialProofServiceType) ToServiceJSON(username string) *jsonw.Wrapper {
 	ret := t.BaseToServiceJSON(t, username)
 	if strings.HasPrefix(strings.ToLower(t.DisplayGroup()), "mastodon") {
-		ret.SetKey("form", jsonw.NewString("mastodon"))
+		_ = ret.SetKey("form", jsonw.NewString("mastodon"))
 	}
 	return ret
 }

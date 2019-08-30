@@ -35,7 +35,7 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
 })
 
-const mergePropsKeybaseUser = (stateProps, dispatchProps) => {
+const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
   const onShowProfile = isMobile ? dispatchProps.onOpenUserProfile : dispatchProps.onOpenTracker
   return {
     ...stateProps,

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {isEqual} from 'lodash-es'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -12,7 +13,7 @@ type CalculateAdvancedButtonProps = {
 const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
   const dispatch = Container.useDispatch()
   const onClick = React.useCallback(() => {
-    dispatch(WalletsGen.createCalculateBuildingAdvanced())
+    dispatch(WalletsGen.createCalculateBuildingAdvanced({forSEP7: false}))
   }, [dispatch])
   const isLoading = Container.useAnyWaiting(Constants.calculateBuildingAdvancedWaitingKey)
   const buildingAdvanced = Container.useSelector(state => state.wallets.buildingAdvanced)
@@ -21,9 +22,10 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     buildingAdvanced.recipientAsset === Constants.emptyAssetDescription ||
     buildingAdvanced.senderAsset === Constants.emptyAssetDescription
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
+  const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
   return !isLoading ? (
     props.isIcon ? (
-      builtPaymentAdvanced.noPathFoundError ? (
+      builtPaymentAdvanced.findPathError ? (
         <Kb.Icon type="iconfont-remove" sizeType="Big" color={Styles.globalColors.red} />
       ) : (
         <Kb.WithTooltip
@@ -42,7 +44,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     ) : (
       <Kb.Button
         type="Wallet"
-        label="Calculate"
+        label={hasTrivialPath ? 'Confirm details' : 'Calculate'}
         children={
           <Kb.Icon type="iconfont-calculator" color={Styles.globalColors.white} style={styles.icon} />
         }

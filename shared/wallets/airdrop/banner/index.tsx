@@ -36,7 +36,7 @@ const Banner = (p: Props) => {
           <Kb.Button
             mode="Secondary"
             backgroundColor="purple"
-            label="Later"
+            label="Skip"
             onClick={p.onCancel}
             small={true}
             style={styles.button}
@@ -54,7 +54,7 @@ const Banner = (p: Props) => {
   return (
     <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container} gap="xsmall">
       <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
-        <Kb.Icon type="icon-airdrop-star-32" />
+        <Kb.Icon type="icon-airdrop-logo-32" />
       </Kb.Box2>
       {textAndButtons}
     </Kb.Box2>
@@ -67,13 +67,17 @@ const markdownOverride = {
       color: Styles.globalColors.white,
       fontWeight: '600',
     },
-    isElectron: {fontSize: 12, lineHeight: '16px'},
-    isMobile: {fontSize: 14, lineHeight: 19},
+    isElectron: {fontSize: 13, lineHeight: '17px'},
+    isMobile: {fontSize: 14, lineHeight: 18},
   }),
-  strong: {...Styles.globalStyles.fontExtrabold},
+  strong: Styles.platformStyles({
+    common: Styles.globalStyles.fontExtrabold,
+    isElectron: {fontSize: 13, lineHeight: '17px'},
+    isMobile: {fontSize: 14, lineHeight: 18},
+  }),
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     isElectron: Styles.desktopStyles.windowDraggingClickable,
   }),
@@ -108,6 +112,6 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     flexShrink: 1,
   },
-})
+}))
 
 export default Banner

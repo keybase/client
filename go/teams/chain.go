@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams/hidden"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -81,6 +82,13 @@ func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 	return t.inner.LastSeqno
 }
 
+func (t TeamSigChainState) GetLatestHiddenSeqno() keybase1.Seqno {
+	if t.hidden == nil {
+		return keybase1.Seqno(0)
+	}
+	return t.hidden.Last
+}
+
 func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }
@@ -127,6 +135,10 @@ func (t TeamSigChainState) GetLatestKBFSGeneration(appType keybase1.TeamApplicat
 		return 0, errors.New("no KBFS keys available")
 	}
 	return info.LegacyGeneration, nil
+}
+
+func (t TeamSigChainState) makeHiddenRatchet(mctx libkb.MetaContext) (ret *hidden.Ratchet, err error) {
+	return hidden.MakeRatchet(mctx, t.hidden)
 }
 
 func (t TeamSigChainState) GetUserRole(user keybase1.UserVersion) (keybase1.TeamRole, error) {
@@ -326,19 +338,24 @@ func (t TeamSigChainState) GetAllUVs() (res []keybase1.UserVersion) {
 	}
 	return res
 }
+func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (res keybase1.PerTeamKey, err error) {
+	res, _, err = t.getLatestPerTeamKeyWithMerkleSeqno(mctx)
+	return res, err
+}
 
-func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1.PerTeamKey, error) {
+func (t TeamSigChainState) getLatestPerTeamKeyWithMerkleSeqno(mctx libkb.MetaContext) (res keybase1.PerTeamKey, mr keybase1.MerkleRootV2, err error) {
 	var hk *keybase1.PerTeamKey
 	if t.hidden != nil {
 		hk = t.hidden.MaxReaderPerTeamKey()
 	}
-	res, ok := t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
+	var ok bool
+	res, ok = t.inner.PerTeamKeys[t.inner.MaxPerTeamKeyGeneration]
 
 	if hk == nil && ok {
-		return res, nil
+		return res, t.inner.MerkleRoots[res.Seqno], nil
 	}
 	if !ok && hk != nil {
-		return *hk, nil
+		return *hk, t.hidden.MerkleRoots[hk.Seqno], nil
 	}
 	if !ok && hk == nil {
 		// if this happens it's a programming error
@@ -346,12 +363,12 @@ func (t TeamSigChainState) GetLatestPerTeamKey(mctx libkb.MetaContext) (keybase1
 		if t.hidden != nil {
 			mctx.Debug("PTK not found error debug dump: hidden: %+v", *t.hidden)
 		}
-		return res, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
+		return res, mr, fmt.Errorf("per-team-key not found for latest generation %d", t.inner.MaxPerTeamKeyGeneration)
 	}
 	if hk.Gen > res.Gen {
-		return *hk, nil
+		return *hk, t.hidden.MerkleRoots[hk.Seqno], nil
 	}
-	return res, nil
+	return res, t.inner.MerkleRoots[res.Seqno], nil
 }
 
 func (t *TeamSigChainState) GetLatestPerTeamKeyCTime() keybase1.UnixTime {
@@ -402,20 +419,24 @@ func (t TeamSigChainState) GetSubteamName(id keybase1.TeamID) (*keybase1.TeamNam
 	return nil, fmt.Errorf("subteam not found: %v", id.String())
 }
 
-// Inform the UserLog of a user's role.
-// Mutates the UserLog.
+// Inform the UserLog and Bots of a user's role.
+// Mutates the UserLog and Bots.
 // Must be called with seqno's and events in correct order.
 // Idempotent if called correctly.
 func (t *TeamSigChainState) inform(u keybase1.UserVersion, role keybase1.TeamRole, sigMeta keybase1.SignatureMetadata) {
 	currentRole := t.getUserRole(u)
 	if currentRole == role {
-		// no change in role, now new checkpoint needed
+		// no change in role, no new checkpoint needed
 		return
 	}
 	t.inner.UserLog[u] = append(t.inner.UserLog[u], keybase1.UserLogPoint{
 		Role:    role,
 		SigMeta: sigMeta,
 	})
+	// Clear an entry in Bots if any
+	if !role.IsRestrictedBot() {
+		delete(t.inner.Bots, u)
+	}
 }
 
 func (t *TeamSigChainState) informNewInvite(i keybase1.TeamInvite) {
@@ -630,6 +651,10 @@ func (t *TeamSigChainState) GetMerkleRoots() map[keybase1.Seqno]keybase1.MerkleR
 	return t.inner.MerkleRoots
 }
 
+func (t TeamSigChainState) TeamBotSettings() map[keybase1.UserVersion]keybase1.TeamBotSettings {
+	return t.inner.Bots
+}
+
 // --------------------------------------------------
 
 // AppendChainLink process a chain link.
@@ -794,8 +819,7 @@ type checkInnerLinkResult struct {
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
-	isInflate bool) (
-	res checkInnerLinkResult, err error) {
+	isInflate bool) (res checkInnerLinkResult, err error) {
 
 	if link.inner == nil {
 		return res, NewStubbedError(link)
@@ -916,6 +940,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			enforceGeneric("settings", rules.Settings, team.Settings != nil),
 			enforceGeneric("kbfs", rules.KBFS, team.KBFS != nil),
 			enforceGeneric("box-summary-hash", rules.BoxSummaryHash, team.BoxSummaryHash != nil),
+			enforceGeneric("bot_settings", rules.BotSettings, team.BotSettings != nil),
 			allowInImplicitTeam(rules.AllowInImplicitTeam),
 			allowInflate(rules.AllowInflate),
 			enforceFirstInChain(rules.FirstInChain),
@@ -1039,6 +1064,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
+				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1116,7 +1142,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			//    Though sometimes a new user is not added, due to a conflict.
 			// 2. Accept a reset user. Adds 1 user and removes 1 user.
 			//    Where the new one has the same UID and role as the old and a greater EldestSeqno.
-			// 3. Add/remove a bot user.
+			// 3. Add/remove a bot user. The bot can be a RESTRICTEDBOT or regular BOT member.
 
 			// Here's a case that is not straightforward:
 			// There is an impteam alice,leland%2,bob@twitter.
@@ -1187,7 +1213,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 			// All removals must have come with successor.
 			for _, r := range removals {
-				if !(r.satisfied || prevState.getUserRole(r.uv).IsBot()) {
+				role := prevState.getUserRole(r.uv)
+				if !(r.satisfied || role.IsBotLike()) {
 					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
 				}
 			}
@@ -1290,7 +1317,8 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			return res, err
 		}
 		switch signerRole {
-		case keybase1.TeamRole_BOT,
+		case keybase1.TeamRole_RESTRICTEDBOT,
+			keybase1.TeamRole_BOT,
 			keybase1.TeamRole_READER,
 			keybase1.TeamRole_WRITER,
 			keybase1.TeamRole_ADMIN,
@@ -1425,6 +1453,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
+				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1707,6 +1736,23 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		if err != nil {
 			return res, err
 		}
+	case libkb.LinkTypeTeamBotSettings:
+		if err = enforce(LinkRules{
+			Admin:               TristateOptional,
+			BotSettings:         TristateRequire,
+			AllowInImplicitTeam: true,
+		}); err != nil {
+			return res, err
+		}
+
+		if _, err = checkAdmin("change bots"); err != nil {
+			return res, err
+		}
+
+		moveState()
+		if err = t.parseTeamBotSettings(*team.BotSettings, &res.newState); err != nil {
+			return res, err
+		}
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -1780,7 +1826,7 @@ type sanityCheckInvitesOptions struct {
 }
 
 func assertIsKeybaseInvite(mctx libkb.MetaContext, i SCTeamInvite) bool {
-	typ, err := TeamInviteTypeFromString(mctx, string(i.Type))
+	typ, err := TeamInviteTypeFromString(mctx, i.Type)
 	if err != nil {
 		mctx.Info("bad invite type: %s", err)
 		return false
@@ -1999,6 +2045,12 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 			all = append(all, assignment{m, keybase1.TeamRole_BOT})
 		}
 	}
+	if members.RestrictedBots != nil && len(*members.RestrictedBots) > 0 {
+		res[keybase1.TeamRole_RESTRICTEDBOT] = nil
+		for _, m := range *members.RestrictedBots {
+			all = append(all, assignment{m, keybase1.TeamRole_RESTRICTEDBOT})
+		}
+	}
 	if members.None != nil && len(*members.None) > 0 {
 		res[keybase1.TeamRole_NONE] = nil
 		for _, m := range *members.None {
@@ -2065,9 +2117,12 @@ func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 }
 
 func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
-	// check the per-team-key
-	if perTeamKey.Generation != expectedGeneration {
-		return res, fmt.Errorf("per-team-key generation expected %v but got %v", expectedGeneration, perTeamKey.Generation)
+
+	// check the per-team-key; with some links from hidden chains, it's possible to leave "holes" in the sequence of
+	// PTKs that'll later be filled in by playing the hidden chain; however, we should never be trampling old keys
+	// as we insert visible links. (this check used to be strict inequality (!=), but we've relaxed it to be onesided (<)).
+	if perTeamKey.Generation < expectedGeneration {
+		return res, fmt.Errorf("per-team-key generation must be greater or equal to %v but got %v; we can't go backwards", expectedGeneration, perTeamKey.Generation)
 	}
 
 	// validate signing kid
@@ -2192,7 +2247,7 @@ func (t *teamSigchainPlayer) assertSubteamName(parent *TeamSigChainState, parent
 
 func (t *teamSigchainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.TeamID, error) {
 	// Check the subteam ID
-	subteamID, err := keybase1.TeamIDFromString(string(subteamIDStr))
+	subteamID, err := keybase1.TeamIDFromString(subteamIDStr)
 	if err != nil {
 		return subteamID, fmt.Errorf("invalid subteam id: %v", err)
 	}
@@ -2227,6 +2282,35 @@ func (t *teamSigchainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 		}
 	}
 
+	return nil
+}
+
+func (t *teamSigchainPlayer) parseTeamBotSettings(bots []SCTeamBot, newState *TeamSigChainState) error {
+
+	for _, bot := range bots {
+		// Bots listed here must have the RESTRICTEDBOT role
+		role, err := newState.GetUserRole(bot.Bot.ToUserVersion())
+		if err != nil {
+			return err
+		}
+		if !role.IsRestrictedBot() {
+			return fmt.Errorf("found bot settings for %v. Expected role RESTRICTEDBOT, found %v", bot, role)
+		}
+
+		var convs, triggers []string
+		if bot.Triggers != nil {
+			triggers = *bot.Triggers
+		}
+		if bot.Convs != nil {
+			convs = *bot.Convs
+		}
+		newState.inner.Bots[bot.Bot.ToUserVersion()] = keybase1.TeamBotSettings{
+			Cmds:     bot.Cmds,
+			Mentions: bot.Mentions,
+			Triggers: triggers,
+			Convs:    convs,
+		}
+	}
 	return nil
 }
 
@@ -2274,6 +2358,7 @@ type LinkRules struct {
 	Settings         Tristate
 	KBFS             Tristate
 	BoxSummaryHash   Tristate
+	BotSettings      Tristate
 
 	AllowInImplicitTeam bool // whether this link is allowed in implicit team chains
 	AllowInflate        bool // whether this link is allowed to be filled later

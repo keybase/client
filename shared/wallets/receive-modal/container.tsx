@@ -5,10 +5,10 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Receive from '.'
 
-export type OwnProps = Container.RouteProps< { accountID: Types.AccountID } >
+export type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>
 
 const mapStateToProps = (state, ownProps) => {
-  const accountID = Container.getRouteProps(ownProps, 'accountID')
+  const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
   const account = Constants.getAccount(state, accountID)
   return {
     accountName: account.name,
@@ -21,7 +21,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => ({
   navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
   onRequest: () => {
-    const accountID = Container.getRouteProps(ownProps, 'accountID')
+    const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       WalletsGen.createOpenSendRequestForm({

@@ -140,7 +140,10 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 			// Abort on error if we were force mounting, otherwise continue.
 			if options.ForceMount {
 				// Cleanup when exiting in case the mount got dirty.
-				mi.Done()
+				err = mi.Done()
+				if err != nil {
+					log.CErrorf(ctx, "Couldn't mount: %v", err)
+				}
 				return libfs.MountError(err.Error())
 			}
 			log.CErrorf(ctx, "Running KBFS without a filesystem mount due to: %v", err)

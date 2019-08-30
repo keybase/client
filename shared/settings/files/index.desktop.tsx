@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
-import {InlineDropdown} from '../../common-adapters/dropdown'
 import * as Platform from '../../constants/platform'
 import * as Styles from '../../styles'
 import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-manager-integration-banner/container'
@@ -14,7 +13,7 @@ import {Props} from '.'
 export const allowedNotificationThresholds = [100 * 1024 ** 2, 1024 ** 3, 3 * 1024 ** 3, 10 * 1024 ** 3]
 export const defaultNotificationThreshold = 100 * 1024 ** 2
 
-const EnableSystemFileManagerIntegration = (props: Props) => (
+const EnableSystemFileManagerIntegration = (_: Props) => (
   <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
     <Kb.Text type="Body">Enable Keybase in {Platform.fileUIName}</Kb.Text>
     <Kb.Text type="BodySmall">
@@ -126,7 +125,7 @@ export default (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionNeededBox: {
     marginLeft: Styles.globalMargins.medium,
   },
@@ -166,4 +165,4 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
     width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
   },
-})
+}))

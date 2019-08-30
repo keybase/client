@@ -11,6 +11,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 // TestPGPSavePublicPush runs the PGPSave engine, pushing the
@@ -385,11 +386,11 @@ func TestPGPImportPushSecretWithoutPassword(t *testing.T) {
 
 func numPrivateGPGKeys(g *libkb.GlobalContext) (int, error) {
 	gpg := g.GetGpgClient()
-	if err := gpg.Configure(); err != nil {
+	if err := gpg.Configure(libkb.NewMetaContext(context.Background(), g)); err != nil {
 		return 0, err
 	}
 
-	index, _, err := gpg.Index(true, "")
+	index, _, err := gpg.Index(libkb.NewMetaContext(context.Background(), g), true, "")
 	if err != nil {
 		return 0, err
 	}

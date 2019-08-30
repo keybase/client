@@ -33,6 +33,10 @@
         },
         {
           "type": "boolean",
+          "name": "kbfssubscription"
+        },
+        {
+          "type": "boolean",
           "name": "tracking"
         },
         {
@@ -82,6 +86,10 @@
         {
           "type": "boolean",
           "name": "ephemeral"
+        },
+        {
+          "type": "boolean",
+          "name": "teambot"
         },
         {
           "type": "boolean",

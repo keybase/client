@@ -63,7 +63,7 @@ func (bps *blockPutStateDisk) AddNewBlock(
 		ctx, blockPtr, nil, data.ReadyBlockData{}, syncedCb)
 }
 
-func (bps *blockPutStateDisk) getBlock(
+func (bps *blockPutStateDisk) GetBlock(
 	ctx context.Context, blockPtr data.BlockPointer) (data.Block, error) {
 	blockData, serverHalf, _, err := bps.diskCache.Get(
 		ctx, bps.kmd.TlfID(), blockPtr.ID)

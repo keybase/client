@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
@@ -15,7 +14,7 @@ type Props = {
   onLoadingStateChange: (arg0: boolean) => void
   path: Types.Path
   type: Types.PathType
-  routePath: I.List<string>
+  tooLargeForText: boolean
   url: string
 }
 
@@ -45,7 +44,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
 
   render() {
     if (this.props.type === Types.PathType.Symlink) {
-      return <DefaultView path={this.props.path} routePath={this.props.routePath} />
+      return <DefaultView path={this.props.path} />
     }
 
     if (this.props.type !== Types.PathType.File) {
@@ -80,9 +79,11 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
 
     switch (Constants.viewTypeFromMimeType(this.props.mime)) {
       case Types.FileViewType.Default:
-        return <DefaultView path={this.props.path} routePath={this.props.routePath} />
+        return <DefaultView path={this.props.path} />
       case Types.FileViewType.Text:
-        return (
+        return this.props.tooLargeForText ? (
+          <DefaultView path={this.props.path} />
+        ) : (
           <>
             {reloadBanner}
             <TextView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
@@ -92,11 +93,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
         return (
           <>
             {reloadBanner}
-            <ImageView
-              url={url}
-              routePath={this.props.routePath}
-              onLoadingStateChange={this.props.onLoadingStateChange}
-            />
+            <ImageView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
           </>
         )
       case Types.FileViewType.Av:
@@ -108,7 +105,7 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
         )
       case Types.FileViewType.Pdf:
         // Security risks to links in PDF viewing. See DESKTOP-6888.
-        return <DefaultView path={this.props.path} routePath={this.props.routePath} />
+        return <DefaultView path={this.props.path} />
       default:
         return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
     }

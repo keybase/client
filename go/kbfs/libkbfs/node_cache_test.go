@@ -290,7 +290,7 @@ func checkNodeCachePath(t *testing.T, id tlf.ID, branch data.BranchName,
 	if path.Tlf != id {
 		t.Errorf("Wrong top dir: %v vs %v", path.Tlf, id)
 	}
-	if path.Branch != data.BranchName(branch) {
+	if path.Branch != branch {
 		t.Errorf("Wrong branch: %s vs %s", path.Branch, branch)
 	}
 }
@@ -479,7 +479,7 @@ func TestNodeCacheGCReal(t *testing.T) {
 	runtime.SetFinalizer(childNode1, nil)
 	runtime.SetFinalizer(childNode1, testNodeStandardFinalizer)
 
-	childNode1 = nil
+	childNode1 = nil // nolint
 	runtime.GC()
 	<-finalizerChan
 

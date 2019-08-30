@@ -11,30 +11,32 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  airdrop: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
+  darkMode: false,
   dbCleanEnabled: false,
+  fastAccountSwitch: false,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
+  lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: false,
   stellarExternalPartners: true,
+  wonderland: true,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
-  airdrop: true,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
+  fastAccountSwitch: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
-  sbsContacts: true,
 }
 
 // load overrides

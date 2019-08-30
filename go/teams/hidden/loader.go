@@ -2,6 +2,7 @@ package hidden
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
@@ -9,7 +10,7 @@ import (
 
 // LoaderPackage contains a snapshot of the hidden team chain, used during the process of loading a team.
 // It additionally can have new chain links loaded from the server, since it might need to be queried
-// in the process of loading the team as if the new links were already commited to the data store.
+// in the process of loading the team as if the new links were already committed to the data store.
 type LoaderPackage struct {
 	id             keybase1.TeamID
 	encKID         keybase1.KID
@@ -20,17 +21,19 @@ type LoaderPackage struct {
 	rbks           *RatchetBlindingKeySet
 	allNewRatchets map[keybase1.Seqno]keybase1.LinkTripleAndTime
 	newRatchetSet  keybase1.HiddenTeamChainRatchetSet
+	role           keybase1.TeamRole
 }
 
 // NewLoaderPackage creates a loader package that can work in the FTL of slow team loading settings. As a preliminary,
 // it loads any stored hidden team data for the team from local storage. The getter function is used to get a recent PTK
 // for this team, which is needed to poll the Merkle Tree endpoint when asking "does a hidden team chain exist for this team?"
-func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID, getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, error)) (ret *LoaderPackage, err error) {
-	encKID, gen, err := getter()
+func NewLoaderPackage(mctx libkb.MetaContext, id keybase1.TeamID,
+	getter func() (keybase1.KID, keybase1.PerTeamKeyGeneration, keybase1.TeamRole, error)) (ret *LoaderPackage, err error) {
+	encKID, gen, role, err := getter()
 	if err != nil {
 		return nil, err
 	}
-	ret = newLoaderPackage(id, encKID, gen)
+	ret = newLoaderPackage(id, encKID, gen, role)
 	err = ret.Load(mctx)
 	if err != nil {
 		return nil, err
@@ -52,8 +55,8 @@ func NewLoaderPackageForPrecheck(mctx libkb.MetaContext, id keybase1.TeamID, dat
 // encryption KID from the main chain for authentication purposes, that we can prove to the server
 // that we've previously seen data for this team (and therefor we're allowed to know whether or not
 // the team has a hidden chain (but nothing more)).
-func newLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyGeneration) *LoaderPackage {
-	return &LoaderPackage{id: id, encKID: e, encKIDGen: g}
+func newLoaderPackage(id keybase1.TeamID, e keybase1.KID, g keybase1.PerTeamKeyGeneration, role keybase1.TeamRole) *LoaderPackage {
+	return &LoaderPackage{id: id, encKID: e, encKIDGen: g, role: role}
 }
 
 // Load in data from storage for this chain. We're going to make a deep copy so that
@@ -181,10 +184,39 @@ func (l *LoaderPackage) checkLoadedRatchetSet(mctx libkb.MetaContext, update *ke
 	return nil
 }
 
+// CheckPTKsForDuplicates checks that the new per-team-keys don't duplicate keys we've gotten along the
+// visible chain, via the given getter.
+func (l *LoaderPackage) CheckPTKsForDuplicates(mctx libkb.MetaContext, getter func(g keybase1.PerTeamKeyGeneration) bool) error {
+	if l.newData == nil {
+		return nil
+	}
+	for k := range l.newData.ReaderPerTeamKeys {
+		if getter(k) {
+			return newRepeatPTKGenerationError(k, "clashes a previously-loaded visible rotation")
+		}
+	}
+	return nil
+}
+
+func (l *LoaderPackage) CheckNoPTK(mctx libkb.MetaContext, g keybase1.PerTeamKeyGeneration) (err error) {
+	var found bool
+	if l.newData != nil {
+		_, found = l.newData.ReaderPerTeamKeys[g]
+	}
+	if l.data != nil && !found {
+		_, found = l.data.ReaderPerTeamKeys[g]
+	}
+	if found {
+		return newRepeatPTKGenerationError(g, "clashes a previously-loaded hidden rotation")
+	}
+	return nil
+}
+
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
-	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s)", l.id), func() error { return err })()
+	defer mctx.Trace(fmt.Sprintf("LoaderPackage#Update(%s, %d)", l.id, len(update)), func() error { return err })()
+	mctx.Debug("LoaderPackage#Update pre: %s", l.data.LinkAndKeySummary())
 
 	var data *keybase1.HiddenTeamChain
 	data, err = l.updatePrecheck(mctx, update)
@@ -195,10 +227,12 @@ func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON)
 	if err != nil {
 		return err
 	}
+
+	mctx.Debug("LoaderPackage#Update post: %s", l.data.LinkAndKeySummary())
 	return nil
 }
 
-// checkNewLinksAgainstNewRatchtets checks a link sent down wih the hidden update against the ratchets sent down
+// checkNewLinksAgainstNewRatchtets checks a link sent down with the hidden update against the ratchets sent down
 // with the visible team update. It makes sure they match up.
 func (l *LoaderPackage) checkNewLinkAgainstNewRatchets(mctx libkb.MetaContext, q keybase1.Seqno, h keybase1.LinkID) (err error) {
 	if l.allNewRatchets == nil {
@@ -350,7 +384,7 @@ func checkUpdateAgainstSeed(mctx libkb.MetaContext, getSeed func(keybase1.PerTea
 		return err
 	}
 	if readerKey.Check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
-		return NewLoaderError("can only handle seed check version 1; got %s", readerKey.Check.Version)
+		return NewLoaderError("can only handle seed check version 1; got %d", readerKey.Check.Version)
 	}
 	if check.Version != keybase1.PerTeamSeedCheckVersion_V1 {
 		return NewLoaderError("can only handle seed check version 1; got computed check %s", check.Version)
@@ -375,7 +409,9 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeedsWithMap(mctx libkb.MetaContext, 
 // enforces equality and will error out if not. Through this check, a client can convince itself that the
 // recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck) (err error) {
-	if l.newData == nil {
+	defer mctx.Trace("LoaderPackage#CheckUpdatesAgainstSeeds", func() error { return err })()
+	// BOTs are excluded since they do not have any seed access
+	if l.newData == nil || l.role.IsRestrictedBot() {
 		return nil
 	}
 	for _, update := range l.newData.Inner {
@@ -397,11 +433,10 @@ func (l *LoaderPackage) LastSeqno() keybase1.Seqno {
 
 // MaxRatchet returns the greatest sequence number across all ratchets in the loaded data and also
 // in the data from the recent update from the server.
-func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
-	if l.data == nil {
-		return keybase1.Seqno(0)
+func (l *LoaderPackage) MaxRatchet() (ret keybase1.Seqno) {
+	if l.data != nil {
+		ret = l.data.RatchetSet.Max()
 	}
-	ret := l.data.RatchetSet.Max()
 	tmp := l.newRatchetSet.Max()
 	if tmp > ret {
 		ret = tmp
@@ -410,9 +445,10 @@ func (l *LoaderPackage) MaxRatchet() keybase1.Seqno {
 }
 
 // HasReaderPerTeamKeyAtGeneration returns true if the LoaderPackage has a sigchain entry for
-// the PTK at the given generation. Whether in the preloaded data or the udpate.
+// the PTK at the given generation. Whether in the preloaded data or the update.
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
-	if l.data == nil {
+	// BOTs are excluded since they do not have any PTK access
+	if l.data == nil || l.role.IsRestrictedBot() {
 		return false
 	}
 	_, ok := l.data.ReaderPerTeamKeys[gen]
@@ -422,8 +458,10 @@ func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyG
 // Commit the update from the server to main HiddenTeamChain storage.
 func (l *LoaderPackage) Commit(mctx libkb.MetaContext) error {
 	if l.newData == nil {
+		mctx.Debug("LoaderPackage#Commit: nil newData")
 		return nil
 	}
+	mctx.Debug("LoaderPackage#Commit: %s", l.newData.Summary())
 	err := mctx.G().GetHiddenTeamChainManager().Advance(mctx, *l.newData, l.expectedPrev)
 	return err
 }
@@ -436,7 +474,8 @@ func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
 // MaxReaderTeamKeyGeneration returns the highest Reader PTK generation from the preloaded and hidden
 // data.
 func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
-	if l.data == nil {
+	// BOTs are excluded since they do not have any PTK access
+	if l.data == nil || l.role.IsRestrictedBot() {
 		return keybase1.PerTeamKeyGeneration(0)
 	}
 	return l.data.MaxReaderPerTeamKeyGeneration()
@@ -495,5 +534,66 @@ func (l *LoaderPackage) AddRatchet(mctx libkb.MetaContext, r SCTeamRatchet, ctim
 		l.allNewRatchets[q] = ratchet
 	}
 	l.newRatchetSet.Add(typ, ratchet)
+	return nil
+}
+
+func (l *LoaderPackage) checkParentPointer(mctx libkb.MetaContext, getter func(q keybase1.Seqno) (keybase1.LinkID, bool), parentPointer keybase1.LinkTriple, fullLoad bool) (err error) {
+	q := parentPointer.Seqno
+	link, ok := getter(q)
+	switch {
+	case !ok && fullLoad:
+		return newParentPointerError(q, "link wasn't found in parent chain")
+	case !ok && !fullLoad:
+		return nil
+	}
+	if !link.Eq(parentPointer.LinkID) {
+		return newParentPointerError(q, "link ID mismatch")
+	}
+	if parentPointer.SeqType != keybase1.SeqType_SEMIPRIVATE {
+		return newParentPointerError(q, "wrong chain type")
+	}
+	return nil
+}
+
+// CheckParentPointersOnFullLoad looks at all of the new hidden links we got down and makes sure that they
+// the point to loaded links in the visible chain. Because it's a full load, the pointers must land. They
+// can dangle on FTL loads, for instance.
+func (l *LoaderPackage) CheckParentPointersOnFullLoad(mctx libkb.MetaContext, team *keybase1.TeamData) (err error) {
+	if l.newData == nil {
+		return nil
+	}
+	getter := func(q keybase1.Seqno) (ret keybase1.LinkID, found bool) {
+		if team == nil {
+			return ret, false
+		}
+		ret, found = team.Chain.LinkIDs[q]
+		return ret, found
+	}
+	for _, v := range l.newData.Inner {
+		if err := l.checkParentPointer(mctx, getter, v.ParentChain, true /* full load */); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// CheckParentPointersOnFastLoad looks at all of the new hidden links we got down and makes sure that they
+// the point to loaded links in the visible chain. Because it's a fast load, the pointers can dangle.
+func (l *LoaderPackage) CheckParentPointersOnFastLoad(mctx libkb.MetaContext, team *keybase1.FastTeamData) (err error) {
+	if l.newData == nil {
+		return nil
+	}
+	getter := func(q keybase1.Seqno) (ret keybase1.LinkID, found bool) {
+		if team == nil {
+			return ret, false
+		}
+		ret, found = team.Chain.LinkIDs[q]
+		return ret, found
+	}
+	for _, v := range l.newData.Inner {
+		if err := l.checkParentPointer(mctx, getter, v.ParentChain, false /* full load */); err != nil {
+			return err
+		}
+	}
 	return nil
 }

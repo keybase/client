@@ -73,19 +73,6 @@ const youSendProps = {
   txVerb: 'sent',
 } as Props
 
-const youRequestBTCProps = {
-  ...commonProps,
-  amountNominal: '3 BTC',
-  balanceChange: '',
-  bottomLine: 'stronghold.com',
-  cancelButtonLabel: 'Cancel request',
-  icon: receiveIcon,
-  onCancel,
-  sender: 'cecileb',
-  topLine: 'you requested',
-  txVerb: 'requested',
-} as Props
-
 const youReceiveBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
@@ -103,6 +90,19 @@ const youSendBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
   balanceChange: '-1 BTC',
+  balanceChangeColor: S.globalColors.black,
+  bottomLine: 'stronghold.com',
+  icon: sendIcon,
+  onSeeDetails,
+  sender: 'cecileb',
+  topLine: 'you sent',
+  txVerb: 'sent',
+} as Props
+
+const youSendBTCFromXLMProps = {
+  ...commonProps,
+  amountNominal: '1 BTC',
+  balanceChange: '-10.2178468 XLM',
   balanceChangeColor: S.globalColors.black,
   bottomLine: 'stronghold.com',
   icon: sendIcon,
@@ -158,9 +158,9 @@ const load = () => {
     .add('You receive Lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
     .add('You request Lumens', () => <PaymentPopupMoved {...youRequestProps} />)
     .add('You send Lumens', () => <PaymentPopupMoved {...youSendProps} />)
-    .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+    .add('You send BTC from XLM', () => <PaymentPopupMoved {...youSendBTCFromXLMProps} />)
     .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
     .add('Pending', () => <PaymentPopupMoved {...pendingPaymentProps} />)
     .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
@@ -176,13 +176,13 @@ class PaymentPopupMoved extends React.Component<Props, State> {
   state = {ref: null}
   render() {
     return (
-      <React.Fragment>
+      <>
         <Kb.Box
           style={{left: 20, position: 'absolute', top: 20}}
           ref={ref => this.setState(s => (s.ref ? null : {ref}))}
         />
         <PaymentPopup {...this.props as Props} attachTo={() => this.state.ref} />
-      </React.Fragment>
+      </>
     )
   }
 }

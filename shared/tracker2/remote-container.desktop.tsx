@@ -4,29 +4,11 @@ import * as Constants from '../constants/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as I from 'immutable'
-import * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import {remoteConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 
 type OwnProps = {}
-
-type State = {
-  assertions: I.Map<string, Types.Assertion> | null
-  bio: string | null
-  followThem: boolean | null
-  followersCount: number | null
-  followingCount: number | null
-  followsYou: boolean | null
-  guiID: string
-  isYou: boolean
-  location: string | null
-  reason: string
-  state: Types.DetailsState
-  teamShowcase: I.List<Types.TeamShowcase> | null
-  username: string
-}
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
@@ -56,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   assertionKeys: stateProps.assertions ? stateProps.assertions.keySeq().toArray() : null,
   bio: stateProps.bio,
   followThem: stateProps.followThem,

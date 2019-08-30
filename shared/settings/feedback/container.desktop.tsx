@@ -1,30 +1,29 @@
 import Feedback from './index'
-import {namedConnect, RouteProps, getRouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import {anyWaiting} from '../../constants/waiting'
 import * as Constants from '../../constants/settings'
 
-type OwnProps = RouteProps<{feedback: string}>
+type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
-const mapStateToProps = state => ({
-  loggedOut: !state.config.loggedIn,
-  sendError: state.settings.feedback.error,
-  sending: anyWaiting(state, Constants.sendFeedbackWaitingKey),
-})
-
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSendFeedback: (feedback, sendLogs, sendMaxBytes) =>
-    dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
-})
-
-const mergeProps = (s, d, o: OwnProps) => ({
-  ...s,
-  ...d,
-  feedback: getRouteProps(o, 'feedback') || '',
-  onFeedbackDone: () => null,
-  showInternalSuccessBanner: true,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Feedback')(Feedback)
+export default Container.namedConnect(
+  state => ({
+    loggedOut: !state.config.loggedIn,
+    sendError: state.settings.feedback.error,
+    sending: anyWaiting(state, Constants.sendFeedbackWaitingKey),
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onSendFeedback: (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) =>
+      dispatch(SettingsGen.createSendFeedback({feedback, sendLogs, sendMaxBytes})),
+  }),
+  (s, d, o: OwnProps) => ({
+    ...s,
+    ...d,
+    feedback: Container.getRouteProps(o, 'feedback', ''),
+    onFeedbackDone: () => null,
+    showInternalSuccessBanner: true,
+  }),
+  'Feedback'
+)(Feedback)

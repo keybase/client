@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
-import * as TeamsTypes from '../../constants/types/teams'
+import * as TeamsTypes from './teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import * as EngineGen from '../../actions/engine-gen-gen'
@@ -536,7 +536,9 @@ export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
 
 export type _SystemFileManagerIntegration = {
+  directMountDir: string
   driverStatus: DriverStatus
+  preferredMountDirs: I.List<string>
   // This only controls if system-file-manager-integration-banner is shown in
   // Folders view. The banner always shows in Settings/Files screen.
   showingBanner: boolean
@@ -549,9 +551,14 @@ export enum KbfsDaemonRpcStatus {
   Waiting = 'waiting',
   WaitTimeout = 'wait-timeout',
 }
+export enum KbfsDaemonOnlineStatus {
+  Unknown = 'unknown',
+  Offline = 'offline',
+  Online = 'online',
+}
 export type _KbfsDaemonStatus = {
   rpcStatus: KbfsDaemonRpcStatus
-  online: boolean
+  onlineStatus: KbfsDaemonOnlineStatus
 }
 export type KbfsDaemonStatus = I.RecordOf<_KbfsDaemonStatus>
 
@@ -833,19 +840,6 @@ export type ResetMetadata = {
   name: string
   visibility: Visibility
   resetParticipants: Array<string>
-}
-
-// RefreshTag is used by components in FsGen.folderListLoad and
-// FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing
-// such data if some FS activity notification indicates it may have changed.
-// Note that this is not a subscrition based model where a component needs to
-// unsubscribe when it's not interested anymore. Instead, we use a simple
-// heuristic where Saga only keeps track of latest call from each component and
-// refresh only the most recently reuested paths for each component.
-export enum RefreshTag {
-  Main = 'main',
-  PathItemActionPopup = 'path-item-action-popup',
-  DestinationPicker = 'destination-picker',
 }
 
 export enum PathItemBadgeType {

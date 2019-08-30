@@ -47,7 +47,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+const mergeProps = (stateProps, _, ownProps: OwnProps): Props => {
   const result = stateProps.result.toObject()
   const parsedIds = stateProps.selectedIds.map(id => parseUserId(id))
   // Check whether the user shown in this row has been chosen in the input box.

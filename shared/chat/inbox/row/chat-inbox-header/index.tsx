@@ -6,6 +6,7 @@ type Props = {
   isSearching: boolean
   onBack: () => void
   onNewChat: () => void
+  showFilter: boolean
   showNewChat: boolean
   onSelectUp: () => void
   onSelectDown: () => void
@@ -21,7 +22,7 @@ class ChatInboxHeader extends React.Component<Props, State> {
   state = {
     query: '',
   }
-  _setQuery = query => {
+  _setQuery = (query: string) => {
     this.setState({query})
     this.props.onQueryChanged(query)
   }
@@ -31,17 +32,22 @@ class ChatInboxHeader extends React.Component<Props, State> {
     }
   }
   render() {
-    return this.props.showNewChat ? (
-      <StartNewChat onBack={this.props.onBack} onNewChat={this.props.onNewChat} />
-    ) : (
-      <ChatFilterRow
-        onNewChat={this.props.onNewChat}
-        onSelectUp={this.props.onSelectUp}
-        onSelectDown={this.props.onSelectDown}
-        onEnsureSelection={this.props.onEnsureSelection}
-        onQueryChanged={this._setQuery}
-        query={this.state.query}
-      />
+    return (
+      <>
+        {!!this.props.showNewChat && (
+          <StartNewChat onBack={this.props.onBack} onNewChat={this.props.onNewChat} />
+        )}
+        {!!this.props.showFilter && (
+          <ChatFilterRow
+            onNewChat={this.props.onNewChat}
+            onSelectUp={this.props.onSelectUp}
+            onSelectDown={this.props.onSelectDown}
+            onEnsureSelection={this.props.onEnsureSelection}
+            onQueryChanged={this._setQuery}
+            query={this.state.query}
+          />
+        )}
+      </>
     )
   }
 }

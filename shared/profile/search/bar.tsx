@@ -64,7 +64,7 @@ class ProfileSearch extends React.PureComponent<Props, State> {
 }
 
 const searchContainerHeight = 32
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   colorWhite: {color: Styles.globalColors.white_75},
   container: {width: '100%'},
   overlay: Styles.platformStyles({
@@ -105,6 +105,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_50,
     maxWidth: 240,
   },
-})
+}))
 
 export default ProfileSearch

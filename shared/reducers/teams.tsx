@@ -129,12 +129,12 @@ const rootReducer = (
     case TeamsGen.addParticipant:
       return state.updateIn(
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-        memberStatus => RPCChatTypes.ConversationMemberStatus.active
+        () => RPCChatTypes.ConversationMemberStatus.active
       )
     case TeamsGen.removeParticipant:
       return state.updateIn(
         ['teamNameToChannelInfos', action.payload.teamname, action.payload.conversationIDKey, 'memberStatus'],
-        memberStatus => RPCChatTypes.ConversationMemberStatus.left
+        () => RPCChatTypes.ConversationMemberStatus.left
       )
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
@@ -145,7 +145,10 @@ const rootReducer = (
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
     case TeamBuildingGen.search:
+    case TeamBuildingGen.searchEmailAddress:
+    case TeamBuildingGen.searchEmailAddressResultLoaded:
     case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.labelsSeen:
     case TeamBuildingGen.changeSendNotification:
       return state.update('teamBuilding', teamBuilding => teamBuildingReducer('teams', teamBuilding, action))
     // Saga-only actions

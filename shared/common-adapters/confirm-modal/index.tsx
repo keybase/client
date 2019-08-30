@@ -1,11 +1,9 @@
 import * as React from 'react'
 import WaitingButton from '../waiting-button'
-import {Box, Box2} from '../box'
-import HeaderOrPopup from '../header-or-popup'
+import {Box2} from '../box'
 import ButtonBar from '../button-bar'
 import {Banner, BannerParagraph} from '../banner'
 import Icon from '../icon'
-import ScrollView from '../scroll-view'
 import Text from '../text'
 import Modal from '../modal'
 import * as Styles from '../../styles'
@@ -22,7 +20,7 @@ export type Props = {
   iconColor?: Styles.Color
   onCancel?: () => void
   onConfirm?: () => void
-  prompt: string
+  prompt: React.ReactNode
   waitingKey?: string
 }
 
@@ -102,9 +100,13 @@ class ConfirmModal extends React.PureComponent<Props> {
               {this.props.header}
             </Box2>
           )}
-          <Text center={true} style={styles.text} type="HeaderBig">
-            {this.props.prompt}
-          </Text>
+          {typeof this.props.prompt === 'string' ? (
+            <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
+              {this.props.prompt}
+            </Text>
+          ) : (
+            this.props.prompt
+          )}
           <Text center={true} style={styles.text} type="Body">
             {this.props.description}
           </Text>
@@ -115,7 +117,7 @@ class ConfirmModal extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     flex: 1,
   },
@@ -136,6 +138,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,
   },
-})
+}))
 
 export default ConfirmModal

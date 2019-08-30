@@ -4,7 +4,6 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
 import {TeamMemberRow} from '.'
-import {amIFollowing} from '../../../../constants/selectors'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {connect, isMobile} from '../../../../util/container'
 import {anyWaiting} from '../../../../constants/waiting'
@@ -21,7 +20,7 @@ const mapStateToProps = (state, {teamname, username}: OwnProps) => {
   const info = map.get(username, blankInfo)
 
   return {
-    following: amIFollowing(state, username),
+    following: state.config.following.has(username),
     fullName: state.config.username === username ? 'You' : info.fullName,
     roleType: info.type,
     status: info.status,

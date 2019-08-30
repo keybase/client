@@ -7,15 +7,17 @@ import Asset from './asset'
 import Trustline from '.'
 
 const commonAssetProps = {
+  depositButtonText: 'Deposit',
   infoUrlText: 'View details',
-
   onAccept: Sb.action('onAccept'),
+  onDeposit: Sb.action('onDeposit'),
   onOpenInfoUrl: Sb.action('onOpenInfoUrl'),
   onRemove: Sb.action('onRemove'),
-
-  waitingAdd: false,
-  waitingDelete: false,
+  onWithdraw: Sb.action('onWithdraw'),
+  waitingKeyAdd: false,
+  waitingKeyDelete: false,
   waitingRefresh: false,
+  withdrawButtonText: 'Withdraw',
 }
 
 const AssetWrapper = props => {
@@ -65,6 +67,7 @@ const commonTrustlineProps = {
   balanceAvailableToSend: '2',
   canAddTrustline: true,
   clearTrustlineModal: Sb.action('clearTrustlineModal'),
+  error: '',
   loaded: true,
   onDone: Sb.action('onDone'),
   onSearchChange: Sb.action('onSearchChange'),

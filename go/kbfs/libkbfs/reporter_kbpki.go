@@ -26,14 +26,12 @@ const (
 	// error param keys
 	errorParamTlf                 = "tlf"
 	errorParamMode                = "mode"
-	errorParamFeature             = "feature"
 	errorParamUsername            = "username"
 	errorParamRekeySelf           = "rekeyself"
 	errorParamUsageBytes          = "usageBytes"
 	errorParamLimitBytes          = "limitBytes"
 	errorParamUsageFiles          = "usageFiles"
 	errorParamLimitFiles          = "limitFiles"
-	errorParamRenameOldFilename   = "oldFilename"
 	errorParamFoldersCreated      = "foldersCreated"
 	errorParamFolderLimit         = "folderLimit"
 	errorParamApplicationExecPath = "applicationExecPath"
@@ -41,39 +39,10 @@ const (
 	// error operation modes
 	errorModeRead  = "read"
 	errorModeWrite = "write"
-
-	// features that aren't ready yet
-	errorFeatureFileLimit = "2gbFileLimit"
-	errorFeatureDirLimit  = "512kbDirLimit"
 )
 
 const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
 const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
-
-// noErrorNames are lookup names that should not result in an error
-// notification.  These should all be reserved or illegal Keybase
-// usernames that will never be associated with a real account.
-var noErrorNames = map[string]bool{
-	"objects":        true, // git shells
-	"gemfile":        true, // rvm
-	"Gemfile":        true, // rvm
-	"devfs":          true, // lsof?  KBFS-823
-	"_mtn":           true, // emacs on Linux
-	"_MTN":           true, // emacs on Linux
-	"docker-machine": true, // docker shell stuff
-	"HEAD":           true, // git shell
-	"Keybase.app":    true, // some OSX mount thing
-	"DCIM":           true, // looking for digital pic folder
-	"Thumbs.db":      true, // Windows mounts
-	"config":         true, // Windows, possibly 7-Zip?
-	"m4root":         true, // OS X, iMovie?
-	"BDMV":           true, // OS X, iMovie?
-	"node_modules":   true, // Some npm shell configuration
-	"folder":         true, // Dolphin?  keybase/client#7304
-	"avchd":          true, // Sony PlayMemories Home, keybase/client#6801
-	"avchd_bk":       true, // Sony PlayMemories Home, keybase/client#6801
-	"sony":           true, // Sony PlayMemories Home, keybase/client#6801
-}
 
 // ReporterKBPKI implements the Notify function of the Reporter
 // interface in addition to embedding ReporterSimple for error
@@ -467,57 +436,10 @@ func rekeyNotification(ctx context.Context, config Config, handle *tlfhandle.Han
 
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       code,
 		NotificationType: keybase1.FSNotificationType_REKEYING,
 	}
-}
-
-func baseFileEditNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseNotification(file, true)
-	n.WriterUid = writer
-	n.LocalTime = keybase1.ToTime(localTime)
-	return n
-}
-
-// fileCreateNotification creates FSNotifications from paths for file
-// create events.
-func fileCreateNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
-	return n
-}
-
-// fileModifyNotification creates FSNotifications from paths for file
-// modification events.
-func fileModifyNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
-	return n
-}
-
-// fileDeleteNotification creates FSNotifications from paths for file
-// delete events.
-func fileDeleteNotification(file data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(file, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
-	return n
-}
-
-// fileRenameNotification creates FSNotifications from paths for file
-// rename events.
-func fileRenameNotification(oldFile data.Path, newFile data.Path, writer keybase1.UID,
-	localTime time.Time) *keybase1.FSNotification {
-	n := baseFileEditNotification(newFile, writer, localTime)
-	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
-	n.Params = map[string]string{
-		errorParamRenameOldFilename: oldFile.CanonicalPathPlaintext(),
-	}
-	return n
 }
 
 // connectionNotification creates FSNotifications based on whether
@@ -589,7 +511,7 @@ func mdReadSuccessNotification(handle *tlfhandle.Handle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_MD_READ_SUCCESS,
 		Params:           params,
@@ -603,7 +525,7 @@ func syncConfigChangeNotification(handle *tlfhandle.Handle,
 	}
 	return &keybase1.FSNotification{
 		FolderType:       handle.Type().FolderType(),
-		Filename:         string(handle.GetCanonicalPath()),
+		Filename:         handle.GetCanonicalPath(),
 		StatusCode:       keybase1.FSStatusCode_START,
 		NotificationType: keybase1.FSNotificationType_SYNC_CONFIG_CHANGED,
 		Params:           params,

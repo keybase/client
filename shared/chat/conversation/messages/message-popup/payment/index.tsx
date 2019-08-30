@@ -116,7 +116,7 @@ const Header = (props: HeaderProps) =>
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
           <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
-          <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
+          <Kb.Avatar size={16} username={props.sender} onClick="profile" />
           <Kb.ConnectedUsernames
             onUsernameClicked="profile"
             colorFollowing={true}
@@ -126,7 +126,9 @@ const Header = (props: HeaderProps) =>
             type="BodySmallSemibold"
           />
         </Kb.Box2>
-        <Kb.Text type="BodySmall">using device {props.senderDeviceName}</Kb.Text>
+        <Kb.Text type="BodySmall" center={true}>
+          using device {props.senderDeviceName}
+        </Kb.Text>
         <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
       {!!props.status && (
@@ -189,10 +191,10 @@ const PaymentPopup = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <React.Fragment>
+      <>
         <Header {...headerProps} />
         {!!items.length && <Kb.Divider />}
-      </React.Fragment>
+      </>
     ),
   }
   return (

@@ -26,7 +26,7 @@ export type OwnProps = {
 export default namedConnect(
   (state, ownProps: OwnProps) => {
     const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-    if (!message || message.type === 'placeholder' || message.type === 'deleted') {
+    if (!message || !Constants.isDecoratedMessage(message)) {
       // nothing to see here
       return {_reactions: null}
     }

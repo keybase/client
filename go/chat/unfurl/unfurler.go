@@ -158,6 +158,8 @@ func (u *Unfurler) extractURLs(ctx context.Context, uid gregor1.UID, convID chat
 			return nil
 		}
 		return hits
+	default:
+		// Nothing to do for other message types.
 	}
 	return nil
 }
@@ -367,7 +369,7 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 		return
 	}
 	ctx = libkb.CopyTagsToBackground(ctx)
-	go func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
+	f := func(ctx context.Context) (unfurl *chat1.Unfurl, err error) {
 		defer func() { u.testingSendUnfurl(unfurl) }()
 		defer u.doneUnfurling(outboxID)
 		defer func() {
@@ -407,7 +409,8 @@ func (u *Unfurler) unfurl(ctx context.Context, outboxID chat1.OutboxID) {
 			return nil, err
 		}
 		return unfurl, nil
-	}(ctx)
+	}
+	go func() { _, _ = f(ctx) }()
 }
 
 func (u *Unfurler) GetSettings(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {

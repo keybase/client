@@ -24,7 +24,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
     dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, _) => {
   const unfurls = stateProps._unfurls
     ? stateProps._unfurls
         .toList()

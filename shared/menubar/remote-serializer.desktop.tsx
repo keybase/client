@@ -7,18 +7,15 @@ import GetRowsFromTlfUpdate from '../fs/remote-container'
 
 export const serialize: any = {
   ...Avatar.serialize,
-  badgeKeys: v => v.keySeq().toArray(),
+  badgeKeys: v => [...v.keys()],
   badgeMap: (v, o) =>
-    v
-      .keySeq()
-      .toArray()
-      .reduce((map, k) => {
-        if (!o || v.get(k) !== o.get(k)) {
-          map[k] = v.get(k)
-        }
-        return map
-      }, {}),
-  clearCacheTrigger: v => undefined,
+    [...v.keys()].reduce((map, k) => {
+      if (!o || v.get(k) !== o.get(k)) {
+        map[k] = v.get(k)
+      }
+      return map
+    }, {}),
+  clearCacheTrigger: () => undefined,
   conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
   conversationMap: (v, o) =>
     v.reduce((map, toSend) => {

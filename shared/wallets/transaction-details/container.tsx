@@ -15,8 +15,8 @@ type OwnProps = Container.RouteProps<{accountID: Types.AccountID; paymentID: Typ
 
 const mapStateToProps = (state, ownProps) => {
   const you = state.config.username || ''
-  const accountID = Container.getRouteProps(ownProps, 'accountID')
-  const paymentID = Container.getRouteProps(ownProps, 'paymentID')
+  const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
+  const paymentID = Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID)
   const _transaction = Constants.getPayment(state, accountID, paymentID)
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
   // Transaction can briefly be empty when status changes
@@ -44,7 +44,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onCancelPayment: () =>
     dispatch(
       WalletsGen.createCancelPayment({
-        paymentID: Container.getRouteProps(ownProps, 'paymentID'),
+        paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
         showAccount: true,
       })
     ),
@@ -53,14 +53,14 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onLoadPaymentDetail: () =>
     dispatch(
       WalletsGen.createLoadPaymentDetail({
-        accountID: Container.getRouteProps(ownProps, 'accountID'),
-        paymentID: Container.getRouteProps(ownProps, 'paymentID'),
+        accountID: Container.getRouteProps(ownProps, 'accountID', Types.noAccountID),
+        paymentID: Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID),
       })
     ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const tx = stateProps._transaction
   if (stateProps.loading) {
     return {

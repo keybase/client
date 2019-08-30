@@ -214,7 +214,7 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 		if cr.currCancel != nil {
 			cr.currCancel()
 		}
-		libcontext.CleanupCancellationDelayer(baseCtx)
+		_ = libcontext.CleanupCancellationDelayer(baseCtx)
 	}()
 	for ci := range inputChan {
 		ctx := CtxWithRandomIDReplayable(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
@@ -704,7 +704,8 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 		if _, notFound := errors.Cause(err).(NoChainFoundError); notFound {
 			unmergedChains.toUnrefPointers[unmergedOriginal] = true
 			continue
-		} else if err != nil {
+		}
+		if err != nil {
 			return nil, err
 		} else if unmergedOriginal == mergedOriginal {
 			cr.log.CDebugf(ctx,
@@ -1431,8 +1432,7 @@ func (cr *ConflictResolver) convertCreateIntoSymlinkOrCopy(ctx context.Context,
 	found := false
 outer:
 	for _, op := range chain.ops {
-		switch cop := op.(type) {
-		case *createOp:
+		if cop, ok := op.(*createOp); ok {
 			if !cop.renamed || cop.NewName != info.newName {
 				continue
 			}
@@ -1494,10 +1494,16 @@ outer:
 				if err != nil {
 					return err
 				}
-				prependOpsToChain(mergedOldMostRecent, mergedChains,
-					invertRm)
-				prependOpsToChain(mergedNewMostRecent, mergedChains,
-					invertCreate)
+				err = prependOpsToChain(
+					mergedOldMostRecent, mergedChains, invertRm)
+				if err != nil {
+					return err
+				}
+				err = prependOpsToChain(
+					mergedNewMostRecent, mergedChains, invertCreate)
+				if err != nil {
+					return err
+				}
 			}
 			cr.log.CDebugf(ctx, "Putting new merged rename info "+
 				"%v -> %v (symPath: %v)", ptr, newInfo,

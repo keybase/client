@@ -162,7 +162,10 @@ const updateTlfList = (oldTlfList: Types.TlfList, newTlfList: Types.TlfList): Ty
 
 const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
   const fsError = action.payload.error
-  if (!state.kbfsDaemonStatus.online && action.payload.expectedIfOffline) {
+  if (
+    state.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Offline &&
+    action.payload.expectedIfOffline
+  ) {
     return state
   }
   logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
@@ -517,11 +520,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     case FsGen.kbfsDaemonRpcStatusChanged:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set('rpcStatus', action.payload.rpcStatus)
+        (action.payload.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected
+          ? kbfsDaemonStatus.set('onlineStatus', Types.KbfsDaemonOnlineStatus.Offline)
+          : kbfsDaemonStatus
+        ).set('rpcStatus', action.payload.rpcStatus)
       )
     case FsGen.kbfsDaemonOnlineStatusChanged:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
-        kbfsDaemonStatus.set('online', action.payload.online)
+        kbfsDaemonStatus.set(
+          'onlineStatus',
+          action.payload.online ? Types.KbfsDaemonOnlineStatus.Online : Types.KbfsDaemonOnlineStatus.Offline
+        )
       )
     case FsGen.overallSyncStatusChanged:
       return state.update('overallSyncStatus', overallSyncStatus =>
@@ -561,6 +570,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             : driverStatus
         )
       )
+    case FsGen.setDirectMountDir:
+      return state.update('sfmi', sfmi => sfmi.set('directMountDir', action.payload.directMountDir))
+    case FsGen.setPreferredMountDirs:
+      return state.update('sfmi', sfmi => sfmi.set('preferredMountDirs', action.payload.preferredMountDirs))
     case FsGen.setPathSoftError:
       return state.update('softErrors', softErrors =>
         softErrors.update('pathErrors', pathErrors =>
@@ -594,7 +607,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
@@ -612,12 +624,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.closeDestinationPicker:
-    case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
     case FsGen.refreshDriverStatus:
     case FsGen.loadTlfSyncConfig:
     case FsGen.setTlfSyncConfig:
     case FsGen.setSpaceAvailableNotificationThreshold:
+    case FsGen.subscribePath:
+    case FsGen.subscribeNonPath:
+    case FsGen.unsubscribe:
+    case FsGen.pollJournalStatus:
+    case FsGen.refreshMountDirsAfter10s:
       return state
     default:
       return state

@@ -8,9 +8,9 @@ import {
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
+import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import * as Styles from '../../../../styles'
 import {Props} from './index.types'
-import {formatPhoneNumber} from '../../../../util/phone-numbers'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -70,7 +70,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName}>
+        <Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
@@ -85,8 +85,9 @@ const UsernameHeader = (props: Props) => (
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
+        lineClamp={props.participants.length > 2 ? 2 : 1}
         commaColor={Styles.globalColors.black_50}
-        type="BodyBig"
+        type={props.participants.length > 2 ? 'BodyTiny' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
@@ -97,22 +98,9 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const getFormattedPhoneOrEmail = (assertion: string) => {
-  const withoutSuffix = assertion.substring(0, assertion.length - 6)
-  const suffix = assertion.substring(assertion.length - 6)
-  if (suffix === '@email') {
-    return withoutSuffix.substring(1, withoutSuffix.length - 1)
-  }
-  try {
-    return formatPhoneNumber(withoutSuffix)
-  } catch (e) {
-    return assertion
-  }
-}
-
 const PhoneOrEmailHeader = (props: Props) => {
   const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
-  let formattedPhoneOrEmail = phoneOrEmail && getFormattedPhoneOrEmail(phoneOrEmail)
+  const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
   const name = props.contactNames[phoneOrEmail]
   return (
     <Wrapper {...props}>
@@ -132,7 +120,12 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     textAlign: 'center',
   },
-  channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
+  channelHeaderContainer: {
+    alignItems: 'center',
+    alignSelf: 'center',
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+  },
   channelName: {
     color: Styles.globalColors.black,
   },

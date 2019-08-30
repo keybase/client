@@ -20,7 +20,6 @@ import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
 import {memoize} from '../../../../util/memoize'
 import JumpToRecent from './jump-to-recent'
-import ThreadSearch from '../../search/container'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -83,7 +82,7 @@ class Thread extends React.PureComponent<Props, State> {
           this._ignoreScrollOnetime
         )
       }
-    : (name, fn) => fn()
+    : (_, fn) => fn()
 
   _logScrollTop = debug
     ? (list, name, fn) => {
@@ -91,7 +90,7 @@ class Thread extends React.PureComponent<Props, State> {
         fn()
         logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
       }
-    : (list, name, fn) => fn()
+    : (_, __, fn) => fn()
 
   _logAll = debug
     ? (list, name, fn) => {
@@ -111,7 +110,7 @@ class Thread extends React.PureComponent<Props, State> {
           list.scrollTop
         )
       }
-    : (list, name, fn) => fn()
+    : (_, __, fn) => fn()
 
   _scrollToCentered = () => {
     const list = this._listRef.current
@@ -178,7 +177,7 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
-  getSnapshotBeforeUpdate(prevProps: Props, prevState: State) {
+  getSnapshotBeforeUpdate(prevProps: Props) {
     // prepending, lets keep track of the old scrollHeight
     if (
       this.props.conversationIDKey === prevProps.conversationIDKey &&
@@ -190,7 +189,7 @@ class Thread extends React.PureComponent<Props, State> {
     return null
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State, snapshot: Snapshot) {
+  componentDidUpdate(prevProps: Props, _: State, snapshot: Snapshot) {
     if (this.props === prevProps) {
       // don't do any of the below if just state changes
       return
@@ -199,7 +198,6 @@ class Thread extends React.PureComponent<Props, State> {
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
-      this._scrollHeight = 0
       this.setState(p => (p.lockedToBottom ? null : {lockedToBottom: true}))
       this._scrollToBottom('componentDidUpdate-change-convo')
       return
@@ -296,7 +294,7 @@ class Thread extends React.PureComponent<Props, State> {
     this._checkForLoadMoreThrottled.cancel()
   }
 
-  _onScroll = e => {
+  _onScroll = () => {
     if (this._ignoreScrollOnetime) {
       this._logIgnoreScroll('_onScroll', () => {
         this._ignoreScrollOnetime = false
@@ -526,9 +524,6 @@ class Thread extends React.PureComponent<Props, State> {
               )}
             </Measure>
           </div>
-          {this.props.showThreadSearch && (
-            <ThreadSearch style={threadSearchStyle} conversationIDKey={this.props.conversationIDKey} />
-          )}
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this._jumpToRecent} style={jumpToRecentStyle} />
           )}
@@ -587,6 +582,8 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     height: undefined,
     heightForOrdinals: [],
     isVisible: true,
+    //actually is used
+    // eslint-disable-next-line react/no-unused-state
     width: undefined,
   }
   _animID?: number
@@ -749,11 +746,6 @@ const listStyle = {
 const jumpToRecentStyle = {
   bottom: 0,
   position: 'absolute' as const,
-}
-
-const threadSearchStyle = {
-  position: 'absolute' as const,
-  top: 0,
 }
 
 export default Thread

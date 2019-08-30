@@ -5,7 +5,6 @@ package client
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -72,7 +71,7 @@ func (c *cmdWalletHistory) Run() (err error) {
 	}
 	dui := c.G().UI.GetDumbOutputUI()
 	lineUnescaped := func(format string, args ...interface{}) {
-		dui.PrintfUnescaped(format+"\n", args...)
+		_, _ = dui.PrintfUnescaped(format+"\n", args...)
 	}
 	// `payments` is sorted most recent first.
 	// Print most recent at the bottom.
@@ -89,17 +88,6 @@ func (c *cmdWalletHistory) Run() (err error) {
 		lineUnescaped("No recent activity")
 	}
 	return err
-}
-
-// Pare down the note so that it's less likely to contain tricks.
-// Such as newlines and fake transactions.
-// Shows only the first line.
-func (c *cmdWalletHistory) filterNote(note string) string {
-	lines := strings.Split(strings.TrimSpace(note), "\n")
-	if len(lines) < 1 {
-		return ""
-	}
-	return strings.TrimSpace(lines[0])
 }
 
 func (c *cmdWalletHistory) GetUsage() libkb.Usage {

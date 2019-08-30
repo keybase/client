@@ -98,11 +98,12 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
-		Bots:    &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 	if len(owners) > 0 {
 		members.Owners = &owners
@@ -215,7 +216,10 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	// accidentally capture different global state (like ctime and merkle
 	// seqno).
 	sigBodyAfterReverse := sigBodyBeforeReverse
-	sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = sigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return err
+	}
 
 	sigJSONAfterReverse, err := sigBodyAfterReverse.Marshal()
 	if err != nil {
@@ -308,11 +312,12 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString stri
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{SCTeamMember(me.ToUserVersion())},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
-		Bots:    &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{SCTeamMember(me.ToUserVersion())},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 
 	var scSettings *SCTeamSettings
@@ -512,15 +517,16 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	members := SCTeamMembers{
-		Owners:  &[]SCTeamMember{},
-		Admins:  &[]SCTeamMember{},
-		Writers: &[]SCTeamMember{},
-		Readers: &[]SCTeamMember{},
-		Bots:    &[]SCTeamMember{},
+		Owners:         &[]SCTeamMember{},
+		Admins:         &[]SCTeamMember{},
+		Writers:        &[]SCTeamMember{},
+		Readers:        &[]SCTeamMember{},
+		Bots:           &[]SCTeamMember{},
+		RestrictedBots: &[]SCTeamMember{},
 	}
 
 	memSet := newMemberSet()
-	_, err = memSet.loadGroup(ctx, g, allParentAdmins, true /* store recipients */, true /* force poll */)
+	_, err = memSet.loadGroup(ctx, g, allParentAdmins, storeMemberKindRecipient, true /* force poll */)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -529,6 +535,8 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		meUV := me.ToUserVersion()
 		memList := []SCTeamMember{SCTeamMember(meUV)}
 		switch addSelfAs {
+		case keybase1.TeamRole_BOT:
+			members.Bots = &memList
 		case keybase1.TeamRole_READER:
 			members.Readers = &memList
 		case keybase1.TeamRole_WRITER:
@@ -537,10 +545,13 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 			members.Admins = &memList
 		case keybase1.TeamRole_OWNER:
 			return nil, nil, errors.New("Cannot add self as owner to a subteam")
-		case keybase1.TeamRole_BOT:
-			return nil, nil, errors.New("Cannot add self as bot to a subteam")
+		case keybase1.TeamRole_RESTRICTEDBOT:
+			return nil, nil, errors.New("Cannot add self as restricted bot to a subteam")
 		}
-		memSet.loadMember(ctx, g, meUV, true /* store recipient */, false /* force poll */)
+		_, err := memSet.loadMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -593,7 +604,10 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	// accidentally capture different global state (like ctime and merkle
 	// seqno).
 	subteamHeadSigBodyAfterReverse := subteamHeadSigBodyBeforeReverse
-	subteamHeadSigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	err = subteamHeadSigBodyAfterReverse.SetValueAtPath("body.team.per_team_key.reverse_sig", jsonw.NewString(reverseSig))
+	if err != nil {
+		return nil, nil, err
+	}
 
 	subteamHeadSigJSON, err := subteamHeadSigBodyAfterReverse.Marshal()
 	if err != nil {

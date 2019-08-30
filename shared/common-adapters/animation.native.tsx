@@ -13,6 +13,7 @@ class Animation extends React.Component<Props> {
           autoPlay={true}
           loop={true}
           source={animationData[this.props.animationType]}
+          // @ts-ignore TODO fix styles
           style={this.props.style || {}}
         />
       </Box>

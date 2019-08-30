@@ -52,7 +52,7 @@ func TestPutAndGet(t *testing.T) {
 	teamName1 := u.Username + "t1"
 	_, err = teams.CreateRootTeam(context.Background(), tc.G, teamName1, keybase1.TeamSettings{})
 	require.NoError(t, err)
-	_, err = teams.AddMember(context.Background(), tc.G, teamName1, u2.Username, keybase1.TeamRole_READER)
+	_, err = teams.AddMember(context.Background(), tc.G, teamName1, u2.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	team1, _, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
 	require.NoError(t, err)
@@ -288,7 +288,7 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 	teamName := u2.Username + "t1"
 	_, err = teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
-	_, err = teams.AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

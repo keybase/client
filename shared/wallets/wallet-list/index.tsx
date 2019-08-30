@@ -14,14 +14,8 @@ const rowHeight = 48
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
-    {
-      onClick: () => props.onAddNew(),
-      title: 'Create a new account',
-    },
-    {
-      onClick: () => props.onLinkExisting(),
-      title: 'Link an existing Stellar account',
-    },
+    {onClick: () => props.onAddNew(), title: 'Create a new account'},
+    {onClick: () => props.onLinkExisting(), title: 'Link an existing Stellar account'},
   ]
 
   return (
@@ -49,18 +43,18 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
-const JoinAirdrop = p => (
-  <Kb.ClickableBox onClick={p.onJoinAirdrop}>
+const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean; selected: boolean}) => (
+  <Kb.ClickableBox onClick={p.onJoinAirdrop || undefined}>
     <Kb.Box2
       style={Styles.collapseStyles([
         styles.joinAirdrop,
-        p.selected && {backgroundColor: Styles.globalColors.purple},
+        p.selected && {backgroundColor: Styles.globalColors.purpleLight},
       ])}
       direction="horizontal"
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Icon type="icon-airdrop-logo-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>
@@ -71,7 +65,7 @@ const JoinAirdrop = p => (
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
-      <Kb.Icon sizeType={'Small'} type="iconfont-info" />
+      <Kb.Icon sizeType="Small" type="iconfont-info" />
       <Kb.Text style={styles.infoText} type="BodySmallSemibold">
         What is Stellar?
       </Kb.Text>
@@ -109,7 +103,7 @@ type Row =
     }
 
 class WalletList extends React.Component<Props> {
-  _renderRow = (i: number, row: Row): React.ReactNode => {
+  _renderRow = (_: number, row: Row) => {
     switch (row.type) {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />
@@ -180,9 +174,6 @@ const styles = Styles.styleSheetCreate({
   },
   joinAirdrop: {
     alignItems: 'center',
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: `solid`,
-    borderTopWidth: 1,
     height: rowHeight,
   },
   progressHeader: {

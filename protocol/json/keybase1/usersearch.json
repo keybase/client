@@ -121,6 +121,36 @@
     },
     {
       "type": "record",
+      "name": "ImpTofuSearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "assertion"
+        },
+        {
+          "type": "string",
+          "name": "assertionValue"
+        },
+        {
+          "type": "string",
+          "name": "assertionKey"
+        },
+        {
+          "type": "string",
+          "name": "label"
+        },
+        {
+          "type": "string",
+          "name": "prettyName"
+        },
+        {
+          "type": "string",
+          "name": "keybaseUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "APIUserSearchResult",
       "fields": [
         {
@@ -149,6 +179,13 @@
           "name": "contact"
         },
         {
+          "type": [
+            null,
+            "ImpTofuSearchResult"
+          ],
+          "name": "imptofu"
+        },
+        {
           "type": {
             "type": "map",
             "values": "APIUserServiceSummary",
@@ -156,11 +193,110 @@
           },
           "name": "servicesSummary",
           "jsonkey": "services_summary"
+        },
+        {
+          "type": "double",
+          "name": "rawScore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NonUserDetails",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isNonUser"
+        },
+        {
+          "type": "string",
+          "name": "assertionValue"
+        },
+        {
+          "type": "string",
+          "name": "assertionKey"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "ProcessedContact"
+          ],
+          "name": "contact"
+        },
+        {
+          "type": [
+            null,
+            "APIUserServiceResult"
+          ],
+          "name": "service"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconFull"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ImpTofuSearchType",
+      "symbols": [
+        "PHONE_0",
+        "EMAIL_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ImpTofuQuery",
+      "switch": {
+        "type": "ImpTofuSearchType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PHONE",
+            "def": false
+          },
+          "body": "PhoneNumber"
+        },
+        {
+          "label": {
+            "name": "EMAIL",
+            "def": false
+          },
+          "body": "EmailAddress"
         }
       ]
     }
   ],
   "messages": {
+    "getNonUserDetails": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
+      "response": "NonUserDetails"
+    },
     "userSearch": {
       "request": [
         {
@@ -182,6 +318,13 @@
         {
           "name": "includeContacts",
           "type": "boolean"
+        },
+        {
+          "name": "impTofuQuery",
+          "type": [
+            null,
+            "ImpTofuQuery"
+          ]
         }
       ],
       "response": {

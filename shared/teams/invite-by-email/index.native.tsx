@@ -1,33 +1,33 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import {FloatingRolePicker} from '../role-picker'
-import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
+import * as Styles from '../../styles'
 import {MobileProps, ContactRowProps} from './index'
 import {pluralize} from '../../util/string'
 
 const AccessDenied = ({openAppSettings}) => (
   <Kb.Box
     style={{
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flex: 1,
       justifyContent: 'center',
-      padding: globalMargins.small,
+      padding: Styles.globalMargins.small,
     }}
   >
     <Kb.Icon
       type="iconfont-close"
       style={{
-        marginBottom: globalMargins.large,
+        marginBottom: Styles.globalMargins.large,
       }}
-      color={globalColors.red}
-      fontSize={globalMargins.xlarge}
+      color={Styles.globalColors.red}
+      fontSize={Styles.globalMargins.xlarge}
     />
     <Kb.Box>
-      <Kb.Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
+      <Kb.Text center={true} type="Body" style={{marginBottom: Styles.globalMargins.small}}>
         We don't have permission to access your contacts!
       </Kb.Text>
-      <Kb.Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
+      <Kb.Text center={true} type="Body" style={{marginBottom: Styles.globalMargins.small}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Kb.Text>
       <Kb.ButtonBar>
@@ -46,16 +46,16 @@ const contactRow = (_: number, props: ContactRowProps) => {
   return (
     <Kb.Box
       style={{
-        ...globalStyles.flexBoxRow,
+        ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 56,
-        padding: globalMargins.small,
+        padding: Styles.globalMargins.small,
         width: '100%',
       }}
     >
-      <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-        <Kb.Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-          {!!hasThumbnail && (
+      <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
+          {!!hasThumbnail && !!source && (
             <Kb.NativeImage
               style={{borderRadius: 24, height: 48, marginRight: 16, width: 48}}
               source={source}
@@ -63,10 +63,10 @@ const contactRow = (_: number, props: ContactRowProps) => {
           )}
           {!hasThumbnail && <Kb.Avatar size={48} style={{marginRight: 16}} />}
           <Kb.Box>
-            <Kb.Box style={globalStyles.flexBoxRow}>
+            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
               <Kb.Text type="BodySemibold">{props.contact.name}</Kb.Text>
             </Kb.Box>
-            <Kb.Box style={globalStyles.flexBoxRow}>
+            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
               <Kb.Text type="BodySmall">{props.contact.email || props.contact.phoneNo}</Kb.Text>
             </Kb.Box>
           </Kb.Box>
@@ -79,7 +79,11 @@ const contactRow = (_: number, props: ContactRowProps) => {
             waiting={props.loading}
             small={true}
             onClick={props.onClick}
-            style={{paddingLeft: globalMargins.small, paddingRight: globalMargins.small, width: 100}}
+            style={{
+              paddingLeft: Styles.globalMargins.small,
+              paddingRight: Styles.globalMargins.small,
+              width: 100,
+            }}
           />
         </Kb.Box>
       </Kb.Box>
@@ -136,15 +140,17 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     let contents
     if (this.props.hasPermission) {
       contents = (
-        <Kb.Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
+        <Kb.Box
+          style={{...Styles.globalStyles.flexBoxColumn, flex: 1, paddingBottom: Styles.globalMargins.xtiny}}
+        >
           {!!this.props.errorMessage && (
             <Kb.Box2
               direction="horizontal"
               style={{
                 alignItems: 'center',
-                backgroundColor: globalColors.red,
+                backgroundColor: Styles.globalColors.red,
                 justifyContent: 'center',
-                padding: globalMargins.tiny,
+                padding: Styles.globalMargins.tiny,
               }}
               fullWidth={true}
             >
@@ -155,9 +161,9 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
           )}
           <Kb.Box
             style={{
-              ...globalStyles.flexBoxRow,
-              borderBottomColor: globalColors.black_10,
-              borderBottomWidth: hairlineWidth,
+              ...Styles.globalStyles.flexBoxRow,
+              borderBottomColor: Styles.globalColors.black_10,
+              borderBottomWidth: Styles.hairlineWidth,
             }}
           >
             <Kb.Input
@@ -171,7 +177,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               errorStyle={{minHeight: 14}}
               inputStyle={{
                 fontSize: 16,
-                margin: globalMargins.small,
+                margin: Styles.globalMargins.small,
                 textAlign: 'left',
               }}
             />
@@ -182,7 +188,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             onSelectRole={this.props.onRoleChange}
             onConfirm={this.onConfirmRolePicker}
             onCancel={this.onCancelRolePicker}
-            position={'bottom center'}
+            position="bottom center"
             open={this.state.isRolePickerOpen}
             disabledRoles={{owner: 'Cannot invite an owner via email.'}}
           />
@@ -194,13 +200,13 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               <Kb.ClickableBox
                 onClick={() => this.onOpenRolePicker()}
                 style={{
-                  ...globalStyles.flexBoxColumn,
+                  ...Styles.globalStyles.flexBoxColumn,
                   alignItems: 'center',
-                  borderBottomColor: globalColors.black_10,
-                  borderBottomWidth: hairlineWidth,
+                  borderBottomColor: Styles.globalColors.black_10,
+                  borderBottomWidth: Styles.hairlineWidth,
                   justifyContent: 'center',
-                  marginBottom: globalMargins.xtiny,
-                  padding: globalMargins.small,
+                  marginBottom: Styles.globalMargins.xtiny,
+                  padding: Styles.globalMargins.small,
                 }}
               >
                 <Kb.Text center={true} type="BodySmall">
@@ -216,7 +222,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
       )
     } else {
       contents = (
-        <Kb.Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1}}>
           <AccessDenied openAppSettings={this.props.openAppSettings} />
         </Kb.Box>
       )

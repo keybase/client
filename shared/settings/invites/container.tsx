@@ -1,9 +1,10 @@
+import * as Constants from '../../constants/settings'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as Types from '../../constants/types/settings'
 import Invites from '.'
 import {createShowUserProfile} from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {connect, lifecycle, compose} from '../../util/container'
+import * as Container from '../../util/container'
 
 type OwnProps = {}
 const mapStateToProps = state => ({
@@ -13,7 +14,7 @@ const mapStateToProps = state => ({
   inviteMessage: '',
   pendingInvites: state.settings.invites.pendingInvites,
   showMessageField: false,
-  waitingForResponse: state.settings.waitingForResponse,
+  waitingForResponse: Container.anyWaiting(state, Constants.settingsWaitingKey),
 })
 
 const mapDispatchToProps = dispatch => ({
@@ -31,7 +32,7 @@ const mapDispatchToProps = dispatch => ({
   onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   ...ownProps,
   ...stateProps,
   ...dispatchProps,
@@ -39,13 +40,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   pendingInvites: stateProps.pendingInvites.toArray(),
 })
 
-export default compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps
-  ),
-  lifecycle({
+export default Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.lifecycle({
     componentDidMount() {
       // @ts-ignore NO recompose
       this.props.onRefresh()

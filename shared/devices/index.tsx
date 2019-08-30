@@ -5,19 +5,9 @@ import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
 export type Item =
-  | {
-      key: string
-      id: Types.DeviceID
-      type: 'device'
-    }
-  | {
-      key: string
-      type: 'revokedHeader'
-    }
-  | {
-      key: string
-      type: 'revokedNote'
-    }
+  | {key: string; id: Types.DeviceID; type: 'device'}
+  | {key: string; type: 'revokedHeader'}
+  | {key: string; type: 'revokedNote'}
 
 type State = {
   revokedExpanded: boolean
@@ -44,21 +34,21 @@ class Devices extends React.PureComponent<Props, State> {
     this.props.loadDevices()
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(_: Props, prevState: State) {
     if (this.props.hasNewlyRevoked && !prevState.revokedExpanded) {
       this.setState({revokedExpanded: true})
     }
   }
 
-  _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
+  private toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
 
-  _renderRow = (index, item) => {
+  private renderItem = (index: number, item: Item) => {
     if (item.type === 'revokedHeader') {
       return (
         <RevokedHeader
           key="revokedHeader"
           expanded={this.state.revokedExpanded}
-          onToggleExpanded={this._toggleExpanded}
+          onToggleExpanded={this.toggleExpanded}
         />
       )
     } else if (item.type === 'revokedNote') {
@@ -73,30 +63,28 @@ class Devices extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const items = [
+    const items: Array<Item> = [
       ...this.props.items,
-      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
+      ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'} as const] : []),
       ...(this.state.revokedExpanded
-        ? [{key: 'revokedNote', type: 'revokedNote'}, ...this.props.revokedItems]
+        ? [{key: 'revokedNote', type: 'revokedNote'} as const, ...this.props.revokedItems]
         : []),
     ]
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {Styles.isMobile && (
-          <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
-        )}
+        {Styles.isMobile && <DeviceHeader onAddNew={() => this.props.onAddDevice()} />}
         {this.props.showPaperKeyNudge && (
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List bounces={false} items={items} renderItem={this._renderRow} />
+        <Kb.List bounces={false} items={items} renderItem={this.renderItem} />
       </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     position: 'relative',
   },
@@ -110,9 +98,9 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.medium,
     width: '100%',
   },
-})
+}))
 
-const DeviceHeader = ({onAddNew, waiting}) => (
+const DeviceHeader = ({onAddNew}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
     <Kb.Button label="Add a device or paper key">
       <Kb.Icon
@@ -123,7 +111,7 @@ const DeviceHeader = ({onAddNew, waiting}) => (
     </Kb.Button>
   </Kb.ClickableBox>
 )
-const headerStyles = Styles.styleSheetCreate({
+const headerStyles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -134,7 +122,7 @@ const headerStyles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const RevokedHeader = ({onToggleExpanded, expanded}) => (
   <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
@@ -157,7 +145,7 @@ const PaperKeyNudge = ({onAddDevice}) => (
     </Kb.Box2>
   </Kb.ClickableBox>
 )
-const paperKeyNudgeStyles = Styles.styleSheetCreate({
+const paperKeyNudgeStyles = Styles.styleSheetCreate(() => ({
   border: Styles.platformStyles({
     common: {
       borderColor: Styles.globalColors.black_05,
@@ -187,6 +175,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
     },
   }),
   flexOne: {flex: 1},
-})
+}))
 
 export default Kb.HeaderOnMobile(Devices)

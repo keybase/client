@@ -22,7 +22,7 @@ func NewAuditHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AuditHandler {
 	return handler
 }
 
-var ta_ keybase1.AuditInterface = (*AuditHandler)(nil)
+var _ keybase1.AuditInterface = (*AuditHandler)(nil)
 
 func (h *AuditHandler) IsInJail(ctx context.Context, arg keybase1.IsInJailArg) (ret bool, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())

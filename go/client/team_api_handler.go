@@ -96,20 +96,10 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 	}
 }
 
-type memberEmail struct {
-	Email string `json:"email"`
-	Role  string `json:"role"`
-}
-
-type memberUsername struct {
-	Username string `json:"username"`
-	Role     string `json:"role"`
-}
-
 type addMembersOptions struct {
-	Team      string           `json:"team"`
-	Emails    []memberEmail    `json:"emails"`
-	Usernames []memberUsername `json:"usernames"`
+	Team      string                    `json:"team"`
+	Emails    []keybase1.MemberEmail    `json:"emails"`
+	Usernames []keybase1.MemberUsername `json:"usernames"`
 }
 
 func (a *addMembersOptions) Check() error {
@@ -214,22 +204,14 @@ func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) er
 		return t.encodeErr(c, err, w)
 	}
 
-	type createResExportT struct {
-		ChatSent     bool `codec:"chatSent" json:"chatSent"`
-		CreatorAdded bool `codec:"creatorAdded" json:"creatorAdded"`
-	}
 	createRes, err := t.cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name: name.String(),
 	})
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}
-	createResExport := createResExportT{
-		ChatSent:     createRes.ChatSent,
-		CreatorAdded: createRes.CreatorAdded,
-	}
 
-	return t.encodeResult(c, createResExport, w)
+	return t.encodeResult(c, createRes, w)
 }
 
 type editMemberOptions struct {

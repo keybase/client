@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -37,9 +36,6 @@ type FolderList struct {
 
 	mu      sync.Mutex
 	folders map[string]*TLF
-
-	muRecentlyRemoved sync.RWMutex
-	recentlyRemoved   map[tlf.CanonicalName]bool
 }
 
 var _ fs.NodeAccesser = (*FolderList)(nil)
@@ -90,47 +86,6 @@ func (fl *FolderList) processError(ctx context.Context,
 	// important ones.
 	fl.fs.errLog.CDebugf(ctx, err.Error())
 	return filterError(err)
-}
-
-func (fl *FolderList) addToRecentlyRemoved(name tlf.CanonicalName) {
-	func() {
-		fl.muRecentlyRemoved.Lock()
-		defer fl.muRecentlyRemoved.Unlock()
-		if fl.recentlyRemoved == nil {
-			fl.recentlyRemoved = make(map[tlf.CanonicalName]bool)
-		}
-		fl.recentlyRemoved[name] = true
-	}()
-	fl.fs.execAfterDelay(time.Second, func() {
-		fl.muRecentlyRemoved.Lock()
-		defer fl.muRecentlyRemoved.Unlock()
-		delete(fl.recentlyRemoved, name)
-	})
-}
-
-func (fl *FolderList) isRecentlyRemoved(name tlf.CanonicalName) bool {
-	fl.muRecentlyRemoved.RLock()
-	defer fl.muRecentlyRemoved.RUnlock()
-	return fl.recentlyRemoved != nil && fl.recentlyRemoved[name]
-}
-
-func (fl *FolderList) addToFavorite(ctx context.Context, h *tlfhandle.Handle) (err error) {
-	cName := h.GetCanonicalName()
-
-	// `rmdir` command on macOS does a lookup after removing the dir. if the
-	// TLF is recently removed, it's likely that this lookup is issued by the
-	// `rmdir` command, and the lookup should not result in adding the dir to
-	// favorites.
-	if !fl.isRecentlyRemoved(cName) {
-		fl.fs.vlog.CLogf(ctx, libkb.VLog1, "adding %s to favorites", cName)
-		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(), h.FavoriteData())
-	} else {
-		fl.fs.vlog.CLogf(
-			ctx, libkb.VLog1, "recently removed; will skip adding %s to "+
-				"favorites and return ENOENT", cName)
-		return fuse.ENOENT
-	}
-	return nil
 }
 
 // PathType returns PathType for this folder
@@ -323,11 +278,6 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	default:
 		return err
 	}
-}
-
-func isTlfNameNotCanonical(err error) bool {
-	_, ok := errors.Cause(err).(idutil.TlfNameNotCanonical)
-	return ok
 }
 
 func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,

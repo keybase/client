@@ -15,7 +15,7 @@ type Props = {
   clearCacheTrigger: number
   windowParam: string | null
   windowComponent: string
-  remoteWindow: SafeElectron.BrowserWindowType | null
+  remoteWindowNeedsProps: number
 }
 
 type Serializer = {[K in string]: (value: any, oldValue: any) => Object | null}
@@ -26,28 +26,26 @@ function SyncPropsFactory(serializer: Serializer) {
       _lastProps: any
 
       _sendProps = () => {
-        if (this.props.remoteWindow) {
-          try {
-            measureStart('remoteProps')
-            const props = this._getPropsToSend()
-            // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
-            // the data a lot
-            if (this.props.remoteWindow && Object.keys(props).length) {
-              this.props.remoteWindow.emit('props', JSON.stringify(props))
-            }
-          } catch (e) {
-            console.error(e)
-          } finally {
-            measureStop('remoteProps')
-          }
-        }
-      }
+        try {
+          measureStart('remoteProps')
 
-      _onNeedProps = ({sender}, windowComponent: string, windowParam: string) => {
-        if (windowComponent === this.props.windowComponent && windowParam === this.props.windowParam) {
-          // If the remote asks for props send the whole thing
-          this._lastProps = null
-          this._sendProps()
+          const {windowParam, windowComponent} = this.props
+
+          const props = this._getPropsToSend()
+          // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
+          // the data a lot
+          if (Object.keys(props).length) {
+            SafeElectron.getApp().emit('KBkeybase', '', {
+              payload: {
+                propsStr: JSON.stringify(props),
+                windowComponent,
+                windowParam,
+              },
+              type: 'rendererNewProps',
+            })
+          }
+        } finally {
+          measureStop('remoteProps')
         }
       }
 
@@ -91,20 +89,20 @@ function SyncPropsFactory(serializer: Serializer) {
       }
 
       _getChildProps = () => {
-        // Don't pass down remoteWindow
-        const {remoteWindow, ...props} = this.props
+        // Don't pass down internal props
+        const {remoteWindowNeedsProps, ...props} = this.props
         return props
       }
 
-      componentDidMount() {
-        SafeElectron.getIpcRenderer().on('remoteWindowWantsProps', this._onNeedProps)
-      }
-      componentWillUnmount() {
-        SafeElectron.getIpcRenderer().removeListener('remoteWindowWantsProps', this._onNeedProps)
-      }
       componentDidUpdate(prevProps: Props) {
         if (this.props.clearCacheTrigger !== prevProps.clearCacheTrigger) {
           this._lastProps = null
+        }
+
+        if (this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps) {
+          // If the remote asks for props send the whole thing
+          this._lastProps = null
+          this.forceUpdate()
         }
       }
 

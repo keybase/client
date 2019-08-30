@@ -4182,22 +4182,22 @@ func newGPGImportFailer(g *libkb.GlobalContext) *gpgImportFailer {
 	return &gpgImportFailer{g: g}
 }
 
-func (g *gpgImportFailer) ImportKey(secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error) {
+func (g *gpgImportFailer) ImportKey(_ libkb.MetaContext, secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error) {
 	return nil, errors.New("failed to import key")
 }
 
-func (g *gpgImportFailer) Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error) {
+func (g *gpgImportFailer) Index(mctx libkb.MetaContext, secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error) {
 	// use real gpg for this part
 	gpg := g.g.GetGpgClient()
-	if err := gpg.Configure(); err != nil {
+	if err := gpg.Configure(mctx); err != nil {
 		return nil, w, err
 	}
-	return gpg.Index(secret, query)
+	return gpg.Index(mctx, secret, query)
 }
 
 func skipOldGPG(tc libkb.TestContext) {
 	gpg := tc.G.GetGpgClient()
-	if err := gpg.Configure(); err != nil {
+	if err := gpg.Configure(tc.MetaContext()); err != nil {
 		tc.T.Skip(fmt.Sprintf("skipping test due to gpg configure error: %s", err))
 	}
 	ok, err := gpg.VersionAtLeast("2.0.29")

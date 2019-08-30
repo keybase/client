@@ -123,6 +123,10 @@ func (c *ChatCLIUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFull
 	return nil
 }
 
+func (c *ChatCLIUI) ChatThreadStatus(ctx context.Context, arg chat1.ChatThreadStatusArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	term := c.G().UI.GetTerminalUI()
 	term.Printf("WARNING: This will destroy this chat channel and remove it from all members' inbox\n\n")
@@ -182,10 +186,10 @@ func (c *ChatCLIUI) renderSearchHit(ctx context.Context, searchHit chat1.ChatSea
 	// to refactor for UIMessage
 	hitTextColoredEscaped := highlightEscapeHits(searchHit.HitMessage, searchHit.Matches)
 	if hitTextColoredEscaped != "" {
-		c.terminal.Output(getContext(searchHit.BeforeMessages))
+		_ = c.terminal.Output(getContext(searchHit.BeforeMessages))
 		fmt.Fprintln(c.terminal.UnescapedOutputWriter(), hitTextColoredEscaped)
-		c.terminal.Output(getContext(searchHit.AfterMessages))
-		c.terminal.Output("\n")
+		_ = c.terminal.Output(getContext(searchHit.AfterMessages))
+		_ = c.terminal.Output("\n")
 	}
 	return nil
 }
@@ -277,7 +281,7 @@ func (c *ChatCLIUI) ChatSearchIndexStatus(ctx context.Context, arg chat1.ChatSea
 		return nil
 	}
 	if percentIndexed := arg.Status.PercentIndexed; percentIndexed > c.lastIndexPercent {
-		c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", percentIndexed))
+		_ = c.terminal.Output(fmt.Sprintf("Indexing: %d%%.\n", percentIndexed))
 		c.lastIndexPercent = percentIndexed
 	}
 	return nil
@@ -288,7 +292,7 @@ func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearch
 		return nil
 	}
 	for _, hit := range arg.Hits.Hits {
-		c.terminal.Output(fmt.Sprintf("Conversation: %s found with matching name\n", hit.Name))
+		_ = c.terminal.Output(fmt.Sprintf("Conversation: %s found with matching name\n", hit.Name))
 	}
 	return nil
 }
@@ -369,5 +373,9 @@ func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) err
 }
 
 func (c *ChatCLIUI) ChatCommandStatus(context.Context, chat1.ChatCommandStatusArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotCommandsUpdateStatusArg) error {
 	return nil
 }

@@ -120,6 +120,7 @@ const styles = styleSheetCreate({
     borderStyle: 'solid',
     borderWidth: 1,
     marginBottom: globalMargins.tiny,
+    paddingRight: globalMargins.xtiny,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })

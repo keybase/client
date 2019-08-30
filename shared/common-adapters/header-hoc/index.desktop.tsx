@@ -5,15 +5,14 @@ import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
 import {Props, LeftActionProps} from './types'
+import {hoistNonReactStatic} from '../../util/container'
 
 export const HeaderHocHeader = ({
   headerStyle,
   customComponent,
-  hideBackLabel,
   title,
   titleComponent,
   onCancel,
-  onBack,
   rightActions,
   theme = 'light',
 }: Props) => (
@@ -74,7 +73,9 @@ export const LeftAction = ({
 )
 
 function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => <WrappedComponent {...props as P} />
+  const HH = (props: P & Props) => <WrappedComponent {...props as P} />
+  hoistNonReactStatic(HH, WrappedComponent)
+  return HH
 }
 
 const _headerStyle = {
@@ -125,7 +126,7 @@ const _titleStyle = {
   top: 0,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
     common: {
       opacity: 1,
@@ -154,6 +155,6 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
 
 export default HeaderHoc

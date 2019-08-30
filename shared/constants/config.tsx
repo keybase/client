@@ -2,7 +2,8 @@ import * as I from 'immutable'
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import {uniq} from 'lodash-es'
-import {runMode} from './platform'
+import {defaultUseNativeFrame, runMode} from './platform'
+import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 
 export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
@@ -22,6 +23,14 @@ export const makeOutOfDate = I.Record<Types._OutOfDate>({
   message: undefined,
   updating: false,
 })
+
+export const prepareAccountRows = <T extends {username: string; hasStoredSecret: boolean}>(
+  accountRows: I.List<T>,
+  myUsername: string
+): I.List<T> =>
+  accountRows
+    .filter(account => account.username !== myUsername)
+    .sortBy(account => [!account.hasStoredSecret, account.username])
 
 export const urlToUsername = (url: {
   protocol: string
@@ -57,9 +66,9 @@ export const urlToUsername = (url: {
   }
 
   const pathname = url.pathname
-  // Adapted username regexp (see libkb/checkers.go) with a leading / and an
-  // optional trailing /.
-  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_]?)+)\/?$/)
+  // Adapted username regexp (see libkb/checkers.go) with a leading /, an
+  // optional trailing / and a dash for custom links.
+  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_-]?)+)\/?$/)
   if (!match) {
     return null
   }
@@ -74,13 +83,17 @@ export const urlToUsername = (url: {
   const username = usernameMatch.toLowerCase()
   return username
 }
+export const makeConfiguredAccount = I.Record<Types._ConfiguredAccount>({
+  hasStoredSecret: false,
+  username: '',
+})
 
 export const makeState = I.Record<Types._State>({
   appFocused: true,
   appFocusedCount: 0,
   appOutOfDateMessage: '',
   appOutOfDateStatus: 'checking',
-  avatars: I.Map(),
+  avatarRefreshCounter: I.Map(),
   configuredAccounts: I.List(),
   daemonError: null,
   daemonHandshakeFailedReason: '',
@@ -88,6 +101,7 @@ export const makeState = I.Record<Types._State>({
   daemonHandshakeState: 'starting',
   daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: I.Map(),
+  darkModePreference: undefined,
   debugDump: [],
   defaultUsername: '',
   deviceID: '',
@@ -95,6 +109,8 @@ export const makeState = I.Record<Types._State>({
   followers: I.Set(),
   following: I.Set(),
   globalError: null,
+  httpSrvAddress: '',
+  httpSrvToken: '',
   justDeletedSelf: '',
   loggedIn: false,
   logoutHandshakeVersion: 1,
@@ -106,6 +122,7 @@ export const makeState = I.Record<Types._State>({
   outOfDate: undefined,
   pushLoaded: false,
   registered: false,
+  remoteWindowNeedsProps: I.Map(),
   runtimeStats: null,
   startupConversation: ChatConstants.noConversationIDKey,
   startupDetailsLoaded: false,
@@ -114,7 +131,21 @@ export const makeState = I.Record<Types._State>({
   startupSharePath: '',
   startupTab: null,
   startupWasFromPush: false,
+  systemDarkMode: false,
   uid: '',
+  useNativeFrame: defaultUseNativeFrame,
   userActive: true,
   username: '',
+  windowState: {
+    dockHidden: false,
+    height: 800,
+    isFullScreen: false,
+    width: 600,
+    windowHidden: false,
+    x: 0,
+    y: 0,
+  },
 })
+
+// we proxy the style helper to keep the logic in one place but act like a selector
+export const isDarkMode = (_: Types._State) => _isDarkMode()

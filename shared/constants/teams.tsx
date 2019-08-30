@@ -7,7 +7,7 @@ import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
-import * as TeamBuildingConstants from '../constants/team-building'
+import * as TeamBuildingConstants from './team-building'
 import {Service} from './types/search'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
@@ -73,7 +73,8 @@ export const rpcDetailsToMemberInfos = (
   }
   types.forEach(type => {
     const key = typeToKey[type]
-    const members: Array<RPCTypes.TeamMemberDetails> = allRoleMembers[key] || []
+    // @ts-ignore
+    const members: Array<RPCTypes.TeamMemberDetails> = (allRoleMembers[key] || []) as any
     members.forEach(({fullName, status, username}) => {
       infos.push([
         username,
@@ -192,6 +193,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   listFirst: false,
   manageMembers: false,
   manageSubteams: false,
+  pinMessage: false,
   renameChannel: false,
   renameTeam: false,
   setMemberShowcase: false,
@@ -230,7 +232,7 @@ const baseRetentionPolicies = [
   policyThirtySeconds,
 ]
 
-const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce((map, p) => {
+const baseRetentionPoliciesTitleMap = baseRetentionPolicies.reduce<{[key: number]: string}>((map, p) => {
   map[p.seconds] = p.title
   return map
 }, {})
@@ -394,10 +396,7 @@ const getDisabledReasonsForRolePicker = (
 
 const isMultiOwnerTeam = (state: TypedState, teamname: Types.Teamname): boolean => {
   let countOfOwners = 0
-  const allTeamMembers = state.teams.teamNameToMembers.get(
-    teamname,
-    I.Map<string, I.RecordOf<Types.MemberInfo>>()
-  )
+  const allTeamMembers = state.teams.teamNameToMembers.get(teamname, I.Map<string, Types.MemberInfo>())
   const moreThanOneOwner = allTeamMembers.some(tm => {
     if (isOwner(tm.type)) {
       countOfOwners++
@@ -416,11 +415,11 @@ const getTeamNameFromID = (state: TypedState, teamID: string): Types.Teamname | 
 const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): RetentionPolicy | null =>
   state.teams.teamNameToRetentionPolicy.get(teamname, null)
 
-const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
+const getSelectedTeamNames = (): Types.Teamname[] => {
   const path = getFullRoute()
-  return path.reduce((names, curr) => {
-    if (curr.routeName === 'team' && (curr.params ? curr.params.teamname : undefined)) {
-      names.push(curr.params.teamname)
+  return path.reduce<Array<string>>((names, curr) => {
+    if (curr.routeName === 'team') {
+      curr.params && curr.params.teamname && names.push(curr.params.teamname)
     }
     return names
   }, [])

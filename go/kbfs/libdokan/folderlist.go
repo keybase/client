@@ -63,13 +63,6 @@ func (fl *FolderList) reportErr(ctx context.Context,
 
 }
 
-func (fl *FolderList) addToFavorite(ctx context.Context, h *tlfhandle.Handle) (err error) {
-	cName := h.GetCanonicalName()
-	fl.fs.vlog.CLogf(ctx, libkb.VLog1, "adding %s to favorites", cName)
-	return fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite(),
-		h.FavoriteData())
-}
-
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, cst dokan.CreateStatus, err error) {

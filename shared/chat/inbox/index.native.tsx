@@ -14,22 +14,34 @@ import * as RowSizes from './row/sizes'
 import InboxSearch from '../inbox-search/container'
 import * as T from './index.types.d'
 import * as Types from '../../constants/types/chat2'
+import Flags from '../../util/feature-flags'
 
-const NoChats = () => (
-  <Kb.Box
+const NoChats = (props: {onNewChat: () => void}) => (
+  <Kb.Box2
+    direction="vertical"
+    gap="small"
     style={{
-      ...Styles.globalStyles.flexBoxColumn,
       ...Styles.globalStyles.fillAbsolute,
       alignItems: 'center',
+      flex: 1,
       justifyContent: 'center',
-      top: 48,
     }}
   >
-    <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
-    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
-      All conversations are end-to-end encrypted.
-    </Kb.Text>
-  </Kb.Box>
+    <Kb.Icon type="icon-fancy-encrypted-phone-mobile-226-96" />
+    <Kb.Box2 direction="vertical">
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+        All conversations are
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+        end-to-end encrypted.
+      </Kb.Text>
+    </Kb.Box2>
+    <Kb.Button
+      onClick={props.onNewChat}
+      mode="Primary"
+      label={Flags.wonderland ? 'Start a new chat 🐇' : 'Start a new chat'}
+    />
+  </Kb.Box2>
 )
 
 type State = {
@@ -59,7 +71,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  _renderItem = ({item, index}) => {
+  _renderItem = ({item}) => {
     const row = item
     let element
     if (row.type === 'divider') {
@@ -87,7 +99,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  _keyExtractor = (item, index) => {
+  _keyExtractor = item => {
     const row = item
 
     if (row.type === 'divider' || row.type === 'bigTeamsLabel') {
@@ -227,12 +239,12 @@ class Inbox extends React.PureComponent<T.Props, State> {
     })
 
     const noChats = !this.props.neverLoaded && !this.props.isSearching && !this.props.rows.length && (
-      <NoChats />
+      <NoChats onNewChat={this.props.onNewChat} />
     )
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader onNewChat={this.props.onNewChat} />
+    const HeadComponent = <ChatInboxHeader />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>

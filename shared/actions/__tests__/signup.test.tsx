@@ -3,7 +3,6 @@ import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
 import {TypedState} from '../../constants/reducer'
-import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
 import {SagaLogger} from '../../util/saga'
 import {RPCError} from '../../util/errors'
@@ -53,7 +52,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
+      RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
     )
   })
 
@@ -62,7 +61,7 @@ describe('requestAutoInvite', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showInviteScreen()).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
+      RouteTreeGen.createNavigateAppend({path: ['signupInviteCode']})
     )
   })
 })
@@ -82,7 +81,7 @@ describe('requestInvite', () => {
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.name).toEqual(action.payload.name)
     expect(_testing.showInviteSuccessOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
+      RouteTreeGen.createNavigateAppend({path: ['signupRequestInviteSuccess']})
     )
   })
 
@@ -132,7 +131,7 @@ describe('checkInviteCode', () => {
     // leaves state alone
     expect(nextState).toEqual(makeTypedState(state))
     // expect(_testing.showUserOnNoErrors(nextState)).toEqual(
-    // RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']})
+    // RouteTreeGen.createNavigateAppend({ path: ['signupUsernameAndEmail']})
     // )
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
@@ -163,7 +162,7 @@ describe('checkInviteCode', () => {
 describe('checkUsername', () => {
   it("ignores if there's an error", () => {
     const state = Constants.makeState({inviteCodeError: 'invite error'})
-    expect(_testing.checkUsername(makeTypedState(state), null, testLogger)).toEqual(false)
+    expect(_testing.checkUsername(makeTypedState(state), null as any, testLogger)).resolves.toEqual(false)
   })
 
   it('Updates store on success', () => {
@@ -195,7 +194,7 @@ describe('checkedUsername', () => {
   })
 
   it('shows error', () => {
-    const state = Constants.makeState({email: 'email@email.com', username: 'username'})
+    const state = Constants.makeState({username: 'username'})
     const action = SignupGen.createCheckedUsername({
       error: 'another problem',
       username: state.username,
@@ -205,14 +204,14 @@ describe('checkedUsername', () => {
   })
 
   it('shows device name page on success', () => {
-    const state = Constants.makeState({email: 'email@email.com', username: 'username'})
+    const state = Constants.makeState({username: 'username'})
     const action = SignupGen.createCheckedUsername({
       error: '',
       username: state.username,
     })
     const nextState = makeTypedState(reducer(state, action))
     expect(_testing.showDeviceScreenOnNoErrors(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupEnterDevicename']})
+      RouteTreeGen.createNavigateAppend({path: ['signupEnterDevicename']})
     )
   })
 })
@@ -310,18 +309,12 @@ describe('actually sign up', () => {
 
   const validSignup = Constants.makeState({
     devicename: 'a valid devicename',
-    email: 'test@test.com',
     inviteCode: '1234566',
     username: 'testuser',
   })
 
   const signupError = new Error('Missing data for signup')
 
-  it('bails on missing email', () => {
-    expect(() =>
-      _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('email', ''))).next()
-    ).toThrow(signupError)
-  })
   it('bails on missing devicename', () => {
     expect(() =>
       _testing.reallySignupOnNoErrors(makeTypedState(validSignup.set('devicename', ''))).next()
@@ -343,7 +336,7 @@ describe('actually sign up', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.signupError).toEqual(action.payload.error)
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupError']})
+      RouteTreeGen.createNavigateAppend({path: ['signupError']})
     )
   })
 

@@ -7,7 +7,7 @@ import * as Constants from '../constants/tracker2'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {connect, compose} from '../util/container'
+import * as Container from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
 type OwnProps = {
@@ -20,6 +20,7 @@ const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320
 const trackerMapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)
   return {
+    airdropIsLive: state.wallets.airdropDetails.isPromoted,
     assertions: d.assertions,
     bio: d.bio,
     followThem: Constants.followThem(state, ownProps.username),
@@ -32,14 +33,16 @@ const trackerMapStateToProps = (state, ownProps) => {
     loggedIn: state.config.loggedIn,
     reason: d.reason,
     registeredForAirdrop: d.registeredForAirdrop,
+    remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['tracker2', ownProps.username], -1),
     state: d.state,
     teamShowcase: d.teamShowcase,
-    waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
+    waiting: Container.anyWaiting(state, Constants.waitingKey),
+    youAreInAirdrop: false,
     yourUsername: state.config.username,
   }
 }
 
-const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
+const trackerMergeProps = (stateProps, _, ownProps: OwnProps) => {
   return {
     assertions: stateProps.assertions,
     bio: stateProps.bio,
@@ -53,6 +56,7 @@ const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
     location: stateProps.location,
     reason: stateProps.reason,
     registeredForAirdrop: stateProps.registeredForAirdrop,
+    remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
     state: stateProps.state,
     teamShowcase: stateProps.teamShowcase,
     username: ownProps.username,
@@ -68,12 +72,8 @@ const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
 const Empty = () => null
 
 // Actions are handled by remote-container
-const RemoteTracker2 = compose(
-  connect(
-    trackerMapStateToProps,
-    () => ({}),
-    trackerMergeProps
-  ),
+const RemoteTracker2 = Container.compose(
+  Container.connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
   SyncBrowserWindow,
   SyncAvatarProps,
   SyncProps(serialize)
@@ -97,7 +97,7 @@ const mapStateToProps = state => ({
   // _trackers: state.tracker.userTrackers,
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, _, __) => ({
   users: stateProps._users
     .filter(d => d.showTracker)
     .map(d => d.username)
@@ -106,8 +106,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     .toArray(),
 })
 
-export default connect(
-  mapStateToProps,
-  () => ({}),
-  mergeProps
-)(RemoteTracker2s)
+export default Container.connect(mapStateToProps, () => ({}), mergeProps)(RemoteTracker2s)

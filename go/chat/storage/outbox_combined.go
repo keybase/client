@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
 )
@@ -34,7 +35,10 @@ func (s *outboxCombinedStorage) readStorage(ctx context.Context) (res diskOutbox
 		return res, err
 	}
 	res.Version = baseRes.Version
-	res.Records = append(baseRes.Records, fileRes.Records...)
+	res.Records = make(
+		[]chat1.OutboxRecord, len(baseRes.Records)+len(fileRes.Records))
+	copy(res.Records, baseRes.Records)
+	copy(res.Records[len(baseRes.Records):], fileRes.Records)
 	if len(fileRes.Records) > 0 {
 		// write down into base storage anything from file storage
 		// and clear file storage

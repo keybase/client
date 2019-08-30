@@ -8,12 +8,7 @@ import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => {
   const search = (
-    <Kb.StandardScreen
-      headerStyle={headerStyle}
-      style={styleContainer}
-      onCancel={props.onClose}
-      title="Search people"
-    >
+    <Kb.StandardScreen style={styleContainer} onCancel={props.onClose} title="Search people">
       <UserInput
         searchKey={searchKey}
         onExitSearch={props.onClose}
@@ -30,10 +25,6 @@ const Search = (props: Props) => {
   }
 
   return <Kb.SafeAreaViewTop>{search}</Kb.SafeAreaViewTop>
-}
-
-const headerStyle = {
-  backgroundColor: Styles.globalColors.white,
 }
 
 const styleContainer = {

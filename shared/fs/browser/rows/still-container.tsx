@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {namedConnect} from '../../../util/container'
@@ -10,7 +9,6 @@ type OwnProps = {
   destinationPickerIndex?: number
   name: string
   path: Types.Path
-  routePath: I.List<string>
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
@@ -18,7 +16,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
-const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinationPickerIndex}: OwnProps) => {
+const mergeProps = (stateProps, _, {name, path, destinationPickerIndex}: OwnProps) => {
   const {_downloads, _pathItem} = stateProps
   const download = _downloads.find(t => t.meta.path === path && !t.state.isDone)
   return {
@@ -30,7 +28,6 @@ const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinati
       _pathItem.children.isEmpty(),
     name,
     path,
-    routePath,
     type: _pathItem.type,
   }
 }

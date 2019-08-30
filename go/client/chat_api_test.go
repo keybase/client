@@ -33,9 +33,13 @@ type handlerTracker struct {
 	listConvsOnNameV1   int
 	joinV1              int
 	leaveV1             int
+	addToChannelV1      int
 	loadFlipV1          int
 	getUnfurlSettingsV1 int
 	setUnfurlSettingsV1 int
+	advertiseCommandsV1 int
+	clearCommandsV1     int
+	listCommandsV1      int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -123,6 +127,11 @@ func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) AddToChannelV1(context.Context, Call, io.Writer) error {
+	h.addToChannelV1++
+	return nil
+}
+
 func (h *handlerTracker) LoadFlipV1(context.Context, Call, io.Writer) error {
 	h.loadFlipV1++
 	return nil
@@ -135,6 +144,21 @@ func (h *handlerTracker) GetUnfurlSettingsV1(context.Context, Call, io.Writer) e
 
 func (h *handlerTracker) SetUnfurlSettingsV1(context.Context, Call, io.Writer) error {
 	h.setUnfurlSettingsV1++
+	return nil
+}
+
+func (h *handlerTracker) AdvertiseCommandsV1(context.Context, Call, io.Writer) error {
+	h.advertiseCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ClearCommandsV1(context.Context, Call, io.Writer) error {
+	h.clearCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) ListCommandsV1(context.Context, Call, io.Writer) error {
+	h.listCommandsV1++
 	return nil
 }
 
@@ -215,6 +239,10 @@ func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) AddToChannelV1(context.Context, addToChannelOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
@@ -224,6 +252,17 @@ func (c *chatEcho) GetUnfurlSettingsV1(context.Context) Reply {
 }
 
 func (c *chatEcho) SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ClearCommandsV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+func (c *chatEcho) ListCommandsV1(context.Context, listCommandsOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -243,6 +282,7 @@ type topTest struct {
 	searchRegexpV1    int
 	joinV1            int
 	leaveV1           int
+	addToChannelV1    int
 	listConvsOnNameV1 int
 }
 
@@ -331,6 +371,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.leaveV1 != test.leaveV1 {
 			t.Errorf("test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
+		}
+		if h.addToChannelV1 != test.addToChannelV1 {
+			t.Errorf("test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
 		}
 		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
 			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",

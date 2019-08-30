@@ -41,7 +41,7 @@ const makeRes = (actionType: RPCChatTypes.UnfurlPromptAction, domain?: string) =
   return {accept: domain, actionType, onetime: domain}
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _) => ({
   prompts: stateProps.promptDomains
     .map(domain => ({
       domain,

@@ -1,16 +1,19 @@
 import * as React from 'react'
-import * as TabConstants from '../constants/tabs'
-import {Tab} from '../constants/types/settings'
+import {SettingsTab} from '../constants/settings'
+import {Tab} from '../constants/tabs'
 
 export type Props = {
+  badgeNotifications: boolean
+  badgeNumbers: Map<Tab, number>
   children: React.ReactNode
-  badgeNumbers: {[K in TabConstants.Tab]: number}
-  logoutInProgress: boolean
-  selectedTab: Tab
-  onTabChange: (tab: Tab) => void
-  onLogout: () => void
-  badgeNotifications?: boolean
   hasRandomPW?: boolean
+  loadHasRandomPW: () => void
+  contactsLabel: string
+  logoutInProgress: boolean
+  onLogout: () => void
+  onTabChange: (tab: SettingsTab) => void
+  selectedTab: SettingsTab
 }
 
-export default class Render extends React.Component<Props> {}
+declare class Render extends React.Component<Props> {}
+export default Render

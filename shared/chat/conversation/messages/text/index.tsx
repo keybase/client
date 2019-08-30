@@ -74,7 +74,27 @@ const Reply = (props: ReplyProps) => {
   )
 }
 
+export type ClaimProps = {
+  amount: number
+  label: string
+  onClaim: () => void
+}
+
+const Claim = (props: ClaimProps) => {
+  return (
+    <Kb.Button type="Wallet" onClick={props.onClaim} small={true} style={styles.claimButton}>
+      <Kb.Text style={styles.claimLabel} type="BodySemibold">
+        {props.label}{' '}
+        <Kb.Text style={styles.claimLabel} type="BodyExtrabold">
+          {props.amount}
+        </Kb.Text>
+      </Kb.Text>
+    </Kb.Button>
+  )
+}
+
 export type Props = {
+  claim?: ClaimProps
   isEditing: boolean
   // eslint-disable-next-line
   message: Types.MessageText
@@ -83,7 +103,7 @@ export type Props = {
   type: 'error' | 'pending' | 'sent'
 }
 
-const MessageText = ({isEditing, message, reply, text, type}: Props) => {
+const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}
@@ -98,6 +118,7 @@ const MessageText = ({isEditing, message, reply, text, type}: Props) => {
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       {!!reply && <Reply {...reply} />}
       {markdown}
+      {!!claim && <Claim {...claim} />}
     </Kb.Box2>
   )
 
@@ -122,6 +143,7 @@ const getStyle = (type, isEditing) => {
 const editing = {
   backgroundColor: Styles.globalColors.yellowLight,
   borderRadius: 2,
+  color: Styles.globalColors.blackOrWhite,
   paddingLeft: Styles.globalMargins.tiny,
   paddingRight: Styles.globalMargins.tiny,
 }
@@ -149,13 +171,20 @@ const pendingFailEditing = {
   ...pendingFail,
   ...editing,
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
+  claimButton: {
+    alignSelf: 'flex-start',
+    marginTop: Styles.globalMargins.xtiny,
+  },
+  claimLabel: {
+    color: Styles.globalColors.white,
+  },
   editing,
   pendingFail,
   pendingFailEditing,
   quoteContainer: {
     alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.greyLight,
+    backgroundColor: Styles.globalColors.grey,
     paddingLeft: Styles.globalMargins.xtiny,
   },
   replyContainer: {
@@ -193,6 +222,6 @@ const styles = Styles.styleSheetCreate({
   sent,
   sentEditing,
   wrapper: {alignSelf: 'flex-start', flex: 1},
-})
+}))
 
 export default MessageText

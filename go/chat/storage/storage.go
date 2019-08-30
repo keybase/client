@@ -448,7 +448,12 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 
 	// queue search index update in the background
-	go s.G().Indexer.Add(ctx, convID, uid, msgs)
+	go func() {
+		err := s.G().Indexer.Add(ctx, convID, uid, msgs)
+		if err != nil {
+			s.Debug(ctx, "Error adding to indexer: %+v", err)
+		}
+	}()
 
 	return res, nil
 }
@@ -544,7 +549,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				case chat1.MessageType_REACTION:
 					// If we haven't modified any reaction data, we don't want
 					// to send it up for a notification.
-					reactionUpdate := false
+					var reactionUpdate bool
 					// reactions don't update SupersededBy, instead they rely
 					// on ReactionIDs
 					mvalid.ServerHeader.ReactionIDs, reactionUpdate =
@@ -605,7 +610,12 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+	go func() {
+		err := s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+		if err != nil {
+			s.Debug(ctx, "Error removing from indexer: %+v", err)
+		}
+	}()
 
 	return updateAllSupersededByRes{
 		reactionTargets: s.flatten(updatedReactionTargets),
@@ -806,7 +816,12 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
-	go s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+	go func() {
+		err := s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+		if err != nil {
+			s.Debug(ctx, "Error removing from indexer: %+v", err)
+		}
+	}()
 
 	de("deleting %v messages", len(writeback))
 	if err = s.engine.WriteMessages(ctx, convID, uid, writeback); err != nil {
@@ -1039,14 +1054,8 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 		if err != nil {
 			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
 		}
-		// If we have a versioning error but our client now understands the new
-		// version, don't return the error message
-		if msg != nil && msg.IsError() && msg.Error().ParseableVersion() {
-			msg = nil
-		}
 		res = append(res, msg)
 	}
-
 	return res, nil
 }
 

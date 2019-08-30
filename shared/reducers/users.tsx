@@ -1,12 +1,19 @@
 import * as UsersGen from '../actions/users-gen'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
+import * as ConfigGen from '../actions/config-gen'
 
 const initialState: Types.State = Constants.makeState()
 const blankUserInfo = Constants.makeUserInfo()
 
-type Actions = UsersGen.Actions | Tracker2Gen.UpdateFollowersPayload | Tracker2Gen.UpdatedDetailsPayload
+type Actions =
+  | UsersGen.Actions
+  | Tracker2Gen.UpdateFollowersPayload
+  | Tracker2Gen.UpdatedDetailsPayload
+  | ConfigGen.SetAccountsPayload
+  | TeamBuildingGen.SearchResultsLoadedPayload
 
 const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
   switch (action.type) {
@@ -52,6 +59,28 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     }
+    case ConfigGen.setAccounts:
+      return state.update('infoMap', map =>
+        map.withMutations(m => {
+          action.payload.configuredAccounts.forEach(({username, fullname}) => {
+            m.update(username, old => (old || blankUserInfo).merge({fullname}))
+          })
+        })
+      )
+    case TeamBuildingGen.searchResultsLoaded:
+      return state.update('infoMap', map =>
+        map.withMutations(m => {
+          action.payload.users.forEach(({serviceMap, prettyName}) => {
+            const kbName = serviceMap.keybase
+            if (kbName) {
+              // only if unknown
+              if (!m.getIn([kbName, 'fullname'])) {
+                m.update(kbName, old => (old || blankUserInfo).merge({fullname: prettyName}))
+              }
+            }
+          })
+        })
+      )
     // Saga only actions
     default:
       return state

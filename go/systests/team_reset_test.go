@@ -24,8 +24,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	// to happen
 	poller := func(d keybase1.TeamDetails) bool {
 		for _, member := range d.Members.Writers {
-			switch member.Username {
-			case bob.username:
+			if member.Username == bob.username {
 				return member.Status.IsReset()
 			}
 		}
@@ -513,6 +512,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 	require.Equal(t, 0, len(details.Members.Writers))
 	require.Equal(t, 0, len(details.Members.Readers))
 	require.Equal(t, 0, len(details.Members.Bots))
+	require.Equal(t, 0, len(details.Members.RestrictedBots))
 }
 
 func TestTeamTryAddDeletedUser(t *testing.T) {

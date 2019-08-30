@@ -64,11 +64,11 @@ func TestBoxAuditAttempt(t *testing.T) {
 	teamName, teamID := createTeam2(*aTc)
 
 	t.Logf("adding B as admin")
-	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding C as reader")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	require.NoError(t, toErr(aA.Attempt(aM, teamID, false)), "A can attempt")
@@ -119,7 +119,7 @@ func TestBoxAuditAttempt(t *testing.T) {
 	t.Logf("C provisions and A adds C back after account reset")
 	err = cU.Login(cTc.G)
 	require.NoError(t, err)
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	attempt = cA.Attempt(cM, teamID, false)
@@ -143,44 +143,44 @@ func requireNonfatalError(t *testing.T, err error, args ...interface{}) {
 	require.True(t, ok, args...)
 }
 
-func requireClientError(t *testing.T, err error, args ...interface{}) {
-	_, ok := err.(FatalBoxAuditError)
-	require.True(t, ok, args...)
-}
-
 func auditTeam(a libkb.TeamBoxAuditor, mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 	_, err := a.BoxAuditTeam(mctx, teamID)
 	return err
 }
 
 func TestBoxAuditAudit(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 4)
+	fus, tcs, cleanup := setupNTests(t, 5)
 	defer cleanup()
 
-	_, bU, cU, dU := fus[0], fus[1], fus[2], fus[3]
-	aTc, bTc, cTc, dTc := tcs[0], tcs[1], tcs[2], tcs[3]
-	aM, bM, cM, dM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc), libkb.NewMetaContextForTest(*dTc)
-	aA, bA, cA, dA := aTc.G.GetTeamBoxAuditor(), bTc.G.GetTeamBoxAuditor(), cTc.G.GetTeamBoxAuditor(), dTc.G.GetTeamBoxAuditor()
+	_, bU, cU, dU, eU := fus[0], fus[1], fus[2], fus[3], fus[4]
+	aTc, bTc, cTc, dTc, eTc := tcs[0], tcs[1], tcs[2], tcs[3], tcs[4]
+	aM, bM, cM, dM, eM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc), libkb.NewMetaContextForTest(*dTc), libkb.NewMetaContextForTest(*eTc)
+	aA, bA, cA, dA, eA := aTc.G.GetTeamBoxAuditor(), bTc.G.GetTeamBoxAuditor(), cTc.G.GetTeamBoxAuditor(), dTc.G.GetTeamBoxAuditor(), eTc.G.GetTeamBoxAuditor()
 
 	t.Logf("A creates team")
 	teamName, teamID := createTeam2(*aTc)
 
 	t.Logf("adding B as admin")
-	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, teamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding C as reader")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), cU.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	t.Logf("adding D as bot")
-	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), dU.Username, keybase1.TeamRole_BOT, nil)
+	require.NoError(t, err)
+
+	t.Logf("adding E as restricted bot")
+	_, err = AddMember(aM.Ctx(), aTc.G, teamName.String(), eU.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
 	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
 	require.NoError(t, auditTeam(bA, bM, teamID), "B can audit")
 	require.NoError(t, auditTeam(cA, cM, teamID), "C can audit (this is vacuous, since C is a reader)")
 	require.NoError(t, auditTeam(dA, dM, teamID), "D can audit (this is vacuous, since D is a bot)")
+	require.NoError(t, auditTeam(eA, eM, teamID), "E can audit (this is vacuous, since E is a restricted bot)")
 
 	var nullstring *string
 	g1 := keybase1.PerTeamKeyGeneration(1)
@@ -191,10 +191,10 @@ func TestBoxAuditAudit(t *testing.T) {
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, BoxAuditLog{
 		Audits: []BoxAudit{
-			BoxAudit{
+			{
 				ID: nil,
 				Attempts: []keybase1.BoxAuditAttempt{
-					keybase1.BoxAuditAttempt{
+					{
 						Ctime:      0,
 						Error:      nullstring,
 						Result:     keybase1.BoxAuditAttemptResult_OK_VERIFIED,
@@ -218,10 +218,10 @@ func TestBoxAuditAudit(t *testing.T) {
 	log.Audits[0].Attempts[0].Ctime = 0
 	require.Equal(t, *log, BoxAuditLog{
 		Audits: []BoxAudit{
-			BoxAudit{
+			{
 				ID: nil,
 				Attempts: []keybase1.BoxAuditAttempt{
-					keybase1.BoxAuditAttempt{
+					{
 						Ctime:      0,
 						Error:      nullstring,
 						Result:     keybase1.BoxAuditAttemptResult_OK_VERIFIED,
@@ -242,10 +242,10 @@ func TestBoxAuditAudit(t *testing.T) {
 	t.Logf("check C's & D's view of the successful no-op audit in db")
 	vacuousLog := BoxAuditLog{
 		Audits: []BoxAudit{
-			BoxAudit{
+			{
 				ID: nil,
 				Attempts: []keybase1.BoxAuditAttempt{
-					keybase1.BoxAuditAttempt{
+					{
 						Ctime:      0,
 						Error:      nullstring,
 						Result:     keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE,
@@ -275,11 +275,21 @@ func TestBoxAuditAudit(t *testing.T) {
 		TeamIDs: map[keybase1.TeamID]bool{},
 		Version: CurrentBoxAuditVersion,
 	})
+	log, queue, jail = mustGetBoxState(eTc, eA, eM, teamID)
+	log.Audits[0].ID = nil
+	log.Audits[0].Attempts[0].Ctime = 0
+	require.Equal(t, *log, vacuousLog)
+	require.Nil(t, queue)
+	require.Equal(t, *jail, BoxAuditJail{
+		TeamIDs: map[keybase1.TeamID]bool{},
+		Version: CurrentBoxAuditVersion,
+	})
 
 	require.Equal(t, countTrues(t, mustGetJailLRU(aTc, aA)), 0)
 	require.Equal(t, countTrues(t, mustGetJailLRU(bTc, bA)), 0)
 	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, cA)), 0)
 	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, dA)), 0)
+	require.Equal(t, countTrues(t, mustGetJailLRU(cTc, eA)), 0)
 
 	t.Logf("checking state after failed attempts")
 	t.Logf("disable autorotate on retry")
@@ -290,7 +300,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	requireNonfatalError(t, err, "audit failure on unrotated puk")
 	_, ok := err.(NonfatalBoxAuditError)
 	require.True(t, ok)
-	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
+	log, queue, _ = mustGetBoxState(aTc, aA, aM, teamID)
 	require.Equal(t, len(log.Audits), 2)
 	require.True(t, log.InProgress, "failed audit causes it to be in progress")
 	require.Equal(t, len(queue.Items), 1)
@@ -298,7 +308,7 @@ func TestBoxAuditAudit(t *testing.T) {
 	require.Equal(t, queue.Version, CurrentBoxAuditVersion)
 	err = auditTeam(aA, aM, teamID)
 	requireNonfatalError(t, err, "another audit failure on unrotated puk")
-	log, queue, jail = mustGetBoxState(aTc, aA, aM, teamID)
+	_, queue, _ = mustGetBoxState(aTc, aA, aM, teamID)
 	require.Equal(t, len(queue.Items), 1, "no duplicates in retry queue")
 
 	t.Logf("checking that we can load a team in retry queue, but that is not jailed yet")
@@ -390,21 +400,21 @@ func TestBoxAuditRaces(t *testing.T) {
 	aA, bA, cA := aTc.G.GetTeamBoxAuditor(), bTc.G.GetTeamBoxAuditor(), cTc.G.GetTeamBoxAuditor()
 
 	aTeamName, aTeamID := createTeam2(*aTc)
-	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	bTeamName, bTeamID := createTeam2(*bTc)
-	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(bM.Ctx(), bTc.G, bTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	cTeamName, cTeamID := createTeam2(*cTc)
-	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), aU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(cM.Ctx(), cTc.G, cTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// We do this so the audits will access the shared jail and queue data
@@ -458,9 +468,9 @@ func TestBoxAuditCalculation(t *testing.T) {
 	aM, _, cM := libkb.NewMetaContextForTest(*aTc), libkb.NewMetaContextForTest(*bTc), libkb.NewMetaContextForTest(*cTc)
 
 	aTeamName, aTeamID := createTeam2(*aTc)
-	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(aM.Ctx(), aTc.G, aTeamName.String(), cU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	puk := aU.User.GetComputedKeyFamily().GetLatestPerUserKey()
@@ -476,7 +486,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 		return team, chainSummary, currentSummary
 	}
 
-	team, chainSummary, currentSummary := load(aM, aTeamID)
+	_, chainSummary, currentSummary := load(aM, aTeamID)
 	expected := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno,
@@ -488,7 +498,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	t.Logf("B rotates PUK")
 	kbtest.RotatePaper(*bTc, bU)
 
-	team, chainSummary, currentSummary = load(cM, aTeamID)
+	team, chainSummary, currentSummary := load(cM, aTeamID)
 	newExpected := boxPublicSummaryTable{
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno + 3,
@@ -502,7 +512,7 @@ func TestBoxAuditCalculation(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("C checks summary")
-	team, chainSummary, currentSummary = load(cM, aTeamID)
+	_, chainSummary, currentSummary = load(cM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newExpected, currentSummary.table)
 
@@ -512,33 +522,33 @@ func TestBoxAuditCalculation(t *testing.T) {
 		aU.User.GetUID(): initSeqno,
 		bU.User.GetUID(): initSeqno + 3,
 	}
-	team, chainSummary, currentSummary = load(aM, aTeamID)
+	_, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 
 	t.Logf("make some dummy links to test historical chain summary")
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
-	team, chainSummary, currentSummary = load(aM, aTeamID)
+	_, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 
 	t.Logf("make some more dummy links")
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, aTeamName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	team, _, _ = load(aM, aTeamID)
 	err = team.Rotate(aM.Ctx(), keybase1.RotationType_VISIBLE)
 	require.NoError(t, err)
-	team, chainSummary, currentSummary = load(aM, aTeamID)
+	_, chainSummary, currentSummary = load(aM, aTeamID)
 	require.Equal(t, newerExpected, chainSummary.table)
 	require.Equal(t, newerExpected, currentSummary.table)
 }
@@ -558,10 +568,10 @@ func TestBoxAuditSubteamCalculation(t *testing.T) {
 	subteamName, err := parentName.Append("abc")
 	require.NoError(t, err)
 	t.Logf("adding B as writer of team")
-	_, err = AddMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	t.Logf("adding C as writer of subteam")
-	_, err = AddMember(aM.Ctx(), aTc.G, subteamName.String(), cU.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(aM.Ctx(), aTc.G, subteamName.String(), cU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	puk := aU.User.GetComputedKeyFamily().GetLatestPerUserKey()
@@ -593,7 +603,7 @@ func TestBoxAuditSubteamCalculation(t *testing.T) {
 	require.Equal(t, subteamTable1, currentSummary.table)
 
 	t.Logf("make b an admin of parent, giving him boxes")
-	err = EditMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_ADMIN)
+	err = EditMember(aM.Ctx(), aTc.G, parentName.String(), bU.Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 	_, chainSummary, currentSummary = load(aM, *subteamID)
 	t.Logf("check do not need to rotate to know about new admin in chainsummary")
@@ -685,7 +695,7 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("adding B as admin to subteam")
-	_, err = AddMember(aM.Ctx(), aTc.G, subTeamName.String(), bU.Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(aM.Ctx(), aTc.G, subTeamName.String(), bU.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	// Even though A is not in subteam, A has a box because of implicit
@@ -694,7 +704,7 @@ func TestBoxAuditSubteamWithImplicitAdmins(t *testing.T) {
 
 	// Add third user as an admin to parent team. They will be boxed for
 	// subteam as well.
-	_, err = AddMember(aM.Ctx(), aM.G(), parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(aM.Ctx(), aM.G(), parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// Audit both teams again
@@ -724,7 +734,8 @@ func TestBoxAuditTransactionsWithBoxSummaries(t *testing.T) {
 	tx := CreateAddMemberTx(team)
 	for _, otherUser := range []*kbtest.FakeUser{otherA, otherB, otherC} {
 		val := &keybase1.TeamChangeReq{}
-		val.AddUVWithRole(otherUser.GetUserVersion(), keybase1.TeamRole_WRITER)
+		err = val.AddUVWithRole(otherUser.GetUserVersion(), keybase1.TeamRole_WRITER, nil)
+		require.NoError(t, err)
 		payload := txPayload{
 			Tag: txPayloadTagCryptomembers,
 			Val: val,
@@ -751,7 +762,8 @@ func TestBoxAuditVersionBump(t *testing.T) {
 
 	a1 := newBoxAuditorWithVersion(aM.G(), 5)
 
-	a1.jail(aM, teamID)
+	err := a1.jail(aM, teamID)
+	require.NoError(t, err)
 
 	jailed, err := a1.IsInJail(aM, teamID)
 	require.NoError(t, err)

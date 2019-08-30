@@ -67,8 +67,25 @@ export type _Details = {
 }
 export type Details = I.RecordOf<_Details>
 
+// Details for SBS profiles
+export type _NonUserDetails = {
+  assertionKey: string
+  assertionValue: string
+  description: string
+  bio: string | null
+  fullName: string | null
+  location: string | null
+  pictureUrl: string | null
+  formattedName: string | null
+  siteIcon: SiteIconSet
+  siteIconFull: SiteIconSet // full color icon,
+  siteURL: string // https://twitter.com/bob,
+}
+export type NonUserDetails = I.RecordOf<_NonUserDetails>
+
 export type _State = {
   usernameToDetails: I.Map<string, Details>
+  usernameToNonUserDetails: I.Map<string, NonUserDetails>
   proofSuggestions: I.List<Assertion>
 }
 

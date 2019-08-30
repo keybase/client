@@ -2,10 +2,11 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Styles from '../../styles'
+import * as Types from '../../constants/types/wallets'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import openURL from '../../util/open-url'
 
-type Props = {
+export type Props = {
   loading: boolean
   onBack: () => void
   onLoad: () => void
@@ -14,14 +15,7 @@ type Props = {
   signedUp: boolean
   headerBody: string
   headerTitle: string
-  sections: ReadonlyArray<{
-    lines: ReadonlyArray<{
-      bullet: boolean
-      text: string
-    }>
-    section: string
-    icon: string | null
-  }>
+  sections: Types.StellarDetailsSections
   title: string
 }
 
@@ -74,6 +68,7 @@ const Friends = () => (
         </Kb.Text>
         <Kb.Text type="Body">
           <Kb.Text
+            selectable={true}
             type="BodyPrimaryLink"
             style={styles.link}
             onClick={() => openURL('https://keybase.io/airdrop')}
@@ -84,7 +79,7 @@ const Friends = () => (
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
-    <Kb.Icon type="icon-fancy-airdrop-friends-120" />
+    <Kb.Icon type="icon-fancy-airdrop-shining-80" />
   </Kb.Box2>
 )
 
@@ -119,7 +114,7 @@ class Airdrop extends React.Component<Props> {
           {p.signedUp ? (
             <Kb.Box2 direction="horizontal" fullWidth={true} noShrink={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
-                <Kb.Icon type="icon-airdrop-star-32" />
+                <Kb.Icon type="icon-airdrop-logo-32" />
                 <Kb.Text type="BodySmallSemibold" style={styles.yourIn}>
                   You're in. The next Lumens airdrop will show up in your default wallet account.
                 </Kb.Text>
@@ -134,11 +129,15 @@ class Airdrop extends React.Component<Props> {
               style={styles.header}
             >
               <Kb.Box2 direction="vertical" centerChildren={true}>
-                <Kb.Icon type="icon-fancy-airdrop-star-shining-120" />
+                <Kb.Icon type="icon-fancy-airdrop-shining-120" />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
-                <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
-                <Kb.Markdown styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={headerOverride}>
+                  {p.headerTitle}
+                </Kb.Markdown>
+                <Kb.Markdown selectable={true} styleOverride={bodyOverride}>
+                  {p.headerBody}
+                </Kb.Markdown>
                 <Kb.Button
                   backgroundColor="purple"
                   label="See if you qualify"
@@ -159,7 +158,7 @@ class Airdrop extends React.Component<Props> {
                 style={styles.shrink}
               >
                 <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
-                  <Kb.Markdown style={styles.section} styleOverride={sectionOverride}>
+                  <Kb.Markdown selectable={true} style={styles.section} styleOverride={sectionOverride}>
                     {b.section}
                   </Kb.Markdown>
                   {b.lines.map(l => (
@@ -168,11 +167,13 @@ class Airdrop extends React.Component<Props> {
                         <Kb.Icon
                           type="iconfont-check"
                           color={Styles.globalColors.green}
-                          sizeType={'Small'}
+                          sizeType="Small"
                           style={styles.bullet}
                         />
                       )}
-                      <Kb.Markdown styleOverride={sectionBodyOverride}>{l.text}</Kb.Markdown>
+                      <Kb.Markdown selectable={true} styleOverride={sectionBodyOverride}>
+                        {l.text}
+                      </Kb.Markdown>
                     </Kb.Box2>
                   ))}
                 </Kb.Box2>
@@ -238,7 +239,7 @@ const sectionBodyOverride = {
   paragraph: {fontSize: Styles.isMobile ? 16 : 13},
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bannerButton: {
     alignSelf: Styles.isMobile ? ('center' as const) : ('flex-start' as const),
   },
@@ -252,11 +253,10 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
   },
   friendContainer: {
+    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
     backgroundColor: Styles.globalColors.blueLighter3,
     display: 'flex',
     flexWrap: 'wrap',
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
   },
   friendText: Styles.platformStyles({
     isElectron: {whiteSpace: 'pre'},
@@ -315,6 +315,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.greenDark,
     flexShrink: 1,
   },
-})
+}))
 
 export default (Styles.isMobile ? Kb.HeaderHoc(Airdrop) : Airdrop)

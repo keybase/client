@@ -5,7 +5,7 @@ import ConfirmForm from '../../../wallets/confirm-form'
 
 type LoadingProps = {}
 
-const PaymentsConfirmLoading = Kb.HeaderOrPopup((props: LoadingProps) => (
+const PaymentsConfirmLoading = Kb.HeaderOrPopup((_: LoadingProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} fullHeight={true}>
       <Kb.ProgressIndicator />
@@ -77,7 +77,7 @@ type PaymentProps = {
 }
 
 const PaymentRow = (props: PaymentProps) => (
-  <React.Fragment>
+  <>
     <Kb.NameWithIcon horizontal={true} username={props.username} metaOne={props.fullName} />
     <Kb.Box2 direction="vertical" style={styles.paymentTotalsContainer}>
       {!!props.displayAmount && <Kb.Text type="BodyExtrabold">{props.displayAmount}</Kb.Text>}
@@ -91,7 +91,7 @@ const PaymentRow = (props: PaymentProps) => (
         </Kb.Text>
       )}
     </Kb.Box2>
-  </React.Fragment>
+  </>
 )
 
 type Props = {

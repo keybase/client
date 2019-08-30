@@ -32,37 +32,41 @@ const mapDispatchToProps = dispatch => ({
       case RPCTypes.AppLinkType.people:
         break
       case RPCTypes.AppLinkType.chat:
-        dispatch(RouteTree.createSwitchTo({path: [Tabs.chatTab]}))
+        dispatch(RouteTree.createNavigateAppend({path: [Tabs.chatTab]}))
         break
       case RPCTypes.AppLinkType.files:
         dispatch(
-          RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.fsTab] : [Tabs.fsTab]})
+          RouteTree.createNavigateAppend({
+            path: isMobile ? [Tabs.settingsTab, SettingsTabs.fsTab] : [Tabs.fsTab],
+          })
         )
         break
       case RPCTypes.AppLinkType.wallet:
         dispatch(
-          RouteTree.createSwitchTo({
+          RouteTree.createNavigateAppend({
             path: isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
           })
         )
         break
       case RPCTypes.AppLinkType.git:
         dispatch(
-          RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.gitTab] : [Tabs.gitTab]})
+          RouteTree.createNavigateAppend({
+            path: isMobile ? [Tabs.settingsTab, SettingsTabs.gitTab] : [Tabs.gitTab],
+          })
         )
         break
       case RPCTypes.AppLinkType.devices:
         dispatch(
-          RouteTree.createSwitchTo({
+          RouteTree.createNavigateAppend({
             path: isMobile ? [Tabs.settingsTab, SettingsTabs.devicesTab] : [Tabs.devicesTab],
           })
         )
         break
       case RPCTypes.AppLinkType.settings:
-        dispatch(RouteTree.createSwitchTo({path: [Tabs.settingsTab]}))
+        dispatch(RouteTree.createNavigateAppend({path: [Tabs.settingsTab]}))
         break
       case RPCTypes.AppLinkType.teams:
-        dispatch(RouteTree.createSwitchTo({path: [Tabs.teamsTab]}))
+        dispatch(RouteTree.createNavigateAppend({path: [Tabs.teamsTab]}))
         break
     }
     dispatch(PeopleGen.createDismissAnnouncement({id}))
@@ -74,7 +78,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   badged: ownProps.badged,
   confirmLabel: ownProps.confirmLabel,
   iconUrl: ownProps.iconUrl,

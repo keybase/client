@@ -11,10 +11,10 @@ function getDisplayName(WrappedComponent): string {
 function HOCTimers(WrappedComponent) {
   class TimersComponent extends React.Component {
     static displayName = `HOCTimers(${getDisplayName(WrappedComponent)})`
-    setTimeout = (f, n) => 0
-    clearTimeout = id => {}
-    setInterval = (f, n) => 0
-    clearInterval = id => {}
+    setTimeout = () => 0
+    clearTimeout = () => {}
+    setInterval = () => 0
+    clearInterval = () => {}
     render() {
       return (
         <WrappedComponent

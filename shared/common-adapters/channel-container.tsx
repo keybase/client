@@ -2,7 +2,7 @@ import * as Types from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
 import {namedConnect} from '../util/container'
-import {StylesTextCrossPlatform} from '../common-adapters/text'
+import {StylesTextCrossPlatform} from './text'
 
 type OwnProps = {
   name: string
@@ -11,7 +11,7 @@ type OwnProps = {
   allowFontScaling?: boolean | null
 }
 
-const mapStateToProps = state => ({})
+const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
   _onClick: (name, convID) =>
@@ -24,7 +24,7 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   allowFontScaling: ownProps.allowFontScaling,
   convID: ownProps.convID,
   name: ownProps.name,

@@ -217,6 +217,10 @@ protocol config {
   void clearValue(string path);
   ConfigValue getValue(string path);
 
+  void guiSetValue(string path, ConfigValue value);
+  void guiClearValue(string path);
+  ConfigValue guiGetValue(string path);
+
   record OutOfDateInfo {
     string upgradeTo;
     string upgradeURI;
@@ -258,7 +262,9 @@ protocol config {
     string deviceName;      // current logged in user's device name
     FullName fullname;        // current user's fullname
     UserReacjis userReacjis;    // reacjis preferences for current logged in user
+    union { null, HttpSrvInfo } httpSrvInfo; // info about the service http server
   }
+
   BootstrapStatus getBootstrapStatus(int sessionID);
   void requestFollowerInfo(UID uid);
 
@@ -305,4 +311,6 @@ protocol config {
 
   // Runtime Stats
   void toggleRuntimeStats();
+
+  void appendGUILogs(string content);
 }

@@ -45,7 +45,7 @@ class FloatingBox extends React.Component<Props, State> {
     this.props.onHidden && this.props.onHidden()
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate() {
     const targetRect = this._getTargetRect()
     this.setState(p => {
       if (p.targetRect === targetRect) {

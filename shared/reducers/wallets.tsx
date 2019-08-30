@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
-import * as Chat2Gen from '../actions/chat2-gen'
 import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
 
@@ -24,13 +23,17 @@ const reduceAssetMap = (
 export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
-      return initialState
+      return initialState.merge({
+        staticConfig: state.staticConfig,
+      })
+    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.accountsReceived: {
       const accountMap: I.OrderedMap<Types.AccountID, Types.Account> = I.OrderedMap(
         action.payload.accounts.map(account => [account.accountID, account])
       )
       return state.merge({accountMap: accountMap})
     }
+    case WalletsGen.changedAccountName:
     case WalletsGen.accountUpdateReceived:
       // accept the updated account if we've loaded it already
       // this is because we get the sort order from the full accounts load,
@@ -123,7 +126,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.pendingPaymentsReceived: {
       const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-        paymentsMap.filter(p => p.section !== 'pending').merge(newPending)
+        paymentsMap.filter((p: any) => p.section !== 'pending').merge(newPending)
       )
     }
     case WalletsGen.recentPaymentsReceived: {
@@ -363,12 +366,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKeyError: actionHasError(action) ? action.payload.error : '',
         secretKeyValidationState: actionHasError(action) ? 'error' : 'valid',
       })
+    case WalletsGen.changedTrustline:
+      return actionHasError(action)
+        ? state.merge({changeTrustlineError: action.payload.error})
+        : state.merge({changeTrustlineError: ''})
     case WalletsGen.clearErrors:
       return state.merge({
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
         builtPayment: state.get('builtPayment').merge({readyToSend: 'spinning'}),
+        changeTrustlineError: '',
         createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
@@ -383,6 +391,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountName: '',
             accountNameError: '',
             accountNameValidationState: 'none',
+            changeTrustlineError: '',
             createNewAccountError: '',
             linkExistingAccountError: '',
             secretKey: new HiddenString(''),
@@ -452,6 +461,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         sep7ConfirmError: '',
         sep7ConfirmInfo: null,
+        sep7ConfirmPath: Constants.emptyBuiltPaymentAdvanced,
         sep7ConfirmURI: '',
       })
     case WalletsGen.validateSEP7LinkError:
@@ -464,8 +474,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.updateAirdropBannerState:
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails: {
-      const {details, isPromoted} = action.payload
-      return state.set('airdropDetails', Constants.makeAirdropDetails({details, isPromoted}))
+      const {details, disclaimer, isPromoted} = action.payload
+      return state.set('airdropDetails', Constants.makeStellarDetails({details, disclaimer, isPromoted}))
     }
     case WalletsGen.setTrustlineExpanded:
       return state.update('trustline', trustline =>
@@ -528,15 +538,27 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearTrustlineSearchResults:
       return state.update('trustline', trustline => trustline.set('searchingAssets', undefined))
     case WalletsGen.setBuiltPaymentAdvanced:
-      return state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
+      return action.payload.forSEP7
+        ? state.set('sep7ConfirmPath', action.payload.builtPaymentAdvanced)
+        : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case WalletsGen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
+    case WalletsGen.assetDeposit:
+    case WalletsGen.assetWithdraw:
+      return state.merge({
+        sep6Error: false,
+        sep6Message: '',
+      })
+    case WalletsGen.setSEP6Message:
+      return state.merge({
+        sep6Error: action.payload.error,
+        sep6Message: action.payload.message,
+      })
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:
     case WalletsGen.updateAirdropState:
     case WalletsGen.rejectDisclaimer:
-    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
@@ -551,7 +573,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeDisplayCurrency:
     case WalletsGen.changeAccountName:
     case WalletsGen.checkDisclaimer:
-    case WalletsGen.changedAccountName:
     case WalletsGen.deleteAccount:
     case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
@@ -569,6 +590,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadInflationDestination:
     case WalletsGen.loadExternalPartners:
     case WalletsGen.acceptSEP7Pay:
+    case WalletsGen.acceptSEP7Path:
     case WalletsGen.acceptSEP7Tx:
     case WalletsGen.refreshTrustlineAcceptedAssets:
     case WalletsGen.refreshTrustlinePopularAssets:

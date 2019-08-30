@@ -1,20 +1,14 @@
-import {connect, RouteProps} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import InviteGenerated from '.'
 
-type OwnProps = RouteProps<{email: string; link: string}>
+type OwnProps = Container.RouteProps<{email: string; link: string}>
 
-const mapStateToProps = (state: any, {routeProps}) => ({
-  email: routeProps.get('email'),
-  link: routeProps.get('link'),
-})
-
-const mapDispatchToProps = (dispatch: any) => ({
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
+export default Container.connect(
+  (_, ownProps: OwnProps) => ({
+    email: Container.getRouteProps(ownProps, 'email', ''),
+    link: Container.getRouteProps(ownProps, 'link', ''),
+  }),
+  dispatch => ({onClose: () => dispatch(RouteTreeGen.createNavigateUp())}),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(InviteGenerated)

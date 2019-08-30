@@ -57,16 +57,21 @@ func benchmarkWriteSeqN(b *testing.B, n int64, mask int64) {
 					return err
 				}
 				var n int
-				cb(getBenchN(&n))
-				cb(resetTimer())
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
 				for i := 0; i < n; i++ {
 					err = cb(pwriteBS("bench", buf, (int64(i*n))&mask))
 					if err != nil {
 						return err
 					}
 				}
-				cb(stopTimer())
-				return nil
+				return cb(stopTimer())
 			}),
 		),
 	)
@@ -116,16 +121,21 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 					return err
 				}
 				var n int
-				cb(getBenchN(&n))
-				cb(resetTimer())
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
 				for i := 0; i < n; i++ {
 					err = cb(preadBS("bench", buf, (int64(i*n))&mask))
 					if err != nil {
 						return err
 					}
 				}
-				cb(stopTimer())
-				return nil
+				return cb(stopTimer())
 			}),
 		),
 	)
@@ -134,7 +144,10 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
 	numWritesPerFile int, buf []byte, startIter int) error {
 	var n int
-	cb(getBenchN(&n))
+	err := cb(getBenchN(&n))
+	if err != nil {
+		return err
+	}
 	for i := startIter; i < n+startIter; i++ {
 		name := fmt.Sprintf("bench%d", i)
 		err := cb(mkfile(name, ""))
@@ -171,10 +184,13 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 		bandwidth(writebwKBps),
 		opTimeout(19*time.Second),
 		as(alice,
-			custom(func(cb func(fileOp) error) error {
+			custom(func(cb func(fileOp) error) (err error) {
 				startIter := 0
 				var n int
-				cb(getBenchN(&n))
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
 				if doWarmUp {
 					if err := benchmarkDoBenchWrites(b, cb,
 						numWritesPerFile, buf, 0); err != nil {
@@ -182,8 +198,16 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 					}
 					startIter = n
 				}
-				cb(resetTimer())
-				defer cb(stopTimer())
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				defer func() {
+					stopErr := cb(stopTimer())
+					if err == nil && stopErr != nil {
+						err = stopErr
+					}
+				}()
 				return benchmarkDoBenchWrites(b, cb, numWritesPerFile, buf,
 					startIter)
 			}),
@@ -245,11 +269,22 @@ func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
 		bandwidth(11*1024/8 /* 11 Mbps */),
 		opTimeout(19*time.Second),
 		as(alice,
-			custom(func(cb func(fileOp) error) error {
+			custom(func(cb func(fileOp) error) (err error) {
 				var n int
-				cb(getBenchN(&n))
-				cb(resetTimer())
-				defer cb(stopTimer())
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				defer func() {
+					stopErr := cb(stopTimer())
+					if err == nil && stopErr != nil {
+						err = stopErr
+					}
+				}()
 				currIter := 0
 				for _, fileSize := range fileSizes {
 					numWrites := int(fileSize / perWriteBytes)
@@ -277,26 +312,43 @@ func benchmarkMultiFileSync(
 		),
 		as(alice,
 			enableJournal(),
-			custom(func(cb func(fileOp) error) error {
+			custom(func(cb func(fileOp) error) (err error) {
 				if isolateStages {
 					// If we want to time one of the stages
 					// separately, pause the journal.
-					cb(pauseJournal())
+					err = cb(pauseJournal())
+					if err != nil {
+						return err
+					}
 				}
 
 				var n int
-				cb(getBenchN(&n))
+				err = cb(getBenchN(&n))
+				if err != nil {
+					return err
+				}
 				buf := make([]byte, numFiles*fileSize+fileSize)
 				for i := 0; i < numFiles*fileSize; i++ {
 					// Make sure we mix up the byte values a bit, so
 					// we don't accidentally trigger any deduplication.
 					buf[i] = byte(i)
 				}
-				cb(resetTimer())
-				defer cb(stopTimer())
+				err = cb(resetTimer())
+				if err != nil {
+					return err
+				}
+				defer func() {
+					stopErr := cb(stopTimer())
+					if err == nil && stopErr != nil {
+						err = stopErr
+					}
+				}()
 				for iter := 0; iter < n; iter++ {
 					if !timeWrites {
-						cb(stopTimer())
+						err = cb(stopTimer())
+						if err != nil {
+							return err
+						}
 					}
 					// Write to each file without syncing.
 					for i := iter * numFiles; i < (iter+1)*numFiles; i++ {
@@ -317,20 +369,38 @@ func benchmarkMultiFileSync(
 						}
 					}
 					if !timeWrites {
-						cb(startTimer())
+						err = cb(startTimer())
+						if err != nil {
+							return err
+						}
 					}
 					if !timeFlush {
-						cb(stopTimer())
+						err = cb(stopTimer())
+						if err != nil {
+							return err
+						}
 					}
 					if isolateStages {
-						cb(resumeJournal())
+						err = cb(resumeJournal())
+						if err != nil {
+							return err
+						}
 					}
-					cb(flushJournal())
+					err = cb(flushJournal())
+					if err != nil {
+						return err
+					}
 					if isolateStages {
-						cb(pauseJournal())
+						err = cb(pauseJournal())
+						if err != nil {
+							return err
+						}
 					}
 					if !timeFlush {
-						cb(startTimer())
+						err = cb(startTimer())
+						if err != nil {
+							return err
+						}
 					}
 				}
 				return nil

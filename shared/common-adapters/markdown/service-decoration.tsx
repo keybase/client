@@ -1,7 +1,10 @@
 import React from 'react'
+import * as Container from '../../util/container'
 import * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as DeeplinksConstants from '../../constants/deeplinks'
+import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as Styles from '../../styles'
 import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
@@ -10,6 +13,41 @@ import Channel from '../channel-container'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import {StyleOverride} from '.'
+
+const linkStyle = Styles.platformStyles({
+  isElectron: {
+    fontWeight: 'inherit',
+  },
+  isMobile: {
+    fontWeight: undefined,
+  },
+})
+
+type KeybaseLinkProps = {
+  link: string
+  linkStyle?: StylesTextCrossPlatform | undefined
+  wrapStyle?: StylesTextCrossPlatform | undefined
+}
+
+const KeybaseLink = (props: KeybaseLinkProps) => {
+  const dispatch = Container.useDispatch()
+  const onClick = React.useCallback(() => dispatch(DeeplinksGen.createLink({link: props.link})), [
+    dispatch,
+    props.link,
+  ])
+
+  return (
+    <Text
+      className="hover-underline"
+      type="BodyPrimaryLink"
+      style={Styles.collapseStyles([props.wrapStyle, linkStyle, props.linkStyle])}
+      title={props.link}
+      onClick={onClick}
+    >
+      {props.link}
+    </Text>
+  )
+}
 
 export type Props = {
   json: string
@@ -72,7 +110,10 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link && parsed.link) {
-    return (
+    const link = parsed.link.display
+    return DeeplinksConstants.linkIsKeybaseLink(link) ? (
+      <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
+    ) : (
       <Text
         className="hover-underline"
         type="BodyPrimaryLink"
@@ -112,14 +153,5 @@ const ServiceDecoration = (props: Props) => {
   }
   return null
 }
-
-const linkStyle = Styles.platformStyles({
-  isElectron: {
-    fontWeight: 'inherit',
-  },
-  isMobile: {
-    fontWeight: undefined,
-  },
-})
 
 export default ServiceDecoration

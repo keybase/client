@@ -3,11 +3,12 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
-  error: Error | null
+  error?: Error
   teamname?: string
   name: string
   onDelete: (notifyTeam: boolean) => void
   onClose: () => void
+  title?: string
   waitingKey: string
 }
 
@@ -43,16 +44,9 @@ class DeleteRepo extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ScrollView>
-        <Kb.Box style={_containerStyle}>
+        <Kb.Box style={styles.container}>
           {!!this.props.error && (
-            <Kb.Box
-              style={{
-                alignSelf: 'stretch',
-                backgroundColor: Styles.globalColors.red,
-                marginBottom: Styles.globalMargins.small,
-                padding: Styles.globalMargins.tiny,
-              }}
-            >
+            <Kb.Box style={styles.error}>
               <Kb.Text type="Body" negative={true}>
                 {this.props.error.message}
               </Kb.Text>
@@ -63,13 +57,7 @@ class DeleteRepo extends React.Component<Props, State> {
             repository?
           </Kb.Text>
           <Kb.Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxRow,
-              alignItems: 'center',
-              marginBottom: Styles.globalMargins.medium,
-            }}
-          >
+          <Kb.Box style={styles.avatarBox}>
             {!!this.props.teamname && (
               <Kb.Avatar
                 isTeam={true}
@@ -130,12 +118,25 @@ class DeleteRepo extends React.Component<Props, State> {
   }
 }
 
-const _containerStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  height: '100%',
-  padding: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.xlarge,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  avatarBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginBottom: Styles.globalMargins.medium,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    height: '100%',
+    padding: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.xlarge,
+  },
+  error: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.red,
+    marginBottom: Styles.globalMargins.small,
+    padding: Styles.globalMargins.tiny,
+  },
+}))
 
 export default Kb.HeaderOrPopup(DeleteRepo)

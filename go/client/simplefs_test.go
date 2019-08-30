@@ -208,7 +208,8 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 }
 
 // SimpleFSReset implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSReset(_ context.Context, _ keybase1.Path) error {
+func (s SimpleFSMock) SimpleFSReset(
+	_ context.Context, _ keybase1.SimpleFSResetArg) error {
 	return nil
 }
 
@@ -260,7 +261,7 @@ func (s SimpleFSMock) SimpleFSSetFolderSyncConfig(
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSSyncConfigAndStatus(
-	_ context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	_ context.Context, _ *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
 	return keybase1.SyncConfigAndStatusRes{}, nil
 }
 
@@ -309,6 +310,21 @@ func (s SimpleFSMock) SimpleFSGetStats(_ context.Context) (
 	return keybase1.SimpleFSStats{}, nil
 }
 
+// SimpleFSSubscribeNonPath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	return nil
+}
+
+// SimpleFSSubscribePath implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	return nil
+}
+
+// SimpleFSUnsubscribe implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file
@@ -333,14 +349,14 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local %s", testPath)
-	assert.Equal(tc.T, "/private/foobar", testPath.Kbfs())
+	assert.Equal(tc.T, "/private/foobar", testPath.Kbfs().Path)
 
 	testPath, err = makeSimpleFSPath("/keybase/private/")
 	require.NoError(tc.T, err)
 	pathType, err = testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
-	assert.Equal(tc.T, "/private", testPath.Kbfs())
+	assert.Equal(tc.T, "/private", testPath.Kbfs().Path)
 
 }
 
@@ -389,14 +405,14 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 		destPath,
 		true,
 		"/public/foobar")
-	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs().Path)
 	require.NoError(tc.T, err, "bad path type")
 
 	pathType, err := destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
 
-	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs().Path)
 
 	// Destination file given
 	destPath, err = makeDestPath(
@@ -407,14 +423,14 @@ func TestSimpleFSLocalSrcFile(t *testing.T) {
 		destPath,
 		true,
 		"/public/foobar")
-	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs().Path)
 	require.NoError(tc.T, err, "bad path type")
 
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
 	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local")
 
-	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs())
+	assert.Equal(tc.T, "/public/foobar/test1.txt", destPath.Kbfs().Path)
 
 }
 
@@ -450,7 +466,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{remoteExists: true}, srcPath)
 	require.NoError(tc.T, err)
-	require.Equal(tc.T, "/public/foobar/test1.txt", srcPath.Kbfs())
+	require.Equal(tc.T, "/public/foobar/test1.txt", srcPath.Kbfs().Path)
 	require.False(tc.T, isSrcDir)
 	require.Equal(tc.T, "/public/foobar/test1.txt", srcPathString)
 	require.Equal(tc.T, "test1.txt", filepath.Base(srcPathString))
@@ -516,7 +532,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 		destPathInitial,
 		true,
 		"/public/foobar")
-	assert.Equal(tc.T, filepath.ToSlash(filepath.Join("/public/foobar", filepath.Base(tempdir))), destPath.Kbfs())
+	assert.Equal(tc.T, filepath.ToSlash(filepath.Join("/public/foobar", filepath.Base(tempdir))), destPath.Kbfs().Path)
 	assert.Equal(tc.T, err, ErrTargetFileExists, "Expected that remote target path exists because of SimpleFSMock")
 	//	require.NoError(tc.T, err, "bad path type")
 
@@ -539,7 +555,7 @@ func TestSimpleFSLocalSrcDir(t *testing.T) {
 		destPathInitial,
 		true,
 		"/public/foobar")
-	assert.Equal(tc.T, "/public/foobar", destPath.Kbfs())
+	assert.Equal(tc.T, "/public/foobar", destPath.Kbfs().Path)
 	require.NoError(tc.T, err, "bad path type")
 
 	pathType, err = destPath.PathType()
@@ -566,7 +582,7 @@ func TestSimpleFSRemoteSrcDir(t *testing.T) {
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), testStatter, srcPathInitial)
 	require.NoError(tc.T, err, "bad path type")
 	require.True(tc.T, isSrcDir)
-	require.Equal(tc.T, srcPathInitial.Kbfs(), srcPathString)
+	require.Equal(tc.T, srcPathInitial.Kbfs().Path, srcPathString)
 
 	// Test when dest. exists.
 	// We append the last element of the source in that case.
@@ -682,12 +698,12 @@ func TestSimpleFSPlatformGlob(t *testing.T) {
 	clientMock := SimpleFSMock{
 		ListResult: &mockResults,
 	}
-	path1 = keybase1.NewPathWithKbfs("/private/foobar/temp/*.txt")
+	path1 = keybase1.NewPathWithKbfsPath("/private/foobar/temp/*.txt")
 
 	paths, err = doSimpleFSGlob(context.TODO(), tc.G, clientMock, []keybase1.Path{path1})
 	require.NoError(t, err)
-	assert.Equal(tc.T, "/private/foobar/temp/test1.txt", paths[0].Kbfs())
-	assert.Equal(tc.T, "/private/foobar/temp/test2.txt", paths[1].Kbfs())
-	assert.Equal(tc.T, "/private/foobar/temp/test3.txt", paths[2].Kbfs())
+	assert.Equal(tc.T, "/private/foobar/temp/test1.txt", paths[0].Kbfs().Path)
+	assert.Equal(tc.T, "/private/foobar/temp/test2.txt", paths[1].Kbfs().Path)
+	assert.Equal(tc.T, "/private/foobar/temp/test3.txt", paths[2].Kbfs().Path)
 
 }

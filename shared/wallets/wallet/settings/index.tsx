@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
+import {IconType} from '../../../common-adapters/icon.constants'
 import WalletSettingTrustline from './trustline/container'
 import openUrl from '../../../util/open-url'
 
@@ -24,8 +25,8 @@ export type SettingsProps = {
   mobileOnlyWaiting: boolean
   onBack: () => void
   onDelete: () => void
-  onLoadSecretKey: () => void
-  onSecretKeySeen: () => void
+  onLoadSecretKey?: () => void
+  onSecretKeySeen?: () => void
   onSetDefault: () => void
   onEditName: () => void
   onSetupInflation: () => void
@@ -49,13 +50,18 @@ const Divider = () => <Kb.Divider style={styles.divider} />
 type PartnerRowProps = {
   extra: string
   description: string
-  iconFilename: string
+  iconFilename: IconType
   title: string
   url: string
 }
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-    <Kb.Icon type="icon-stellar-logo-grey-32" style={styles.partnerIcon} />
+    <Kb.Icon
+      type={props.iconFilename}
+      colorOverride={Styles.globalColors.black}
+      fontSize={32}
+      style={styles.partnerIcon}
+    />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
       <Kb.ClickableBox
         className="hover-underline-container"
@@ -76,15 +82,20 @@ const PartnerRow = (props: PartnerRowProps) => (
 class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
     this.props.refresh()
-    this.props.onLoadSecretKey()
   }
   componentWillUnmount() {
-    this.props.onSecretKeySeen()
+    this.clearKey()
   }
+
+  private clearKey = () => {
+    this.props.onSecretKeySeen && this.props.onSecretKeySeen()
+  }
+
   render() {
     const props = this.props
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        {Styles.isMobile && <Kb.NavigationEvents onWillBlur={this.clearKey} />}
         <Kb.HeaderHocHeader
           customComponent={<AccountPageHeader accountName={props.name} title="Settings" />}
           onBack={props.onBack}
@@ -119,16 +130,29 @@ class AccountSettings extends React.Component<SettingsProps> {
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Text type="BodySmallSemibold">Secret Key</Kb.Text>
-              <Kb.Banner color="yellow" inline={true}>Only paste your secret key in 100% safe places. Anyone with this key could steal your Stellar&nbsp;account.</Kb.Banner>
-              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
-                <Kb.CopyText containerStyle={styles.copyTextContainer} multiline={true} withReveal={true} text={this.props.secretKey} />
-                {!this.props.secretKey && (
-                  <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.progressContainer}>
-                    <Kb.ProgressIndicator style={styles.progressIndicator} type="Small" />
-                    <Kb.Text type="BodySmall">fetching and decrypting secret key...</Kb.Text>
+              {!props.thisDeviceIsLockedOut ? (
+                <>
+                  <Kb.Banner color="yellow" inline={true}>
+                    Only paste your secret key in 100% safe places. Anyone with this key could steal your
+                    Stellar&nbsp;account.
+                  </Kb.Banner>
+                  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
+                    <Kb.CopyText
+                      containerStyle={styles.copyTextContainer}
+                      multiline={true}
+                      withReveal={true}
+                      onReveal={() => this.props.onLoadSecretKey && this.props.onLoadSecretKey()}
+                      hideOnCopy={true}
+                      onCopy={this.clearKey}
+                      text={this.props.secretKey || 'fetching and decrypting secret key...'}
+                    />
                   </Kb.Box2>
-                )}
-              </Kb.Box2>
+                </>
+              ) : (
+                <Kb.Text type="Body">
+                  You can only view your secret key on mobile devices because this is a mobile-only account.
+                </Kb.Text>
+              )}
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
@@ -240,7 +264,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                       <PartnerRow
                         description={partner.description}
                         extra={partner.extra}
-                        iconFilename={partner.iconFilename}
+                        iconFilename={partner.iconFilename as IconType}
                         title={partner.title}
                         url={partner.url}
                       />
@@ -415,6 +439,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   secretKeyContainer: {
+    marginTop: Styles.globalMargins.tiny,
     position: 'relative',
   },
   section: {

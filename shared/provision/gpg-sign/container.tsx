@@ -1,38 +1,22 @@
 import * as ProvisionGen from '../../actions/provision-gen'
-import {connect} from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
+import * as Container from '../../util/container'
 import GPGSign from '.'
 
-type OwnProps = RouteProps
+type OwnProps = {}
 
-const mapStateToProps = state => ({
-  importError: state.provision.gpgImportError,
-})
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),
-  // TODO remove
-  onBack: () => {},
-  onRejectGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: false})),
-  onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
-})
-
-// If we are asked to switch to gpg sign, we either accept or reject.
-const mergeProps = ({importError}, dispatchProps) =>
-  importError
-    ? {
-        importError,
-        onBack: dispatchProps.onRejectGpgSign,
-        onSubmit: _ => dispatchProps.onAcceptGpgSign(),
-      }
-    : {
-        importError,
-        onBack: dispatchProps.onBack,
-        onSubmit: dispatchProps.onSubmitGpgMethod,
-      }
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+export default Container.connect(
+  state => ({importError: state.provision.gpgImportError}),
+  dispatch => ({
+    onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),
+    // TODO remove
+    onBack: () => {},
+    onRejectGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: false})),
+    onSubmitGpgMethod: (exportKey: boolean) => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
+  }),
+  // If we are asked to switch to gpg sign, we either accept or reject.
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    importError: stateProps.importError,
+    onBack: stateProps.importError ? dispatchProps.onRejectGpgSign : dispatchProps.onBack,
+    onSubmit: stateProps.importError ? dispatchProps.onAcceptGpgSign : dispatchProps.onSubmitGpgMethod,
+  })
 )(GPGSign)

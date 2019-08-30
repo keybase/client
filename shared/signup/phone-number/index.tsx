@@ -7,7 +7,7 @@ import {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
   error: string
-  onContinue: (phoneNumber: string, allowSearch: boolean) => void
+  onContinue: (phoneNumber: string, searchable: boolean) => void
   onSkip: () => void
   waiting: boolean
 }
@@ -15,10 +15,14 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  // const [allowSearch, onChangeAllowSearch] = React.useState(false)
+  // const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
   const onContinue = () =>
-    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* allowSearch */)
+    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* searchable */)
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    onChangePhoneNumber(phoneNumber)
+    onChangeValidity(validity)
+  }
   return (
     <SignupScreen
       buttons={[
@@ -47,9 +51,12 @@ const EnterPhoneNumber = (props: Props) => {
       showHeaderInfoicon={true}
     >
       <EnterPhoneNumberBody
-        onChangeNumber={onChangePhoneNumber}
-        onChangeValidity={onChangeValidity}
+        // the push prompt might be overlaying us
+        // TODO Y2K-57 move phone number earlier and check that email won't have this problem
+        autoFocus={!Styles.isMobile}
+        onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
+        searchable={true}
         icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
       />
     </SignupScreen>
@@ -57,15 +64,15 @@ const EnterPhoneNumber = (props: Props) => {
 }
 
 type BodyProps = {
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean) => void
+  autoFocus: boolean
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
-  allowSearch?: boolean
-  onChangeAllowSearch?: (allow: boolean) => void
+  searchable: boolean
+  onChangeSearchable?: (allow: boolean) => void
   icon: React.ReactNode
 }
 export const EnterPhoneNumberBody = (props: BodyProps) => {
-  const showCheckbox = props.onChangeAllowSearch && Object.prototype.hasOwnProperty.call(props, 'allowSearch')
+  const showCheckbox = !!props.onChangeSearchable
   return (
     <Kb.Box2
       alignItems="center"
@@ -77,26 +84,30 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       {props.icon}
       <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
         <PhoneInput
+          autoFocus={props.autoFocus}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
-          onChangeValidity={props.onChangeValidity}
           onEnterKeyDown={props.onContinue}
         />
-        {!showCheckbox && <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>}
-        {showCheckbox && (
+        {showCheckbox ? (
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
-            checked={props.allowSearch || false}
-            onCheck={props.onChangeAllowSearch || null}
+            checked={props.searchable}
+            onCheck={props.onChangeSearchable || null}
             style={styles.checkbox}
           />
+        ) : (
+          <Kb.Text type="BodySmall">Allow your friends to find you.</Kb.Text>
         )}
       </Kb.Box2>
     </Kb.Box2>
   )
 }
+EnterPhoneNumberBody.defaultProps = {
+  autoFocus: true,
+}
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
   icon: {
     height: 96,
@@ -118,6 +129,6 @@ const styles = Styles.styleSheetCreate({
       width: 368,
     },
   }),
-})
+}))
 
 export default EnterPhoneNumber

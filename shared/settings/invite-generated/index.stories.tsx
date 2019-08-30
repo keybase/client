@@ -11,7 +11,7 @@ const props = {
 const load = () => {
   storiesOf('Settings/InvitesGenerated', module)
     .add('Normal', () => <InvitesGenerated {...props} />)
-    .add('No email', () => <InvitesGenerated {...props} email={''} />)
+    .add('No email', () => <InvitesGenerated {...props} email="" />)
 }
 
 export default load

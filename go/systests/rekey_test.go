@@ -20,16 +20,16 @@ import (
 // deviceWrapper wraps a mock "device", meaning an independent running service and
 // some connected clients.
 type deviceWrapper struct {
-	tctx          *libkb.TestContext
-	clones        []*libkb.TestContext
-	stopCh        chan error
-	service       *service.Service
-	rekeyUI       *testRekeyUI
-	deviceKey     keybase1.PublicKey
-	rekeyClient   keybase1.RekeyClient
-	userClient    keybase1.UserClient
-	accountClient keybase1.AccountClient
-	gregorClient  keybase1.GregorClient
+	tctx               *libkb.TestContext
+	clones, usedClones []*libkb.TestContext
+	stopCh             chan error
+	service            *service.Service
+	rekeyUI            *testRekeyUI
+	deviceKey          keybase1.PublicKey
+	rekeyClient        keybase1.RekeyClient
+	userClient         keybase1.UserClient
+	accountClient      keybase1.AccountClient
+	gregorClient       keybase1.GregorClient
 }
 
 func (d *deviceWrapper) KID() keybase1.KID {
@@ -59,6 +59,8 @@ func (d *deviceWrapper) popClone() *libkb.TestContext {
 		panic("ran out of cloned environments")
 	}
 	ret := d.clones[0]
+	// Hold a reference to this clone for cleanup
+	d.usedClones = append(d.usedClones, ret)
 	d.clones = d.clones[1:]
 	return ret
 }
@@ -152,9 +154,13 @@ func (rkt *rekeyTester) cleanup() {
 		od.tctx.Cleanup()
 		if od.service != nil {
 			od.service.Stop(0)
-			od.stop()
+			err := od.stop()
+			require.NoError(od.tctx.T, err)
 		}
 		for _, cl := range od.clones {
+			cl.Cleanup()
+		}
+		for _, cl := range od.usedClones {
 			cl.Cleanup()
 		}
 	}
@@ -403,38 +409,6 @@ func (rkt *rekeyTester) clearAllEvents(dw *deviceWrapper) {
 		}
 	}
 	rkt.log.Debug("- cleared all events")
-}
-
-func (rkt *rekeyTester) clearAllRefreshes(dw *deviceWrapper) {
-	loop := true
-	rkt.log.Debug("+ clearing all refreshes")
-	for loop {
-		select {
-		case r := <-dw.rekeyUI.refreshes:
-			rkt.log.Debug("| Got refresh: %+v", r)
-		default:
-			loop = false
-		}
-	}
-	rkt.log.Debug("- cleared all refreshes")
-}
-
-func (rkt *rekeyTester) waitForEvent(dw *deviceWrapper, wanted service.RekeyInterrupt) {
-	rkt.log.Debug("+ waitForEvent(%v)", wanted)
-	defer rkt.log.Debug("- waitForEvent(%v)", wanted)
-	timeout := 30 * time.Second
-	for {
-		select {
-		case received := <-dw.rekeyUI.events:
-			if received.InterruptType == int(wanted) {
-				rkt.log.Debug("| found event!")
-				return
-			}
-			rkt.log.Debug("| ignored event: %v", received)
-		case <-time.After(timeout):
-			rkt.t.Fatalf("Failed to get %d event after %s", wanted, timeout)
-		}
-	}
 }
 
 func (rkt *rekeyTester) snoozeRekeyWindow(dw *deviceWrapper) {

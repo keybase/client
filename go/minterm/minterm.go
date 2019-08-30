@@ -89,7 +89,10 @@ func (m *MinTerm) getNewTerminal(prompt string) (*terminal.Terminal, error) {
 }
 
 func (m *MinTerm) readLine(prompt string) (string, error) {
-	m.makeRaw()
+	err := m.makeRaw()
+	if err != nil {
+		return "", convertErr(err)
+	}
 	defer m.restore()
 	term, err := m.getNewTerminal(prompt)
 	if err != nil {
@@ -100,7 +103,10 @@ func (m *MinTerm) readLine(prompt string) (string, error) {
 }
 
 func (m *MinTerm) readSecret(prompt string) (string, error) {
-	m.makeRaw()
+	err := m.makeRaw()
+	if err != nil {
+		return "", convertErr(err)
+	}
 	defer m.restore()
 	term, err := m.getNewTerminal("")
 	if err != nil {
@@ -113,7 +119,7 @@ func (m *MinTerm) readSecret(prompt string) (string, error) {
 func (m *MinTerm) makeRaw() error {
 	m.stateMu.Lock()
 	defer m.stateMu.Unlock()
-	fd := int(m.fdIn())
+	fd := m.fdIn()
 	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {
 		return err
@@ -129,8 +135,8 @@ func (m *MinTerm) restore() {
 	if !m.raw {
 		return
 	}
-	fd := int(m.fdIn())
-	terminal.Restore(fd, m.oldState)
+	fd := m.fdIn()
+	_ = terminal.Restore(fd, m.oldState)
 	m.raw = false
 	m.oldState = nil
 }

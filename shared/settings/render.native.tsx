@@ -3,11 +3,17 @@ import SettingsNav from './nav'
 
 import {Props} from './render'
 
-function SettingsRender(props: Props) {
+const SettingsRender = (props: Props) => {
+  const {loadHasRandomPW} = props
+  React.useEffect(() => {
+    loadHasRandomPW()
+  }, [loadHasRandomPW])
+
   return (
     <SettingsNav
       badgeNotifications={props.badgeNotifications}
       badgeNumbers={props.badgeNumbers}
+      contactsLabel={props.contactsLabel}
       logoutInProgress={props.logoutInProgress}
       selectedTab={props.selectedTab}
       onTabChange={props.onTabChange}
@@ -15,6 +21,10 @@ function SettingsRender(props: Props) {
       hasRandomPW={props.hasRandomPW || null}
     />
   )
+}
+
+SettingsRender.navigationOptions = {
+  header: null,
 }
 
 export default SettingsRender

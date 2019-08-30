@@ -285,7 +285,7 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	config.SetMetadataVersion(ver)
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice", tlf.Private, tlfID)
@@ -313,7 +313,7 @@ func testMakeRekeyReadError(t *testing.T, ver kbfsmd.MetadataVer) {
 func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h, err := tlfhandle.ParseHandle(
@@ -392,7 +392,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
 	config.SetKeyCache(&dummyNoKeyCache{})
 	ctx := context.Background()
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", tlf.Private, tlfID)
@@ -462,7 +462,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 
 	config2 := ConfigAsUser(config, "charlie")
 	config2.SetKeyCache(&dummyNoKeyCache{})
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	AddDeviceForLocalUserOrBust(t, config, charlieUID)
 	AddDeviceForLocalUserOrBust(t, config2, charlieUID)
 
@@ -551,7 +551,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 func TestRootMetadataUpconversionPublic(t *testing.T) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Public)
 	h := parseTlfHandleOrBust(
@@ -606,7 +606,7 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(
@@ -667,7 +667,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	ctx := context.Background()
 	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	_, id, err := config.KBPKI().Resolve(
 		context.Background(), "alice", keybase1.OfflineAvailability_NONE)
@@ -685,7 +685,7 @@ func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 
 	// sign with a mismatched writer
 	config2 := ConfigAsUser(config, "bob")
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	rmds, err := SignBareRootMetadata(
 		context.Background(), config.Codec(), config.Crypto(), config2.Crypto(), rmd.bareMd, time.Now())
 	require.NoError(t, err)
@@ -705,7 +705,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	ctx := context.Background()
 	configWriter := MakeTestConfigOrBust(t, "alice", "bob")
 	configWriter.SetKeyCache(&dummyNoKeyCache{})
-	defer configWriter.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, configWriter)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
 	h := parseTlfHandleOrBust(t, configWriter, "alice#bob", tlf.Private, tlfID)
@@ -754,7 +754,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 
 	configReader := ConfigAsUser(configWriter, "bob")
 	configReader.SetKeyCache(&dummyNoKeyCache{})
-	defer configReader.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, configReader)
 	AddDeviceForLocalUserOrBust(t, configWriter, bobUID)
 	AddDeviceForLocalUserOrBust(t, configReader, bobUID)
 
@@ -798,7 +798,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 func TestRootMetadataTeamMembership(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
 	ctx := context.Background()
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
 	tid := teamInfos[0].TID
@@ -882,7 +882,7 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice")
 	ctx := context.Background()
-	defer config.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config)
 
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, "t1")
 	tid := teamInfos[0].TID

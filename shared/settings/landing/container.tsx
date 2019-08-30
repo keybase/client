@@ -76,7 +76,7 @@ const mapDispatchToProps = (dispatch: (a: any) => void) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {selectedLevel}, selected: 'changePlan'}]})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   if (!stateProps.bootstrapDone) {
     return {
       ...stateProps,

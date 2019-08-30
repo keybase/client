@@ -135,7 +135,7 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   description: {textAlign: 'center'},
   infoPopup: {
     maxWidth: 225,
@@ -144,6 +144,6 @@ const styles = Styles.styleSheetCreate({
   publicAdmins: Styles.platformStyles({
     isElectron: {display: 'unset'},
   }),
-})
+}))
 
 export default TeamInfo

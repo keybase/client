@@ -7,7 +7,7 @@ export type Props = {
   src: string
   style?: any
   onDragStart?: (e: React.SyntheticEvent) => void
-  onLoad?: (e: React.SyntheticEvent) => void
+  onLoad?: (e: React.BaseSyntheticEvent) => void
   resizeMode?: ResizeMode
 }
 

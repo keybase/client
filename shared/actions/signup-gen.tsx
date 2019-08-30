@@ -7,7 +7,6 @@ import {RPCError} from '../util/errors'
 export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
-export const checkEmail = 'signup:checkEmail'
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassword = 'signup:checkPassword'
 export const checkUsername = 'signup:checkUsername'
@@ -21,11 +20,11 @@ export const requestInvite = 'signup:requestInvite'
 export const requestedAutoInvite = 'signup:requestedAutoInvite'
 export const requestedInvite = 'signup:requestedInvite'
 export const restartSignup = 'signup:restartSignup'
+export const setJustSignedUpEmail = 'signup:setJustSignedUpEmail'
 export const signedup = 'signup:signedup'
 
 // Payload Types
 type _CheckDevicenamePayload = {readonly devicename: string}
-type _CheckEmailPayload = {readonly allowSearch: boolean; readonly email: string}
 type _CheckInviteCodePayload = {readonly inviteCode: string}
 type _CheckPasswordPayload = {readonly pass1: HiddenString; readonly pass2: HiddenString}
 type _CheckUsernamePayload = {readonly username: string}
@@ -52,6 +51,7 @@ type _RequestedInvitePayloadError = {
   readonly name: string
 }
 type _RestartSignupPayload = void
+type _SetJustSignedUpEmailPayload = {readonly email: string}
 type _SignedupPayload = void
 type _SignedupPayloadError = {readonly error: RPCError | null}
 
@@ -59,10 +59,6 @@ type _SignedupPayloadError = {readonly error: RPCError | null}
 export const createCheckDevicename = (payload: _CheckDevicenamePayload): CheckDevicenamePayload => ({
   payload,
   type: checkDevicename,
-})
-export const createCheckEmail = (payload: _CheckEmailPayload): CheckEmailPayload => ({
-  payload,
-  type: checkEmail,
 })
 export const createCheckInviteCode = (payload: _CheckInviteCodePayload): CheckInviteCodePayload => ({
   payload,
@@ -125,6 +121,9 @@ export const createRestartSignup = (payload: _RestartSignupPayload): RestartSign
   payload,
   type: restartSignup,
 })
+export const createSetJustSignedUpEmail = (
+  payload: _SetJustSignedUpEmailPayload
+): SetJustSignedUpEmailPayload => ({payload, type: setJustSignedUpEmail})
 export const createSignedup = (payload: _SignedupPayload): SignedupPayload => ({payload, type: signedup})
 export const createSignedupError = (payload: _SignedupPayloadError): SignedupPayloadError => ({
   error: true,
@@ -137,7 +136,6 @@ export type CheckDevicenamePayload = {
   readonly payload: _CheckDevicenamePayload
   readonly type: typeof checkDevicename
 }
-export type CheckEmailPayload = {readonly payload: _CheckEmailPayload; readonly type: typeof checkEmail}
 export type CheckInviteCodePayload = {
   readonly payload: _CheckInviteCodePayload
   readonly type: typeof checkInviteCode
@@ -210,6 +208,10 @@ export type RestartSignupPayload = {
   readonly payload: _RestartSignupPayload
   readonly type: typeof restartSignup
 }
+export type SetJustSignedUpEmailPayload = {
+  readonly payload: _SetJustSignedUpEmailPayload
+  readonly type: typeof setJustSignedUpEmail
+}
 export type SignedupPayload = {readonly payload: _SignedupPayload; readonly type: typeof signedup}
 export type SignedupPayloadError = {
   readonly error: true
@@ -221,7 +223,6 @@ export type SignedupPayloadError = {
 // prettier-ignore
 export type Actions =
   | CheckDevicenamePayload
-  | CheckEmailPayload
   | CheckInviteCodePayload
   | CheckPasswordPayload
   | CheckUsernamePayload
@@ -239,6 +240,7 @@ export type Actions =
   | RequestedInvitePayload
   | RequestedInvitePayloadError
   | RestartSignupPayload
+  | SetJustSignedUpEmailPayload
   | SignedupPayload
   | SignedupPayloadError
   | {type: 'common:resetStore', payload: {}}

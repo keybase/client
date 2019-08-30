@@ -1,9 +1,9 @@
 @namespace("chat.1")
 
 protocol local {
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
-  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
+  import idl "../stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
   import idl "unfurl.avdl";
@@ -57,6 +57,7 @@ protocol local {
     string body;
     array<TextPayment> payments;
     union { null, MessageID } replyTo;
+    union { null, gregor1.UID } replyToUID;
     array<KnownUserMention> userMentions;
     array<KnownTeamMention> teamMentions;
     union { null, LiveLocation } liveLocation;
@@ -89,6 +90,10 @@ protocol local {
     array<KnownTeamMention> teamMentions;
   }
 
+  record MessagePin {
+    MessageID msgID;
+  }
+
   enum MessageSystemType {
     ADDEDTOTEAM_0,
     INVITEADDEDTOTEAM_1,
@@ -109,6 +114,7 @@ protocol local {
     array<string> writers;
     array<string> readers;
     array<string> bots;
+    array<string> restrictedBots;
   }
 
   record MessageSystemInviteAddedToTeam {
@@ -186,9 +192,12 @@ protocol local {
     bytes metadata;              // generic metadata (msgpack)
   }
 
-  record MessageJoin {}
+  record MessageJoin {
+    array<string> joiners;
+    array<string> leavers;
+  }
 
-  record MessageLeave {}
+  record MessageLeave { }
 
   record MessageReaction {
      @mpackkey("m") @jsonkey("m")
@@ -228,6 +237,7 @@ protocol local {
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
     case FLIP: MessageFlip;
+    case PIN: MessagePin;
   }
 
   record SenderPrepareOptions {
@@ -339,6 +349,9 @@ protocol local {
     // This is the only difference between V2 and V3.
     @mpackkey("em") @jsonkey("em")
     union { null, MsgEphemeralMetadata } ephemeralMetadata;
+
+    @mpackkey("b") @jsonkey("b")
+    union { null, gregor1.UID } botUID;
   }
 
   // HeaderPlaintext is a variant container for all the
@@ -385,18 +398,23 @@ protocol local {
     MessageBody messageBody;
   }
 
+  record BodyPlaintextV2 {
+    MessageBody messageBody;
+    BodyPlaintextMetaInfo mi;
+  }
+
   // BodyPlaintext is a variant container for all the
   // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
-    case V2 : BodyPlaintextUnsupported;
-    case V3 : BodyPlaintextUnsupported;
-    case V4 : BodyPlaintextUnsupported;
-    case V5 : BodyPlaintextUnsupported;
-    case V6 : BodyPlaintextUnsupported;
-    case V7 : BodyPlaintextUnsupported;
-    case V8 : BodyPlaintextUnsupported;
-    case V9 : BodyPlaintextUnsupported;
+    case V2: BodyPlaintextV2;
+    case V3: BodyPlaintextUnsupported;
+    case V4: BodyPlaintextUnsupported;
+    case V5: BodyPlaintextUnsupported;
+    case V6: BodyPlaintextUnsupported;
+    case V7: BodyPlaintextUnsupported;
+    case V8: BodyPlaintextUnsupported;
+    case V9: BodyPlaintextUnsupported;
     case V10: BodyPlaintextUnsupported;
   }
 
@@ -515,6 +533,11 @@ protocol local {
     union { null, string } contactName;
   }
 
+  record ConversationPinnedMessage {
+    MessageUnboxed message;
+    string pinnerUsername;
+  }
+
   record ConversationInfoLocal {
     ConversationID id;
     ConversationIDTriple triple;
@@ -523,6 +546,8 @@ protocol local {
     string topicName;
     string headline;
     union { null, MessageUnboxed } snippetMsg;
+    union { null, ConversationPinnedMessage } pinnedMsg;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -607,7 +632,9 @@ protocol local {
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;
 
+    // Commands for auto complete and bot comm
     ConversationCommandGroups commands;
+    ConversationCommandGroups botCommands;
   }
 
   record NonblockFetchRes {
@@ -936,8 +963,13 @@ protocol local {
   }
   JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
-  JoinLeaveConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  record PreviewConversationLocalRes {
+    InboxUIItem conv;
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  PreviewConversationLocalRes previewConversationByIDLocal(ConversationID convID);
   record DeleteConversationLocalRes {
     boolean offline;
     array<RateLimit> rateLimits;
@@ -1088,4 +1120,55 @@ protocol local {
   // Location updates
   void locationUpdate(Coordinate coord);
   void locationDenied(ConversationID convID);
+
+  // Bot commands
+  record UserBotExtendedDescription {
+    string title;
+    @jsonkey("desktop_body")
+    string desktopBody;
+    @jsonkey("mobile_body")
+    string mobileBody;
+  }
+  record UserBotCommandOutput {
+    string name;
+    string description;
+    string usage;
+    @jsonkey("extended_description")
+    union { null, UserBotExtendedDescription } extendedDescription;
+    string username;
+  }
+  record UserBotCommandInput {
+    string name;
+    string description;
+    string usage;
+    @jsonkey("extended_description")
+    union { null, UserBotExtendedDescription } extendedDescription;
+  }
+  record AdvertiseCommandsParam {
+    BotCommandsAdvertisementTyp typ;
+    array<UserBotCommandInput> commands;
+    union { null, string } teamName;
+  }
+  record AdvertiseBotCommandsLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias,
+    array<AdvertiseCommandsParam> advertisements);
+  record ListBotCommandsLocalRes {
+    array<UserBotCommandOutput> commands;
+    array<RateLimit> rateLimits;
+  }
+  ListBotCommandsLocalRes listBotCommandsLocal(ConversationID convID);
+  record ClearBotCommandsLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  ClearBotCommandsLocalRes clearBotCommandsLocal();
+
+  // Pinning
+  record PinMessageRes {
+    array<RateLimit> rateLimits;
+  }
+  PinMessageRes pinMessage(ConversationID convID, MessageID msgID);
+  PinMessageRes unpinMessage(ConversationID convID);
+  void ignorePinnedMessage(ConversationID convID);
 }

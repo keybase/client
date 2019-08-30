@@ -227,6 +227,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 		require.Fail(t, "no flush")
 	}
 	_, rc, err = inbox.ReadAll(ctx, uid, false)
+	require.NoError(t, err)
 	require.Equal(t, 2, len(rc))
 }
 
@@ -341,7 +342,8 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 
 	pusher.testingIgnoreBroadcasts = false
 	inboxSource.getChatInterface = ri
-	syncer.Connected(context.TODO(), ri(), uid1, nil)
+	err = syncer.Connected(context.TODO(), ri(), uid1, nil)
+	require.NoError(t, err)
 	select {
 	case info := <-listener1.readMessage:
 		require.Equal(t, conv.Id, info.ConvID)

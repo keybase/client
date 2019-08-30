@@ -70,11 +70,14 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	return ctx, cancel, mockCtrl, config, fbo.cr
 }
 
-func crTestShutdown(ctx context.Context, cancel context.CancelFunc,
+func crTestShutdown(
+	ctx context.Context, t *testing.T, cancel context.CancelFunc,
 	mockCtrl *gomock.Controller, config *ConfigMock, cr *ConflictResolver) {
-	libcontext.CleanupCancellationDelayer(ctx)
+	err := libcontext.CleanupCancellationDelayer(ctx)
+	require.NoError(t, err)
 	config.ctr.CheckForFailures()
-	cr.fbo.Shutdown(ctx)
+	err = cr.fbo.Shutdown(ctx)
+	require.NoError(t, err)
 	cancel()
 	mockCtrl.Finish()
 }
@@ -119,14 +122,15 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 
 func TestCRInput(t *testing.T) {
 	ctx, cancel, mockCtrl, config, cr := crTestInit(t)
-	defer crTestShutdown(ctx, cancel, mockCtrl, config, cr)
+	defer crTestShutdown(ctx, t, cancel, mockCtrl, config, cr)
 
 	// First try a completely unknown revision
 	cr.Resolve(
 		ctx, kbfsmd.RevisionUninitialized, kbfsmd.RevisionUninitialized)
 	// This should return without doing anything (i.e., without
 	// calling any mock methods)
-	cr.Wait(ctx)
+	err := cr.Wait(ctx)
+	require.NoError(t, err)
 
 	// Next, try resolving a few items
 	branchPoint := kbfsmd.Revision(2)
@@ -173,7 +177,8 @@ func TestCRInput(t *testing.T) {
 
 	// First try a completely unknown revision
 	cr.Resolve(ctx, unmergedHead, kbfsmd.RevisionUninitialized)
-	cr.Wait(ctx)
+	err = cr.Wait(ctx)
+	require.NoError(t, err)
 	// Make sure sure the input is up-to-date
 	if cr.currInput.merged != mergedHead {
 		t.Fatalf("Unexpected merged input: %d", cr.currInput.merged)
@@ -183,12 +188,13 @@ func TestCRInput(t *testing.T) {
 	cr.Resolve(ctx, kbfsmd.RevisionUninitialized, mergedHead-1)
 	// This should return without doing anything (i.e., without
 	// calling any mock methods)
-	cr.Wait(ctx)
+	err = cr.Wait(ctx)
+	require.NoError(t, err)
 }
 
 func TestCRInputFracturedRange(t *testing.T) {
 	ctx, cancel, mockCtrl, config, cr := crTestInit(t)
-	defer crTestShutdown(ctx, cancel, mockCtrl, config, cr)
+	defer crTestShutdown(ctx, t, cancel, mockCtrl, config, cr)
 
 	// Next, try resolving a few items
 	branchPoint := kbfsmd.Revision(2)
@@ -246,7 +252,8 @@ func TestCRInputFracturedRange(t *testing.T) {
 
 	// Resolve the fractured revision list
 	cr.Resolve(ctx, unmergedHead, kbfsmd.RevisionUninitialized)
-	cr.Wait(ctx)
+	err = cr.Wait(ctx)
+	require.NoError(t, err)
 	// Make sure sure the input is up-to-date
 	if cr.currInput.merged != mergedHead {
 		t.Fatalf("Unexpected merged input: %d", cr.currInput.merged)
@@ -286,7 +293,8 @@ func testCRSharedFolderForUsers(
 		}
 
 		kbfsOps := config.KBFSOps()
-		kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+		err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+		require.NoError(t, err)
 		rootNode := GetRootNodeOrBust(ctx, t, config, name, tlf.Private)
 		dir := rootNode
 		for _, d := range dirs {
@@ -306,7 +314,10 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 	expectedRecreateOps []*createOp,
 	expectedActions map[data.BlockPointer]crActionList) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
-	defer libcontext.CleanupCancellationDelayer(ctx)
+	defer func() {
+		err := libcontext.CleanupCancellationDelayer(ctx)
+		require.NoError(t, err)
+	}()
 	lState := makeFBOLockState()
 
 	// Step 1 -- check the chains and paths
@@ -372,8 +383,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 			break
 		}
 		for i := 0; i < len(v); i++ {
-			switch x := v[i].(type) {
-			case *dropUnmergedAction:
+			if x, ok := v[i].(*dropUnmergedAction); ok {
 				y := v2[i].(*dropUnmergedAction)
 				y.op.setWriterInfo(x.op.getWriterInfo())
 			}
@@ -826,7 +836,8 @@ func TestCRMergedChainsComplex(t *testing.T) {
 		t.Fatalf("Couldn't sync all: %v", err)
 	}
 
-	config2.KBFSOps().SyncFromServer(ctx, fb, nil)
+	err = config2.KBFSOps().SyncFromServer(ctx, fb, nil)
+	require.NoError(t, err)
 
 	// pause user 2
 	_, err = DisableUpdatesForTesting(config2, fb)

@@ -376,6 +376,18 @@ func (s *PerUserKeyring) GetEncryptionKeyByGeneration(m MetaContext, gen keybase
 	return s.getEncryptionKeyByGenerationLocked(m, gen)
 }
 
+func (s *PerUserKeyring) GetEncryptionKeyByGenerationOrSync(m MetaContext, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
+	if key, err := s.GetEncryptionKeyByGeneration(m, gen); err == nil {
+		return key, nil
+	}
+
+	// Generation was not available, try to sync.
+	if err := s.Sync(m); err != nil {
+		return nil, err
+	}
+	return s.GetEncryptionKeyByGeneration(m, gen)
+}
+
 func (s *PerUserKeyring) getEncryptionKeyByGenerationLocked(m MetaContext, gen keybase1.PerUserKeyGeneration) (*NaclDHKeyPair, error) {
 	if gen < 1 {
 		return nil, fmt.Errorf("PerUserKeyring#GetEncryptionKey bad generation: %v", gen)
@@ -486,8 +498,7 @@ func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, dev
 		return err
 
 	}
-	s.mergeLocked(newKeys, checker.seqgen)
-	return nil
+	return s.mergeLocked(newKeys, checker.seqgen)
 }
 
 func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {

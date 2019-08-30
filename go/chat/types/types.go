@@ -90,6 +90,7 @@ type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
+	LocalDraft     *string                     `codec:"d"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
@@ -149,6 +150,23 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
+type UnboxMode int
+
+const (
+	UnboxModeFull UnboxMode = iota
+	UnboxModeQuick
+)
+
+func (m UnboxMode) ShouldCache() bool {
+	switch m {
+	case UnboxModeFull:
+		return true
+	case UnboxModeQuick:
+		return false
+	}
+	return true
+}
+
 type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation
@@ -199,7 +217,7 @@ func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
 }
 
 type AsyncInboxResult struct {
-	Conv      chat1.Conversation
+	Conv      RemoteConversation
 	ConvLocal chat1.ConversationLocal
 	InboxRes  *Inbox // set if we are returning the whole inbox
 }
@@ -237,7 +255,7 @@ type AttachmentUploadResult struct {
 type BoxerEncryptionInfo struct {
 	Key                   CryptKey
 	SigningKeyPair        libkb.NaclSigningKeyPair
-	EphemeralSeed         *keybase1.TeamEk
+	EphemeralKey          EphemeralCryptKey
 	PairwiseMACRecipients []keybase1.KID
 	Version               chat1.MessageBoxedVersion
 }
@@ -298,6 +316,7 @@ func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.As
 	return false, nil
 }
 func (d DummyAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+func (d DummyAttachmentFetcher) OnStart(mctx libkb.MetaContext)        {}
 
 type DummyAttachmentHTTPSrv struct{}
 
@@ -550,4 +569,31 @@ func (d DummyExternalAPIKeySource) GetKey(ctx context.Context, typ chat1.Externa
 
 func (d DummyExternalAPIKeySource) GetAllKeys(ctx context.Context) (res []chat1.ExternalAPIKey, err error) {
 	return res, nil
+}
+
+type DummyBotCommandManager struct{}
+
+func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
+	ads []chat1.AdvertiseCommandsParam) error {
+	return nil
+}
+
+func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
+
+func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
+	return nil, nil
+}
+
+func (d DummyBotCommandManager) UpdateCommands(ctx context.Context, convID chat1.ConversationID,
+	info *chat1.BotInfo) (chan error, error) {
+	ch := make(chan error, 1)
+	ch <- nil
+	return ch, nil
+}
+
+func (d DummyBotCommandManager) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyBotCommandManager) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
 }

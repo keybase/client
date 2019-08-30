@@ -22,8 +22,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(
       WalletsGen.createCreateNewAccount({
         name,
-        setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm'),
-        showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation'),
+        setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm', undefined),
+        showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation', undefined),
       })
     )
     dispatch(RouteTreeGen.createNavigateUp())
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   ...stateProps,
   error: capitalize(stateProps.error),
   onCancel: dispatchProps.onCancel,

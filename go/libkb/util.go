@@ -130,6 +130,10 @@ func NameCmp(n1, n2 string) bool {
 	return NameTrim(n1) == NameTrim(n2)
 }
 
+func IsLowercase(s string) bool {
+	return strings.ToLower(s) == s
+}
+
 func PickFirstError(errors ...error) error {
 	for _, e := range errors {
 		if e != nil {
@@ -196,7 +200,7 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err
 	}
 	g.Debug("| Temporary file generated: %s", tmpfn)
 	defer tmp.Close()
-	defer ShredFile(tmpfn)
+	defer func() { _ = ShredFile(tmpfn) }()
 
 	g.Debug("| WriteTo %s", tmpfn)
 	n, err := t.WriteTo(tmp)
@@ -295,10 +299,7 @@ func IsValidHostname(s string) bool {
 		}
 	}
 	// TLDs must be >=2 chars
-	if len(parts[len(parts)-1]) < 2 {
-		return false
-	}
-	return true
+	return len(parts[len(parts)-1]) >= 2
 }
 
 var phoneAssertionRE = regexp.MustCompile(`^[1-9]\d{1,14}$`)
@@ -1022,4 +1023,28 @@ func execToString(bin string, args []string) (string, error) {
 		return "", fmt.Errorf("Nil result")
 	}
 	return strings.TrimSpace(string(result)), nil
+}
+
+var preferredKBFSMountDirs = func() []string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return []string{"/keybase"}
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		return []string{"/keybase", "/Volumes/Keybase"}
+	default:
+		return []string{}
+	}
+}()
+
+func FindPreferredKBFSMountDirs() (mountDirs []string) {
+	for _, mountDir := range preferredKBFSMountDirs {
+		fi, err := os.Lstat(filepath.Join(mountDir, "private"))
+		if err != nil {
+			continue
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			mountDirs = append(mountDirs, mountDir)
+		}
+	}
+	return mountDirs
 }

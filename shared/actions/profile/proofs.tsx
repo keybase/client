@@ -1,6 +1,7 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/profile'
 import {RPCError} from '../../util/errors'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -8,9 +9,8 @@ import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
-import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
-import {TypedState, TypedActions} from '../../util/container'
+import {TypedState} from '../../util/container'
 
 const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
@@ -38,7 +38,6 @@ const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
             ? []
             : [
                 RouteTreeGen.createNavigateAppend({
-                  parentPath: [peopleTab],
                   path: ['profileConfirmOrPending'],
                 }),
               ]),
@@ -67,18 +66,14 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   // Special cases
   switch (service) {
     case 'dnsOrGenericWebSite':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveWebsiteChoice']})
-      )
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveWebsiteChoice']}))
       return
     case 'zcash': //  fallthrough
     case 'btc':
-      yield Saga.put(
-        RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-      )
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']}))
       return
     case 'pgp':
-      yield Saga.put(RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profilePgp']}))
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePgp']}))
       return
   }
 
@@ -138,7 +133,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
             errorText: '',
           })
         )
-        const state : TypedState = yield* Saga.selectState()
+        const state: TypedState = yield* Saga.selectState()
         _promptUsernameResponse.result(state.profile.username)
         // eslint is confused i think
         // eslint-disable-next-line require-atomic-updates
@@ -162,11 +157,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
       )
     }
     if (service) {
-      actions.push(
-        Saga.put(
-          RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profileProveEnterUsername']})
-        )
-      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profileProveEnterUsername']})))
     } else if (genericService && parameters) {
       actions.push(
         Saga.put(ProfileGen.createProofParamsReceived({params: Constants.toProveGenericParams(parameters)}))
@@ -200,9 +191,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
 
     if (service) {
       actions.push(Saga.put(ProfileGen.createUpdateProofText({proof})))
-      actions.push(
-        Saga.put(RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profilePostProof']}))
-      )
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['profilePostProof']})))
     } else if (proof) {
       actions.push(Saga.put(ProfileGen.createUpdatePlatformGenericURL({url: proof})))
       openURL(proof)
@@ -269,6 +258,19 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     logger.warn('Error making proof')
     yield Saga.put(loadAfter)
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
+      yield Saga.put(
+        DeeplinksGen.createSetKeybaseLinkError({
+          error:
+            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+        })
+      )
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        })
+      )
+    }
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
@@ -282,7 +284,7 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
 }
 
 const submitCryptoAddress = (
-  state,
+  state: TypedState,
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ) => {
   if (!state.profile.usernameValid) {
@@ -309,7 +311,7 @@ const submitCryptoAddress = (
   )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
-      RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['profileConfirmOrPending']}),
+      RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
     ])
     .catch((error: RPCError) => {
       logger.warn('Error making proof')
@@ -318,13 +320,10 @@ const submitCryptoAddress = (
 }
 
 function* proofsSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload>(
-    [ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress],
-    submitCryptoAddress
-  )
+  yield* Saga.chainAction2([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
-  yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
+  yield* Saga.chainAction2(ProfileGen.checkProof, checkProof)
+  yield* Saga.chainAction2(ProfileGen.recheckProof, recheckProof)
 }
 
 export {proofsSaga}

@@ -1,9 +1,7 @@
-import keybaseUrl from '../constants/urls'
-
 const linkFuncs = {
-  help: () => `${keybaseUrl}/docs`,
-  home: () => keybaseUrl,
-  user: ({username}) => `${keybaseUrl}/${username || ''}`,
+  help: () => `https://keybase.io/docs`,
+  home: () => 'https://keybase.io',
+  user: ({username}) => `https://keybase.io/${username || ''}`,
 }
 
 export function urlHelper(type: string, params?: any): string | undefined {
@@ -16,4 +14,5 @@ export function urlHelper(type: string, params?: any): string | undefined {
   } else {
     console.warn(`No openURL handler for ${type}`, params)
   }
+  return undefined
 }

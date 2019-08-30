@@ -87,6 +87,10 @@
   top: 0;
 }
 
+.darkMode .avatar-background {
+  background-color: #0f0f0f;
+}
+
 .avatar-user-image {
   flex-shrink: 0;
   background-size: cover;
@@ -107,6 +111,14 @@
   top: 0;
 }
 
+.darkMode .avatar-border-team {
+  background: rgba(255, 255, 255, 0);
+}
+
 .avatar-border {
   background: rgba(0, 0, 0, 0);
+}
+
+.darkMode .avatar-border {
+  background: rgba(255, 255, 255, 0);
 }

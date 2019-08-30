@@ -1,5 +1,5 @@
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Constants from '../../../../constants/chat2/'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {getRole, isAdmin} from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
@@ -34,11 +34,11 @@ const mapDispatchToProps = dispatch => ({
       })
     ),
   _onViewTeam: (teamname: string) => {
-    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   addee: stateProps.addee,
   adder: stateProps.adder,
   isAdmin: stateProps.isAdmin,

@@ -50,7 +50,7 @@ class GiphySearch extends React.Component<Props, State> {
             <Kb.Text
               style={styles.instructions}
               type="BodySmallSecondaryLink"
-              onClickURL={'https://keybase.io/docs/chat/linkpreviews'}
+              onClickURL="https://keybase.io/docs/chat/linkpreviews"
             >
               (More Info)
             </Kb.Text>

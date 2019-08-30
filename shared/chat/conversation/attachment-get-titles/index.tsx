@@ -34,7 +34,7 @@ class GetTitles extends React.Component<Props, State> {
     }
   }
 
-  _onNext = (e?: React.SyntheticEvent) => {
+  _onNext = (e?: React.BaseSyntheticEvent) => {
     e && e.preventDefault()
 
     const paths = Object.keys(this.state.pathToInfo)
@@ -60,8 +60,8 @@ class GetTitles extends React.Component<Props, State> {
 
   _updateTitle = (title: string) => {
     this.setState(state => {
-      const paths = Object.keys(this.state.pathToInfo)
-      const path = paths[this.state.index]
+      const paths = Object.keys(state.pathToInfo)
+      const path = paths[state.index]
 
       return {
         pathToInfo: {

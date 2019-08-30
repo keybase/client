@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
@@ -14,6 +13,7 @@ import Errs from './errs'
 import OpenInSystemFileManager from './open-in-system-file-manager'
 import {OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
+import {OwnProps as TlfInfoOwnProps} from './tlf-info-container'
 import SyncStatus from './sync-status'
 import PieSlice from './pie-slice'
 import ConfirmDelete from './path-item-action/confirm-delete'
@@ -119,9 +119,12 @@ export const commonProvider = {
     progress: 0.67,
     show: true,
   }),
-  TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
+  TlfInfo: ({mixedMode, mode}: TlfInfoOwnProps) => ({
+    mixedMode,
     mode,
     reset: ['foo', 'bar', 'cue'],
+    tlfMtime: 1564784024580,
+    tlfType: Types.TlfType.Private,
   }),
   TryEnableDriverOnFocus: () => ({
     appFocusedCount: 1,
@@ -210,14 +213,12 @@ const load = () => {
         <Kb.Text type="Body">Row mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
-          routePath={I.List()}
           mode="row"
           {...pathItemActionCommonProps}
         />
         <Kb.Text type="Body">Screen mode</Kb.Text>
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
-          routePath={I.List()}
           mode="screen"
           {...pathItemActionCommonProps}
         />
@@ -225,7 +226,6 @@ const load = () => {
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
-          routePath={I.List()}
           mode="screen"
           {...pathItemActionCommonProps}
         />
@@ -233,7 +233,6 @@ const load = () => {
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
-          routePath={I.List()}
           mode="screen"
           {...pathItemActionCommonProps}
         />
@@ -289,15 +288,49 @@ const load = () => {
     .add('TlfInfo', () => (
       <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
         <Kb.Text type="Body">mode=default reset=false</Kb.Text>
-        <TlfInfo mode="default" reset={false} />
+        <TlfInfo tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={false} />
         <Kb.Text type="Body">mode=default reset=true</Kb.Text>
-        <TlfInfo mode="default" reset={true} />
+        <TlfInfo tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="default" reset={true} />
         <Kb.Text type="Body">mode=row reset=Array(1)</Kb.Text>
-        <TlfInfo mode="row" reset={['foo']} />
+        <TlfInfo tlfMtime={1564784024580} tlfType={Types.TlfType.Private} mode="row" reset={['foo']} />
         <Kb.Text type="Body">mode=default reset=Array(2)</Kb.Text>
-        <TlfInfo mode="default" reset={['foo', 'bar']} />
+        <TlfInfo
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="default"
+          reset={['foo', 'bar']}
+        />
         <Kb.Text type="Body">mode=row reset=Array(3)</Kb.Text>
-        <TlfInfo mode="row" reset={['foo', 'bar', 'cue']} />
+        <TlfInfo
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={['foo', 'bar', 'cue']}
+        />
+        <Kb.Text type="Body">mode=row mixedMode=true reset=Array(3)</Kb.Text>
+        <TlfInfo
+          mixedMode={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={['foo', 'bar', 'cue']}
+        />
+        <Kb.Text type="Body">mode=row mixedMode=true reset=true</Kb.Text>
+        <TlfInfo
+          mixedMode={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={true}
+        />
+        <Kb.Text type="Body">mode=row mixedMode=true reset=false</Kb.Text>
+        <TlfInfo
+          mixedMode={true}
+          tlfMtime={1564784024580}
+          tlfType={Types.TlfType.Private}
+          mode="row"
+          reset={false}
+        />
       </Kb.Box2>
     ))
     .add('PathItemInfo', () => (
@@ -327,7 +360,7 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('Sync Status', () => (
-      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems={'center'}>
+      <Kb.Box2 direction="vertical" gap="large" gapStart={true} fullWidth={false} alignItems="center">
         <SyncStatus status={Types.SyncStatusStatic.AwaitingToSync} folder={false} />
         <SyncStatus status={Types.SyncStatusStatic.AwaitingToUpload} folder={false} />
         <SyncStatus status={Types.SyncStatusStatic.OnlineOnly} folder={false} />
@@ -338,7 +371,7 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('Pie Loaders', () => (
-      <Kb.Box2 direction="vertical" fullWidth={false} alignItems={'center'}>
+      <Kb.Box2 direction="vertical" fullWidth={false} alignItems="center">
         <Kb.ScrollView>
           {pieSlices.map(deg => (
             <PieSliceWrapper initialDegrees={deg} key={deg} />

@@ -146,7 +146,7 @@ func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.C
 		return fmt.Errorf("Can't Put() a block %v with an empty UID", id)
 	}
 
-	if context.GetCreator() != keybase1.UserOrTeamID(context.GetWriter()) {
+	if context.GetCreator() != context.GetWriter() {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
 			context.GetCreator(), context.GetWriter())
 	}

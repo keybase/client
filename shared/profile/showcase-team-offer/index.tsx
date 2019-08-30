@@ -121,7 +121,7 @@ const ShowcaseTeamOffer = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       maxHeight: 600,
@@ -181,6 +181,6 @@ const styles = Styles.styleSheetCreate({
   teamText: {
     alignSelf: 'flex-start',
   },
-})
+}))
 
 export default ShowcaseTeamOffer

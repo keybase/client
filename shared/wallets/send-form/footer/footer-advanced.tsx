@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/wallets'
-import {anyWaiting} from '../../../constants/waiting'
 import * as Container from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Kb from '../../../common-adapters'
@@ -13,12 +12,9 @@ const FooterAdvanced = () => {
   const onClickSendAdvanced = React.useCallback(() => dispatch(WalletsGen.createSendPaymentAdvanced()), [
     dispatch,
   ])
-  return builtPaymentAdvanced.noPathFoundError ? (
+  return builtPaymentAdvanced.findPathError ? (
     <Kb.Banner style={Styles.globalStyles.rounded} color="red">
-      <Kb.BannerParagraph
-        bannerColor="red"
-        content="No path was found to convert these 2 assets. Please pick other assets."
-      />
+      <Kb.BannerParagraph bannerColor="red" content={builtPaymentAdvanced.findPathError} />
     </Kb.Banner>
   ) : (
     <Kb.Box2

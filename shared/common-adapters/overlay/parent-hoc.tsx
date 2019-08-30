@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isMobile} from '../../constants/platform'
+import {isMobile, hoistNonReactStatic} from '../../util/container'
 
 export type OverlayParentProps = {
   getAttachmentRef?: () => React.Component<any> | null
@@ -47,6 +47,7 @@ const OverlayParentHOC = <Props extends {}>(
   }
   const OverlayParent: React.ComponentClass<PropsWithoutOverlay<Props>, OverlayParentState> = _OverlayParent
   OverlayParent.displayName = ComposedComponent.displayName || 'OverlayParent'
+  hoistNonReactStatic(OverlayParent, ComposedComponent)
   return OverlayParent
 }
 

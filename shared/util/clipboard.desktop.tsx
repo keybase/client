@@ -1,6 +1,4 @@
 import * as SafeElectron from './safe-electron.desktop'
-import fs from 'fs'
-import {tmpRandFile} from './file.desktop'
 
 export type ClipboardData = {
   path: string
@@ -8,7 +6,7 @@ export type ClipboardData = {
 }
 
 function readImage(): Promise<Buffer | null> {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     const image = SafeElectron.getClipboard().readImage()
     if (!image) {
       // Nothing to read
@@ -38,40 +36,8 @@ export function readImageFromClipboard(
     return readImage()
   } else {
     // Nothing to read
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       resolve(null)
     })
   }
-}
-
-// If you want to read from the HTML5 file blob, use readBlob via:
-//   let items = event.clipboardData.items
-//   let blob = items[1].getAsFile()
-// eslint-disable-next-line
-function readBlob(name: string, format: string, blob: any): Promise<ClipboardData | null> {
-  return new Promise((resolve, reject) => {
-    // We get the data from the HTML5 File object, read it into a
-    // buffer and then save it to disk.
-    // If we wanted the Electron NativeImage, we could use
-    // clipboard.readImage() but we want the raw data since
-    // NativeImage only supports JPG and PNG.
-    // Unfortunately, there is no clipboard read method that gives
-    // us a buffer object.
-    tmpRandFile(name).then(path => {
-      console.log('Saving clipboard to:', path)
-      let reader = new FileReader() // eslint-disable-line
-      reader.onload = e => {
-        // @ts-ignore codemod-issue
-        fs.writeFile(path, Buffer.from(e.target.result), err => {
-          if (err) {
-            reject(err)
-            return
-          }
-          // @ts-ignore codemod-issue
-          resolve({format, path, title: name})
-        })
-      }
-      reader.readAsArrayBuffer(blob)
-    })
-  })
 }

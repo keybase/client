@@ -9,7 +9,7 @@ import {
   InfoNote,
   Button,
   ButtonBar,
-} from '../../common-adapters/'
+} from '../../common-adapters'
 import {compose, withProps, branch, renderComponent} from 'recompose'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
@@ -75,7 +75,7 @@ const styles = styleSheetCreate({
 })
 
 export default compose(
-  withProps<any, any>((props: Props) => ({
+  withProps<any, any>(() => ({
     headerStyle: {borderBottomWidth: 0},
     title: 'Join a team',
   })),

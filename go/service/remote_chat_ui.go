@@ -45,12 +45,25 @@ func (r *RemoteChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatIn
 	return r.cli.ChatInboxUnverified(ctx, arg)
 }
 
-func (r *RemoteChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
-	return r.cli.ChatThreadCached(ctx, arg)
+func (r *RemoteChatUI) ChatThreadCached(ctx context.Context, arg *string) error {
+	return r.cli.ChatThreadCached(ctx, chat1.ChatThreadCachedArg{
+		SessionID: r.sessionID,
+		Thread:    arg,
+	})
 }
 
-func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
-	return r.cli.ChatThreadFull(ctx, arg)
+func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg string) error {
+	return r.cli.ChatThreadFull(ctx, chat1.ChatThreadFullArg{
+		SessionID: r.sessionID,
+		Thread:    arg,
+	})
+}
+
+func (r *RemoteChatUI) ChatThreadStatus(ctx context.Context, status chat1.UIChatThreadStatus) error {
+	return r.cli.ChatThreadStatus(ctx, chat1.ChatThreadStatusArg{
+		SessionID: r.sessionID,
+		Status:    status,
+	})
 }
 
 func (r *RemoteChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
@@ -199,5 +212,14 @@ func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.Conve
 		DisplayText: displayText,
 		Typ:         typ,
 		Actions:     actions,
+	})
+}
+
+func (r *RemoteChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID chat1.ConversationID,
+	status chat1.UIBotCommandsUpdateStatus) error {
+	return r.cli.ChatBotCommandsUpdateStatus(ctx, chat1.ChatBotCommandsUpdateStatusArg{
+		SessionID: r.sessionID,
+		ConvID:    convID.String(),
+		Status:    status,
 	})
 }

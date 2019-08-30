@@ -44,6 +44,10 @@ type LockTable struct {
 	locks map[string]*NamedLock
 }
 
+func NewLockTable() *LockTable {
+	return &LockTable{}
+}
+
 func (t *LockTable) init() {
 	if t.locks == nil {
 		t.locks = make(map[string]*NamedLock)

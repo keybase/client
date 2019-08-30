@@ -78,7 +78,10 @@ func DumpPrivateMetadata(
 		indent := strings.Repeat(c.Indent, 4)
 
 		var pmdCopy PrivateMetadata
-		kbfscodec.Update(codec, &pmdCopy, pmd)
+		err := kbfscodec.Update(codec, &pmdCopy, pmd)
+		if err != nil {
+			return "", err
+		}
 		ops := pmdCopy.Changes.Ops
 		for i, op := range ops {
 			ops[i] = verboseOp{op, indent}
@@ -424,11 +427,11 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 	// TODO: Strengthen check, e.g. make sure every writer/reader
 	// in the old handle is also a writer/reader of the new
 	// handle.
-	valid := true
 	newBareHandle, err := newHandle.ToBareHandle()
 	if err != nil {
 		return err
 	}
+	var valid bool
 	switch md.TypeForKeying() {
 	case tlf.PrivateKeying:
 		// Private-keyed TLFs can move to team keying, but not to
@@ -482,18 +485,14 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 // access the ops without needing to re-embed the block changes.
 // Possibly copies the MD, returns the copy if so, and whether copied.
 func (md *RootMetadata) loadCachedBlockChanges(
-	ctx context.Context, bps blockPutState, log logger.Logger,
-	vlog *libkb.VDebugLog, codec kbfscodec.Codec) (*RootMetadata, bool) {
-	if md.data.Changes.Ops != nil {
-		return md, false
+	ctx context.Context, bps data.BlockPutState, log logger.Logger,
+	vlog *libkb.VDebugLog, codec kbfscodec.Codec) *RootMetadata {
+	if md.data.Changes.Ops != nil || len(md.data.cachedChanges.Ops) == 0 {
+		return md
 	}
 	md, err := md.deepCopy(codec)
 	if err != nil {
 		panic("MD could not be copied")
-	}
-
-	if len(md.data.cachedChanges.Ops) == 0 {
-		panic("MD with no ops passed to loadCachedBlockChanges")
 	}
 
 	md.data.Changes, md.data.cachedChanges =
@@ -514,8 +513,8 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	// Prepare a map of all FileBlocks for easy access by fileData
 	// below.
 	fileBlocks := make(map[data.BlockPointer]*data.FileBlock)
-	for _, ptr := range bps.ptrs() {
-		if block, err := bps.getBlock(ctx, ptr); err == nil {
+	for _, ptr := range bps.Ptrs() {
+		if block, err := bps.GetBlock(ctx, ptr); err == nil {
 			if fblock, ok := block.(*data.FileBlock); ok {
 				fileBlocks[ptr] = fblock
 			}
@@ -558,7 +557,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	for _, info := range infos {
 		md.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
 	}
-	return md, true
+	return md
 }
 
 // GetTLFCryptKeyParams wraps the respective method of the underlying BareRootMetadata for convenience.

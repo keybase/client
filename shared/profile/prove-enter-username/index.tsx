@@ -47,7 +47,7 @@ class EnterUsername extends React.Component<Props, State> {
           <Kb.PlatformIcon
             style={styles.centered}
             platform={this.props.platform}
-            overlay={'icon-proof-unfinished'}
+            overlay="icon-proof-unfinished"
             overlayColor={Styles.globalColors.greyDark}
           />
           <Kb.Input
@@ -141,7 +141,7 @@ const platformText = {
   },
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   centered: {alignSelf: 'center'},
   error: {
     backgroundColor: Styles.globalColors.red,
@@ -150,6 +150,6 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.medium,
   },
   tips: {padding: Styles.globalMargins.small},
-})
+}))
 
 export default EnterUsername

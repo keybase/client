@@ -2,8 +2,8 @@
 @compression_type("gzip")
 protocol remote {
 
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
 
   record MessageBoxed {
     // This was not present in most V1 messages.
@@ -314,8 +314,12 @@ protocol remote {
   void registerSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);
   void failSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);
 
-  // Message an entire conv with an arbitrary Gregor message
+  // Message an entire conv with an arbitrary Gregor message (server-to-server only)
   void broadcastGregorMessageToConv(ConversationID convID, gregor1.Message msg);
+
+  // Get the team ID of a conversation (server-to-server only)
+  // Returns null if the conversation no simply-associated team ID (legacy kbfs-backed convs)
+  union { null, keybase1.TeamID } teamIDOfConv(ConversationID convID);
 
   record ServerNowRes {
     union { null, RateLimit } rateLimit;
@@ -333,4 +337,51 @@ protocol remote {
   case GIPHY: string;
   }
   array<ExternalAPIKey> getExternalAPIKeys(array<ExternalAPIKeyTyp> typs);
+
+  // Bot commands
+  @typedef("uint64") @lint("ignore") record CommandConvVers {}
+  record RemoteBotCommandsAdvertisementPublic {
+    ConversationID convID;
+  }
+  record RemoteBotCommandsAdvertisementTLFID {
+    ConversationID convID;
+    TLFID tlfID;
+  }
+  variant RemoteBotCommandsAdvertisement switch(BotCommandsAdvertisementTyp typ) {
+    case PUBLIC: RemoteBotCommandsAdvertisementPublic;
+    case TLFID_MEMBERS: RemoteBotCommandsAdvertisementTLFID;
+    case TLFID_CONVS: RemoteBotCommandsAdvertisementTLFID;
+  }
+  record BotCommandConv {
+    gregor1.UID uid;
+    ConversationID convID;
+    CommandConvVers vers;
+    gregor1.Time mtime;
+  }
+  record BotInfo {
+    array<BotCommandConv> commandConvs;
+  }
+  record AdvertiseBotCommandsRes {
+    union { null, RateLimit } rateLimit;
+  }
+  record ClearBotCommandsRes {
+    union { null, RateLimit } rateLimit;
+  }
+  AdvertiseBotCommandsRes advertiseBotCommands(array<RemoteBotCommandsAdvertisement> ads);
+  ClearBotCommandsRes clearBotCommands();
+
+  enum BotInfoResponseTyp {
+    UPTODATE_0,
+    INFO_1
+  }
+  variant BotInfoResponse switch (BotInfoResponseTyp typ) {
+    case UPTODATE: void;
+    case INFO: BotInfo;
+  }
+  record GetBotInfoRes {
+    BotInfoResponse response;
+    union { null, RateLimit } rateLimit;
+  }
+  @typedef("bytes") record BotInfoHash {}
+  GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash);
 }

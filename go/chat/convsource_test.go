@@ -436,8 +436,8 @@ func TestReactions(t *testing.T) {
 	reactionMsgID := sendReaction(":+1:", msgID)
 	expectedReactionMap := chat1.ReactionMap{
 		Reactions: map[string]map[string]chat1.Reaction{
-			":+1:": map[string]chat1.Reaction{
-				u.Username: chat1.Reaction{
+			":+1:": {
+				u.Username: {
 					ReactionMsgID: reactionMsgID,
 				},
 			},
@@ -448,7 +448,7 @@ func TestReactions(t *testing.T) {
 	t.Logf("test -1 reaction")
 	reactionMsgID2 := sendReaction(":-1:", msgID)
 	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
-		u.Username: chat1.Reaction{
+		u.Username: {
 			ReactionMsgID: reactionMsgID2,
 		},
 	}
@@ -477,7 +477,7 @@ func TestReactions(t *testing.T) {
 	reactionMsgID3 := sendReaction(":-1:", msgID)
 
 	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
-		u.Username: chat1.Reaction{
+		u.Username: {
 			ReactionMsgID: reactionMsgID3,
 		},
 	}
@@ -831,8 +831,10 @@ func TestClearFromDelete(t *testing.T) {
 		require.Fail(t, "no conv loader")
 	}
 
-	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi"))
-	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi2"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi",
+		keybase1.TLFVisibility_PRIVATE))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi2",
+		keybase1.TLFVisibility_PRIVATE))
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,

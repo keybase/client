@@ -26,6 +26,16 @@ func (h *KBFSMountHandler) GetCurrentMountDir(ctx context.Context) (res string, 
 	return h.G().Env.GetMountDir()
 }
 
+func (h *KBFSMountHandler) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
+	res = libkb.FindPreferredKBFSMountDirs()
+	directMount, err := h.G().Env.GetMountDir()
+	if err != nil {
+		return nil, err
+	}
+	res = append(res, directMount)
+	return res, nil
+}
+
 func (h *KBFSMountHandler) GetAllAvailableMountDirs(ctx context.Context) (res []string, err error) {
 	return getMountDirs()
 }
@@ -37,7 +47,9 @@ func (h *KBFSMountHandler) SetCurrentMountDir(_ context.Context, drive string) (
 	if err != nil {
 		return err
 	}
-	h.G().ConfigReload()
-	libkb.ChangeMountIcon(oldMount, drive)
-	return nil
+	err = h.G().ConfigReload()
+	if err != nil {
+		return err
+	}
+	return libkb.ChangeMountIcon(oldMount, drive)
 }

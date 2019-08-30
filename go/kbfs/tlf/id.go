@@ -19,9 +19,6 @@ import (
 const (
 	// idByteLen is the number of bytes in a top-level folder ID
 	idByteLen = 16
-	// idStringLen is the number of characters in the string
-	// representation of a top-level folder ID
-	idStringLen = 2 * idByteLen
 	// idSuffix is the last byte of a private top-level folder ID
 	idSuffix = 0x16
 	// pubIDSuffix is the last byte of a public top-level folder ID
@@ -348,7 +345,7 @@ func MakeIDFromTeam(t Type, tid keybase1.TeamID, epoch byte) (ID, error) {
 		panic(fmt.Sprintf("Unknown TLF type %d", t))
 	}
 	var id ID
-	err := id.UnmarshalBinary(idBytes[:])
+	err := id.UnmarshalBinary(idBytes)
 	if err != nil {
 		return NullID, err
 	}

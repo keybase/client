@@ -158,7 +158,7 @@ class AddToTeam extends React.Component<Props> {
             )}
           </Kb.Box2>
         </Kb.ScrollView>
-        <Kb.Box2 direction={'horizontal'} style={styles.addToTeam}>
+        <Kb.Box2 direction="horizontal" style={styles.addToTeam}>
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {this.props.them} will be added as a
           </Kb.Text>
@@ -169,7 +169,7 @@ class AddToTeam extends React.Component<Props> {
             footerComponent={this.props.footerComponent}
             onConfirm={this.props.onConfirmRolePicker}
             onCancel={this.props.onCancelRolePicker}
-            position={'top center'}
+            position="top center"
             open={this.props.isRolePickerOpen}
             disabledRoles={this.props.disabledReasonsForRolePicker}
           >
@@ -196,7 +196,7 @@ class AddToTeam extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   addButton: Styles.platformStyles({
     isMobile: {
       width: '100%',
@@ -243,10 +243,12 @@ const styles = Styles.styleSheetCreate({
     common: {
       alignItems: 'center',
       flex: 1,
+      height: '100%',
       marginTop: 35,
     },
     isElectron: {
       marginBottom: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xsmall,
       width: 500,
     },
     isMobile: {
@@ -286,7 +288,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
 
 const PopupWrapped = (props: Props) => (
   <Kb.PopupDialog onClose={props.onBack}>

@@ -36,26 +36,27 @@ class UpdatePassword extends Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    this.props.onUpdatePGPSettings && this.props.onUpdatePGPSettings()
+  }
+
   _handlePasswordChange(password: string) {
-    this.setState({
-      errorSaving: this._errorSaving(password, this.state.passwordConfirm),
+    this.setState(s => ({
+      errorSaving: this._errorSaving(password, s.passwordConfirm),
       password,
-    })
+    }))
   }
 
   _handlePasswordConfirmChange(passwordConfirm: string) {
-    this.setState({
-      errorSaving: this._errorSaving(this.state.password, passwordConfirm),
+    this.setState(s => ({
+      errorSaving: this._errorSaving(s.password, passwordConfirm),
       passwordConfirm,
-    })
+    }))
   }
 
   _errorSaving(password: string, passwordConfirm: string): string {
     if (password && passwordConfirm && password !== passwordConfirm) {
       return 'Passwords must match.'
-    }
-    if (this.props.hasPGPKeyOnServer === null) {
-      return 'There was a problem downloading your PGP key status.'
     }
     return ''
   }
@@ -68,6 +69,23 @@ class UpdatePassword extends Component<Props, State> {
       : this.props.hasPGPKeyOnServer
       ? "Changing your password will delete your PGP key from Keybase, and you'll need to generate or upload one again."
       : null
+
+    const hintType = this.state.errorSaving
+      ? 'BodySmallError'
+      : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8
+      ? 'BodySmallSuccess'
+      : 'BodySmall'
+    const hintText = this.state.errorSaving ? (
+      this.state.errorSaving
+    ) : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8 ? (
+      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
+        <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} sizeType="Small" />
+        <Kb.Text type="BodySmallSuccess">Passwords match.</Kb.Text>
+      </Kb.Box2>
+    ) : (
+      'Password must be at least 8 characters.'
+    )
+
     return (
       <Kb.Modal
         banners={[
@@ -81,9 +99,12 @@ class UpdatePassword extends Component<Props, State> {
               <Kb.BannerParagraph bannerColor="red" content={this.props.newPasswordError} />
             </Kb.Banner>
           ),
-          !!this.state.errorSaving && (
+          this.props.hasPGPKeyOnServer === null && (
             <Kb.Banner color="red">
-              <Kb.BannerParagraph bannerColor="red" content={this.state.errorSaving} />
+              <Kb.BannerParagraph
+                bannerColor="red"
+                content="There was a problem downloading your PGP key status."
+              />
             </Kb.Banner>
           ),
           !!this.props.newPasswordConfirmError && (
@@ -139,15 +160,28 @@ class UpdatePassword extends Component<Props, State> {
               keyboardType={keyboardType}
               value={this.state.passwordConfirm}
               onChangeText={password => this._handlePasswordConfirmChange(password)}
+              onEnterKeyDown={() => {
+                if (
+                  !this.state.errorSaving &&
+                  this.state.password.length >= 8 &&
+                  this.state.password === this.state.passwordConfirm
+                ) {
+                  this.props.onSave(this.state.password, this.state.passwordConfirm)
+                }
+              }}
             />
           </Kb.RoundedBox>
-          <Kb.Text style={styles.passwordFormat} type="BodySmall">
-            Password must be at least 8 characters.
-          </Kb.Text>
+          {typeof hintText === 'string' ? (
+            <Kb.Text style={styles.passwordFormat} type={hintType}>
+              {hintText}
+            </Kb.Text>
+          ) : (
+            hintText
+          )}
           <Kb.Checkbox
             boxBackgroundColor={Styles.globalColors.white}
             label="Show typing"
-            onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
+            onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
             checked={this.state.showTyping || !!this.props.showTyping}
             style={styles.checkbox}
           />
@@ -157,7 +191,7 @@ class UpdatePassword extends Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: {
     paddingBottom: Styles.globalMargins.small,
   },
@@ -183,6 +217,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     marginTop: Styles.globalMargins.xtiny,
   },
-})
+}))
 
 export default UpdatePassword

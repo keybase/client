@@ -39,6 +39,7 @@ protocol user {
     boolean isVerified;
     boolean isPrimary;
     IdentityVisibility visibility;
+    UnixTime lastVerifyEmailDate;
   }
 
   record UserSettings {

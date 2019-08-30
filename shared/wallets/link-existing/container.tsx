@@ -23,7 +23,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  fromSendForm: Container.getRouteProps(ownProps, 'fromSendForm'),
+  fromSendForm: Container.getRouteProps(ownProps, 'fromSendForm', undefined),
   onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
@@ -41,8 +41,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm'),
-        showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation'),
+        setBuildingTo: Container.getRouteProps(ownProps, 'fromSendForm', undefined),
+        showOnCreation: Container.getRouteProps(ownProps, 'showOnCreation', undefined),
       })
     )
 
@@ -50,7 +50,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   keyError: stateProps.keyError,
   linkExistingAccountError: stateProps.linkExistingAccountError,
   nameError: stateProps.nameError,
