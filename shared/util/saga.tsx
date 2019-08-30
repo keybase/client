@@ -9,13 +9,15 @@ import {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import put from './typed-put'
 import {isArray} from 'lodash-es'
 
+type ActionType = keyof TypedActionsMap
+
 export class SagaLogger {
   error: LogFn
   warn: LogFn
   info: LogFn
   debug: LogFn
   isTagged = false
-  constructor(actionType, fcnTag) {
+  constructor(actionType: ActionType, fcnTag: string) {
     const prefix = `${fcnTag} [${actionType}]:`
     this.debug = (...args) => logger.debug(prefix, ...args)
     this.error = (...args) => logger.error(prefix, ...args)
@@ -54,7 +56,7 @@ interface ChainAction2 {
     actions: AT,
     handler: (state: TypedState, action: TypedActionsMap[AT], logger: SagaLogger) => ChainActionReturn,
     loggerTag?: string
-  ): void
+  ): Generator<void, void, void>
 
   <AT extends ActionTypes[]>(
     actions: AT,
@@ -64,7 +66,7 @@ interface ChainAction2 {
       logger: SagaLogger
     ) => ChainActionReturn,
     loggerTag?: string
-  ): void
+  ): Generator<void, void, void>
 }
 
 function* chainAction2Impl<Actions extends {readonly type: string}>(
@@ -76,7 +78,7 @@ function* chainAction2Impl<Actions extends {readonly type: string}>(
   return yield Effects.takeEvery<TypedActions>(pattern as RS.Pattern, function* chainActionHelper(
     action: TypedActions
   ) {
-    const sl = new SagaLogger(action.type, loggerTag || 'unknown')
+    const sl = new SagaLogger(action.type as ActionType, loggerTag || 'unknown')
     try {
       const state: TypedState = yield* selectState()
       // @ts-ignore
@@ -116,13 +118,13 @@ function* chainGenerator<
   }
 >(
   pattern: RS.Pattern,
-  f: (state: TypedState, action: Actions, logger: SagaLogger) => Iterable<any>,
+  f: (state: TypedState, action: Actions, logger: SagaLogger) => Generator<any, any, any>,
   // tag for logger
   fcnTag?: string
 ): Generator<any, void, any> {
   // @ts-ignore TODO fix
   return yield Effects.takeEvery<Actions>(pattern, function* chainGeneratorHelper(action: Actions) {
-    const sl = new SagaLogger(action.type, fcnTag || 'unknown')
+    const sl = new SagaLogger(action.type as ActionType, fcnTag || 'unknown')
     try {
       const state: TypedState = yield* selectState()
       yield* f(state, action, sl)
@@ -143,13 +145,6 @@ function* chainGenerator<
       }
     }
   })
-}
-
-function* callPromise<Args, T>(
-  fn: (...args: Array<Args>) => Promise<T>,
-  ...args: Array<Args>
-): Generator<any, any, any> {
-  return yield Effects.call(fn, ...args)
 }
 
 function* selectState(): Generator<any, TypedState, void> {
@@ -186,4 +181,4 @@ export {
   throttle,
 } from 'redux-saga/effects'
 
-export {selectState, put, sequentially, chainGenerator, callPromise}
+export {selectState, put, sequentially, chainGenerator}

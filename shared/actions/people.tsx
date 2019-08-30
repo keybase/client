@@ -44,7 +44,13 @@ const getPeopleData = async (state: Container.TypedState, action: PeopleGen.GetP
       .reduce(Constants.reduceRPCItemToPeopleItem, I.List())
 
     if (debugTodo) {
-      const allTodos: Array<RPCTypes.HomeScreenTodoType> = Object.values(RPCTypes.HomeScreenTodoType)
+      const allTodos = Object.values(RPCTypes.HomeScreenTodoType).reduce<Array<RPCTypes.HomeScreenTodoType>>(
+        (arr, t) => {
+          typeof t !== 'string' && arr.push(t)
+          return arr
+        },
+        []
+      )
       allTodos.forEach(avdlType => {
         const todoType = Constants.todoTypeEnumToType[avdlType]
         if (newItems.some(t => t.type === 'todo' && t.todoType === todoType)) {

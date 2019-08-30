@@ -22,7 +22,7 @@ const load = async (state: Container.TypedState) => {
   }
 }
 
-function* requestPaperKey(): Iterable<any> {
+function* requestPaperKey() {
   yield RPCTypes.loginPaperKeyRpcSaga({
     customResponseIncomingCallMap: {
       'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {

@@ -113,13 +113,8 @@ const deriveTeamSoFar = memoize(
     })
 )
 
-const deriveServiceResultCount: (
-  searchResults: SearchResults,
-  query: string
-) => {[K in ServiceIdWithContact]: number | null} = memoize((searchResults: SearchResults, query) =>
-  // @ts-ignore codemod issue
-  searchResults
-    .get(trim(query), I.Map())
+const deriveServiceResultCount = memoize((searchResults: SearchResults, query: string) =>
+  (searchResults.get(trim(query)) || I.Map<ServiceIdWithContact, Array<User>>())
     .map(results => results.length)
     .toObject()
 )

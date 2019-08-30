@@ -10,7 +10,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
-const testLogger = new SagaLogger('TESTING', 'TESTINGFCN')
+const testLogger = new SagaLogger('TESTING' as any, 'TESTINGFCN')
 
 jest.unmock('immutable')
 

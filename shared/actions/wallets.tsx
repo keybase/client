@@ -13,7 +13,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Flow from '../util/flow'
 import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
-import logger from '../logger'
+import _logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
@@ -35,7 +35,7 @@ const buildErrCatcher = (err: any) => {
   if (err instanceof RPCError && err.code === RPCTypes.StatusCode.sccanceled) {
     // ignore cancellation
   } else {
-    logger.error(`buildPayment error: ${err.message}`)
+    _logger.error(`buildPayment error: ${err.message}`)
     throw err
   }
 }
@@ -219,7 +219,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
     )
   } catch (err) {
     buildErrCatcher(err)
-    return null
+    return false
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
@@ -233,7 +233,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
         forBuildCounter: state.wallets.buildCounter,
       })
     )
-    return null
+    return false
   }
 
   const kbRqID: Saga.RPCPromiseType<
@@ -263,6 +263,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
       })
     ),
   ])
+  return false
 }
 
 const startPayment = async (state: TypedState) => {
@@ -420,9 +421,9 @@ const handleSelectAccountError = (action, msg, err) => {
     action.payload.reason === 'auto-selected'
   ) {
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(errMsg)
+    _logger.warn(errMsg)
   } else {
-    logger.error(errMsg)
+    _logger.error(errMsg)
     throw err
   }
 }
@@ -565,7 +566,7 @@ const loadSendAssetChoices = async (_: TypedState, action: WalletsGen.LoadSendAs
     // The result is dropped here. See PICNIC-84 for fixing it.
     return res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
   } catch (err) {
-    logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${err.desc}`)
     return false
   }
 }
@@ -693,7 +694,7 @@ const setAccountAsDefault = async (_: TypedState, action: WalletsGen.SetAccountA
   return WalletsGen.createDidSetAccountAsDefault({
     accounts: (accountsAfterUpdate || []).map(account => {
       if (!account.accountID) {
-        logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
+        _logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
       }
       return Constants.accountResultToAccount(account)
     }),
@@ -1397,7 +1398,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
     )
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
-    logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${err.desc}`)
     return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
   }
 }
@@ -1418,7 +1419,7 @@ const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}
     )
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
-    logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${err.desc}`)
     return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
   }
 }
@@ -1663,6 +1664,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
       version: action.payload.version,
     })
   )
+  return false
 }
 
 function* walletsSaga() {

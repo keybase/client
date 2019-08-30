@@ -270,7 +270,6 @@ function* loadDaemonAccounts(
           })
         )
       }
-      return undefined
     }
   }
 }

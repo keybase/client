@@ -696,7 +696,7 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
       const mimeType = yield* _loadMimeType(path)
-      pathItem = pathItem.set('mimeType', mimeType)
+      pathItem = pathItem.set('mimeType', mimeType || null)
     }
     yield Saga.put(
       FsGen.createPathItemLoaded({

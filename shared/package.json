@@ -227,6 +227,7 @@
     "@types/memoize-one": "4.1.1",
     "@types/moment": "2.13.0",
     "@types/mousetrap": "1.6.2",
+    "@types/node": "12.7.3",
     "@types/path-parse": "1.0.19",
     "@types/react": "16.8.22",
     "@types/react-dom": "16.8.4",

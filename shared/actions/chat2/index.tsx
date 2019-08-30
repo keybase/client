@@ -2485,7 +2485,7 @@ function* mobileMessageAttachmentShare(
   }
   const fileName = yield* downloadAttachment('', message)
   try {
-    yield showShareActionSheetFromFile(fileName, message.fileType)
+    yield showShareActionSheetFromFile(fileName)
   } catch (e) {
     logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }
@@ -2515,7 +2515,7 @@ function* mobileMessageAttachmentSave(
   )
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield saveAttachmentToCameraRoll( fileName, message.fileType)
+    yield saveAttachmentToCameraRoll(fileName, message.fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)

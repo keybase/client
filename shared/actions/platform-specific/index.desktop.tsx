@@ -62,7 +62,7 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-function* handleWindowFocusEvents(): Iterable<any> {
+function* handleWindowFocusEvents() {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('focus', () => emitter('focus'))
     window.addEventListener('blur', () => emitter('blur'))
@@ -410,7 +410,7 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
 
 export const requestLocationPermission = () => Promise.resolve()
 
-export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
