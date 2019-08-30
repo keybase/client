@@ -37,6 +37,7 @@ const (
 	methodListConvsOnName   = "listconvsonname"
 	methodJoin              = "join"
 	methodLeave             = "leave"
+	methodAddToChannel      = "addtochannel"
 	methodLoadFlip          = "loadflip"
 	methodGetUnfurlSettings = "getunfurlsettings"
 	methodSetUnfurlSettings = "setunfurlsettings"
@@ -64,6 +65,7 @@ type ChatAPIHandler interface {
 	ListConvsOnNameV1(context.Context, Call, io.Writer) error
 	JoinV1(context.Context, Call, io.Writer) error
 	LeaveV1(context.Context, Call, io.Writer) error
+	AddToChannelV1(context.Context, Call, io.Writer) error
 	LoadFlipV1(context.Context, Call, io.Writer) error
 	GetUnfurlSettingsV1(context.Context, Call, io.Writer) error
 	SetUnfurlSettingsV1(context.Context, Call, io.Writer) error
@@ -456,6 +458,26 @@ func (o leaveOptionsV1) Check() error {
 	return nil
 }
 
+type addToChannelOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string   `json:"conversation_id"`
+	Usernames      []string `json:"usernames"`
+}
+
+func (o addToChannelOptionsV1) Check() error {
+	if err := checkChannelConv(methodNewConv, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	if len(o.Usernames) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodAddToChannel,
+			err:     errors.New("addtochannel needs at least one user"),
+		}
+	}
+	return nil
+}
+
 type loadFlipOptionsV1 struct {
 	ConversationID     string          `json:"conversation_id"`
 	FlipConversationID string          `json:"flip_conversation_id"`
@@ -822,6 +844,20 @@ func (a *ChatAPI) LeaveV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.LeaveV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) AddToChannelV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodAddToChannel, err: errors.New("empty options")}
+	}
+	var opts addToChannelOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.AddToChannelV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) LoadFlipV1(ctx context.Context, c Call, w io.Writer) error {
