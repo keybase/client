@@ -33,6 +33,7 @@ type handlerTracker struct {
 	listConvsOnNameV1   int
 	joinV1              int
 	leaveV1             int
+	addToChannelV1      int
 	loadFlipV1          int
 	getUnfurlSettingsV1 int
 	setUnfurlSettingsV1 int
@@ -123,6 +124,11 @@ func (h *handlerTracker) JoinV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
 	h.leaveV1++
+	return nil
+}
+
+func (h *handlerTracker) AddToChannelV1(context.Context, Call, io.Writer) error {
+	h.addToChannelV1++
 	return nil
 }
 
@@ -233,6 +239,10 @@ func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) AddToChannelV1(context.Context, addToChannelOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
@@ -272,6 +282,7 @@ type topTest struct {
 	searchRegexpV1    int
 	joinV1            int
 	leaveV1           int
+	addToChannelV1    int
 	listConvsOnNameV1 int
 }
 
@@ -360,6 +371,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		}
 		if h.leaveV1 != test.leaveV1 {
 			t.Errorf("test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
+		}
+		if h.addToChannelV1 != test.addToChannelV1 {
+			t.Errorf("test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
 		}
 		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
 			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",

@@ -69,6 +69,7 @@ a = 1
    * c
   `,
   bigemoji: ':thumbsup::100:',
+  blockemoji: '> :wave: Hi all',
   boldweirdness: `How are you *today*?`,
   breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   debugging: `\` \` hi \` \``,
@@ -302,12 +303,24 @@ class ShowPreview extends React.Component<
 // Adds the perf decorator and disables showing previews and ast
 const PERF_MODE = false
 
-const MarkdownWithAst = ({children, meta}: {children: any; meta?: MarkdownMeta | null}) =>
+const MarkdownWithAst = ({
+  children,
+  meta,
+  preview,
+}: {
+  children: any
+  meta?: MarkdownMeta | null
+  preview?: boolean
+}) =>
   PERF_MODE ? (
-    <Markdown meta={meta}>{children}</Markdown>
+    <Markdown meta={meta} preview={preview}>
+      {children}
+    </Markdown>
   ) : (
     <Kb.Box2 direction="vertical">
-      <Markdown meta={meta}>{children}</Markdown>
+      <Markdown meta={meta} preview={preview}>
+        {children}
+      </Markdown>
       <ShowAST text={children} meta={meta || null} />
       <ShowPreview text={children} meta={meta || null} />
     </Kb.Box2>
@@ -324,6 +337,9 @@ const load = () => {
 
   Object.keys(cases).forEach(k => {
     s = s.add(k, () => <MarkdownWithAst>{cases[k]}</MarkdownWithAst>)
+  })
+  Object.keys(cases).forEach(k => {
+    s = s.add(k + '-preview', () => <MarkdownWithAst preview={true}>{cases[k]}</MarkdownWithAst>)
   })
 
   Object.keys(mocksWithMeta).forEach(k => {

@@ -56,7 +56,7 @@ export const newRoutes = {
   // TODO connect broken
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
-  settingsRoot: {getScreen: (): typeof SettingsRoot => require('./').default},
+  settingsRoot: {getScreen: (): typeof SettingsRoot => require('.').default},
   // TODO connect broken
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }

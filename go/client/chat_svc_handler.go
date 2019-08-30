@@ -37,6 +37,7 @@ type ChatServiceHandler interface {
 	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
 	JoinV1(context.Context, joinOptionsV1) Reply
 	LeaveV1(context.Context, leaveOptionsV1) Reply
+	AddToChannelV1(context.Context, addToChannelOptionsV1) Reply
 	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
 	GetUnfurlSettingsV1(context.Context) Reply
 	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
@@ -195,6 +196,25 @@ func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) R
 	return Reply{Result: cres}
 }
 
+func (c *chatServiceHandler) AddToChannelV1(ctx context.Context, opts addToChannelOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	err = client.BulkAddToConv(ctx, chat1.BulkAddToConvArg{
+		Usernames: opts.Usernames,
+		ConvID:    convID,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: true}
+}
+
 func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -264,7 +284,7 @@ func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertis
 	case "teammembers":
 		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
 	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, errors.New("unknown advertisement type")
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q", typ)
 	}
 }
 
