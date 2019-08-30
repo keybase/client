@@ -2,15 +2,12 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import RouterSwitcheroo from '../router-v2/switcheroo'
-import {connect} from '../util/container'
 import {GatewayDest} from 'react-gateway'
 import {View} from 'react-native'
 
-type OwnProps = {}
-
 type Props = {}
 
-const Main = (props: Props) => (
+const Main = (_: Props) => (
   <>
     <RouterSwitcheroo />
     <GatewayDest
