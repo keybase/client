@@ -7,17 +7,20 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const usernameRE = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
+const localUsernameRE = "(?:[a-zA-A0-0_]+-?)+"
 
 var kbfsPathOuterRegExp = func() *regexp.Regexp {
-	const slashDivided = `(?:(?:/keybase|/Volumes/Keybase\\ \(` + usernameRE + `\)|/Volumes/Keybase)((?:\\ |\S)*))`
-	const slashDividedQuoted = `"(?:(?:/keybase|/Volumes/Keybase \(` + usernameRE + `\)|/Volumes/Keybase)(.*))"`
+	const slashDivided = `(?:(?:/keybase|/Volumes/Keybase\\ \(` + kbun.UsernameRE + `\)|/Volumes/Keybase)((?:\\ |\S)*))`
+	const slashDividedQuoted = `"(?:(?:/keybase|/Volumes/Keybase \(` + localUsernameRE + `\)|/Volumes/Keybase)(.*))"`
 	const windows = `(?:(?:K:|k:)(\\\S*))` // don't support escape on windows
+	// TODO if in the future we want to support custom mount points we can
+	// probably tap into Env() to get it.
 	const windowsQuoted = `"(?:(?:K:|k:)(\\.*))"`
 	const deeplink = `(?:(?:keybase:/)((?:\S)*))`
 	return regexp.MustCompile(`(?:[^\w"]|^)(` + slashDivided + "|" + slashDividedQuoted + "|" + windows + "|" + windowsQuoted + "|" + deeplink + `)`)
@@ -25,10 +28,11 @@ var kbfsPathOuterRegExp = func() *regexp.Regexp {
 
 var kbfsPathInnerRegExp = func() *regexp.Regexp {
 	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
-	const user = `(?:(?:` + usernameRE + `)|(?:` + socialAssertion + `))`
+	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
 	const usernames = user + `(?:,` + user + `)*`
-	const teamName = usernameRE + `(?:\.` + usernameRE + `)*`
+	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
 	const tlfType = "/(?:private|public|team)$"
+	// TODO support name suffix e.g. conflict
 	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
 	const specialFiles = "/(?:.kbfs_.+)"
 	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
