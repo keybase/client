@@ -349,7 +349,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: isAndroid ? getInitialPushAndroid : getInitialPushiOS,
+    push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
     pushTimeout: Saga.delay(10),
   })
   if (pushTimeout || !push) {
