@@ -194,24 +194,15 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 			Lat: 40.800348,
 			Lon: -73.968784,
 		},
-		{
-			Lat: 40.798688,
-			Lon: -73.973716,
-		},
-		{
-			Lat: 40.795234,
-			Lon: -73.976237,
-		},
 	}
 	updateCoords(t, livelocation, coords, nil, coordsCh)
-	// no new map yet
+	checkCoords(t, unfurler, []chat1.Coordinate{coords[0]}, timeout)
+	clock.Advance(10 * time.Second)
 	select {
 	case <-unfurler.unfurlCh:
 		require.Fail(t, "should not have updated yet")
 	default:
 	}
-	clock.Advance(10 * time.Second)
-	checkCoords(t, unfurler, []chat1.Coordinate{coords[2]}, timeout)
 	select {
 	case <-chatUI.clearCh:
 	case <-time.After(timeout):

@@ -6,7 +6,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {isIOS} from '../../../../constants/platform'
-import {imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
+import {imgMaxHeightRaw, imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
 
 type Props = {
   httpSrvAddress: string
@@ -47,7 +47,7 @@ const LocationPopup = (props: Props) => {
   }
 
   const width = imgMaxWidthRaw()
-  const height = 400
+  const height = imgMaxHeightRaw() - 320
   const location = props.lastCoord
   const mapSrc = location
     ? `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${
@@ -153,7 +153,6 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.fillAbsolute,
     justifyContent: 'center',
-    position: 'relative',
   },
   image: {
     flex: 1,
