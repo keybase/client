@@ -264,7 +264,7 @@ func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertis
 	case "teammembers":
 		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
 	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, errors.New("unknown advertisement type")
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q", typ)
 	}
 }
 
