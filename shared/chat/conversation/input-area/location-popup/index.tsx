@@ -46,8 +46,8 @@ const LocationPopup = (props: Props) => {
 
   const width = imgMaxWidthRaw()
   const height = 800
-  const mapSrc = `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${
-    location.lon
+  const mapSrc = `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&accuracy=${
+    location.accuracy
   }&width=${width}&height=${height}&token=${props.httpSrvToken}`
   return (
     <Kb.Modal
