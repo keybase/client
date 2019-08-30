@@ -136,10 +136,10 @@ const mapStateToProps = (state: Container.TypedState) => ({
   showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
   userInfo: state.users.infoMap,
   username: state.config.username,
-  widgetBadge: state.notifications.widgetBadge || 'regular',
+  widgetBadge: state.notifications.widgetBadge,
 })
 
-let _lastUsername
+let _lastUsername: string | undefined
 let _lastClearCacheTrigger = 0
 
 // TODO better type
