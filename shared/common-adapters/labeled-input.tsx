@@ -33,7 +33,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
   const {value, onChangeText} = props
   const [uncontrolledValue, setUncontrolledValue] = React.useState('')
   const _onChangeText = React.useCallback(
-    newValue => {
+    (newValue: string) => {
       value === undefined && setUncontrolledValue(newValue)
       onChangeText && onChangeText(newValue)
     },
@@ -42,11 +42,12 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
 
   // Style is supposed to switch when there's any input or its focused
   const actualValue = value !== undefined ? value : uncontrolledValue
-  const populated = actualValue && actualValue.length > 0
+  const populated = !!actualValue && actualValue.length > 0
   const collapsed = focused || populated
 
   // We're using fontSize to derive heights
   const textStyle = getTextStyle(props.textType || 'BodySemibold')
+  const computedHeight = textStyle.fontSize + (isMobile ? 52 : 38)
 
   const {containerStyle, error, forwardedRef, placeholder, ...plainInputProps} = props
   return (
@@ -66,7 +67,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
       <Box2
         direction="vertical"
         alignItems="flex-start"
-        style={Styles.collapseStyles([styles.labelWrapper])}
+        style={styles.labelWrapper}
         fullWidth={true}
         fullHeight={true}
         centerChildren={true}
@@ -89,7 +90,11 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         onFocus={_onFocus}
         onBlur={_onBlur}
         ref={props.forwardedRef}
-        style={Styles.collapseStyles([styles.input, collapsed ? styles.inputSmall : styles.inputLarge])}
+        style={Styles.collapseStyles([
+          styles.input,
+          {height: computedHeight, maxHeight: computedHeight},
+          collapsed && styles.inputSmall,
+        ])}
       />
     </Box2>
   )
@@ -115,6 +120,7 @@ const styles = Styles.styleSheetCreate(() => ({
       borderWidth: 1,
       margin: 0,
       position: 'relative',
+      width: '100%',
     },
     isElectron: {width: '100%'},
   }),
@@ -138,19 +144,20 @@ const styles = Styles.styleSheetCreate(() => ({
     height: '100%',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
-    position: 'absolute',
+    width: '100%',
+    zIndex: 10,
   },
-  inputLarge: {},
   inputSmall: {
-    paddingTop: Styles.globalMargins.small,
+    paddingTop: 0,
   },
   label: {
     alignSelf: 'flex-start',
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
+    zIndex: 1,
   },
   labelFocused: {
-    color: Styles.globalColors.blue,
+    color: Styles.globalColors.blueDark,
   },
   labelLarge: {
     color: Styles.globalColors.black_50,

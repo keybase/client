@@ -17,43 +17,11 @@ type Props = {
   waiting: boolean
 }
 
-/*
-  const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) => (
-    <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.Text type="BodySmallError" style={styles.error}>
-        {props.error}
-      </Kb.Text>
-      {!!props.onGoToSignup && (
-        <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
-          Sign up for a new account?
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  )
-*/
-
 const Username = (props: Props) => {
   const [username, setUsername] = React.useState(props.initialUsername)
   const onSubmit = React.useCallback(() => {
     props.onSubmit(username)
   }, [props.onSubmit, username])
-
-  /*
-    let errorTextComponent
-    if (props.submittedUsername === username && !!props.inlineError) {
-      errorTextComponent = (
-        <InlineError
-          error={props.inlineError}
-          onGoToSignup={props.inlineSignUpLink ? props.onGoToSignup : null}
-        />
-      )
-    }
-  */
-
-  /*
-    errorText={props.submittedUsername === username ? props.error : ''}
-    errorTextComponent={errorTextComponent}
-  */
 
   return (
     <SignupScreen
@@ -94,11 +62,12 @@ const Username = (props: Props) => {
     >
       <Kb.UserCard
         style={styles.card}
+        avatarBackgroundStyle={styles.outerCardAvatar}
         outerStyle={styles.outerCard}
         lighterPlaceholders={true}
         avatarSize={96}
       >
-        <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
           <Kb.LabeledInput
             autoFocus={true}
             placeholder="Username"
@@ -131,10 +100,16 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.medium,
     },
   }),
-  card: {
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.transparent,
-  },
+  card: Styles.platformStyles({
+    common: {
+      alignItems: 'stretch',
+      backgroundColor: Styles.globalColors.transparent,
+    },
+    isMobile: {
+      paddingLeft: 0,
+      paddingRight: 0,
+    },
+  }),
   error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
   errorLink: {
     color: Styles.globalColors.redDark,
@@ -173,6 +148,9 @@ const styles = Styles.styleSheetCreate({
   outerCard: {
     height: 'auto',
     marginTop: 40,
+  },
+  outerCardAvatar: {
+    backgroundColor: Styles.globalColors.transparent,
   },
   outerStyle: {
     backgroundColor: Styles.globalColors.white,

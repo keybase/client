@@ -13,6 +13,7 @@ const Kb = {
 const defaultAvatarSize = 96
 
 const UserCard = ({
+  avatarBackgroundStyle,
   avatarSize,
   outerStyle,
   onAvatarClicked,
@@ -35,6 +36,7 @@ const UserCard = ({
               height: avatarSize / 2,
               top: avatarSize / 2,
             },
+            avatarBackgroundStyle,
           ])}
         />
         <Kb.Avatar
@@ -65,6 +67,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
+    width: '100%',
   },
   inside: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -72,6 +75,7 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-start',
     padding: 16,
+    width: '100%',
   },
 }))
 
