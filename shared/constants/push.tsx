@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from './types/push'
 import * as ChatConstants from './chat2'
 import * as ChatTypes from './types/chat2'
@@ -9,12 +8,6 @@ import logger from '../logger'
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 export const androidSenderID = '9603251415'
 export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
-
-export const makeInitialState = I.Record<Types._State>({
-  hasPermissions: true,
-  showPushPrompt: false,
-  token: '',
-})
 
 export const normalizePush = (n: any): Types.PushNotification | null => {
   try {
