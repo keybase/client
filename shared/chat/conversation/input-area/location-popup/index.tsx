@@ -3,12 +3,15 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Types from '../../../../constants/types/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {isIOS} from '../../../../constants/platform'
 import {imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
 
 type Props = {
   httpSrvAddress: string
   httpSrvToken: string
+  lastCoord: Types.Coordinate | null
   onLocationShare: (duration: string) => void
 }
 
@@ -17,23 +20,22 @@ const LocationPopup = (props: Props) => {
   const onClose = React.useCallback(() => {
     dispatch(RouteTreeGen.createClearModals())
   }, [dispatch])
-  const [location, setLocation] = React.useState({
-    accuracy: 0,
-    lat: 0,
-    lon: 0,
-  })
   const [mapLoaded, setMapLoaded] = React.useState(false)
   React.useEffect(() => {
     const watchID = navigator.geolocation.watchPosition(
       pos => {
-        setLocation({
-          accuracy: Math.floor(pos.coords.accuracy),
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-        })
+        dispatch(
+          Chat2Gen.createUpdateLastCoord({
+            coord: {
+              accuracy: Math.floor(pos.coords.accuracy),
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+            },
+          })
+        )
       },
       () => {},
-      {enableHighAccuracy: isIOS, maximumAge: 10000, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     return () => {
       navigator.geolocation.clearWatch(watchID)
@@ -45,10 +47,13 @@ const LocationPopup = (props: Props) => {
   }
 
   const width = imgMaxWidthRaw()
-  const height = 800
-  const mapSrc = `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&accuracy=${
-    location.accuracy
-  }&width=${width}&height=${height}&token=${props.httpSrvToken}`
+  const height = 400
+  const location = props.lastCoord
+  const mapSrc = location
+    ? `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${location.lon}&accuracy=${
+        location.accuracy
+      }&width=${width}&height=${height}&token=${props.httpSrvToken}`
+    : ''
   return (
     <Kb.Modal
       header={{
@@ -69,7 +74,6 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-              disabled={!mapLoaded}
             />
             <Kb.Button
               fullWidth={true}
@@ -78,7 +82,6 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-              disabled={!mapLoaded}
             />
             <Kb.Button
               fullWidth={true}
@@ -87,14 +90,12 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-              disabled={!mapLoaded}
             />
             <Kb.Divider />
             <Kb.Button
               fullWidth={true}
               onClick={() => onLocationShare('')}
               type="Default"
-              disabled={!mapLoaded}
               style={{height: 53}}
             >
               <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
@@ -103,7 +104,7 @@ const LocationPopup = (props: Props) => {
                 </Kb.Text>
                 {mapLoaded && (
                   <Kb.Text type="BodyTiny" style={styles.accuracy}>
-                    Accurate to {location.accuracy} meters
+                    Accurate to {location ? location.accuracy : 0} meters
                   </Kb.Text>
                 )}
               </Kb.Box2>
@@ -113,7 +114,7 @@ const LocationPopup = (props: Props) => {
       }}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Image src={mapSrc} style={{height, width}} onLoad={() => setMapLoaded(true)} />
+        {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={() => setMapLoaded(true)} />}
         {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
       </Kb.Box2>
     </Kb.Modal>

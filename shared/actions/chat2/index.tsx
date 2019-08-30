@@ -3104,6 +3104,20 @@ const onChatMaybeMentionUpdate = (
   })
 }
 
+let locationEmitter: ((input: unknown) => void) | null = null
+
+function* setupLocationUpdateLoop() {
+  const locationChannel = yield Saga.eventChannel(emitter => {
+    locationEmitter = emitter
+    // we never unsubscribe
+    return () => {}
+  }, Saga.buffers.expanding(10))
+  while (true) {
+    const action = yield Saga.take(locationChannel)
+    yield Saga.put(action)
+  }
+}
+
 const onChatWatchPosition = async (
   _: TypedState,
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
@@ -3118,17 +3132,22 @@ const onChatWatchPosition = async (
       return []
     }
     const watchID = navigator.geolocation.watchPosition(
-      pos =>
-        RPCChatTypes.localLocationUpdateRpcPromise({
-          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-        }),
+      pos => {
+        if (locationEmitter) {
+          locationEmitter(
+            Chat2Gen.createUpdateLastCoord({
+              coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+            })
+          )
+        }
+      },
       err => {
         logger.warn(err.message)
         if (err.code && err.code === 1) {
           RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
         }
       },
-      {enableHighAccuracy: isIOS, maximumAge: 10000, timeout: 30000}
+      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
     )
     response.result(watchID)
   } else {
@@ -3188,6 +3207,15 @@ const unpinMessage = async (_: TypedState, action: Chat2Gen.UnpinMessagePayload)
 const ignorePinnedMessage = (_: TypedState, action: Chat2Gen.IgnorePinnedMessagePayload) =>
   RPCChatTypes.localIgnorePinnedMessageRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
+  })
+
+const onUpdateLastCoord = (_: TypedState, action: Chat2Gen.UpdateLastCoordPayload) =>
+  RPCChatTypes.localLocationUpdateRpcPromise({
+    coord: {
+      accuracy: action.payload.coord.accuracy,
+      lat: action.payload.coord.lat,
+      lon: action.payload.coord.lon,
+    },
   })
 
 const openChatFromWidget = (
@@ -3688,6 +3716,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(Chat2Gen.unpinMessage, unpinMessage)
   yield* Saga.chainAction2(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
 
+  yield* Saga.chainAction2(Chat2Gen.updateLastCoord, onUpdateLastCoord)
+
   yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
     Chat2Gen.loadAttachmentView,
     loadAttachmentView
@@ -3695,6 +3725,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
 
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    setupLocationUpdateLoop
+  )
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()

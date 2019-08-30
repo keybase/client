@@ -198,6 +198,7 @@ export type TypedActionsMap = {
   'chat2:unpinMessage': chat2.UnpinMessagePayload
   'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
+  'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

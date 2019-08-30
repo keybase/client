@@ -17,6 +17,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _conversationIDKey: conversationIDKey,
     httpSrvAddress: state.config.httpSrvAddress,
     httpSrvToken: state.config.httpSrvToken,
+    lastCoord: state.chat2.lastCoord,
   }
 }
 
@@ -35,6 +36,7 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
   return {
     httpSrvAddress: stateProps.httpSrvAddress,
     httpSrvToken: stateProps.httpSrvToken,
+    lastCoord: stateProps.lastCoord,
     onLocationShare: (duration: string) =>
       dispatchProps._onLocationShare(duration, stateProps._conversationIDKey),
   }
