@@ -79,6 +79,11 @@ export const urlToUsername = (url: Url) => {
   return username
 }
 
+export const getRemoteWindowPropsCount = (state: Types.State, component: string, params: string) => {
+  const m = state.remoteWindowNeedsProps.get(component)
+  return (m && m.get(params)) || 0
+}
+
 export const initialState: Types.State = {
   appFocused: true,
   appFocusedCount: 0,

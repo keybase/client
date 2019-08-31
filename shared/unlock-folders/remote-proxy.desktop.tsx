@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../constants/config'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, compose} from '../util/container'
@@ -13,12 +14,11 @@ const UnlockFolder = compose(
   connect(
     state => {
       const {devices, phase, paperkeyError, waiting} = state.unlockFolders
-      const ufMap = state.config.remoteWindowNeedsProps.get('unlockFolders')
       return {
         devices,
         paperkeyError,
         phase,
-        remoteWindowNeedsProps: (ufMap && ufMap.get('')) || -1,
+        remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'unlockFolders', ''),
         waiting,
         windowComponent: 'unlock-folders',
         windowOpts,
