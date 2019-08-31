@@ -12,7 +12,7 @@ import {
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
-import MoreMenuPopup from '../moremenu-popup/container'
+import MoreMenuPopup from './moremenu-popup'
 import {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 import {parseUri, launchCameraAsync, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
@@ -341,8 +341,8 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   nonExploding: {
-    paddingLeft: Styles.globalMargins.xsmall,
     paddingBottom: 5,
+    paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: 7,
   },
   send: {

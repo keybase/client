@@ -4,51 +4,88 @@ import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
+import * as WalletsGen from '../../../../actions/wallets-gen'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import HiddenString from '../../../../util/hidden-string'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  onCoinFlip: () => void
-  onGiphy: () => void
   onHidden: () => void
-  onInsertSlashCommand: () => void
-  onRequestLumens?: () => void
-  onSendLumens?: () => void
   visible: boolean
 }
 
 const MoreMenuPopup = (props: Props) => {
+  const {conversationIDKey, onHidden, visible} = props
+  // state
+  const {meta, wallet, you} = Container.useSelector(state => ({
+    meta: Constants.getMeta(state, conversationIDKey),
+    wallet: Constants.shouldShowWalletsIcon(state, conversationIDKey),
+    you: state.config.username,
+  }))
+  // dispatch
   const dispatch = Container.useDispatch()
-  const onLocationShare = React.useCallback(() => {
+  const onLumens = (to: string, isRequest: boolean) => {
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({
+        isRequest,
+        recipientType: 'keybaseUser',
+        to,
+      })
+    )
+  }
+  const onSlashPrefill = (text: string) => {
+    dispatch(
+      Chat2Gen.createSetUnsentText({
+        conversationIDKey,
+        text: new HiddenString(text),
+      })
+    )
+  }
+  const onLocationShare = () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {conversationIDKey: props.conversationIDKey, namespace: 'chat2'},
+            props: {conversationIDKey, namespace: 'chat2'},
             selected: 'chatLocationPreview',
           },
         ],
       })
     )
-  }, [dispatch, props.conversationIDKey])
+  }
+  // merge
+  let to = ''
+  if (wallet) {
+    const otherParticipants = meta.participants.filter(u => u !== you)
+    to = otherParticipants.first()
+  }
+  const onSendLumens = wallet ? () => onLumens(to, false) : undefined
+  const onRequestLumens = wallet ? () => onLumens(to, true) : undefined
+  const onCoinFlip = () => onSlashPrefill('/flip ')
+  const onGiphy = () => onSlashPrefill('/giphy ')
+  const onInsertSlashCommand = () => onSlashPrefill('/')
+
+  // render
   const items = [
-    ...(props.onSendLumens
+    ...(onSendLumens
       ? [
           {
-            onClick: props.onSendLumens,
+            onClick: onSendLumens,
             title: 'Send Lumens (XLM)',
           },
         ]
       : []),
-    ...(props.onRequestLumens
+    ...(onRequestLumens
       ? [
           {
-            onClick: props.onRequestLumens,
+            onClick: onRequestLumens,
             title: 'Request Lumens (XLM)',
           },
         ]
       : []),
     {
-      onClick: props.onGiphy,
+      onClick: onGiphy,
       title: '',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -60,7 +97,7 @@ const MoreMenuPopup = (props: Props) => {
       ),
     },
     {
-      onClick: props.onCoinFlip,
+      onClick: onCoinFlip,
       title: '',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -84,7 +121,7 @@ const MoreMenuPopup = (props: Props) => {
       ),
     },
     {
-      onClick: props.onInsertSlashCommand,
+      onClick: onInsertSlashCommand,
       title: '',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -96,9 +133,7 @@ const MoreMenuPopup = (props: Props) => {
       ),
     },
   ]
-  return (
-    <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={props.onHidden} visible={props.visible} />
-  )
+  return <Kb.FloatingMenu closeOnSelect={true} items={items} onHidden={onHidden} visible={visible} />
 }
 
 const styles = Styles.styleSheetCreate(() => ({
