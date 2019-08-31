@@ -6,7 +6,7 @@ import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} fro
 export type Props = {
   attachTo?: () => React.Component<any> | null
   description: string
-  following: {[K in string]: true}
+  following: Set<string>
   memberCount: number
   onHidden: () => void
   onJoinTeam: (teamname: string) => void
@@ -112,7 +112,7 @@ const TeamInfo = (props: Props) => (
               type="BodySmallSemibold"
               underline={true}
               colorFollowing={true}
-              users={[{following: !!props.following[username], username}]}
+              users={[{following: props.following.has(username), username}]}
               onUsernameClicked={() => props.onUserClick(username)}
             />
 
