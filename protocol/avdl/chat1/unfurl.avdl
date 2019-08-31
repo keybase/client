@@ -47,6 +47,7 @@ protocol unfurl {
     string imageUrl;
     union { null, string } historyImageUrl;
     string description;
+    Coordinate coord;
   }
 
   variant UnfurlRaw switch (UnfurlType unfurlType) {
@@ -54,6 +55,10 @@ protocol unfurl {
     case YOUTUBE: UnfurlYoutubeRaw;
     case GIPHY: UnfurlGiphyRaw;
     case MAPS: UnfurlMapsRaw;
+  }
+
+  record UnfurlGenericMapInfo {
+    Coordinate coord;
   }
 
   record UnfurlGeneric {
@@ -64,6 +69,7 @@ protocol unfurl {
     union { null, Asset } image;
     union { null, int } publishTime;
     union { null, string } description;
+    union { null, UnfurlGenericMapInfo } mapInfo;
   }
 
   record UnfurlYoutube {
@@ -102,6 +108,7 @@ protocol unfurl {
     union { null, UnfurlImageDisplay } media;
     union { null, int } publishTime;
     union { null, string } description;
+    union { null, UnfurlGenericMapInfo } mapInfo;
   }
 
   record UnfurlYoutubeDisplay {

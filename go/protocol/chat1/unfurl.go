@@ -150,12 +150,13 @@ func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 }
 
 type UnfurlMapsRaw struct {
-	Title           string  `codec:"title" json:"title"`
-	Url             string  `codec:"url" json:"url"`
-	SiteName        string  `codec:"siteName" json:"siteName"`
-	ImageUrl        string  `codec:"imageUrl" json:"imageUrl"`
-	HistoryImageUrl *string `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
-	Description     string  `codec:"description" json:"description"`
+	Title           string     `codec:"title" json:"title"`
+	Url             string     `codec:"url" json:"url"`
+	SiteName        string     `codec:"siteName" json:"siteName"`
+	ImageUrl        string     `codec:"imageUrl" json:"imageUrl"`
+	HistoryImageUrl *string    `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
+	Description     string     `codec:"description" json:"description"`
+	Coord           Coordinate `codec:"coord" json:"coord"`
 }
 
 func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
@@ -172,6 +173,7 @@ func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
 			return &tmp
 		})(o.HistoryImageUrl),
 		Description: o.Description,
+		Coord:       o.Coord.DeepCopy(),
 	}
 }
 
@@ -311,14 +313,25 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 	}
 }
 
+type UnfurlGenericMapInfo struct {
+	Coord Coordinate `codec:"coord" json:"coord"`
+}
+
+func (o UnfurlGenericMapInfo) DeepCopy() UnfurlGenericMapInfo {
+	return UnfurlGenericMapInfo{
+		Coord: o.Coord.DeepCopy(),
+	}
+}
+
 type UnfurlGeneric struct {
-	Title       string  `codec:"title" json:"title"`
-	Url         string  `codec:"url" json:"url"`
-	SiteName    string  `codec:"siteName" json:"siteName"`
-	Favicon     *Asset  `codec:"favicon,omitempty" json:"favicon,omitempty"`
-	Image       *Asset  `codec:"image,omitempty" json:"image,omitempty"`
-	PublishTime *int    `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
+	Title       string                `codec:"title" json:"title"`
+	Url         string                `codec:"url" json:"url"`
+	SiteName    string                `codec:"siteName" json:"siteName"`
+	Favicon     *Asset                `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Image       *Asset                `codec:"image,omitempty" json:"image,omitempty"`
+	PublishTime *int                  `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
+	Description *string               `codec:"description,omitempty" json:"description,omitempty"`
+	MapInfo     *UnfurlGenericMapInfo `codec:"mapInfo,omitempty" json:"mapInfo,omitempty"`
 }
 
 func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
@@ -354,6 +367,13 @@ func (o UnfurlGeneric) DeepCopy() UnfurlGeneric {
 			tmp := (*x)
 			return &tmp
 		})(o.Description),
+		MapInfo: (func(x *UnfurlGenericMapInfo) *UnfurlGenericMapInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MapInfo),
 	}
 }
 
@@ -531,13 +551,14 @@ func (o UnfurlImageDisplay) DeepCopy() UnfurlImageDisplay {
 }
 
 type UnfurlGenericDisplay struct {
-	Title       string              `codec:"title" json:"title"`
-	Url         string              `codec:"url" json:"url"`
-	SiteName    string              `codec:"siteName" json:"siteName"`
-	Favicon     *UnfurlImageDisplay `codec:"favicon,omitempty" json:"favicon,omitempty"`
-	Media       *UnfurlImageDisplay `codec:"media,omitempty" json:"media,omitempty"`
-	PublishTime *int                `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
-	Description *string             `codec:"description,omitempty" json:"description,omitempty"`
+	Title       string                `codec:"title" json:"title"`
+	Url         string                `codec:"url" json:"url"`
+	SiteName    string                `codec:"siteName" json:"siteName"`
+	Favicon     *UnfurlImageDisplay   `codec:"favicon,omitempty" json:"favicon,omitempty"`
+	Media       *UnfurlImageDisplay   `codec:"media,omitempty" json:"media,omitempty"`
+	PublishTime *int                  `codec:"publishTime,omitempty" json:"publishTime,omitempty"`
+	Description *string               `codec:"description,omitempty" json:"description,omitempty"`
+	MapInfo     *UnfurlGenericMapInfo `codec:"mapInfo,omitempty" json:"mapInfo,omitempty"`
 }
 
 func (o UnfurlGenericDisplay) DeepCopy() UnfurlGenericDisplay {
@@ -573,6 +594,13 @@ func (o UnfurlGenericDisplay) DeepCopy() UnfurlGenericDisplay {
 			tmp := (*x)
 			return &tmp
 		})(o.Description),
+		MapInfo: (func(x *UnfurlGenericMapInfo) *UnfurlGenericMapInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MapInfo),
 	}
 }
 
