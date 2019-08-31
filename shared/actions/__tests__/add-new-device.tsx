@@ -53,7 +53,8 @@ const startReduxSaga = (initialStore?: TypedState) => {
       throw e
     },
   })
-  const store = createStore(rootReducer as any, initialStore, applyMiddleware(sagaMiddleware))
+  // @ts-ignore
+  const store = createStore(rootReducer, initialStore, applyMiddleware(sagaMiddleware))
   const getState = store.getState
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)

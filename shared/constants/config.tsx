@@ -122,7 +122,6 @@ export const initialState: Types.State = {
   startupFollowUser: '',
   startupLink: '',
   startupSharePath: '',
-  startupTab: null,
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',
@@ -141,4 +140,4 @@ export const initialState: Types.State = {
 }
 
 // we proxy the style helper to keep the logic in one place but act like a selector
-export const isDarkMode = (_: Types._State) => _isDarkMode()
+export const isDarkMode = (_: Types.State) => _isDarkMode()

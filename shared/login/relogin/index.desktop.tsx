@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../constants/login'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {Props} from '.'

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
-import * as ConfigConstants from '../constants/config'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import Menubar from './index.desktop'

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import AccountSwitcher, {Props} from '.'
-import * as ConfigConstants from '../../constants/config'
 
 const props: Props = {
   accountRows: [
