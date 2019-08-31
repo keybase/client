@@ -291,6 +291,33 @@
       ]
     },
     {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "int",
+          "name": "startIndex"
+        },
+        {
+          "type": "string",
+          "name": "rawPath"
+        },
+        {
+          "type": "string",
+          "name": "standardPath"
+        },
+        {
+          "type": "string",
+          "name": "deeplinkPath"
+        },
+        {
+          "type": "string",
+          "name": "platformAfterMountPath"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
       "type": "enum",
       "name": "ConversationMemberStatus",
       "symbols": [

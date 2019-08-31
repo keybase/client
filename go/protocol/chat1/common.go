@@ -528,6 +528,24 @@ func (o ChannelNameMention) DeepCopy() ChannelNameMention {
 	}
 }
 
+type KBFSPath struct {
+	StartIndex             int    `codec:"startIndex" json:"startIndex"`
+	RawPath                string `codec:"rawPath" json:"rawPath"`
+	StandardPath           string `codec:"standardPath" json:"standardPath"`
+	DeeplinkPath           string `codec:"deeplinkPath" json:"deeplinkPath"`
+	PlatformAfterMountPath string `codec:"platformAfterMountPath" json:"platformAfterMountPath"`
+}
+
+func (o KBFSPath) DeepCopy() KBFSPath {
+	return KBFSPath{
+		StartIndex:             o.StartIndex,
+		RawPath:                o.RawPath,
+		StandardPath:           o.StandardPath,
+		DeeplinkPath:           o.DeeplinkPath,
+		PlatformAfterMountPath: o.PlatformAfterMountPath,
+	}
+}
+
 type ConversationMemberStatus int
 
 const (

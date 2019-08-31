@@ -278,7 +278,8 @@ protocol chatUi {
     CHANNELNAMEMENTION_2,
     MAYBEMENTION_3,
     LINK_4,
-    MAILTO_5
+    MAILTO_5,
+    KBFSPATH_6
   }
 
   enum UIMaybeMentionStatus {
@@ -307,6 +308,7 @@ protocol chatUi {
     case MAYBEMENTION: MaybeMention;
     case LINK: UILinkDecoration;
     case MAILTO: UILinkDecoration;
+    case KBFSPATH: KBFSPath;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

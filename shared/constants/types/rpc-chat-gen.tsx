@@ -877,6 +877,7 @@ export enum UITextDecorationTyp {
   maybemention = 3,
   link = 4,
   mailto = 5,
+  kbfspath = 6,
 }
 
 export enum UnfurlMode {
@@ -1028,6 +1029,7 @@ export type IncomingMessage = {readonly message: UIMessage; readonly modifiedMes
 export type JoinLeaveConversationLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type JoinLeaveConversationRemoteRes = {readonly rateLimit?: RateLimit | null}
 export type KBFSImpteamUpgradeUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers; readonly topicType: TopicType}
+export type KBFSPath = {readonly startIndex: Int; readonly rawPath: String; readonly standardPath: String; readonly deeplinkPath: String; readonly platformAfterMountPath: String}
 export type KnownTeamMention = {readonly name: String; readonly channel: String}
 export type KnownUserMention = {readonly text: String; readonly uid: Gregor1.UID}
 export type ListBotCommandsLocalRes = {readonly commands?: Array<UserBotCommandOutput> | null; readonly rateLimits?: Array<RateLimit> | null}
@@ -1210,7 +1212,7 @@ export type UIPaymentInfo = {readonly accountID?: Stellar1.AccountID | null; rea
 export type UIPinnedMessage = {readonly message: UIMessage; readonly pinnerUsername: String}
 export type UIRequestInfo = {readonly amount: String; readonly amountDescription: String; readonly asset?: Stellar1.Asset | null; readonly currency?: Stellar1.OutsideCurrencyCode | null; readonly worthAtRequestTime: String; readonly status: Stellar1.RequestStatus}
 export type UITeamMention = {readonly inTeam: Boolean; readonly open: Boolean; readonly description?: String | null; readonly numMembers?: Int | null; readonly publicAdmins?: Array<String> | null; readonly convID?: String | null}
-export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment | null} | {typ: UITextDecorationTyp.atmention; atmention: String | null} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention | null} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention | null} | {typ: UITextDecorationTyp.link; link: UILinkDecoration | null} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration | null}
+export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment | null} | {typ: UITextDecorationTyp.atmention; atmention: String | null} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention | null} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention | null} | {typ: UITextDecorationTyp.link; link: UILinkDecoration | null} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration | null} | {typ: UITextDecorationTyp.kbfspath; kbfspath: KBFSPath | null}
 export type Unfurl = {unfurlType: UnfurlType.generic; generic: UnfurlGeneric | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutube | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphy | null} | {unfurlType: UnfurlType.maps}
 export type UnfurlDisplay = {unfurlType: UnfurlType.generic; generic: UnfurlGenericDisplay | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeDisplay | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyDisplay | null} | {unfurlType: UnfurlType.maps}
 export type UnfurlGeneric = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: Asset | null; readonly image?: Asset | null; readonly publishTime?: Int | null; readonly description?: String | null}
