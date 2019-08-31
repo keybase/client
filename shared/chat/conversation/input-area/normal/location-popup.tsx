@@ -5,22 +5,37 @@ import * as Container from '../../../../util/container'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
 import {isIOS} from '../../../../constants/platform'
 import {imgMaxHeightRaw, imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
+import HiddenString from '../../../../util/hidden-string'
 
-type Props = {
-  httpSrvAddress: string
-  httpSrvToken: string
-  lastCoord: Types.Coordinate | null
-  onLocationShare: (duration: string) => void
-}
+type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
 const LocationPopup = (props: Props) => {
-  const dispatch = Container.useDispatch()
-  const onClose = React.useCallback(() => {
-    dispatch(RouteTreeGen.createClearModals())
-  }, [dispatch])
+  // state
+  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', Constants.noConversationIDKey)
+  const {httpSrvAddress, httpSrvToken, location} = Container.useSelector(state => ({
+    httpSrvAddress: state.config.httpSrvAddress,
+    httpSrvToken: state.config.httpSrvToken,
+    location: state.chat2.lastCoord,
+  }))
   const [mapLoaded, setMapLoaded] = React.useState(false)
+  // dispatch
+  const dispatch = Container.useDispatch()
+  const onClose = () => {
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const onLocationShare = (duration: string) => {
+    onClose()
+    dispatch(
+      Chat2Gen.createMessageSend({
+        conversationIDKey,
+        text: duration ? new HiddenString(`/location live ${duration}`) : new HiddenString('/location'),
+      })
+    )
+  }
+  // lifecycle
   React.useEffect(() => {
     const watchID = navigator.geolocation.watchPosition(
       pos => {
@@ -41,18 +56,14 @@ const LocationPopup = (props: Props) => {
       navigator.geolocation.clearWatch(watchID)
     }
   }, [])
-  const onLocationShare = (duration: string) => {
-    onClose()
-    props.onLocationShare(duration)
-  }
 
+  // render
   const width = imgMaxWidthRaw()
   const height = imgMaxHeightRaw() - 320
-  const location = props.lastCoord
   const mapSrc = location
-    ? `http://${props.httpSrvAddress}/map?lat=${location.lat}&lon=${
+    ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${
         location.lon
-      }&width=${width}&height=${height}&token=${props.httpSrvToken}`
+      }&width=${width}&height=${height}&token=${httpSrvToken}`
     : ''
   return (
     <Kb.Modal
