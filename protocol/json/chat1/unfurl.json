@@ -154,6 +154,10 @@
         {
           "type": "string",
           "name": "description"
+        },
+        {
+          "type": "Coordinate",
+          "name": "coord"
         }
       ]
     },
@@ -192,6 +196,16 @@
             "def": false
           },
           "body": "UnfurlMapsRaw"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericMapInfo",
+      "fields": [
+        {
+          "type": "Coordinate",
+          "name": "coord"
         }
       ]
     },
@@ -238,6 +252,13 @@
             "string"
           ],
           "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
         }
       ]
     },
@@ -383,6 +404,13 @@
             "string"
           ],
           "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
         }
       ]
     },

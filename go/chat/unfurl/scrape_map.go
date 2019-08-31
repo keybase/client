@@ -68,5 +68,10 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 		ImageUrl:        mapURL,
 		Description:     desc,
 		HistoryImageUrl: liveMapURL,
+		Coord: chat1.Coordinate{
+			Lat:      lat,
+			Lon:      lon,
+			Accuracy: acc,
+		},
 	}), nil
 }
