@@ -350,9 +350,8 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	default:
 	}
 	// trackers fire after time moves up
-	done1 := checkCoords(t, unfurler, coords, timeout)
-	done2 := checkCoords(t, unfurler, coords, timeout)
-	if !(done1 || done2) {
+	done := checkCoords(t, unfurler, coords, timeout)
+	if !done {
 		checkCoords(t, unfurler, coords, timeout) // tracker 1 expires and posts again
 	}
 	select {
