@@ -1074,6 +1074,18 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
 
 const getOnlineStatus = () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
+const loadPathInfo = (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
+  RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({standardPath: Types.pathToString(action.payload.path)}).then(
+    pathInfo =>
+      FsGen.createLoadedPathInfo({
+        path: action.payload.path,
+        pathInfo: Constants.makePathInfo({
+          deeplinkPath: pathInfo.deeplinkPath,
+          platformAfterMountPath: pathInfo.platformAfterMountPath,
+        }),
+      })
+  )
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
@@ -1123,6 +1135,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
     yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
   }
+  yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
 
   yield* Saga.chainAction2(FsGen.subscribePath, subscribePath)
   yield* Saga.chainAction2(FsGen.subscribeNonPath, subscribeNonPath)

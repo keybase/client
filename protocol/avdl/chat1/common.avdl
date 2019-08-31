@@ -150,8 +150,7 @@
     int startIndex;
     string rawPath;
     string standardPath;
-    string deeplinkPath;
-    string platformAfterMountPath;
+    keybase1.KBFSPathInfo pathInfo;
   }
 
   enum ConversationMemberStatus {

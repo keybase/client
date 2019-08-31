@@ -91,11 +91,11 @@ func TestParseKBFSPathDetailed(t *testing.T) {
 		require.Len(t, paths, 1, "input: %s", input)
 		require.Equal(t, 20, paths[0].StartIndex, "input: %s", input)
 		require.Equal(t, "/keybase/team/keybase/blah blah blah", paths[0].StandardPath, "input: %s", input)
-		require.Equal(t, "keybase://team/keybase/blah%20blah%20blah", paths[0].DeeplinkPath, "input: %s", input)
+		require.Equal(t, "keybase://team/keybase/blah%20blah%20blah", paths[0].PathInfo.DeeplinkPath, "input: %s", input)
 		if libkb.RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE {
-			require.Equal(t, `\team\keybase\blah blah blah`, paths[0].PlatformAfterMountPath, "input: %s", input)
+			require.Equal(t, `\team\keybase\blah blah blah`, paths[0].PathInfo.PlatformAfterMountPath, "input: %s", input)
 		} else {
-			require.Equal(t, "/team/keybase/blah blah blah", paths[0].PlatformAfterMountPath, "input: %s", input)
+			require.Equal(t, "/team/keybase/blah blah blah", paths[0].PathInfo.PlatformAfterMountPath, "input: %s", input)
 		}
 	}
 }

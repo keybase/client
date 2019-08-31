@@ -307,12 +307,8 @@
           "name": "standardPath"
         },
         {
-          "type": "string",
-          "name": "deeplinkPath"
-        },
-        {
-          "type": "string",
-          "name": "platformAfterMountPath"
+          "type": "keybase1.KBFSPathInfo",
+          "name": "pathInfo"
         }
       ],
       "lint": "ignore"

@@ -6,11 +6,12 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as DeeplinksConstants from '../../constants/deeplinks'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as Styles from '../../styles'
+import * as FsConstants from '../../constants/fs'
 import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
 import Channel from '../channel-container'
-import KbfsPath from '../kbfs-path'
+import KbfsPath from '../../fs/common/kbfs-path'
 import MaybeMention from '../../chat/conversation/maybe-mention'
 import Text, {StylesTextCrossPlatform} from '../text'
 import {StyleOverride} from '.'
@@ -154,8 +155,10 @@ const ServiceDecoration = (props: Props) => {
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath && parsed.kbfspath) {
     return (
       <KbfsPath
-        deeplinkPath={parsed.kbfspath.deeplinkPath}
-        platformAfterMountPath={parsed.kbfspath.platformAfterMountPath}
+        knownPathInfo={FsConstants.makePathInfo({
+          deeplinkPath: parsed.kbfspath.pathInfo.deeplinkPath,
+          platformAfterMountPath: parsed.kbfspath.pathInfo.platformAfterMountPath,
+        })}
         rawPath={parsed.kbfspath.rawPath}
         standardPath={parsed.kbfspath.standardPath}
       />

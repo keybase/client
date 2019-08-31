@@ -4,7 +4,6 @@ import {isMobile, isIOS} from '../../../constants/platform'
 import * as Flow from '../../../util/flow'
 
 export type Layout = {
-  copyPath: boolean
   delete: boolean
   download: boolean
   ignoreTlf: boolean
@@ -21,7 +20,6 @@ export type Layout = {
 }
 
 const empty = {
-  copyPath: false,
   delete: false,
   download: false,
   ignoreTlf: false,
@@ -60,7 +58,6 @@ const getRawLayout = (
     case Types.PathKind.TlfList:
       return {
         ...empty,
-        copyPath: true,
         showInSystemFileManager: !isMobile,
       }
     case Types.PathKind.GroupTlf:
@@ -74,7 +71,6 @@ const getRawLayout = (
               openChatTeam: parsedPath.kind === Types.PathKind.TeamTlf,
             }
           : {}),
-        copyPath: true,
         ignoreTlf: parsedPath.kind === Types.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
         sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         showInSystemFileManager: !isMobile,
@@ -91,7 +87,6 @@ const getRawLayout = (
               openChatTeam: parsedPath.kind === Types.PathKind.InTeamTlf,
             }
           : {}),
-        copyPath: true,
         delete: pathItem.writable,
         download: pathItem.type === Types.PathType.File && !isIOS,
         moveOrCopy: true,
