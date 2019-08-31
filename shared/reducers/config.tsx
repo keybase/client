@@ -275,36 +275,40 @@ export default (_state: Types.State = Constants.initialState, action: Actions): 
         draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
         return
       case ConfigGen.updateNow:
-        // TODO from here //////////////////////////////
-        return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
+        if (draftState.outOfDate) {
+          draftState.outOfDate.updating = true
+        } else {
+          draftState.outOfDate = {
+            critical: false,
+            updating: true,
+          }
+        }
+        return
       case ConfigGen.updateInfo:
-        return state.set(
-          'outOfDate',
-          action.payload.isOutOfDate
-            ? {
-                critical: action.payload.critical,
-                message: action.payload.message,
-              }
-            : null
-        )
+        draftState.outOfDate = action.payload.isOutOfDate
+          ? {
+              critical: action.payload.critical,
+              message: action.payload.message,
+            }
+          : undefined
+        return
       case ConfigGen.updateCriticalCheckStatus:
-        return state.merge({
-          appOutOfDateMessage: action.payload.message,
-          appOutOfDateStatus: action.payload.status,
-        })
+        draftState.appOutOfDateMessage = action.payload.message
+        draftState.appOutOfDateStatus = action.payload.status
+        return
       case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
-        return state.merge({
-          runtimeStats: action.payload.params.stats,
-        })
+        draftState.runtimeStats = action.payload.params.stats
+        return
       case ConfigGen.updateHTTPSrvInfo:
-        return state.merge({
-          httpSrvAddress: action.payload.address,
-          httpSrvToken: action.payload.token,
-        })
+        draftState.httpSrvAddress = action.payload.address
+        draftState.httpSrvToken = action.payload.token
+        return
       case EngineGen.keybase1NotifyTeamAvatarUpdated:
+        // TODO
         return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
       case ConfigGen.osNetworkStatusChanged:
-        return state.set('osNetworkOnline', action.payload.online)
+        draftState.osNetworkOnline = action.payload.online
+        return
       case ConfigGen.setDarkModePreference:
         _setDarkModePreference(action.payload.preference)
         return state.merge({darkModePreference: action.payload.preference})
