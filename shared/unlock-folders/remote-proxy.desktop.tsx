@@ -13,11 +13,12 @@ const UnlockFolder = compose(
   connect(
     state => {
       const {devices, phase, paperkeyError, waiting} = state.unlockFolders
+      const ufMap = state.config.remoteWindowNeedsProps.get('unlockFolders')
       return {
         devices,
         paperkeyError,
         phase,
-        remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['unlockFolders', ''], -1),
+        remoteWindowNeedsProps: (ufMap && ufMap.get('')) || -1,
         waiting,
         windowComponent: 'unlock-folders',
         windowOpts,
