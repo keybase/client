@@ -23,7 +23,7 @@
       "name": "string",
       "version": "number",
       "increment": "boolean",
-      "failedReason?": "string | null",
+      "failedReason?": "string",
       "failedFatal?": "true"
     },
     "daemonHandshakeDone": {
@@ -81,7 +81,7 @@
       "startupWasFromPush": "boolean",
       "startupConversation?": "ChatTypes.ConversationIDKey",
       "startupLink": "string",
-      "startupTab": "Tabs.Tab | null",
+      "startupTab?": "Tabs.Tab",
       "startupFollowUser": "string",
       "startupSharePath?": "FsTypes.LocalPath"
     },

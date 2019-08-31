@@ -47,7 +47,7 @@ export type State = {
   darkModePreference: DarkModePreference
   debugDump: Array<string>
   deviceID: RPCTypes.DeviceID
-  deviceName: string | null
+  deviceName?: string
   defaultUsername: string
   followers: Set<string>
   following: Set<string>
@@ -62,7 +62,7 @@ export type State = {
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean
-  outOfDate?: OutOfDate | null
+  outOfDate?: OutOfDate
   pushLoaded: boolean
   registered: boolean
   remoteWindowNeedsProps: Map<string, Map<string, number>>
@@ -72,7 +72,7 @@ export type State = {
   startupConversation: ConversationIDKey
   startupFollowUser: string
   startupLink: string
-  startupTab: Tab | null
+  startupTab?: Tab
   startupSharePath?: LocalPath
   systemDarkMode: boolean
   windowState: WindowState

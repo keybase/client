@@ -20,8 +20,8 @@ type Actions =
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
 
-export default (_state: Types.State = Constants.initialState, action: Actions): Types.State =>
-  Container.produce(_state, (draftState: Container.Draft<Types.State>) => {
+export default (state: Types.State = Constants.initialState, action: Actions): Types.State =>
+  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
       case DevicesGen.revoked: {
         // if revoking self find another name if it exists
@@ -289,6 +289,7 @@ export default (_state: Types.State = Constants.initialState, action: Actions): 
           ? {
               critical: action.payload.critical,
               message: action.payload.message,
+              updating: false,
             }
           : undefined
         return
@@ -297,32 +298,46 @@ export default (_state: Types.State = Constants.initialState, action: Actions): 
         draftState.appOutOfDateStatus = action.payload.status
         return
       case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
-        draftState.runtimeStats = action.payload.params.stats
+        draftState.runtimeStats = action.payload.params.stats || undefined
         return
       case ConfigGen.updateHTTPSrvInfo:
         draftState.httpSrvAddress = action.payload.address
         draftState.httpSrvToken = action.payload.token
         return
-      case EngineGen.keybase1NotifyTeamAvatarUpdated:
-        // TODO
-        return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
+      case EngineGen.keybase1NotifyTeamAvatarUpdated: {
+        const {name} = action.payload.params
+        const avatarRefreshCounter = new Map(draftState.avatarRefreshCounter)
+        avatarRefreshCounter.set(name, (avatarRefreshCounter.get(name) || 0) + 1)
+        draftState.avatarRefreshCounter = avatarRefreshCounter
+        return
+      }
       case ConfigGen.osNetworkStatusChanged:
         draftState.osNetworkOnline = action.payload.online
         return
       case ConfigGen.setDarkModePreference:
         _setDarkModePreference(action.payload.preference)
-        return state.merge({darkModePreference: action.payload.preference})
+        draftState.darkModePreference = action.payload.preference
+        return
       case ConfigGen.setSystemDarkMode:
         _setSystemIsDarkMode(action.payload.dark)
-        return state.merge({systemDarkMode: action.payload.dark})
+        draftState.systemDarkMode = action.payload.dark
+        return
       case ConfigGen.remoteWindowWantsProps: {
         const {component, param} = action.payload
-        return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
+        const remoteWindowNeedsProps = new Map(draftState.remoteWindowNeedsProps)
+        const oldMap = remoteWindowNeedsProps.get(component)
+        const newMap = oldMap ? new Map(oldMap) : new Map()
+        newMap.set(param, (newMap.get(param) || 0) + 1)
+        remoteWindowNeedsProps.set(component, newMap)
+        draftState.remoteWindowNeedsProps = remoteWindowNeedsProps
+        return
       }
       case ConfigGen.updateWindowState:
-        return state.merge({windowState: action.payload.windowState})
+        draftState.windowState = action.payload.windowState
+        return
       case ConfigGen.setUseNativeFrame:
-        return state.merge({useNativeFrame: action.payload.useNativeFrame})
+        draftState.useNativeFrame = action.payload.useNativeFrame
+        return
       // Saga only actions
       case ConfigGen.dumpLogs:
       case ConfigGen.logout:
@@ -336,8 +351,6 @@ export default (_state: Types.State = Constants.initialState, action: Actions): 
       case ConfigGen.persistRoute:
       case ConfigGen.openAppStore:
       case ConfigGen.setNavigator:
-        return state
-      default:
-        return state
+        return
     }
   })

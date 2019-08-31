@@ -78,7 +78,7 @@ type _DaemonHandshakeWaitPayload = {
   readonly name: string
   readonly version: number
   readonly increment: boolean
-  readonly failedReason?: string | null
+  readonly failedReason?: string
   readonly failedFatal?: true
 }
 type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
@@ -124,7 +124,7 @@ type _SetStartupDetailsPayload = {
   readonly startupWasFromPush: boolean
   readonly startupConversation?: ChatTypes.ConversationIDKey
   readonly startupLink: string
-  readonly startupTab: Tabs.Tab | null
+  readonly startupTab?: Tabs.Tab
   readonly startupFollowUser: string
   readonly startupSharePath?: FsTypes.LocalPath
 }
