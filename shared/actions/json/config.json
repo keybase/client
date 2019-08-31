@@ -72,18 +72,18 @@
       "followers": "Array<string>",
       "followees": "Array<string>"
     },
-    "daemonError": {"daemonError": "Error | null"},
+    "daemonError": {"daemonError?": "Error"},
     "setAccounts": { "configuredAccounts": "Array<RPCTypes.ConfiguredAccount>" },
     "setDefaultUsername": { "username": "string" },
-    "globalError": {"globalError": "null | Error | RPCError"},
+    "globalError": {"globalError?": "Error | RPCError"},
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
-      "startupConversation": "ChatTypes.ConversationIDKey | null",
+      "startupConversation?": "ChatTypes.ConversationIDKey",
       "startupLink": "string",
       "startupTab": "Tabs.Tab | null",
       "startupFollowUser": "string",
-      "startupSharePath": "FsTypes.LocalPath | null"
+      "startupSharePath?": "FsTypes.LocalPath"
     },
     "setOpenAtLogin": { "openAtLogin": "boolean", },
     "setNotifySound": { "notifySound": "boolean", },

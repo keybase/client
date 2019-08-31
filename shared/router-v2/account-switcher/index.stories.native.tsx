@@ -6,17 +6,17 @@ import * as ConfigConstants from '../../constants/config'
 const props: Props = {
   accountRows: [
     {
-      account: ConfigConstants.makeConfiguredAccount({
+      account: {
         hasStoredSecret: true,
         username: 'jakob224',
-      }),
+      },
       fullName: 'Jakob Test',
     },
     {
-      account: ConfigConstants.makeConfiguredAccount({
+      account: {
         hasStoredSecret: false,
         username: 'jakob225',
-      }),
+      },
       fullName: 'Livingston Reallyveryquitelongnameheimer',
     },
   ],
