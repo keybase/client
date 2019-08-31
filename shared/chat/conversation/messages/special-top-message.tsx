@@ -127,9 +127,10 @@ export default Container.namedConnect(
         pendingState = 'done'
         break
     }
-    const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
-      ? ('moreToLoad' as const)
-      : ('noMoreToLoad' as const)
+    const loadMoreType =
+      state.chat2.moreToLoadMap.get(ownProps.conversationIDKey) !== false
+        ? ('moreToLoad' as const)
+        : ('noMoreToLoad' as const)
     const showTeamOffer =
       hasLoadedEver &&
       loadMoreType === 'noMoreToLoad' &&
