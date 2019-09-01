@@ -553,6 +553,8 @@ export type TypedActionsMap = {
   'fs:refreshMountDirsAfter10s': fs.RefreshMountDirsAfter10sPayload
   'fs:setDirectMountDir': fs.SetDirectMountDirPayload
   'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
+  'fs:loadPathInfo': fs.LoadPathInfoPayload
+  'fs:loadedPathInfo': fs.LoadedPathInfoPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

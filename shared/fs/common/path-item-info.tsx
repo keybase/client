@@ -1,58 +1,124 @@
 import * as React from 'react'
+import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {formatTimeForFS} from '../../util/timestamp'
+import LastModifiedLine from './last-modified-line-container'
+import TlfInfoLine from './tlf-info-line-container'
+import PathItemIcon from './path-item-icon-container'
+import CommaSeparatedName from './comma-separated-name'
+import * as Container from '../../util/container'
+import {pluralize} from '../../util/string'
+import {useFsChildren, useFsPathMetadata, useFsOnlineStatus} from './hooks'
 
-export type PathItemInfoProps = {
-  lastModifiedTimestamp?: number
-  lastWriter?: string
-  mode: 'row' | 'default' | 'menu'
+type Props = {
+  containerStyle?: Styles.StylesCrossPlatform
+  showTooltipOnName: boolean
+  path: Types.Path
 }
 
-const Username = ({mode, lastWriter}) =>
-  mode === 'row' && Styles.isMobile ? (
-    <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
-  ) : (
-    <Kb.ConnectedUsernames
-      type="BodySmallSecondaryLink"
-      usernames={[lastWriter]}
-      inline={true}
-      onUsernameClicked="profile"
-      underline={true}
+const getNumberOfFilesAndFolders = (
+  pathItems: Types.PathItems,
+  path: Types.Path
+): {folders: number; files: number} => {
+  const pathItem = pathItems.get(path, Constants.unknownPathItem)
+  return pathItem.type === Types.PathType.Folder
+    ? pathItem.children.reduce(
+        ({folders, files}, p) => {
+          const item = pathItems.get(Types.pathConcat(path, p), Constants.unknownPathItem)
+          const isFolder = item.type === Types.PathType.Folder
+          const isFile = item.type !== Types.PathType.Folder && item !== Constants.unknownPathItem
+          return {
+            files: files + (isFile ? 1 : 0),
+            folders: folders + (isFolder ? 1 : 0),
+          }
+        },
+        {files: 0, folders: 0}
+      )
+    : {files: 0, folders: 0}
+}
+
+const FilesAndFoldersCount = (props: Props) => {
+  useFsChildren(props.path)
+  const pathItems = Container.useSelector(state => state.fs.pathItems)
+  const {files, folders} = getNumberOfFilesAndFolders(pathItems, props.path)
+  return (
+    <Kb.Text type="BodySmall">
+      {folders ? `${folders} ${pluralize('Folder')}${files ? ', ' : ''}` : undefined}
+      {files ? `${files} ${pluralize('File')}` : undefined}
+    </Kb.Text>
+  )
+}
+
+const getTlfInfoLineOrLastModifiedLine = (path: Types.Path) => {
+  switch (Types.getPathLevel(path)) {
+    case 0:
+    case 1:
+    case 2:
+      return null
+    case 3:
+      // TlfInfoLine does not have a mode='menu'
+      return <TlfInfoLine path={path} mode="default" />
+    default:
+      return <LastModifiedLine path={path} mode="menu" />
+  }
+}
+
+const PathItemInfo = (props: Props) => {
+  useFsOnlineStatus() // when used in chat, we don't have this from Files tab
+  useFsPathMetadata(props.path)
+  const pathItem = Container.useSelector(state =>
+    state.fs.pathItems.get(props.path, Constants.unknownPathItem)
+  )
+  const name = (
+    <CommaSeparatedName
+      center={true}
+      type="BodySmallSemibold"
+      name={Types.getPathName(props.path)}
+      elementStyle={styles.stylesNameText}
     />
   )
-
-const PathItemInfo = (props: PathItemInfoProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode !== 'row'}>
-    <Kb.Text
-      type={props.mode === 'menu' ? 'BodyTiny' : 'BodySmall'}
-      style={props.mode === 'row' ? styles.textRow : styles.textDefault}
-      lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
-    >
-      {!!props.lastModifiedTimestamp &&
-        (props.mode === 'row' ? '' : 'Last modified ') +
-          formatTimeForFS(props.lastModifiedTimestamp, props.mode !== 'row')}
-      {!!props.lastWriter && (
-        <>
-          &nbsp;by&nbsp;
-          <Username mode={props.mode} lastWriter={props.lastWriter} />
-        </>
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
+      <PathItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
+      {props.showTooltipOnName ? (
+        <Kb.WithTooltip
+          containerStyle={styles.nameTextBox}
+          text={Types.pathToString(props.path)}
+          multiline={true}
+          showOnPressMobile={true}
+        >
+          {name}
+        </Kb.WithTooltip>
+      ) : (
+        <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
       )}
-    </Kb.Text>
-  </Kb.Box2>
-)
-
-const styles = Styles.styleSheetCreate({
-  textDefault: {
-    textAlign: 'center',
-  },
-  textRow: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-})
+      {pathItem.type === Types.PathType.File && (
+        <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
+      )}
+      {pathItem.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
+      {getTlfInfoLineOrLastModifiedLine(props.path)}
+    </Kb.Box2>
+  )
+}
 
 export default PathItemInfo
+
+const styles = Styles.styleSheetCreate(() => ({
+  nameTextBox: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+    },
+    isElectron: {
+      textAlign: 'center',
+    },
+  }),
+  pathItemIcon: {
+    marginBottom: Styles.globalMargins.xtiny,
+  },
+  stylesNameText: {
+    textAlign: 'center',
+  },
+}))

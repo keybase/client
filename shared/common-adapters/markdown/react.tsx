@@ -2,7 +2,6 @@ import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'
-import KbfsPath from './kbfs-path-container'
 import {MarkdownMeta, StyleOverride} from '.'
 import Box from '../box'
 import Emoji, {Props as EmojiProps} from '../emoji'
@@ -245,16 +244,6 @@ const reactComponentsForMarkdownType = {
       >
         {node.content}
       </Text>
-    )
-  },
-  kbfsPath: (node, _, state) => {
-    return (
-      <KbfsPath
-        escapedPath={node.content}
-        key={state.key}
-        allowFontScaling={state.allowFontScaling}
-        style={state.styleOverride.kbfsPath}
-      />
     )
   },
   newline: (_, __, state) =>

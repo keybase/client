@@ -21,11 +21,16 @@ type SetCurrentMountDirArg struct {
 	Dir string `codec:"dir" json:"dir"`
 }
 
+type GetKBFSPathInfoArg struct {
+	StandardPath string `codec:"standardPath" json:"standardPath"`
+}
+
 type KbfsMountInterface interface {
 	GetCurrentMountDir(context.Context) (string, error)
 	GetPreferredMountDirs(context.Context) ([]string, error)
 	GetAllAvailableMountDirs(context.Context) ([]string, error)
 	SetCurrentMountDir(context.Context, string) error
+	GetKBFSPathInfo(context.Context, string) (KBFSPathInfo, error)
 }
 
 func KbfsMountProtocol(i KbfsMountInterface) rpc.Protocol {
@@ -77,6 +82,21 @@ func KbfsMountProtocol(i KbfsMountInterface) rpc.Protocol {
 					return
 				},
 			},
+			"GetKBFSPathInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]GetKBFSPathInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetKBFSPathInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetKBFSPathInfoArg)(nil), args)
+						return
+					}
+					ret, err = i.GetKBFSPathInfo(ctx, typedArgs[0].StandardPath)
+					return
+				},
+			},
 		},
 	}
 }
@@ -103,5 +123,11 @@ func (c KbfsMountClient) GetAllAvailableMountDirs(ctx context.Context) (res []st
 func (c KbfsMountClient) SetCurrentMountDir(ctx context.Context, dir string) (err error) {
 	__arg := SetCurrentMountDirArg{Dir: dir}
 	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.SetCurrentMountDir", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbfsMountClient) GetKBFSPathInfo(ctx context.Context, standardPath string) (res KBFSPathInfo, err error) {
+	__arg := GetKBFSPathInfoArg{StandardPath: standardPath}
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetKBFSPathInfo", []interface{}{__arg}, &res)
 	return
 }

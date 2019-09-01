@@ -217,6 +217,12 @@ protocol Common {
     GUI_HELPER_4
   }
 
+  record KBFSPathInfo {
+    string standardPath;
+    string deeplinkPath;
+    string platformAfterMountPath;
+  }
+
   record UserVersionVector {
       long id;
       int sigHints;

@@ -33,6 +33,16 @@
       ],
       "response": null,
       "lint": "ignore"
+    },
+    "GetKBFSPathInfo": {
+      "request": [
+        {
+          "name": "standardPath",
+          "type": "string"
+        }
+      ],
+      "response": "KBFSPathInfo",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"
