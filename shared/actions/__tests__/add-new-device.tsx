@@ -126,11 +126,11 @@ describe('text code happy path', () => {
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().provision.codePageOutgoingTextCode).toEqual(outgoing)
     expect(getState().provision.error).toEqual(noError)
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitTextCode({phrase: outgoing}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -166,11 +166,11 @@ describe('text code error path', () => {
 
     expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply.stringValue()})
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitTextCode({phrase: reply}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
