@@ -2,6 +2,7 @@
 // It listens for avatar related actions and bookkeeps them to send them back over the wire
 import * as React from 'react'
 import * as Container from '../../util/container'
+import {isEqual} from 'lodash-es'
 import {intersect} from '../../util/set'
 import {memoize} from '../../util/memoize'
 
@@ -71,14 +72,20 @@ function SyncAvatarProps(ComposedComponent: any) {
     httpSrvToken: state.config.httpSrvToken,
   })
 
-  const getRemoteFollowers = memoize((followers, usernames) => intersect(followers, usernames))
-  const getRemoteFollowing = memoize((following, usernames) => intersect(following, usernames))
+  const getRemoteFollowers = memoize((followers: Set<string>, usernames: Set<string>) =>
+    intersect(followers, usernames)
+  )
+  const getRemoteFollowing = memoize((following: Set<string>, usernames: Set<string>) =>
+    intersect(following, usernames)
+  )
 
   // use an immutable equals to not rerender if its the same
   const immutableCached = memoize(
-    (followers, following) => ({followers, following}),
-    ([newFollowers, newFollowing], [oldFollowers, oldFollowing]) =>
-      newFollowers.equals(oldFollowers) && newFollowing.equals(oldFollowing)
+    (followers: Set<string>, following: Set<string>) => ({followers, following}),
+    (
+      [newFollowers, newFollowing]: [Set<string>, Set<string>],
+      [oldFollowers, oldFollowing]: [Set<string>, Set<string>]
+    ) => isEqual(newFollowers, oldFollowers) && isEqual(newFollowing, oldFollowing)
   )
 
   const Connected = Container.connect(
