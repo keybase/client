@@ -4,6 +4,7 @@ import * as Styles from '../../../../../../styles'
 import {Box2} from '../../../../../../common-adapters/index'
 import UnfurlGeneric from '../generic/container'
 import UnfurlGiphy from '../giphy/container'
+import UnfurlMap from '../map'
 
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay
@@ -29,12 +30,25 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
     switch (this.props.unfurl.unfurlType) {
       case RPCChatTypes.UnfurlType.generic:
         return this.props.unfurl.generic ? (
-          <UnfurlGeneric
-            unfurl={this.props.unfurl.generic}
-            isCollapsed={this.props.isCollapsed}
-            onClose={this.props.onClose}
-            onCollapse={this.props.onCollapse}
-          />
+          this.props.unfurl.generic.mapInfo ? (
+            <UnfurlMap
+              coord={this.props.unfurl.generic.mapInfo.coord}
+              imageHeight={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.height : 0}
+              imageURL={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.url : ''}
+              imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
+              isLiveLocation={this.props.unfurl.generic.mapInfo.isLiveLocation}
+              isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
+              time={this.props.unfurl.generic.mapInfo.time}
+              url={this.props.unfurl.generic.url}
+            />
+          ) : (
+            <UnfurlGeneric
+              unfurl={this.props.unfurl.generic}
+              isCollapsed={this.props.isCollapsed}
+              onClose={this.props.onClose}
+              onCollapse={this.props.onCollapse}
+            />
+          )
         ) : null
       case RPCChatTypes.UnfurlType.giphy:
         return this.props.unfurl.giphy ? (

@@ -302,6 +302,12 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 		return res, errors.New("image not available for maps unfurl")
 	}
 	g.Image = &asset
+	g.MapInfo = &chat1.UnfurlGenericMapInfo{
+		Coord:              mapsRaw.Coord,
+		IsLiveLocation:     mapsRaw.HistoryImageUrl != nil,
+		IsLiveLocationDone: mapsRaw.LiveLocationDone,
+		Time:               mapsRaw.Time,
+	}
 	return chat1.NewUnfurlWithGeneric(g), nil
 }
 

@@ -5,6 +5,7 @@ package chat1
 
 import (
 	"errors"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -150,13 +151,15 @@ func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 }
 
 type UnfurlMapsRaw struct {
-	Title           string     `codec:"title" json:"title"`
-	Url             string     `codec:"url" json:"url"`
-	SiteName        string     `codec:"siteName" json:"siteName"`
-	ImageUrl        string     `codec:"imageUrl" json:"imageUrl"`
-	HistoryImageUrl *string    `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
-	Description     string     `codec:"description" json:"description"`
-	Coord           Coordinate `codec:"coord" json:"coord"`
+	Title            string       `codec:"title" json:"title"`
+	Url              string       `codec:"url" json:"url"`
+	SiteName         string       `codec:"siteName" json:"siteName"`
+	ImageUrl         string       `codec:"imageUrl" json:"imageUrl"`
+	HistoryImageUrl  *string      `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
+	Description      string       `codec:"description" json:"description"`
+	Coord            Coordinate   `codec:"coord" json:"coord"`
+	LiveLocationDone bool         `codec:"liveLocationDone" json:"liveLocationDone"`
+	Time             gregor1.Time `codec:"time" json:"time"`
 }
 
 func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
@@ -172,8 +175,10 @@ func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
 			tmp := (*x)
 			return &tmp
 		})(o.HistoryImageUrl),
-		Description: o.Description,
-		Coord:       o.Coord.DeepCopy(),
+		Description:      o.Description,
+		Coord:            o.Coord.DeepCopy(),
+		LiveLocationDone: o.LiveLocationDone,
+		Time:             o.Time.DeepCopy(),
 	}
 }
 
@@ -314,12 +319,18 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 }
 
 type UnfurlGenericMapInfo struct {
-	Coord Coordinate `codec:"coord" json:"coord"`
+	Coord              Coordinate   `codec:"coord" json:"coord"`
+	IsLiveLocation     bool         `codec:"isLiveLocation" json:"isLiveLocation"`
+	IsLiveLocationDone bool         `codec:"isLiveLocationDone" json:"isLiveLocationDone"`
+	Time               gregor1.Time `codec:"time" json:"time"`
 }
 
 func (o UnfurlGenericMapInfo) DeepCopy() UnfurlGenericMapInfo {
 	return UnfurlGenericMapInfo{
-		Coord: o.Coord.DeepCopy(),
+		Coord:              o.Coord.DeepCopy(),
+		IsLiveLocation:     o.IsLiveLocation,
+		IsLiveLocationDone: o.IsLiveLocationDone,
+		Time:               o.Time.DeepCopy(),
 	}
 }
 
