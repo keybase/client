@@ -18,34 +18,34 @@ type Props = {
   liveLocationEndTime?: number | null
   isLiveLocationDone: boolean
   time: number
+  toggleMessagePopup: () => void
   url: string
 }
 
 const UnfurlMap = (props: Props) => {
   // dispatch
   const dispatch = Container.useDispatch()
-  const onViewMap = () => {
-    if (!Styles.isMobile) {
-      return
-    }
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              conversationIDKey: props.conversationIDKey,
-              coord: props.coord,
-              isAuthor: props.isAuthor,
-              isLiveLocation: !!props.liveLocationEndTime && !props.isLiveLocationDone,
-              namespace: 'chat2',
-              url: props.url,
-            },
-            selected: 'chatUnfurlMapPopup',
-          },
-        ],
-      })
-    )
-  }
+  const onViewMap = !Styles.isMobile
+    ? props.toggleMessagePopup
+    : () => {
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {
+                  conversationIDKey: props.conversationIDKey,
+                  coord: props.coord,
+                  isAuthor: props.isAuthor,
+                  isLiveLocation: !!props.liveLocationEndTime && !props.isLiveLocationDone,
+                  namespace: 'chat2',
+                  url: props.url,
+                },
+                selected: 'chatUnfurlMapPopup',
+              },
+            ],
+          })
+        )
+      }
 
   // render
   return (

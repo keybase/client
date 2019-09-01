@@ -18,6 +18,7 @@ export type UnfurlListItem = {
 export type ListProps = {
   conversationIDKey: Types.ConversationIDKey
   isAuthor: boolean
+  toggleMessagePopup: () => void
   unfurls: Array<UnfurlListItem>
 }
 
@@ -27,6 +28,7 @@ export type UnfurlProps = {
   isCollapsed: boolean
   onClose?: () => void
   onCollapse: () => void
+  toggleMessagePopup: () => void
   unfurl: RPCChatTypes.UnfurlDisplay
 }
 
@@ -46,6 +48,7 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
               isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
               liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime}
               time={this.props.unfurl.generic.mapInfo.time}
+              toggleMessagePopup={this.props.toggleMessagePopup}
               url={this.props.unfurl.generic.url}
             />
           ) : (
@@ -85,6 +88,7 @@ class UnfurlList extends React.PureComponent<ListProps> {
             unfurl={u.unfurl}
             onClose={u.onClose}
             onCollapse={u.onCollapse}
+            toggleMessagePopup={this.props.toggleMessagePopup}
           />
         ))}
       </Box2>

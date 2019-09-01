@@ -7,6 +7,7 @@ import UnfurlList from '.'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
+  toggleMessagePopup: () => void
 }
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, ordinal}: OwnProps) => {
@@ -49,6 +50,7 @@ export default connect(
     return {
       conversationIDKey: ownProps.conversationIDKey,
       isAuthor: stateProps.isAuthor,
+      toggleMessagePopup: ownProps.toggleMessagePopup,
       unfurls,
     }
   }

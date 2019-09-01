@@ -5,10 +5,12 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
+import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
+import openURL from '../../../../../util/open-url'
 import Text from '.'
 
 type OwnProps = {
@@ -115,6 +117,16 @@ export default Container.namedConnect(
     const yourMessage = message.author === stateProps._you
     const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
     const isEditable = stateProps._isEditable && yourMessage
+    const unfurls =
+      message.type === 'text' && message.unfurls.size ? message.unfurls.toList().toArray() : null
+    const mapInfo =
+      !!unfurls &&
+      unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
+      unfurls[0].unfurl.generic &&
+      unfurls[0].unfurl.generic.mapInfo
+        ? unfurls[0].unfurl.generic
+        : null
+    const onViewMap = !!mapInfo ? () => openURL(mapInfo.url) : undefined
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -137,6 +149,7 @@ export default Container.namedConnect(
         message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
           ? () => dispatchProps._onReplyPrivately(message)
           : undefined,
+      onViewMap,
       onViewProfile:
         message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,
       position: ownProps.position,
