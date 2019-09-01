@@ -165,12 +165,19 @@
           "name": "coord"
         },
         {
-          "type": "boolean",
-          "name": "liveLocationDone"
-        },
-        {
           "type": "gregor1.Time",
           "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "liveLocationDone"
         }
       ]
     },
@@ -221,16 +228,19 @@
           "name": "coord"
         },
         {
-          "type": "boolean",
-          "name": "isLiveLocation"
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
         },
         {
           "type": "boolean",
           "name": "isLiveLocationDone"
-        },
-        {
-          "type": "gregor1.Time",
-          "name": "time"
         }
       ]
     },

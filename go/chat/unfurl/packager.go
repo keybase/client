@@ -303,10 +303,10 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 	}
 	g.Image = &asset
 	g.MapInfo = &chat1.UnfurlGenericMapInfo{
-		Coord:              mapsRaw.Coord,
-		IsLiveLocation:     mapsRaw.HistoryImageUrl != nil,
-		IsLiveLocationDone: mapsRaw.LiveLocationDone,
-		Time:               mapsRaw.Time,
+		Coord:               mapsRaw.Coord,
+		LiveLocationEndTime: mapsRaw.LiveLocationEndTime,
+		IsLiveLocationDone:  mapsRaw.LiveLocationDone,
+		Time:                mapsRaw.Time,
 	}
 	return chat1.NewUnfurlWithGeneric(g), nil
 }

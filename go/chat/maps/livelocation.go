@@ -418,6 +418,16 @@ func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, key types.Live
 	return res
 }
 
+func (l *LiveLocationTracker) GetEndTime(ctx context.Context, key types.LiveLocationKey) *time.Time {
+	defer l.Trace(ctx, func() error { return nil }, "GetEndTime")()
+	l.Lock()
+	defer l.Unlock()
+	if t, ok := l.trackers[key]; ok {
+		return &t.endTime
+	}
+	return nil
+}
+
 func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {
 	defer l.Trace(ctx, func() error { return nil }, "StopAllTracking")()
 	l.Lock()

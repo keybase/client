@@ -151,15 +151,16 @@ func (o UnfurlGiphyRaw) DeepCopy() UnfurlGiphyRaw {
 }
 
 type UnfurlMapsRaw struct {
-	Title            string       `codec:"title" json:"title"`
-	Url              string       `codec:"url" json:"url"`
-	SiteName         string       `codec:"siteName" json:"siteName"`
-	ImageUrl         string       `codec:"imageUrl" json:"imageUrl"`
-	HistoryImageUrl  *string      `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
-	Description      string       `codec:"description" json:"description"`
-	Coord            Coordinate   `codec:"coord" json:"coord"`
-	LiveLocationDone bool         `codec:"liveLocationDone" json:"liveLocationDone"`
-	Time             gregor1.Time `codec:"time" json:"time"`
+	Title               string        `codec:"title" json:"title"`
+	Url                 string        `codec:"url" json:"url"`
+	SiteName            string        `codec:"siteName" json:"siteName"`
+	ImageUrl            string        `codec:"imageUrl" json:"imageUrl"`
+	HistoryImageUrl     *string       `codec:"historyImageUrl,omitempty" json:"historyImageUrl,omitempty"`
+	Description         string        `codec:"description" json:"description"`
+	Coord               Coordinate    `codec:"coord" json:"coord"`
+	Time                gregor1.Time  `codec:"time" json:"time"`
+	LiveLocationEndTime *gregor1.Time `codec:"liveLocationEndTime,omitempty" json:"liveLocationEndTime,omitempty"`
+	LiveLocationDone    bool          `codec:"liveLocationDone" json:"liveLocationDone"`
 }
 
 func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
@@ -175,10 +176,17 @@ func (o UnfurlMapsRaw) DeepCopy() UnfurlMapsRaw {
 			tmp := (*x)
 			return &tmp
 		})(o.HistoryImageUrl),
-		Description:      o.Description,
-		Coord:            o.Coord.DeepCopy(),
+		Description: o.Description,
+		Coord:       o.Coord.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
+		LiveLocationEndTime: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LiveLocationEndTime),
 		LiveLocationDone: o.LiveLocationDone,
-		Time:             o.Time.DeepCopy(),
 	}
 }
 
@@ -319,18 +327,24 @@ func (o UnfurlRaw) DeepCopy() UnfurlRaw {
 }
 
 type UnfurlGenericMapInfo struct {
-	Coord              Coordinate   `codec:"coord" json:"coord"`
-	IsLiveLocation     bool         `codec:"isLiveLocation" json:"isLiveLocation"`
-	IsLiveLocationDone bool         `codec:"isLiveLocationDone" json:"isLiveLocationDone"`
-	Time               gregor1.Time `codec:"time" json:"time"`
+	Coord               Coordinate    `codec:"coord" json:"coord"`
+	Time                gregor1.Time  `codec:"time" json:"time"`
+	LiveLocationEndTime *gregor1.Time `codec:"liveLocationEndTime,omitempty" json:"liveLocationEndTime,omitempty"`
+	IsLiveLocationDone  bool          `codec:"isLiveLocationDone" json:"isLiveLocationDone"`
 }
 
 func (o UnfurlGenericMapInfo) DeepCopy() UnfurlGenericMapInfo {
 	return UnfurlGenericMapInfo{
-		Coord:              o.Coord.DeepCopy(),
-		IsLiveLocation:     o.IsLiveLocation,
+		Coord: o.Coord.DeepCopy(),
+		Time:  o.Time.DeepCopy(),
+		LiveLocationEndTime: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LiveLocationEndTime),
 		IsLiveLocationDone: o.IsLiveLocationDone,
-		Time:               o.Time.DeepCopy(),
 	}
 }
 

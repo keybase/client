@@ -49,8 +49,9 @@ protocol unfurl {
     union { null, string } historyImageUrl;
     string description;
     Coordinate coord;
-    boolean liveLocationDone;
     gregor1.Time time;
+    union { null, gregor1.Time } liveLocationEndTime;
+    boolean liveLocationDone;
   }
 
   variant UnfurlRaw switch (UnfurlType unfurlType) {
@@ -62,9 +63,9 @@ protocol unfurl {
 
   record UnfurlGenericMapInfo {
     Coordinate coord;
-    boolean isLiveLocation;
-    boolean isLiveLocationDone;
     gregor1.Time time;
+    union { null, gregor1.Time } liveLocationEndTime;
+    boolean isLiveLocationDone;
   }
 
   record UnfurlGeneric {
