@@ -2,6 +2,7 @@
 
 protocol unfurl {
   import idl "common.avdl";
+  import idl "../gregor1" as gregor1;
 
   // NOTE if adding a new type here, also add the case to the
   // `UnfurlRaw.GetURL` type since a URL is used as a key for caching
@@ -48,6 +49,8 @@ protocol unfurl {
     union { null, string } historyImageUrl;
     string description;
     Coordinate coord;
+    boolean liveLocationDone;
+    gregor1.Time time;
   }
 
   variant UnfurlRaw switch (UnfurlType unfurlType) {
@@ -59,6 +62,9 @@ protocol unfurl {
 
   record UnfurlGenericMapInfo {
     Coordinate coord;
+    boolean isLiveLocation;
+    boolean isLiveLocationDone;
+    gregor1.Time time;
   }
 
   record UnfurlGeneric {
