@@ -75,6 +75,7 @@ const TextPopupMenu = (props: Props) => {
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
         isLast={!items.length}
+        isLocation={!!props.onViewMap}
         timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />

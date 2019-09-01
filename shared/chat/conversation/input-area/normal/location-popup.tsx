@@ -124,26 +124,7 @@ const LocationPopup = (props: Props) => {
         ),
       }}
     >
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={() => setMapLoaded(true)} />}
-        {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
-        <Kb.Box2
-          style={styles.banner}
-          direction="horizontal"
-          fullWidth={true}
-          centerChildren={true}
-          gap="xxtiny"
-        >
-          <Kb.Text type="BodyTiny">Your location is protected.</Kb.Text>
-          <Kb.Text
-            type="BodyTinyLink"
-            style={styles.learn}
-            onClickURL="https://keybase.io/docs/chat/location"
-          >
-            Learn more
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.Box2>
+      <Kb.LocationMap mapSrc={mapSrc} height={height} width={width} onLoad={() => setMapLoaded(true)} />
     </Kb.Modal>
   )
 }
@@ -153,39 +134,8 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.white_75,
     lineHeight: 14,
   },
-  banner: {
-    backgroundColor: Styles.globalColors.white,
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    ...Styles.globalStyles.fillAbsolute,
-    justifyContent: 'center',
-  },
-  image: {
-    flex: 1,
-    width: '150%',
-  },
-  learn: {
-    color: Styles.globalColors.blueDark,
-  },
   liveButton: {
     height: 53,
-  },
-  loading: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -12,
-    marginLeft: -12,
-    marginRight: -12,
-    marginTop: -12,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-    width: 24,
   },
 }))
 

@@ -440,6 +440,7 @@ export {
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
+  getMapUnfurl,
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
