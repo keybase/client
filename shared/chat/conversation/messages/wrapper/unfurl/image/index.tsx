@@ -50,7 +50,7 @@ class UnfurlImage extends React.Component<Props> {
         width={dims.width}
       />
     ) : (
-      <Kb.ClickableBox onClick={this._onClick}>
+      <Kb.ClickableBox onClick={this.props.onClick || this._onClick}>
         <Kb.Image {...dims} src={this.props.url} style={style} />
       </Kb.ClickableBox>
     )

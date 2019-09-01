@@ -49,9 +49,15 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 	}
 	linkURL := maps.GetExternalMapURL(ctx, lat, lon)
 	now := time.Now()
+	var liveLocationEndTime *gregor1.Time
 	if len(skey) > 0 {
 		key := types.LiveLocationKey(skey)
 		coords := s.G().LiveLocationTracker.GetCoordinates(ctx, key)
+		endTime := s.G().LiveLocationTracker.GetEndTime(ctx, key)
+		if endTime != nil {
+			liveLocationEndTime = new(gregor1.Time)
+			*liveLocationEndTime = gregor1.ToTime(*endTime)
+		}
 		liveMapURL = new(string)
 		if *liveMapURL, err = maps.GetLiveMapURL(ctx, s.G().ExternalAPIKeySource, coords); err != nil {
 			return res, err
@@ -75,7 +81,8 @@ func (s *Scraper) scrapeMap(ctx context.Context, uri string) (res chat1.UnfurlRa
 			Lon:      lon,
 			Accuracy: acc,
 		},
-		LiveLocationDone: liveLocationDone,
-		Time:             gregor1.ToTime(now),
+		LiveLocationDone:    liveLocationDone,
+		LiveLocationEndTime: liveLocationEndTime,
+		Time:                gregor1.ToTime(now),
 	}), nil
 }

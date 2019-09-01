@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Types from '../../../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../../styles'
 import {Box2} from '../../../../../../common-adapters/index'
@@ -15,14 +16,18 @@ export type UnfurlListItem = {
 }
 
 export type ListProps = {
+  conversationIDKey: Types.ConversationIDKey
+  isAuthor: boolean
   unfurls: Array<UnfurlListItem>
 }
 
 export type UnfurlProps = {
-  unfurl: RPCChatTypes.UnfurlDisplay
+  conversationIDKey: Types.ConversationIDKey
+  isAuthor: boolean
   isCollapsed: boolean
   onClose?: () => void
   onCollapse: () => void
+  unfurl: RPCChatTypes.UnfurlDisplay
 }
 
 class Unfurl extends React.PureComponent<UnfurlProps> {
@@ -32,12 +37,14 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
         return this.props.unfurl.generic ? (
           this.props.unfurl.generic.mapInfo ? (
             <UnfurlMap
+              conversationIDKey={this.props.conversationIDKey}
               coord={this.props.unfurl.generic.mapInfo.coord}
               imageHeight={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.height : 0}
               imageURL={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.url : ''}
               imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
-              isLiveLocation={this.props.unfurl.generic.mapInfo.isLiveLocation}
+              isAuthor={this.props.isAuthor}
               isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
+              liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime}
               time={this.props.unfurl.generic.mapInfo.time}
               url={this.props.unfurl.generic.url}
             />
@@ -71,6 +78,8 @@ class UnfurlList extends React.PureComponent<ListProps> {
       <Box2 direction="vertical" gap="tiny" style={styles.container}>
         {this.props.unfurls.map(u => (
           <Unfurl
+            conversationIDKey={this.props.conversationIDKey}
+            isAuthor={this.props.isAuthor}
             isCollapsed={u.isCollapsed}
             key={u.url}
             unfurl={u.unfurl}
