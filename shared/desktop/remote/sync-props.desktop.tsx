@@ -6,7 +6,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {measureStart, measureStop} from '../../util/user-timings'
 
 // set this to true to see details of the serialization process
-const debugSerializer = __DEV__ && true
+const debugSerializer = __DEV__ && false
 if (debugSerializer) {
   console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
 }
