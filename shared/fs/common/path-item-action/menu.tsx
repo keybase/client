@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FloatingMenuProps} from './types'
@@ -27,7 +26,6 @@ type Props = {
   showInSystemFileManager?: (() => void) | null
   share?: (() => void) | null
   sendAttachmentToChat?: (() => void) | null
-  sendLinkToChat?: (() => void) | null
   sendToOtherApp?: ActionOrInProgress | null
 }
 
@@ -115,20 +113,6 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           onClick: props.share,
           title: 'Share...',
-        },
-      ]
-    : []),
-  ...(props.sendLinkToChat
-    ? [
-        {
-          onClick: () => {
-            props.floatingMenuProps.hideOnce()
-            props.sendLinkToChat && props.sendLinkToChat()
-          },
-          subTitle: `The ${
-            props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
-          } will be sent as a link.`,
-          title: `Send to ${Constants.getChatTarget(props.path, props.me)}`,
         },
       ]
     : []),

@@ -74,7 +74,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
   },
   _sendAttachmentToChat: () =>
     Constants.makeActionsForShowSendAttachmentToChat(path).forEach(action => dispatch(action)),
-  _sendLinkToChat: () => Constants.makeActionsForShowSendLinkToChat(path).forEach(action => dispatch(action)),
   _sendToOtherApp: () => {
     const key = Constants.makeDownloadKey(path)
     dispatch(FsGen.createShareNative({key, path}))
@@ -173,7 +172,6 @@ const mergeProps = (
     // share items
     // eslint-disable-next-line sort-keys
     sendAttachmentToChat: layout.sendAttachmentToChat ? c(dispatchProps._sendAttachmentToChat) : null, // TODO
-    sendLinkToChat: layout.sendLinkToChat ? c(dispatchProps._sendLinkToChat) : null,
     sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
     share: layout.share ? dispatchProps._share : null,
   }

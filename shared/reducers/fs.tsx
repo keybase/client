@@ -468,45 +468,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         sendAttachmentToChat.set('title', action.payload.title)
       )
     case FsGen.sentAttachmentToChat:
-      return state.setIn(['sendAttachmentToChat', 'state'], Types.SendLinkToChatState.Sent)
-    case FsGen.initSendLinkToChat:
-      return state.set(
-        'sendLinkToChat',
-        Constants.makeSendLinkToChat({
-          path: action.payload.path,
-          state: Types.SendLinkToChatState.LocatingConversation,
-        })
-      )
-    case FsGen.setSendLinkToChatConvID:
-      return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat
-          .set('convID', action.payload.convID)
-          // Notably missing check on if convID is noConversationIDKey,
-          // because it's possible we need to create such conversation. So
-          // always treat this action as a transition to 'ready-to-send'.
-          .set('state', Types.SendLinkToChatState.ReadyToSend)
-      )
-    case FsGen.setSendLinkToChatChannels:
-      return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat
-          .set('channels', action.payload.channels)
-          .set(
-            'state',
-            ChatConstants.isValidConversationIDKey(sendLinkToChat.convID)
-              ? Types.SendLinkToChatState.ReadyToSend
-              : Types.SendLinkToChatState.PendingSelectConversation
-          )
-      )
-    case FsGen.triggerSendLinkToChat:
-      return state.update('sendLinkToChat', sendLinkToChat =>
-        sendLinkToChat.set('state', Types.SendLinkToChatState.Sending)
-      )
-    case FsGen.sentLinkToChat:
-      return state.update('sendLinkToChat', sendLinkToChat =>
-        // We need to set convID here so component can navigate to the
-        // conversation thread correctly.
-        sendLinkToChat.set('state', Types.SendLinkToChatState.Sent).set('convID', action.payload.convID)
-      )
+      return state.setIn(['sendAttachmentToChat', 'state'], Types.SendAttachmentToChatState.Sent)
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
