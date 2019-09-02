@@ -24,12 +24,14 @@ const _RootLogin = ({showLoading, showRelogin}: Props) => {
 
 _RootLogin.navigationOptions = {
   header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
 }
 
 const RootLogin = Container.connect(
   state => {
     const showLoading = state.config.daemonHandshakeState !== 'done'
-    const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
+    const showRelogin = false && !showLoading && state.config.configuredAccounts.size > 0
     return {showLoading, showRelogin}
   },
   () => ({}),
