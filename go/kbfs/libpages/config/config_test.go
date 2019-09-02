@@ -22,7 +22,7 @@ func TestParseConfigV1(t *testing.T) {
 			"bob":   generateSHA256PasswordHashForTestOrBust(t, "54321"),
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
-			"/alice-and-bob": PerPathConfigV1{
+			"/alice-and-bob": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 					"bob":   PermRead,

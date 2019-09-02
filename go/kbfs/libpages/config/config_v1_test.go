@@ -32,7 +32,7 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
-			"/": PerPathConfigV1{
+			"/": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermRead,
 				},
@@ -47,10 +47,10 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
-			"/": PerPathConfigV1{
+			"/": {
 				AnonymousPermissions: "",
 			},
-			"": PerPathConfigV1{
+			"": {
 				AnonymousPermissions: PermRead,
 			},
 		},
@@ -63,10 +63,10 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
-			"/foo": PerPathConfigV1{
+			"/foo": {
 				AnonymousPermissions: "",
 			},
-			"/foo/../foo": PerPathConfigV1{
+			"/foo/../foo": {
 				AnonymousPermissions: PermRead,
 			},
 		},
@@ -79,7 +79,7 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
-			"/": PerPathConfigV1{
+			"/": {
 				AnonymousPermissions: "huh?",
 			},
 		},
@@ -98,31 +98,31 @@ func TestConfigV1Full(t *testing.T) {
 			"bob":   generateSHA256PasswordHashForTestOrBust(t, "54321"),
 		},
 		PerPathConfigs: map[string]PerPathConfigV1{
-			"/": PerPathConfigV1{
+			"/": {
 				AnonymousPermissions: "read,list",
 			},
-			"/alice-and-bob": PerPathConfigV1{
+			"/alice-and-bob": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 					"bob":   PermRead,
 				},
 			},
-			"/bob": PerPathConfigV1{
+			"/bob": {
 				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
 					"bob": PermReadAndList,
 				},
 			},
-			"/public": PerPathConfigV1{
+			"/public": {
 				AnonymousPermissions: PermReadAndList,
 			},
-			"/public/not-really": PerPathConfigV1{
+			"/public/not-really": {
 				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 				},
 			},
-			"/bob/dir/deep-dir/deep-deep-dir": PerPathConfigV1{},
+			"/bob/dir/deep-dir/deep-deep-dir": {},
 		},
 	}
 
@@ -355,7 +355,7 @@ func TestV1EncodeObjectKeyOrder(t *testing.T) {
 
 func TestV1DeprecatingACLsField(t *testing.T) {
 	perPathConfigs := map[string]PerPathConfigV1{
-		"/": PerPathConfigV1{
+		"/": {
 			WhitelistAdditionalPermissions: map[string]string{
 				"alice": PermRead,
 			},
@@ -367,7 +367,7 @@ func TestV1DeprecatingACLsField(t *testing.T) {
 			Version: Version1Str,
 		},
 		Users: map[string]string{
-			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
 		},
 		ACLs: perPathConfigs,
 	}
@@ -381,7 +381,7 @@ func TestV1DeprecatingACLsField(t *testing.T) {
 			Version: Version1Str,
 		},
 		Users: map[string]string{
-			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
 		},
 		ACLs:           perPathConfigs,
 		PerPathConfigs: perPathConfigs,

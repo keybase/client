@@ -187,7 +187,7 @@ func TestEditorSimple(t *testing.T) {
 		configDir, prompter)
 	require.NoError(t, err)
 	err = editor.set404("/", "/404")
-	require.Error(t, err)
+	require.NoError(t, err)
 
 	editor, err = newKBPConfigEditorWithPrompter(
 		configDir, prompter)
