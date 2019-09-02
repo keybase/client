@@ -25,8 +25,8 @@ type Props = {
 }
 
 export const serialize = {
-  followers: (v: any) => v,
-  following: (v: any) => v,
+  followers: (v: any) => [...v],
+  following: (v: any) => [...v],
   httpSrvAddress: (v: any) => v,
   httpSrvToken: (v: any) => v,
 }
