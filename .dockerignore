@@ -20,6 +20,7 @@ media
 osx
 packaging/linux/docker
 !packaging/linux/docker/service/start.sh
+!packaging/linux/docker/tini_key.asc
 protocol
 pvl-tools
 shared

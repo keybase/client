@@ -1,10 +1,6 @@
-# This Dockerfile results in a simple Docker image with
-# a statically compiled Keybase binary in /usr/bin/keybase.
 FROM golang:1.12.4-stretch AS builder
-LABEL maintainer="Keybase <admin@keybase.io>"
 
 ARG SOURCE_COMMIT=unknown
-
 COPY . /go/src/github.com/keybase/client
 RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
     KEYBASE_NO_GUI=1 \
@@ -16,6 +12,7 @@ RUN chmod +x /binaries/amd64/usr/bin/keybase \
     && chmod +x /binaries/amd64/usr/bin/git-remote-keybase
 
 FROM debian:stretch
+LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
     && apt-get install -y gnupg2 procps \
@@ -24,7 +21,9 @@ RUN apt-get update \
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc /tini.asc
-RUN gpg --batch --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
+COPY packaging/linux/docker/tini_key.asc /tini_key.asc
+RUN gpg --import /tini_key.asc \
+    && rm /tini_key.asc \
     && gpg --batch --verify /tini.asc /tini \
     && chmod +x /tini
 
