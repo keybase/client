@@ -17,11 +17,12 @@ type BannerParagraphProps = {
   content: string | Array<Segment>
   inline?: boolean
   selectable?: boolean
+  small?: boolean
 }
 
 export const BannerParagraph = (props: BannerParagraphProps) => (
   <Text
-    type="BodySmallSemibold"
+    type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
     style={Styles.collapseStyles([styles.text, props.inline && styles.inlineText])}
   >
     {(Array.isArray(props.content) ? props.content : [props.content])
@@ -38,7 +39,7 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
             {segment.text.startsWith(' ') && <>&nbsp;</>}
             <Text
               selectable={props.selectable}
-              type="BodySmallSemibold"
+              type={props.small ? 'BodyTinySemibold' : 'BodySmallSemibold'}
               style={Styles.collapseStyles([
                 colorToTextColorStyles[props.bannerColor],
                 !!segment.onClick && styles.underline,
@@ -66,6 +67,7 @@ type BannerProps = {
   inline?: boolean
   narrow?: boolean
   onClose?: () => void
+  small?: boolean
   style?: Styles.StylesCrossPlatform | null
   textContainerStyle?: Styles.StylesCrossPlatform | null
 }
@@ -78,6 +80,7 @@ export const Banner = (props: BannerProps) => (
       styles.container,
       colorToBackgroundColorStyles[props.color],
       props.inline && styles.containerInline,
+      props.small && styles.containerSmall,
       props.style,
     ])}
   >
@@ -89,13 +92,20 @@ export const Banner = (props: BannerProps) => (
           ? styles.narrowTextContainer
           : props.inline
           ? styles.inlineTextContainer
+          : props.small
+          ? styles.smallTextContainer
           : styles.textContainer,
         props.textContainerStyle,
       ])}
       centerChildren={true}
     >
       {typeof props.children === 'string' ? (
-        <BannerParagraph bannerColor={props.color} content={props.children} inline={props.inline} />
+        <BannerParagraph
+          bannerColor={props.color}
+          content={props.children}
+          inline={props.inline}
+          small={props.small}
+        />
       ) : (
         props.children
       )}
@@ -116,7 +126,7 @@ export const Banner = (props: BannerProps) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {minHeight: Styles.globalMargins.large},
+  container: Styles.platformStyles({isElectron: {minHeight: 32}, isMobile: {minHeight: 40}}),
   containerInline: Styles.platformStyles({
     common: {borderRadius: Styles.borderRadius},
     isElectron: {
@@ -124,13 +134,14 @@ const styles = Styles.styleSheetCreate(() => ({
       minWidth: 352,
     },
   }),
+  containerSmall: {minHeight: 28},
   iconContainer: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.xtiny,
       position: 'absolute',
       right: 0,
     },
-    isElectron: {paddingTop: Styles.globalMargins.tiny + Styles.globalMargins.xtiny},
+    isElectron: {paddingTop: Styles.globalMargins.tiny},
     isMobile: {paddingTop: Styles.globalMargins.tiny},
   }),
   inlineText: {textAlign: 'left'},
@@ -156,6 +167,12 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.small,
     },
   }),
+  smallTextContainer: {
+    flex: 1,
+    maxWidth: '100%',
+    paddingBottom: Styles.globalMargins.xxtiny,
+    paddingTop: Styles.globalMargins.xxtiny,
+  },
   text: Styles.platformStyles({
     common: {
       maxWidth: '100%',

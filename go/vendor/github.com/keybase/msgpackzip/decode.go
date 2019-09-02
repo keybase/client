@@ -436,7 +436,7 @@ func (m *msgpackDecoder) decodeExt(s decodeStack, n uint32) (err error) {
 		return ErrExtTooBig
 	}
 	buf := make([]byte, n)
-	_, err = io.ReadFull(m.r, buf[:])
+	_, err = io.ReadFull(m.r, buf)
 	if err != nil {
 		return err
 	}

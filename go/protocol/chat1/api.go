@@ -759,6 +759,30 @@ func (o MsgNotification) DeepCopy() MsgNotification {
 	}
 }
 
+type AdvertiseCommandAPIParam struct {
+	Typ      string                `codec:"typ" json:"type"`
+	Commands []UserBotCommandInput `codec:"commands" json:"commands"`
+	TeamName string                `codec:"teamName,omitempty" json:"team_name,omitempty"`
+}
+
+func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
+	return AdvertiseCommandAPIParam{
+		Typ: o.Typ,
+		Commands: (func(x []UserBotCommandInput) []UserBotCommandInput {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBotCommandInput, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Commands),
+		TeamName: o.TeamName,
+	}
+}
+
 type ApiInterface interface {
 }
 

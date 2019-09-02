@@ -35,13 +35,13 @@ const contentProps = {
           alignSelf: 'center',
           marginRight: Styles.globalMargins.tiny,
         }}
-        username={'steve'}
+        username="steve"
         size={64}
       />
       <Avatar
         style={{alignSelf: 'center', marginLeft: Styles.globalMargins.tiny}}
         isTeam={true}
-        teamname={'keybase'}
+        teamname="keybase"
         size={64}
       />
     </Box>
@@ -55,7 +55,7 @@ const headerProps = {
       <Avatar
         style={{alignSelf: 'center', marginLeft: Styles.globalMargins.tiny}}
         isTeam={true}
-        teamname={'keybase'}
+        teamname="keybase"
         size={64}
       />
     </Box>

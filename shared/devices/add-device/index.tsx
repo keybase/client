@@ -80,7 +80,7 @@ const DeviceOption = ({highlight, onClick, type}) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {padding: Styles.globalMargins.small},
   deviceOption: {
     ...Styles.transition('background-color'),
@@ -96,6 +96,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {paddingLeft: Styles.globalMargins.large},
     isMobile: {paddingTop: Styles.globalMargins.medium},
   }),
-})
+}))
 
 export default Kb.HeaderOrPopup(AddDevice)

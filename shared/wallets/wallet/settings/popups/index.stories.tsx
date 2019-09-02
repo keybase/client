@@ -15,6 +15,7 @@ const warningProps = {
 }
 
 const reallyProps = {
+  accountID: Types.noAccountID,
   loading: false,
   name: 'awesome account',
   onCancel: Sb.action('onCancel'),

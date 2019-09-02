@@ -23,7 +23,8 @@ import {Props} from './router'
 
 const {createStackNavigator} = Stack
 
-// turn on screens
+// turn on screens. lint thinks this is a hook, but its not
+// eslint-disable-next-line
 useScreens()
 
 // Options used by default on all navigators
@@ -78,7 +79,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   </Kb.NativeView>
 )
 
-const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab]
+const settingsTabChildren: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab]
 
 type OwnProps = {focused: boolean; routeName: Tabs.Tab}
 const ConnectedTabBarIcon = connect(

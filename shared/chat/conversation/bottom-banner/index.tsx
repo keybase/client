@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box2, Button, Text} from '../../../common-adapters'
+import {Box2, Button, Text, Emoji} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -73,7 +73,12 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
     <BannerBox color={Styles.globalColors.blue}>
       <BannerText>{caption}</BannerText>
       <BannerText>
-        {Flags.wonderland ? '🐇 Send them this link:' : 'Send them this link:'}
+        {Flags.wonderland && (
+          <>
+            <Emoji size={16} emojiName=":rabbit2:" />{' '}
+          </>
+        )}
+        Send them this link:
         <BannerText
           onClickURL="https://keybase.io/app"
           underline={true}

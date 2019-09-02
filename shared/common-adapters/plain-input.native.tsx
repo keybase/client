@@ -20,7 +20,6 @@ type ContentSizeChangeEvent = {
 }
 
 type State = {
-  focused: boolean
   height: number | null
 }
 
@@ -33,7 +32,6 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   state: State = {
-    focused: false,
     height: null,
   }
   _input = React.createRef<TextInput>()
@@ -171,12 +169,10 @@ class PlainInput extends Component<InternalProps, State> {
   isFocused = () => !!this._input.current && this._input.current.isFocused()
 
   _onFocus = () => {
-    this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
   }
 
   _onBlur = () => {
-    this.setState({focused: false})
     this.props.onBlur && this.props.onBlur()
   }
 
@@ -250,7 +246,7 @@ class PlainInput extends Component<InternalProps, State> {
     return common
   }
 
-  render = () => {
+  render() {
     const props = this._getProps()
     if (props.value) {
       this._lastNativeText = props.value

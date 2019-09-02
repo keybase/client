@@ -1,8 +1,8 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as TeamBuildingConstants from '../../constants/team-building'
+import * as RPCTypes from '../types/rpc-gen'
+import * as TeamBuildingConstants from '../team-building'
 import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
 import {TypedState} from '../reducer'
@@ -286,6 +286,8 @@ export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
 export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
   [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))

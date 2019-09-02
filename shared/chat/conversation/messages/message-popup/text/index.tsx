@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItems} from '../../../../../common-adapters/'
+import {FloatingMenu, MenuItems} from '../../../../../common-adapters'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
@@ -17,6 +17,7 @@ type Props = {
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
   onHidden: () => void
+  onPinMessage?: () => void
   onReply?: () => void
   onReplyPrivately?: () => void
   onViewProfile?: () => void
@@ -59,6 +60,7 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onCopy ? [{onClick: props.onCopy, title: 'Copy text'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
+    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
     ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
   ]
 

@@ -28,7 +28,7 @@ type Props = {
   username: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '17px' as any, wordBreak: 'break-all'} as const
+const descStyle = {fontSize: 13, lineHeight: '16px' as any, wordBreak: 'break-all'} as const
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -121,7 +121,9 @@ const Header = (p: Props) => {
               />
             )}
           </Kb.Box2>
-          {description}
+          <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+            {description}
+          </Kb.Box2>
         </Kb.Box2>
         {p.showActions && (
           <Kb.Box2
@@ -140,7 +142,7 @@ const Header = (p: Props) => {
             <Kb.WithTooltip text="Chat info & settings">
               <Kb.Icon
                 style={styles.clickable}
-                type={'iconfont-info'}
+                type="iconfont-info"
                 onClick={p.onToggleInfoPanel}
                 color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
               />
@@ -164,6 +166,10 @@ const styles = Styles.styleSheetCreate({
   desc: {
     ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
     color: Styles.globalColors.black_50,
+  },
+  descriptionContainer: {
+    height: 17,
+    overflow: 'hidden',
   },
   headerTitle: Styles.platformStyles({
     common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},

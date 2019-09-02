@@ -24,7 +24,7 @@ const styles = Styles.styleSheetCreate({
   container: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.black,
-    height: 200,
+    height: 160,
     overflow: 'hidden',
     position: 'relative',
   },

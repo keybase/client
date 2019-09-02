@@ -282,6 +282,20 @@
     },
     {
       "type": "record",
+      "name": "UIPinnedMessage",
+      "fields": [
+        {
+          "type": "UIMessage",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "InboxUIItem",
       "fields": [
         {
@@ -452,6 +466,13 @@
         {
           "type": "ConversationCommandGroups",
           "name": "botCommands"
+        },
+        {
+          "type": [
+            null,
+            "UIPinnedMessage"
+          ],
+          "name": "pinnedMsg"
         }
       ]
     },
@@ -1048,7 +1069,8 @@
         "CHANNELNAMEMENTION_2",
         "MAYBEMENTION_3",
         "LINK_4",
-        "MAILTO_5"
+        "MAILTO_5",
+        "KBFSPATH_6"
       ]
     },
     {
@@ -1162,6 +1184,13 @@
             "def": false
           },
           "body": "UILinkDecoration"
+        },
+        {
+          "label": {
+            "name": "KBFSPATH",
+            "def": false
+          },
+          "body": "KBFSPath"
         }
       ]
     },

@@ -82,10 +82,9 @@ class Pinentry extends React.Component<Props, State> {
           ...globalStyles.flexBoxColumn,
           backgroundColor: globalColors.white,
           paddingBottom: globalMargins.medium,
-          paddingTop: globalMargins.medium,
         }}
       >
-        <Header icon={true} title="" onClose={this.props.onCancel} />
+        <Header icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Text type="Body" center={true}>
             {this.props.prompt}

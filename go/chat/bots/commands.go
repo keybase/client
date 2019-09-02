@@ -424,15 +424,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job comman
 		return err
 	}
 	// alert that the conv is now updated
-	if err := storage.NewInbox(b.G()).IncrementLocalConvVersion(ctx, b.uid, job.convID); err != nil {
-		b.Debug(ctx, "commandUpdate: unable to IncrementLocalConvVersion, err", err)
-	}
-	b.G().ActivityNotifier.ThreadsStale(ctx, b.uid, []chat1.ConversationStaleUpdate{
-		{
-			ConvID:     job.convID,
-			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
-		},
-	})
+	b.G().InboxSource.NotifyUpdate(ctx, b.uid, job.convID)
 	return nil
 }
 

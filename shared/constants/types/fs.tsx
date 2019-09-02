@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
-import * as TeamsTypes from '../../constants/types/teams'
+import * as TeamsTypes from './teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import * as EngineGen from '../../actions/engine-gen-gen'
@@ -536,7 +536,9 @@ export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
 
 export type _SystemFileManagerIntegration = {
+  directMountDir: string
   driverStatus: DriverStatus
+  preferredMountDirs: I.List<string>
   // This only controls if system-file-manager-integration-banner is shown in
   // Folders view. The banner always shows in Settings/Files screen.
   showingBanner: boolean
@@ -601,6 +603,12 @@ export type _Settings = {
 
 export type Settings = I.RecordOf<_Settings>
 
+export type _PathInfo = {
+  deeplinkPath: string
+  platformAfterMountPath: string
+}
+export type PathInfo = I.RecordOf<_PathInfo>
+
 export type _State = {
   destinationPicker: DestinationPicker
   downloads: Downloads
@@ -613,6 +621,7 @@ export type _State = {
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems
+  pathInfos: I.Map<Path, PathInfo>
   pathUserSettings: I.Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
   sendLinkToChat: SendLinkToChat
@@ -828,8 +837,7 @@ export type FavoriteFolder = {
 export enum FileViewType {
   Text = 'text',
   Image = 'image',
-  Audio = 'audio',
-  Video = 'video',
+  Av = 'av',
   Pdf = 'pdf',
   Default = 'default',
 }

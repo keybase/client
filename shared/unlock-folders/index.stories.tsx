@@ -36,14 +36,14 @@ const load = () => {
     // TODO this doesn't seem to work
     .add('No paperkeys', () => <Wrapper {...props} paperKeysHidden={true} />)
     .add('Single', () => <Wrapper {...props} devices={[devices[0]]} />)
-    .add('Paperkey input', () => <Wrapper {...props} phase={'paperKeyInput'} />)
+    .add('Paperkey input', () => <Wrapper {...props} phase="paperKeyInput" />)
     .add('Paperkey error', () => (
-      <Wrapper {...props} phase={'paperKeyInput'} paperkeyError={'Invalid paperkey'} />
+      <Wrapper {...props} phase="paperKeyInput" paperkeyError="Invalid paperkey" />
     ))
     .add('Paperkey error waiting', () => (
-      <Wrapper {...props} phase={'paperKeyInput'} paperkeyError={'Invalid paperkey'} waiting={true} />
+      <Wrapper {...props} phase="paperKeyInput" paperkeyError="Invalid paperkey" waiting={true} />
     ))
-    .add('Success', () => <Wrapper {...props} phase={'success'} waiting={false} />)
+    .add('Success', () => <Wrapper {...props} phase="success" waiting={false} />)
 }
 
 export default load

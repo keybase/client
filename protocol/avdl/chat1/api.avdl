@@ -298,4 +298,14 @@ protocol api {
     union { null, string } error;
     union { null, UIPagination } pagination;
   }
+
+  // Similar to AdvertiseCommandParam but intended for the json API
+  record AdvertiseCommandAPIParam {
+    @jsonkey("type")
+    string typ;
+    array<UserBotCommandInput> commands;
+    @optional(true)
+    @jsonkey("team_name")
+    string teamName;
+  }
 }

@@ -5,8 +5,8 @@ import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
-import {EnterEmailBody} from '../../signup/email/'
-import {EnterPhoneNumberBody} from '../../signup/phone-number/'
+import {EnterEmailBody} from '../../signup/email'
+import {EnterPhoneNumberBody} from '../../signup/phone-number'
 import {VerifyBody} from '../../signup/phone-number/verify'
 import {e164ToDisplay} from '../../util/phone-numbers'
 
@@ -52,7 +52,11 @@ export const Email = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+            Close
+          </Kb.Text>
+        ) : null,
         title: Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
       footer={{
@@ -95,7 +99,7 @@ export const Email = () => {
       </Kb.Box2>
       {!!emailError && (
         <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={emailError.message} />
+          <Kb.BannerParagraph bannerColor="red" content={emailError} />
         </Kb.Banner>
       )}
     </Kb.Modal>
@@ -143,7 +147,11 @@ export const Phone = () => {
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+            Close
+          </Kb.Text>
+        ) : null,
         title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
       }}
       footer={{
@@ -291,7 +299,7 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   banner: {
     left: 0,
     position: 'absolute',
@@ -330,4 +338,4 @@ const styles = Styles.styleSheetCreate({
   verifyContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },
-})
+}))

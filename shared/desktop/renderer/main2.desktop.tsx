@@ -12,7 +12,6 @@ import configureStore from '../../store/configure-store'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
@@ -51,8 +50,6 @@ const setupApp = (store, runSagas) => {
   const eng = makeEngine(store.dispatch, store.getState)
   runSagas && runSagas()
   eng.sagasAreReady()
-
-  setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
   SafeElectron.getApp().on('KBdispatchAction' as any, (_: string, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830

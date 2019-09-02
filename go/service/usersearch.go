@@ -169,6 +169,18 @@ func matchAndScoreContact(query compiledQuery, contact keybase1.ProcessedContact
 	return found, currentScore * multiplier, plumbMatchedVal
 }
 
+func compareUserSearch(i, j keybase1.APIUserSearchResult) bool {
+	// Float comparasion - we expect exact floats here when multiple
+	// results match in same way and yield identical score thorugh
+	// same scoring operations.
+	if i.RawScore == j.RawScore {
+		idI := i.GetStringIDForCompare()
+		idJ := j.GetStringIDForCompare()
+		return idI > idJ
+	}
+	return i.RawScore > j.RawScore
+}
+
 func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []keybase1.APIUserSearchResult, err error) {
 	contactsRes, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
 	if err != nil {
@@ -249,7 +261,7 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 
 	// Return best matches first.
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].RawScore > res[j].RawScore
+		return compareUserSearch(res[i], res[j])
 	})
 
 	// Trim to maxResults to reduce complexity on the call site.
@@ -316,6 +328,10 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		if err != nil {
 			mctx.Warning("Cannot find usernames for search results: %s", err)
 		}
+		serviceMaps, err := provider.FindServiceMaps(mctx, uids)
+		if err != nil {
+			mctx.Warning("Cannot get service maps for search results: %s", err)
+		}
 
 		for _, v := range lookupRes.Results {
 			// Found a resolution
@@ -344,9 +360,23 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 					imptofu.PrettyName = uname.Fullname
 				}
 			}
+			var servicesSummary map[keybase1.APIUserServiceIDWithContact]keybase1.APIUserServiceSummary
+			if serviceMaps != nil {
+				if smap, found := serviceMaps[v.UID]; found && len(smap) > 0 {
+					servicesSummary = make(map[keybase1.APIUserServiceIDWithContact]keybase1.APIUserServiceSummary, len(smap))
+					for serviceID, username := range smap {
+						serviceName := keybase1.APIUserServiceIDWithContact(serviceID)
+						servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
+							ServiceName: serviceName,
+							Username:    username,
+						}
+					}
+				}
+			}
 			res = &keybase1.APIUserSearchResult{
-				Score:   1.0,
-				Imptofu: imptofu,
+				Score:           1.0,
+				Imptofu:         imptofu,
+				ServicesSummary: servicesSummary,
 			}
 			return res, nil // return here - we only want one result
 		}
@@ -441,15 +471,7 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 			}
 
 			sort.Slice(res, func(i, j int) bool {
-				// Float comparasion - we expect exact floats here when multiple
-				// results match in same way and yield identical score thorugh
-				// same scoring operations.
-				if res[i].RawScore == res[j].RawScore {
-					idI := res[i].GetStringIDForCompare()
-					idJ := res[j].GetStringIDForCompare()
-					return idI > idJ
-				}
-				return res[i].RawScore > res[j].RawScore
+				return compareUserSearch(res[i], res[j])
 			})
 
 			for i := range res {

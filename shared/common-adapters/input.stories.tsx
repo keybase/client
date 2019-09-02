@@ -51,7 +51,7 @@ class TestInput extends React.Component<TestInputProps> {
     onEnterKeyDown()
   }
 
-  render = () => {
+  render() {
     return (
       <Box
         style={{
@@ -146,39 +146,35 @@ const load = () => {
       <Input {...commonProps} type="passwordVisible" floatingHintTextOverride="shh..." value="secret" />
     ))
     .add('Floating Label Hint Empty', () => (
-      <Input {...commonProps} hintText={'Hello!'} floatingHintTextOverride={'Hello...'} />
+      <Input {...commonProps} hintText="Hello!" floatingHintTextOverride="Hello..." />
     ))
     .add('Multi Label Styled', () => (
       <Input
         {...commonProps}
-        hintText={'Hello!'}
+        hintText="Hello!"
         multiline={true}
-        value={'multi styled'}
+        value="multi styled"
         inputStyle={{color: 'blue'}}
       />
     ))
     .add('Hint Multiline Empty', () => (
       <Input
         {...commonProps}
-        hintText={'This is a very long hint that will hopefully wrap to two lines or more more more!'}
+        hintText="This is a very long hint that will hopefully wrap to two lines or more more more!"
         multiline={true}
       />
     ))
     .add('Long Multiline', () => (
       <Input
         {...commonProps}
-        value={
-          'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!'
-        }
+        value="This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!"
         multiline={true}
       />
     ))
     .add('Long Multiline rowsMax1', () => (
       <Input
         {...commonProps}
-        value={
-          'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!'
-        }
+        value="This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!"
         multiline={true}
         rowsMax={1}
       />
@@ -186,9 +182,7 @@ const load = () => {
     .add('Long Multiline rowsMax2', () => (
       <Input
         {...commonProps}
-        value={
-          'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!'
-        }
+        value="This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!"
         multiline={true}
         rowsMax={2}
       />
@@ -196,97 +190,88 @@ const load = () => {
     .add('Long Multiline rowsMax4', () => (
       <Input
         {...commonProps}
-        value={
-          'This is a very long text that will hopefully wrap to two laxes or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!'
-        }
+        value="This is a very long text that will hopefully wrap to two laxes or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!"
         multiline={true}
         rowsMax={4}
       />
     ))
     .add('Long Multiline rowsMin2Max4 small', () => (
-      <Input {...commonProps} value={'This is a small text'} multiline={true} rowsMin={2} rowsMax={4} />
+      <Input {...commonProps} value="This is a small text" multiline={true} rowsMin={2} rowsMax={4} />
     ))
     .add('Long Multiline rowsMin2Max4 long', () => (
       <Input
         {...commonProps}
-        value={
-          'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!'
-        }
+        value="This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!"
         multiline={true}
         rowsMin={2}
         rowsMax={4}
       />
     ))
     .add('Long Multiline rowsMin1', () => (
-      <Input {...commonProps} value={'This is a small text'} multiline={true} rowsMin={1} />
+      <Input {...commonProps} value="This is a small text" multiline={true} rowsMin={1} />
     ))
     .add('Long Multiline rowsMin2', () => (
-      <Input {...commonProps} value={'This is a small text'} multiline={true} rowsMin={2} />
+      <Input {...commonProps} value="This is a small text" multiline={true} rowsMin={2} />
     ))
     .add('Long Multiline rowsMin4', () => (
-      <Input {...commonProps} value={'This is a small text'} multiline={true} rowsMin={4} />
+      <Input {...commonProps} value="This is a small text" multiline={true} rowsMin={4} />
     ))
     .add('Multiline error', () => (
       <Input
         {...commonProps}
-        value={'This is a multiline with error'}
+        value="This is a multiline with error"
         multiline={true}
-        errorText={'this is an error'}
+        errorText="this is an error"
       />
     ))
     .add('Floating Label Multiline Empty', () => (
-      <Input {...commonProps} floatingHintTextOverride={'Hello...'} multiline={true} />
+      <Input {...commonProps} floatingHintTextOverride="Hello..." multiline={true} />
     ))
     .add('Floating Label Multiline Filled', () => (
-      <Input
-        {...commonProps}
-        floatingHintTextOverride={'Hello...'}
-        multiline={true}
-        value={'Hello, World!'}
-      />
+      <Input {...commonProps} floatingHintTextOverride="Hello..." multiline={true} value="Hello, World!" />
     ))
     .add('Floating Label Multiline Filled Long', () => (
       <Input
         {...commonProps}
-        floatingHintTextOverride={'Hello...'}
+        floatingHintTextOverride="Hello..."
         multiline={true}
         value={'Hello,\nMy name is Max\nHow are you?'}
       />
     ))
-    .add('Small Empty', () => <Input {...commonProps} small={true} smallLabel={'Small:'} />)
+    .add('Small Empty', () => <Input {...commonProps} small={true} smallLabel="Small:" />)
     .add('Small Filled', () => (
-      <Input {...commonProps} small={true} value={'Hello, World!'} smallLabel={'Small:'} />
+      <Input {...commonProps} small={true} value="Hello, World!" smallLabel="Small:" />
     ))
     .add('Small styled', () => (
       <Input
         {...commonProps}
         small={true}
-        value={'Hello, World!'}
-        smallLabel={'Small:'}
+        value="Hello, World!"
+        smallLabel="Small:"
         inputStyle={{color: 'blue'}}
       />
     ))
     .add('Small Hint Empty', () => (
-      <Input {...commonProps} small={true} smallLabel={'Small:'} hintText={'Hello...'} />
+      <Input {...commonProps} small={true} smallLabel="Small:" hintText="Hello..." />
     ))
-    .add('Small Label Empty', () => <Input {...commonProps} small={true} hintText={'Hello...'} />)
+    .add('Small Label Empty', () => <Input {...commonProps} small={true} hintText="Hello..." />)
     .add('Small Label Styled', () => (
       <Input
         {...commonProps}
         small={true}
-        smallLabel={'Styled:'}
+        smallLabel="Styled:"
         smallLabelStyle={{backgroundColor: 'blue'}}
-        hintText={'Hello...'}
+        hintText="Hello..."
       />
     ))
     .add('Small Hint Error', () => (
       <Input
         {...commonProps}
         small={true}
-        smallLabel={'Small:'}
-        value={'has an error'}
-        hintText={'Hello...'}
-        errorText={'this is invisible in the small input'}
+        smallLabel="Small:"
+        value="has an error"
+        hintText="Hello..."
+        errorText="this is invisible in the small input"
       />
     ))
 }

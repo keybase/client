@@ -65,7 +65,7 @@ const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean;
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
-      <Kb.Icon sizeType={'Small'} type="iconfont-info" />
+      <Kb.Icon sizeType="Small" type="iconfont-info" />
       <Kb.Text style={styles.infoText} type="BodySmallSemibold">
         What is Stellar?
       </Kb.Text>

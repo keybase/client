@@ -87,7 +87,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         style={iconCastPlatformStyles(props.selectedTab === 'settings' ? styles.iconSelected : styles.icon)}
       />
     ) : (
-      <TabText key="settings" selected={props.selectedTab === 'settings'} text={'Settings'} />
+      <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
     )
   )
 

@@ -142,7 +142,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         )}
                         {this.props.videoDuration.length > 0 && this.state.loaded && (
                           <Kb.Box style={styles.durationContainer}>
-                            <Kb.Text type={'BodyTinyBold'} style={styles.durationText}>
+                            <Kb.Text type="BodyTinyBold" style={styles.durationText}>
                               {this.props.videoDuration}
                             </Kb.Text>
                           </Kb.Box>
@@ -156,6 +156,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                             />
                           </Kb.Box>
                         )}
+                        {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
                       </Kb.Box>
                     )}
                     {this.props.title.length > 0 && (
@@ -171,7 +172,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         {this.props.title}
                       </Kb.Text>
                     )}
-                    {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
                   </Kb.Box2>
                 )}
                 {Styles.isMobile && this.state.loadingVideo === 'loading' && (
@@ -180,7 +180,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               </Kb.Box>
               <Kb.Box style={styles.progressContainer}>
                 {!this.props.onShowInFinder && (
-                  <Kb.Text type={'BodySmall'} style={styles.progressLabel}>
+                  <Kb.Text type="BodySmall" style={styles.progressLabel}>
                     {progressLabel ||
                       '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
                   </Kb.Text>

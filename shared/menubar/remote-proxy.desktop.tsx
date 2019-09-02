@@ -109,7 +109,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
         externalRemoteWindow,
         ...props
       } = this.props
-      return <ComposedComponent {...props} remoteWindow={externalRemoteWindow} />
+      return <ComposedComponent {...props} />
     }
   }
 
@@ -126,7 +126,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
-  desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
+  desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,
   diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
@@ -136,10 +136,10 @@ const mapStateToProps = (state: Container.TypedState) => ({
   showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
   userInfo: state.users.infoMap,
   username: state.config.username,
-  widgetBadge: state.notifications.get('widgetBadge') || 'regular',
+  widgetBadge: state.notifications.widgetBadge,
 })
 
-let _lastUsername
+let _lastUsername: string | undefined
 let _lastClearCacheTrigger = 0
 
 // TODO better type
@@ -147,7 +147,9 @@ const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<
   class extends React.PureComponent<{
     externalRemoteWindow?: SafeElectron.BrowserWindowType
   }> {
-    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
+    render() {
+      return this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null
+    }
   }
 
 // Actions are handled by remote-container

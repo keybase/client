@@ -37,6 +37,7 @@ target 'Keybase' do
   pod 'react-native-webview', :path => '../node_modules/react-native-webview'
   pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
   pod 'RNScreens', :path => '../node_modules/react-native-screens'
+  pod 'react-native-video', :path => '../node_modules/react-native-video'
 
   use_unimodules!(modules_paths: ['../node_modules'])
 

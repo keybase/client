@@ -139,7 +139,7 @@ const styles = Styles.styleSheetCreate({
       minWidth: 150,
     },
     isMobile: {
-      borderColor: Styles.globalColors.greyLight,
+      borderColor: Styles.globalColors.grey,
       borderRadius: Styles.borderRadius,
       borderWidth: 1,
       padding: Styles.globalMargins.xtiny,
@@ -148,7 +148,7 @@ const styles = Styles.styleSheetCreate({
   quoteContainer: Styles.platformStyles({
     common: {
       alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.greyLight,
+      backgroundColor: Styles.globalColors.grey,
       paddingLeft: Styles.globalMargins.xtiny,
     },
   }),

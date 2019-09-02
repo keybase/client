@@ -3,5 +3,5 @@ input.lighterPlaceholder::placeholder {
 }
 
 .darkMode input.lighterPlaceholder::placeholder {
-  color: pink;
+  color: rgba(255, 255, 255, 0.4);
 }

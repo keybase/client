@@ -82,7 +82,7 @@
     },
     "addedEmail": {
       "email": "string",
-      "error?": "Error"
+      "error?": "string"
     },
     "clearAddingEmail": {"_description": "Reset state used for adding an email."},
     "clearAddedEmail": {"_description": "Reset state used for showing we just added an email."},
@@ -125,9 +125,6 @@
       "status": "boolean | null"
     },
     "onChangeLockdownMode": {
-      "enabled": "boolean"
-    },
-    "onChangeUseNativeFrame": {
       "enabled": "boolean"
     },
     "notificationsRefresh": {},

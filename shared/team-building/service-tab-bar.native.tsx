@@ -6,9 +6,7 @@ import {
   serviceIdToAccentColor,
   serviceIdToLongLabel,
   serviceIdToWonderland,
-  inactiveServiceAccentColor,
 } from './shared'
-import * as Constants from '../constants/team-building'
 import {Props, IconProps} from './service-tab-bar'
 
 const mapRange = (v: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
@@ -34,7 +32,7 @@ const serviceMinWidthWhenSmall = (containerWidth: number) => {
 const ServiceIcon = (props: IconProps) => {
   const smallWidth = serviceMinWidthWhenSmall(Styles.dimensionWidth)
   const bigWidth = Math.max(smallWidth, 92)
-  const color = props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor
+  const color = props.isActive ? serviceIdToAccentColor(props.service) : Styles.globalColors.black
   return (
     <Kb.ClickableBox onClick={props.onClick}>
       <Kb.Box2
@@ -148,7 +146,7 @@ export const ServiceTabBar = (props: Props) => {
               onScroll={onScroll}
               scrollEventThrottle={1000}
             >
-              {Constants.services.map(service => (
+              {props.services.map(service => (
                 <ServiceIcon
                   key={service}
                   service={service}

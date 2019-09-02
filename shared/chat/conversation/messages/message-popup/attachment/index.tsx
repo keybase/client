@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItems} from '../../../../../common-adapters/'
+import {FloatingMenu, MenuItems} from '../../../../../common-adapters'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
@@ -15,6 +15,7 @@ type Props = {
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
+  onPinMessage?: () => void
   onReply: () => void
   onSaveAttachment?: () => void
   onShareAttachment?: () => void
@@ -54,6 +55,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
   ]
 
   const header = {

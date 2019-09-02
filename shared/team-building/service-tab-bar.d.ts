@@ -1,16 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLabel,
-  inactiveServiceAccentColor,
-} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLabel} from './shared'
 import * as Constants from '../constants/team-building'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
+  services: Array<ServiceIdWithContact>
   selectedService: ServiceIdWithContact
   onChangeService: (newService: ServiceIdWithContact) => void
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}

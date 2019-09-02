@@ -19,6 +19,15 @@ const allServices: Array<Types.ServiceIdWithContact> = [
 // We don't search pgp explicitly, and contact isn't implemented yet
 const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
+const servicesWithoutPhone: Array<Types.ServiceIdWithContact> = services.filter(s => s !== 'phone')
+
+function servicesForNamespace(namespace: Types.AllowedNamespace): Array<Types.ServiceIdWithContact> {
+  if (namespace === 'teams') {
+    return servicesWithoutPhone
+  }
+  return services
+}
+
 function isKeybaseUserId(userId: string) {
   // Only keybase user id's do not have
   return userId.indexOf('@') < 0
@@ -90,7 +99,7 @@ const parseRawResultToUser = (
       label: result.contact.displayLabel,
       prettyName: result.contact.displayName,
       serviceId: 'contact' as const,
-      serviceMap: {...serviceMap, keybase: result.contact.username},
+      serviceMap: {...result.contact.serviceMap, keybase: result.contact.username},
       username: result.contact.component.email || result.contact.component.phoneNumber || '',
     }
   } else if (result.imptofu) {
@@ -169,6 +178,7 @@ export {
   makeSubState,
   allServices,
   services,
+  servicesForNamespace,
   parseRawResultToUser,
   selfToUser,
   contactToUser,

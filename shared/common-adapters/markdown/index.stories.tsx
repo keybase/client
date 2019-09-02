@@ -3,8 +3,6 @@ import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
 import HiddenString from '../../util/hidden-string'
 import * as Kb from '../index'
-import {escapePath} from '../../constants/fs'
-import {stringToPath} from '../../constants/types/fs'
 import Markdown, {MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
 
@@ -69,40 +67,12 @@ a = 1
    * c
   `,
   bigemoji: ':thumbsup::100:',
+  blockemoji: '> :wave: Hi all',
   boldweirdness: `How are you *today*?`,
   breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   debugging: `\` \` hi \` \``,
   inlineCodeWeirdness: `\` \` hi \` \``,
   inlineCodeWeirdness2: `\` \` hi \n\` \``,
-  kbfsPaths: `
-      /keybase ha
-      /keybase/哟
-      before/keybase
-      之前/keybase
-      /keybase/private /keybase
-      /keybase/public
-      /keybase/team
-      /keybase/private/
-      /keybase/team/keybase
-      /keybase/team/keybase/blahblah
-      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
-      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
-      /keybase/team/keybase/blahblah/
-      /keybase/private/songgao/🍻
-      /keybase/private/songgao/🍻/🍹.png/
-      /keybase/private/songgao/囧/yo
-      /keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file
-      /keybase/private/songgao,strib#jzila,jakob223/file
-      /keybase/private/songgao,strib#jzila/file
-      /keybase/private/song-gao,strib#jzila/file
-      /keybase/team/keybase,blah
-      /keybase/team/keybase.blah
-      /keybaseprivate
-      /keybaseprivate/team
-      /keybase/teamaa/keybase
-      /keybase/.kbfs_status
-      /foo
-      /keybase`,
   nonemoji: `:party-parrot:`,
   normal: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")
@@ -230,7 +200,7 @@ class ShowAST extends React.Component<
   }
 > {
   state = {visible: false}
-  render = () => {
+  render() {
     let parsed
     try {
       parsed = simpleMarkdownParser((this.props.text || '').trim() + '\n', {
@@ -245,7 +215,7 @@ class ShowAST extends React.Component<
     return (
       <Kb.Box2 direction="vertical">
         <Kb.Button
-          onClick={() => this.setState({visible: !this.state.visible})}
+          onClick={() => this.setState(s => ({visible: !s.visible}))}
           label={`${this.state.visible ? 'Hide' : 'Show'} AST`}
         />
         {this.state.visible && (
@@ -282,11 +252,11 @@ class ShowPreview extends React.Component<
   }
 > {
   state = {visible: false}
-  render = () => {
+  render() {
     return (
       <Kb.Box2 direction="vertical">
         <Kb.Button
-          onClick={() => this.setState({visible: !this.state.visible})}
+          onClick={() => this.setState(s => ({visible: !s.visible}))}
           label={`${this.state.visible ? 'Hide' : 'Show'} Preview`}
         />
         {this.state.visible && (
@@ -302,12 +272,24 @@ class ShowPreview extends React.Component<
 // Adds the perf decorator and disables showing previews and ast
 const PERF_MODE = false
 
-const MarkdownWithAst = ({children, meta}: {children: any; meta?: MarkdownMeta | null}) =>
+const MarkdownWithAst = ({
+  children,
+  meta,
+  preview,
+}: {
+  children: any
+  meta?: MarkdownMeta | null
+  preview?: boolean
+}) =>
   PERF_MODE ? (
-    <Markdown meta={meta}>{children}</Markdown>
+    <Markdown meta={meta} preview={preview}>
+      {children}
+    </Markdown>
   ) : (
     <Kb.Box2 direction="vertical">
-      <Markdown meta={meta}>{children}</Markdown>
+      <Markdown meta={meta} preview={preview}>
+        {children}
+      </Markdown>
       <ShowAST text={children} meta={meta || null} />
       <ShowPreview text={children} meta={meta || null} />
     </Kb.Box2>
@@ -324,6 +306,9 @@ const load = () => {
 
   Object.keys(cases).forEach(k => {
     s = s.add(k, () => <MarkdownWithAst>{cases[k]}</MarkdownWithAst>)
+  })
+  Object.keys(cases).forEach(k => {
+    s = s.add(k + '-preview', () => <MarkdownWithAst preview={true}>{cases[k]}</MarkdownWithAst>)
   })
 
   Object.keys(mocksWithMeta).forEach(k => {

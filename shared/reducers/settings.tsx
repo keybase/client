@@ -141,9 +141,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.onUpdatePasswordError:
       return state.update('password', password => password.merge({error: action.payload.error}))
     case SettingsGen.onChangeNewEmail:
-      return state.update('email', email => email.merge({error: null, newEmail: action.payload.email}))
+      return state.update('email', email => email.merge({error: '', newEmail: action.payload.email}))
     case SettingsGen.onUpdateEmailError:
-      return state.update('email', email => email.merge({error: action.payload.error}))
+      return state.update('email', email => email.merge({error: action.payload.error.message}))
     case SettingsGen.feedbackSent:
       return state.update('feedback', feedback => feedback.set('error', action.payload.error))
     case SettingsGen.sendFeedback:
@@ -167,8 +167,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('password', password => password.merge({randomPW: action.payload.randomPW}))
     case SettingsGen.loadedCheckPassword:
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
-    case SettingsGen.onChangeUseNativeFrame:
-      return state.merge({useNativeFrame: action.payload.enabled})
     case SettingsGen.addedPhoneNumber:
       return state.update('phoneNumbers', pn =>
         pn.merge({
@@ -218,9 +216,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.addEmail: {
       const {email} = action.payload
       const emailError = isValidEmail(email)
-      return state.update('email', emailState =>
-        emailState.merge({addingEmail: email, error: emailError ? new Error(emailError) : null})
-      )
+      return state.update('email', emailState => emailState.merge({addingEmail: email, error: emailError}))
     }
     case SettingsGen.addedEmail: {
       if (action.payload.email !== state.email.addingEmail) {
@@ -231,7 +227,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         emailState.merge({
           addedEmail: action.payload.error ? null : action.payload.email,
           addingEmail: action.payload.error ? emailState.addingEmail : null,
-          error: action.payload.error || null,
+          error: action.payload.error || '',
         })
       )
     }
@@ -251,7 +247,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         })
     }
     case SettingsGen.clearAddingEmail: {
-      return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
+      return state.update('email', emailState => emailState.merge({addingEmail: null, error: ''}))
     }
     case SettingsGen.clearAddedEmail: {
       return state.update('email', emailState => emailState.merge({addedEmail: null}))

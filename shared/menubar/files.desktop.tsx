@@ -61,7 +61,7 @@ const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
       return (
         <ComposedComponent
           {...this.props}
-          onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})}
+          onShowAll={() => this.setState(s => ({isShowingAll: !s.isShowingAll}))}
           isShowingAll={this.state.isShowingAll}
         />
       )
@@ -160,7 +160,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonContainer: {
     marginTop: Styles.globalMargins.tiny,
   },
@@ -243,4 +243,4 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-})
+}))

@@ -8,7 +8,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {appendNewChatBuilder} from '../actions/typed-routes'
-import {SettingsSection} from './account/'
+import {SettingsSection} from './account'
 
 const enabledDescription = 'Your phone contacts are being synced on this device.'
 const disabledDescription = 'Import your phone contacts and start encrypted chats with your friends.'
@@ -121,13 +121,13 @@ const ManageContactsBanner = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     marginTop: Styles.globalMargins.tiny,
     minHeight: undefined,
     width: undefined,
   },
   positionRelative: {position: 'relative'},
-})
+}))
 
 export default ManageContacts

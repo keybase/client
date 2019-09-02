@@ -7,7 +7,7 @@ import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
-import * as TeamBuildingConstants from '../constants/team-building'
+import * as TeamBuildingConstants from './team-building'
 import {Service} from './types/search'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
@@ -193,6 +193,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   listFirst: false,
   manageMembers: false,
   manageSubteams: false,
+  pinMessage: false,
   renameChannel: false,
   renameTeam: false,
   setMemberShowcase: false,

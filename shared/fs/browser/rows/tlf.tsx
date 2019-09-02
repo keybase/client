@@ -5,7 +5,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
-import {useFsPathMetadata, TlfInfo, Filename} from '../../common'
+import {useFsPathMetadata, TlfInfoLine, Filename} from '../../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean
@@ -27,7 +27,7 @@ const Content = (props: TlfProps) => (
           path={props.path}
         />
       </Kb.Box2>
-      <TlfInfo path={props.path} mode="row" mixedMode={props.mixedMode} />
+      <TlfInfoLine path={props.path} mode="row" mixedMode={props.mixedMode} />
     </Kb.Box2>
   </Kb.BoxGrow>
 )

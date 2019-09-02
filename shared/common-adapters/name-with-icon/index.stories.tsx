@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Text from '../text'
-import NameWithIcon from '../name-with-icon'
+import NameWithIcon from '.'
 
 const commonProps = {
   colorFollowing: true,
@@ -23,7 +23,7 @@ const load = () => {
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
     .add('Vertical', () => (
-      <React.Fragment>
+      <>
         <NameWithIcon
           {...commonProps}
           icon="icon-computer-96"
@@ -66,10 +66,10 @@ const load = () => {
         />
         <NameWithIcon {...commonProps} username="both" metaOne="Chris Nojima" metaTwo="Admin" size="big" />
         <NameWithIcon {...commonProps} username="both" metaOne="Chris Nojima" metaTwo="Admin" size="huge" />
-      </React.Fragment>
+      </>
     ))
     .add('Horizontal', () => (
-      <React.Fragment>
+      <>
         <NameWithIcon
           {...commonProps}
           horizontal={true}
@@ -86,10 +86,10 @@ const load = () => {
           metaTwo="the best team"
           containerStyle={{padding: 4}}
         />
-      </React.Fragment>
+      </>
     ))
     .add('Subcomponents', () => (
-      <React.Fragment>
+      <>
         <NameWithIcon
           {...commonProps}
           teamname="keybasefriends"
@@ -101,7 +101,7 @@ const load = () => {
             </Text>
           }
         />
-      </React.Fragment>
+      </>
     ))
 }
 

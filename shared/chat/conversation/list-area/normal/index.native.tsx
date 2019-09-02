@@ -198,6 +198,7 @@ class ConversationList extends React.PureComponent<Props> {
             renderItem={this._renderItem}
             maintainVisibleContentPosition={this._maintainVisibleContentPosition}
             onViewableItemsChanged={this._onViewableItemsChanged}
+            keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)

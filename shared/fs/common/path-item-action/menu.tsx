@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
-import Header from './header-container'
+import Header from './header'
 
 type ActionOrInProgress = (() => void) | 'in-progress'
 
@@ -106,7 +106,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy path',
+          title: 'Copy universal path',
         },
       ]
     : []),
@@ -208,7 +208,7 @@ export default (props: Props) => {
       attachTo={props.floatingMenuProps.attachTo}
       visible={props.floatingMenuProps.visible}
       onHidden={props.floatingMenuProps.hideOnce}
-      position="bottom right"
+      position="left center"
       header={{
         title: 'unused',
         view: <Header path={props.path} />,

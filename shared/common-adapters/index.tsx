@@ -4,6 +4,7 @@ import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
 import {IconType} from './icon.constants'
 import {WebViewProps, WebViewInjections} from './web-view'
+
 export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
@@ -92,7 +93,6 @@ export {default as ScrollView} from './scroll-view'
 export {default as SectionList} from './section-list'
 export {default as StandardScreen} from './standard-screen'
 export {default as Switch} from './switch'
-export {default as TabBar} from './tab-bar'
 export {default as Tabs} from './tabs'
 export {default as Text} from './text'
 export {default as Toast} from './toast'
@@ -107,7 +107,7 @@ export {default as useMounted} from './use-mounted'
 export {default as HOCTimers} from './hoc-timers'
 export type PropsWithTimer<P> = PropsWithTimer<P>
 export type IconType = IconType
-export {Audio, Video} from './av'
+export {default as Video} from './video'
 export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
 export type WebViewInjections = WebViewInjections

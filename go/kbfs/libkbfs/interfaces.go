@@ -536,6 +536,9 @@ type KBFSOps interface {
 	// TeamAbandoned indicates that a team has been abandoned, and
 	// shouldn't be referred to by its previous name anymore.
 	TeamAbandoned(ctx context.Context, tid keybase1.TeamID)
+	// CheckMigrationPerms returns an error if this device cannot
+	// perform implicit team migration for the given TLF.
+	CheckMigrationPerms(ctx context.Context, id tlf.ID) (err error)
 	// MigrateToImplicitTeam migrates the given folder from a private-
 	// or public-keyed folder, to a team-keyed folder.  If it's
 	// already a private/public team-keyed folder, nil is returned.
@@ -561,8 +564,12 @@ type KBFSOps interface {
 	ForceStuckConflictForTesting(ctx context.Context, tlfID tlf.ID) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
-	// `handle` has the new TLF ID.
-	Reset(ctx context.Context, handle *tlfhandle.Handle) error
+	// `handle` has the new TLF ID.  If `*newTlfID` is non-nil, that
+	// will be the new TLF ID of the reset TLF, if it already points
+	// to a MD object that matches the same handle as the original TLF
+	// (see HOTPOT-685 for an example of how this can happen -- it
+	// should be very rare).
+	Reset(ctx context.Context, handle *tlfhandle.Handle, newTlfID *tlf.ID) error
 
 	// GetSyncConfig returns the sync state configuration for the
 	// given TLF.

@@ -39,13 +39,12 @@ import standardScreen from './standard-screen.stories'
 import switchStories from './switch.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
-import av from './av.stories'
+import video from './video.stories'
 
 const load = () => {
   ;[
     avatarLine,
     animated,
-    av,
     avatar,
     backButton,
     badge,
@@ -85,6 +84,7 @@ const load = () => {
     switchStories,
     text,
     tooltip,
+    video,
   ].forEach(load => load())
 }
 

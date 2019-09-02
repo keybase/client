@@ -185,7 +185,7 @@ const AccountSettings = (props: Props) => (
   </Kb.Reloadable>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     minHeight: undefined,
     width: undefined,
@@ -221,6 +221,6 @@ const styles = Styles.styleSheetCreate({
   topButton: {
     marginTop: Styles.globalMargins.xtiny,
   },
-})
+}))
 
 export default Kb.HeaderHoc(AccountSettings)

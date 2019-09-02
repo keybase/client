@@ -15,7 +15,7 @@ const load = () => {
   storiesOf('Profile/Block', module)
     .add('Block', () => <Block {...props} />)
     .add('Waiting', () => <Block {...props} isWaiting={true} />)
-    .add('Error', () => <Block {...props} errorMessage={'There was an error blocking chris.'} />)
+    .add('Error', () => <Block {...props} errorMessage="There was an error blocking chris." />)
 }
 
 export default load
