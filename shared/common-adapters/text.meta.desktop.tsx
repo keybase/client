@@ -47,7 +47,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
 
   const _blueLink = {
     negative: Styles.globalColors.white,
-    positive: Styles.globalColors.blue,
+    positive: Styles.globalColors.blueDark,
   }
   return {
     Body: {
@@ -132,7 +132,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: Styles.globalStyles.fontBold,
     },
     BodySmallError: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.red},
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.redDark},
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontRegular,
     },
@@ -159,7 +159,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       },
     },
     BodySmallPrimaryLink: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blue},
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDark},
       fontSize: 13,
       isLink: true,
       styleOverride: Styles.globalStyles.fontRegular,
@@ -181,7 +181,7 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: {...Styles.globalStyles.fontSemibold, fontStyle: 'italic'},
     },
     BodySmallSemiboldPrimaryLink: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blue},
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.blueDark},
       fontSize: 13,
       isLink: true,
       styleOverride: Styles.globalStyles.fontSemibold,
@@ -193,12 +193,12 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       styleOverride: {...Styles.globalStyles.fontSemibold, textDecoration: undefined},
     },
     BodySmallSuccess: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.green},
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.greenDark},
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontRegular,
     },
     BodySmallWallet: {
-      colorForBackground: {...whiteNegative, positive: Styles.globalColors.purple},
+      colorForBackground: {...whiteNegative, positive: Styles.globalColors.purpleDark},
       fontSize: 13,
       styleOverride: Styles.globalStyles.fontRegular,
     },
