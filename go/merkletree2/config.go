@@ -1,5 +1,15 @@
 package merkletree2
 
+// ValueConstructor is an interface for constructing values, so that typed
+// values can be pulled out of the Merkle Tree. All Values must have the same
+// type, howerver multiple types can be encoded by having this type implement
+// the codec.Selfer interface.
+type ValueConstructor interface {
+	// Construct a new template empty value for the leaf, so that the
+	// Unmarshalling routine has the correct type template.
+	Construct() interface{}
+}
+
 // Config defines the shape of the MerkleTree.
 type Config struct {
 	// An encoder is used to compute hashes in this configuration, and also
@@ -30,6 +40,10 @@ type Config struct {
 	// simplicity, we enforce that all the keys have the same length and that
 	// bitsPerIndex divides keyByteLength*8
 	keysByteLength int
+
+	// valueConstructor is an interface to construct empty values to be used for
+	// deserialization.
+	valueConstructor ValueConstructor
 }
 
 // NewConfig makes a new config object. It takes a a Hasher, logChildrenPerNode
@@ -46,7 +60,7 @@ func NewConfig(h Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, 
 	if logChildrenPerNode > 63 {
 		return Config{}, NewInvalidConfigError("This package does not support more than 2^63 children per internal node")
 	}
-	return Config{encoder: h, useBlindedValueHashes: useBlindedValueHashes, childrenPerNode: childrenPerNode, maxValuesPerLeaf: maxValuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength}, nil
+	return Config{encoder: h, useBlindedValueHashes: useBlindedValueHashes, childrenPerNode: childrenPerNode, maxValuesPerLeaf: maxValuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, valueConstructor: nil}, nil
 }
 
 // MasterSecret is a secret used to hide wether a leaf value has changed between
