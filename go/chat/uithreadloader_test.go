@@ -47,6 +47,14 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 
 	err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
 		chat1.BulkAddToConvArg{
+			Usernames: []string{"foo", "bar", "baz"},
+			ConvID:    conv.Id,
+		})
+	require.NoError(t, err)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+
+	err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,
+		chat1.BulkAddToConvArg{
 			Usernames: []string{users[3].Username},
 			ConvID:    conv.Id,
 		})
@@ -88,7 +96,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
 	_, err = tc.Context().ConvSource.GetMessages(ctx, convFull.Conv, uid,
-		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, nil)
+		[]chat1.MessageID{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, nil)
 	require.NoError(t, err)
 
 	clock := clockwork.NewFakeClock()
