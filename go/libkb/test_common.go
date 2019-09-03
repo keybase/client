@@ -259,7 +259,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 	g.secretStore = NewSecretStoreLocked(m)
 	g.secretStoreMu.Unlock()
 
-	err = g.ConfigureLogging()
+	err = g.ConfigureLogging(ServiceUsage)
 	if err != nil {
 		return TestContext{}, err
 	}
