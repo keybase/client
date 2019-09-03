@@ -76,6 +76,8 @@ const errorCatching = () => next => action => {
     if (lastError.message === error.message) {
       return
     }
+    // eslint-disable-next-line
+    debugger
     lastError = error
     logger.warn(`Caught a middleware exception`)
     logger.debug(`Caught a middleware exception`, error)
