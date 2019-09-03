@@ -142,7 +142,11 @@ const Tracker = (props: Props) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
-      <Kb.ScrollView style={styles.scrollView} hideVerticalScroll={true}>
+      <Kb.ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
@@ -263,6 +267,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   scrollView: {
     ...Styles.globalStyles.fillAbsolute,
+    overflowX: 'hidden',
+    overflowY: 'auto',
     paddingBottom: Styles.globalMargins.small,
   },
   spaceUnderButtons: {
