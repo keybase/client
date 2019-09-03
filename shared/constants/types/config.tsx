@@ -24,6 +24,16 @@ export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
+export type WindowState = {
+  dockHidden: boolean
+  height: number
+  isFullScreen: boolean
+  width: number
+  windowHidden: boolean
+  x: number
+  y: number
+}
+
 export type _State = {
   appFocused: boolean
   appFocusedCount: number
@@ -69,8 +79,10 @@ export type _State = {
   startupTab: Tab | null
   startupSharePath: LocalPath | null
   systemDarkMode: boolean
+  windowState: WindowState
   uid: string
   userActive: boolean
   username: string
+  useNativeFrame: boolean
 }
 export type State = I.RecordOf<_State>

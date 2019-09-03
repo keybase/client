@@ -17,5 +17,4 @@ export type Props = {
   scrollListDownCounter: number
   scrollListToBottomCounter: number
   scrollListUpCounter: number
-  showThreadSearch: boolean
 }

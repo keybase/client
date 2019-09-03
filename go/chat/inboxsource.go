@@ -469,6 +469,10 @@ func (s *RemoteInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID c
 	return nil
 }
 
+func (s *RemoteInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+
+}
+
 type HybridInboxSource struct {
 	sync.Mutex
 	globals.Contextified
@@ -663,6 +667,18 @@ func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID c
 		return err
 	}
 	return nil
+}
+
+func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
+	if err := s.createInbox().IncrementLocalConvVersion(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "NotifyUpdate: unable to IncrementLocalConvVersion, err", err)
+	}
+	s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+		{
+			ConvID:     convID,
+			UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+		},
+	})
 }
 
 func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,

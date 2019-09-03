@@ -386,6 +386,20 @@ export type _MessageSetDescription = {
 } & _MessageCommon
 export type MessageSetDescription = I.RecordOf<_MessageSetDescription>
 
+export type _MessagePin = {
+  bodySummary: HiddenString
+  conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
+  reactions: Reactions
+  timestamp: number
+  type: 'pin'
+} & _MessageCommon
+export type MessagePin = I.RecordOf<_MessagePin>
+
 export type _MessageSetChannelname = {
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
@@ -440,6 +454,7 @@ export type MessageWithReactionPopup =
   | MessageText
   | MessageSetChannelname
   | MessageSetDescription
+  | MessagePin
   | MessageSystemAddedToTeam
   | MessageSystemChangeRetention
   | MessageSystemGitPush
@@ -474,6 +489,7 @@ export type Message =
   | MessageSystemUsersAddedToConversation
   | MessageText
   | MessagePlaceholder
+  | MessagePin
 export type MessageType =
   | 'attachment'
   | 'deleted'
@@ -492,3 +508,4 @@ export type MessageType =
   | 'systemUsersAddedToConversation'
   | 'text'
   | 'placeholder'
+  | 'pin'

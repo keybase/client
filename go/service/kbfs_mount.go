@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -52,4 +53,8 @@ func (h *KBFSMountHandler) SetCurrentMountDir(_ context.Context, drive string) (
 		return err
 	}
 	return libkb.ChangeMountIcon(oldMount, drive)
+}
+
+func (h *KBFSMountHandler) GetKBFSPathInfo(ctx context.Context, standardPath string) (pathInfo keybase1.KBFSPathInfo, err error) {
+	return libkb.GetKBFSPathInfo(standardPath)
 }

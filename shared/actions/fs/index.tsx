@@ -712,12 +712,11 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
 const letResetUserBackIn = (_: TypedState, {payload: {id, username}}) =>
   RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username}).then(() => {})
 
-const updateFsBadge = (state: TypedState) =>
-  NotificationsGen.createSetBadgeCounts({
-    counts: I.Map({
-      [Tabs.fsTab]: Constants.computeBadgeNumberForAll(state.fs.tlfs),
-    }) as I.Map<Tabs.Tab, number>,
-  })
+const updateFsBadge = (state: TypedState) => {
+  const counts = new Map<Tabs.Tab, number>()
+  counts.set(Tabs.fsTab, Constants.computeBadgeNumberForAll(state.fs.tlfs))
+  return NotificationsGen.createSetBadgeCounts({counts})
+}
 
 const deleteFile = (_: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
@@ -1075,6 +1074,18 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
 
 const getOnlineStatus = () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
+const loadPathInfo = (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
+  RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({standardPath: Types.pathToString(action.payload.path)}).then(
+    pathInfo =>
+      FsGen.createLoadedPathInfo({
+        path: action.payload.path,
+        pathInfo: Constants.makePathInfo({
+          deeplinkPath: pathInfo.deeplinkPath,
+          platformAfterMountPath: pathInfo.platformAfterMountPath,
+        }),
+      })
+  )
+
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
@@ -1124,6 +1135,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
     yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
   }
+  yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
 
   yield* Saga.chainAction2(FsGen.subscribePath, subscribePath)
   yield* Saga.chainAction2(FsGen.subscribeNonPath, subscribeNonPath)

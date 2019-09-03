@@ -7,6 +7,7 @@ import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import {Props} from './index.types'
 import ThreadLoadStatus from '../load-status/container'
+import PinnedMessage from '../pinned-message/container'
 
 const Offline = () => (
   <Box
@@ -43,6 +44,7 @@ class Conversation extends React.PureComponent<Props> {
             onFocusInput={this.props.onFocusInput}
             conversationIDKey={this.props.conversationIDKey}
           />
+          <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
           <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
           {this.props.showLoader && <LoadingLine />}
         </Box2>

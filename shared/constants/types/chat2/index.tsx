@@ -115,6 +115,12 @@ export type UserReacjis = {
   skinTone: number
 }
 
+export type Coordinate = {
+  accuracy: number
+  lat: number
+  lon: number
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -167,6 +173,7 @@ export type _State = {
   createConversationError: string | null
   threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
+  lastCoord: Coordinate | null
 }
 
 export type State = I.RecordOf<_State>
@@ -209,6 +216,7 @@ export type MessageRequestPayment = Message.MessageRequestPayment
 export type MessageSendPayment = Message.MessageSendPayment
 export type MessageSetChannelname = Message.MessageSetChannelname
 export type MessageSetDescription = Message.MessageSetDescription
+export type MessagePin = Message.MessagePin
 export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
 export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
 export type MessageSystemGitPush = Message.MessageSystemGitPush

@@ -155,6 +155,7 @@ const ErrorBanner = (props: {error: string}) => (
 )
 
 const textType = Styles.isMobile ? 'BodyBig' : 'Header'
+const otherTextType = Styles.isMobile ? 'Body' : 'Header'
 
 const SwitchTab = (
   props: {
@@ -277,24 +278,39 @@ const Instructions = (p: Props) => (
       </>
     ) : (
       <>
-        <Kb.Text center={true} type={textType} style={styles.instructions}>
-          On{' '}
+        <Kb.Text
+          center={true}
+          type={textType}
+          style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
+        >
+          In the Keybase app on{' '}
           <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
             {p.otherDeviceName}
-          </Kb.Text>
-          , go to
+          </Kb.Text>{' '}
+          navigate to:
         </Kb.Text>
         <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-          <Kb.Text center={true} type={textType} style={styles.instructions}>
+          {p.currentDeviceType === 'mobile' && (
+            <>
+              <Kb.Icon
+                type="iconfont-nav-2-hamburger"
+                color={Styles.globalColors.white}
+                sizeType={Styles.isMobile ? 'Default' : 'Big'}
+                style={styles.hamburger}
+              />
+              <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+            </>
+          )}
+          <Kb.Text center={true} type={otherTextType} style={styles.instructions}>
             Devices
           </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
-          <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add device
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+          <Kb.Text center={true} type={otherTextType} style={styles.instructions}>
+            Add a device
           </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Small" />
-          <Kb.Text center={true} type={textType} style={styles.instructions}>
-            New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
+          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+          <Kb.Text center={true} type={otherTextType} style={styles.instructions}>
+            Add {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}
           </Kb.Text>
         </Kb.Box2>
       </>
@@ -388,6 +404,13 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   errorText: {color: Styles.globalColors.white},
+  hamburger: Styles.platformStyles({
+    isMobile: {
+      bottom: 1,
+      position: 'relative',
+      right: 1,
+    },
+  }),
   imageContainerOnLeft: {
     ...Styles.globalStyles.fillAbsolute,
     ...Styles.globalStyles.flexBoxColumn,
@@ -409,6 +432,9 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.italic,
     color: Styles.globalColors.white,
   },
+  instructionsUpper: {
+    marginBottom: Styles.globalMargins.tiny,
+  },
   qrContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -420,15 +446,15 @@ const styles = Styles.styleSheetCreate({
       width: 220,
     },
     isMobile: {
-      width: 200,
+      width: 160,
     },
   }),
   qrContainerFlip: {
     flexDirection: 'column-reverse',
   },
   qrImageContainer: {
-    paddingBottom: 30,
-    paddingTop: 30,
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   qrOnlyContainer: {
     backgroundColor: Styles.globalColors.white,

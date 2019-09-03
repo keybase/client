@@ -57,16 +57,7 @@ class NewRepo extends React.Component<Props, State> {
     }
 
     return (
-      <Kb.Box
-        key={item}
-        style={{
-          ...Styles.globalStyles.flexBoxRow,
-          alignItems: 'center',
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-          width: '100%',
-        }}
-      >
+      <Kb.Box key={item} style={styles.avatarBox}>
         <Kb.Avatar isTeam={true} teamname={item} size={16} style={{marginRight: Styles.globalMargins.tiny}} />
         <Kb.Text
           type="Header"
@@ -113,16 +104,9 @@ class NewRepo extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ScrollView>
-        <Kb.Box style={_containerStyle}>
+        <Kb.Box style={styles.container}>
           {!!this.props.error && (
-            <Kb.Box
-              style={{
-                alignSelf: 'stretch',
-                backgroundColor: Styles.globalColors.red,
-                marginBottom: Styles.globalMargins.small,
-                padding: Styles.globalMargins.tiny,
-              }}
-            >
+            <Kb.Box style={styles.error}>
               <Kb.Text type="Body" negative={true}>
                 {this.props.error.message}
               </Kb.Text>
@@ -133,7 +117,7 @@ class NewRepo extends React.Component<Props, State> {
           </Kb.Text>
           <Kb.Icon
             type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-            style={_addIconStyle}
+            style={styles.addIcon}
           />
           <Kb.Text type="Body" style={{marginBottom: 27}}>
             {this.props.isTeam
@@ -186,16 +170,30 @@ class NewRepo extends React.Component<Props, State> {
   }
 }
 
-const _containerStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  height: '100%',
-  padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
-}
-
-const _addIconStyle = {
-  marginBottom: 27,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  addIcon: {
+    marginBottom: 27,
+  },
+  avatarBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    width: '100%',
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    height: '100%',
+    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
+  },
+  error: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.red,
+    marginBottom: Styles.globalMargins.small,
+    padding: Styles.globalMargins.tiny,
+  },
+}))
 
 export default Kb.HeaderOrPopup(NewRepo)

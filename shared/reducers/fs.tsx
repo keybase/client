@@ -4,6 +4,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/fs'
+import * as Switch from '../util/switch'
 
 const initialState = Constants.makeState()
 
@@ -598,6 +599,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         : state.update('settings', s => s.set('isLoading', false))
     case FsGen.loadSettings:
       return state.update('settings', s => s.set('isLoading', true))
+    case FsGen.loadedPathInfo:
+      return state.update('pathInfos', pathInfos =>
+        pathInfos.set(action.payload.path, action.payload.pathInfo)
+      )
 
     case FsGen.startManualConflictResolution:
     case FsGen.finishManualConflictResolution:
@@ -634,8 +639,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.unsubscribe:
     case FsGen.pollJournalStatus:
     case FsGen.refreshMountDirsAfter10s:
+    case FsGen.loadPathInfo:
+    case FsGen.getOnlineStatus:
+    case FsGen.setDebugLevel:
       return state
     default:
+      Switch.ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

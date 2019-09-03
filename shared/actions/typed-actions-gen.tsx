@@ -194,7 +194,11 @@ export type TypedActionsMap = {
   'chat2:setCommandStatusInfo': chat2.SetCommandStatusInfoPayload
   'chat2:clearCommandStatusInfo': chat2.ClearCommandStatusInfoPayload
   'chat2:setThreadLoadStatus': chat2.SetThreadLoadStatusPayload
+  'chat2:pinMessage': chat2.PinMessagePayload
+  'chat2:unpinMessage': chat2.UnpinMessagePayload
+  'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
+  'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -238,6 +242,8 @@ export type TypedActionsMap = {
   'config:setSystemDarkMode': config.SetSystemDarkModePayload
   'config:updateHTTPSrvInfo': config.UpdateHTTPSrvInfoPayload
   'config:remoteWindowWantsProps': config.RemoteWindowWantsPropsPayload
+  'config:updateWindowState': config.UpdateWindowStatePayload
+  'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
   'deeplinks:setKeybaseLinkError': deeplinks.SetKeybaseLinkErrorPayload
@@ -547,6 +553,8 @@ export type TypedActionsMap = {
   'fs:refreshMountDirsAfter10s': fs.RefreshMountDirsAfter10sPayload
   'fs:setDirectMountDir': fs.SetDirectMountDirPayload
   'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
+  'fs:loadPathInfo': fs.LoadPathInfoPayload
+  'fs:loadedPathInfo': fs.LoadedPathInfoPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -710,7 +718,6 @@ export type TypedActionsMap = {
   'settings:loadLockdownMode': settings.LoadLockdownModePayload
   'settings:loadedLockdownMode': settings.LoadedLockdownModePayload
   'settings:onChangeLockdownMode': settings.OnChangeLockdownModePayload
-  'settings:onChangeUseNativeFrame': settings.OnChangeUseNativeFramePayload
   'settings:notificationsRefresh': settings.NotificationsRefreshPayload
   'settings:notificationsRefreshed': settings.NotificationsRefreshedPayload
   'settings:notificationsSaved': settings.NotificationsSavedPayload

@@ -508,8 +508,6 @@ func (b *Boxer) headerUnsupported(ctx context.Context, headerVersion chat1.Heade
 func (b *Boxer) bodyUnsupported(ctx context.Context, bodyVersion chat1.BodyPlaintextVersion,
 	body chat1.BodyPlaintext) chat1.BodyPlaintextUnsupported {
 	switch bodyVersion {
-	case chat1.BodyPlaintextVersion_V2:
-		return body.V2()
 	case chat1.BodyPlaintextVersion_V3:
 		return body.V3()
 	case chat1.BodyPlaintextVersion_V4:
@@ -1023,6 +1021,8 @@ func (b *Boxer) unversionBody(ctx context.Context, bodyVersioned chat1.BodyPlain
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
 		return bodyVersioned.V1().MessageBody, nil
+	case chat1.BodyPlaintextVersion_V2:
+		return bodyVersioned.V2().MessageBody, nil
 	// NOTE: When adding new versions here, you must also update
 	// chat1/extras.go so MessageUnboxedError.ParseableVersion understands the
 	// new max version
@@ -1665,6 +1665,19 @@ func (b *Boxer) makeAllPairwiseMACs(ctx context.Context, headerSealed chat1.Sign
 	return pairwiseMACs, nil
 }
 
+func (b *Boxer) versionBody(ctx context.Context, messagePlaintext chat1.MessagePlaintext) chat1.BodyPlaintext {
+	switch messagePlaintext.ClientHeader.MessageType {
+	case chat1.MessageType_PIN:
+		return chat1.NewBodyPlaintextWithV2(chat1.BodyPlaintextV2{
+			MessageBody: messagePlaintext.MessageBody,
+		})
+	default:
+		return chat1.NewBodyPlaintextWithV1(chat1.BodyPlaintextV1{
+			MessageBody: messagePlaintext.MessageBody,
+		})
+	}
+}
+
 // V3 is just V2 but with exploding messages support. V4 is just V3, but it
 // signs with the zero key when pairwise MACs are included.
 func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.MessagePlaintext,
@@ -1693,9 +1706,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 		messagePlaintext.ClientHeader.EphemeralMetadata.Generation = ephemeralKey.Generation()
 	}
 
-	bodyVersioned := chat1.NewBodyPlaintextWithV1(chat1.BodyPlaintextV1{
-		MessageBody: messagePlaintext.MessageBody,
-	})
+	bodyVersioned := b.versionBody(ctx, messagePlaintext)
 	bodyEncrypted, err := b.seal(bodyVersioned, bodyEncryptionKey)
 	if err != nil {
 		return res, err

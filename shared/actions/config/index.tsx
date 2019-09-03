@@ -551,7 +551,10 @@ function* criticalOutOfDateCheck() {
     } catch (e) {
       logger.error("Can't call critical check", e)
     }
-    // TODO this is an issue on android
+    // We just need this once on mobile. Long timers don't work there.
+    if (isMobile) {
+      return
+    }
     yield Saga.delay(3600 * 1000) // 1 hr
   }
 }

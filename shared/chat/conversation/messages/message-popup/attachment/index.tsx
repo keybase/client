@@ -15,6 +15,7 @@ type Props = {
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
+  onPinMessage?: () => void
   onReply: () => void
   onSaveAttachment?: () => void
   onShareAttachment?: () => void
@@ -54,6 +55,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
     ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
   ]
 
   const header = {
@@ -65,6 +67,7 @@ const AttachmentPopupMenu = (props: Props) => {
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
         isLast={!items.length}
+        isLocation={false}
         timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />

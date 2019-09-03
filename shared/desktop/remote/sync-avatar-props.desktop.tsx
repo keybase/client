@@ -2,14 +2,12 @@
 // It listens for avatar related actions and bookkeeps them to send them back over the wire
 import * as I from 'immutable'
 import * as React from 'react'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Container from '../../util/container'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
   usernames: I.Set<string>
   setUsernames: (arg0: I.Set<string>) => void
-  remoteWindow: SafeElectron.BrowserWindowType | null
   windowComponent: string
   windowParam: string
 }
@@ -19,7 +17,6 @@ type Props = {
   following: I.Set<string>
   httpSrvAddress: string
   httpSrvToken: string
-  remoteWindow: SafeElectron.BrowserWindowType | null
   setUsernames: (arg0: I.Set<string>) => void
   usernames: I.Set<string>
   windowComponent: string
@@ -91,7 +88,6 @@ function SyncAvatarProps(ComposedComponent: any) {
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
-    remoteWindow: SafeElectron.BrowserWindowType | null
     windowComponent: string
     windowParam: string
   }

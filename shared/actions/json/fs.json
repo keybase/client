@@ -283,6 +283,8 @@
     "refreshMountDirsAfter10s": {},
     "setDirectMountDir": {"directMountDir": "string"},
     "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
+    "loadPathInfo": {"path": "Types.Path"},
+    "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "setDebugLevel": {
       "level": "string"
     }

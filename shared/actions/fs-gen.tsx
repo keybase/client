@@ -40,9 +40,11 @@ export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
+export const loadedPathInfo = 'fs:loadedPathInfo'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
@@ -165,9 +167,11 @@ type _JournalUpdatePayload = {
 type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
+type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
 type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
@@ -356,6 +360,10 @@ export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload): L
   payload,
   type: letResetUserBackIn,
 })
+export const createLoadPathInfo = (payload: _LoadPathInfoPayload): LoadPathInfoPayload => ({
+  payload,
+  type: loadPathInfo,
+})
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload): LoadPathMetadataPayload => ({
   payload,
   type: loadPathMetadata,
@@ -367,6 +375,10 @@ export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsP
 export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): LoadTlfSyncConfigPayload => ({
   payload,
   type: loadTlfSyncConfig,
+})
+export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
+  payload,
+  type: loadedPathInfo,
 })
 export const createLocalHTTPServerInfo = (
   payload: _LocalHTTPServerInfoPayload
@@ -680,6 +692,7 @@ export type LetResetUserBackInPayload = {
   readonly payload: _LetResetUserBackInPayload
   readonly type: typeof letResetUserBackIn
 }
+export type LoadPathInfoPayload = {readonly payload: _LoadPathInfoPayload; readonly type: typeof loadPathInfo}
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
   readonly type: typeof loadPathMetadata
@@ -688,6 +701,10 @@ export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; reado
 export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
+}
+export type LoadedPathInfoPayload = {
+  readonly payload: _LoadedPathInfoPayload
+  readonly type: typeof loadedPathInfo
 }
 export type LocalHTTPServerInfoPayload = {
   readonly payload: _LocalHTTPServerInfoPayload
@@ -949,9 +966,11 @@ export type Actions =
   | KbfsDaemonOnlineStatusChangedPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
+  | LoadPathInfoPayload
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
+  | LoadedPathInfoPayload
   | LocalHTTPServerInfoPayload
   | MovePayload
   | NewFolderNamePayload

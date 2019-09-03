@@ -241,7 +241,7 @@ const AlreadyAddedIconButton = () => (
 
 const ActionButtonSize = Styles.isMobile ? 40 : 32
 export const userResultHeight = 50
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
@@ -317,6 +317,6 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     marginLeft: Styles.globalMargins.small,
   },
-})
+}))
 
 export default Row

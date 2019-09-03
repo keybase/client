@@ -51,9 +51,11 @@ export {default as Image, RequireImage} from './image'
 export {default as InfoNote} from './info-note'
 export {default as Input} from './input'
 export {default as KeyboardAvoidingView} from './keyboard-avoiding-view'
+export {default as LabeledInput} from './labeled-input'
 export {default as List} from './list'
 export {default as List2} from './list2'
 export {default as LoadingLine} from './loading-line'
+export {default as LocationMap} from './location-map'
 export {default as ListItem} from './list-item'
 export {
   default as ListItem2,
@@ -93,7 +95,6 @@ export {default as ScrollView} from './scroll-view'
 export {default as SectionList} from './section-list'
 export {default as StandardScreen} from './standard-screen'
 export {default as Switch} from './switch'
-export {default as TabBar} from './tab-bar'
 export {default as Tabs} from './tabs'
 export {default as Text} from './text'
 export {default as Toast} from './toast'
@@ -108,6 +109,7 @@ export {default as useMounted} from './use-mounted'
 export {default as HOCTimers} from './hoc-timers'
 export type PropsWithTimer<P> = PropsWithTimer<P>
 export type IconType = IconType
+export {isValidIconType} from './icon.shared'
 export {default as Video} from './video'
 export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps
