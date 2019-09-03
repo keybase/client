@@ -75,7 +75,7 @@ export const mapStateHelper = (
   }
 ): StateProps => ({
   _memberInfo: Constants.getTeamMembers(state, ownProps.teamname),
-  _you: state.config.username ,
+  _you: state.config.username,
   _yourOperations: Constants.getCanPerform(state, ownProps.teamname),
 })
 
