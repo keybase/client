@@ -10,8 +10,6 @@ const Kb = {
   Box,
 }
 
-const defaultAvatarSize = 96
-
 const UserCard = ({
   avatarBackgroundStyle,
   avatarSize,
@@ -22,10 +20,6 @@ const UserCard = ({
   children,
   lighterPlaceholders,
 }: Props) => {
-  if (!avatarSize) {
-    avatarSize = defaultAvatarSize
-  }
-
   return (
     <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Box style={styles.avatar}>
@@ -49,6 +43,10 @@ const UserCard = ({
       <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
     </Kb.Box>
   )
+}
+
+UserCard.defaultProps = {
+  avatarSize: 96,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

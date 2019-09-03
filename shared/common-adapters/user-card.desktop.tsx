@@ -8,8 +8,6 @@ const Kb = {
   Avatar,
 }
 
-const defaultAvatarSize = 128
-
 const UserCard = ({
   avatarSize,
   outerStyle,
@@ -19,12 +17,10 @@ const UserCard = ({
   children,
   lighterPlaceholders,
 }: Props) => {
-  const computedAvatarSize = avatarSize || defaultAvatarSize
-
   return (
     <div style={Styles.collapseStyles([styles.container, outerStyle])}>
       <Kb.Avatar
-        size={computedAvatarSize}
+        size={avatarSize}
         onClick={onAvatarClicked}
         username={username}
         lighterPlaceholders={lighterPlaceholders}
@@ -33,8 +29,8 @@ const UserCard = ({
         style={Styles.collapseStyles([
           styles.inside,
           {
-            marginTop: -computedAvatarSize / 2,
-            paddingTop: 30 + computedAvatarSize / 2,
+            marginTop: -avatarSize / 2,
+            paddingTop: 30 + avatarSize / 2,
           },
           style,
         ])}
@@ -43,6 +39,10 @@ const UserCard = ({
       </div>
     </div>
   )
+}
+
+UserCard.defaultProps = {
+  avatarSize: 128,
 }
 
 const styles = Styles.styleSheetCreate(() => ({
