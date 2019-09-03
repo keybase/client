@@ -28,10 +28,14 @@ const prettierCheck = () => {
     execSync(`yarn prettier-bare --list-different ${getFilesToTest().join(' ')}`, {
       encoding: 'utf8',
       env: process.env,
-      stdio: ['pipe', process.stdout, process.stderr],
+      stdio: [],
     })
   } catch (e) {
-      throw new Error('Prettier found errors with the above files ^')
+    const lines = e.stdout.split('\n')
+    const [, ...toPrint] = lines
+    toPrint.pop()
+    toPrint.pop()
+    throw new Error('Prettier found errors with the following files: \n' + toPrint.join('\n'))
   }
 }
 
