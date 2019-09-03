@@ -389,6 +389,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
+            keyExtractor={(item: SearchResult | ImportContactsEntry) => {
+              // @ts-ignore
+              return item.isImportButton ? 'Import Contacts' : item.userId
+            }}
             getItemLayout={this._getRecLayout}
             renderItem={({index, item: result, section}) =>
               result.isImportButton ? (
