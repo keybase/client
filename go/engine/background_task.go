@@ -146,7 +146,7 @@ func (e *BackgroundTask) loop(mctx libkb.MetaContext) error {
 		appState := mctx.G().MobileAppState.State()
 		if appState == keybase1.MobileAppState_FOREGROUND {
 			mctx.Debug("Since starting on mobile and foregrounded, waiting an additional %v", e.args.Settings.MobileForegroundStartAddition)
-			wakeAt = wakeAt.Add(time.Duration(e.args.Settings.MobileForegroundStartAddition))
+			wakeAt = wakeAt.Add(e.args.Settings.MobileForegroundStartAddition)
 		}
 	}
 	e.meta("loop-start")
