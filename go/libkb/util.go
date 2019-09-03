@@ -1075,7 +1075,7 @@ func getKBFSAfterMountPath(afterKeybase string, backslash bool) string {
 		afterMount = "/"
 	}
 	if backslash {
-		return strings.ReplaceAll(afterMount, "/", `\`)
+		return strings.Replace(afterMount, "/", `\`, -1)
 	}
 	return afterMount
 }
