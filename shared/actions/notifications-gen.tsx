@@ -1,5 +1,5 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-import * as I from 'immutable'
+
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/notifications'
 import * as Tabs from '../constants/tabs'
@@ -18,7 +18,7 @@ type _BadgeAppPayload = {readonly key: Types.NotificationKeys; readonly on: bool
 type _ListenForKBFSNotificationsPayload = void
 type _ListenForNotificationsPayload = void
 type _ReceivedBadgeStatePayload = {readonly badgeState: RPCTypes.BadgeState}
-type _SetBadgeCountsPayload = {readonly counts: I.Map<Tabs.Tab, number>}
+type _SetBadgeCountsPayload = {readonly counts: Map<Tabs.Tab, number>}
 
 // Action Creators
 export const createBadgeApp = (payload: _BadgeAppPayload): BadgeAppPayload => ({payload, type: badgeApp})

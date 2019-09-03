@@ -33,6 +33,8 @@ const EmailInput = ({namespace}: EmailInputProps) => {
 
   const onChange = React.useCallback(
     text => {
+      // Remove leading or trailing whitespace
+      text = text.trim()
       setEmailString(text)
       const isNewInputValid = validateEmailAddress(text)
       if (isNewInputValid !== isEmailValid) {

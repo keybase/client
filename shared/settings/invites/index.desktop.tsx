@@ -133,7 +133,7 @@ function PendingInviteItem({
   onSelectPendingInvite: (invite: Types.PendingInvite) => void
 }) {
   return (
-    <Kb.Box style={styleInviteItem}>
+    <Kb.Box style={styles.inviteItem}>
       {invite.email ? (
         <PendingEmailContent invite={invite} onSelectPendingInvite={onSelectPendingInvite} />
       ) : (
@@ -198,7 +198,10 @@ function AcceptedInviteItem({
   onClick: (username: string) => void
 }) {
   return (
-    <Kb.Box style={{...styleInviteItem, ...Styles.desktopStyles.clickable, flexShrink: 0}} onClick={onClick}>
+    <Kb.Box
+      style={{...styles.inviteItem, ...Styles.desktopStyles.clickable, flexShrink: 0}}
+      onClick={onClick}
+    >
       <Kb.Avatar username={invite.username} size={32} />
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small}}>
         <Kb.ConnectedUsernames type="BodySemibold" usernames={[invite.username]} />
@@ -207,13 +210,15 @@ function AcceptedInviteItem({
   )
 }
 
-const styleInviteItem = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flexShrink: 0,
-  height: 40,
-  marginLeft: Styles.globalMargins.tiny,
-  marginRight: Styles.globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  inviteItem: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexShrink: 0,
+    height: 40,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
+}))
 
 export default Invites

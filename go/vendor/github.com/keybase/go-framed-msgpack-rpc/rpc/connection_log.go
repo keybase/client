@@ -44,7 +44,7 @@ type connectionLogUnstructured struct {
 func newConnectionLogUnstructured(
 	logOutput LogOutputWithDepthAdder, prefix string) *connectionLogUnstructured {
 	randBytes := make([]byte, 4)
-	rand.Read(randBytes)
+	_, _ = rand.Read(randBytes)
 	return &connectionLogUnstructured{
 		LogOutput: logOutput.CloneWithAddedDepth(1),
 		logPrefix: strings.Join(

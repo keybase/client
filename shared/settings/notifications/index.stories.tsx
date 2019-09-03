@@ -1,6 +1,6 @@
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import Notifications from '.'
-import {action, storiesOf} from '../../stories/storybook'
 
 const props = {
   allowEdit: true,
@@ -42,11 +42,11 @@ const props = {
     },
   },
   mobileHasPermissions: true,
-  onClickYourAccount: action('yourAccount'),
-  onRefresh: action('onRefresh'),
-  onSave: action('onSave'),
-  onToggle: action('onToggle'),
-  onToggleUnsubscribeAll: action('onToggleUnsubscribeAll'),
+  onClickYourAccount: Sb.action('yourAccount'),
+  onRefresh: Sb.action('onRefresh'),
+  onSave: Sb.action('onSave'),
+  onToggle: Sb.action('onToggle'),
+  onToggleUnsubscribeAll: Sb.action('onToggleUnsubscribeAll'),
   showEmailSection: true,
   waitingForResponse: false,
 }
@@ -55,7 +55,7 @@ const unsubProps = {...props}
 unsubProps.groups.email.unsubscribedFromAll = true
 
 const load = () => {
-  storiesOf('Settings/Notifications', module)
+  Sb.storiesOf('Settings/Notifications', module)
     .add('Normal', () => <Notifications {...props} />)
     // TODO this doesn't seem to work
     .add('Unsuball', () => <Notifications {...unsubProps} />)

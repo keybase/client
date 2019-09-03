@@ -15,7 +15,7 @@ const SettingsNav = (props: Props) => {
         text="Your account"
         selected={props.selectedTab === Constants.accountTab}
         onClick={() => props.onTabChange(Constants.accountTab)}
-        badgeNumber={props.badgeNumbers[Tabs.settingsTab]}
+        badgeNumber={props.badgeNumbers.get(Tabs.settingsTab)}
       />
       <SettingsItem
         text="Chat"

@@ -1054,14 +1054,8 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 		if err != nil {
 			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
 		}
-		// If we have a versioning error but our client now understands the new
-		// version, don't return the error message
-		if msg != nil && msg.IsError() && msg.Error().ParseableVersion() {
-			msg = nil
-		}
 		res = append(res, msg)
 	}
-
 	return res, nil
 }
 

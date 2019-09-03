@@ -356,6 +356,12 @@ const makeMessageSetDescription = I.Record<MessageTypes._MessageSetDescription>(
   type: 'setDescription',
 })
 
+const makeMessagePin = I.Record<MessageTypes._MessagePin>({
+  ...makeMessageCommonNoDeleteNoEdit,
+  reactions: I.Map(),
+  type: 'pin',
+})
+
 const makeMessageSetChannelname = I.Record<MessageTypes._MessageSetChannelname>({
   ...makeMessageCommonNoDeleteNoEdit,
   newChannelname: '',
@@ -859,6 +865,11 @@ const validUIMessagetoMessage = (
             reactions,
           })
         : null
+    case RPCChatTypes.MessageType.pin:
+      return makeMessagePin({
+        ...common,
+        reactions,
+      })
     case RPCChatTypes.MessageType.metadata:
       return m.messageBody.metadata
         ? makeMessageSetChannelname({
@@ -1236,6 +1247,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'requestPayment':
     case 'setChannelname':
     case 'setDescription':
+    case 'pin':
     case 'systemAddedToTeam':
     case 'systemChangeRetention':
     case 'systemGitPush':

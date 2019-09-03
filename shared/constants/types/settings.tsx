@@ -137,51 +137,11 @@ export type _State = {
   password: PasswordState
   phoneNumbers: PhoneNumbersState
   lockdownModeEnabled: boolean | null
-  useNativeFrame: boolean
   chat: ChatState
   checkPasswordIsCorrect: boolean | null
   proxyData: RPCTypes.ProxyData | null
   didToggleCertificatePinning: boolean | null
 }
 export type State = I.RecordOf<_State>
-
-type AboutTab = 'settingsTabs.aboutTab'
-type AdvancedTab = 'settingsTabs.advancedTab'
-type ChatTab = 'settingsTabs.chatTab'
-type DeleteMeTab = 'settingsTabs.deleteMeTab'
-type DevicesTab = 'settingsTabs.devicesTab'
-type FeedbackTab = 'settingsTabs.feedbackTab'
-type FoldersTab = 'settingsTabs.foldersTab'
-type FsTab = 'settingsTabs.fsTab'
-type GitTab = 'settingsTabs.gitTab'
-type InvitationsTab = 'settingsTabs.invitationsTab'
-type AccountTab = 'settingsTabs.accountTab'
-type NotificationsTab = 'settingsTabs.notificationsTab'
-type PasswordTab = 'settingsTabs.password'
-type ScreenprotectorTab = 'settingsTabs.screenprotector'
-type LogOutTab = 'settingsTabs.logOutTab'
-type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
-type WalletsTab = 'settingsTabs.walletsTab'
-type ContactsTab = 'settingsTabs.contactsTab'
-
-export type Tab =
-  | AccountTab
-  | UpdatePaymentTab
-  | InvitationsTab
-  | NotificationsTab
-  | AdvancedTab
-  | DeleteMeTab
-  | FeedbackTab
-  | AboutTab
-  | DevicesTab
-  | GitTab
-  | FoldersTab
-  | FsTab
-  | LogOutTab
-  | ScreenprotectorTab
-  | PasswordTab
-  | WalletsTab
-  | ChatTab
-  | ContactsTab
 
 export type PlanLevel = string

@@ -162,7 +162,7 @@ class Feedback extends React.Component<Props, State> {
 
 export default Feedback
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {flex: 1},
   }),
@@ -173,4 +173,4 @@ const styles = Styles.styleSheetCreate({
     isElectron: {cursor: 'default'},
   }),
   textBox: {flex: 1},
-})
+}))

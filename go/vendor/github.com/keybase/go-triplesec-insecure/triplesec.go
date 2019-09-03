@@ -81,7 +81,7 @@ type VersionParams struct {
 }
 
 var versionParamsLookup = map[Version]VersionParams{
-	3: VersionParams{
+	3: {
 		TotalIVLen:        AESIVLen + TwofishIVLen + SalsaIVLen,
 		TotalMacLen:       2 * MacOutputLen,
 		TotalMacKeyLen:    2 * MacKeyLen,
@@ -90,7 +90,7 @@ var versionParamsLookup = map[Version]VersionParams{
 		UseKeccakOverSHA3: true,
 		Version:           3,
 	},
-	4: VersionParams{
+	4: {
 		TotalIVLen:        AESIVLen + SalsaIVLen,
 		TotalMacLen:       2 * MacOutputLen,
 		TotalMacKeyLen:    2 * MacKeyLen,
@@ -296,7 +296,6 @@ func encryptData(plain, keys []byte, rng RandomnessGenerator, versionParams Vers
 		offset += TwofishIVLen
 	}
 	salsaIV := iv[offset : offset+SalsaIVLen]
-	offset += SalsaIVLen
 
 	cipherOffset := 0
 
@@ -323,7 +322,6 @@ func encryptData(plain, keys []byte, rng RandomnessGenerator, versionParams Vers
 
 	// AES
 	key = keys[len(keys)-cipherOffset-CipherKeyLen : len(keys)-cipherOffset]
-	cipherOffset += CipherKeyLen
 	block, err = aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -344,7 +342,7 @@ func generateMACs(data, keys []byte, versionParams VersionParams) []byte {
 
 	key := keys[:MacKeyLen]
 	mac := hmac.New(sha512.New, key)
-	mac.Write(data)
+	_, _ = mac.Write(data)
 	res = mac.Sum(res)
 
 	key = keys[MacKeyLen:]
@@ -355,7 +353,7 @@ func generateMACs(data, keys []byte, versionParams VersionParams) []byte {
 		digestmodFn = sha3.New512
 	}
 	mac = hmac.New(digestmodFn, key)
-	mac.Write(data)
+	_, _ = mac.Write(data)
 	res = mac.Sum(res)
 
 	return res

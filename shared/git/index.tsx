@@ -80,7 +80,7 @@ class Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {position: 'relative'},
   header: {
     ...Styles.globalStyles.flexBoxCenter,
@@ -88,6 +88,6 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     height: 48,
   },
-})
+}))
 
 export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(Git))

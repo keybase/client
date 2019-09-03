@@ -263,7 +263,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  render = () => {
+  render() {
     const inputProps = this._getInputProps()
     return <>{this.props.multiline ? <StyledTextArea {...inputProps} /> : <StyledInput {...inputProps} />}</>
   }

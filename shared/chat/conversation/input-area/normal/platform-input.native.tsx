@@ -105,7 +105,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
-  render = () => {
+  render() {
     let hintText = 'Write a message'
     if (this.props.isExploding && isLargeScreen) {
       hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'

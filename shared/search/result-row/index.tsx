@@ -53,6 +53,7 @@ const Middle = ({rightService, rightIcon, rightIconOpaque, rightUsername, rightF
         {!!rightUsername && (
           <Kb.Text
             type="BodySmallSemibold"
+            lineClamp={1}
             style={Styles.collapseStyles([styles.rightUsername, followingStateToStyle(rightFollowingState)])}
           >
             {rightUsername}

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {globalMargins} from '../../styles'
+import * as Styles from '../../styles'
 import {Button, Input, StandardScreen} from '../../common-adapters'
 
 import {Props} from './index'
@@ -14,39 +14,41 @@ function PaymentForm(props: Props) {
         hintText="Card number"
         value={props.cardNumber}
         onChangeText={props.onChangeCardNumber}
-        style={styleInput}
+        style={styles.input}
       />
       <Input
         hintText="Name on card"
         value={props.name}
         onChangeText={props.onChangeName}
-        style={styleInput}
+        style={styles.input}
       />
       <Input
         hintText="Card expiration (MM/YYYY)"
         value={props.expiration}
         onChangeText={props.onChangeExpiration}
-        style={styleInput}
+        style={styles.input}
       />
       <Input
         hintText="Security code"
         value={props.securityCode}
         onChangeText={props.onChangeSecurityCode}
-        style={styleInput}
+        style={styles.input}
       />
       <Button
         type="Success"
         label="Done, upgrade!"
         onClick={props.onSubmit}
-        style={{marginTop: globalMargins.medium}}
+        style={{marginTop: Styles.globalMargins.medium}}
       />
     </StandardScreen>
   )
 }
 
-const styleInput = {
-  marginBottom: globalMargins.small,
-  minWidth: 450,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  input: {
+    marginBottom: Styles.globalMargins.small,
+    minWidth: 450,
+  },
+}))
 
 export default PaymentForm

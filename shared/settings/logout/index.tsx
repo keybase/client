@@ -152,7 +152,7 @@ class LogOut extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: {
     paddingBottom: Styles.globalMargins.tiny,
     textAlign: 'center',
@@ -198,6 +198,6 @@ const styles = Styles.styleSheetCreate({
   smallProgress: {
     alignSelf: 'center',
   },
-})
+}))
 
 export default LogOut

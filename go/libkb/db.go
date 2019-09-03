@@ -21,6 +21,8 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBUidToServiceMap                = 0xb2
+	DBChatPinIgnore                  = 0xb3
 	DBTeambotKey                     = 0xb4
 	DBTeambotKeyWrongKID             = 0xb5
 	DBChatBotCommands                = 0xb6
