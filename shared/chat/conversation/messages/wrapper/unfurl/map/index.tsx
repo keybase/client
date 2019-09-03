@@ -15,7 +15,7 @@ type Props = {
   imageWidth: number
   imageURL: string
   isAuthor: boolean
-  liveLocationEndTime?: number | null
+  liveLocationEndTime?: number
   isLiveLocationDone: boolean
   time: number
   toggleMessagePopup: () => void

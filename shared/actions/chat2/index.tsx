@@ -3107,6 +3107,9 @@ const onChatMaybeMentionUpdate = (
 let locationEmitter: ((input: unknown) => void) | null = null
 
 function* setupLocationUpdateLoop() {
+  if (locationEmitter) {
+    return
+  }
   const locationChannel = yield Saga.eventChannel(emitter => {
     locationEmitter = emitter
     // we never unsubscribe

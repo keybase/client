@@ -7,7 +7,6 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
 import {isIOS} from '../../../../constants/platform'
-import {imgMaxHeightRaw, imgMaxWidthRaw} from '../../messages/attachment/image/image-render'
 import HiddenString from '../../../../util/hidden-string'
 
 type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
@@ -58,8 +57,8 @@ const LocationPopup = (props: Props) => {
   }, [])
 
   // render
-  const width = imgMaxWidthRaw()
-  const height = imgMaxHeightRaw() - 320
+  const width = Styles.dimensionWidth
+  const height = Styles.dimensionHeight - 320
   const mapSrc = location
     ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${
         location.lon

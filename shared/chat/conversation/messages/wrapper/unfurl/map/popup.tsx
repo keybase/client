@@ -5,9 +5,9 @@ import * as Container from '../../../../../../util/container'
 import * as RouteTreeGen from '../../../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../../constants/chat2'
+import * as Styles from '../../../../../../styles'
 import openURL from '../../../../../../util/open-url'
 import HiddenString from '../../../../../../util/hidden-string'
-import {imgMaxHeightRaw, imgMaxWidthRaw} from '../../../attachment/image/image-render'
 
 type Props = Container.RouteProps<{
   conversationIDKey: Types.ConversationIDKey
@@ -49,8 +49,8 @@ const UnfurlMapPopup = (props: Props) => {
   }
 
   // render
-  const width = imgMaxWidthRaw()
-  const height = imgMaxHeightRaw()
+  const width = Styles.dimensionWidth
+  const height = Styles.dimensionHeight
   const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${
     coord.lon
   }&width=${width}&height=${height}&token=${httpSrvToken}`

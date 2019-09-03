@@ -46,7 +46,7 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
               imageWidth={this.props.unfurl.generic.media ? this.props.unfurl.generic.media.width : 0}
               isAuthor={this.props.isAuthor}
               isLiveLocationDone={this.props.unfurl.generic.mapInfo.isLiveLocationDone}
-              liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime}
+              liveLocationEndTime={this.props.unfurl.generic.mapInfo.liveLocationEndTime || undefined}
               time={this.props.unfurl.generic.mapInfo.time}
               toggleMessagePopup={this.props.toggleMessagePopup}
               url={this.props.unfurl.generic.url}
