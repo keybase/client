@@ -153,7 +153,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
                 <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
                   {Flags.wonderland ? (
                     <>
-                      <Kb.Text type="BodyBig" style={styles.newChatButtonText}>
+                      <Kb.Text type="BodySemibold" style={styles.newChatButtonText}>
                         New chat
                       </Kb.Text>
                       <Kb.Emoji size={16} emojiName=":rabbit2:" />
