@@ -29,7 +29,7 @@ const EnterDevicename = (props: Props) => {
         fullWidth={true}
         style={Styles.globalStyles.flexOne}
       >
-        <Kb.Icon type={Styles.isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Icon type={Styles.isMobile ? 'icon-phone-background-1-96' : 'icon-computer-background-1-96'} />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
           <Kb.NewInput
             autoFocus={true}

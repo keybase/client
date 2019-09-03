@@ -113,6 +113,211 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-computer-96.png'),
   },
+  'icon-computer-background-1-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-1-32.png'),
+  },
+  'icon-computer-background-1-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-1-48.png'),
+  },
+  'icon-computer-background-1-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-1-64.png'),
+  },
+  'icon-computer-background-1-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-1-96.png'),
+  },
+  'icon-computer-background-10-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-10-32.png'),
+  },
+  'icon-computer-background-10-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-10-48.png'),
+  },
+  'icon-computer-background-10-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-10-64.png'),
+  },
+  'icon-computer-background-10-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-10-96.png'),
+  },
+  'icon-computer-background-2-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-2-32.png'),
+  },
+  'icon-computer-background-2-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-2-48.png'),
+  },
+  'icon-computer-background-2-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-2-64.png'),
+  },
+  'icon-computer-background-2-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-2-96.png'),
+  },
+  'icon-computer-background-3-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-3-32.png'),
+  },
+  'icon-computer-background-3-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-3-48.png'),
+  },
+  'icon-computer-background-3-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-3-64.png'),
+  },
+  'icon-computer-background-3-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-3-96.png'),
+  },
+  'icon-computer-background-4-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-4-32.png'),
+  },
+  'icon-computer-background-4-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-4-48.png'),
+  },
+  'icon-computer-background-4-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-4-64.png'),
+  },
+  'icon-computer-background-4-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-4-96.png'),
+  },
+  'icon-computer-background-5-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-5-32.png'),
+  },
+  'icon-computer-background-5-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-5-48.png'),
+  },
+  'icon-computer-background-5-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-5-64.png'),
+  },
+  'icon-computer-background-5-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-5-96.png'),
+  },
+  'icon-computer-background-6-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-6-32.png'),
+  },
+  'icon-computer-background-6-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-6-48.png'),
+  },
+  'icon-computer-background-6-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-6-64.png'),
+  },
+  'icon-computer-background-6-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-6-96.png'),
+  },
+  'icon-computer-background-7-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-7-32.png'),
+  },
+  'icon-computer-background-7-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-7-48.png'),
+  },
+  'icon-computer-background-7-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-7-64.png'),
+  },
+  'icon-computer-background-7-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-7-96.png'),
+  },
+  'icon-computer-background-8-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-8-32.png'),
+  },
+  'icon-fancy-encrypted-location-phone-desktop-150-72': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png'),
+  },
+  'icon-computer-background-8-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-8-48.png'),
+  },
+  'icon-computer-background-8-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-8-64.png'),
+  },
+  'icon-computer-background-8-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-8-96.png'),
+  },
+  'icon-computer-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-9-32.png'),
+  },
+  'icon-computer-background-9-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-9-48.png'),
+  },
+  'icon-computer-background-9-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-9-64.png'),
+  },
+  'icon-computer-background-9-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-background-9-96.png'),
+  },
   'icon-computer-revoke-48': {
     extension: 'png',
     isFont: false,
@@ -123,6 +328,156 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-computer-revoke-64.png'),
   },
+  'icon-computer-revoke-background-1-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-1-32.png'),
+  },
+  'icon-computer-revoke-background-1-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-1-48.png'),
+  },
+  'icon-computer-revoke-background-1-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-1-64.png'),
+  },
+  'icon-computer-revoke-background-10-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-10-32.png'),
+  },
+  'icon-computer-revoke-background-10-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-10-48.png'),
+  },
+  'icon-computer-revoke-background-10-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-10-64.png'),
+  },
+  'icon-computer-revoke-background-2-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-2-32.png'),
+  },
+  'icon-computer-revoke-background-2-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-2-48.png'),
+  },
+  'icon-computer-revoke-background-2-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-2-64.png'),
+  },
+  'icon-computer-revoke-background-3-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-3-32.png'),
+  },
+  'icon-computer-revoke-background-3-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-3-48.png'),
+  },
+  'icon-computer-revoke-background-3-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-3-64.png'),
+  },
+  'icon-computer-revoke-background-4-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-4-32.png'),
+  },
+  'icon-computer-revoke-background-4-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-4-48.png'),
+  },
+  'icon-computer-revoke-background-4-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-4-64.png'),
+  },
+  'icon-computer-revoke-background-5-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-5-32.png'),
+  },
+  'icon-computer-revoke-background-5-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-5-48.png'),
+  },
+  'icon-computer-revoke-background-5-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-5-64.png'),
+  },
+  'icon-computer-revoke-background-6-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-6-32.png'),
+  },
+  'icon-computer-revoke-background-6-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-6-48.png'),
+  },
+  'icon-computer-revoke-background-6-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-6-64.png'),
+  },
+  'icon-computer-revoke-background-7-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-7-32.png'),
+  },
+  'icon-computer-revoke-background-7-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-7-48.png'),
+  },
+  'icon-computer-revoke-background-7-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-7-64.png'),
+  },
+  'icon-computer-revoke-background-8-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-8-32.png'),
+  },
+  'icon-computer-revoke-background-8-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-8-48.png'),
+  },
+  'icon-computer-revoke-background-8-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-8-64.png'),
+  },
+  'icon-computer-revoke-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-9-32.png'),
+  },
+  'icon-computer-revoke-background-9-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-9-48.png'),
+  },
+  'icon-computer-revoke-background-9-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-revoke-background-9-64.png'),
+  },
   'icon-computer-success-32': {
     extension: 'png',
     isFont: false,
@@ -132,6 +487,106 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-computer-success-48.png'),
+  },
+  'icon-computer-success-background-1-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-1-32.png'),
+  },
+  'icon-computer-success-background-1-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-1-48.png'),
+  },
+  'icon-computer-success-background-10-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-10-32.png'),
+  },
+  'icon-computer-success-background-10-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-10-48.png'),
+  },
+  'icon-computer-success-background-2-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-2-32.png'),
+  },
+  'icon-computer-success-background-2-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-2-48.png'),
+  },
+  'icon-computer-success-background-3-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-3-32.png'),
+  },
+  'icon-computer-success-background-3-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-3-48.png'),
+  },
+  'icon-computer-success-background-4-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-4-32.png'),
+  },
+  'icon-computer-success-background-4-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-4-48.png'),
+  },
+  'icon-computer-success-background-5-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-5-32.png'),
+  },
+  'icon-computer-success-background-5-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-5-48.png'),
+  },
+  'icon-computer-success-background-6-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-6-32.png'),
+  },
+  'icon-computer-success-background-6-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-6-48.png'),
+  },
+  'icon-computer-success-background-7-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-7-32.png'),
+  },
+  'icon-computer-success-background-7-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-7-48.png'),
+  },
+  'icon-computer-success-background-8-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-8-32.png'),
+  },
+  'icon-computer-success-background-8-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-8-48.png'),
+  },
+  'icon-computer-success-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-9-32.png'),
+  },
+  'icon-computer-success-background-9-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-success-background-9-48.png'),
   },
   'icon-dns-48': {
     extension: 'png',
@@ -282,11 +737,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-fancy-encrypted-computer-mobile-226-96.png'),
-  },
-  'icon-fancy-encrypted-location-phone-desktop-150-72': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png'),
   },
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
@@ -1223,6 +1673,206 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-phone-96.png'),
   },
+  'icon-phone-background-1-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-1-32.png'),
+  },
+  'icon-phone-background-1-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-1-48.png'),
+  },
+  'icon-phone-background-1-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-1-64.png'),
+  },
+  'icon-phone-background-1-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-1-96.png'),
+  },
+  'icon-phone-background-10-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-10-32.png'),
+  },
+  'icon-phone-background-10-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-10-48.png'),
+  },
+  'icon-phone-background-10-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-10-64.png'),
+  },
+  'icon-phone-background-10-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-10-96.png'),
+  },
+  'icon-phone-background-2-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-2-32.png'),
+  },
+  'icon-phone-background-2-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-2-48.png'),
+  },
+  'icon-phone-background-2-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-2-64.png'),
+  },
+  'icon-phone-background-2-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-2-96.png'),
+  },
+  'icon-phone-background-3-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-3-32.png'),
+  },
+  'icon-phone-background-3-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-3-48.png'),
+  },
+  'icon-phone-background-3-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-3-64.png'),
+  },
+  'icon-phone-background-3-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-3-96.png'),
+  },
+  'icon-phone-background-4-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-4-32.png'),
+  },
+  'icon-phone-background-4-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-4-48.png'),
+  },
+  'icon-phone-background-4-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-4-64.png'),
+  },
+  'icon-phone-background-4-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-4-96.png'),
+  },
+  'icon-phone-background-5-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-5-32.png'),
+  },
+  'icon-phone-background-5-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-5-48.png'),
+  },
+  'icon-phone-background-5-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-5-64.png'),
+  },
+  'icon-phone-background-5-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-5-96.png'),
+  },
+  'icon-phone-background-6-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-6-32.png'),
+  },
+  'icon-phone-background-6-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-6-48.png'),
+  },
+  'icon-phone-background-6-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-6-64.png'),
+  },
+  'icon-phone-background-6-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-6-96.png'),
+  },
+  'icon-phone-background-7-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-7-32.png'),
+  },
+  'icon-phone-background-7-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-7-48.png'),
+  },
+  'icon-phone-background-7-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-7-64.png'),
+  },
+  'icon-phone-background-7-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-7-96.png'),
+  },
+  'icon-phone-background-8-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-8-32.png'),
+  },
+  'icon-phone-background-8-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-8-48.png'),
+  },
+  'icon-phone-background-8-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-8-64.png'),
+  },
+  'icon-phone-background-8-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-8-96.png'),
+  },
+  'icon-phone-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-9-32.png'),
+  },
+  'icon-phone-background-9-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-9-48.png'),
+  },
+  'icon-phone-background-9-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-9-64.png'),
+  },
+  'icon-phone-background-9-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-background-9-96.png'),
+  },
   'icon-phone-number-add-48': {
     extension: 'png',
     isFont: false,
@@ -1263,6 +1913,156 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-phone-revoke-64.png'),
   },
+  'icon-phone-revoke-background-1-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-1-32.png'),
+  },
+  'icon-phone-revoke-background-1-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-1-48.png'),
+  },
+  'icon-phone-revoke-background-1-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-1-64.png'),
+  },
+  'icon-phone-revoke-background-10-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-10-32.png'),
+  },
+  'icon-phone-revoke-background-10-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-10-48.png'),
+  },
+  'icon-phone-revoke-background-10-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-10-64.png'),
+  },
+  'icon-phone-revoke-background-2-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-2-32.png'),
+  },
+  'icon-phone-revoke-background-2-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-2-48.png'),
+  },
+  'icon-phone-revoke-background-2-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-2-64.png'),
+  },
+  'icon-phone-revoke-background-3-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-3-32.png'),
+  },
+  'icon-phone-revoke-background-3-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-3-48.png'),
+  },
+  'icon-phone-revoke-background-3-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-3-64.png'),
+  },
+  'icon-phone-revoke-background-4-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-4-32.png'),
+  },
+  'icon-phone-revoke-background-4-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-4-48.png'),
+  },
+  'icon-phone-revoke-background-4-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-4-64.png'),
+  },
+  'icon-phone-revoke-background-5-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-5-32.png'),
+  },
+  'icon-phone-revoke-background-5-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-5-48.png'),
+  },
+  'icon-phone-revoke-background-5-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-5-64.png'),
+  },
+  'icon-phone-revoke-background-6-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-6-32.png'),
+  },
+  'icon-phone-revoke-background-6-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-6-48.png'),
+  },
+  'icon-phone-revoke-background-6-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-6-64.png'),
+  },
+  'icon-phone-revoke-background-7-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-7-32.png'),
+  },
+  'icon-phone-revoke-background-7-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-7-48.png'),
+  },
+  'icon-phone-revoke-background-7-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-7-64.png'),
+  },
+  'icon-phone-revoke-background-8-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-8-32.png'),
+  },
+  'icon-phone-revoke-background-8-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-8-48.png'),
+  },
+  'icon-phone-revoke-background-8-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-8-64.png'),
+  },
+  'icon-phone-revoke-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-9-32.png'),
+  },
+  'icon-phone-revoke-background-9-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-9-48.png'),
+  },
+  'icon-phone-revoke-background-9-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-revoke-background-9-64.png'),
+  },
   'icon-phone-success-32': {
     extension: 'png',
     isFont: false,
@@ -1272,6 +2072,106 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-phone-success-48.png'),
+  },
+  'icon-phone-success-background-1-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-1-32.png'),
+  },
+  'icon-phone-success-background-1-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-1-48.png'),
+  },
+  'icon-phone-success-background-10-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-10-32.png'),
+  },
+  'icon-phone-success-background-10-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-10-48.png'),
+  },
+  'icon-phone-success-background-2-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-2-32.png'),
+  },
+  'icon-phone-success-background-2-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-2-48.png'),
+  },
+  'icon-phone-success-background-3-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-3-32.png'),
+  },
+  'icon-phone-success-background-3-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-3-48.png'),
+  },
+  'icon-phone-success-background-4-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-4-32.png'),
+  },
+  'icon-phone-success-background-4-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-4-48.png'),
+  },
+  'icon-phone-success-background-5-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-5-32.png'),
+  },
+  'icon-phone-success-background-5-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-5-48.png'),
+  },
+  'icon-phone-success-background-6-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-6-32.png'),
+  },
+  'icon-phone-success-background-6-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-6-48.png'),
+  },
+  'icon-phone-success-background-7-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-7-32.png'),
+  },
+  'icon-phone-success-background-7-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-7-48.png'),
+  },
+  'icon-phone-success-background-8-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-8-32.png'),
+  },
+  'icon-phone-success-background-8-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-8-48.png'),
+  },
+  'icon-phone-success-background-9-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-9-32.png'),
+  },
+  'icon-phone-success-background-9-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-success-background-9-48.png'),
   },
   'icon-placeholder-avatar-192': {
     extension: 'png',
@@ -1292,6 +2192,26 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-placeholder-avatar-960.png'),
+  },
+  'icon-placeholder-avatar-lighter-192': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-lighter-192.png'),
+  },
+  'icon-placeholder-avatar-lighter-256': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-lighter-256.png'),
+  },
+  'icon-placeholder-avatar-lighter-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-lighter-32.png'),
+  },
+  'icon-placeholder-avatar-lighter-960': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-lighter-960.png'),
   },
   'icon-placeholder-secret-user-16': {
     extension: 'png',
