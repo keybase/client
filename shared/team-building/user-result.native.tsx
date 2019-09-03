@@ -145,7 +145,7 @@ const Username = (props: {
       </>
     ) : (
       <>
-        <Kb.Text type="BodySemibold" lineClamp={2}>
+        <Kb.Text type="BodySemibold" lineClamp={2} style={styles.contactName}>
           {props.prettyName}
         </Kb.Text>
         {!!props.displayLabel && props.displayLabel !== props.prettyName && (
@@ -200,6 +200,9 @@ const styles = Styles.styleSheetCreate(() => ({
     height: ActionButtonSize,
     width: ActionButtonSize,
   },
+  contactName: {
+    lineHeight: 22,
+  },
   keybaseServiceIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
@@ -211,6 +214,7 @@ const styles = Styles.styleSheetCreate(() => ({
   rowContainer: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     height: userResultHeight,
+    overflow: 'visible',
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
