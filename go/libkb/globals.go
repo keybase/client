@@ -891,8 +891,19 @@ func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 
 func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
-	if err := g.ConfigureLogging(); err != nil {
-		return err
+
+	var shouldConfigureLogging bool
+	if usage.AllowRoot {
+		isAdmin, _, err := IsSystemAdminUser()
+		if err == nil && isAdmin {
+			shouldConfigureLogging = false
+		}
+	}
+
+	if shouldConfigureLogging {
+		if err := g.ConfigureLogging(); err != nil {
+			return err
+		}
 	}
 	if g.Env.GetStandalone() {
 		// If standalone, override the usage to be the same as in a service
