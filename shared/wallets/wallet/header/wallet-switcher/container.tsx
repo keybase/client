@@ -27,7 +27,9 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     )
   },
   onJoinAirdrop: () => {
-    dispatch(WalletsGen.createSelectAccount({accountID: Types.airdropAccountID, reason: 'user-selected', show: true}))
+    dispatch(
+      WalletsGen.createSelectAccount({accountID: Types.airdropAccountID, reason: 'user-selected', show: true})
+    )
   },
   onLinkExisting: () => {
     dispatch(

@@ -140,15 +140,18 @@ class Wallet extends React.Component<Props> {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
         {Styles.isMobile && <Header onBack={this.props.onBack} />}
-        {this.props.airdropSelected ? <Airdrop /> :
-        <Kb.SectionList
-          sections={this.props.sections}
-          renderItem={this._renderItem}
-          renderSectionHeader={this._renderSectionHeader}
-          stickySectionHeadersEnabled={false}
-          keyExtractor={this._keyExtractor}
-          onEndReached={this._onEndReached}
-        />}
+        {this.props.airdropSelected ? (
+          <Airdrop />
+        ) : (
+          <Kb.SectionList
+            sections={this.props.sections}
+            renderItem={this._renderItem}
+            renderSectionHeader={this._renderSectionHeader}
+            stickySectionHeadersEnabled={false}
+            keyExtractor={this._keyExtractor}
+            onEndReached={this._onEndReached}
+          />
+        )}
         {this.props.loadingMore && <Kb.ProgressIndicator style={styles.loadingMore} />}
       </Kb.Box2>
     )

@@ -44,8 +44,8 @@ const sortAndStripTimestamps = (
 
 // On desktop it's impossible to get here without accepting the
 // disclaimer (from the wallet list).
-const WalletOrOnboarding = (props: Props) => !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
-
+const WalletOrOnboarding = (props: Props) =>
+  !props.acceptedDisclaimer ? <Onboarding nextScreen="openWallet" /> : <Wallet {...props} />
 
 export default Container.connect(
   mapStateToProps,

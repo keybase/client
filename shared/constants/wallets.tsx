@@ -759,7 +759,8 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
-export const getAirdropSelected = (state: TypedState) => state.wallets.selectedAccount === Types.airdropAccountID
+export const getAirdropSelected = (state: TypedState) =>
+  state.wallets.selectedAccount === Types.airdropAccountID
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 

@@ -509,11 +509,9 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
     return false
   }
   if (
-    !!(
-      action.type === WalletsGen.selectAccount &&
-      Types.isValidAccountID(action.payload.accountID)
-    ) ||
-    Types.isValidAccountID(Constants.getAccount(state, action.payload.accountID).accountID)) {
+    !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(action.payload.accountID)) ||
+    Types.isValidAccountID(Constants.getAccount(state, action.payload.accountID).accountID)
+  ) {
     const [pending, payments] = await Promise.all([
       RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
       RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
