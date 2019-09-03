@@ -1238,11 +1238,26 @@ function* loadMoreMessages(
     )
   } catch (e) {
     logger.warn(e.message)
+    // no longer in team
+    if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
+      yield* maybeKickedFromTeam(conversationIDKey)
+      return
+    }
     if (e.code !== RPCTypes.StatusCode.scteamreaderror) {
       // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
       throw e
     }
   }
+}
+
+function* maybeKickedFromTeam(conversationIDKey: Types.ConversationIDKey) {
+  yield Saga.put(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+  yield Saga.put(
+    Chat2Gen.createNavigateToInbox({
+      avoidConversationID: conversationIDKey,
+      findNewConversation: true,
+    })
+  )
 }
 
 function* getUnreadline(
@@ -1274,18 +1289,25 @@ function* getUnreadline(
   }
 
   const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
-  const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
-    convID,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    readMsgID: readMsgID < 0 ? 0 : readMsgID,
-  })
-  const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-  yield Saga.put(
-    Chat2Gen.createUpdateUnreadline({
-      conversationIDKey,
-      messageID: Types.numberToMessageID(unreadlineID),
+  try {
+    const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
+      convID,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      readMsgID: readMsgID < 0 ? 0 : readMsgID,
     })
-  )
+    const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+    yield Saga.put(
+      Chat2Gen.createUpdateUnreadline({
+        conversationIDKey,
+        messageID: Types.numberToMessageID(unreadlineID),
+      })
+    )
+  } catch (e) {
+    if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
+      yield* maybeKickedFromTeam(conversationIDKey)
+    }
+    // ignore this error in general
+  }
 }
 
 // Show a desktop notification
