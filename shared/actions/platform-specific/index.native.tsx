@@ -454,7 +454,7 @@ function* requestContactPermissions(
 
 async function manageContactsCache(
   state: Container.TypedState,
-  action: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
+  _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
 ) {
   if (state.settings.contacts.importEnabled === false) {
