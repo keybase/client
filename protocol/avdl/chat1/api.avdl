@@ -15,13 +15,18 @@ protocol api {
     int gas;
   }
 
-  // Channel represents a channel through which chat happens.
+  /**
+   A Keybase chat channel. This can be a channel in a team, or just an informal channel between two users.
+   name: the name of the team or comma-separated list of participants
+   */
   record ChatChannel {
     @jsonkey("name")
     string name;
     @jsonkey("public")
+    @optional(true)
     boolean public;
     @jsonkey("members_type")
+    @optional(true)
     string membersType;
     @jsonkey("topic_type")
     @optional(true)
@@ -31,6 +36,10 @@ protocol api {
     string topicName;
   }
 
+
+  /**
+   A chat message. The content goes in the `body` property!
+   */
   record ChatMessage {
     @jsonkey("body")
     string body;
@@ -179,7 +188,9 @@ protocol api {
     array<RateLimitRes> rateLimits;
   }
 
-  // ConvSummary is used for JSON output of a conversation in the inbox.
+  /**
+   A chat conversation. This is essentially a chat channel plus some additional metadata.
+   */
   record ConvSummary {
     @jsonkey("id")
     string id;
