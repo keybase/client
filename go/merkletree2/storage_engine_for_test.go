@@ -71,7 +71,7 @@ func (i *InMemoryStorageEngine) StoreRootMetadata(c context.Context, t Transacti
 
 func (i *InMemoryStorageEngine) LookupLatestRoot(c context.Context, t Transaction) (Seqno, RootMetadata, error) {
 	if len(i.RootMRecords) == 0 {
-		return 0, RootMetadata{}, nil
+		return 0, RootMetadata{}, NewNoLatestRootFoundError()
 	}
 	return i.RootMRecords[0].s, i.RootMRecords[0].r, nil
 }

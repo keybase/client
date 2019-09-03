@@ -18,8 +18,7 @@ type StorageEngine interface {
 	StoreRootMetadata(context.Context, Transaction, RootMetadata) error
 
 	// LookupLatestRoot returns the latest root metadata and sequence number in
-	// the tree. If no root is found, then it returns 0 as the seqno and an
-	// empty RootMetadata, but NO error.
+	// the tree. If no root is found, then a NoLatestRootFound error is returned.
 	LookupLatestRoot(context.Context, Transaction) (Seqno, RootMetadata, error)
 
 	// If there is no root for the specified Seqno, an InvalidSeqnoError is returned.

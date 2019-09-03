@@ -54,7 +54,7 @@ func (k Key) Cmp(k2 Key) int {
 }
 
 // Seqno is an integer used to differentiate different versions of a merkle tree.
-type Seqno int
+type Seqno int64
 
 // ChildIndex specifies one of an iNode's child nodes.
 type ChildIndex int
@@ -93,7 +93,7 @@ type KeyHashPair struct {
 }
 
 // NodeType is used to distinguish internal nodes from leaves in the tree
-type NodeType int
+type NodeType uint8
 
 const (
 	NodeTypeNone  NodeType = 0
@@ -163,13 +163,15 @@ func (t *Tree) Build(
 	t.Lock()
 	defer t.Unlock()
 
-	var latestSeqNo Seqno
-	var rootMetadata RootMetadata
-	if latestSeqNo, rootMetadata, err = t.eng.LookupLatestRoot(ctx, tr); err != nil {
-		return nil, err
-	}
-	if latestSeqNo == 0 {
-		t.CInfof(ctx, "No root found. Starting a new merkle tree.")
+	latestSeqNo, rootMetadata, err := t.eng.LookupLatestRoot(ctx, tr)
+	if err != nil {
+		if _, isNoLatestRootFoundError := err.(NoLatestRootFoundError); isNoLatestRootFoundError {
+			t.CInfof(ctx, "No root found. Starting a new merkle tree.")
+			latestSeqNo = 0
+			rootMetadata = RootMetadata{}
+		} else {
+			return nil, err
+		}
 	}
 
 	if err = t.eng.StoreKVPairs(ctx, tr, latestSeqNo+1, sortedKVPairs); err != nil {
@@ -405,7 +407,7 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 
 // GetLatestRoot returns the latest RootMetadata which was stored in the
 // tree (and its Hash and Seqno). If no such record was stored yet,
-// GetLatestRoot returns 0 as a Seqno and no error.
+// GetLatestRoot returns 0 as a Seqno and a NoLatestRootFound error.
 func (t *Tree) GetLatestRoot(ctx context.Context, tr Transaction) (s Seqno, root RootMetadata, rootHash Hash, err error) {
 	s, root, err = t.eng.LookupLatestRoot(ctx, tr)
 	if err != nil || s == 0 {

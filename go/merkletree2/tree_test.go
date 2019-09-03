@@ -37,12 +37,12 @@ func TestEmptyTree(t *testing.T) {
 			require.NoError(t, err)
 
 			seq, root, hash, err := tree.GetLatestRoot(context.TODO(), nil)
-			require.NoError(t, err)
+			require.Error(t, err)
+			require.IsType(t, NoLatestRootFoundError{}, err)
 			require.Equal(t, Seqno(0), seq, "Tree should have Seqno 0 as no insertions were made, got %v instead", seq)
 			require.Nil(t, root.BareRootHash, "Tree root should not have a bareRootHash as no insertions were made")
 			require.Nil(t, hash, "Tree root should not have a root hash as no insertions were made")
 
-			require.NoError(t, err)
 			for _, kvp := range test.kvps1 {
 				_, err := tree.GetKeyValuePairUnsafe(context.TODO(), nil, 0, kvp.Key)
 				require.Error(t, err)

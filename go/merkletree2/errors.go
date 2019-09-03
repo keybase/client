@@ -55,6 +55,19 @@ func NewKeyNotFoundError() KeyNotFoundError {
 	return KeyNotFoundError{}
 }
 
+// NoLatestRootFoundError is returned when trying to fetch the latest root from
+// an empty tree.
+type NoLatestRootFoundError struct{}
+
+func (e NoLatestRootFoundError) Error() string {
+	return fmt.Sprintf("No latest root was found.")
+}
+
+// NewNoLatestRootFoundError returns a new error
+func NewNoLatestRootFoundError() NoLatestRootFoundError {
+	return NoLatestRootFoundError{}
+}
+
 // InvalidSeqnoError is returned when trying to lookup a record with an invalid
 // Seqno
 type InvalidSeqnoError struct {
