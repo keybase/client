@@ -7,7 +7,7 @@ import MaybeSwitcher from './maybe-switcher'
 
 type Props = {
   accountID: Types.AccountID
-  airdropIsSelected: boolean
+  airdropSelected: boolean
   isDefaultWallet: boolean
   keybaseUser: string
   onBack: (() => void) | null
@@ -29,7 +29,7 @@ const Header = (props: Props) => {
     <Kb.Box2 direction="vertical" style={styles.unread} />
   )
   const nameAndInfo =
-    props.walletName || props.airdropIsSelected ? (
+    props.walletName || props.airdropSelected ? (
       <MaybeSwitcher>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2
@@ -41,11 +41,11 @@ const Header = (props: Props) => {
           >
             {backButton}
             {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
-            <Kb.Text type="BodyBig">{props.airdropIsSelected ? 'Airdrop' : props.walletName}</Kb.Text>
+            <Kb.Text type="BodyBig">{props.airdropSelected ? 'Airdrop' : props.walletName}</Kb.Text>
             {caret}
             {unread}
           </Kb.Box2>
-          {!props.airdropIsSelected && (
+          {!props.airdropSelected && (
             <>
               {props.isDefaultWallet && (
                 <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -81,7 +81,7 @@ const Header = (props: Props) => {
       style={styles.container}
     >
       {nameAndInfo}
-      {!props.airdropIsSelected && (
+      {!props.airdropSelected && (
         <>
           <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
             <SendButton />
