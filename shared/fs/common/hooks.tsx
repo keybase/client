@@ -93,7 +93,7 @@ export const useFsOnlineStatus = () => {
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
   const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path, Constants.emptyPathInfo))
-  const dispatch = Container.useDispatch()
+  const dispatch = useDispatchWhenConnected()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
     if (alreadyKnown) {
