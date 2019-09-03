@@ -55,15 +55,15 @@ class Password extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  card: {
+    alignItems: 'stretch',
+  },
   container: {
     flex: 1,
   },
   forgot: {
     flex: 1,
     marginTop: Styles.globalMargins.medium,
-  },
-  card: {
-    alignItems: 'stretch',
   },
 }))
 
