@@ -44,7 +44,8 @@ export const noAccountID = stringToAccountID('NOACCOUNTID')
 // Airdrop wallet row is selected
 export const airdropAccountID = stringToAccountID('AIRDROP')
 
-export const isValidAccountID = (accountID: AccountID) => !!accountID && accountID !== noAccountID && accountID !== airdropAccountID
+export const isValidAccountID = (accountID: AccountID) =>
+  !!accountID && accountID !== noAccountID && accountID !== airdropAccountID
 
 export type PartnerUrl = StellarRPCTypes.PartnerUrl
 
