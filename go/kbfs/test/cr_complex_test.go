@@ -1112,3 +1112,39 @@ func TestCrSetMtimeOnCreatedDir(t *testing.T) {
 		),
 	)
 }
+
+// bob sets the mtime of a file and moves it over a file that had its
+// mtime set by alice.  Regression test for HOTPOT-719.
+func TestCrConflictSetMtimeOnRenamedOverFile(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	targetMtime2 := time.Now().Add(2 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			write("a/b", "hello"),
+			write("a/c", "world"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a/b", targetMtime1),
+		),
+		as(bob, noSync(),
+			setmtime("a/b", targetMtime1),
+			write("a/c", "world2"),
+			setmtime("a/c", targetMtime2),
+			rename("a/c", "a/b"),
+			reenableUpdates(),
+			mtime("a/b", targetMtime1),
+			mtime(crname("a/b", bob), targetMtime2),
+			read(crname("a/b", bob), "world2"),
+		),
+		as(alice,
+			mtime("a/b", targetMtime1),
+			mtime(crname("a/b", bob), targetMtime2),
+			read(crname("a/b", bob), "world2"),
+		),
+	)
+}
