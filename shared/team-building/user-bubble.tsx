@@ -43,6 +43,7 @@ const UserBubble = (props: Props) => {
           // stay gray and is not a link.
           username={username}
           title={!isKeybase ? props.username : undefined}
+          titleStyle={styles.userBubbleTitle}
         />
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" className="hoverComponent" style={styles.remove}>
@@ -119,6 +120,7 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     top: 1,
   },
+  userBubbleTitle: {color: Styles.globalColors.black},
 }))
 
 export default UserBubble
