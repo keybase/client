@@ -84,12 +84,20 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 		},
 		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
 			var joiners, leavers []string
+			joinersMap := make(map[string]bool)
+			leaversMap := make(map[string]bool)
 			for _, j := range grouped {
 				if j.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
-					joiners = append(joiners, j.Valid().SenderUsername)
+					joinersMap[j.Valid().SenderUsername] = true
 				} else {
-					leavers = append(leavers, j.Valid().SenderUsername)
+					leaversMap[j.Valid().SenderUsername] = true
 				}
+			}
+			for joiner := range joinersMap {
+				joiners = append(joiners, joiner)
+			}
+			for leaver := range leaversMap {
+				leavers = append(leavers, leaver)
 			}
 			mvalid := grouped[0].Valid()
 			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
