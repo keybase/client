@@ -1,7 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import DesktopStyle from '../common-adapters/desktop-style'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
@@ -14,11 +13,6 @@ export type Props = {
 const removeSize = Styles.isMobile ? 22 : 16
 
 const UserBubble = (props: Props) => {
-  const realCSS = `
-    .hoverContainer { position: relative; }
-    .hoverContainer .hoverComponent { visibility: hidden; }
-    .hoverContainer:hover .hoverComponent { visibility: visible; }
-    `
   const isKeybase = props.service === 'keybase'
   let {username} = props
   if (!isKeybase) {
@@ -26,10 +20,9 @@ const UserBubble = (props: Props) => {
     username = 'invalidusernameforplaceholderavatar'
   }
   return (
-    <Kb.Box2 direction="vertical" className="hoverContainer" style={styles.bubbleContainer}>
+    <Kb.Box2 direction="vertical" className="hover-container" style={styles.bubbleContainer}>
       <Kb.WithTooltip text={props.tooltip} position="top center">
-        <DesktopStyle style={realCSS} />
-        <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
+        <Kb.Box2 direction="horizontal" style={styles.bubble}>
           <Kb.ConnectedNameWithIcon
             colorFollowing={true}
             hideFollowingOverlay={true}
@@ -39,11 +32,11 @@ const UserBubble = (props: Props) => {
             // and for follow. Display `title` for non-Keybase users that always
             // stay gray and is not a link.
             username={username}
-            title={!isKeybase ? props.username : undefined}
+            title={!isKeybase ? `${props.username}@${props.service}` : undefined}
             titleStyle={styles.userBubbleTitle}
           />
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" className="hoverComponent" style={styles.remove}>
+        <Kb.Box2 direction="horizontal" className="hover-visible" style={styles.remove}>
           <RemoveBubble onRemove={props.onRemove} />
         </Kb.Box2>
       </Kb.WithTooltip>
