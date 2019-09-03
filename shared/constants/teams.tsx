@@ -494,7 +494,7 @@ const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<T
   state.teams.teamNameToResetUsers.get(teamname, I.Set())
 
 const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
-  state.teams.teamNameToLoadingInvites.get(teamname) ||  I.Map<string, boolean>()
+  state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
 
 const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
   state.teams.teamNameToRequests.get(teamname, I.Set())

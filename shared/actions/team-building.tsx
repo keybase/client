@@ -230,9 +230,7 @@ function filterGenForNs<S, A, L>(
   }
 }
 
-export default function* commonSagas(
-  namespace: TeamBuildingTypes.AllowedNamespace
-) {
+export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
   yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(
