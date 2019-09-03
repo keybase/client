@@ -52,6 +52,9 @@ export type SearchRecSection = {
   data: Array<SearchResult | ImportContactsEntry>
 }
 
+const isImportContactsEntry = (x: SearchResult | ImportContactsEntry): x is ImportContactsEntry =>
+  'isImportButton' in x && x.isImportButton
+
 export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
   sendNotification: boolean
@@ -390,8 +393,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             keyExtractor={(item: SearchResult | ImportContactsEntry) => {
-              // @ts-ignore
-              return item.isImportButton ? 'Import Contacts' : item.userId
+              return isImportContactsEntry(item) ? 'Import Contacts' : item.userId
             }}
             getItemLayout={this._getRecLayout}
             renderItem={({index, item: result, section}) =>
