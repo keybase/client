@@ -2,7 +2,14 @@ import React, {Component} from 'react'
 import {TextInput} from 'react-native'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'
+import {
+  collapseStyles,
+  globalColors,
+  platformStyles,
+  styleSheetCreate,
+  padding,
+  globalMargins,
+} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
@@ -186,6 +193,7 @@ class PlainInput extends Component<InternalProps, State> {
   _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const lineHeight = this._lineHeight()
+    const paddingStyles: any = this.props.padding ? padding(globalMargins[this.props.padding]) : {}
     return collapseStyles([
       styles.multiline,
       {
@@ -193,6 +201,7 @@ class PlainInput extends Component<InternalProps, State> {
       },
       !!this.props.rowsMax && {maxHeight: this.props.rowsMax * lineHeight},
       isIOS && !!this.state.height && {height: this.state.height},
+      paddingStyles,
     ])
   }
 
@@ -260,9 +269,6 @@ const styles = styleSheetCreate(() => ({
   multiline: platformStyles({
     isMobile: {
       height: undefined,
-      // TODO: Maybe remove these paddings?
-      paddingBottom: 0,
-      paddingTop: 0,
       textAlignVertical: 'top', // android centers by default
     },
   }),
