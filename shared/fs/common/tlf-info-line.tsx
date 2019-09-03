@@ -50,13 +50,6 @@ const PrefixText = (props: Props) =>
       >
         {props.tlfType}/
       </Kb.Text>
-      <Kb.Text
-        type="BodySmall"
-        style={props.mode === 'default' ? styles.textDefault : styles.textRow}
-        lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
-      >
-        •
-      </Kb.Text>
     </Kb.Box2>
   ) : null
 
@@ -87,18 +80,34 @@ const getText = (props: Props) => {
   return props.reset ? <ResetText {...props} /> : null
 }
 
-const TlfInfoLine = (props: Props) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    centerChildren={props.mode === 'default'}
-    alignItems="center"
-  >
-    <PrefixText {...props} />
-    <ResetMetaMaybe {...props} />
-    {getText(props)}
-  </Kb.Box2>
-)
+const TlfInfoLine = (props: Props) => {
+  const prefix = <PrefixText {...props} />
+  const dot = (
+    <Kb.Text
+      type="BodySmall"
+      style={props.mode === 'default' ? styles.textDefault : styles.textRow}
+      lineClamp={props.mode === 'row' && Styles.isMobile ? 1 : undefined}
+    >
+      •&nbsp;
+    </Kb.Text>
+  )
+
+  const reset = <ResetMetaMaybe {...props} />
+  const text = getText(props)
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      centerChildren={props.mode === 'default'}
+      alignItems="center"
+    >
+      {prefix}
+      {prefix && (reset || text) ? dot : null}
+      {reset}
+      {text}
+    </Kb.Box2>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
   meta: {
