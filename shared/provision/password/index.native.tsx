@@ -1,8 +1,8 @@
 // TODO remove Container
 import Container from '../../login/forms/container'
 import * as React from 'react'
-import {Button, UserCard, Text, FormWithCheckbox} from '../../common-adapters'
-import {globalColors, globalMargins} from '../../styles'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import {Props} from '.'
 
 class Password extends React.Component<Props> {
@@ -11,15 +11,15 @@ class Password extends React.Component<Props> {
 
     return (
       <Container
-        style={stylesContainer}
-        outerStyle={{backgroundColor: globalColors.white, padding: 0}}
+        style={styles.container}
+        outerStyle={{backgroundColor: Styles.globalColors.white, padding: 0}}
         onBack={this.props.onBack}
       >
-        <UserCard style={stylesCard} username={this.props.username}>
-          <Text center={true} type="Header" style={{color: globalColors.orange}}>
+        <Kb.UserCard style={styles.card} username={this.props.username}>
+          <Kb.Text center={true} type="Header" style={{color: Styles.globalColors.orange}}>
             {this.props.username}
-          </Text>
-          <FormWithCheckbox
+          </Kb.Text>
+          <Kb.FormWithCheckbox
             inputProps={{
               autoFocus: true,
               errorText: this.props.error,
@@ -33,36 +33,38 @@ class Password extends React.Component<Props> {
             checkboxesProps={[{checked: !!showTyping, label: 'Show typing', onCheck: toggleShowTyping}]}
           />
 
-          <Button
+          <Kb.Button
             fullWidth={true}
             waiting={this.props.waitingForResponse}
             label="Continue"
             onClick={this.props.onSubmit}
             disabled={!(this.props.password && this.props.password.length)}
           />
-          <Text
+          <Kb.Text
             center={true}
-            style={stylesForgot}
+            style={styles.forgot}
             type="BodySmallSecondaryLink"
             onClick={this.props.onForgotPassword}
           >
             Forgot password?
-          </Text>
-        </UserCard>
+          </Kb.Text>
+        </Kb.UserCard>
       </Container>
     )
   }
 }
 
-const stylesContainer = {
-  flex: 1,
-}
-const stylesForgot = {
-  flex: 1,
-  marginTop: globalMargins.medium,
-}
-const stylesCard = {
-  alignItems: 'stretch',
-}
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    flex: 1,
+  },
+  forgot: {
+    flex: 1,
+    marginTop: Styles.globalMargins.medium,
+  },
+  card: {
+    alignItems: 'stretch',
+  },
+}))
 
 export default Password
