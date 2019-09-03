@@ -108,6 +108,7 @@ export {default as useMounted} from './use-mounted'
 export {default as HOCTimers} from './hoc-timers'
 export type PropsWithTimer<P> = PropsWithTimer<P>
 export type IconType = IconType
+export {isValidIconType} from './icon.shared'
 export {default as Video} from './video'
 export {default as WebView} from './web-view'
 export type WebViewProps = WebViewProps

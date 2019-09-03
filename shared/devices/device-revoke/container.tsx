@@ -12,6 +12,10 @@ export default connect(
   state => ({
     _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
     device: Constants.getDevice(state, state.devices.selectedDeviceID),
+    iconNumber: Constants.getDeviceIconNumber(
+      state,
+      state.devices.selectedDeviceID || Types.stringToDeviceID('')
+    ),
     waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
   }),
   dispatch => ({
@@ -21,6 +25,7 @@ export default connect(
   (stateProps, dispatchProps, _: OwnProps) => ({
     device: stateProps.device,
     endangeredTLFs: [...stateProps._endangeredTLFs],
+    iconNumber: stateProps.iconNumber,
     onCancel: dispatchProps.onCancel,
     onSubmit: () => dispatchProps._onSubmit(stateProps.device.deviceID),
     waiting: stateProps.waiting,
