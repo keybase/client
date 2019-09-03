@@ -152,9 +152,6 @@ const styles = Styles.styleSheetCreate({
   outerCardAvatar: {
     backgroundColor: Styles.globalColors.transparent,
   },
-  outerStyle: {
-    backgroundColor: Styles.globalColors.white,
-  },
   wrapper: Styles.platformStyles({
     isElectron: {
       width: 400,
