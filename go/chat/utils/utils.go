@@ -351,7 +351,7 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 			ActivityRemovesStatus: true,
 			DesktopNotifications:  true,
 			PushNotifications:     true,
-			ShowBadges:            true,
+			ShowBadges:            false,
 		}
 	case chat1.ConversationStatus_REPORTED:
 		fallthrough
