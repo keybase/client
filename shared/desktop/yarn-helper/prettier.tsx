@@ -31,7 +31,7 @@ const prettierCheck = () => {
       stdio: ['pipe', process.stdout, process.stderr],
     })
   } catch (e) {
-    console.log('Prettier found errors with the above files ^')
+      throw new Error('Prettier found errors with the above files ^')
   }
 }
 
