@@ -109,6 +109,8 @@ const getUsernameToShow = (
       return message.invitee === you ? '' : message.invitee
     case 'setDescription':
       return message.author
+    case 'pin':
+      return message.author
     case 'systemUsersAddedToConversation':
       return message.usernames.includes(you) ? '' : message.author
   }

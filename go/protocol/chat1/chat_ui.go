@@ -272,6 +272,18 @@ func (o UIParticipant) DeepCopy() UIParticipant {
 	}
 }
 
+type UIPinnedMessage struct {
+	Message        UIMessage `codec:"message" json:"message"`
+	PinnerUsername string    `codec:"pinnerUsername" json:"pinnerUsername"`
+}
+
+func (o UIPinnedMessage) DeepCopy() UIPinnedMessage {
+	return UIPinnedMessage{
+		Message:        o.Message.DeepCopy(),
+		PinnerUsername: o.PinnerUsername,
+	}
+}
+
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
@@ -307,6 +319,7 @@ type InboxUIItem struct {
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
 	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
 	BotCommands       ConversationCommandGroups     `codec:"botCommands" json:"botCommands"`
+	PinnedMsg         *UIPinnedMessage              `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
@@ -427,6 +440,13 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.SupersededBy),
 		Commands:    o.Commands.DeepCopy(),
 		BotCommands: o.BotCommands.DeepCopy(),
+		PinnedMsg: (func(x *UIPinnedMessage) *UIPinnedMessage {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMsg),
 	}
 }
 
@@ -1093,6 +1113,7 @@ const (
 	UITextDecorationTyp_MAYBEMENTION       UITextDecorationTyp = 3
 	UITextDecorationTyp_LINK               UITextDecorationTyp = 4
 	UITextDecorationTyp_MAILTO             UITextDecorationTyp = 5
+	UITextDecorationTyp_KBFSPATH           UITextDecorationTyp = 6
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -1104,6 +1125,7 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"MAYBEMENTION":       3,
 	"LINK":               4,
 	"MAILTO":             5,
+	"KBFSPATH":           6,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
@@ -1113,6 +1135,7 @@ var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	3: "MAYBEMENTION",
 	4: "LINK",
 	5: "MAILTO",
+	6: "KBFSPATH",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -1238,6 +1261,7 @@ type UITextDecoration struct {
 	Maybemention__       *MaybeMention         `codec:"maybemention,omitempty" json:"maybemention,omitempty"`
 	Link__               *UILinkDecoration     `codec:"link,omitempty" json:"link,omitempty"`
 	Mailto__             *UILinkDecoration     `codec:"mailto,omitempty" json:"mailto,omitempty"`
+	Kbfspath__           *KBFSPath             `codec:"kbfspath,omitempty" json:"kbfspath,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1270,6 +1294,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_MAILTO:
 		if o.Mailto__ == nil {
 			err = errors.New("unexpected nil value for Mailto__")
+			return ret, err
+		}
+	case UITextDecorationTyp_KBFSPATH:
+		if o.Kbfspath__ == nil {
+			err = errors.New("unexpected nil value for Kbfspath__")
 			return ret, err
 		}
 	}
@@ -1336,6 +1365,16 @@ func (o UITextDecoration) Mailto() (res UILinkDecoration) {
 	return *o.Mailto__
 }
 
+func (o UITextDecoration) Kbfspath() (res KBFSPath) {
+	if o.Typ__ != UITextDecorationTyp_KBFSPATH {
+		panic("wrong case accessed")
+	}
+	if o.Kbfspath__ == nil {
+		return
+	}
+	return *o.Kbfspath__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1375,6 +1414,13 @@ func NewUITextDecorationWithMailto(v UILinkDecoration) UITextDecoration {
 	return UITextDecoration{
 		Typ__:    UITextDecorationTyp_MAILTO,
 		Mailto__: &v,
+	}
+}
+
+func NewUITextDecorationWithKbfspath(v KBFSPath) UITextDecoration {
+	return UITextDecoration{
+		Typ__:      UITextDecorationTyp_KBFSPATH,
+		Kbfspath__: &v,
 	}
 }
 
@@ -1423,6 +1469,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Mailto__),
+		Kbfspath__: (func(x *KBFSPath) *KBFSPath {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Kbfspath__),
 	}
 }
 

@@ -252,7 +252,7 @@ const RolePicker = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   abilityCheck: Styles.platformStyles({
     common: {
       paddingRight: Styles.globalMargins.tiny,
@@ -340,7 +340,7 @@ const styles = Styles.styleSheetCreate({
   text: {
     textAlign: 'left',
   },
-})
+}))
 
 // Helper to use this as a floating box
 export type FloatingProps = {

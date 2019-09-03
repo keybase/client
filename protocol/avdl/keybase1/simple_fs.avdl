@@ -473,7 +473,7 @@ protocol SimpleFS {
    simpleFSReset completely resets the KBFS folder referenced in `path`.
    It should only be called after explicit user confirmation.
    */
-  void simpleFSReset(Path path);
+  void simpleFSReset(Path path, string tlfID);
 
   enum FolderSyncMode {
     DISABLED_0,

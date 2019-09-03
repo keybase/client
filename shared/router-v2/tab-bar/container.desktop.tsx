@@ -13,7 +13,6 @@ import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from './index.desktop'
 import * as Container from '../../util/container'
-import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit} from '../../desktop/app/ctl.desktop'
@@ -84,10 +83,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
-const getBadges = memoize(b => b.toObject())
-
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  badgeNumbers: getBadges(stateProps._badgeNumbers),
+  badgeNumbers: stateProps._badgeNumbers,
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,
   onAddAccount: dispatchProps.onAddAccount,

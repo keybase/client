@@ -310,3 +310,50 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		require.Equal(t, "+48111222333", pres.displayLabel)
 	}
 }
+
+func TestSyncContactsWithServiceSummary(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	aliceMock := contacts.MakeMockLookupUser("alice", "Alice Keybase")
+	aliceMock.ServiceMap = make(libkb.UserServiceSummary)
+	aliceMock.ServiceMap["rooter"] = "alice123"
+	aliceMock.ServiceMap["twitter"] = "tacovontaco"
+
+	all.contactsMock.Emails["alice@keyba.se"] = aliceMock
+	all.contactsMock.Emails["bob@keyba.se"] = contacts.MakeMockLookupUser("bob", "Bob Keybase")
+
+	rawContacts := []keybase1.Contact{
+		contacts.MakeContact("Alice",
+			contacts.MakeEmailComponent("email", "alice@keyba.se"),
+		),
+		contacts.MakeContact("Bob",
+			contacts.MakeEmailComponent("email", "bob@keyba.se"),
+		),
+	}
+
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+
+	res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "keybase",
+		Query:           "keyba.se",
+		MaxResults:      50,
+	})
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+	// Bob (no service map because provider returned no services)
+	require.NotNil(t, res[0].Contact)
+	require.Equal(t, "Bob", res[0].Contact.ContactName)
+	require.Nil(t, res[0].Contact.ServiceMap)
+	// Alice (with service map)
+	require.NotNil(t, res[1].Contact)
+	require.Equal(t, "Alice", res[1].Contact.ContactName)
+	require.NotNil(t, res[1].Contact.ServiceMap)
+	require.Len(t, res[1].Contact.ServiceMap, 2)
+	require.Equal(t, "alice123", res[1].Contact.ServiceMap["rooter"])
+	require.Equal(t, "tacovontaco", res[1].Contact.ServiceMap["twitter"])
+}

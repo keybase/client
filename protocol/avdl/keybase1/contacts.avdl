@@ -37,6 +37,8 @@ protocol contacts {
         string username; // Keybase username
         string fullName; // Keybase full name
         boolean following; // whether resolved user is followed by current user
+        map<string,string> serviceMap; // serviceId -> username of user's socials
+        // -------------
 
         string assertion; // for use in team / chat building
 

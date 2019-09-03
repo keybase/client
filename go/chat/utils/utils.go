@@ -998,6 +998,8 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 		return msg.Valid().MessageBody.Edit().Body
 	case chat1.MessageType_FLIP:
 		return msg.Valid().MessageBody.Flip().Text
+	case chat1.MessageType_PIN:
+		return "📌 new pinned message"
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title
@@ -1214,12 +1216,13 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 	return participants
 }
 
-func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
+func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
-	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
+	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
@@ -1248,12 +1251,19 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
 	res.Draft = rawConv.Info.Draft
+	if rawConv.Info.PinnedMsg != nil {
+		res.PinnedMsg = new(chat1.UIPinnedMessage)
+		res.PinnedMsg.Message = PresentMessageUnboxed(ctx, g, rawConv.Info.PinnedMsg.Message, uid,
+			rawConv.GetConvID())
+		res.PinnedMsg.PinnerUsername = rawConv.Info.PinnedMsg.PinnerUsername
+	}
 	return res
 }
 
-func PresentConversationLocals(ctx context.Context, convs []chat1.ConversationLocal, currentUsername string) (res []chat1.InboxUIItem) {
+func PresentConversationLocals(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(ctx, conv, currentUsername))
+		res = append(res, PresentConversationLocal(ctx, g, uid, conv))
 	}
 	return res
 }
@@ -1490,6 +1500,10 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
+
+	// This needs to happen before (deep) links.
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
 
 	// Links
 	body = DecorateWithLinks(ctx, body)

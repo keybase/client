@@ -80,102 +80,93 @@ export type ToStellarPublicKeyProps = {
   setReadyToReview: (ready: boolean) => void
 }
 
-type ToStellarPublicKeyState = {
-  recipientPublicKey: string
-}
+const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
+  const [recipientPublicKey, setRecipentPublicKey] = React.useState(props.recipientPublicKey)
+  const debouncedOnChangeRecip = React.useCallback(debounce(props.onChangeRecipient, 1e3), [])
 
-class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStellarPublicKeyState> {
-  state = {recipientPublicKey: this.props.recipientPublicKey}
-  _propsOnChangeRecipient = debounce(this.props.onChangeRecipient, 1e3)
-  _onChangeRecipient = recipientPublicKey => {
-    this.setState({recipientPublicKey})
-    this.props.setReadyToReview(false)
-    this._propsOnChangeRecipient(recipientPublicKey)
-  }
+  const {setReadyToReview} = props
+  const onChangeRecipient = React.useCallback(
+    recipientPublicKey => {
+      setRecipentPublicKey(recipientPublicKey)
+      setReadyToReview(false)
+      debouncedOnChangeRecip(recipientPublicKey)
+    },
+    [setReadyToReview, debouncedOnChangeRecip]
+  )
 
-  componentDidUpdate(prevProps: ToStellarPublicKeyProps) {
-    if (
-      this.props.recipientPublicKey !== prevProps.recipientPublicKey &&
-      this.props.recipientPublicKey !== this.state.recipientPublicKey
-    ) {
-      this.setState({recipientPublicKey: this.props.recipientPublicKey})
+  React.useEffect(() => {
+    if (props.recipientPublicKey !== recipientPublicKey) {
+      setRecipentPublicKey(props.recipientPublicKey)
     }
-  }
+    // We purposely do not want this be called when the state changes
+    // Only when the prop.recipientPublicKey changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.recipientPublicKey])
 
-  render() {
-    return (
-      <ParticipantsRow
-        heading="To"
-        headingAlignment="Left"
-        headingStyle={styles.heading}
-        dividerColor={this.props.errorMessage ? Styles.globalColors.red : ''}
-        style={styles.toStellarPublicKey}
-      >
-        <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
-          <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
-            <Kb.Icon
-              sizeType={Styles.isMobile ? 'Small' : 'Default'}
-              type="iconfont-identity-stellar"
-              color={
-                this.state.recipientPublicKey.length === 0 || this.props.errorMessage
-                  ? Styles.globalColors.black_20
-                  : Styles.globalColors.black
-              }
+  return (
+    <ParticipantsRow
+      heading="To"
+      headingAlignment="Left"
+      headingStyle={styles.heading}
+      dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
+      style={styles.toStellarPublicKey}
+    >
+      <Kb.Box2 direction="vertical" fullWidth={!Styles.isMobile} style={styles.inputBox}>
+        <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
+          <Kb.Icon
+            sizeType={Styles.isMobile ? 'Small' : 'Default'}
+            type="iconfont-identity-stellar"
+            color={
+              recipientPublicKey.length === 0 || props.errorMessage
+                ? Styles.globalColors.black_20
+                : Styles.globalColors.black
+            }
+          />
+          <Kb.Box2 direction="horizontal" style={styles.publicKeyInputContainer}>
+            <Kb.NewInput
+              type="text"
+              onChangeText={onChangeRecipient}
+              textType="BodySemibold"
+              hideBorder={true}
+              containerStyle={styles.input}
+              multiline={true}
+              rowsMin={2}
+              rowsMax={3}
+              value={recipientPublicKey}
             />
-            <Kb.Box2 direction="horizontal" style={styles.publicKeyInputContainer}>
-              <Kb.NewInput
-                type="text"
-                onChangeText={this._onChangeRecipient}
-                textType="BodySemibold"
-                hideBorder={true}
-                containerStyle={styles.input}
-                multiline={true}
-                rowsMin={2}
-                rowsMax={3}
-                value={this.state.recipientPublicKey}
-              />
-              {!this.state.recipientPublicKey && (
-                <Kb.Box
-                  activeOpacity={1}
-                  pointerEvents="none"
-                  style={Styles.collapseStyles([
-                    Styles.globalStyles.fillAbsolute,
-                    styles.placeholderContainer,
-                  ])}
-                >
-                  <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
-                    Stellar address
-                  </Kb.Text>
-                  <Kb.Text
-                    type="BodySemibold"
-                    style={styles.colorBlack20}
-                    lineClamp={1}
-                    ellipsizeMode="middle"
-                  >
-                    {placeholderExample}
-                  </Kb.Text>
-                </Kb.Box>
-              )}
-            </Kb.Box2>
-            {!this.state.recipientPublicKey && this.props.onScanQRCode && (
-              <Kb.Icon
-                color={Styles.globalColors.black_50}
-                type="iconfont-qr-code"
-                fontSize={24}
-                onClick={this.props.onScanQRCode}
-                style={Kb.iconCastPlatformStyles(styles.qrCode)}
-              />
+            {!recipientPublicKey && (
+              <Kb.Box
+                activeOpacity={1}
+                pointerEvents="none"
+                style={Styles.collapseStyles([Styles.globalStyles.fillAbsolute, styles.placeholderContainer])}
+              >
+                <Kb.Text type="BodySemibold" style={styles.colorBlack20}>
+                  Stellar address
+                </Kb.Text>
+                <Kb.Text type="BodySemibold" style={styles.colorBlack20} lineClamp={1} ellipsizeMode="middle">
+                  {placeholderExample}
+                </Kb.Text>
+              </Kb.Box>
             )}
           </Kb.Box2>
-          {!!this.props.errorMessage && (
-            <Kb.Text type="BodySmall" style={styles.errorText}>
-              {this.props.errorMessage}
-            </Kb.Text>
+          {!recipientPublicKey && props.onScanQRCode && (
+            <Kb.Icon
+              color={Styles.globalColors.black_50}
+              type="iconfont-qr-code"
+              fontSize={24}
+              onClick={props.onScanQRCode}
+              style={Kb.iconCastPlatformStyles(styles.qrCode)}
+            />
           )}
         </Kb.Box2>
-      </ParticipantsRow>
-    )
-  }
+        {!!props.errorMessage && (
+          <Kb.Text type="BodySmall" style={styles.errorText}>
+            {props.errorMessage}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    </ParticipantsRow>
+  )
 }
 
 export type ToOtherAccountProps = {

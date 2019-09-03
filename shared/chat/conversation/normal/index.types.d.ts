@@ -16,5 +16,6 @@ export type Props = {
   onShowTracker: (username: string) => void
   onToggleInfoPanel: () => void
   onToggleThreadSearch: () => void
+  showThreadSearch: boolean
   threadLoadedOffline: boolean
 }

@@ -215,15 +215,18 @@ public class MainActivity extends ReactFragmentActivity {
       // Here we are just reading from the notification bundle.
       // If other sources start the app, we can get their intent data the same way.
       Bundle bundleFromNotification = intent.getBundleExtra("notification");
+      intent.removeExtra("notification");
 
       // TODO this doesn't work and didn't work before
       String fromShareText = intent.getStringExtra(Intent.EXTRA_TEXT);
+      intent.removeExtra(Intent.EXTRA_TEXT);
       if (fromShareText == null) {
         fromShareText = "";
       }
       String finalFromShareText = fromShareText;
 
       Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+      intent.removeExtra(Intent.EXTRA_STREAM);
 
       // If there isn't any data we care about, let's just return
       if (bundleFromNotification == null && fromShareText.isEmpty() && uri == null) {

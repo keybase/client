@@ -291,8 +291,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
 				}
 			} else {
-				pconv := utils.PresentConversationLocal(ctx, convRes.ConvLocal,
-					h.G().Env.GetUsername().String())
+				pconv := utils.PresentConversationLocal(ctx, h.G(), uid, convRes.ConvLocal)
 				jbody, err := json.Marshal(pconv)
 				isSuccess := true
 				if err != nil {
@@ -434,7 +433,7 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		}
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
-		Conversations:    utils.PresentConversationLocals(ctx, ib.Convs, h.G().Env.GetUsername().String()),
+		Conversations:    utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs),
 		Pagination:       ib.Pagination,
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -545,7 +544,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	}
 
 	res.Conv = conv
-	res.UiConv = utils.PresentConversationLocal(ctx, conv, h.G().GetEnv().GetUsername().String())
+	res.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv)
 	res.IdentifyFailures = identBreaks
 	return res, nil
 }
@@ -800,13 +799,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
-	}
-
-	// Sanity check that we have a TLF name here
-	if len(arg.Msg.ClientHeader.TlfName) == 0 {
-		h.Debug(ctx, "PostLocal: no TLF name specified: convID: %s uid: %s",
-			arg.ConversationID, uid)
-		return res, fmt.Errorf("no TLF name specified")
 	}
 
 	// Check for any slash command hits for an execute
@@ -1106,13 +1098,6 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
-	}
-
-	// Sanity check that we have a TLF name here
-	if len(arg.Msg.ClientHeader.TlfName) == 0 {
-		h.Debug(ctx, "PostLocalNonblock: no TLF name specified: convID: %s uid: %s",
-			arg.ConversationID, uid)
-		return res, fmt.Errorf("no TLF name specified")
 	}
 
 	// Clear draft
@@ -1420,8 +1405,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	res.UiConversations = utils.PresentConversationLocals(ctx, res.Conversations,
-		h.G().Env.GetUsername().String())
+	res.UiConversations = utils.PresentConversationLocals(ctx, h.G(), uid, res.Conversations)
 	return res, nil
 }
 
@@ -1575,7 +1559,7 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 	if err != nil {
 		return res, err
 	}
-	res.Conv = utils.PresentConversationLocal(ctx, conv, h.G().Env.GetUsername().String())
+	res.Conv = utils.PresentConversationLocal(ctx, h.G(), uid, conv)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
@@ -1656,7 +1640,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(ctx, convs, h.G().Env.GetUsername().String())
+	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
@@ -2750,4 +2734,83 @@ func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.Conversa
 	}
 	res.Commands = lres
 	return res, nil
+}
+
+func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res chat1.PinMessageRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "PinMessage")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	if _, err := h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
+		ConversationID: arg.ConvID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				MessageType: chat1.MessageType_PIN,
+			},
+			MessageBody: chat1.NewMessageBodyWithPin(chat1.MessagePin{
+				MsgID: arg.MsgID,
+			}),
+		},
+	}); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) UnpinMessage(ctx context.Context, convID chat1.ConversationID) (res chat1.PinMessageRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "UnpinMessage")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	pin, err := conv.GetMaxMessage(chat1.MessageType_PIN)
+	if err != nil {
+		return res, err
+	}
+	if _, err := h.PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID: convID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				MessageType: chat1.MessageType_DELETE,
+				Supersedes:  pin.GetMessageID(),
+			},
+		},
+	}); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.ConversationID) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "IgnorePinnedMessage")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	pin, err := conv.GetMaxMessage(chat1.MessageType_PIN)
+	if err != nil {
+		return err
+	}
+	if err := storage.NewPinIgnore(h.G(), uid).Ignore(ctx, convID, pin.GetMessageID()); err != nil {
+		return err
+	}
+	h.G().InboxSource.NotifyUpdate(ctx, uid, convID)
+	return nil
 }

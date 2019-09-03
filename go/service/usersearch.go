@@ -328,6 +328,10 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 		if err != nil {
 			mctx.Warning("Cannot find usernames for search results: %s", err)
 		}
+		serviceMaps, err := provider.FindServiceMaps(mctx, uids)
+		if err != nil {
+			mctx.Warning("Cannot get service maps for search results: %s", err)
+		}
 
 		for _, v := range lookupRes.Results {
 			// Found a resolution
@@ -356,9 +360,23 @@ func imptofuSearch(mctx libkb.MetaContext, provider contacts.ContactsProvider, i
 					imptofu.PrettyName = uname.Fullname
 				}
 			}
+			var servicesSummary map[keybase1.APIUserServiceIDWithContact]keybase1.APIUserServiceSummary
+			if serviceMaps != nil {
+				if smap, found := serviceMaps[v.UID]; found && len(smap) > 0 {
+					servicesSummary = make(map[keybase1.APIUserServiceIDWithContact]keybase1.APIUserServiceSummary, len(smap))
+					for serviceID, username := range smap {
+						serviceName := keybase1.APIUserServiceIDWithContact(serviceID)
+						servicesSummary[serviceName] = keybase1.APIUserServiceSummary{
+							ServiceName: serviceName,
+							Username:    username,
+						}
+					}
+				}
+			}
 			res = &keybase1.APIUserSearchResult{
-				Score:   1.0,
-				Imptofu: imptofu,
+				Score:           1.0,
+				Imptofu:         imptofu,
+				ServicesSummary: servicesSummary,
 			}
 			return res, nil // return here - we only want one result
 		}

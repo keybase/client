@@ -10,7 +10,9 @@ export default () => (
       {'Sometimes, just one second.'}
     </Kb.Text>
     <Kb.Text type="Body" center={true} selectable={true}>
-      {'⏱️🌹🃏'}
+      <Kb.Emoji size={16} emojiName=":clock12:" />
+      <Kb.Emoji size={16} emojiName=":rose:" />
+      <Kb.Emoji size={16} emojiName=":black_joker:" />
     </Kb.Text>
   </Kb.Box2>
 )

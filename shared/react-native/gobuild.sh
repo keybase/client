@@ -28,9 +28,7 @@ else
     keybase_build="$current_date+$commit_short"
 fi
 
-local_client=${LOCAL_CLIENT:-"1"}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
-tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
 check_ci=${CHECK_CI:-}
 
 IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
@@ -40,54 +38,21 @@ GOPATH0=${GOPATH_ARRAY[0]}
 client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
 
-# Our custom GOPATH for mobile build.
-GOPATH="$tmp_gopath"
-echo "Using temp GOPATH: $GOPATH"
+echo "Using GOPATH: $GOPATH"
 
 # gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
 # also want executables from our own GOPATH to override anything
 # already in $PATH (like the old GOPATH), so put $GOPATH/bin first.
 PATH="$GOPATH/bin:$PATH"
 
-# if we don't set this gomobile init get confused
-GOMOBILE="$GOPATH/pkg/gomobile"
 # need to whitelist some flags we use
 export CGO_CFLAGS_ALLOW="-fmodules|-fblocks"
-
-# Clear source
-echo "Clearing $GOPATH/src"
-rm -rf "$GOPATH/src/"/*
-mkdir -p "$GOPATH/src/github.com/keybase"
-
-# Copy source
-go_client_dir="$tmp_gopath/src/github.com/keybase/client/go"
-
-if [ ! "$local_client" = "1" ]; then
-  echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
-  (cd "$GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/client)
-  client_dir=$go_client_dir
-else
-  echo "Getting client (using local GOPATH)... To use git master, set LOCAL_CLIENT=0"
-  mkdir -p "$go_client_dir"
-  cp -R "$client_go_dir"/* "$go_client_dir"
-fi
 
 if [ "$check_ci" = "1" ]; then
   "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
   release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
 fi
 
-# Move all vendoring up a directory to github.com/keybase/vendor
-echo "Re-vendoring..."
-mkdir -p "$GOPATH/src/github.com/keybase/vendor"
-# Vendoring client over kbfs (ignore time)
-# TODO: is this still necessary since we removed KBFS?
-rsync -pr --ignore-times "$go_client_dir/vendor" "$GOPATH/src/github.com/keybase"
-# Remove their vendoring
-rm -rf "$go_client_dir/vendor"
-
-vendor_path="$GOPATH/src/github.com/keybase/vendor"
-rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s -w"
@@ -95,11 +60,14 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build -s
 gomobileinit ()
 {
   echo "Build gomobile..."
+  mkdir -p "$GOPATH/src/golang.org/x"
+  rsync -pr --ignore-times "$client_dir/go/vendor/golang.org/x" "$GOPATH/src/golang.org"
   go install golang.org/x/mobile/cmd/{gomobile,gobind}
-  # iOS doesn't need gomobile init.
+  echo "Doing gomobile init"
   if [ "$arg" = "android" ]; then
-    echo "Doing gomobile init"
     gomobile init -ndk $ANDROID_HOME/ndk-bundle
+  else
+    gomobile init
   fi
 }
 
