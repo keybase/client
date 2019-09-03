@@ -2,6 +2,7 @@
 
 protocol unfurl {
   import idl "common.avdl";
+  import idl "../gregor1" as gregor1;
 
   // NOTE if adding a new type here, also add the case to the
   // `UnfurlRaw.GetURL` type since a URL is used as a key for caching
@@ -47,6 +48,10 @@ protocol unfurl {
     string imageUrl;
     union { null, string } historyImageUrl;
     string description;
+    Coordinate coord;
+    gregor1.Time time;
+    union { null, gregor1.Time } liveLocationEndTime;
+    boolean liveLocationDone;
   }
 
   variant UnfurlRaw switch (UnfurlType unfurlType) {
@@ -54,6 +59,13 @@ protocol unfurl {
     case YOUTUBE: UnfurlYoutubeRaw;
     case GIPHY: UnfurlGiphyRaw;
     case MAPS: UnfurlMapsRaw;
+  }
+
+  record UnfurlGenericMapInfo {
+    Coordinate coord;
+    gregor1.Time time;
+    union { null, gregor1.Time } liveLocationEndTime;
+    boolean isLiveLocationDone;
   }
 
   record UnfurlGeneric {
@@ -64,6 +76,7 @@ protocol unfurl {
     union { null, Asset } image;
     union { null, int } publishTime;
     union { null, string } description;
+    union { null, UnfurlGenericMapInfo } mapInfo;
   }
 
   record UnfurlYoutube {
@@ -102,6 +115,7 @@ protocol unfurl {
     union { null, UnfurlImageDisplay } media;
     union { null, int } publishTime;
     union { null, string } description;
+    union { null, UnfurlGenericMapInfo } mapInfo;
   }
 
   record UnfurlYoutubeDisplay {

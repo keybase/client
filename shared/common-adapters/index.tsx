@@ -55,6 +55,7 @@ export {default as LabeledInput} from './labeled-input'
 export {default as List} from './list'
 export {default as List2} from './list2'
 export {default as LoadingLine} from './loading-line'
+export {default as LocationMap} from './location-map'
 export {default as ListItem} from './list-item'
 export {
   default as ListItem2,

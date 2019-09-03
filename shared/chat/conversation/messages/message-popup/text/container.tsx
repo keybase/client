@@ -9,6 +9,7 @@ import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
+import openURL from '../../../../../util/open-url'
 import Text from '.'
 
 type OwnProps = {
@@ -115,6 +116,8 @@ export default Container.namedConnect(
     const yourMessage = message.author === stateProps._you
     const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
     const isEditable = stateProps._isEditable && yourMessage
+    const mapUnfurl = Constants.getMapUnfurl(message)
+    const onViewMap = mapUnfurl ? () => openURL(mapUnfurl.url) : undefined
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -137,6 +140,7 @@ export default Container.namedConnect(
         message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
           ? () => dispatchProps._onReplyPrivately(message)
           : undefined,
+      onViewMap,
       onViewProfile:
         message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,
       position: ownProps.position,
