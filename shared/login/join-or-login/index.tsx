@@ -13,7 +13,7 @@ type Props = Kb.PropsWithTimer<{
 }>
 
 const Intro = (props: Props) => {
-  Kb.useInterval(() => props.checkIsOnline, 2000)
+  Kb.useInterval(() => props.checkIsOnline(), 2000)
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
@@ -44,25 +44,14 @@ const Intro = (props: Props) => {
           </Kb.Text>
         </Kb.Box2>
         <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-          <Kb.Button
-            label="Create an account"
-            onClick={props.onSignup}
-            style={styles.button}
-            fullWidth={true}
-          />
-          <Kb.Button
-            label="Log in"
-            mode="Secondary"
-            onClick={props.onLogin}
-            style={styles.button}
-            fullWidth={true}
-          />
-          {!props.isOnline && (
+          <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
+          <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
+          {props.isOnline === false && (
             <Kb.Button
               label="Configure a proxy"
               mode="Secondary"
               onClick={props.showProxySettings}
-              style={styles.button}
+              fullWidth={true}
             />
           )}
         </Kb.ButtonBar>
@@ -84,17 +73,10 @@ const styles = Styles.styleSheetCreate({
     top: 50,
   },
   bannerMessage: {color: Styles.globalColors.white},
-  button: Styles.platformStyles({
-    isElectron: {
-      width: 368,
-    },
-    isMobile: {
-      width: '100%',
-    },
-  }),
   buttonBar: Styles.platformStyles({
     isElectron: {
       paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
+      width: 368,
     },
     isMobile: {
       ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
