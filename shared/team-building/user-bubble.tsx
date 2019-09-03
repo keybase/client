@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import DesktopStyle from '../common-adapters/desktop-style'
-import {serviceIdToIconFont} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
@@ -20,10 +19,9 @@ const UserBubble = (props: Props) => {
     .hoverContainer .hoverComponent { visibility: hidden; }
     .hoverContainer:hover .hoverComponent { visibility: visible; }
     `
-  const showAvatar = ['keybase', 'contact', 'phone', 'email'].includes(props.service)
   const isKeybase = props.service === 'keybase'
   let {username} = props
-  if (!isKeybase && showAvatar) {
+  if (!isKeybase) {
     // Show placeholder avatar instead of an icon
     username = 'invalidusernameforplaceholderavatar'
   }
@@ -36,8 +34,6 @@ const UserBubble = (props: Props) => {
             colorFollowing={true}
             hideFollowingOverlay={true}
             horizontal={false}
-            icon={showAvatar ? undefined : serviceIdToIconFont(props.service)}
-            iconBoxStyle={showAvatar ? undefined : styles.iconBox}
             size="smaller"
             // Display `username` for Keybase users for linking to profile pages
             // and for follow. Display `title` for non-Keybase users that always
