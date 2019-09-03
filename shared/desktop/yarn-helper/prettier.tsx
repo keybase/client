@@ -35,7 +35,8 @@ const prettierCheck = () => {
     const [, ...toPrint] = lines
     toPrint.pop()
     toPrint.pop()
-    throw new Error('Prettier found errors with the following files: \n' + toPrint.join('\n'))
+    console.log('Prettier found errors with the following files: \n' + toPrint.join('\n'))
+    process.exit(1)
   }
 }
 
