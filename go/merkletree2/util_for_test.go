@@ -150,8 +150,8 @@ func (i IdentityHasherBlinded) HashKeyValuePairWithKeySpecificSecret(kvp KeyValu
 
 func (i IdentityHasherBlinded) GenerateMasterSecret(Seqno) (MasterSecret, error) {
 	ms := make([]byte, 1)
-	rand.Read(ms)
-	return MasterSecret(ms), nil
+	_, err := rand.Read(ms)
+	return MasterSecret(ms), err
 }
 
 func (i IdentityHasherBlinded) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpecificSecret {
