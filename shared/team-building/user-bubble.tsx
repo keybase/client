@@ -62,6 +62,7 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
       color={Styles.globalColors.black_50_on_white}
       fontSize={Styles.isMobile ? 14 : 12}
       style={Kb.iconCastPlatformStyles(styles.removeIcon)}
+      className="hover_color_black"
     />
   </Kb.ClickableBox>
 )
