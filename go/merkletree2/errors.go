@@ -30,28 +30,16 @@ func NewInvalidKeyError() InvalidKeyError {
 
 // ProofVerificationFailedError is returned when a merkle tree proof verification fails.
 type ProofVerificationFailedError struct {
-	reason string
-	cause  error
+	reason error
 }
 
 func (e ProofVerificationFailedError) Error() string {
-	if e.cause != nil {
-		return fmt.Sprintf("Proof Verification Error: %s", e.cause)
-	}
-	if e.reason != "" {
-		return fmt.Sprintf("Proof Verification Error: %s", e.reason)
-	}
-	return fmt.Sprintf("Proof Verification Error")
+	return fmt.Sprintf("Proof Verification Error: %s", e.reason)
 }
 
 // NewProofVerificationFailedError returns a new error
-func NewProofVerificationFailedError(reason string) ProofVerificationFailedError {
+func NewProofVerificationFailedError(reason error) ProofVerificationFailedError {
 	return ProofVerificationFailedError{reason: reason}
-}
-
-// NewProofVerificationFailedErrorFromCause returns a new error
-func NewProofVerificationFailedErrorFromCause(cause error) ProofVerificationFailedError {
-	return ProofVerificationFailedError{cause: cause}
 }
 
 // KeyNotFoundError is returned when trying to fetch a key which is not part of
@@ -70,14 +58,15 @@ func NewKeyNotFoundError() KeyNotFoundError {
 // InvalidSeqnoError is returned when trying to lookup a record with an invalid
 // Seqno
 type InvalidSeqnoError struct {
-	reason string
+	s      Seqno
+	reason error
 }
 
 func (e InvalidSeqnoError) Error() string {
-	return fmt.Sprintf("Invalid Seqno Error: %s", e.reason)
+	return fmt.Sprintf("Invalid Seqno Error (Seqno: %v): %s", e.s, e.reason)
 }
 
 // NewInvalidConfigError returns a new error
-func NewInvalidSeqnoError(reason string) InvalidSeqnoError {
-	return InvalidSeqnoError{reason: reason}
+func NewInvalidSeqnoError(s Seqno, reason error) InvalidSeqnoError {
+	return InvalidSeqnoError{s: s, reason: reason}
 }

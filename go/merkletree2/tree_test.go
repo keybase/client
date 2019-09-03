@@ -18,7 +18,7 @@ func TestEmptyTree(t *testing.T) {
 	kvps1_3bits, kvps2_3bits, kvps3_3bits := getSampleKVPS3bits()
 
 	tests := []struct {
-		cfg   TreeConfig
+		cfg   Config
 		kvps1 []KeyValuePair
 		kvps2 []KeyValuePair
 		kvps3 []KeyValuePair
@@ -33,7 +33,8 @@ func TestEmptyTree(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
-			tree := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			tree, err := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			require.NoError(t, err)
 
 			seq, root, hash, err := tree.GetLatestRoot(context.TODO(), nil)
 			require.NoError(t, err)
@@ -69,7 +70,7 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 	kvps1_3bits, kvps2_3bits, kvps3_3bits := getSampleKVPS3bits()
 
 	tests := []struct {
-		cfg   TreeConfig
+		cfg   Config
 		kvps1 []KeyValuePair
 		kvps2 []KeyValuePair
 		kvps3 []KeyValuePair
@@ -84,9 +85,10 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
-			tree := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			tree, err := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			require.NoError(t, err)
 
-			err := tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps1)
+			_, err = tree.Build(context.TODO(), nil, test.kvps1)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -109,7 +111,7 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 
 			}
 
-			err = tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps2)
+			_, err = tree.Build(context.TODO(), nil, test.kvps2)
 			require.NoError(t, err)
 
 			for i, kvp := range test.kvps2 {
@@ -151,7 +153,7 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 	kvps1_3bits, kvps2_3bits, kvps3_3bits := getSampleKVPS3bits()
 
 	tests := []struct {
-		cfg   TreeConfig
+		cfg   Config
 		kvps1 []KeyValuePair
 		kvps2 []KeyValuePair
 		kvps3 []KeyValuePair
@@ -166,9 +168,10 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
-			tree := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			tree, err := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			require.NoError(t, err)
 
-			err := tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps1)
+			_, err = tree.Build(context.TODO(), nil, test.kvps1)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -183,7 +186,7 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 				require.Equal(t, kvp.Value, kvpRet.Value)
 			}
 
-			err = tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps2)
+			_, err = tree.Build(context.TODO(), nil, test.kvps2)
 			require.NoError(t, err)
 
 			for i, kvp := range test.kvps2 {
@@ -215,7 +218,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		cfg   TreeConfig
+		cfg   Config
 		kvps1 []KeyValuePair
 		kvps2 []KeyValuePair
 		kvps3 []KeyValuePair
@@ -232,13 +235,11 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
-			tree := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
-			verifier := MerkleProofVerifier{TreeConfig: test.cfg}
-
-			err := tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps1)
+			tree, err := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
 			require.NoError(t, err)
+			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			_, _, rootHash1, err := tree.GetLatestRoot(context.TODO(), nil)
+			rootHash1, err := tree.Build(context.TODO(), nil, test.kvps1)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -249,9 +250,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 				require.NoError(t, verifier.VerifyInclusionProof(context.TODO(), kvp, proof, rootHash1))
 			}
 
-			err = tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps2)
-			require.NoError(t, err)
-			_, _, rootHash2, err := tree.GetLatestRoot(context.TODO(), nil)
+			rootHash2, err := tree.Build(context.TODO(), nil, test.kvps2)
 			require.NoError(t, err)
 
 			for i, kvp := range test.kvps2 {
@@ -283,7 +282,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 	require.NoError(t, err)
 
 	tests := []struct {
-		cfg   TreeConfig
+		cfg   Config
 		kvps1 []KeyValuePair
 		kvps2 []KeyValuePair
 		kvps3 []KeyValuePair
@@ -300,13 +299,11 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
-			tree := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
-			verifier := MerkleProofVerifier{TreeConfig: test.cfg}
-
-			err := tree.BuildNewTreeVersionFromAllKeys(context.TODO(), nil, test.kvps1)
+			tree, err := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
 			require.NoError(t, err)
+			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			_, _, rootHash1, err := tree.GetLatestRoot(context.TODO(), nil)
+			rootHash1, err := tree.Build(context.TODO(), nil, test.kvps1)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -348,7 +345,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// Change the blinding key-specific secret (where appropriate)
-				if tree.useBlindedValueHashes {
+				if tree.cfg.useBlindedValueHashes {
 					require.NotNil(t, proof.KeySpecificSecret)
 					require.True(t, len(proof.KeySpecificSecret) > 0, "Kss: %X", proof.KeySpecificSecret)
 
@@ -362,6 +359,58 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 					require.IsType(t, ProofVerificationFailedError{}, err)
 				}
 			}
+		})
+	}
+
+}
+
+func TestGetLatestRoot(t *testing.T) {
+	config1bitU, config2bitsU, config3bitsU := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
+	config1bitB, config2bitsB, config3bitsB := getTreeCfgsWith1_2_3BitsPerIndexBlinded(t)
+	kvps1_1bit, kvps2_1bit, kvps3_1bit := getSampleKVPS1bit()
+	kvps1_3bits, kvps2_3bits, kvps3_3bits := getSampleKVPS3bits()
+
+	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3)
+	require.NoError(t, err)
+	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3)
+	require.NoError(t, err)
+
+	tests := []struct {
+		cfg   Config
+		kvps1 []KeyValuePair
+		kvps2 []KeyValuePair
+		kvps3 []KeyValuePair
+	}{
+		{config1bitU, kvps1_1bit, kvps2_1bit, kvps3_1bit},
+		{config2bitsU, kvps1_1bit, kvps2_1bit, kvps3_1bit},
+		{config3bitsU, kvps1_3bits, kvps2_3bits, kvps3_3bits},
+		{config3bits2valsPerLeafU, kvps1_3bits, kvps2_3bits, kvps3_3bits},
+		{config1bitB, kvps1_1bit, kvps2_1bit, kvps3_1bit},
+		{config2bitsB, kvps1_1bit, kvps2_1bit, kvps3_1bit},
+		{config3bitsB, kvps1_3bits, kvps2_3bits, kvps3_3bits},
+		{config3bits2valsPerLeafB, kvps1_3bits, kvps2_3bits, kvps3_3bits},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+			tree, err := NewTree(test.cfg, &InMemoryStorageEngine{}, logger.NewTestLogger(t))
+			require.NoError(t, err)
+
+			rootHash1Exp, err := tree.Build(context.TODO(), nil, test.kvps1)
+			require.NoError(t, err)
+
+			_, _, rootHash1, err := tree.GetLatestRoot(context.TODO(), nil)
+			require.NoError(t, err)
+			require.True(t, rootHash1Exp.Equal(rootHash1))
+
+			rootHash2Exp, err := tree.Build(context.TODO(), nil, test.kvps2)
+			require.NoError(t, err)
+
+			_, _, rootHash2, err := tree.GetLatestRoot(context.TODO(), nil)
+			require.NoError(t, err)
+			require.True(t, rootHash2Exp.Equal(rootHash2))
+
+			require.False(t, rootHash1.Equal(rootHash2))
 		})
 	}
 

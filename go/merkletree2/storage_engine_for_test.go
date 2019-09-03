@@ -18,6 +18,7 @@ type InMemoryStorageEngine struct {
 }
 
 var _ StorageEngine = &InMemoryStorageEngine{}
+var _ StorageEngineWithBlinding = &InMemoryStorageEngine{}
 
 type NodeRecord struct {
 	s Seqno
@@ -32,7 +33,7 @@ type KVPRecord struct {
 
 type RootMetadataRecord struct {
 	s Seqno
-	r RootMetadataNode
+	r RootMetadata
 }
 
 func (i *InMemoryStorageEngine) NewTransaction(c context.Context) (Transaction, error) {
@@ -63,25 +64,25 @@ func (i *InMemoryStorageEngine) StoreNode(c context.Context, t Transaction, s Se
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreRootMetadataNode(c context.Context, t Transaction, r RootMetadataNode) error {
+func (i *InMemoryStorageEngine) StoreRootMetadata(c context.Context, t Transaction, r RootMetadata) error {
 	i.RootMRecords = append([]RootMetadataRecord{RootMetadataRecord{s: r.Seqno, r: r}}, i.RootMRecords...)
 	return nil
 }
 
-func (i *InMemoryStorageEngine) LookupLatestRoot(c context.Context, t Transaction) (Seqno, RootMetadataNode, error) {
+func (i *InMemoryStorageEngine) LookupLatestRoot(c context.Context, t Transaction) (Seqno, RootMetadata, error) {
 	if len(i.RootMRecords) == 0 {
-		return 0, RootMetadataNode{}, nil
+		return 0, RootMetadata{}, nil
 	}
 	return i.RootMRecords[0].s, i.RootMRecords[0].r, nil
 }
 
-func (i *InMemoryStorageEngine) LookupRoot(c context.Context, t Transaction, s Seqno) (RootMetadataNode, error) {
+func (i *InMemoryStorageEngine) LookupRoot(c context.Context, t Transaction, s Seqno) (RootMetadata, error) {
 	for _, r := range i.RootMRecords {
 		if r.s == s {
 			return r.r, nil
 		}
 	}
-	return RootMetadataNode{}, NewInvalidSeqnoError(fmt.Sprintf("No root at seqno %v", s))
+	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
 }
 
 func (i *InMemoryStorageEngine) LookupNode(c context.Context, t Transaction, s Seqno, p Position) (Hash, error) {

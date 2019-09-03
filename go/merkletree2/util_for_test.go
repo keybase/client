@@ -21,7 +21,7 @@ func makePositionFromStringForTesting(s string) (Position, error) {
 	return (Position)(*big.NewInt(posInt)), nil
 }
 
-func getTreeCfgsWith1_2_3BitsPerIndexBlinded(t *testing.T) (config1bit, config2bits, config3bits TreeConfig) {
+func getTreeCfgsWith1_2_3BitsPerIndexBlinded(t *testing.T) (config1bit, config2bits, config3bits Config) {
 	config1bit, err := NewConfig(IdentityHasherBlinded{}, true, 1, 1, 1)
 	require.NoError(t, err)
 
@@ -34,7 +34,7 @@ func getTreeCfgsWith1_2_3BitsPerIndexBlinded(t *testing.T) (config1bit, config2b
 	return config1bit, config2bits, config3bits
 }
 
-func getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t *testing.T) (config1bit, config2bits, config3bits TreeConfig) {
+func getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t *testing.T) (config1bit, config2bits, config3bits Config) {
 	config1bit, err := NewConfig(IdentityHasher{}, false, 1, 1, 1)
 	require.NoError(t, err)
 
@@ -92,7 +92,7 @@ func getSampleKVPS1bit() (kvps1, kvps2, kvps3 []KeyValuePair) {
 // Useful to debug tests. Hash(b) == b
 type IdentityHasher struct{}
 
-var _ Hasher = IdentityHasher{}
+var _ Encoder = IdentityHasher{}
 
 func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) (Hash, error) {
 	enc, err := msgpack.EncodeCanonical(o)
@@ -102,7 +102,7 @@ func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) (Hash, error) {
 	return Hash(enc), nil
 }
 
-func (i IdentityHasher) HashKeyValuePairWithMasterSecret(kvp KeyValuePair, s Seqno, ms MasterSecret) (Hash, error) {
+func (i IdentityHasher) HashKeyValuePairWithMasterSecret(kvp KeyValuePair, ms MasterSecret) (Hash, error) {
 	return i.EncodeAndHashGeneric(kvp)
 }
 
@@ -114,14 +114,14 @@ func (i IdentityHasher) GenerateMasterSecret(Seqno) (MasterSecret, error) {
 	return nil, errors.New("Should not call GenerateMasterSecret on an unblinded hasher")
 }
 
-func (i IdentityHasher) ComputeKeySpecificSecret(ms MasterSecret, s Seqno, k Key) KeySpecificSecret {
+func (i IdentityHasher) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpecificSecret {
 	return nil
 }
 
 // Useful to debug tests. Hash(b) == b, with extra blinding fields injected as appropriate
 type IdentityHasherBlinded struct{}
 
-var _ Hasher = IdentityHasherBlinded{}
+var _ Encoder = IdentityHasherBlinded{}
 
 func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) (Hash, error) {
 	enc, err := msgpack.EncodeCanonical(o)
@@ -131,8 +131,8 @@ func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) (Hash, error)
 	return Hash(enc), nil
 }
 
-func (i IdentityHasherBlinded) HashKeyValuePairWithMasterSecret(kvp KeyValuePair, s Seqno, ms MasterSecret) (Hash, error) {
-	kss := i.ComputeKeySpecificSecret(ms, s, kvp.Key)
+func (i IdentityHasherBlinded) HashKeyValuePairWithMasterSecret(kvp KeyValuePair, ms MasterSecret) (Hash, error) {
+	kss := i.ComputeKeySpecificSecret(ms, kvp.Key)
 	return i.HashKeyValuePairWithKeySpecificSecret(kvp, kss)
 }
 
@@ -154,12 +154,11 @@ func (i IdentityHasherBlinded) GenerateMasterSecret(Seqno) (MasterSecret, error)
 	return MasterSecret(ms), nil
 }
 
-func (i IdentityHasherBlinded) ComputeKeySpecificSecret(ms MasterSecret, s Seqno, k Key) KeySpecificSecret {
+func (i IdentityHasherBlinded) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpecificSecret {
 	kss, err := msgpack.EncodeCanonical(struct {
 		Ms MasterSecret
-		S  Seqno
 		K  Key
-	}{Ms: ms, S: s, K: k})
+	}{Ms: ms, K: k})
 	if err != nil {
 		panic(err)
 	}

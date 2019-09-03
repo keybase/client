@@ -15,15 +15,15 @@ type StorageEngine interface {
 
 	StoreNode(context.Context, Transaction, Seqno, Position, Hash) error
 
-	StoreRootMetadataNode(context.Context, Transaction, RootMetadataNode) error
+	StoreRootMetadata(context.Context, Transaction, RootMetadata) error
 
 	// LookupLatestRoot returns the latest root metadata and sequence number in
 	// the tree. If no root is found, then it returns 0 as the seqno and an
-	// empty RootMetadataNode, but NO error.
-	LookupLatestRoot(context.Context, Transaction) (Seqno, RootMetadataNode, error)
+	// empty RootMetadata, but NO error.
+	LookupLatestRoot(context.Context, Transaction) (Seqno, RootMetadata, error)
 
 	// If there is no root for the specified Seqno, an InvalidSeqnoError is returned.
-	LookupRoot(context.Context, Transaction, Seqno) (RootMetadataNode, error)
+	LookupRoot(context.Context, Transaction, Seqno) (RootMetadata, error)
 
 	// LookupNode returns, for any position, the hash of the node with the
 	// highest Seqno s' <= s which was stored at position p. For example, if
@@ -40,7 +40,7 @@ type StorageEngine interface {
 	// returned if some of the positions are not found.
 	LookupNodes(c context.Context, t Transaction, s Seqno, positions []Position) ([]PositionHashPair, error)
 
-	// LookupKVPair returns the KeyValuePair (and its Hash) with the highest Seqno s1 <=
+	// LookupKVPair returns the KeyValuePair with the highest Seqno s1 <=
 	// s which was stored at position p (similarly to LookupNode).
 	LookupKVPair(c context.Context, t Transaction, s Seqno, k Key) (kvp KeyValuePair, s1 Seqno, err error)
 
@@ -49,6 +49,12 @@ type StorageEngine interface {
 	// Seqno s' <= s (similarly to LookupNode). For each such pair, it returns
 	// the Seqno at which it was stored (in the same order).
 	LookupKeyValuePairsUnderPosition(ctx context.Context, tr Transaction, s Seqno, p Position) ([]KeyValuePair, []Seqno, error)
+}
+
+// StorageEngineWithBlinding extends the StorageEngine interface with methods to
+// support storing and retrieving the blinding secrets.
+type StorageEngineWithBlinding interface {
+	StorageEngine
 
 	StoreMasterSecret(ctx context.Context, tr Transaction, s Seqno, ms MasterSecret) error
 	LookupMasterSecrets(ctx context.Context, tr Transaction, s []Seqno) (map[Seqno]MasterSecret, error)
