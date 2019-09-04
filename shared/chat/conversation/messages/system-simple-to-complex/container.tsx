@@ -9,7 +9,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => ({
-  you: state.config.username || '',
+  you: state.config.username,
 })
 
 const mapDispatchToProps = dispatch => ({

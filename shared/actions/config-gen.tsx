@@ -71,14 +71,14 @@ type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}
 type _CheckForUpdatePayload = void
 type _CopyToClipboardPayload = {readonly text: string}
-type _DaemonErrorPayload = {readonly daemonError: Error | null}
+type _DaemonErrorPayload = {readonly daemonError?: Error}
 type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = {readonly firstTimeConnecting: boolean; readonly version: number}
 type _DaemonHandshakeWaitPayload = {
   readonly name: string
   readonly version: number
   readonly increment: boolean
-  readonly failedReason?: string | null
+  readonly failedReason?: string
   readonly failedFatal?: true
 }
 type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
@@ -88,7 +88,7 @@ type _FollowerInfoUpdatedPayload = {
   readonly followers: Array<string>
   readonly followees: Array<string>
 }
-type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
+type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
@@ -122,11 +122,11 @@ type _SetNotifySoundPayload = {readonly notifySound: boolean}
 type _SetOpenAtLoginPayload = {readonly openAtLogin: boolean}
 type _SetStartupDetailsPayload = {
   readonly startupWasFromPush: boolean
-  readonly startupConversation: ChatTypes.ConversationIDKey | null
+  readonly startupConversation?: ChatTypes.ConversationIDKey
   readonly startupLink: string
-  readonly startupTab: Tabs.Tab | null
+  readonly startupTab?: Tabs.Tab
   readonly startupFollowUser: string
-  readonly startupSharePath: FsTypes.LocalPath | null
+  readonly startupSharePath?: FsTypes.LocalPath
 }
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
@@ -267,7 +267,7 @@ export const createCopyToClipboard = (payload: _CopyToClipboardPayload): CopyToC
   payload,
   type: copyToClipboard,
 })
-export const createDaemonError = (payload: _DaemonErrorPayload): DaemonErrorPayload => ({
+export const createDaemonError = (payload: _DaemonErrorPayload = Object.freeze({})): DaemonErrorPayload => ({
   payload,
   type: daemonError,
 })
@@ -275,7 +275,7 @@ export const createDumpLogs = (payload: _DumpLogsPayload): DumpLogsPayload => ({
 export const createFollowerInfoUpdated = (
   payload: _FollowerInfoUpdatedPayload
 ): FollowerInfoUpdatedPayload => ({payload, type: followerInfoUpdated})
-export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayload => ({
+export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({})): GlobalErrorPayload => ({
   payload,
   type: globalError,
 })

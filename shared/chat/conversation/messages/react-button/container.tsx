@@ -69,7 +69,7 @@ const noEmoji = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const me = state.config.username || ''
+  const me = state.config.username
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || !Constants.isDecoratedMessage(message)) {
     return noEmoji

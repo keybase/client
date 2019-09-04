@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import logger from '../logger'
 import {IconType, Props, DisallowedStyles, SizeType} from './icon'
 import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
-import {iconMeta} from './icon.constants'
+import {iconMeta} from './icon.constants-gen'
 
 const Kb = {
   NativeImage,

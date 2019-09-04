@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner, InfoIcon} from '../common'
 
 type Props = {
@@ -29,7 +30,15 @@ const EnterDevicename = (props: Props) => {
         fullWidth={true}
         style={Styles.globalStyles.flexOne}
       >
-        <Kb.Icon type={Styles.isMobile ? 'icon-phone-background-1-96' : 'icon-computer-background-1-96'} />
+        <Kb.Icon
+          type={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-phone-background-1-96'
+                : 'icon-phone-background-1-64'
+              : 'icon-computer-background-1-96'
+          }
+        />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
           <Kb.NewInput
             autoFocus={true}

@@ -35,6 +35,7 @@ const generateTeamSofar = (count: number) => {
 }
 
 const commonProps = {
+  focusInputCounter: 0,
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
@@ -51,6 +52,7 @@ const contactProps = {
 }
 
 const eventHandlers = {
+  incFocusInputCounter: Sb.action('incFocusInputCounter'),
   onBackspace: Sb.action('onBackspace'),
   onChangeService: Sb.action('onChangeService'),
   onChangeText: Sb.action('onChangeText'),
@@ -566,6 +568,7 @@ const load = () => {
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         focusOnMount={true}
+        focusCounter={0}
       />
     ))
     .add('TeamBox', () => (

@@ -4,7 +4,7 @@ import Box from './box'
 import Icon, {IconType} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
-import {iconMeta} from './icon.constants'
+import {iconMeta} from './icon.constants-gen'
 
 const commonProps = {
   hint: 'hint text',

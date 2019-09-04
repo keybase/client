@@ -1,6 +1,5 @@
-import * as I from 'immutable'
 import * as Types from './types/push'
-import * as ChatConstants from './chat2'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as ChatTypes from './types/chat2'
 import {isIOS} from './platform'
 import {isDevApplePushToken} from '../local-debug'
@@ -10,23 +9,33 @@ export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 
 export const androidSenderID = '9603251415'
 export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
 
-export const makeInitialState = I.Record<Types._State>({
-  hasPermissions: true,
-  showPushPrompt: false,
-  token: '',
-})
+const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersType | undefined => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.ConversationMembersType.kbfs:
+      return RPCChatTypes.ConversationMembersType.kbfs
+    case RPCChatTypes.ConversationMembersType.team:
+      return RPCChatTypes.ConversationMembersType.team
+    case RPCChatTypes.ConversationMembersType.impteamnative:
+      return RPCChatTypes.ConversationMembersType.impteamnative
+    case RPCChatTypes.ConversationMembersType.impteamupgrade:
+      return RPCChatTypes.ConversationMembersType.impteamupgrade
+    default:
+      return undefined
+  }
+}
 
-export const normalizePush = (n: any): Types.PushNotification | null => {
+export const normalizePush = (n: any): Types.PushNotification | undefined => {
   try {
     if (!n) {
-      return null
+      return undefined
     }
 
     const userInteraction = !!n.userInteraction
     const data = isIOS ? n.data || n._data : n
 
     if (!data) {
-      return null
+      return undefined
     }
 
     if (data.type === 'chat.readmessage') {
@@ -38,13 +47,13 @@ export const normalizePush = (n: any): Types.PushNotification | null => {
     } else if (data.type === 'chat.newmessage' && data.convID) {
       return {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
-        membersType: ChatConstants.anyToConversationMembersType(data.t),
+        membersType: anyToConversationMembersType(data.t),
         type: 'chat.newmessage',
         unboxPayload: n.m || '',
         userInteraction,
       }
     } else if (data.type === 'chat.newmessageSilent_2' && data.c) {
-      const membersType = ChatConstants.anyToConversationMembersType(data.t)
+      const membersType = anyToConversationMembersType(data.t)
       if (membersType) {
         return {
           conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
@@ -66,9 +75,9 @@ export const normalizePush = (n: any): Types.PushNotification | null => {
       }
     }
 
-    return null
+    return undefined
   } catch (e) {
     logger.error('Error handling push', e)
-    return null
+    return undefined
   }
 }

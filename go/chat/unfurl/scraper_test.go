@@ -383,6 +383,10 @@ func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key typ
 	return t.coords
 }
 
+func (t *testingLiveLocationTracker) GetEndTime(ctx context.Context, key types.LiveLocationKey) *time.Time {
+	return nil
+}
+
 func (t *testingLiveLocationTracker) ActivelyTracking(ctx context.Context) bool {
 	return false
 }
