@@ -16,10 +16,10 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onDismiss: () => {
-    dispatch(ConfigGen.createGlobalError({globalError: null}))
+    dispatch(ConfigGen.createGlobalError({}))
   },
   onFeedback: (loggedIn: boolean) => {
-    dispatch(ConfigGen.createGlobalError({globalError: null}))
+    dispatch(ConfigGen.createGlobalError({}))
     if (loggedIn) {
       dispatch(RouteTreeGen.createClearModals())
       dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))

@@ -71,6 +71,10 @@ class RemoteStore {
     this._gotPropsCallback = props.gotPropsCallback
     this._registerForRemoteUpdate()
 
+    if (__DEV__) {
+      global.DEBUGStore = this._store
+    }
+
     // Search for the main window and ask it directly for our props
     mainWindowDispatch(
       ConfigGen.createRemoteWindowWantsProps({

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../../styles'
-import {IconType} from '../icon.constants'
+import {IconType} from '../icon.constants-gen'
 export type Action = {
   custom?: React.ReactNode
   label?: string // TODO: make this required after updates are fully integrated,

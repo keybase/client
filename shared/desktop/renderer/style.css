@@ -353,7 +353,7 @@ body {
   background: #191919;
 }
 .darkMode .emoji-mart-search input {
-  background-color: #000;
+  background-color: #191919;
   border: 1px solid #101010;
   color: rgba(255, 255, 255, 0.85);
 }

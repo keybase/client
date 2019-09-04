@@ -2,7 +2,7 @@ import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
 import {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
 import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
-import {IconType} from './icon.constants'
+import {IconType} from './icon.constants-gen'
 import {WebViewProps, WebViewInjections} from './web-view'
 
 export const NavigationEvents = _NavigationEvents

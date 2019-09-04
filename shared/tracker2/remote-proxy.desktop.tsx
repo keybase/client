@@ -3,7 +3,7 @@
 // RemoteTracker is a single tracker popup
 import * as React from 'react'
 import * as Constants from '../constants/tracker2'
-
+import * as ConfigConstants from '../constants/config'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
@@ -33,7 +33,11 @@ const trackerMapStateToProps = (state, ownProps) => {
     loggedIn: state.config.loggedIn,
     reason: d.reason,
     registeredForAirdrop: d.registeredForAirdrop,
-    remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['tracker2', ownProps.username], -1),
+    remoteWindowNeedsProps: ConfigConstants.getRemoteWindowPropsCount(
+      state.config,
+      'tracker2',
+      ownProps.username
+    ),
     state: d.state,
     teamShowcase: d.teamShowcase,
     waiting: Container.anyWaiting(state, Constants.waitingKey),

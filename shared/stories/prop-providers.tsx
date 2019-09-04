@@ -173,11 +173,12 @@ export const createStoreWithCommon = () => {
   const root = rootReducer(undefined, {type: 'ignore'})
   return {
     ...root,
-    config: root.config.merge({
-      followers: I.Set(['max', 'akalin', 'followers', 'both']),
-      following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
+    config: {
+      ...root.config,
+      followers: new Set(['max', 'akalin', 'followers', 'both']),
+      following: new Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
-    }),
+    },
     fs: root.fs
       .update('sfmi', sfmi =>
         sfmi.merge({

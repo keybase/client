@@ -272,11 +272,11 @@ function* setupNetInfoWatcher() {
 // TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
-  let startupConversation = null
+  let startupConversation = undefined
   let startupFollowUser = ''
   let startupLink = ''
-  let startupTab = null
-  let startupSharePath = null
+  let startupTab = undefined
+  let startupSharePath = undefined
 
   const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
@@ -310,12 +310,12 @@ function* loadStartupDetails() {
     try {
       const item = JSON.parse(routeState)
       if (item) {
-        startupConversation = item.param && item.param.selectedConversationIDKey
-        startupTab = item.routeName
+        startupConversation = (item.param && item.param.selectedConversationIDKey) || undefined
+        startupTab = item.routeName || undefined
       }
     } catch (_) {
-      startupConversation = null
-      startupTab = null
+      startupConversation = undefined
+      startupTab = undefined
     }
   }
 

@@ -16,7 +16,7 @@ const commands = {
   },
   'update-icon-constants': {
     code: updateIconConstants,
-    help: 'Update icon.constants.js and icon.css with new/removed files',
+    help: 'Update icon.constants-gen.tsx and icon.css with new/removed files',
   },
   'unused-assets': {
     code: unusedAssetes,
@@ -30,7 +30,7 @@ const paths = {
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
   webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
-  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.tsx'),
+  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.tsx'),
   iconCss: path.resolve(__dirname, '../../common-adapters/icon.css'),
 }
 
@@ -439,7 +439,7 @@ function unusedAssetes() {
   })
 
   Object.keys(images).forEach(image => {
-    const command = `ag --ignore "./common-adapters/icon.constants.js" "${image}"`
+    const command = `ag --ignore "./common-adapters/icon.constants-gen.tsx" "${image}"`
     try {
       execSync(command, {encoding: 'utf8', env: process.env})
     } catch (e) {
