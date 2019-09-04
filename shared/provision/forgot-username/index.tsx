@@ -113,7 +113,7 @@ ForgotUsername.navigationOptions = {
   headerLeft: null, // no back button
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   emailInput: Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
@@ -137,6 +137,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 export default ForgotUsername
