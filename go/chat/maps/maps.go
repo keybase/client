@@ -59,8 +59,7 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 	if err != nil {
 		return "", err
 	}
-	var pathStr, startStr, centerStr string
-	first := coords[0]
+	var pathStr, centerStr string
 	last := coords[len(coords)-1]
 	if len(coords) > 1 {
 		pathStr = "path=color:0xff0000ff|weight:3"
@@ -68,13 +67,12 @@ func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource,
 			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
 		}
 		pathStr += "&"
-		startStr = fmt.Sprintf("markers=color:green%%7Csize:tiny%%7C%f,%f&", first.Lat, first.Lon)
 	} else {
 		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
 	}
 	url := fmt.Sprintf(
-		"https://%s/maps/api/staticmap?%s%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
-		MapsProxy, centerStr, startStr, pathStr, last.Lat, last.Lon, liveMapWidthScaled,
+		"https://%s/maps/api/staticmap?%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
+		MapsProxy, centerStr, pathStr, last.Lat, last.Lon, liveMapWidthScaled,
 		liveMapHeightScaled, scale, key.Googlemaps())
 	return url, nil
 }

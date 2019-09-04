@@ -80,27 +80,45 @@ const LocationPopup = (props: Props) => {
             <Kb.Button
               fullWidth={true}
               onClick={() => onLocationShare('15m')}
-              label="Share location for 15 minutes"
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-            />
+            >
+              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+                <Kb.Text type="BodySemibold" style={styles.liveButtonText}>
+                  Share location for 15 minutes
+                </Kb.Text>
+                <Kb.Text type="BodyTiny">Live location</Kb.Text>
+              </Kb.Box2>
+            </Kb.Button>
             <Kb.Button
               fullWidth={true}
               onClick={() => onLocationShare('1h')}
-              label="Share location for 1 hour"
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-            />
+            >
+              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+                <Kb.Text type="BodySemibold" style={styles.liveButtonText}>
+                  Share location for 1 hour
+                </Kb.Text>
+                <Kb.Text type="BodyTiny">Live location</Kb.Text>
+              </Kb.Box2>
+            </Kb.Button>
             <Kb.Button
               fullWidth={true}
               onClick={() => onLocationShare('8h')}
-              label="Share location for 8 hours"
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-            />
+            >
+              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+                <Kb.Text type="BodySemibold" style={styles.liveButtonText}>
+                  Share location for 8 hours
+                </Kb.Text>
+                <Kb.Text type="BodyTiny">Live location</Kb.Text>
+              </Kb.Box2>
+            </Kb.Button>
             <Kb.Divider />
             <Kb.Button
               fullWidth={true}
@@ -131,10 +149,12 @@ const LocationPopup = (props: Props) => {
 const styles = Styles.styleSheetCreate(() => ({
   accuracy: {
     color: Styles.globalColors.white_75,
-    lineHeight: 14,
   },
   liveButton: {
     height: 53,
+  },
+  liveButtonText: {
+    color: Styles.globalColors.blueDark,
   },
 }))
 
