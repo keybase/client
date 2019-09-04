@@ -24,6 +24,8 @@ type ChatCLINotifications struct {
 	lastAttachmentPercent int
 }
 
+var _ chat1.NotifyChatInterface = (*ChatCLINotifications)(nil)
+
 func NewChatCLINotifications(g *libkb.GlobalContext) *ChatCLINotifications {
 	return &ChatCLINotifications{
 		Contextified: libkb.NewContextified(g),
@@ -63,12 +65,16 @@ type ChatCLIUI struct {
 	// duplicate output.
 	noThreadSearch                          bool
 	lastAttachmentPercent, lastIndexPercent int
+	sessionID                               int
 }
+
+var _ chat1.ChatUiInterface = (*ChatCLIUI)(nil)
 
 func NewChatCLIUI(g *libkb.GlobalContext) *ChatCLIUI {
 	return &ChatCLIUI{
 		Contextified: libkb.NewContextified(g),
 		terminal:     g.UI.GetTerminalUI(),
+		sessionID:    randSessionID(),
 	}
 }
 
