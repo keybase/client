@@ -32,8 +32,8 @@ type State = {
 
 class CodePage2 extends React.Component<Props, State> {
   static navigationOptions = {
+    header: null,
     headerLeft: null,
-    headerMode: Styles.isMobile ? 'none' : undefined,
   }
   constructor(props: Props) {
     super(props)
@@ -127,13 +127,13 @@ class CodePage2 extends React.Component<Props, State> {
         )}
         {!!this.props.error && <ErrorBanner error={this.props.error} />}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
-          <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          <Kb.Box2 direction="vertical" fullHeight={true} style={Styles.globalStyles.flexGrow}>
             <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
               <Instructions {...this.props} />
               {content}
               <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
             </Kb.Box2>
-          </Kb.ScrollView>
+          </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -483,18 +483,6 @@ const styles = Styles.styleSheetCreate(
       scrollContainer: {
         flexGrow: 1,
         position: 'relative',
-      },
-      scrollContent: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          flexGrow: 1,
-          height: '100%',
-        },
-      }),
-      scrollView: {
-        // want the scroll contents to be the full height
-        ...Styles.globalStyles.fillAbsolute,
-        ...Styles.globalStyles.flexBoxColumn,
       },
       switchTab: {
         marginBottom: 4,
