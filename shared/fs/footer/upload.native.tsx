@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {globalStyles, globalColors, platformStyles} from '../../styles'
-import {Button, Text, Box} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
 
@@ -122,28 +122,28 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     const {files, totalSyncingBytes, timeLeft, debugToggleShow} = this.props
     return (
       <>
-        {!!debugToggleShow && <Button onClick={debugToggleShow} label="Toggle" />}
+        {!!debugToggleShow && <Kb.Button onClick={debugToggleShow} label="Toggle" />}
         {this.state.showing && (
           <NativeAnimated.View style={{position: 'relative', top: this.state.uploadTop}}>
-            <Box style={stylesBackgroundBox}>
+            <Kb.Box style={styles.backgroundBox}>
               <NativeAnimated.Image
                 resizeMode="repeat"
                 source={patternRequire}
-                style={{...stylesBackgroundImage, marginTop: this.state.backgroundTop}}
+                style={{...styles.backgroundImage, marginTop: this.state.backgroundTop}}
               />
-            </Box>
-            <Box style={stylesBox}>
-              <Text key="files" type="BodySmallSemibold" style={stylesText}>
+            </Kb.Box>
+            <Kb.Box style={styles.box}>
+              <Kb.Text key="files" type="BodySmallSemibold" style={styles.text}>
                 {files
                   ? `Encrypting and uploading ${files} files...`
                   : totalSyncingBytes
                   ? 'Encrypting and uploading...'
                   : 'Done!'}
-              </Text>
+              </Kb.Text>
               {!!(timeLeft && timeLeft.length) && (
-                <Text key="left" type="BodyTiny" style={stylesText}>{`${timeLeft} left`}</Text>
+                <Kb.Text key="left" type="BodyTiny" style={styles.text}>{`${timeLeft} left`}</Kb.Text>
               )}
-            </Box>
+            </Kb.Box>
           </NativeAnimated.View>
         )}
       </>
@@ -151,34 +151,33 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 }
 
-const stylesBackgroundBox = platformStyles({
-  common: {
+const styles = Styles.styleSheetCreate(() => ({
+  backgroundBox: Styles.platformStyles({
+    common: {
+      height: 48,
+      width: '100%',
+    },
+    isAndroid: {
+      zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
+    },
+    isIOS: {
+      overflow: 'hidden',
+    },
+  }),
+  backgroundImage: {
+    height: 160,
+    width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
+  },
+  box: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
     height: 48,
-    width: '100%',
+    justifyContent: 'center',
+    marginTop: -48,
   },
-  isAndroid: {
-    zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
+  text: {
+    color: Styles.globalColors.white,
   },
-  isIOS: {
-    overflow: 'hidden',
-  },
-})
-
-const stylesBackgroundImage = {
-  height: 160,
-  width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
-}
-
-const stylesText = {
-  color: globalColors.white,
-}
-
-const stylesBox = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  height: 48,
-  justifyContent: 'center',
-  marginTop: -48,
-}
+}))
 
 export default Upload
