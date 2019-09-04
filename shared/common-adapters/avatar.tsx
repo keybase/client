@@ -96,7 +96,7 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
 
 const ConnectedAvatar = Container.connect(
   (state, ownProps: OwnProps) => ({
-    _counter: state.config.avatarRefreshCounter.get(ownProps.username || ownProps.teamname || '', 0),
+    _counter: state.config.avatarRefreshCounter.get(ownProps.username || ownProps.teamname || '') || 0,
     _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _httpSrvAddress: state.config.httpSrvAddress,

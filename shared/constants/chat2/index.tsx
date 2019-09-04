@@ -348,22 +348,6 @@ export const makeInboxQuery = (
   }
 }
 
-export const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersType | null => {
-  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
-  switch (membersTypeNumber) {
-    case RPCChatTypes.ConversationMembersType.kbfs:
-      return RPCChatTypes.ConversationMembersType.kbfs
-    case RPCChatTypes.ConversationMembersType.team:
-      return RPCChatTypes.ConversationMembersType.team
-    case RPCChatTypes.ConversationMembersType.impteamnative:
-      return RPCChatTypes.ConversationMembersType.impteamnative
-    case RPCChatTypes.ConversationMembersType.impteamupgrade:
-      return RPCChatTypes.ConversationMembersType.impteamupgrade
-    default:
-      return null
-  }
-}
-
 export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
 export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 

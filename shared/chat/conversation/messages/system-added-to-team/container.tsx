@@ -18,7 +18,7 @@ const mapStateToProps = (state, ownProps) => {
     isAdmin: isAdmin(getRole(state, teamname)),
     teamname,
     timestamp: ownProps.message.timestamp,
-    you: state.config.username || '',
+    you: state.config.username,
   }
 }
 
