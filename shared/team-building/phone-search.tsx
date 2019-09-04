@@ -86,6 +86,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             key={phoneInputKey}
             autoFocus={true}
             onChangeNumber={onChangeNumberCb}
+            onEnterKeyDown={_onContinue}
           />
           {state === 'resolved' && !!user && (
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
