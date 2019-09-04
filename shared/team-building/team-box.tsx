@@ -7,6 +7,7 @@ import * as Container from '../util/container'
 import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
+import {formatPhoneNumber} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
 
 type Props = {
@@ -28,9 +29,11 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   switch (u.service) {
     case 'keybase':
     case 'contact': // do not display "michal@keyba.se on email" or similar
-    case 'phone':
     case 'email':
       technicalName = u.username
+      break
+    case 'phone':
+      technicalName = formatPhoneNumber(u.username)
       break
     default:
       technicalName = `${u.username} on ${u.service}`
