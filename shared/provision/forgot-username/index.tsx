@@ -1,93 +1,142 @@
-// TODO remove Container
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Container from '../../login/forms/container'
-import * as Constants from '../../constants/provision'
+import PhoneInput from '../../signup/phone-number/phone-input'
+import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   forgotUsernameResult: string
   onBack: () => void
-  onSubmit: (email: string) => void
+  onSubmit: (email: string, phone: string) => void
+  waiting: boolean
 }
 
-type State = {
-  email: string
-}
+const ForgotUsername = (props: Props) => {
+  const [emailSelected, _setEmailSelected] = React.useState(true)
+  const [phoneSelected, _setPhoneSelected] = React.useState(false)
+  const setEmailSelected = React.useCallback(
+    (newState: boolean) => {
+      _setEmailSelected(newState)
+      _setPhoneSelected(!newState)
+    },
+    [_setEmailSelected, _setPhoneSelected]
+  )
+  const setPhoneSelected = React.useCallback(
+    (newState: boolean) => {
+      _setEmailSelected(!newState)
+      _setPhoneSelected(newState)
+    },
+    [_setEmailSelected, _setPhoneSelected]
+  )
 
-class ForgotUsername extends React.Component<Props, State> {
-  state = {email: ''}
+  const [email, setEmail] = React.useState('')
+  const [phoneNumber, setPhoneNumber] = React.useState<string | null>(null)
+  const {onSubmit} = props
+  const _onSubmit = React.useCallback(() => {
+    if (phoneSelected && phoneNumber) {
+      onSubmit('', phoneNumber)
+    } else if (emailSelected) {
+      onSubmit(email, '')
+    }
+  }, [onSubmit, email, phoneNumber])
 
-  render() {
-    return (
-      <Container style={styles.container} outerStyle={styles.outerStyle} onBack={() => this.props.onBack()}>
-        <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
-          <Kb.Input
+  const error = props.forgotUsernameResult !== 'success' ? props.forgotUsernameResult : ''
+  const disabled = (phoneSelected && phoneNumber === null) || (emailSelected && !email)
+
+  return (
+    <SignupScreen
+      banners={[
+        ...errorBanner(error),
+        ...(props.forgotUsernameResult === 'success'
+          ? [
+              <Kb.Banner color="blue">
+                <Kb.BannerParagraph
+                  bannerColor="blue"
+                  content="A message with your username has been sent."
+                />
+              </Kb.Banner>,
+            ]
+          : []),
+      ]}
+      buttons={[
+        {
+          disabled,
+          label: 'Recover username',
+          onClick: _onSubmit,
+          type: 'Default',
+          waiting: props.waiting,
+        },
+      ]}
+      onBack={props.onBack}
+      title="Recover username"
+    >
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.wrapper}>
+        <Kb.RadioButton label="Recover with email" onSelect={setEmailSelected} selected={emailSelected} />
+        {emailSelected && (
+          <Kb.LabeledInput
             autoFocus={true}
-            style={styles.input}
-            hintText="Email"
-            errorText={this.props.forgotUsernameResult !== 'success' ? this.props.forgotUsernameResult : ''}
-            onEnterKeyDown={() => this.props.onSubmit(this.state.email)}
-            onChangeText={email => this.setState({email})}
-            value={this.state.email}
+            style={styles.emailInput}
+            placeholder="Email address"
+            onEnterKeyDown={_onSubmit}
+            onChangeText={setEmail}
+            value={email}
           />
-          <Kb.WaitingButton
-            label={
-              this.props.forgotUsernameResult === 'success'
-                ? 'Username reminder emailed!'
-                : 'Email a username reminder'
-            }
-            fullWidth={true}
-            style={styles.button}
-            onClick={() => this.props.onSubmit(this.state.email)}
-            disabled={!this.state.email || this.props.forgotUsernameResult === 'success'}
-            waitingKey={Constants.forgotUsernameWaitingKey}
+        )}
+        <Kb.RadioButton
+          label="Recover with phone number"
+          onSelect={setPhoneSelected}
+          selected={phoneSelected}
+        />
+        {phoneSelected && (
+          <PhoneInput
+            autoFocus={true}
+            onChangeNumber={(phoneNumber, valid) => {
+              if (!valid) {
+                setPhoneNumber(null)
+                return
+              }
+
+              setPhoneNumber(phoneNumber)
+            }}
+            onEnterKeyDown={_onSubmit}
+            style={styles.phoneInput}
           />
-        </Kb.UserCard>
-      </Container>
-    )
-  }
+        )}
+      </Kb.Box2>
+    </SignupScreen>
+  )
+}
+
+ForgotUsername.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
 }
 
 const styles = Styles.styleSheetCreate({
-  button: Styles.platformStyles({
-    common: {
-      alignSelf: 'center',
-      width: '100%',
-    },
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-  }),
-  card: {
-    alignItems: 'stretch',
-  },
-  container: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-    isElectron: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  }),
-  error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
-  errorLink: {
-    color: Styles.globalColors.redDark,
-    textDecorationLine: 'underline',
-  },
-  input: Styles.platformStyles({
+  emailInput: Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
-      marginBottom: Styles.globalMargins.small,
     },
   }),
-  outerCard: {
-    marginTop: 40,
-  },
-  outerStyle: {
-    backgroundColor: Styles.globalColors.white,
-  },
+  phoneInput: Styles.platformStyles({
+    isElectron: {
+      height: 38,
+      width: '100%',
+    },
+    isMobile: {
+      height: 48,
+      width: '100%',
+    },
+  }),
+  wrapper: Styles.platformStyles({
+    isElectron: {
+      width: 400,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
 })
 
 export default ForgotUsername
