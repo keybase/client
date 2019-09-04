@@ -74,7 +74,12 @@ const TeamBox = (props: Props) => {
   )
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false} ref={scrollViewRef}>
+      <Kb.ScrollView
+        horizontal={true}
+        alwaysBounceHorizontal={false}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+      >
         <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
         {addMorePrompt}
       </Kb.ScrollView>
@@ -87,6 +92,7 @@ const TeamBox = (props: Props) => {
           ref={scrollViewRef}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
         >
           <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
@@ -129,8 +135,6 @@ const styles = Styles.styleSheetCreate(() => ({
   bubbles: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
     },
   }),
   container: Styles.platformStyles({
@@ -146,6 +150,14 @@ const styles = Styles.styleSheetCreate(() => ({
       borderBottomWidth: 1,
       borderStyle: 'solid',
       minHeight: 90,
+    },
+  }),
+  scrollContent: Styles.platformStyles({
+    isElectron: {
+      paddingBottom: Styles.globalMargins.xsmall,
+      paddingTop: Styles.globalMargins.xsmall,
+    },
+    isMobile: {
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },

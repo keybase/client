@@ -234,7 +234,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   body: {
     ...Styles.padding(
-      Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
+      Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
       Styles.globalMargins.small
     ),
     flex: 1,
