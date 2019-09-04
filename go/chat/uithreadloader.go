@@ -58,8 +58,7 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 		}
 		grouped = nil
 	}
-	for i := len(msgs) - 1; i >= 0; i-- {
-		msg := msgs[i]
+	for _, msg := range msgs {
 		if msg.IsValid() {
 			if matches(msg, grouped) {
 				grouped = append(grouped, msg)
@@ -90,8 +89,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 				return false
 			}
 			for _, g := range grouped {
-				if msg.GetMessageType() == g.GetMessageType() &&
-					g.Valid().SenderUsername == msg.Valid().SenderUsername {
+				if g.Valid().SenderUsername == msg.Valid().SenderUsername {
 					return false
 				}
 			}
