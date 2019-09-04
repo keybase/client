@@ -30,6 +30,8 @@ import {isMobile} from '../constants/platform'
 import Flags from '../util/feature-flags'
 
 type OwnProps = {
+  incFocusInputCounter: () => void
+  focusInputCounter: number
   namespace: AllowedNamespace
   teamname?: string
   searchString: string
@@ -46,6 +48,7 @@ type OwnProps = {
 }
 
 type LocalState = {
+  focusInputCounter: number
   searchString: string
   selectedService: ServiceIdWithContact
   highlightedIndex: number
@@ -53,6 +56,7 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
+  focusInputCounter: 0,
   highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
@@ -288,7 +292,9 @@ const deriveOnSearchForMore = memoizeShallow(
 )
 
 const deriveOnAdd = memoize(
-  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex) => (userId: string) => {
+  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex, incFocusInputCounter) => (
+    userId: string
+  ) => {
     const user = userFromUserId(userId)
     if (!user) {
       logger.error(`Couldn't find User to add for ${userId}`)
@@ -298,6 +304,7 @@ const deriveOnAdd = memoize(
     changeText('')
     dispatchOnAdd(user)
     resetHighlightIndex(true)
+    incFocusInputCounter()
   }
 )
 
@@ -486,7 +493,8 @@ const mergeProps = (
     userFromUserId,
     dispatchProps._onAdd,
     ownProps.onChangeText,
-    ownProps.resetHighlightIndex
+    ownProps.resetHighlightIndex,
+    ownProps.incFocusInputCounter
   )
 
   const rolePickerProps: RolePickerProps | null =
@@ -562,6 +570,7 @@ const mergeProps = (
     ...headerHocProps,
     ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
+    focusInputCounter: ownProps.focusInputCounter,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
@@ -636,6 +645,8 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
   resetHighlightIndex = (resetToHidden?: boolean) =>
     this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
 
+  _incFocusInputCounter = () => this.setState(s => ({focusInputCounter: s.focusInputCounter + 1}))
+
   render() {
     return (
       <Connected
@@ -652,6 +663,8 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         changeShowRolePicker={this.changeShowRolePicker}
         showRolePicker={this.state.showRolePicker}
         showServiceResultCount={false}
+        focusInputCounter={this.state.focusInputCounter}
+        incFocusInputCounter={this._incFocusInputCounter}
       />
     )
   }

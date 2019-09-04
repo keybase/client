@@ -80,7 +80,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
 
   _text = () => (this.props.valueControlled ? this.props.value : this.state.text)
-  _focus = () => {
+  focus = () => {
     if (this.state.focused) {
       return
     }
@@ -105,7 +105,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   _mouseOver = () => this.setState({hover: true})
   _mouseLeave = () => this.setState({hover: false})
   _onHotkey = cmd => {
-    this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this._focus()
+    this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this.focus()
   }
   _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
     e.key === 'Escape' && !isComposingIME && this._cancel(e)
@@ -113,7 +113,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   _typing = () => this.state.focused || !!this._text()
   // RN fails at tracking this keyboard if we don't delay this, making it get stuck open.
-  _focusOnMount = () => setTimeout(() => this._mounted && this._focus(), 20)
+  _focusOnMount = () => setTimeout(() => this._mounted && this.focus(), 20)
   componentDidMount() {
     this._mounted = true
     this.props.focusOnMount && this._focusOnMount()
@@ -246,7 +246,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           this.props.onClick ||
           // On mobile we can't just make a null for Kb.ClickableBox here when
           // focused, as that'd cause PlainInput to be re-constructed.
-          (Styles.isMobile || !this.state.focused ? this._focus : undefined)
+          (Styles.isMobile || !this.state.focused ? this.focus : undefined)
         }
         underlayColor={Styles.globalColors.transparent}
         hoverColor={Styles.globalColors.transparent}
