@@ -24,23 +24,31 @@ type Props = {
   textCode: string
   onBack: () => void
   onSubmitTextCode: (code: string) => void
+  setHeaderBackgroundColor: (color: string) => void
 }
 
 type State = {
+  code: string
   tab: Tab
 }
 
 class CodePage2 extends React.Component<Props, State> {
-  static navigationOptions = {
+  static navigationOptions = ({navigation}) => ({
     header: null,
     headerBottomStyle: {height: undefined},
     headerLeft: null,
-  }
+    headerStyle: navigation.getParam('headerStyle'),
+  })
   constructor(props: Props) {
     super(props)
     this.state = {
+      code: '',
       tab: (__STORYBOOK__ && this.props.tabOverride) || this._defaultTab(this.props),
     }
+  }
+
+  componentDidMount() {
+    this.props.setHeaderBackgroundColor(this._tabBackground())
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -78,8 +86,24 @@ class CodePage2 extends React.Component<Props, State> {
   }
 
   _tabBackground = () => (this.state.tab === 'QR' ? Styles.globalColors.blueLight : Styles.globalColors.green)
+  _buttonBackground = () => (this.state.tab === 'QR' ? 'blue' : 'green')
 
-  _header = () => {}
+  _setCode = (code: string) => this.setState(s => (s.code === code ? null : {code}))
+  _onSubmitTextCode = () => this.props.onSubmitTextCode(this.state.code)
+
+  _header = () => {
+    return Styles.isMobile
+      ? {
+          hideBorder: true,
+          leftButton: (
+            <Kb.Text type="BodyBig" onClick={this.props.onBack} negative={true}>
+              {this.props.currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
+            </Kb.Text>
+          ),
+          style: {backgroundColor: this._tabBackground()},
+        }
+      : undefined
+  }
   _body = () => {
     let content: React.ReactNode = null
     switch (this.state.tab) {
@@ -90,7 +114,7 @@ class CodePage2 extends React.Component<Props, State> {
         content = <ViewText {...this.props} />
         break
       case 'enterText':
-        content = <EnterText {...this.props} />
+        content = <EnterText {...this.props} code={this.state.code} setCode={this._setCode} />
         break
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.tab)
@@ -126,45 +150,64 @@ class CodePage2 extends React.Component<Props, State> {
             textStyle={styles.backButtonText}
           />
         )}
-        {!!this.props.error && <ErrorBanner error={this.props.error} />}
+        {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
           <Kb.Box2 direction="vertical" fullHeight={true} style={Styles.globalStyles.flexGrow}>
             <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
               <Instructions {...this.props} />
               {content}
-              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+              {!this._inModal() && this._footer().content}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
     )
   }
-  _footer = () => {}
+  _footer = () => {
+    return {
+      content: (
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          gap={Styles.isMobile ? 'medium' : 'small'}
+          fullWidth={true}
+        >
+          {this.state.tab === 'enterText' && (
+            <Kb.WaitingButton
+              fullWidth={true}
+              backgroundColor={this._buttonBackground()}
+              label="Continue"
+              onClick={this._onSubmitTextCode}
+              disabled={!this.state.code}
+              style={styles.enterTextButton}
+              waitingKey={Constants.waitingKey}
+            />
+          )}
+          {this.state.tab !== 'enterText' && this._inModal() && !Styles.isMobile && (
+            <Kb.WaitingButton
+              fullWidth={true}
+              backgroundColor={this._buttonBackground()}
+              label="Close"
+              onClick={this.props.onBack}
+              onlyDisable={true}
+              waitingKey={Constants.waitingKey}
+            />
+          )}
+          <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+        </Kb.Box2>
+      ),
+      hideBorder: !this._inModal() || this.props.currentDeviceType !== 'desktop',
+      style: {backgroundColor: this._tabBackground()},
+    }
+  }
+  // We're in a modal unless this is a desktop being newly provisioned.
+  _inModal = () => this.props.currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
 
   render() {
     const content = this._body()
-    // We're in a modal unless this is a desktop being newly provisioned.
-    const inModal = this.props.currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
-
-    if (inModal) {
+    if (this._inModal()) {
       return (
-        <Kb.Modal
-          header={
-            Styles.isMobile
-              ? {
-                  leftButton: (
-                    <Kb.Text type="BodyBig" onClick={this.props.onBack} negative={true}>
-                      {this.props.currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
-                    </Kb.Text>
-                  ),
-                  hideBorder: true,
-                  style: {backgroundColor: this._tabBackground()},
-                }
-              : undefined
-          }
-          onClose={this.props.onBack}
-          mode="Wide"
-        >
+        <Kb.Modal header={this._header()} footer={this._footer()} onClose={this.props.onBack} mode="Wide">
           {content}
         </Kb.Modal>
       )
@@ -173,16 +216,7 @@ class CodePage2 extends React.Component<Props, State> {
   }
 }
 
-const ErrorBanner = (props: {error: string}) => (
-  <Kb.Box2 direction="vertical" style={styles.errorContainer}>
-    <Kb.Text center={true} type="Body" style={styles.errorText}>
-      {props.error}
-    </Kb.Text>
-  </Kb.Box2>
-)
-
-const textType = Styles.isMobile ? 'BodyBig' : 'Header'
-const otherTextType = Styles.isMobile ? 'Body' : 'Header'
+const textType = 'BodySemibold'
 
 const SwitchTab = (
   props: {
@@ -232,7 +266,7 @@ const SwitchTab = (
 const Qr = (props: Props) =>
   props.currentDeviceType === 'desktop' ? (
     <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>
-      <QRImage code={props.textCode} cellSize={10} />
+      <QRImage code={props.textCode} cellSize={8} />
     </Kb.Box2>
   ) : (
     <Kb.Box2
@@ -249,8 +283,8 @@ const Qr = (props: Props) =>
     </Kb.Box2>
   )
 
-const EnterText = (props: Props) => {
-  const [code, setCode] = React.useState('')
+const EnterText = (props: Props & {code: string; setCode: (code: string) => void}) => {
+  const {code, setCode} = props
   const {onSubmitTextCode} = props
   const onSubmit = React.useCallback(() => onSubmitTextCode(code), [code, onSubmitTextCode])
   return (
@@ -265,15 +299,6 @@ const EnterText = (props: Props) => {
         textType="Terminal"
         style={styles.enterTextInput}
         value={code}
-      />
-      <Kb.WaitingButton
-        fullWidth={true}
-        backgroundColor="green"
-        label="Submit"
-        onClick={onSubmit}
-        disabled={!code}
-        style={styles.enterTextButton}
-        waitingKey={Constants.waitingKey}
       />
     </Kb.Box2>
   )
@@ -311,27 +336,33 @@ const Instructions = (p: Props) => (
           </Kb.Text>{' '}
           navigate to:
         </Kb.Text>
-        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-          {p.currentDeviceType === 'mobile' && (
+        <Kb.Box2
+          direction="horizontal"
+          centerChildren={true}
+          gap="xtiny"
+          fullWidth={true}
+          style={Styles.globalStyles.flexWrap}
+        >
+          {p.otherDeviceType === 'mobile' && (
             <>
               <Kb.Icon
                 type="iconfont-nav-2-hamburger"
                 color={Styles.globalColors.white}
-                sizeType={Styles.isMobile ? 'Default' : 'Big'}
+                sizeType="Default"
                 style={styles.hamburger}
               />
               <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
             </>
           )}
-          <Kb.Text center={true} type={otherTextType} style={styles.instructions}>
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
             Devices
           </Kb.Text>
           <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
-          <Kb.Text center={true} type={otherTextType} style={styles.instructions}>
-            Add a device
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
+            Add device or paper key
           </Kb.Text>
           <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
-          <Kb.Text center={true} type={otherTextType} style={styles.instructions}>
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
             Add {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}
           </Kb.Text>
         </Kb.Box2>
@@ -345,6 +376,7 @@ const styles = Styles.styleSheetCreate(
     ({
       backButton: Styles.platformStyles({
         isElectron: {
+          marginBottom: Styles.globalMargins.small,
           marginLeft: Styles.globalMargins.medium,
           marginTop: Styles.globalMargins.medium,
           // else the background can go above things, annoyingly
@@ -416,14 +448,6 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
-      errorContainer: {
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.red,
-        marginTop: Styles.globalMargins.small,
-        padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
-        width: '100%',
-      },
-      errorText: {color: Styles.globalColors.white},
       hamburger: Styles.platformStyles({
         isMobile: {
           bottom: 1,

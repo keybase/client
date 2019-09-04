@@ -1,10 +1,11 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Styles from '../../styles'
 import CodePage2, {DeviceType} from '.'
 import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{headerStyle: Styles.StylesCrossPlatform}>
 
 export default Container.connect(
   state => {
@@ -26,7 +27,7 @@ export default Container.connect(
     onSubmitTextCode: (code: string) =>
       dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     currentDeviceAlreadyProvisioned: stateProps.currentDeviceAlreadyProvisioned,
     currentDeviceName: stateProps.currentDeviceName,
     currentDeviceType: stateProps.currentDeviceType as DeviceType,
@@ -35,6 +36,8 @@ export default Container.connect(
     onSubmitTextCode: dispatchProps.onSubmitTextCode,
     otherDeviceName: stateProps.otherDeviceName,
     otherDeviceType: stateProps.otherDeviceType,
+    setHeaderBackgroundColor: (backgroundColor: string) =>
+      ownProps.navigation.setParams({headerStyle: {backgroundColor}}),
     textCode: stateProps.textCode,
   })
 )(Container.safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])(CodePage2))

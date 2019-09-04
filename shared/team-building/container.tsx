@@ -635,7 +635,7 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
   Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname: string | null}>
+type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname: string}>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
@@ -669,7 +669,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
     return (
       <Connected
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
-        teamname={Container.getRouteProps(this.props, 'teamname', null)}
+        teamname={Container.getRouteProps(this.props, 'teamname')}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

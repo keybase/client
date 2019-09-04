@@ -26,6 +26,7 @@ const derivedProps = (
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
+    setHeaderBackgroundColor: Sb.action('setHeaderBackgroundColor'),
     textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
   }
 }
