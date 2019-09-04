@@ -28,14 +28,13 @@ package importers
 import (
 	"errors"
 	"go/ast"
-	"go/build"
-	"go/parser"
 	"go/token"
 	"path"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // References is the result of analyzing a Go file or set of Go packages.
@@ -101,24 +100,19 @@ func AnalyzeFile(file *ast.File, pkgPrefix string) (*References, error) {
 
 // AnalyzePackages scans the provided packages for references to packages with the given
 // package prefix. The list of unique (package, identifier) pairs is returned
-func AnalyzePackages(pkgs []*build.Package, pkgPrefix string) (*References, error) {
+func AnalyzePackages(pkgs []*packages.Package, pkgPrefix string) (*References, error) {
 	visitor := newRefsSaver(pkgPrefix)
 	imp := visitor.importer()
 	fset := token.NewFileSet()
 	for _, pkg := range pkgs {
-		fileNames := append(append([]string{}, pkg.GoFiles...), pkg.CgoFiles...)
 		files := make(map[string]*ast.File)
-		for _, name := range fileNames {
-			f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, name), nil, 0)
-			if err != nil {
-				return nil, err
-			}
-			files[name] = f
+		for i, name := range pkg.GoFiles {
+			files[name] = pkg.Syntax[i]
 		}
 		// Ignore errors (from unknown packages)
 		astpkg, _ := ast.NewPackage(fset, files, imp, nil)
 		ast.Walk(visitor, astpkg)
-		visitor.findEmbeddingStructs(pkg.ImportPath, astpkg)
+		visitor.findEmbeddingStructs(pkg.PkgPath, astpkg)
 	}
 	return visitor.References, nil
 }

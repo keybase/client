@@ -26,26 +26,18 @@ var (
 var cmdInit = &command{
 	run:   runInit,
 	Name:  "init",
-	Usage: "[-ndk dir] [-openal dir]",
-	Short: "install NDK toolchains and build OpenAL for Android",
+	Usage: "[-openal dir]",
+	Short: "build OpenAL for Android",
 	Long: `
-If the -ndk flag is specified or the Android NDK is installed at
-$ANDROID_HOME/ndk-bundle, init will create NDK standalone toolchains
-for Android targets.
-
 If a OpenAL source directory is specified with -openal, init will
 build an Android version of OpenAL for use with gomobile build
 and gomobile install.
 `,
 }
 
-var (
-	initNDK    string // -ndk
-	initOpenAL string // -openal
-)
+var initOpenAL string // -openal
 
 func init() {
-	cmdInit.flag.StringVar(&initNDK, "ndk", "", "Android NDK path")
 	cmdInit.flag.StringVar(&initOpenAL, "openal", "", "OpenAL source path")
 }
 
@@ -91,32 +83,8 @@ func runInit(cmd *command) error {
 	}
 
 	if buildN {
-		initNDK = "$NDK_PATH"
 		initOpenAL = "$OPENAL_PATH"
 	} else {
-		toolsDir := filepath.Join("prebuilt", archNDK(), "bin")
-		// Try the ndk-bundle SDK package package, if installed.
-		if initNDK == "" {
-			if sdkHome := os.Getenv("ANDROID_HOME"); sdkHome != "" {
-				path := filepath.Join(sdkHome, "ndk-bundle")
-				if st, err := os.Stat(filepath.Join(path, toolsDir)); err == nil && st.IsDir() {
-					initNDK = path
-				}
-			}
-		}
-		if initNDK != "" {
-			var err error
-			if initNDK, err = filepath.Abs(initNDK); err != nil {
-				return err
-			}
-			// Check if the platform directory contains a known subdirectory.
-			if _, err := os.Stat(filepath.Join(initNDK, toolsDir)); err != nil {
-				if os.IsNotExist(err) {
-					return fmt.Errorf("%q does not point to an Android NDK.", initNDK)
-				}
-				return err
-			}
-		}
 		if initOpenAL != "" {
 			var err error
 			if initOpenAL, err = filepath.Abs(initOpenAL); err != nil {
@@ -130,10 +98,6 @@ func runInit(cmd *command) error {
 
 	start := time.Now()
 
-	if err := installNDKToolchains(gomobilepath); err != nil {
-		return err
-	}
-
 	if err := installOpenAL(gomobilepath); err != nil {
 		return err
 	}
@@ -145,36 +109,13 @@ func runInit(cmd *command) error {
 	return nil
 }
 
-func installNDKToolchains(gomobilepath string) error {
-	if initNDK == "" {
-		return nil
-	}
-	toolsDir := filepath.Join(initNDK, "prebuilt", archNDK(), "bin")
-	py27 := filepath.Join(toolsDir, "python2.7")
-	for _, arch := range allArchs {
-		t := ndk[arch]
-		// Split android-XX to get the api version.
-		platform := strings.SplitN(t.platform, "-", 2)
-		api := platform[1]
-		cmd := exec.Command(py27,
-			"build/tools/make_standalone_toolchain.py",
-			"--arch="+t.arch,
-			"--api="+api,
-			"--install-dir="+filepath.Join(gomobilepath, "ndk-toolchains", t.arch))
-		cmd.Dir = initNDK
-		if err := runCmd(cmd); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func installOpenAL(gomobilepath string) error {
 	if initOpenAL == "" {
 		return nil
 	}
-	if !hasNDK() {
-		return errors.New("The Android NDK is needed to build OpenAL but it was not found. Please run gomobile init with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.")
+	ndkRoot, err := ndkRoot()
+	if err != nil {
+		return err
 	}
 
 	var cmake string
@@ -232,8 +173,7 @@ func installOpenAL(gomobilepath string) error {
 		if abi == "arm" {
 			abi = "armeabi"
 		}
-		tcPath := filepath.Join(gomobilepath, "ndk-toolchains", t.arch, "bin")
-		make := filepath.Join(tcPath, "make")
+		make := filepath.Join(ndkRoot, "prebuilt", archNDK(), "bin", "make")
 		// Split android-XX to get the api version.
 		buildDir := alTmpDir + "/build/" + abi
 		if err := mkdir(buildDir); err != nil {
@@ -242,8 +182,9 @@ func installOpenAL(gomobilepath string) error {
 		cmd := exec.Command(cmake,
 			initOpenAL,
 			"-DCMAKE_TOOLCHAIN_FILE="+initOpenAL+"/XCompile-Android.txt",
-			"-DHOST="+t.toolPrefix)
+			"-DHOST="+t.ClangPrefix())
 		cmd.Dir = buildDir
+		tcPath := filepath.Join(ndkRoot, "toolchains", "llvm", "prebuilt", archNDK(), "bin")
 		if !buildN {
 			orgPath := os.Getenv("PATH")
 			cmd.Env = []string{"PATH=" + tcPath + string(os.PathListSeparator) + orgPath}
@@ -380,7 +321,7 @@ func goEnv(name string) string {
 	if val := os.Getenv(name); val != "" {
 		return val
 	}
-	val, err := exec.Command("go", "env", name).Output()
+	val, err := exec.Command(goBin(), "env", name).Output()
 	if err != nil {
 		panic(err) // the Go tool was tested to work earlier
 	}
@@ -397,7 +338,12 @@ func runCmd(cmd *exec.Cmd) error {
 		if env != "" {
 			env += " "
 		}
-		printcmd("%s%s%s", dir, env, strings.Join(cmd.Args, " "))
+		args := make([]string, len(cmd.Args))
+		copy(args, cmd.Args)
+		if args[0] == goBin() {
+			args[0] = "go"
+		}
+		printcmd("%s%s%s", dir, env, strings.Join(args, " "))
 	}
 
 	buf := new(bytes.Buffer)

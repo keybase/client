@@ -325,25 +325,27 @@ public class SeqTest extends InstrumentationTestCase {
     }
   }
 
-  public void testJavaRefGC() {
+  public void testJavaRefKeep() {
     finalizedAnI = false;
     AnI obj = new AnI_Traced();
     Testpkg.callF(obj);
     assertTrue("want F to be called", obj.calledF);
     Testpkg.callF(obj);
     obj = null;
-    runGC();
-    assertTrue("want obj to be collected", finalizedAnI);
-  }
-
-  public void testJavaRefKeep() {
-    finalizedAnI = false;
-    AnI obj = new AnI_Traced();
-    Testpkg.callF(obj);
-    Testpkg.callF(obj);
-    obj = null;
-    runGC();
-    assertTrue("want obj not to be kept by Go", finalizedAnI);
+    int attempts = 0;
+    while (true) {
+        runGC();
+        if (finalizedAnI)
+            break;
+        attempts++;
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        if (attempts >= 10)
+            fail("want obj not to be kept by Go; tried " + attempts + " garbage collections.");
+    }
 
     finalizedAnI = false;
     obj = new AnI_Traced();

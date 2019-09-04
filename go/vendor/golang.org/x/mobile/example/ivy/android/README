@@ -1,0 +1,8 @@
+Ivy Android app
+
+Run
+
+$ gomobile bind -o app/ivy.aar robpike.io/ivy/mobile
+
+and import this project in Android Studio. If you prefer the command
+line, use gradle to build directly.

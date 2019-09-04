@@ -32,7 +32,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.golang.mobile.Mobile;
+import mobile.Mobile;
 
 /*
  * Main activity that consists of an edit view to accept the expression

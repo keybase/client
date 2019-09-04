@@ -1,4 +1,11 @@
 Go bind android app example
 
-Set the GOPATH, GO, GOMOBILE variables in hello/build.gradle
-and import this project in Android Studio.
+Run
+
+$ gomobile bind -o app/hello.aar golang.org/x/mobile/example/bind/hello
+
+and import this project in Android Studio. If you prefer the command
+line, use gradle to build directly.
+
+Note that you need to run gomobile bind again every time you make a
+change to Go code.

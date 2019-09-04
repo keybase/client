@@ -15,7 +15,7 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import org.golang.mobile.Mobile;
+import mobile.Mobile;
 
 /*
  * Displays the help message for Ivy.

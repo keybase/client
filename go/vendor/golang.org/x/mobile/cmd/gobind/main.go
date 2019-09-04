@@ -11,18 +11,19 @@ import (
 	"go/ast"
 	"go/build"
 	"go/importer"
-	"go/parser"
 	"go/types"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"golang.org/x/mobile/internal/importers"
 	"golang.org/x/mobile/internal/importers/java"
 	"golang.org/x/mobile/internal/importers/objc"
+	"golang.org/x/tools/go/packages"
 )
 
 var (
@@ -46,6 +47,10 @@ func main() {
 	os.Exit(exitStatus)
 }
 
+func goBin() string {
+	return filepath.Join(runtime.GOROOT(), "bin", "go")
+}
+
 func run() {
 	var langs []string
 	if *lang != "" {
@@ -53,17 +58,21 @@ func run() {
 	} else {
 		langs = []string{"go", "java", "objc"}
 	}
-	ctx := build.Default
-	if *tags != "" {
-		ctx.BuildTags = append(ctx.BuildTags, strings.Split(*tags, ",")...)
+
+	cfg := &packages.Config{
+		Mode: packages.NeedName | packages.NeedFiles |
+			packages.NeedImports | packages.NeedDeps |
+			packages.NeedTypes | packages.NeedSyntax | packages.NeedTypesInfo,
+		BuildFlags: []string{"-tags", strings.Join(strings.Split(*tags, ","), " ")},
 	}
-	var allPkg []*build.Package
-	for _, path := range flag.Args() {
-		pkg, err := ctx.Import(path, ".", build.ImportComment)
-		if err != nil {
-			log.Fatalf("package %q: %v", path, err)
-		}
-		allPkg = append(allPkg, pkg)
+
+	// Call Load twice to warm the cache. There is a known issue that the result of Load
+	// depends on build cache state. See golang/go#33687.
+	packages.Load(cfg, flag.Args()...)
+
+	allPkg, err := packages.Load(cfg, flag.Args()...)
+	if err != nil {
+		log.Fatal(err)
 	}
 	jrefs, err := importers.AnalyzePackages(allPkg, "Java/")
 	if err != nil {
@@ -92,9 +101,15 @@ func run() {
 			log.Fatal(err)
 		}
 	}
+
+	ctx := build.Default
+	if *tags != "" {
+		ctx.BuildTags = append(ctx.BuildTags, strings.Split(*tags, ",")...)
+	}
+
 	// Determine GOPATH from go env GOPATH in case the default $HOME/go GOPATH
 	// is in effect.
-	if out, err := exec.Command("go", "env", "GOPATH").Output(); err != nil {
+	if out, err := exec.Command(goBin(), "env", "GOPATH").Output(); err != nil {
 		log.Fatal(err)
 	} else {
 		ctx.GOPATH = string(bytes.TrimSpace(out))
@@ -142,16 +157,12 @@ func run() {
 	imp := importer.For("source", nil)
 	for i, pkg := range allPkg {
 		var err error
-		typePkgs[i], err = imp.Import(pkg.ImportPath)
+		typePkgs[i], err = imp.Import(pkg.PkgPath)
 		if err != nil {
 			errorf("%v\n", err)
 			return
 		}
-		astPkgs[i], err = parse(pkg)
-		if err != nil {
-			errorf("%v\n", err)
-			return
-		}
+		astPkgs[i] = pkg.Syntax
 	}
 	for _, l := range langs {
 		for i, pkg := range typePkgs {
@@ -160,19 +171,6 @@ func run() {
 		// Generate the error package and support files
 		genPkg(l, nil, nil, typePkgs, classes, otypes)
 	}
-}
-
-func parse(pkg *build.Package) ([]*ast.File, error) {
-	fileNames := append(append([]string{}, pkg.GoFiles...), pkg.CgoFiles...)
-	var files []*ast.File
-	for _, name := range fileNames {
-		f, err := parser.ParseFile(fset, filepath.Join(pkg.Dir, name), nil, parser.ParseComments)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, f)
-	}
-	return files, nil
 }
 
 var exitStatus = 0

@@ -24,7 +24,7 @@ Commands:
 	bind        build a library for Android and iOS
 	build       compile android APK and iOS app
 	clean       remove object files and cached gomobile files
-	init        install NDK toolchains and build OpenAL for Android
+	init        build OpenAL for Android
 	install     compile android APK and install on device
 	version     print version
 
@@ -104,7 +104,10 @@ If the package directory contains an assets subdirectory, its contents
 are copied into the output.
 
 Flag -iosversion sets the minimal version of the iOS SDK to compile against.
-The default version is 6.1.
+The default version is 7.0.
+
+Flag -androidapi sets the Android API version to compile against.
+The default and minimum is 15.
 
 The -bundleid flag is required for -target ios and sets the bundle ID to use
 with the app.
@@ -127,15 +130,11 @@ Usage:
 Clean removes object files and cached NDK files downloaded by gomobile init
 
 
-Install NDK toolchains and build OpenAL for Android
+Build OpenAL for Android
 
 Usage:
 
-	gomobile init [-ndk dir] [-openal dir]
-
-If the -ndk flag is specified or the Android NDK is installed at
-$ANDROID_HOME/ndk-bundle, init will create NDK standalone toolchains
-for Android targets.
+	gomobile init [-openal dir]
 
 If a OpenAL source directory is specified with -openal, init will
 build an Android version of OpenAL for use with gomobile build

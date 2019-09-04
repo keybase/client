@@ -5,14 +5,19 @@
  */
 apply plugin: 'com.android.application'
 
+repositories {
+    flatDir {
+        dirs '.'
+    }
+}
+
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 27
 
     defaultConfig {
         applicationId "org.golang.example.android"
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
     }
@@ -24,7 +29,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile project(':hello')
+    implementation 'com.android.support:appcompat-v7:22.1.1'
+    implementation (name:'hello', ext:'aar')
 }

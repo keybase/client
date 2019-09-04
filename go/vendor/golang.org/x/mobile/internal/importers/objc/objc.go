@@ -861,8 +861,8 @@ func initialUpper(s string) string {
 
 func (t *Named) ObjcType() string {
 	if t.Protocol {
-		return fmt.Sprintf("id<%s>", t.Name)
+		return fmt.Sprintf("id<%s> _Nullable", t.Name)
 	} else {
-		return t.Name + " *"
+		return t.Name + " * _Nullable"
 	}
 }

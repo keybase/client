@@ -25,8 +25,9 @@ import (
 )
 
 func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool, error) {
-	if !hasNDK() {
-		return nil, errors.New("no Android NDK path is set. Please run gomobile init with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.")
+	ndkRoot, err := ndkRoot()
+	if err != nil {
+		return nil, err
 	}
 	appName := path.Base(pkg.ImportPath)
 	libName := androidPkgName(appName)
@@ -79,7 +80,7 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 		if err != nil {
 			return nil, err
 		}
-		nmpkgs[arch], err = extractPkgs(toolchain.Path("nm"), libAbsPath)
+		nmpkgs[arch], err = extractPkgs(toolchain.Path(ndkRoot, "nm"), libAbsPath)
 		if err != nil {
 			return nil, err
 		}

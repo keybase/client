@@ -1,8 +1,13 @@
 apply plugin: 'com.android.application'
 
+repositories {
+    flatDir {
+        dirs '.'
+    }
+}
+
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
     defaultConfig {
         applicationId 'org.golang.ivy'
         minSdkVersion 15
@@ -21,7 +26,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.3.0'
-    compile project(':ivy')
+    implementation 'com.android.support:appcompat-v7:23.3.0'
+    implementation (name:'ivy', ext:'aar')
 }

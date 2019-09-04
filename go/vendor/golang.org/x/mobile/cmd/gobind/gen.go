@@ -86,7 +86,7 @@ func genPkg(lang string, p *types.Package, astFiles []*ast.File, allPkg []*types
 				return
 			}
 			repo := filepath.Clean(filepath.Join(p.Dir, "..")) // golang.org/x/mobile directory.
-			for _, javaFile := range []string{"Seq.java", "LoadJNI.java"} {
+			for _, javaFile := range []string{"Seq.java"} {
 				src := filepath.Join(repo, "bind/java/"+javaFile)
 				in, err := os.Open(src)
 				if err != nil {

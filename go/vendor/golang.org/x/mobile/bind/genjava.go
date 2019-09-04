@@ -294,7 +294,7 @@ func (g *JavaGen) genStruct(s structInfo) {
 	g.genProxyImpl(n)
 	cons := g.constructors[s.obj]
 	for _, f := range cons {
-		if !g.isSigSupported(f.Type()) {
+		if !g.isConsSigSupported(f.Type()) {
 			g.Printf("// skipped constructor %s.%s with unsupported parameter or return types\n\n", n, f.Name())
 			continue
 		}
@@ -352,6 +352,28 @@ func (g *JavaGen) genStruct(s structInfo) {
 
 	g.Outdent()
 	g.Printf("}\n\n")
+}
+
+// isConsSigSupported reports whether the generators can handle a given
+// constructor signature.
+func (g *JavaGen) isConsSigSupported(t types.Type) bool {
+	if !g.isSigSupported(t) {
+		return false
+	}
+	// Skip constructors taking a single int32 argument
+	// since they clash with the proxy constructors that
+	// take a refnum.
+	params := t.(*types.Signature).Params()
+	if params.Len() != 1 {
+		return true
+	}
+	if t, ok := params.At(0).Type().(*types.Basic); ok {
+		switch t.Kind() {
+		case types.Int32, types.Uint32:
+			return false
+		}
+	}
+	return true
 }
 
 // javaTypeName returns the class name of a given Go type name. If
@@ -1112,7 +1134,7 @@ func (g *JavaGen) genJNIVar(o *types.Var) {
 }
 
 func (g *JavaGen) genJNIConstructor(f *types.Func, sName string) {
-	if !g.isSigSupported(f.Type()) {
+	if !g.isConsSigSupported(f.Type()) {
 		return
 	}
 	sig := f.Type().(*types.Signature)
@@ -1633,6 +1655,7 @@ func (g *JavaGen) GenJava() error {
 			g.Printf("// skipped function %s with unsupported parameter or return types\n\n", f.Name())
 			continue
 		}
+		g.javadoc(g.docs[f.Name()].Doc())
 		g.Printf("public static native ")
 		g.genFuncSignature(f, nil, false)
 	}

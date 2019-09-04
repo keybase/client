@@ -46,10 +46,6 @@ func buildEnvInit() (cleanup func(), err error) {
 		return nil, errors.New("toolchain not installed, run `gomobile init`")
 	}
 
-	if err := envInit(); err != nil {
-		return nil, err
-	}
-
 	cleanupFn := func() {
 		if buildWork {
 			fmt.Printf("WORK=%s\n", tmpdir)
@@ -70,6 +66,10 @@ func buildEnvInit() (cleanup func(), err error) {
 		fmt.Fprintln(xout, "WORK="+tmpdir)
 	}
 
+	if err := envInit(); err != nil {
+		return nil, err
+	}
+
 	return cleanupFn, nil
 }
 
@@ -81,14 +81,34 @@ func envInit() (err error) {
 	}
 
 	// Setup the cross-compiler environments.
-	if hasNDK() {
+	if ndkRoot, err := ndkRoot(); err == nil {
 		androidEnv = make(map[string][]string)
+		if buildAndroidAPI < minAndroidAPI {
+			return fmt.Errorf("gomobile requires Android API level >= %d", minAndroidAPI)
+		}
 		for arch, toolchain := range ndk {
+			clang := toolchain.Path(ndkRoot, "clang")
+			clangpp := toolchain.Path(ndkRoot, "clang++")
+			if !buildN {
+				tools := []string{clang, clangpp}
+				if runtime.GOOS == "windows" {
+					// Because of https://github.com/android-ndk/ndk/issues/920,
+					// we require r19c, not just r19b. Fortunately, the clang++.cmd
+					// script only exists in r19c.
+					tools = append(tools, clangpp+".cmd")
+				}
+				for _, tool := range tools {
+					_, err = os.Stat(tool)
+					if err != nil {
+						return fmt.Errorf("No compiler for %s was found in the NDK (tried %s). Make sure your NDK version is >= r19c. Use `sdkmanager --update` to update it.", arch, tool)
+					}
+				}
+			}
 			androidEnv[arch] = []string{
 				"GOOS=android",
 				"GOARCH=" + arch,
-				"CC=" + toolchain.Path("clang"),
-				"CXX=" + toolchain.Path("clang++"),
+				"CC=" + clang,
+				"CXX=" + clangpp,
 				"CGO_ENABLED=1",
 			}
 			if arch == "arm" {
@@ -120,6 +140,7 @@ func envInit() (err error) {
 		default:
 			panic(fmt.Errorf("unknown GOARCH: %q", arch))
 		}
+		cflags += " -fembed-bitcode"
 		if err != nil {
 			return err
 		}
@@ -139,18 +160,34 @@ func envInit() (err error) {
 	return nil
 }
 
-func hasNDK() bool {
+func ndkRoot() (string, error) {
 	if buildN {
-		return true
+		return "$NDK_PATH", nil
 	}
-	tcPath := filepath.Join(gomobilepath, "ndk-toolchains")
-	_, err := os.Stat(tcPath)
-	return err == nil
+
+	androidHome := os.Getenv("ANDROID_HOME")
+	if androidHome != "" {
+		ndkRoot := filepath.Join(androidHome, "ndk-bundle")
+		_, err := os.Stat(ndkRoot)
+		if err == nil {
+			return ndkRoot, nil
+		}
+	}
+
+	ndkRoot := os.Getenv("ANDROID_NDK_HOME")
+	if ndkRoot != "" {
+		_, err := os.Stat(ndkRoot)
+		if err == nil {
+			return ndkRoot, nil
+		}
+	}
+
+	return "", fmt.Errorf("no Android NDK found in $ANDROID_HOME/ndk-bundle nor in $ANDROID_NDK_HOME")
 }
 
 func envClang(sdkName string) (clang, cflags string, err error) {
 	if buildN {
-		return "clang-" + sdkName, "-isysroot=" + sdkName, nil
+		return sdkName + "-clang", "-isysroot=" + sdkName, nil
 	}
 	cmd := exec.Command("xcrun", "--sdk", sdkName, "--find", "clang")
 	out, err := cmd.CombinedOutput()
@@ -247,15 +284,29 @@ func archNDK() string {
 }
 
 type ndkToolchain struct {
-	arch       string
-	abi        string
-	platform   string
-	gcc        string
-	toolPrefix string
+	arch        string
+	abi         string
+	minAPI      int
+	toolPrefix  string
+	clangPrefix string
 }
 
-func (tc *ndkToolchain) Path(toolName string) string {
-	return filepath.Join(gomobilepath, "ndk-toolchains", tc.arch, "bin", tc.toolPrefix+"-"+toolName)
+func (tc *ndkToolchain) ClangPrefix() string {
+	if buildAndroidAPI < tc.minAPI {
+		return fmt.Sprintf("%s%d", tc.clangPrefix, tc.minAPI)
+	}
+	return fmt.Sprintf("%s%d", tc.clangPrefix, buildAndroidAPI)
+}
+
+func (tc *ndkToolchain) Path(ndkRoot, toolName string) string {
+	var pref string
+	switch toolName {
+	case "clang", "clang++":
+		pref = tc.ClangPrefix()
+	default:
+		pref = tc.toolPrefix
+	}
+	return filepath.Join(ndkRoot, "toolchains", "llvm", "prebuilt", archNDK(), "bin", pref+"-"+toolName)
 }
 
 type ndkConfig map[string]ndkToolchain // map: GOOS->androidConfig.
@@ -270,33 +321,33 @@ func (nc ndkConfig) Toolchain(arch string) ndkToolchain {
 
 var ndk = ndkConfig{
 	"arm": {
-		arch:       "arm",
-		abi:        "armeabi-v7a",
-		platform:   "android-16",
-		gcc:        "arm-linux-androideabi-4.9",
-		toolPrefix: "arm-linux-androideabi",
+		arch:        "arm",
+		abi:         "armeabi-v7a",
+		minAPI:      16,
+		toolPrefix:  "arm-linux-androideabi",
+		clangPrefix: "armv7a-linux-androideabi",
 	},
 	"arm64": {
-		arch:       "arm64",
-		abi:        "arm64-v8a",
-		platform:   "android-21",
-		gcc:        "aarch64-linux-android-4.9",
-		toolPrefix: "aarch64-linux-android",
+		arch:        "arm64",
+		abi:         "arm64-v8a",
+		minAPI:      21,
+		toolPrefix:  "aarch64-linux-android",
+		clangPrefix: "aarch64-linux-android",
 	},
 
 	"386": {
-		arch:       "x86",
-		abi:        "x86",
-		platform:   "android-16",
-		gcc:        "x86-4.9",
-		toolPrefix: "i686-linux-android",
+		arch:        "x86",
+		abi:         "x86",
+		minAPI:      16,
+		toolPrefix:  "i686-linux-android",
+		clangPrefix: "i686-linux-android",
 	},
 	"amd64": {
-		arch:       "x86_64",
-		abi:        "x86_64",
-		platform:   "android-21",
-		gcc:        "x86_64-4.9",
-		toolPrefix: "x86_64-linux-android",
+		arch:        "x86_64",
+		abi:         "x86_64",
+		minAPI:      21,
+		toolPrefix:  "x86_64-linux-android",
+		clangPrefix: "x86_64-linux-android",
 	},
 }
 

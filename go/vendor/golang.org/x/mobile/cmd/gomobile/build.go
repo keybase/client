@@ -48,7 +48,10 @@ If the package directory contains an assets subdirectory, its contents
 are copied into the output.
 
 Flag -iosversion sets the minimal version of the iOS SDK to compile against.
-The default version is 6.1.
+The default version is 7.0.
+
+Flag -androidapi sets the Android API version to compile against.
+The default and minimum is 15.
 
 The -bundleid flag is required for -target ios and sets the bundle ID to use
 with the app.
@@ -207,14 +210,8 @@ func printcmd(format string, args ...interface{}) {
 	if gomobilepath != "" {
 		cmd = strings.Replace(cmd, gomobilepath, "$GOMOBILE", -1)
 	}
-	if goroot := goEnv("GOROOT"); goroot != "" {
-		cmd = strings.Replace(cmd, goroot, "$GOROOT", -1)
-	}
 	if gopath := goEnv("GOPATH"); gopath != "" {
 		cmd = strings.Replace(cmd, gopath, "$GOPATH", -1)
-	}
-	if env := os.Getenv("HOME"); env != "" {
-		cmd = strings.Replace(cmd, env, "$HOME", -1)
 	}
 	if env := os.Getenv("HOMEPATH"); env != "" {
 		cmd = strings.Replace(cmd, env, "$HOMEPATH", -1)
@@ -236,6 +233,7 @@ var (
 	buildWork       bool   // -work
 	buildBundleID   string // -bundleid
 	buildIOSVersion string // -iosversion
+	buildAndroidAPI int    // -androidapi
 )
 
 func addBuildFlags(cmd *command) {
@@ -244,7 +242,8 @@ func addBuildFlags(cmd *command) {
 	cmd.flag.StringVar(&buildLdflags, "ldflags", "", "")
 	cmd.flag.StringVar(&buildTarget, "target", "android", "")
 	cmd.flag.StringVar(&buildBundleID, "bundleid", "", "")
-	cmd.flag.StringVar(&buildIOSVersion, "iosversion", "6.1", "")
+	cmd.flag.StringVar(&buildIOSVersion, "iosversion", "7.0", "")
+	cmd.flag.IntVar(&buildAndroidAPI, "androidapi", minAndroidAPI, "")
 
 	cmd.flag.BoolVar(&buildA, "a", false, "")
 	cmd.flag.BoolVar(&buildI, "i", false, "")
@@ -288,7 +287,7 @@ func goInstall(srcs []string, env []string, args ...string) error {
 
 func goCmd(subcmd string, srcs []string, env []string, args ...string) error {
 	cmd := exec.Command(
-		"go",
+		goBin(),
 		subcmd,
 	)
 	if len(ctx.BuildTags) > 0 {
@@ -315,6 +314,8 @@ func goCmd(subcmd string, srcs []string, env []string, args ...string) error {
 	cmd.Args = append(cmd.Args, args...)
 	cmd.Args = append(cmd.Args, srcs...)
 	cmd.Env = append([]string{}, env...)
+	// gomobile does not support modules yet.
+	cmd.Env = append(cmd.Env, "GO111MODULE=off")
 	return runCmd(cmd)
 }
 
