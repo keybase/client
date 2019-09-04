@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -550,4 +551,207 @@ func TestCreateAndResolveEmailImpTeam(t *testing.T) {
 	teamID2, err := bob.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID2)
+}
+
+func TestNewSBSAfterResolvedOnce(t *testing.T) {
+	// 1. alice makes alice,bob@rooter implicit team
+	// 2. bob proves rooter
+	// 3. alice resolves implicit team to alice,bob
+	// 4. bob removes rooter proof
+	// 5. alice tries to make alice,bob@rooter again
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
+	// Create ann,bob@rooter
+	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	_, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it resolves
+	teamID1, err := ann.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it loads.
+	teamObj1 := ann.loadTeamByID(teamID1, true /* admin */)
+	_ = teamObj1
+
+	// Bob proves rooter.
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Wait till team2 resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID1,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure "ann,bob" resolves to the existing team.
+	impteamNameResolved := fmt.Sprintf("%s,%s", ann.username, bob.username)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamNameResolved, false /* public */)
+	require.NoError(t, err)
+
+	require.Equal(t, teamID1, teamID2)
+
+	// Bob revokes rooter proof
+	bob.revokeSocialProof("rooter")
+	fc.Advance(1 * time.Hour)
+
+	// Now we want to make an implicit team for ann,bob@rooter again and wait
+	// for a new owner.
+	_, err = ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+	//                   ^-- Fails here with:
+	//  implicit team name mismatch: ann_a6c9a0ef0e,bob_113b8e972b != ann_a6c9a0ef0e,bob_113b8e972b@rooter
+
+	// Make sure it resolves
+	teamID3, err := ann.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	require.NotEqual(t, teamID1, teamID3)
+}
+
+func TestSBSAfterRevokedAndProved(t *testing.T) {
+	// 1. alice makes alice,bob@rooter implicit team
+	// 2. alice goes offline
+	// 3. bob proves rooter
+	// 4. bob removes the proof
+	// 5. bob proves rooter (again)
+	// 6. alice goes online
+	// 7. alice should get SBS notif and let bob in
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
+	// Create ann,bob@rooter
+	impteamName := fmt.Sprintf("%s,%s@rooter", ann.username, bob.username)
+	_, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it resolves
+	teamID1, err := ann.lookupImplicitTeam(false /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Make sure it loads.
+	teamObj1 := ann.loadTeamByID(teamID1, true /* admin */)
+	_ = teamObj1
+
+	// Ann logs out, bob messing with proofs will happen while ann is offline,
+	// so no SBS resolving can take place.
+	ann.logout()
+
+	// Bob proves rooter.
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Bob revokes rooter proof
+	bob.revokeSocialProof("rooter")
+
+	// Bob proves rooter again, what gives!?
+	bob.proveRooter()
+
+	// Advance clock because of assertion cache.
+	fc.Advance(1 * time.Hour)
+
+	// Ann logs back. We are expecting SBS notification to let Bob in.
+	ann.login()
+
+	// Wait till team2 resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID1,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure "ann,bob" resolves to the existing team.
+	impteamNameResolved := fmt.Sprintf("%s,%s", ann.username, bob.username)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamNameResolved, false /* public */)
+	require.NoError(t, err)
+
+	require.Equal(t, teamID1, teamID2)
+}
+
+func TestSBSAfterRevokedAndProved2(t *testing.T) {
+	// Less common case of above.
+	// Team is a,b@rooter,c@rooter
+	// b proves, team is now a,b,c@rooter
+	// b revokes (a,b,c@rooter should stay as is; a,b@rooter,c@rooter should be freed)
+	// c proves, team should continue forward as a,b,c
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+	cas := tt.addUser("cas")
+
+	fc := clockwork.NewFakeClockAt(time.Now())
+	tt.setClock(fc)
+
+	// Create ann,bob@rooter,cas@rooter
+	impteamName := fmt.Sprintf("%s,%s@rooter,%s@rooter", ann.username, bob.username, cas.username)
+	teamID, err := ann.lookupImplicitTeam(true /* create */, impteamName, false /* public */)
+	require.NoError(t, err)
+
+	// Bob proves rooter
+	bob.kickTeamRekeyd()
+	bob.proveRooter()
+
+	// Wait till team resolves.
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	}, keybase1.Seqno(2))
+
+	// Make sure new team resolves
+	impteamName2 := fmt.Sprintf("%s,%s,%s@rooter", ann.username, bob.username, cas.username)
+	teamID2, err := ann.lookupImplicitTeam(false /* create */, impteamName2, false /* public */)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
+
+	// Bob revokes proof
+	bob.revokeSocialProof("rooter")
+
+	// Advance the clock to mitigate assertion memory cache effects.
+	fc.Advance(1 * time.Hour)
+
+	// Make sure team still resolves and loads for both ann and bob.
+	for _, user := range []*userPlusDevice{ann, bob} {
+		user.loadTeamByID(teamID, true /* admin */)
+
+		teamID3, err := user.lookupImplicitTeam(false /* create */, impteamName2, false /* public */)
+		require.NoError(t, err)
+		require.Equal(t, teamID, teamID3)
+	}
+
+	// Cas proves rooter
+	cas.proveRooter()
+	fc.Advance(1 * time.Hour)
+
+	// Team should go on as ann,bob,cas
+	ann.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	}, keybase1.Seqno(3))
+
+	// Team a,b,c resolves and loads for everyone
+	impteamName3 := fmt.Sprintf("%s,%s,%s", ann.username, bob.username, cas.username)
+	for _, user := range []*userPlusDevice{ann, bob, cas} {
+		user.loadTeamByID(teamID, true /* admin */)
+
+		teamID3, err := user.lookupImplicitTeam(false /* create */, impteamName3, false /* public */)
+		require.NoError(t, err)
+		require.Equal(t, teamID, teamID3)
+	}
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 
@@ -189,6 +190,12 @@ func (tt *teamTester) logUserNames() {
 			pukless = "pukless "
 		}
 		tt.t.Logf("Signed up %s%q (%s)", pukless, u.username, u.uid)
+	}
+}
+
+func (tt *teamTester) setClock(c clockwork.Clock) {
+	for _, u := range tt.users {
+		u.tc.G.SetClock(c)
 	}
 }
 
@@ -733,6 +740,22 @@ func (u *userPlusDevice) proveRooter() {
 
 func (u *userPlusDevice) proveGubbleSocial() {
 	proveGubbleUniverse(u.tc, "gubble.social", "gubble_social", u.username, u.newSecretUI())
+}
+
+func (u *userPlusDevice) revokeSocialProof(service string) {
+	serviceType := u.tc.G.GetProofServices().GetServiceType(context.Background(), service)
+	arg := libkb.NewLoadUserByNameArg(u.tc.G, u.username).WithPublicKeyOptional()
+	user, err := libkb.LoadUser(arg)
+	require.NoError(u.tc.T, err)
+	proof := user.IDTable().GetActiveProofsFor(serviceType)
+	sigID := proof[0].GetSigID()
+
+	eng := engine.NewRevokeSigsEngine(u.tc.G, []string{sigID.String()})
+	err = engine.RunEngine2(u.MetaContext().WithUIs(libkb.UIs{
+		LogUI:    u.tc.G.Log,
+		SecretUI: &libkb.TestSecretUI{Passphrase: "dummy-passphrase"},
+	}), eng)
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) track(username string) {
