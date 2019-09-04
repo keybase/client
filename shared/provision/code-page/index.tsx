@@ -33,6 +33,7 @@ type State = {
 class CodePage2 extends React.Component<Props, State> {
   static navigationOptions = {
     header: null,
+    headerBottomStyle: {height: undefined},
     headerLeft: null,
   }
   constructor(props: Props) {
