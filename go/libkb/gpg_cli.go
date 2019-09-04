@@ -393,6 +393,10 @@ func (g *GpgCLI) MakeCmd(mctx MetaContext, args []string, tty string) *exec.Cmd 
 	} else {
 		nargs = args
 	}
+	// Always use --no-auto-check-trustdb to prevent gpg from refreshing trustdb.
+	// Refreshing the trustdb can cause hangs when bad keys from CVE-2019-13050 are in the keyring.
+	// --no-auto-check-trustdb was introduced around gpg 1.0 so ought to always be implemented.
+	nargs = append([]string{"--no-auto-check-trustdb"}, nargs...)
 	if g.G().Service {
 		nargs = append([]string{"--no-tty"}, nargs...)
 	}
