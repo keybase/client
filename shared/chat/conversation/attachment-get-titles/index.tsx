@@ -115,6 +115,7 @@ class GetTitles extends React.Component<Props, State> {
                 placeholder={titleHint}
                 multiline={true}
                 rowsMin={2}
+                padding="tiny"
                 value={info.title}
                 onEnterKeyDown={this._onNext}
                 onChangeText={this._updateTitle}
@@ -203,11 +204,6 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
       borderWidth: 1,
       marginBottom: Styles.globalMargins.tiny,
-      // RN wasn't obeying `padding: Styles.globalMargins.tiny`.
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
       width: '100%',
     },
     isElectron: {maxHeight: 100},

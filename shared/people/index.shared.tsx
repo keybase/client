@@ -67,7 +67,7 @@ const EmailVerificationBanner = () => {
     () =>
       // Only have a cleanup function
       () => dispatch(SignupGen.createClearJustSignedUpEmail()),
-    []
+    [dispatch]
   )
 
   const signupEmail = Container.useSelector(s => s.signup.justSignedUpEmail)

@@ -85,6 +85,9 @@ Join a team conversation:
 Leave a team conversation:
     {"method": "leave", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 
+Add one or more users to a team conversation:
+    {"method": "addtochannel", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "usernames": ["alice", "bob", "charlie"]}}}
+
 Load a flip's result:
     {"method": "loadflip", "params": {"options": {"conversation_id": "...", "flip_conversation_id": "...", "msg_id": 72, "game_id": "..."}}}
 

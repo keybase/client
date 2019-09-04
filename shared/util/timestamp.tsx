@@ -104,6 +104,14 @@ export const formatDuration = (duration: number): string => {
   return d.hours() ? `${d.hours()} hr` : d.minutes() ? `${d.minutes()} min` : `${d.seconds()} s`
 }
 
+export const formatDurationForLocation = (duration: number): string => {
+  if (!duration) {
+    return ''
+  }
+  const d = moment.duration(duration)
+  return d.hours() ? `${d.hours()}h` : d.minutes() ? `${d.minutes()}m` : `${d.seconds()}s`
+}
+
 export const formatDurationFromNowTo = (timeInFuture?: number): string =>
   timeInFuture ? formatDuration(timeInFuture - Date.now()) : ''
 

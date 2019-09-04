@@ -47,7 +47,7 @@ export default Container.connect(
     },
     onToggle: (group: string, name?: string) =>
       dispatch(SettingsGen.createNotificationsToggle({group, name})),
-    onToggleSound: (sound: boolean) => dispatch(ConfigGen.createSetNotifySound({sound, writeFile: true})),
+    onToggleSound: (notifySound: boolean) => dispatch(ConfigGen.createSetNotifySound({notifySound})),
     onToggleUnsubscribeAll: (group: string) => dispatch(SettingsGen.createNotificationsToggle({group})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({

@@ -16,6 +16,8 @@ import ChatNewChat from '../team-building/container'
 import ChatPaymentsConfirm from './payments/confirm/container'
 import ChatShowBlockConversationDialog from './conversation/block-conversation-warning/container'
 import ChatShowNewTeamDialog from './new-team-dialog-container'
+import ChatLocationPopup from './conversation/input-area/normal/location-popup'
+import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -58,6 +60,10 @@ export const newModalRoutes = {
   chatInfoPanel: {
     getScreen: (): typeof ChatInfoPanel => require('./conversation/info-panel/container').default,
   },
+  chatLocationPreview: {
+    getScreen: (): typeof ChatLocationPopup =>
+      require('./conversation/input-area/normal/location-popup').default,
+  },
   // TODO connect broken
   chatManageChannels: {
     getScreen: (): typeof ChatManageChannels => require('./manage-channels/container').default,
@@ -73,5 +79,9 @@ export const newModalRoutes = {
   // TODO connect broken
   chatShowNewTeamDialog: {
     getScreen: (): typeof ChatShowNewTeamDialog => require('./new-team-dialog-container').default,
+  },
+  chatUnfurlMapPopup: {
+    getScreen: (): typeof ChatUnfurlMapPopup =>
+      require('./conversation/messages/wrapper/unfurl/map/popup').default,
   },
 }

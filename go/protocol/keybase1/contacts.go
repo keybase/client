@@ -57,17 +57,18 @@ func (o Contact) DeepCopy() Contact {
 }
 
 type ProcessedContact struct {
-	ContactIndex int              `codec:"contactIndex" json:"contactIndex"`
-	ContactName  string           `codec:"contactName" json:"contactName"`
-	Component    ContactComponent `codec:"component" json:"component"`
-	Resolved     bool             `codec:"resolved" json:"resolved"`
-	Uid          UID              `codec:"uid" json:"uid"`
-	Username     string           `codec:"username" json:"username"`
-	FullName     string           `codec:"fullName" json:"fullName"`
-	Following    bool             `codec:"following" json:"following"`
-	Assertion    string           `codec:"assertion" json:"assertion"`
-	DisplayName  string           `codec:"displayName" json:"displayName"`
-	DisplayLabel string           `codec:"displayLabel" json:"displayLabel"`
+	ContactIndex int               `codec:"contactIndex" json:"contactIndex"`
+	ContactName  string            `codec:"contactName" json:"contactName"`
+	Component    ContactComponent  `codec:"component" json:"component"`
+	Resolved     bool              `codec:"resolved" json:"resolved"`
+	Uid          UID               `codec:"uid" json:"uid"`
+	Username     string            `codec:"username" json:"username"`
+	FullName     string            `codec:"fullName" json:"fullName"`
+	Following    bool              `codec:"following" json:"following"`
+	ServiceMap   map[string]string `codec:"serviceMap" json:"serviceMap"`
+	Assertion    string            `codec:"assertion" json:"assertion"`
+	DisplayName  string            `codec:"displayName" json:"displayName"`
+	DisplayLabel string            `codec:"displayLabel" json:"displayLabel"`
 }
 
 func (o ProcessedContact) DeepCopy() ProcessedContact {
@@ -80,6 +81,18 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 		Username:     o.Username,
 		FullName:     o.FullName,
 		Following:    o.Following,
+		ServiceMap: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ServiceMap),
 		Assertion:    o.Assertion,
 		DisplayName:  o.DisplayName,
 		DisplayLabel: o.DisplayLabel,

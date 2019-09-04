@@ -27,7 +27,9 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   let technicalName: string
   switch (u.service) {
     case 'keybase':
-    case 'contact': // do not display "michal@keyba.se on contact".
+    case 'contact': // do not display "michal@keyba.se on email" or similar
+    case 'phone':
+    case 'email':
       technicalName = u.username
       break
     default:
@@ -48,7 +50,7 @@ class UserBubbleCollection extends React.PureComponent<{
         onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={formatNameForUserBubble(u)}
+        tooltip={formatNameForUserBubble(u)}
       />
     ))
   }
@@ -60,7 +62,7 @@ const TeamBox = (props: Props) => {
   const last = !!props.teamSoFar.length && props.teamSoFar[props.teamSoFar.length - 1].userId
   const prevLast = Container.usePrevious(last)
   React.useEffect(() => {
-    if (Styles.isMobile && prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
+    if (prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({animated: true})
     }
   }, [prevLast, last])
@@ -80,8 +82,13 @@ const TeamBox = (props: Props) => {
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" style={styles.bubbles}>
-        <Kb.ScrollView horizontal={true}>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
+        <Kb.ScrollView
+          horizontal={true}
+          ref={scrollViewRef}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+        >
+          <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
             {addMorePrompt}
           </Kb.Box2>
@@ -141,11 +148,6 @@ const styles = Styles.styleSheetCreate(() => ({
       minHeight: 90,
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  floatingBubbles: Styles.platformStyles({
-    isElectron: {
-      justifyContent: 'flex-end',
     },
   }),
   search: Styles.platformStyles({

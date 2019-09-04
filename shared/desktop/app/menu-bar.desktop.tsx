@@ -6,12 +6,19 @@ import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
 
-const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html`)
+const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
 let icon = ''
 let selectedIcon = ''
 
-export default function(menubarWindowIDCallback: (id: number) => void) {
+type Bounds = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export default (menubarWindowIDCallback: (id: number) => void) => {
   const mb = menubar({
     hasShadow: true,
     height: 480,
@@ -36,13 +43,8 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     width: 360,
   })
 
-  const updateIcon = selected => {
+  const updateIcon = (selected: boolean) => {
     mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
-  }
-  const setIcons = (regular, selected) => {
-    icon = regular
-    selectedIcon = selected
-    updateIcon(false)
   }
 
   type Action = {
@@ -58,7 +60,9 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
       switch (action.type) {
         case 'showTray': {
-          setIcons(action.payload.icon, action.payload.iconSelected)
+          icon = action.payload.icon
+          selectedIcon = action.payload.iconSelected
+          updateIcon(false)
           const dock = SafeElectron.getApp().dock
           if (dock && dock.isVisible()) {
             SafeElectron.getApp().setBadgeCount(action.payload.desktopAppBadgeCount)
@@ -75,16 +79,16 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     }
 
     // Hack: open widget when left/right/double clicked
-    mb.tray.on('right-click', (e, bounds) => {
+    mb.tray.on('right-click', (e: Electron.Event, bounds: Bounds) => {
       e.preventDefault()
       setImmediate(() => mb.tray.emit('click', {...e}, {...bounds}))
     })
-    mb.tray.on('double-click', e => e.preventDefault())
+    mb.tray.on('double-click', (e: Electron.Event) => e.preventDefault())
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
     mb.window.removeAllListeners('close')
-    mb.window.on('close', event => {
+    mb.window.on('close', (event: Electron.Event) => {
       event.preventDefault()
       mb.hideWindow()
     })
@@ -93,41 +97,45 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
       mb.tray.setToolTip('Show Keybase')
     }
 
-    mb.on('show', () => {
+    const adjustForWindows = () => {
       // Account for different taskbar positions on Windows
-      if (isWindows && mb.window && mb.tray) {
-        const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
-        const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
-        let menuBounds = mb.window.getBounds()
-        logger.info('Showing menu:', cursorPoint, screenSize)
-        let iconBounds = mb.tray.getBounds()
-        let x = iconBounds.x
-        let y = iconBounds.y - iconBounds.height - menuBounds.height
-
-        // rough guess where the menu bar is, since it's not
-        // available on electron
-        if (cursorPoint.x < screenSize.width / 2) {
-          if (cursorPoint.y > screenSize.height / 2) {
-            logger.info('- start menu on left -')
-            // start menu on left
-            x += iconBounds.width
-          }
-        } else {
-          // start menu on top or bottom
-          x -= menuBounds.width
-          if (cursorPoint.y < screenSize.height / 2) {
-            logger.info('- start menu on top -')
-            // start menu on top
-            y = iconBounds.y + iconBounds.height
-          } else {
-            // start menu on right/bottom
-            logger.info('- start menu on bottom -')
-          }
-        }
-        mb.setOption('x', x)
-        mb.setOption('y', y)
+      if (!isWindows || !mb.window || !mb.tray) {
+        return
       }
+      const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
+      const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
+      const menuBounds = mb.window.getBounds()
+      logger.info('Showing menu:', cursorPoint, screenSize)
+      let iconBounds = mb.tray.getBounds()
+      let x = iconBounds.x
+      let y = iconBounds.y - iconBounds.height - menuBounds.height
 
+      // rough guess where the menu bar is, since it's not
+      // available on electron
+      if (cursorPoint.x < screenSize.width / 2) {
+        if (cursorPoint.y > screenSize.height / 2) {
+          logger.info('- start menu on left -')
+          // start menu on left
+          x += iconBounds.width
+        }
+      } else {
+        // start menu on top or bottom
+        x -= menuBounds.width
+        if (cursorPoint.y < screenSize.height / 2) {
+          logger.info('- start menu on top -')
+          // start menu on top
+          y = iconBounds.y + iconBounds.height
+        } else {
+          // start menu on right/bottom
+          logger.info('- start menu on bottom -')
+        }
+      }
+      mb.setOption('x', x)
+      mb.setOption('y', y)
+    }
+
+    mb.on('show', () => {
+      adjustForWindows()
       isDarwin && updateIcon(true)
     })
     mb.on('hide', () => {
@@ -136,7 +144,7 @@ export default function(menubarWindowIDCallback: (id: number) => void) {
     mb.on('after-show', () => {
       logger.info('Showing menubar at', mb.window && mb.window.getBounds())
     })
-    mb.tray.on('click', (_, bounds) => {
+    mb.tray.on('click', (_: Electron.Event, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
     })
   })

@@ -603,6 +603,12 @@ export type _Settings = {
 
 export type Settings = I.RecordOf<_Settings>
 
+export type _PathInfo = {
+  deeplinkPath: string
+  platformAfterMountPath: string
+}
+export type PathInfo = I.RecordOf<_PathInfo>
+
 export type _State = {
   destinationPicker: DestinationPicker
   downloads: Downloads
@@ -615,6 +621,7 @@ export type _State = {
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems
+  pathInfos: I.Map<Path, PathInfo>
   pathUserSettings: I.Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
   sendLinkToChat: SendLinkToChat

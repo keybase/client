@@ -356,6 +356,7 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
+	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
@@ -366,6 +367,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	teambot.ServiceInit(mctx)
 	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
 	contacts.ServiceInit(d.G())
+	maps.ServiceInit(allG, d.httpSrv)
 	return nil
 }
 

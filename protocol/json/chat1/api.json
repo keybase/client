@@ -803,6 +803,30 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AdvertiseCommandAPIParam",
+      "fields": [
+        {
+          "type": "string",
+          "name": "typ",
+          "jsonkey": "type"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserBotCommandInput"
+          },
+          "name": "commands"
+        },
+        {
+          "type": "string",
+          "name": "teamName",
+          "optional": true,
+          "jsonkey": "team_name"
+        }
+      ]
     }
   ],
   "messages": {},

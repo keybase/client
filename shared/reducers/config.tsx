@@ -210,9 +210,9 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
     case ConfigGen.setNotifySound:
-      return state.merge({notifySound: action.payload.sound})
+      return state.merge({notifySound: action.payload.notifySound})
     case ConfigGen.setOpenAtLogin:
-      return state.merge({openAtLogin: action.payload.open})
+      return state.merge({openAtLogin: action.payload.openAtLogin})
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts: {
@@ -290,6 +290,10 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       const {component, param} = action.payload
       return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
     }
+    case ConfigGen.updateWindowState:
+      return state.merge({windowState: action.payload.windowState})
+    case ConfigGen.setUseNativeFrame:
+      return state.merge({useNativeFrame: action.payload.useNativeFrame})
     // Saga only actions
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:

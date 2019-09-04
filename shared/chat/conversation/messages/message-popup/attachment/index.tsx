@@ -67,6 +67,7 @@ const AttachmentPopupMenu = (props: Props) => {
         deviceRevokedAt={props.deviceRevokedAt}
         deviceType={props.deviceType}
         isLast={!items.length}
+        isLocation={false}
         timestamp={props.timestamp}
         yourMessage={props.yourMessage}
       />

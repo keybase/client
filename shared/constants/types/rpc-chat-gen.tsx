@@ -877,6 +877,7 @@ export enum UITextDecorationTyp {
   maybemention = 3,
   link = 4,
   mailto = 5,
+  kbfspath = 6,
 }
 
 export enum UnfurlMode {
@@ -901,6 +902,7 @@ export enum UnfurlType {
 }
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
+export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
 export type AdvertiseCommandsParam = {readonly typ: BotCommandsAdvertisementTyp; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName?: String | null}
 export type AppNotificationSettingLocal = {readonly deviceType: Keybase1.DeviceType; readonly kind: NotificationKind; readonly enabled: Boolean}
 export type Asset = {readonly filename: String; readonly region: String; readonly endpoint: String; readonly bucket: String; readonly path: String; readonly size: Long; readonly mimeType: String; readonly encHash: Hash; readonly key: Bytes; readonly verifyKey: Bytes; readonly title: String; readonly nonce: Bytes; readonly metadata: AssetMetadata; readonly tag: AssetTag}
@@ -1027,6 +1029,7 @@ export type IncomingMessage = {readonly message: UIMessage; readonly modifiedMes
 export type JoinLeaveConversationLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type JoinLeaveConversationRemoteRes = {readonly rateLimit?: RateLimit | null}
 export type KBFSImpteamUpgradeUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers; readonly topicType: TopicType}
+export type KBFSPath = {readonly startIndex: Int; readonly rawPath: String; readonly standardPath: String; readonly pathInfo: Keybase1.KBFSPathInfo}
 export type KnownTeamMention = {readonly name: String; readonly channel: String}
 export type KnownUserMention = {readonly text: String; readonly uid: Gregor1.UID}
 export type ListBotCommandsLocalRes = {readonly commands?: Array<UserBotCommandOutput> | null; readonly rateLimits?: Array<RateLimit> | null}
@@ -1209,17 +1212,18 @@ export type UIPaymentInfo = {readonly accountID?: Stellar1.AccountID | null; rea
 export type UIPinnedMessage = {readonly message: UIMessage; readonly pinnerUsername: String}
 export type UIRequestInfo = {readonly amount: String; readonly amountDescription: String; readonly asset?: Stellar1.Asset | null; readonly currency?: Stellar1.OutsideCurrencyCode | null; readonly worthAtRequestTime: String; readonly status: Stellar1.RequestStatus}
 export type UITeamMention = {readonly inTeam: Boolean; readonly open: Boolean; readonly description?: String | null; readonly numMembers?: Int | null; readonly publicAdmins?: Array<String> | null; readonly convID?: String | null}
-export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment | null} | {typ: UITextDecorationTyp.atmention; atmention: String | null} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention | null} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention | null} | {typ: UITextDecorationTyp.link; link: UILinkDecoration | null} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration | null}
+export type UITextDecoration = {typ: UITextDecorationTyp.payment; payment: TextPayment | null} | {typ: UITextDecorationTyp.atmention; atmention: String | null} | {typ: UITextDecorationTyp.channelnamemention; channelnamemention: UIChannelNameMention | null} | {typ: UITextDecorationTyp.maybemention; maybemention: MaybeMention | null} | {typ: UITextDecorationTyp.link; link: UILinkDecoration | null} | {typ: UITextDecorationTyp.mailto; mailto: UILinkDecoration | null} | {typ: UITextDecorationTyp.kbfspath; kbfspath: KBFSPath | null}
 export type Unfurl = {unfurlType: UnfurlType.generic; generic: UnfurlGeneric | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutube | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphy | null} | {unfurlType: UnfurlType.maps}
 export type UnfurlDisplay = {unfurlType: UnfurlType.generic; generic: UnfurlGenericDisplay | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeDisplay | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyDisplay | null} | {unfurlType: UnfurlType.maps}
-export type UnfurlGeneric = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: Asset | null; readonly image?: Asset | null; readonly publishTime?: Int | null; readonly description?: String | null}
-export type UnfurlGenericDisplay = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: UnfurlImageDisplay | null; readonly media?: UnfurlImageDisplay | null; readonly publishTime?: Int | null; readonly description?: String | null}
+export type UnfurlGeneric = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: Asset | null; readonly image?: Asset | null; readonly publishTime?: Int | null; readonly description?: String | null; readonly mapInfo?: UnfurlGenericMapInfo | null}
+export type UnfurlGenericDisplay = {readonly title: String; readonly url: String; readonly siteName: String; readonly favicon?: UnfurlImageDisplay | null; readonly media?: UnfurlImageDisplay | null; readonly publishTime?: Int | null; readonly description?: String | null; readonly mapInfo?: UnfurlGenericMapInfo | null}
+export type UnfurlGenericMapInfo = {readonly coord: Coordinate; readonly time: Gregor1.Time; readonly liveLocationEndTime?: Gregor1.Time | null; readonly isLiveLocationDone: Boolean}
 export type UnfurlGenericRaw = {readonly title: String; readonly url: String; readonly siteName: String; readonly faviconUrl?: String | null; readonly imageUrl?: String | null; readonly video?: UnfurlVideo | null; readonly publishTime?: Int | null; readonly description?: String | null}
 export type UnfurlGiphy = {readonly favicon?: Asset | null; readonly image?: Asset | null; readonly video?: Asset | null}
 export type UnfurlGiphyDisplay = {readonly favicon?: UnfurlImageDisplay | null; readonly image?: UnfurlImageDisplay | null; readonly video?: UnfurlImageDisplay | null}
 export type UnfurlGiphyRaw = {readonly imageUrl?: String | null; readonly video?: UnfurlVideo | null; readonly faviconUrl?: String | null}
 export type UnfurlImageDisplay = {readonly url: String; readonly height: Int; readonly width: Int; readonly isVideo: Boolean}
-export type UnfurlMapsRaw = {readonly title: String; readonly url: String; readonly siteName: String; readonly imageUrl: String; readonly historyImageUrl?: String | null; readonly description: String}
+export type UnfurlMapsRaw = {readonly title: String; readonly url: String; readonly siteName: String; readonly imageUrl: String; readonly historyImageUrl?: String | null; readonly description: String; readonly coord: Coordinate; readonly time: Gregor1.Time; readonly liveLocationEndTime?: Gregor1.Time | null; readonly liveLocationDone: Boolean}
 export type UnfurlPromptResult = {actionType: UnfurlPromptAction.always} | {actionType: UnfurlPromptAction.never} | {actionType: UnfurlPromptAction.notnow} | {actionType: UnfurlPromptAction.accept; accept: String | null} | {actionType: UnfurlPromptAction.onetime; onetime: String | null}
 export type UnfurlRaw = {unfurlType: UnfurlType.generic; generic: UnfurlGenericRaw | null} | {unfurlType: UnfurlType.youtube; youtube: UnfurlYoutubeRaw | null} | {unfurlType: UnfurlType.giphy; giphy: UnfurlGiphyRaw | null} | {unfurlType: UnfurlType.maps; maps: UnfurlMapsRaw | null}
 export type UnfurlResult = {readonly unfurl: Unfurl; readonly url: String}

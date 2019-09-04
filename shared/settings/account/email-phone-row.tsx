@@ -89,17 +89,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     })
   }
 
-  // TODO: Drop this `if` once Y2K-180 is done.
-  if (!props.primary) {
-    if (menuItems.length > 0) {
-      menuItems.push('Divider')
-    }
-    menuItems.push({
-      danger: true,
-      onClick: props.onDelete,
-      title: 'Delete',
-    })
+  if (menuItems.length > 0) {
+    menuItems.push('Divider')
   }
+  menuItems.push({
+    danger: true,
+    onClick: props.onDelete,
+    title: 'Delete',
+  })
 
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
