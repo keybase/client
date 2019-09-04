@@ -130,9 +130,6 @@ const styles = Styles.styleSheetCreate(() => ({
   liveButton: {
     height: 53,
   },
-  liveButtonText: {
-    color: Styles.globalColors.blueDark,
-  },
 }))
 
 export default LocationPopup
