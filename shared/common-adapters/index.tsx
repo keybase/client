@@ -2,7 +2,7 @@ import {NavigationEvents as _NavigationEvents} from '@react-navigation/core'
 import {OverlayParentProps, PropsWithOverlay} from './overlay/parent-hoc'
 import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
-import {IconType} from './icon.constants'
+import {IconType} from './icon.constants-gen'
 import {WebViewProps, WebViewInjections} from './web-view'
 
 export const NavigationEvents = _NavigationEvents
@@ -55,6 +55,7 @@ export {default as LabeledInput} from './labeled-input'
 export {default as List} from './list'
 export {default as List2} from './list2'
 export {default as LoadingLine} from './loading-line'
+export {default as LocationMap} from './location-map'
 export {default as ListItem} from './list-item'
 export {
   default as ListItem2,

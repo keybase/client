@@ -210,7 +210,7 @@ export const errorBanner = (error: string) =>
       ]
     : []
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: Styles.globalMargins.small,
     left: Styles.globalMargins.small,
@@ -234,7 +234,7 @@ const styles = Styles.styleSheetCreate({
   },
   body: {
     ...Styles.padding(
-      Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
+      Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
       Styles.globalMargins.small
     ),
     flex: 1,
@@ -291,4 +291,4 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
-})
+}))

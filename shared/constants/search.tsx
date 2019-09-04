@@ -1,7 +1,7 @@
 import * as I from 'immutable'
 import * as Types from './types/search'
 import * as SearchGen from '../actions/search-gen'
-import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
+import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {TypedState} from './reducer'
 
 export const makeSearchResult = I.Record<Types.SearchResult>({

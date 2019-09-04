@@ -290,13 +290,10 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		delete(l.trackers, t.Key())
 		l.saveLocked(ctx)
 	}()
-
-	if !t.getCurrentPosition {
-		// if this is a live location request, just put whatever the last coord is on the screen, makes it
-		// feel more live
-		if !l.lastCoord.IsZero() {
-			t.updateCh <- l.lastCoord
-		}
+	// if this is a live location request, just put whatever the last coord is on the screen, makes it
+	// feel more live
+	if !l.lastCoord.IsZero() {
+		t.updateCh <- l.lastCoord
 	}
 	firstUpdate := true
 	shouldUpdate := false
@@ -304,23 +301,18 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	for {
 		select {
 		case coord := <-t.updateCh:
-			var added int
-			if !t.getCurrentPosition {
-				added = t.Drain(coord)
-				shouldUpdate = true
-				l.Debug(ctx, "tracker[%v]: got coords", watchID)
-				if firstUpdate {
-					l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
-					err := l.updateMapUnfurl(ctx, t, false)
-					if err != nil {
-						return err
-					}
+			added := t.Drain(coord)
+			l.Debug(ctx, "tracker[%v]: got coords", watchID)
+			if firstUpdate {
+				l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
+				err := l.updateMapUnfurl(ctx, t, false)
+				if err != nil {
+					return err
 				}
-				firstUpdate = false
 			} else {
-				added = 1
-				t.SetCoords([]chat1.Coordinate{coord})
+				shouldUpdate = true
 			}
+			firstUpdate = false
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
@@ -345,10 +337,18 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
 			l.Debug(ctx, "tracker[%v]: live location complete, updating", watchID)
-			t.Drain(chat1.Coordinate{})
+			added := t.Drain(chat1.Coordinate{})
+			if t.getCurrentPosition && !shouldUpdate && added == 0 {
+				// only bother for current position if we have a coordinate
+				return nil
+			}
 			return l.updateMapUnfurl(ctx, t, true)
 		case <-t.stopCh:
 			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
+			if t.getCurrentPosition {
+				// don't need to update here
+				return nil
+			}
 			return l.updateMapUnfurl(ctx, t, true)
 		}
 	}
@@ -416,6 +416,16 @@ func (l *LiveLocationTracker) GetCoordinates(ctx context.Context, key types.Live
 		res = append(res, l.lastCoord)
 	}
 	return res
+}
+
+func (l *LiveLocationTracker) GetEndTime(ctx context.Context, key types.LiveLocationKey) *time.Time {
+	defer l.Trace(ctx, func() error { return nil }, "GetEndTime")()
+	l.Lock()
+	defer l.Unlock()
+	if t, ok := l.trackers[key]; ok {
+		return &t.endTime
+	}
+	return nil
 }
 
 func (l *LiveLocationTracker) StopAllTracking(ctx context.Context) {

@@ -6,7 +6,7 @@ import * as TeamsTypes from './teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import * as EngineGen from '../../actions/engine-gen-gen'
-import {IconType} from '../../common-adapters/icon.constants'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'

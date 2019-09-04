@@ -70,7 +70,7 @@ Password.navigationOptions = {
   headerLeft: null, // no back button
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   card: Styles.platformStyles({
     common: {
       alignItems: 'stretch',
@@ -102,6 +102,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 export default Password

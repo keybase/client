@@ -28,7 +28,7 @@ const Feedback = ({onFeedback}) =>
   )
 
 const Intro = (props: Props) => {
-  Kb.useInterval(() => props.checkIsOnline, 2000)
+  Kb.useInterval(props.checkIsOnline, 2000)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {!!props.bannerMessage && (

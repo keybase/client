@@ -7,7 +7,7 @@ import Icon from '../icon'
 import Text from '../text'
 import Modal from '../modal'
 import * as Styles from '../../styles'
-import {IconType} from '../icon.constants'
+import {IconType} from '../icon.constants-gen'
 
 // generally one of icon or header will be given
 export type Props = {

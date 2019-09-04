@@ -22,7 +22,7 @@ type Props = {
 }
 
 const mapStateToProps = (state, {conversationIDKey}) => ({
-  _you: state.config.username || '',
+  _you: state.config.username,
   rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
 })
 
