@@ -241,6 +241,7 @@ type _InboxRefreshPayload = {
     | 'joinedAConversation'
     | 'leftAConversation'
     | 'teamTypeChanged'
+    | 'maybeKickedFromTeam'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {

@@ -100,7 +100,8 @@
         "'inboxSyncedUnknown'",
         "'joinedAConversation'",
         "'leftAConversation'",
-        "'teamTypeChanged'"
+        "'teamTypeChanged'",
+        "'maybeKickedFromTeam'"
       ]
     },
     // We want to unbox an inbox row
