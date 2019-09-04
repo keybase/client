@@ -107,7 +107,7 @@ const LocationPopup = (props: Props) => {
             <Kb.Divider />
             <Kb.Button
               fullWidth={true}
-              label=" Share current location"
+              label="Send current location"
               onClick={() => onLocationShare('')}
               type="Default"
               style={{height: 53}}
