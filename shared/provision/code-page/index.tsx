@@ -318,7 +318,7 @@ const Instructions = (p: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: Styles.platformStyles({
     isElectron: {
       marginLeft: Styles.globalMargins.medium,
@@ -521,5 +521,5 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 20,
     },
   }),
-})
+}))
 export default CodePage2

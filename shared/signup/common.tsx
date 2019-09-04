@@ -210,7 +210,7 @@ export const errorBanner = (error: string) =>
       ]
     : []
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: Styles.globalMargins.small,
     left: Styles.globalMargins.small,
@@ -291,4 +291,4 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
   },
-})
+}))

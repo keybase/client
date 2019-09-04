@@ -90,7 +90,7 @@ const Username = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'center',
@@ -163,7 +163,7 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 Username.navigationOptions = {
   header: null,
