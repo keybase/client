@@ -15,10 +15,10 @@ const Connected = Container.connect(
   (state: Container.TypedState) => ({
     _badgeNumbers: state.notifications.navBadges,
     _contactImportEnabled: state.settings.contacts.importEnabled,
-    _logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
     _walletsAcceptedDisclaimer: state.wallets.acceptedDisclaimer,
     badgeNotifications: !state.push.hasPermissions,
     hasRandomPW: state.settings.password.randomPW,
+    logoutInProgress: state.config.logoutHandshakeWaiters.size > 0,
   }),
   (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
     loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
@@ -41,7 +41,7 @@ const Connected = Container.connect(
     contactsLabel: stateProps._contactImportEnabled ? 'Phone contacts' : 'Import phone contacts',
     hasRandomPW: stateProps.hasRandomPW || undefined,
     loadHasRandomPW: dispatchProps.loadHasRandomPW,
-    logoutInProgress: stateProps._logoutHandshakeWaiters.size > 0,
+    logoutInProgress: stateProps.logoutInProgress,
     onLogout: dispatchProps.onLogout,
     onTabChange: (tab: Constants.SettingsTab) =>
       dispatchProps.onTabChange(tab, stateProps._walletsAcceptedDisclaimer),

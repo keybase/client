@@ -291,7 +291,7 @@ function* unboxRows(
             Chat2Gen.createMetaReceivedError({
               conversationIDKey: conversationIDKey,
               error,
-              username: state.config.username || '',
+              username: state.config.username,
             })
           )
         })
@@ -2949,7 +2949,7 @@ const toggleMessageReaction = (
         conversationIDKey,
         emoji,
         targetOrdinal: ordinal,
-        username: state.config.username || '',
+        username: state.config.username,
       })
     )
     .catch(() =>
@@ -2957,7 +2957,7 @@ const toggleMessageReaction = (
         conversationIDKey,
         emoji,
         targetOrdinal: ordinal,
-        username: state.config.username || '',
+        username: state.config.username,
       })
     )
 }

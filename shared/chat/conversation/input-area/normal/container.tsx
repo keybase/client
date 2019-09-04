@@ -37,7 +37,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   // don't include 'small' here to ditch the single #general suggestion
   const teamname = meta.teamType === 'big' ? meta.teamname : ''
 
-  const _you = state.config.username || ''
+  const _you = state.config.username
 
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0

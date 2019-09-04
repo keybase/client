@@ -26,8 +26,8 @@ export default Container.connect(mapStateToProps, mapDispatchToProps, (stateProp
   return {
     error: stateProps.error,
     onBack:
-      loggedInAccounts.size > 0
-        ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '')
+      loggedInAccounts.length > 0
+        ? () => dispatchProps.onLogIn(loggedInAccounts[0] || '')
         : dispatchProps._onBack,
     onSubmit: dispatchProps.onSubmit,
     waiting: stateProps.waiting,

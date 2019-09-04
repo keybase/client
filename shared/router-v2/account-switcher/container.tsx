@@ -36,12 +36,10 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps): Props => {
     const accountRows = Constants.prepareAccountRows(stateProps.accountRows, stateProps.username)
     return {
-      accountRows: accountRows
-        .map(account => ({
-          account: account,
-          fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
-        }))
-        .toArray(),
+      accountRows: accountRows.map(account => ({
+        account: account,
+        fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
+      })),
       fullname: stateProps.fullname,
       onAddAccount: dispatchProps.onAddAccount,
       onCancel: dispatchProps.onCancel,
@@ -49,7 +47,7 @@ export default Container.connect(
       onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
       onSelectAccount: (username: string) => {
         const rows = accountRows.filter(account => account.username === username)
-        const loggedIn = rows.first({hasStoredSecret: false}).hasStoredSecret
+        const loggedIn = rows.length && rows[0].hasStoredSecret
         return loggedIn
           ? dispatchProps.onSelectAccountLoggedIn(username)
           : dispatchProps.onSelectAccountLoggedOut(username)
