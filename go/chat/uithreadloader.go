@@ -58,7 +58,8 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 		}
 		grouped = nil
 	}
-	for _, msg := range msgs {
+	for i := len(msgs) - 1; i >= 0; i-- {
+		msg := msgs[i]
 		if msg.IsValid() {
 			if matches(msg, grouped) {
 				grouped = append(grouped, msg)
@@ -105,7 +106,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 					leavers = append(leavers, j.Valid().SenderUsername)
 				}
 			}
-			mvalid := grouped[0].Valid()
+			mvalid := grouped[len(grouped)-1].Valid()
 			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
 			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
 				Joiners: joiners,
