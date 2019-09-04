@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
 import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
-import {IconType} from '../common-adapters/icon.constants'
+import {IconType} from '../common-adapters/icon.constants-gen'
 import Flags from '../util/feature-flags'
 import {allServices} from '../constants/team-building'
 
