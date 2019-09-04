@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {Props} from './text-view'
+import { Props } from './text-view'
 
 const TextView = (props: Props) => {
-  const {url} = props
+  const { url } = props
   const [content, setContent] = React.useState('')
   React.useEffect(() => {
     const req = new XMLHttpRequest()
@@ -13,12 +13,12 @@ const TextView = (props: Props) => {
         if (req.readyState === XMLHttpRequest.DONE && req.status === 200) {
           setContent(req.responseText)
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     try {
       req.open('GET', url)
       req.send()
-    } catch (e) {}
+    } catch (e) { }
   }, [url])
   return (
     <Kb.Box2 fullWidth={true} fullHeight={true} direction="vertical" style={styles.container}>
@@ -39,7 +39,7 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.blueLighter3,
           padding: Styles.globalMargins.medium,
         },
-        isElectron: {overflow: 'scroll'} as const,
+        isElectron: { overflow: 'scroll' } as const,
       }),
       innerContainer: {
         ...Styles.globalStyles.flexGrow,

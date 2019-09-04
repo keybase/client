@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import { isMobile } from '../../../constants/platform'
 
 /*
  * This banner is used as part of a List2 in fs/folder/rows/rows.js, so it's
@@ -23,7 +23,7 @@ type Props = {
   onOpenWithoutResetUsers: () => void
 }
 
-const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutResetUsers}: Props) => (
+const Banner = ({ resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutResetUsers }: Props) => (
   <Kb.Box2
     direction="vertical"
     fullWidth={true}
@@ -32,7 +32,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
   >
     <Kb.Icon
       type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-      style={{height: Styles.globalMargins.xlarge, margin: Styles.globalMargins.medium}}
+      style={{ height: Styles.globalMargins.xlarge, margin: Styles.globalMargins.medium }}
     />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
       <Kb.Text type="BodySemibold" negative={true}>
@@ -49,9 +49,9 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
         />
         &nbsp;
         {// This needs to be in the same node as the sister
-        // ConnectedUsernames node, because otherwise it gets re-flowed
-        // awkwardly.
-        'lost all of their devices and ' +
+          // ConnectedUsernames node, because otherwise it gets re-flowed
+          // awkwardly.
+          'lost all of their devices and ' +
           (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
           ' new keys.'}
       </Kb.Text>
