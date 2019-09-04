@@ -22,12 +22,23 @@ const getFilesToTest = () => {
   return files
 }
 
-const prettierCheck = () =>
-  execSync(`yarn prettier-bare --check ${getFilesToTest().join(' ')}`, {
-    encoding: 'utf8',
-    env: process.env,
-    stdio: 'inherit',
-  })
+const prettierCheck = () => {
+  try {
+    console.log('Checking prettier')
+    execSync(`yarn prettier-bare --list-different ${getFilesToTest().join(' ')}`, {
+      encoding: 'utf8',
+      env: process.env,
+      stdio: [],
+    })
+  } catch (e) {
+    const lines = e.stdout.split('\n')
+    const [, ...toPrint] = lines
+    toPrint.pop()
+    toPrint.pop()
+    console.log('Prettier found errors with the following files: \n' + toPrint.join('\n'))
+    process.exit(1)
+  }
+}
 
 const prettierWriteAll = () =>
   execSync(`yarn prettier --write ${getFilesToTest().join(' ')}`, {

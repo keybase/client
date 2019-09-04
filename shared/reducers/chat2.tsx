@@ -524,6 +524,8 @@ const rootReducer = (
       }
       return nextState
     }
+    case Chat2Gen.updateLastCoord:
+      return state.set('lastCoord', action.payload.coord)
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setPaymentConfirmInfo:

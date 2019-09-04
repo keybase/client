@@ -18,6 +18,7 @@ import floatingMenu from './floating-menu/index.stories'
 import header from './header-hoc/index.stories'
 import icon from './icon.stories'
 import input from './input.stories'
+import labeledInput from './labeled-input.stories'
 import list from './list.stories'
 import listItem from './list-item.stories'
 import listItem2 from './list-item2.stories'
@@ -63,6 +64,7 @@ const load = () => {
     header,
     icon,
     input,
+    labeledInput,
     list,
     listItem,
     listItem2,

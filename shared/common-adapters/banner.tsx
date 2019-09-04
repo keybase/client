@@ -49,7 +49,7 @@ export const BannerParagraph = (props: BannerParagraphProps) => (
               })}
               onClick={segment.onClick}
             >
-              {segment.text}
+              {segment.text.trim()}
             </Text>
             {segment.text.endsWith(' ') && <>&nbsp;</>}
           </React.Fragment>

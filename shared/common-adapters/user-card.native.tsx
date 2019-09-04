@@ -10,17 +10,44 @@ const Kb = {
   Box,
 }
 
-const avatarSize = 96
-
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
-  <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
-    <Kb.Box style={styles.avatar}>
-      <Kb.Box style={styles.avatarBackground} />
-      <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
+const UserCard = ({
+  avatarBackgroundStyle,
+  avatarSize,
+  outerStyle,
+  onAvatarClicked,
+  username,
+  style,
+  children,
+  lighterPlaceholders,
+}: Props) => {
+  return (
+    <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
+      <Kb.Box style={styles.avatar}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.avatarBackground,
+            {
+              height: avatarSize / 2,
+              top: avatarSize / 2,
+            },
+            avatarBackgroundStyle,
+          ])}
+        />
+        <Kb.Avatar
+          size={avatarSize}
+          onClick={onAvatarClicked}
+          username={username}
+          lighterPlaceholders={lighterPlaceholders}
+        />
+      </Kb.Box>
+      <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
     </Kb.Box>
-    <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
-  </Kb.Box>
-)
+  )
+}
+
+UserCard.defaultProps = {
+  avatarSize: 96,
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   avatar: {
@@ -31,15 +58,14 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   avatarBackground: {
     backgroundColor: Styles.globalColors.white,
-    height: avatarSize / 2,
     left: 0,
     position: 'absolute',
     right: 0,
-    top: avatarSize / 2,
   },
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
+    width: '100%',
   },
   inside: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -47,6 +73,7 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-start',
     padding: 16,
+    width: '100%',
   },
 }))
 

@@ -68,7 +68,7 @@ const deriveSearchResults = memoize(
     searchResults: Array<User> | null,
     teamSoFar: I.Set<User>,
     myUsername: string,
-    followingState: I.Set<string>,
+    followingState: Set<string>,
     preExistingTeamMembers: I.Map<string, MemberInfo>
   ) =>
     searchResults &&

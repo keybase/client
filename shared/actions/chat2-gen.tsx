@@ -141,6 +141,7 @@ export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
+export const updateLastCoord = 'chat2:updateLastCoord'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
@@ -240,6 +241,7 @@ type _InboxRefreshPayload = {
     | 'joinedAConversation'
     | 'leftAConversation'
     | 'teamTypeChanged'
+    | 'maybeKickedFromTeam'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -614,6 +616,7 @@ type _UpdateConvExplodingModesPayload = {
   readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
 }
 type _UpdateConvRetentionPolicyPayload = {readonly meta: Types.ConversationMeta}
+type _UpdateLastCoordPayload = {readonly coord: Types.Coordinate}
 type _UpdateMessagesPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
@@ -1030,6 +1033,13 @@ export const createUnpinMessage = (payload: _UnpinMessagePayload): UnpinMessageP
 export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload): UnsentTextChangedPayload => ({
   payload,
   type: unsentTextChanged,
+})
+/**
+ * Update last known coordinate
+ */
+export const createUpdateLastCoord = (payload: _UpdateLastCoordPayload): UpdateLastCoordPayload => ({
+  payload,
+  type: updateLastCoord,
 })
 /**
  * Update messages that we might have in the store
@@ -1817,6 +1827,10 @@ export type UpdateConvRetentionPolicyPayload = {
   readonly payload: _UpdateConvRetentionPolicyPayload
   readonly type: typeof updateConvRetentionPolicy
 }
+export type UpdateLastCoordPayload = {
+  readonly payload: _UpdateLastCoordPayload
+  readonly type: typeof updateLastCoord
+}
 export type UpdateMessagesPayload = {
   readonly payload: _UpdateMessagesPayload
   readonly type: typeof updateMessages
@@ -1982,6 +1996,7 @@ export type Actions =
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
+  | UpdateLastCoordPayload
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload

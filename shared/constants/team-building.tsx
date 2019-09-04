@@ -35,7 +35,7 @@ function isKeybaseUserId(userId: string) {
 
 function followStateHelperWithId(
   me: string,
-  followingState: I.Set<string>,
+  followingState: Set<string>,
   userId: string = ''
 ): Types.FollowingState {
   if (isKeybaseUserId(userId)) {

@@ -17,11 +17,13 @@ const iconNameForDeviceType = Styles.isMobile
             : 'icon-fancy-encrypted-computer-mobile-226-96'
       }
     }
-  : (deviceType: string, isRevoked: boolean): Kb.IconType => {
+  : (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked
             ? 'icon-fancy-revoked-phone-desktop-150-72'
+            : isLocation
+            ? 'icon-fancy-encrypted-location-phone-desktop-150-72'
             : 'icon-fancy-encrypted-phone-desktop-150-72'
         default:
           return isRevoked
@@ -38,11 +40,12 @@ const MessagePopupHeader = (props: {
   deviceRevokedAt?: number
   deviceType: DeviceType
   isLast?: boolean
+  isLocation: boolean
   timestamp: number
   yourMessage: boolean
 }) => {
-  const {author, deviceName, deviceRevokedAt, deviceType, isLast, timestamp, yourMessage} = props
-  const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt)
+  const {author, deviceName, deviceRevokedAt, deviceType, isLast, isLocation, timestamp, yourMessage} = props
+  const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
     <Kb.Box style={styles.headerContainer}>
