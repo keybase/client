@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
 
@@ -24,8 +25,11 @@ import (
 type TaskFunc func(m libkb.MetaContext) error
 
 type BackgroundTaskSettings struct {
-	Start        time.Duration // Wait after starting the app
-	StartStagger time.Duration // Wait an additional random amount.
+	Start time.Duration // Wait after starting the app
+	// Additional wait after starting the mobile app, but only on foreground
+	// (i.e., does not get triggered when service starts during background fetch/BACKGROUND_ACTIVE mode)
+	MobileForegroundStartAddition time.Duration
+	StartStagger                  time.Duration // Wait an additional random amount.
 	// When waking up on mobile lots of timers will go off at once. We wait an additional
 	// delay so as not to add to that herd and slow down the mobile experience when opening the app.
 	WakeUp   time.Duration
@@ -130,41 +134,48 @@ func (e *BackgroundTask) Shutdown() {
 	}
 }
 
-func (e *BackgroundTask) loop(m libkb.MetaContext) error {
+func (e *BackgroundTask) loop(mctx libkb.MetaContext) error {
 	// wakeAt times are calculated before a meta before their corresponding sleep.
 	// To avoid the race where the testing goroutine calls advance before
 	// this routine decides when to wake up. That led to this routine never waking.
-	wakeAt := m.G().Clock().Now().Add(e.args.Settings.Start)
+	wakeAt := mctx.G().Clock().Now().Add(e.args.Settings.Start)
 	if e.args.Settings.StartStagger > 0 {
 		wakeAt = wakeAt.Add(time.Duration(insecurerand.Int63n(int64(e.args.Settings.StartStagger))))
 	}
+	if e.args.Settings.MobileForegroundStartAddition > 0 && mctx.G().IsMobileAppType() {
+		appState := mctx.G().MobileAppState.State()
+		if appState == keybase1.MobileAppState_FOREGROUND {
+			mctx.Debug("Since starting on mobile and foregrounded, waiting an additional %v", e.args.Settings.MobileForegroundStartAddition)
+			wakeAt = wakeAt.Add(e.args.Settings.MobileForegroundStartAddition)
+		}
+	}
 	e.meta("loop-start")
-	if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
+	if err := libkb.SleepUntilWithContext(mctx.Ctx(), mctx.G().Clock(), wakeAt); err != nil {
 		return err
 	}
 	e.meta("woke-start")
 	var i int
 	for {
 		i++
-		m := m.WithLogTag("BGT") // Background Task
-		e.log(m, "round(%v) start", i)
-		err := e.round(m)
+		mctx := mctx.WithLogTag("BGT") // Background Task
+		e.log(mctx, "round(%v) start", i)
+		err := e.round(mctx)
 		if err != nil {
-			e.log(m, "round(%v) error: %s", i, err)
+			e.log(mctx, "round(%v) error: %s", i, err)
 		} else {
-			e.log(m, "round(%v) complete", i)
+			e.log(mctx, "round(%v) complete", i)
 		}
 		if e.args.testingRoundResCh != nil {
 			e.args.testingRoundResCh <- err
 		}
-		wakeAt = m.G().Clock().Now().Add(e.args.Settings.Interval)
+		wakeAt = mctx.G().Clock().Now().Add(e.args.Settings.Interval)
 		e.meta("loop-round-complete")
-		if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
+		if err := libkb.SleepUntilWithContext(mctx.Ctx(), mctx.G().Clock(), wakeAt); err != nil {
 			return err
 		}
-		wakeAt = m.G().Clock().Now().Add(e.args.Settings.WakeUp)
+		wakeAt = mctx.G().Clock().Now().Add(e.args.Settings.WakeUp)
 		e.meta("woke-interval")
-		if err := libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt); err != nil {
+		if err := libkb.SleepUntilWithContext(mctx.Ctx(), mctx.G().Clock(), wakeAt); err != nil {
 			return err
 		}
 		e.meta("woke-wakeup")

@@ -294,6 +294,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatClearWatch': enginegen.Chat1ChatUiChatClearWatchPayload
   'engine-gen:chat1ChatUiChatCommandStatus': enginegen.Chat1ChatUiChatCommandStatusPayload
   'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus': enginegen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
+  'engine-gen:chat1ChatUiTriggerContactSync': enginegen.Chat1ChatUiTriggerContactSyncPayload
   'engine-gen:chat1NotifyChatNewChatActivity': enginegen.Chat1NotifyChatNewChatActivityPayload
   'engine-gen:chat1NotifyChatChatIdentifyUpdate': enginegen.Chat1NotifyChatChatIdentifyUpdatePayload
   'engine-gen:chat1NotifyChatChatTLFFinalize': enginegen.Chat1NotifyChatChatTLFFinalizePayload
