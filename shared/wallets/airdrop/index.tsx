@@ -317,4 +317,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default (Styles.isMobile ? Kb.HeaderHoc(Airdrop) : Airdrop)
+export default Airdrop

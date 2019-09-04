@@ -2626,6 +2626,10 @@ type ChatBotCommandsUpdateStatusArg struct {
 	Status    UIBotCommandsUpdateStatus `codec:"status" json:"status"`
 }
 
+type TriggerContactSyncArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -2659,6 +2663,7 @@ type ChatUiInterface interface {
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
 	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
 	ChatBotCommandsUpdateStatus(context.Context, ChatBotCommandsUpdateStatusArg) error
+	TriggerContactSync(context.Context, int) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -3145,6 +3150,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"triggerContactSync": {
+				MakeArg: func() interface{} {
+					var ret [1]TriggerContactSyncArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TriggerContactSyncArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TriggerContactSyncArg)(nil), args)
+						return
+					}
+					err = i.TriggerContactSync(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3314,5 +3334,11 @@ func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandSt
 
 func (c ChatUiClient) ChatBotCommandsUpdateStatus(ctx context.Context, __arg ChatBotCommandsUpdateStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) TriggerContactSync(ctx context.Context, sessionID int) (err error) {
+	__arg := TriggerContactSyncArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.triggerContactSync", []interface{}{__arg}, nil)
 	return
 }

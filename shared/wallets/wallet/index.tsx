@@ -6,6 +6,7 @@ import AccountReloader from '../common/account-reloader'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
+import Airdrop from '../airdrop/container'
 
 const stripePatternName = Styles.isMobile
   ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
@@ -16,6 +17,7 @@ const stripePatternSize = Styles.isMobile ? 18 : 9
 export type Props = {
   acceptedDisclaimer: boolean
   accountID: Types.AccountID
+  airdropSelected: boolean
   loadingMore: boolean
   onBack: () => void
   onLoadMore: () => void
@@ -138,14 +140,18 @@ class Wallet extends React.Component<Props> {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
         {Styles.isMobile && <Header onBack={this.props.onBack} />}
-        <Kb.SectionList
-          sections={this.props.sections}
-          renderItem={this._renderItem}
-          renderSectionHeader={this._renderSectionHeader}
-          stickySectionHeadersEnabled={false}
-          keyExtractor={this._keyExtractor}
-          onEndReached={this._onEndReached}
-        />
+        {this.props.airdropSelected ? (
+          <Airdrop />
+        ) : (
+          <Kb.SectionList
+            sections={this.props.sections}
+            renderItem={this._renderItem}
+            renderSectionHeader={this._renderSectionHeader}
+            stickySectionHeadersEnabled={false}
+            keyExtractor={this._keyExtractor}
+            onEndReached={this._onEndReached}
+          />
+        )}
         {this.props.loadingMore && <Kb.ProgressIndicator style={styles.loadingMore} />}
       </Kb.Box2>
     )

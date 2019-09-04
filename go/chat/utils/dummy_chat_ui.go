@@ -139,6 +139,10 @@ func (r DummyChatUI) ChatBotCommandsUpdateStatus(context.Context, chat1.ChatBotC
 	return nil
 }
 
+func (r DummyChatUI) TriggerContactSync(context.Context, int) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

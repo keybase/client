@@ -494,4 +494,6 @@ protocol chatUi {
     BLANK_3
   }
   void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status);
+
+  void triggerContactSync(int sessionID);
 }
