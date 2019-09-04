@@ -22,7 +22,7 @@ const services: {
     searchPlaceholder: 'contacts',
   },
   email: {
-    color: '#4C8EFF',
+    color: '#3663ea',
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
     longLabel: 'An email address',
@@ -51,7 +51,7 @@ const services: {
     searchPlaceholder: 'Hacker News',
   },
   keybase: {
-    color: '#4C8EFF',
+    color: '#3663ea',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
     longLabel: Styles.isMobile ? 'Keybase & Contacts' : 'A Keybase user',
@@ -65,7 +65,7 @@ const services: {
     searchPlaceholder: 'PGP',
   },
   phone: {
-    color: '#4C8EFF',
+    color: '#3663ea',
     icon: 'iconfont-number-pad',
     label: 'Phone',
     longLabel: 'A phone number',
