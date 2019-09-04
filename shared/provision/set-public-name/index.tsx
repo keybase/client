@@ -75,7 +75,7 @@ const styles = styleSheetCreate({
   }),
   wrapper: platformStyles({
     isElectron: {
-      width: 460,
+      width: 400,
     },
     isMobile: {
       width: '100%',

@@ -168,6 +168,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.PlainInput
             multiline={true}
+            padding={0}
             placeholder="Add a public memo (on Stellar)"
             placeholderColor={placeholderColor}
             style={styles.input}
@@ -223,7 +224,6 @@ const styles = Styles.styleSheetCreate(() => ({
   input: {
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black_on_white,
-    padding: 0,
   },
 }))
 

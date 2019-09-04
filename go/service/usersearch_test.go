@@ -249,26 +249,6 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 	return res, nil
 }
 
-type errorContactsProvider struct{}
-
-func (c *errorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ contacts.Token) (res contacts.ContactLookupResults, err error) {
-	return res, errors.New("error contacts provider")
-}
-
-func (*errorContactsProvider) LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber,
-	keybase1.RegionCode) (res contacts.ContactLookupResults, err error) {
-	return res, errors.New("unexpected errorContactsProvider call")
-}
-
-func (*errorContactsProvider) FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]contacts.ContactUsernameAndFullName, error) {
-	return nil, errors.New("unexpected errorContactsProvider call")
-}
-
-func (*errorContactsProvider) FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error) {
-	return nil, errors.New("unexpected errorContactsProvider call")
-}
-
 func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearchHandler, searchProv *testUserSearchProvider) {
 	tc = libkb.SetupTest(t, "contacts", 3)
 	tc.G.SyncedContactList = contacts.NewSavedContactsStore(tc.G)
@@ -277,7 +257,9 @@ func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearc
 	require.NoError(t, err)
 
 	contactsProv := &contacts.CachedContactsProvider{
-		Provider: &errorContactsProvider{},
+		// Usersearch tests will call this provider for imp tofu searches, we
+		// want it to return errors but not fail entire test.
+		Provider: &contacts.ErrorContactsProvider{T: t, NoFail: true},
 		Store:    contacts.NewContactCacheStore(tc.G),
 	}
 	handler = NewUserSearchHandler(nil, tc.G, contactsProv)

@@ -199,7 +199,7 @@ const styles = Styles.styleSheetCreate(() => {
       minHeight: 48,
     },
     headerHideBorder: {
-      borderWidth: 0,
+      borderBottomWidth: 0,
     },
     headerLeft: {
       flex: 1,

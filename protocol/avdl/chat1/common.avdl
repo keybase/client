@@ -145,6 +145,14 @@
     string topicName;
   }
 
+  @lint("ignore")
+  record KBFSPath {
+    int startIndex;
+    string rawPath;
+    string standardPath;
+    keybase1.KBFSPathInfo pathInfo;
+  }
+
   enum ConversationMemberStatus {
     ACTIVE_0,      // in the channel
     REMOVED_1,     // removed from channel forcibly

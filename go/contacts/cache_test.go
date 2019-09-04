@@ -45,6 +45,10 @@ func (c *anotherMockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids
 	return c.provider.FindFollowing(mctx, uids)
 }
 
+func (c *anotherMockContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
+	return c.provider.FindServiceMaps(mctx, uids)
+}
+
 func TestCacheProvider(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestCacheProvider", 1)
 	defer tc.Cleanup()

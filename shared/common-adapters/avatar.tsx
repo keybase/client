@@ -17,6 +17,7 @@ type DisallowedStyles = {
 export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
+  lighterPlaceholders?: boolean
   editable?: boolean
   imageOverrideUrl?: string
   isTeam?: boolean
@@ -58,6 +59,12 @@ const avatarPlaceHolders: {[key: string]: IconType} = {
   '192': 'icon-placeholder-avatar-192',
   '256': 'icon-placeholder-avatar-256',
   '960': 'icon-placeholder-avatar-960',
+}
+
+const avatarLighterPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-placeholder-avatar-lighter-192',
+  '256': 'icon-placeholder-avatar-lighter-256',
+  '960': 'icon-placeholder-avatar-lighter-960',
 }
 
 const teamPlaceHolders: {[key: string]: IconType} = {
@@ -116,10 +123,18 @@ const ConnectedAvatar = Container.connect(
       }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
       return m
     }, {})
-    const url =
-      `url(${ownProps.imageOverrideUrl})` || stateProps._httpSrvAddress
-        ? urlsToImgSet(urlMap, ownProps.size)
-        : iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
+    const url = ownProps.imageOverrideUrl
+      ? `url(${ownProps.imageOverrideUrl})`
+      : stateProps._httpSrvAddress && name
+      ? urlsToImgSet(urlMap, ownProps.size)
+      : iconTypeToImgSet(
+          isTeam
+            ? teamPlaceHolders
+            : ownProps.lighterPlaceholders
+            ? avatarLighterPlaceHolders
+            : avatarPlaceHolders,
+          ownProps.size
+        )
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
       borderColor: ownProps.borderColor,

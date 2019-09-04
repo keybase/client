@@ -351,7 +351,7 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 			ActivityRemovesStatus: true,
 			DesktopNotifications:  true,
 			PushNotifications:     true,
-			ShowBadges:            true,
+			ShowBadges:            false,
 		}
 	case chat1.ConversationStatus_REPORTED:
 		fallthrough
@@ -1500,6 +1500,10 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
+
+	// This needs to happen before (deep) links.
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
 
 	// Links
 	body = DecorateWithLinks(ctx, body)

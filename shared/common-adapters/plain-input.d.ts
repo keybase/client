@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
+import {StylesCrossPlatform, globalMargins, StylesCrossPlatformWithSomeDisallowed} from '../styles'
 import {TextType} from './text'
 
 export type KeyboardType =
@@ -55,6 +55,12 @@ export type Selection = {
   end: number | null
 }
 
+export type DisallowedStyles = {
+  padding?: never
+}
+
+export type InputStyle = StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+
 export type Props = {
   autoFocus?: boolean
   // Enable if you want this to always have focus (desktop only)
@@ -72,11 +78,12 @@ export type Props = {
   onBlur?: () => void
   onChangeText?: (text: string) => void
   onFocus?: () => void
+  padding?: keyof typeof globalMargins | 0 // globalMargins does not have an option for 0
   placeholder?: string
   placeholderColor?: string
   rowsMin?: number
   rowsMax?: number
-  style?: StylesCrossPlatform
+  style?: InputStyle
   textType?: TextType
   type?: 'password' | 'text'
   value?: string // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API,

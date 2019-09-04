@@ -244,6 +244,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
         ordinal={this.props.message.ordinal}
+        toggleMessagePopup={this.props.toggleShowingMenu}
       />
     )
 
