@@ -147,7 +147,13 @@ class Button extends React.Component<Props> {
               </Kb.Text>
             )}
             {!!this.props.subLabel && (
-              <Kb.Text type="BodyTiny" style={Styles.collapseStyles([this.props.subLabelStyle])}>
+              <Kb.Text
+                type="BodyTiny"
+                style={Styles.collapseStyles([
+                  this.props.waiting && styles.opacity0,
+                  this.props.subLabelStyle,
+                ])}
+              >
                 {this.props.subLabel}
               </Kb.Text>
             )}
