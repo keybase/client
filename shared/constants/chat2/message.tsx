@@ -327,7 +327,8 @@ const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInvi
 
 const makeMessageSystemSBSResolved = I.Record<MessageTypes._MessageSystemSBSResolved>({
   ...makeMessageCommonNoDeleteNoEdit,
-  assertion: '',
+  assertionService: '',
+  assertionUsername: '',
   prover: '',
   reactions: I.Map(),
   type: 'systemSBSResolved',
@@ -590,9 +591,11 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.sbsresolve: {
-      const {prover = '???', assertion = '???'} = body.sbsresolve || {}
+      const {prover = '???', assertionUsername = '???', assertionService = '???'} = body.sbsresolve || {}
       return makeMessageSystemSBSResolved({
-        assertion,
+        ...minimum,
+        assertionService,
+        assertionUsername,
         prover,
         reactions,
       })

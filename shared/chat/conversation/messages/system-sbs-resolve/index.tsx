@@ -1,12 +1,10 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import UserNotice from '../user-notice'
-import SystemMessageTimestamp from '../system-message-timestamp'
+import {formatTimeForChat} from '../../../../util/timestamp'
 
 type Props = {
-  message: Types.MessageSystemSBSResolbed
+  message: Types.MessageSystemSBSResolved
   you: string
 }
 
@@ -18,40 +16,42 @@ const connectedUsernamesProps = {
   underline: true,
 } as const
 
-const formatAssertion = (assertion: string): string => {
-  // TODO format this nicely e.g. "malgorithms on Twitter" or "+1 (216) 223-8548"
-  return assertion
+const formatAssertion = (serviceUser: string, service: string, isYou: boolean): string => {
+  if (isYou) {
+    return formatAssertionYou(serviceUser, service)
+  }
+  switch (service) {
+    case 'phone':
+      return `their phone number ${serviceUser}`
+    case 'email':
+      return `their email address ${serviceUser}`
+    default:
+      return `that they are ${serviceUser} on ${service}`
+  }
+}
+const formatAssertionYou = (serviceUser: string, service: string): string => {
+  switch (service) {
+    case 'phone':
+      return `your phone number ${serviceUser}`
+    case 'email':
+      return `your email address ${serviceUser}`
+    default:
+      return `that you are ${serviceUser} on ${service}`
+  }
 }
 
 const SBSProvedNotice = (props: Props) => {
-  if (props.you === props.message.prover) {
-    return <YouSBSProvedNotice {...props} />
-  }
-  const {prover, assertion} = props.message
-  // There's not a lot of space to explain the adder / inviter situation,
-  // just pretend they were added by the inviter for now.
+  const {timestamp, prover, assertionUsername, assertionService} = props.message
+  const isYou = props.you === props.message.prover
   return (
-    <Kb.Text type="BodySmall">
-      <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[prover]} /> proved that they are{' '}
-      {formatAssertion(assertion)} and this chat resolved.
-    </Kb.Text>
-  )
-}
-
-const YouSBSProvedNotice = (props: Props) => {
-  const {timestamp, assertion} = props.message
-
-  const copy = (
-    <Kb.Text center={true} type="BodySmallSemibold">
-      You proved that you are {formatAssertion(assertion)}, so now you can see this chat.
-    </Kb.Text>
-  )
-
-  return (
-    <UserNotice style={{marginTop: Styles.globalMargins.small}} bgColor={Styles.globalColors.blueLighter2}>
-      <SystemMessageTimestamp timestamp={timestamp} />
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>{copy}</Kb.Box>
-    </UserNotice>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodyTiny">{formatTimeForChat(timestamp)}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {isYou ? 'You' : <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[prover]} />} proved{' '}
+        {formatAssertion(assertionUsername, assertionService, isYou)}, so now {isYou ? 'you' : 'they'} can see
+        this chat.
+      </Kb.Text>
+    </Kb.Box2>
   )
 }
 

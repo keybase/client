@@ -644,14 +644,16 @@ func (o MessageSystemBulkAddToConv) DeepCopy() MessageSystemBulkAddToConv {
 }
 
 type MessageSystemSbsResolve struct {
-	Assertion string `codec:"assertion" json:"assertion"`
-	Prover    string `codec:"prover" json:"prover"`
+	AssertionService  string `codec:"assertionService" json:"assertionService"`
+	AssertionUsername string `codec:"assertionUsername" json:"assertionUsername"`
+	Prover            string `codec:"prover" json:"prover"`
 }
 
 func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 	return MessageSystemSbsResolve{
-		Assertion: o.Assertion,
-		Prover:    o.Prover,
+		AssertionService:  o.AssertionService,
+		AssertionUsername: o.AssertionUsername,
+		Prover:            o.Prover,
 	}
 }
 

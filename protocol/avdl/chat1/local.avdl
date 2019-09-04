@@ -163,7 +163,8 @@ protocol local {
   }
 
   record MessageSystemSbsResolve {
-    string assertion;
+    string assertionService;
+    string assertionUsername;
     string prover;
   }
 

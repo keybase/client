@@ -3,7 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {connect} from '../../../../util/container'
 
 type OwnProps = {
-  message: Types.MessageSystemSBSResolbed
+  message: Types.MessageSystemSBSResolved
 }
 
 const mapStateToProps = state => ({

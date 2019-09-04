@@ -2463,6 +2463,19 @@ func (m MessageSystem) String() string {
 		return m.Changeretention().String()
 	case MessageSystemType_BULKADDTOCONV:
 		return m.Bulkaddtoconv().String()
+	case MessageSystemType_SBSRESOLVE:
+		body := m.Sbsresolve()
+		switch body.AssertionService {
+		case "phone":
+			return fmt.Sprintf("%s verified their phone number %s and joined"+
+				" the conversation", body.Prover, body.AssertionUsername)
+		case "email":
+			return fmt.Sprintf("%s verified their email address %s and joined"+
+				" the conversation", body.Prover, body.AssertionUsername)
+		}
+		return fmt.Sprintf("%s proved they are %s on %s and joined"+
+			" the conversation", body.Prover, body.AssertionUsername,
+			body.AssertionService)
 	default:
 		return ""
 	}

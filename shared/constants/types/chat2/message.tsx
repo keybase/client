@@ -251,7 +251,8 @@ export type _MessageSystemInviteAccepted = {
 export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepted>
 
 export type _MessageSystemSBSResolved = {
-  assertion: string
+  assertionUsername: string
+  assertionService: string
   prover: string
   type: 'systemSBSResolved'
 } & _MessageCommonWithDeviceDeletableEditableReactions

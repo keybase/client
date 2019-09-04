@@ -456,10 +456,14 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 		// Send chat welcome message
 		if team.IsImplicit() {
-			assertion := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
+			iteamName, err := team.ImplicitTeamDisplayNameString(ctx)
+			if err != nil {
+				return err
+			}
 			g.Log.CDebugf(ctx,
 				"sending resolution message for successful SBS handle")
-			SendChatSBSResolutionMessage(ctx, g, team.Name().String(), assertion, verifiedInvitee.Uid)
+			SendChatSBSResolutionMessage(ctx, g, iteamName,
+				string(invite.Name), ityp, verifiedInvitee.Uid)
 
 		} else {
 			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")

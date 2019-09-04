@@ -536,7 +536,11 @@
       "fields": [
         {
           "type": "string",
-          "name": "assertion"
+          "name": "assertionService"
+        },
+        {
+          "type": "string",
+          "name": "assertionUsername"
         },
         {
           "type": "string",
