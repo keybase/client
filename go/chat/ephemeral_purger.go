@@ -199,7 +199,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	now := b.clock.Now()
 	nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 	if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
-		b.addPurgeToConvLoaderLocked(context.TODO(), purgeInfo)
+		b.addPurgeToConvLoaderLocked(ctx, purgeInfo)
 		return nil
 	}
 
