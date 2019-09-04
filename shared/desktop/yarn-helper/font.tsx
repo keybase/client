@@ -113,7 +113,7 @@ function updateIconFont(web) {
    * { [name of svg file]: charCode }
    *
    * Example
-   * { "127-kb-iconfont-nav-2-files-24": "e97e" }
+   * { "127-kb-iconfont-nav-2-files-24": "0xe97e" }
    */
   const codepointsMap = svgFilenames.reduce((pointsMap, {counter, filePath}) => {
     // Character code value converted from decimal to hexidecimal
