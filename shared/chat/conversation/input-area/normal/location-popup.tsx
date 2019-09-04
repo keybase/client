@@ -79,64 +79,41 @@ const LocationPopup = (props: Props) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button
               fullWidth={true}
+              label="Share location for 15 minutes"
               onClick={() => onLocationShare('15m')}
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-            >
-              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-                <Kb.Text type="BodySemibold" style={styles.liveButtonText}>
-                  Share location for 15 minutes
-                </Kb.Text>
-                <Kb.Text type="BodyTiny">Live location</Kb.Text>
-              </Kb.Box2>
-            </Kb.Button>
+              subLabel="Live location"
+            />
             <Kb.Button
               fullWidth={true}
+              label="Share location for 1 hours"
               onClick={() => onLocationShare('1h')}
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-            >
-              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-                <Kb.Text type="BodySemibold" style={styles.liveButtonText}>
-                  Share location for 1 hour
-                </Kb.Text>
-                <Kb.Text type="BodyTiny">Live location</Kb.Text>
-              </Kb.Box2>
-            </Kb.Button>
+              subLabel="Live location"
+            />
             <Kb.Button
               fullWidth={true}
               onClick={() => onLocationShare('8h')}
+              label="Share location for 8 hours"
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
-            >
-              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-                <Kb.Text type="BodySemibold" style={styles.liveButtonText}>
-                  Share location for 8 hours
-                </Kb.Text>
-                <Kb.Text type="BodyTiny">Live location</Kb.Text>
-              </Kb.Box2>
-            </Kb.Button>
+              subLabel="Live location"
+            />
             <Kb.Divider />
             <Kb.Button
               fullWidth={true}
+              label=" Share current location"
               onClick={() => onLocationShare('')}
               type="Default"
               style={{height: 53}}
-            >
-              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-                <Kb.Text type="BodySemibold" negative={true}>
-                  Share current location
-                </Kb.Text>
-                {mapLoaded && (
-                  <Kb.Text type="BodyTiny" style={styles.accuracy}>
-                    Accurate to {location ? location.accuracy : 0} meters
-                  </Kb.Text>
-                )}
-              </Kb.Box2>
-            </Kb.Button>
+              subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
+              subLabelStyle={styles.accuracy}
+            />
           </Kb.Box2>
         ),
       }}
