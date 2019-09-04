@@ -206,9 +206,9 @@ helpers.rootLinuxNode(env, {
                       def platforms = ["freebsd", "netbsd", "openbsd"]
                       for (platform in platforms) {
                           withEnv(["GOOS=${platform}"]) {
-                              println "Testing compilation on " + platform
+                              println "Testing compilation on ${platform}"
                               sh "go build -tags production github.com/keybase/client/go/keybase"
-                              println "End testing compilation on " + platform
+                              println "End testing compilation on ${platform}"
                           }
                       }
                     }
