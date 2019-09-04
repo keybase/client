@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 
 export type Props = {
@@ -51,7 +52,7 @@ const EnterEmail = (props: Props) => {
         showSearchable={true}
         searchable={searchable}
         onChangeSearchable={onChangeSearchable}
-        icon={Styles.isMobile ? <Kb.Icon type="icon-email-add-96" style={styles.icon} /> : null}
+        iconType={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
       />
     </SignupScreen>
   )
@@ -64,7 +65,7 @@ type BodyProps = {
   searchable: boolean
   onChangeSearchable: (allow: boolean) => void
   showSearchable: boolean
-  icon: React.ReactNode
+  iconType: Kb.IconType
 }
 export const EnterEmailBody = (props: BodyProps) => (
   <Kb.ScrollView>
@@ -75,8 +76,8 @@ export const EnterEmailBody = (props: BodyProps) => (
       fullWidth={true}
       style={Styles.globalStyles.flexOne}
     >
-      {props.icon}
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+      <Kb.Icon type={props.iconType} />
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <Kb.NewInput
           autoFocus={true}
           containerStyle={styles.input}
@@ -102,10 +103,6 @@ export const EnterEmailBody = (props: BodyProps) => (
 
 const styles = Styles.styleSheetCreate({
   checkbox: {width: '100%'},
-  icon: {
-    height: 96,
-    width: 96,
-  },
   input: Styles.platformStyles({
     common: {},
     isElectron: {
