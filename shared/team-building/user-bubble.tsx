@@ -1,8 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import DesktopStyle from '../common-adapters/desktop-style'
-import {serviceIdToIconFont} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 
 export type Props = {
@@ -15,54 +13,47 @@ export type Props = {
 const removeSize = Styles.isMobile ? 22 : 16
 
 const UserBubble = (props: Props) => {
-  const realCSS = `
-    .hoverContainer { position: relative; }
-    .hoverContainer .hoverComponent { visibility: hidden; }
-    .hoverContainer:hover .hoverComponent { visibility: visible; }
-    `
-  const showAvatar = ['keybase', 'contact', 'phone', 'email'].includes(props.service)
   const isKeybase = props.service === 'keybase'
   let {username} = props
-  if (!isKeybase && showAvatar) {
+  if (!isKeybase) {
     // Show placeholder avatar instead of an icon
     username = 'invalidusernameforplaceholderavatar'
   }
   return (
-    <Kb.Box2 direction="vertical" className="hoverContainer" style={styles.bubbleContainer}>
-      <DesktopStyle style={realCSS} />
-      <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
-        <Kb.ConnectedNameWithIcon
-          colorFollowing={true}
-          hideFollowingOverlay={true}
-          horizontal={false}
-          icon={showAvatar ? undefined : serviceIdToIconFont(props.service)}
-          iconBoxStyle={showAvatar ? undefined : styles.iconBox}
-          size="smaller"
-          // Display `username` for Keybase users for linking to profile pages
-          // and for follow. Display `title` for non-Keybase users that always
-          // stay gray and is not a link.
-          username={username}
-          title={!isKeybase ? props.username : undefined}
-        />
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" className="hoverComponent" style={styles.remove}>
-        <RemoveBubble prettyName={props.tooltip} onRemove={props.onRemove} />
-      </Kb.Box2>
+    <Kb.Box2 direction="vertical" className="hover-container" style={styles.bubbleContainer}>
+      <Kb.WithTooltip text={props.tooltip} position="top center">
+        <Kb.Box2 direction="horizontal" style={styles.bubble}>
+          <Kb.ConnectedNameWithIcon
+            colorFollowing={true}
+            hideFollowingOverlay={true}
+            horizontal={false}
+            size="smaller"
+            // Display `username` for Keybase users for linking to profile pages
+            // and for follow. Display `title` for non-Keybase users that always
+            // stay gray and is not a link.
+            username={username}
+            title={!isKeybase ? `${props.username}@${props.service}` : undefined}
+            titleStyle={styles.userBubbleTitle}
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="horizontal" className="hover-visible" style={styles.remove}>
+          <RemoveBubble onRemove={props.onRemove} />
+        </Kb.Box2>
+      </Kb.WithTooltip>
     </Kb.Box2>
   )
 }
 
-const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void; prettyName: string}) => (
-  <Kb.WithTooltip text={prettyName} position="top center">
-    <Kb.ClickableBox onClick={() => onRemove()}>
-      <Kb.Icon
-        type="iconfont-close"
-        color={Styles.globalColors.black_50_on_white}
-        fontSize={Styles.isMobile ? 14 : 12}
-        style={Kb.iconCastPlatformStyles(styles.removeIcon)}
-      />
-    </Kb.ClickableBox>
-  </Kb.WithTooltip>
+const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
+  <Kb.ClickableBox onClick={onRemove}>
+    <Kb.Icon
+      type="iconfont-close"
+      color={Styles.globalColors.black_50_on_white}
+      fontSize={Styles.isMobile ? 14 : 12}
+      style={Kb.iconCastPlatformStyles(styles.removeIcon)}
+      className="hover_color_black"
+    />
+  </Kb.ClickableBox>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -119,6 +110,7 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     top: 1,
   },
+  userBubbleTitle: {color: Styles.globalColors.black},
 }))
 
 export default UserBubble

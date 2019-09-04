@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Login, {Props} from '.'
-import * as Constants from '../../constants/config'
 
-const makeAccount = (username: string) =>
-  Constants.makeConfiguredAccount({hasStoredSecret: username !== 'no_secret', username})
+const makeAccount = (username: string) => ({
+  hasStoredSecret: username !== 'no_secret',
+  username,
+})
+
 const commonProps: Props = {
   bannerError: false,
   error: '',

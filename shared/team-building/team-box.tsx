@@ -62,7 +62,7 @@ const TeamBox = (props: Props) => {
   const last = !!props.teamSoFar.length && props.teamSoFar[props.teamSoFar.length - 1].userId
   const prevLast = Container.usePrevious(last)
   React.useEffect(() => {
-    if (Styles.isMobile && prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
+    if (prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({animated: true})
     }
   }, [prevLast, last])
@@ -74,7 +74,12 @@ const TeamBox = (props: Props) => {
   )
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false} ref={scrollViewRef}>
+      <Kb.ScrollView
+        horizontal={true}
+        alwaysBounceHorizontal={false}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+      >
         <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
         {addMorePrompt}
       </Kb.ScrollView>
@@ -82,8 +87,14 @@ const TeamBox = (props: Props) => {
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" style={styles.bubbles}>
-        <Kb.ScrollView horizontal={true}>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
+        <Kb.ScrollView
+          horizontal={true}
+          ref={scrollViewRef}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
             {addMorePrompt}
           </Kb.Box2>
@@ -124,8 +135,6 @@ const styles = Styles.styleSheetCreate(() => ({
   bubbles: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
     },
   }),
   container: Styles.platformStyles({
@@ -141,13 +150,16 @@ const styles = Styles.styleSheetCreate(() => ({
       borderBottomWidth: 1,
       borderStyle: 'solid',
       minHeight: 90,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
     },
   }),
-  floatingBubbles: Styles.platformStyles({
+  scrollContent: Styles.platformStyles({
     isElectron: {
-      justifyContent: 'flex-end',
+      paddingBottom: Styles.globalMargins.xsmall,
+      paddingTop: Styles.globalMargins.xsmall,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
   }),
   search: Styles.platformStyles({

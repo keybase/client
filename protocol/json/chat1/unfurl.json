@@ -4,6 +4,11 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "../gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
     }
   ],
   "types": [
@@ -154,6 +159,25 @@
         {
           "type": "string",
           "name": "description"
+        },
+        {
+          "type": "Coordinate",
+          "name": "coord"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "liveLocationDone"
         }
       ]
     },
@@ -192,6 +216,31 @@
             "def": false
           },
           "body": "UnfurlMapsRaw"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGenericMapInfo",
+      "fields": [
+        {
+          "type": "Coordinate",
+          "name": "coord"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "liveLocationEndTime"
+        },
+        {
+          "type": "boolean",
+          "name": "isLiveLocationDone"
         }
       ]
     },
@@ -238,6 +287,13 @@
             "string"
           ],
           "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
         }
       ]
     },
@@ -383,6 +439,13 @@
             "string"
           ],
           "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlGenericMapInfo"
+          ],
+          "name": "mapInfo"
         }
       ]
     },

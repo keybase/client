@@ -13,8 +13,7 @@ type Props = Kb.PropsWithTimer<{
 }>
 
 const Intro = (props: Props) => {
-  Kb.useInterval(() => props.checkIsOnline(), 2000)
-
+  Kb.useInterval(props.checkIsOnline, 2000)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
@@ -60,7 +59,7 @@ const Intro = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   banner: {
     backgroundColor: Styles.globalColors.blue,
     justifyContent: 'center',
@@ -97,6 +96,6 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.orange,
   },
-})
+}))
 
 export default Intro

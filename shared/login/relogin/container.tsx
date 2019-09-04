@@ -5,6 +5,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
+import {sortBy} from 'lodash-es'
 import * as Container from '../../util/container'
 import * as ConfigTypes from '../../constants/types/config'
 
@@ -99,7 +100,7 @@ export default Container.connect(
     onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const users = stateProps._users.sortBy(account => account.username).toArray()
+    const users = sortBy(stateProps._users, 'username')
     const bannerError = !!stateProps.error && Container.isNetworkErr(stateProps.error.code)
     const inputError = !!stateProps.error && !bannerError
 

@@ -5,6 +5,7 @@ import * as SettingsConstants from '../../constants/settings'
 import * as SignupGen from '../../actions/signup-gen'
 import * as SignupConstants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Platform from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
 import EnterEmail, {Props} from '.'
 
@@ -40,27 +41,41 @@ const WatchForSuccess = (props: WatcherProps) => {
 
 const ConnectedEnterEmail = Container.connect(
   (state: Container.TypedState) => ({
+    _showPushPrompt: Platform.isMobile && !state.push.hasPermissions && state.push.showPushPrompt,
     addedEmail: state.settings.email.addedEmail,
     error: state.settings.email.error || '',
     initialEmail: state.signup.email,
     waiting: anyWaiting(state, SettingsConstants.addEmailWaitingKey),
   }),
   (dispatch: Container.TypedDispatch) => ({
+    _navClearModals: () => dispatch(RouteTreeGen.createClearModals()),
+    _navToPushPrompt: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: ['settingsPushPrompt'],
+          replace: true,
+        })
+      ),
+    _onSkip: () => dispatch(SignupGen.createSetJustSignedUpEmail({email: SignupConstants.noEmail})),
+    _onSuccess: (email: string) => dispatch(SignupGen.createSetJustSignedUpEmail({email})),
     onCreate: (email: string, searchable: boolean) => {
       dispatch(SettingsGen.createAddEmail({email, searchable}))
     },
-    onSkip: () => {
-      dispatch(SignupGen.createSetJustSignedUpEmail({email: SignupConstants.noEmail}))
-      dispatch(RouteTreeGen.createClearModals())
-    },
-    onSuccess: (email: string) => {
-      dispatch(SignupGen.createSetJustSignedUpEmail({email}))
-      dispatch(RouteTreeGen.createClearModals())
-    },
   }),
   (s, d, o: OwnProps) => ({
-    ...s,
-    ...d,
+    addedEmail: s.addedEmail,
+    error: s.error,
+    initialEmail: s.initialEmail,
+    onCreate: d.onCreate,
+    onSkip: () => {
+      d._onSkip()
+      s._showPushPrompt ? d._navToPushPrompt() : d._navClearModals()
+    },
+    onSuccess: (email: string) => {
+      d._onSuccess(email)
+      s._showPushPrompt ? d._navToPushPrompt() : d._navClearModals()
+    },
+    waiting: s.waiting,
     ...o,
   })
 )(WatchForSuccess)

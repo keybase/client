@@ -6,12 +6,13 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
-import {namedConnect, isMobile} from '../../../../../util/container'
+import {connect, TypedState, TypedDispatch, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 import {MenuItems} from '../../../../../common-adapters'
+import openURL from '../../../../../util/open-url'
 
 export type OwnProps = {
   attachTo?: () => React.Component<any> | null
@@ -22,17 +23,19 @@ export type OwnProps = {
   visible: boolean
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
     meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
   const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
   const _canEdit = yourMessage && ownProps.message.isEditable
+  const _mapUnfurl = Constants.getMapUnfurl(ownProps.message)
   return {
     _canDeleteHistory,
     _canEdit,
     _canExplodeNow,
+    _mapUnfurl,
     author: ownProps.message.author,
     deviceName: ownProps.message.deviceName,
     deviceRevokedAt: ownProps.message.deviceRevokedAt,
@@ -44,7 +47,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: TypedDispatch, ownProps: OwnProps) => ({
   _onAddReaction: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -116,63 +119,69 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const items: MenuItems = []
-  if (stateProps._canExplodeNow) {
-    items.push({
-      danger: true,
-      onClick: dispatchProps._onExplodeNow,
-      title: 'Explode now',
-    })
-  }
-  if (isMobile) {
-    // 'Add a reaction' is an option on mobile
-    items.push({
-      onClick: dispatchProps._onAddReaction,
-      title: 'Add a reaction',
-    })
-  }
-  const message = ownProps.message
-  if (message.type === 'attachment') {
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => {
+    const items: MenuItems = []
+    if (stateProps._canExplodeNow) {
+      items.push({
+        danger: true,
+        onClick: dispatchProps._onExplodeNow,
+        title: 'Explode now',
+      })
+    }
     if (isMobile) {
-      if (message.attachmentType === 'image') {
-        items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+      // 'Add a reaction' is an option on mobile
+      items.push({
+        onClick: dispatchProps._onAddReaction,
+        title: 'Add a reaction',
+      })
+    }
+    const message = ownProps.message
+    if (message.type === 'attachment') {
+      if (isMobile) {
+        if (message.attachmentType === 'image') {
+          items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+        }
+        if (isIOS) {
+          items.push({onClick: dispatchProps._onShareAttachment, title: 'Share'})
+        }
+      } else {
+        items.push(
+          !message.downloadPath
+            ? {onClick: dispatchProps._onDownload, title: 'Download'}
+            : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
+        )
       }
-      if (isIOS) {
-        items.push({onClick: dispatchProps._onShareAttachment, title: 'Share'})
-      }
+      items.push({onClick: dispatchProps._onReply, title: 'Reply'})
     } else {
-      items.push(
-        !message.downloadPath
-          ? {onClick: dispatchProps._onDownload, title: 'Download'}
-          : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
-      )
+      if (stateProps._mapUnfurl) {
+        const url = stateProps._mapUnfurl.url
+        items.push({onClick: () => openURL(url), title: 'View on Google Maps'})
+      }
+      if (stateProps._canEdit) {
+        items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
+      }
+      items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
+      items.push({onClick: dispatchProps._onReply, title: 'Reply'})
+      items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
     }
-    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-  } else {
-    if (stateProps._canEdit) {
-      items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
+    return {
+      attachTo: ownProps.attachTo,
+      author: stateProps.author,
+      deviceName: stateProps.deviceName,
+      deviceRevokedAt: stateProps.deviceRevokedAt,
+      deviceType: stateProps.deviceType,
+      explodesAt: stateProps.explodesAt,
+      hideTimer: stateProps.hideTimer,
+      items,
+      onHidden: ownProps.onHidden,
+      position: ownProps.position,
+      style: ownProps.style,
+      timestamp: stateProps.timestamp,
+      visible: ownProps.visible,
+      yourMessage: stateProps.yourMessage,
     }
-    items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
-    items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-    items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
   }
-  return {
-    attachTo: ownProps.attachTo,
-    author: stateProps.author,
-    deviceName: stateProps.deviceName,
-    deviceRevokedAt: stateProps.deviceRevokedAt,
-    deviceType: stateProps.deviceType,
-    explodesAt: stateProps.explodesAt,
-    hideTimer: stateProps.hideTimer,
-    items,
-    onHidden: ownProps.onHidden,
-    position: ownProps.position,
-    style: ownProps.style,
-    timestamp: stateProps.timestamp,
-    visible: ownProps.visible,
-    yourMessage: stateProps.yourMessage,
-  }
-}
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ExplodingPopup')(Exploding)
+)(Exploding)

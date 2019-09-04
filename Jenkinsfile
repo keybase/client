@@ -199,6 +199,20 @@ helpers.rootLinuxNode(env, {
                   fetchChangeTarget()
                 }
                 parallel (
+                  test_xcompilation: { withEnv([
+                    "PATH=${env.PATH}:${env.GOPATH}/bin",
+                  ]) {
+                    if (hasGoChanges) {
+                      def platforms = ["freebsd", "netbsd", "openbsd"]
+                      for (platform in platforms) {
+                          withEnv(["GOOS=${platform}"]) {
+                              println "Testing compilation on ${platform}"
+                              sh "go build -tags production github.com/keybase/client/go/keybase"
+                              println "End testing compilation on ${platform}"
+                          }
+                      }
+                    }
+                  }},
                   test_linux_go: { withEnv([
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
