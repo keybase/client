@@ -20,7 +20,7 @@ type Props = {
   currentDeviceName: string
   otherDeviceName: string
   otherDeviceType: DeviceType
-  tabOverride?: Tab | null
+  tabOverride?: Tab
   textCode: string
   onBack: () => void
   onSubmitTextCode: (code: string) => void
@@ -31,6 +31,10 @@ type State = {
 }
 
 class CodePage2 extends React.Component<Props, State> {
+  static navigationOptions = {
+    headerLeft: null,
+    headerMode: Styles.isMobile ? 'none' : undefined,
+  }
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -74,8 +78,9 @@ class CodePage2 extends React.Component<Props, State> {
 
   _tabBackground = () => (this.state.tab === 'QR' ? Styles.globalColors.blueLight : Styles.globalColors.green)
 
-  render() {
-    let content
+  _header = () => {}
+  _body = () => {
+    let content: React.ReactNode = null
     switch (this.state.tab) {
       case 'QR':
         content = <Qr {...this.props} />
@@ -88,61 +93,82 @@ class CodePage2 extends React.Component<Props, State> {
         break
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.tab)
-        content = null
     }
-
     return (
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
         fullHeight={true}
-        style={Styles.collapseStyles([
-          styles.codePageContainer,
-          styles.safeArea,
-          Styles.globalStyles.flexBoxColumn,
-          {backgroundColor: this._tabBackground()},
-        ])}
+        style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
-        <Kb.SafeAreaView style={Styles.collapseStyles([styles.safeArea, Styles.globalStyles.flexBoxColumn])}>
-          <Kb.Box2
-            direction="vertical"
-            fullHeight={true}
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          style={
+            this.props.currentDeviceAlreadyProvisioned
+              ? styles.imageContainerOnLeft
+              : styles.imageContainerOnRight
+          }
+        >
+          <Kb.RequireImage
+            src={this.state.tab === 'QR' ? blueBackground : greenBackground}
             style={
-              this.props.currentDeviceAlreadyProvisioned
-                ? styles.imageContainerOnLeft
-                : styles.imageContainerOnRight
+              this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
             }
-          >
-            <Kb.RequireImage
-              src={this.state.tab === 'QR' ? blueBackground : greenBackground}
-              style={
-                this.props.currentDeviceAlreadyProvisioned
-                  ? styles.backgroundOnLeft
-                  : styles.backgroundOnRight
-              }
-            />
-          </Kb.Box2>
-          {this.props.currentDeviceAlreadyProvisioned && (
-            <Kb.BackButton
-              onClick={this.props.onBack}
-              iconColor={Styles.globalColors.white}
-              style={styles.backButton}
-              textStyle={styles.backButtonText}
-            />
-          )}
-          {!!this.props.error && <ErrorBanner error={this.props.error} />}
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
-            <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-              <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-                <Instructions {...this.props} />
-                {content}
-                <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
-              </Kb.Box2>
-            </Kb.ScrollView>
-          </Kb.Box2>
-        </Kb.SafeAreaView>
+          />
+        </Kb.Box2>
+        {!this.props.currentDeviceAlreadyProvisioned && !Styles.isMobile && (
+          <Kb.BackButton
+            onClick={this.props.onBack}
+            iconColor={Styles.globalColors.white}
+            style={styles.backButton}
+            textStyle={styles.backButtonText}
+          />
+        )}
+        {!!this.props.error && <ErrorBanner error={this.props.error} />}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
+          <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+            <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+              <Instructions {...this.props} />
+              {content}
+              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+            </Kb.Box2>
+          </Kb.ScrollView>
+        </Kb.Box2>
       </Kb.Box2>
     )
+  }
+  _footer = () => {}
+
+  render() {
+    const content = this._body()
+    // We're in a modal unless this is a desktop being newly provisioned.
+    const inModal = this.props.currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
+
+    if (inModal) {
+      return (
+        <Kb.Modal
+          header={
+            Styles.isMobile
+              ? {
+                  leftButton: (
+                    <Kb.Text type="BodyBig" onClick={this.props.onBack} negative={true}>
+                      {this.props.currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
+                    </Kb.Text>
+                  ),
+                  hideBorder: true,
+                  style: {backgroundColor: this._tabBackground()},
+                }
+              : undefined
+          }
+          onClose={this.props.onBack}
+          mode="Wide"
+        >
+          {content}
+        </Kb.Modal>
+      )
+    }
+    return content
   }
 }
 
@@ -164,18 +190,20 @@ const SwitchTab = (
   } & Props
 ) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
-    return <Kb.Box2 direction="horizontal" />
+    return null
   }
 
   let label
-  let icon
   let tab
 
   if (props.selected === 'QR') {
     label = 'Type secret instead'
-    icon = 'iconfont-text-code'
     if (props.currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
-      tab = props.currentDeviceAlreadyProvisioned ? 'enterText' : 'viewText'
+      tab = (props.currentDeviceAlreadyProvisioned
+      ? Styles.isMobile
+      : !Styles.isMobile)
+        ? 'viewText'
+        : 'enterText'
     } else if (props.currentDeviceType === 'mobile') {
       tab = 'viewText'
     } else {
@@ -183,14 +211,17 @@ const SwitchTab = (
     }
   } else {
     label = 'Scan QR instead'
-    icon = 'iconfont-qr-code'
     tab = 'QR'
   }
 
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
-      <Kb.Icon type={icon} color={Styles.globalColors.white} />
-      <Kb.Text type={textType} onClick={() => props.onSelect(tab)} style={styles.switchTab}>
+      <Kb.Text
+        type={Styles.isMobile ? 'Body' : 'BodySmall'}
+        negative={true}
+        onClick={() => props.onSelect(tab)}
+        style={styles.switchTab}
+      >
         {label}
       </Kb.Text>
     </Kb.Box2>
@@ -338,10 +369,6 @@ const styles = Styles.styleSheetCreate(
           overflow: 'hidden',
           position: 'relative',
         },
-        isElectron: {
-          minHeight: 400,
-          minWidth: 400,
-        },
       }),
       container: Styles.platformStyles({
         common: {
@@ -453,10 +480,6 @@ const styles = Styles.styleSheetCreate(
         borderRadius: 8,
         padding: 20,
       },
-      safeArea: {
-        height: '100%',
-        width: '100%',
-      },
       scrollContainer: {
         flexGrow: 1,
         position: 'relative',
@@ -474,7 +497,6 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxColumn,
       },
       switchTab: {
-        color: Styles.globalColors.white,
         marginBottom: 4,
       },
       switchTabContainer: {
