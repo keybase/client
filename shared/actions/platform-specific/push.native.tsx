@@ -211,8 +211,8 @@ const uploadPushToken = async (state: Container.TypedState) => {
   try {
     await RPCTypes.apiserverPostRpcPromise({
       args: [
-        {key: 'push_token', value: state.push.token},
-        {key: 'device_id', value: state.config.deviceID},
+        {key: 'push_token', value: token},
+        {key: 'device_id', value: deviceID},
         {key: 'token_type', value: Constants.tokenType},
       ],
       endpoint: 'device/push_token',
