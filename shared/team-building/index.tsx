@@ -52,6 +52,9 @@ export type SearchRecSection = {
   data: Array<SearchResult | ImportContactsEntry>
 }
 
+const isImportContactsEntry = (x: SearchResult | ImportContactsEntry): x is ImportContactsEntry =>
+  'isImportButton' in x && x.isImportButton
+
 export type RolePickerProps = {
   onSelectRole: (role: TeamRoleType) => void
   sendNotification: boolean
@@ -75,6 +78,7 @@ type ContactProps = {
 
 export type Props = ContactProps & {
   fetchUserRecs: () => void
+  focusInputCounter: number
   includeContacts: boolean
   highlightedIndex: number | null
   namespace: AllowedNamespace
@@ -302,22 +306,20 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     }
   )
 
-  _searchInput = () => {
-    const props = this.props
-    return (
-      <Input
-        onChangeText={props.onChangeText}
-        onClear={props.onClear}
-        onDownArrowKeyDown={props.onDownArrowKeyDown}
-        onUpArrowKeyDown={props.onUpArrowKeyDown}
-        onEnterKeyDown={props.onEnterKeyDown}
-        onBackspace={props.onBackspace}
-        placeholder={'Search ' + serviceIdToSearchPlaceholder(props.selectedService)}
-        searchString={props.searchString}
-        focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
-      />
-    )
-  }
+  _searchInput = () => (
+    <Input
+      onChangeText={this.props.onChangeText}
+      onClear={this.props.onClear}
+      onDownArrowKeyDown={this.props.onDownArrowKeyDown}
+      onUpArrowKeyDown={this.props.onUpArrowKeyDown}
+      onEnterKeyDown={this.props.onEnterKeyDown}
+      onBackspace={this.props.onBackspace}
+      placeholder={'Search ' + serviceIdToSearchPlaceholder(this.props.selectedService)}
+      searchString={this.props.searchString}
+      focusOnMount={!Styles.isMobile || this.props.selectedService !== 'keybase'}
+      focusCounter={this.props.focusInputCounter}
+    />
+  )
 
   _listBody = () => {
     const showRecPending = !this.props.searchString && !this.props.recommendations
@@ -389,6 +391,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             keyboardShouldPersistTaps="handled"
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
+            keyExtractor={(item: SearchResult | ImportContactsEntry) => {
+              return isImportContactsEntry(item) ? 'Import Contacts' : item.userId
+            }}
             getItemLayout={this._getRecLayout}
             renderItem={({index, item: result, section}) =>
               result.isImportButton ? (

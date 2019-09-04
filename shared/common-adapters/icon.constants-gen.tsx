@@ -733,6 +733,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-encrypted-computer-mobile-226-96.png'),
   },
+  'icon-fancy-encrypted-location-phone-desktop-150-72': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png'),
+  },
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,

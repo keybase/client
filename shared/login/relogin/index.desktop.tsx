@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as Constants from '../../constants/login'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {Props} from '.'
@@ -74,7 +73,7 @@ class Login extends React.Component<Props, State> {
     ]
 
     const userRows = this.props.users
-      .concat(ConfigConstants.makeConfiguredAccount({username: other}))
+      .concat({hasStoredSecret: false, username: other})
       .map(u => <UserRow user={u.username} key={u.username} />)
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)

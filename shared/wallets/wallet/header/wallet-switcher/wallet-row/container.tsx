@@ -12,7 +12,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const account = getAccount(state, ownProps.accountID)
   const name = account.name
-  const me = state.config.username || ''
+  const me = state.config.username
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = getSelectedAccount(state)
   return {

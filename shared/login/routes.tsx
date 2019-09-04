@@ -29,7 +29,7 @@ _RootLogin.navigationOptions = {
 const RootLogin = Container.connect(
   state => {
     const showLoading = state.config.daemonHandshakeState !== 'done'
-    const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
+    const showRelogin = !showLoading && state.config.configuredAccounts.length > 0
     return {showLoading, showRelogin}
   },
   () => ({}),

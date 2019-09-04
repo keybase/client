@@ -684,6 +684,18 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
   )
 }
 
+export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | null => {
+  const unfurls = message.type === 'text' && message.unfurls.size ? message.unfurls.toList().toArray() : null
+  const mapInfo =
+    !!unfurls &&
+    unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
+    unfurls[0].unfurl.generic &&
+    unfurls[0].unfurl.generic.mapInfo
+      ? unfurls[0].unfurl.generic
+      : null
+  return mapInfo
+}
+
 const validUIMessagetoMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
