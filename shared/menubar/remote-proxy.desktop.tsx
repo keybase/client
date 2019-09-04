@@ -176,7 +176,6 @@ export default Container.namedConnect(
         ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
         : null,
       fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
-      // following: stateProps._following,
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       kbfsEnabled: stateProps.kbfsEnabled,
       loggedIn: stateProps.loggedIn,
