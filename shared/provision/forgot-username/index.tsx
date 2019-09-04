@@ -49,7 +49,7 @@ const ForgotUsername = (props: Props) => {
         ...errorBanner(error),
         ...(props.forgotUsernameResult === 'success'
           ? [
-              <Kb.Banner color="blue">
+              <Kb.Banner key="successBanner" color="blue">
                 <Kb.BannerParagraph
                   bannerColor="blue"
                   content="A message with your username has been sent."
