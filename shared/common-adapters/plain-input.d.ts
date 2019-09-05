@@ -87,6 +87,7 @@ export type Props = {
   textType?: TextType
   type?: 'password' | 'text'
   value?: string // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API,
+  dummyInput?: boolean // Only affects mobile
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
   onEnterKeyDown?: (event?: React.BaseSyntheticEvent) => void
