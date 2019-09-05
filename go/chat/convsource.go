@@ -716,8 +716,12 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	rc := storage.NewHoleyResultCollector(maxPlaceholders, newPullLocalResultCollector(baseRC))
 	tv, err = s.fetchMaybeNotify(ctx, convID, uid, rc, iboxMaxMsgID, query, pagination)
 	if err != nil {
-		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages: %s", err.Error())
-		return chat1.ThreadView{}, err
+		s.Debug(ctx, "PullLocalOnly: failed to fetch local messages with iboxMaxMsgID: %v: err %s, trying again with local max", iboxMaxMsgID, err)
+		tv, err = s.fetchMaybeNotify(ctx, convID, uid, rc, 0, query, pagination)
+		if err != nil {
+			s.Debug(ctx, "PullLocalOnly: failed to fetch local messages with local max: %s", err)
+			return chat1.ThreadView{}, err
+		}
 	}
 	return tv, nil
 }
