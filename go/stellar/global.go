@@ -293,22 +293,8 @@ func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("Stellar.handleReconnect", func() error { return nil })()
 	mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
 	mctx = mctx.WithCtx(s.reconnectSlot.Use(mctx.Ctx()))
-	mctx, cancel := mctx.WithContextCancel()
+	mctx, cancel := cancelOnMobileBackground(mctx)
 	defer cancel()
-	go func() {
-		for {
-			foreground := keybase1.MobileAppState_FOREGROUND
-			select {
-			case state := <-mctx.G().MobileAppState.NextUpdate(&foreground):
-				if state != foreground {
-					cancel()
-					return
-				}
-			case <-mctx.Ctx().Done():
-				return
-			}
-		}
-	}()
 	time.Sleep(4 * time.Second)
 	if libkb.IsMobilePlatform() {
 		// sleep some more on mobile
