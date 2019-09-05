@@ -280,6 +280,22 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	}
 }
 
+var _ fs.NodeLinker = (*FolderList)(nil)
+
+// Symlink implements the fs.NodeLinker interface for FolderList.
+func (fl *FolderList) Symlink(
+	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
+var _ fs.NodeLinker = (*FolderList)(nil)
+
+// Link implements the fs.NodeLinker interface for FolderList.
+func (fl *FolderList) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
 func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 	newName string) {
 	ok := func() bool {
