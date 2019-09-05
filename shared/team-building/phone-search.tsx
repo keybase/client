@@ -23,8 +23,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setValidity(validity)
     setPhoneNumber(phoneNumber)
     if (validity) {
-      // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
-      props.search(phoneNumber, 'keybase')
+      props.search(phoneNumber, 'phone')
     }
   }
 

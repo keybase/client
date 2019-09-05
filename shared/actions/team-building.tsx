@@ -1,5 +1,6 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
+import * as Types from '../constants/types/team-building'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -15,21 +16,12 @@ type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespac
 
 const apiSearch = async (
   query: string,
-  service: TeamBuildingTypes.ServiceIdWithContact,
+  service: TeamBuildingTypes.ServiceId,
   maxResults: number,
   includeServicesSummary: boolean,
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
-  switch (service) {
-    // These services should not be queried through the API.
-    // TODO: Y2K-552 change types in this function so it can't be called with
-    // invalid services.
-    case 'phone':
-    case 'contact':
-    case 'email':
-      return []
-  }
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise({
       impTofuQuery,
@@ -61,8 +53,8 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
 
   // Filter on `services` so we only get what's searchable through API.
   // Also filter out if we already have that result cached.
-  const servicesToSearch = Constants.services
-    .filter(s => s !== teamBuildingSelectedService && !['contact', 'phone', 'email'].includes(s))
+  const servicesToSearch = Constants.allServices
+    .filter(s => s !== teamBuildingSelectedService && !Types.isContactServiceId(s))
     .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
 
   const isStillInSameQuery = (state: TypedState): boolean => {
@@ -146,6 +138,7 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
     return false
   }
 
+  // search tab services include phone/email - 'keybase' is the ServiceId for these, and we transform the query into impTofuQuery
   const query = teamBuildingSearchQuery
   let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
   if (teamBuildingSelectedService === 'keybase') {

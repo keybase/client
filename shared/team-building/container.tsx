@@ -10,17 +10,11 @@ import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
+import * as Types from '../constants/types/team-building'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {
-  ServiceIdWithContact,
-  User,
-  SearchResults,
-  AllowedNamespace,
-  SelectedUser,
-} from '../constants/types/team-building'
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
@@ -32,13 +26,13 @@ import Flags from '../util/feature-flags'
 type OwnProps = {
   incFocusInputCounter: () => void
   focusInputCounter: number
-  namespace: AllowedNamespace
+  namespace: Types.AllowedNamespace
   teamname?: string
   searchString: string
-  selectedService: ServiceIdWithContact
+  selectedService: Types.ServiceIdWithContact
   highlightedIndex: number
   onChangeText: (newText: string) => void
-  onChangeService: (newService: ServiceIdWithContact) => void
+  onChangeService: (newService: Types.ServiceIdWithContact) => void
   incHighlightIndex: (maxIndex: number) => void
   decHighlightIndex: () => void
   resetHighlightIndex: (resetToHidden?: boolean) => void
@@ -50,7 +44,7 @@ type OwnProps = {
 type LocalState = {
   focusInputCounter: number
   searchString: string
-  selectedService: ServiceIdWithContact
+  selectedService: Types.ServiceIdWithContact
   highlightedIndex: number
   showRolePicker: boolean
 }
@@ -65,8 +59,8 @@ const initialState: LocalState = {
 
 const deriveSearchResults = memoize(
   (
-    searchResults: Array<User> | null,
-    teamSoFar: I.Set<User>,
+    searchResults: Array<Types.User> | null,
+    teamSoFar: I.Set<Types.User>,
     myUsername: string,
     followingState: Set<string>,
     preExistingTeamMembers: I.Map<string, MemberInfo>
@@ -90,10 +84,10 @@ const deriveSearchResults = memoize(
 )
 
 const deriveTeamSoFar = memoize(
-  (teamSoFar: I.Set<User>): Array<SelectedUser> =>
+  (teamSoFar: I.Set<Types.User>): Array<Types.SelectedUser> =>
     teamSoFar.toArray().map(userInfo => {
       let username = ''
-      let serviceId: ServiceIdWithContact
+      let serviceId: Types.ServiceIdWithContact
       if (userInfo.contact && userInfo.serviceMap.keybase) {
         // resolved contact - pass username @ 'keybase' to teambox
         // so keybase avatar is rendered.
@@ -118,20 +112,23 @@ const deriveTeamSoFar = memoize(
 )
 
 const deriveServiceResultCount: (
-  searchResults: SearchResults,
+  searchResults: Types.SearchResults,
   query: string
-) => {[K in ServiceIdWithContact]: number | null} = memoize((searchResults: SearchResults, query) =>
-  // @ts-ignore codemod issue
-  searchResults
-    .get(trim(query), I.Map())
-    .map(results => results.length)
-    .toObject()
+) => {[K in Types.ServiceIdWithContact]: number | null} = memoize(
+  (searchResults: Types.SearchResults, query) =>
+    // @ts-ignore codemod issue
+    searchResults
+      .get(trim(query), I.Map())
+      .map(results => results.length)
+      .toObject()
 )
 
 const deriveShowResults = memoize(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoize(
-  (searchResults: Array<User> | null, recommendations: Array<User> | null) => (userId: string): User | null =>
+  (searchResults: Array<Types.User> | null, recommendations: Array<Types.User> | null) => (
+    userId: string
+  ): Types.User | null =>
     (searchResults || []).filter(u => u.id === userId)[0] ||
     (recommendations || []).filter(u => u.id === userId)[0] ||
     null
@@ -198,9 +195,9 @@ const makeDebouncedSearch = (time: number) =>
   debounce(
     (
       dispatch: Container.TypedDispatch,
-      namespace: AllowedNamespace,
+      namespace: Types.AllowedNamespace,
       query: string,
-      service: ServiceIdWithContact,
+      service: Types.ServiceId,
       includeContacts: boolean,
       limit?: number
     ) =>
@@ -222,15 +219,20 @@ const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social sea
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase / contact searches
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
-  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
+  _onAdd: (user: Types.User) =>
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
   _onImportContactsPermissionsGranted: () =>
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
-  _search: (query: string, service: ServiceIdWithContact, limit?: number) => {
-    const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
-    return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
+  _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
+    let serviceToSearch = service
+    if (Types.isContactServiceId(serviceToSearch)) {
+      serviceToSearch = 'keybase'
+    }
+    const func = serviceToSearch === 'keybase' ? debouncedSearchKeybase : debouncedSearch
+    return func(dispatch, namespace, query, serviceToSearch, namespace === 'chat2', limit)
   },
   fetchUserRecs: () =>
     dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
@@ -297,7 +299,7 @@ const deriveOnAdd = memoize(
   ) => {
     const user = userFromUserId(userId)
     if (!user) {
-      logger.error(`Couldn't find User to add for ${userId}`)
+      logger.error(`Couldn't find Types.User to add for ${userId}`)
       changeText('')
       return
     }
@@ -311,8 +313,8 @@ const deriveOnAdd = memoize(
 const deriveOnChangeText = memoize(
   (
     onChangeText: (newText: string) => void,
-    search: (text: string, service: ServiceIdWithContact) => void,
-    selectedService: ServiceIdWithContact,
+    search: (text: string, service: Types.ServiceIdWithContact) => void,
+    selectedService: Types.ServiceIdWithContact,
     resetHighlightIndex: Function
   ) => (newText: string) => {
     onChangeText(newText)
@@ -617,14 +619,14 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
   Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-type RealOwnProps = Container.RouteProps<{namespace: AllowedNamespace; teamname: string | null}>
+type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname: string | null}>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
 
   changeShowRolePicker = (showRolePicker: boolean) => this.setState({showRolePicker})
 
-  onChangeService = (selectedService: ServiceIdWithContact) => this.setState({selectedService})
+  onChangeService = (selectedService: Types.ServiceIdWithContact) => this.setState({selectedService})
 
   onChangeText = (newText: string) => {
     if (newText !== this.state.searchString) {
