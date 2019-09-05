@@ -158,8 +158,18 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.tiny,
         width: '100%',
       },
-      imageFit: {cursor: 'zoom-in', display: 'block', height: '100%', objectFit: 'scale-down', width: '100%'},
-      imageZoom: {cursor: 'zoom-out', display: 'block', minHeight: '100%', minWidth: '100%'},
+      imageFit: Styles.platformStyles({
+        isElectron: {
+          cursor: 'zoom-in',
+          display: 'block',
+          height: '100%',
+          objectFit: 'scale-down',
+          width: '100%',
+        },
+      }),
+      imageZoom: Styles.platformStyles({
+        isElectron: {cursor: 'zoom-out', display: 'block', minHeight: '100%', minWidth: '100%'},
+      }),
       link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
       videoFit: {
         cursor: 'normal',

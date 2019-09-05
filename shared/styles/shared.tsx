@@ -1,6 +1,6 @@
 import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
-import {StylesCrossPlatform, _StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
+import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */

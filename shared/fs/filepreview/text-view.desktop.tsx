@@ -34,11 +34,13 @@ const TextView = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: {
-        backgroundColor: Styles.globalColors.blueLighter3,
-        overflow: 'scroll',
-        padding: Styles.globalMargins.medium,
-      },
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueLighter3,
+          padding: Styles.globalMargins.medium,
+        },
+        isElectron: {overflow: 'scroll'} as const,
+      }),
       innerContainer: {
         ...Styles.globalStyles.flexGrow,
         backgroundColor: Styles.globalColors.white,
@@ -50,10 +52,12 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.large,
         width: 680,
       },
-      text: {
-        color: Styles.globalColors.black_on_white,
-        whiteSpace: 'pre-wrap',
-      },
+      text: Styles.platformStyles({
+        isElectron: {
+          color: Styles.globalColors.black_on_white,
+          whiteSpace: 'pre-wrap',
+        },
+      }),
     } as const)
 )
 

@@ -28,7 +28,7 @@ type Props = {
   username: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '16px' as any, wordBreak: 'break-all'} as const
+const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -40,7 +40,7 @@ const descStyleOverride = {
   paragraph: descStyle,
   preview: descStyle,
   strong: descStyle,
-} as const
+} as any
 
 const Header = (p: Props) => {
   let description = !!p.desc && (

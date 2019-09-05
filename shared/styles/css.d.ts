@@ -13,6 +13,7 @@ export type StylesMobile = StyleProp<_StylesMobile>
 
 // override some problematic styles
 type _StylesCrossPlatformOverride = {
+  fontSize: _StylesMobile['fontSize']
   fontWeight: _StylesMobile['fontWeight']
   textAlign: _StylesMobile['textAlign']
 }

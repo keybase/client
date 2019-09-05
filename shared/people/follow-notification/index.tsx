@@ -101,32 +101,35 @@ export const MultiFollowNotification = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  avatar: {marginRight: Styles.globalMargins.xtiny},
-  iconContainer: {width: 'auto'},
-  multiText: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.xlarge,
-      marginTop: 2,
-    },
-    isElectron: {display: 'inline'},
-  }),
-  peopleItem: {justifyContent: 'center'},
-  scrollViewContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isMobile: {
-      ...Styles.globalStyles.flexBoxRow,
-      flexWrap: 'wrap',
-      height: 32,
-      overflow: 'hidden',
-      width: '100%',
-    },
-  }),
-  usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'} as const}),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {marginRight: Styles.globalMargins.xtiny},
+      iconContainer: {width: 'auto'},
+      multiText: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.xlarge,
+          marginTop: 2,
+        },
+        isElectron: {display: 'inline'},
+      }),
+      peopleItem: {justifyContent: 'center'},
+      scrollViewContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isMobile: {
+          ...Styles.globalStyles.flexBoxRow,
+          flexWrap: 'wrap',
+          height: 32,
+          overflow: 'hidden',
+          width: '100%',
+        },
+      }),
+      usernames: Styles.platformStyles({isElectron: {whiteSpace: 'normal'} as const}),
+    } as const)
+)
