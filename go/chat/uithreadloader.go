@@ -59,14 +59,16 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 		grouped = nil
 	}
 	for _, msg := range msgs {
-		if msg.IsValid() {
-			if matches(msg, grouped) {
-				grouped = append(grouped, msg)
-				continue
-			}
+		if msg.IsValid() && matches(msg, grouped) {
+			grouped = append(grouped, msg)
+			continue
 		}
 		addGrouped()
-		res = append(res, msg)
+		if msg.IsValid() && matches(msg, grouped) {
+			grouped = append(grouped, msg)
+		} else {
+			res = append(res, msg)
+		}
 	}
 	addGrouped()
 	return res
@@ -113,6 +115,10 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			msg := chat1.NewMessageUnboxedWithValid(mvalid)
 			return &msg
 		})
+	t.Debug(ctx, "DEBUG: grouped")
+	for _, msg := range newMsgs {
+		t.Debug(ctx, "DEBUG: %v", msg.GetMessageType())
+	}
 
 	var activeMap map[string]struct{}
 	// group BULKADDTOCONV system messages
