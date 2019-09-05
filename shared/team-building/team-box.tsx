@@ -145,7 +145,6 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
     },
     isElectron: {
-      paddingLeft: Styles.globalMargins.xsmall,
       paddingRight: Styles.globalMargins.xsmall,
     },
     isMobile: {
