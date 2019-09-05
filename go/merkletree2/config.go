@@ -1,5 +1,7 @@
 package merkletree2
 
+import "fmt"
+
 // ValueConstructor is an interface for constructing values, so that typed
 // values can be pulled out of the Merkle Tree. All Values must have the same
 // type, howerver multiple types can be encoded by having this type implement
@@ -60,6 +62,9 @@ func NewConfig(h Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, 
 	if logChildrenPerNode > 63 {
 		return Config{}, NewInvalidConfigError("This package does not support more than 2^63 children per internal node")
 	}
+	if logChildrenPerNode < 1 {
+		return Config{}, NewInvalidConfigError(fmt.Sprintf("Need at least 2 children per node, but logChildrenPerNode = %v", logChildrenPerNode))
+	}
 	return Config{encoder: h, useBlindedValueHashes: useBlindedValueHashes, childrenPerNode: childrenPerNode, maxValuesPerLeaf: maxValuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, valueConstructor: nil}, nil
 }
 
@@ -78,7 +83,6 @@ type KeySpecificSecret []byte
 // cryptographic hashes. It also manages blinding secrets.
 type Encoder interface {
 	EncodeAndHashGeneric(interface{}) (Hash, error)
-	HashKeyValuePairWithMasterSecret(KeyValuePair, MasterSecret) (Hash, error)
 	HashKeyValuePairWithKeySpecificSecret(KeyValuePair, KeySpecificSecret) (Hash, error)
 	GenerateMasterSecret(Seqno) (MasterSecret, error)
 	ComputeKeySpecificSecret(MasterSecret, Key) KeySpecificSecret

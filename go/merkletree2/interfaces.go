@@ -43,10 +43,10 @@ type StorageEngine interface {
 	// s which was stored at position p (similarly to LookupNode).
 	LookupKVPair(c context.Context, t Transaction, s Seqno, k Key) (kvp KeyValuePair, s1 Seqno, err error)
 
-	// LookupKeyHashPairsUnderPosition returns all KeyValuePairs which were
-	// stored at a position p' which is a descendent of p and at the maximum
-	// Seqno s' <= s (similarly to LookupNode). For each such pair, it returns
-	// the Seqno at which it was stored (in the same order).
+	// LookupKeyHashPairsUnderPosition returns all KeyValuePairs (ordered by
+	// Key) which were stored at a position p' which is a descendent of p and at
+	// the maximum Seqno s' <= s (similarly to LookupNode). For each such pair,
+	// it returns the Seqno at which it was stored (in the same order).
 	LookupKeyValuePairsUnderPosition(ctx context.Context, tr Transaction, s Seqno, p Position) ([]KeyValuePair, []Seqno, error)
 }
 

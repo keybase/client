@@ -3,10 +3,10 @@ package merkletree2
 import (
 	"bytes"
 	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -22,7 +22,7 @@ type Tree struct {
 
 // NewTree makes a new tree
 func NewTree(c Config, e StorageEngine, l logger.Logger) (*Tree, error) {
-	if c.useBlindedValueHashes == true {
+	if c.useBlindedValueHashes {
 		_, ok := e.(StorageEngineWithBlinding)
 		if !ok {
 			return nil, fmt.Errorf("The config requires a StorageEngineWithBlinding implementation as a StorageEngine")
@@ -70,29 +70,13 @@ type KeyValuePair struct {
 	Value   interface{} `codec:"v"`
 }
 
-type KeyValuePairsOrderedByKey []KeyValuePair
-
-func (k KeyValuePairsOrderedByKey) Len() int {
-	return len(k)
-}
-
-func (k KeyValuePairsOrderedByKey) Less(i, j int) bool {
-	return k[i].Key.Cmp(k[j].Key) < 0
-}
-
-func (k KeyValuePairsOrderedByKey) Swap(i, j int) {
-	k[i], k[j] = k[j], k[i]
-}
-
-var _ sort.Interface = KeyValuePairsOrderedByKey{}
-
 type KeyHashPair struct {
 	_struct struct{} `codec:",toarray"`
 	Key     Key      `codec:"k"`
 	Hash    Hash     `codec:"h"`
 }
 
-// NodeType is used to distinguish internal nodes from leaves in the tree
+// NodeType is used to distinguish serialized internal nodes from leaves in the tree
 type NodeType uint8
 
 const (
@@ -101,22 +85,38 @@ const (
 	NodeTypeLeaf  NodeType = 2
 )
 
-// Node is a node in the merkle tree. Can be either an interior iNode or a leaf.
-// Internal nodes store the hashes of their children, while leaves store store
-// KeyValuePairsHashed (the Value in each pair is not required to verify the
-// hash of a a leaf node).
 type Node struct {
-	INodes     []Hash        `codec:"i,omitempty"`
-	LeafHashes []KeyHashPair `codec:"l,omitempty"`
-	Type       NodeType      `codec:"t"`
+	INodes     []Hash
+	LeafHashes []KeyHashPair
 }
 
-func NewNodeInternal() Node {
-	return Node{Type: NodeTypeINode}
+var _ codec.Selfer = &Node{}
+
+func (n *Node) CodecEncodeSelf(e *codec.Encoder) {
+	if n.INodes != nil && n.LeafHashes != nil && len(n.INodes) > 0 && len(n.LeafHashes) > 0 {
+		panic("Cannot Encode a node with both Inodes and LeafHashes")
+	} else if n.INodes != nil && len(n.INodes) > 0 {
+		e.MustEncode(NodeTypeINode)
+		e.MustEncode(n.INodes)
+	} else if n.LeafHashes != nil && len(n.LeafHashes) > 0 {
+		e.MustEncode(NodeTypeLeaf)
+		e.MustEncode(n.LeafHashes)
+	} else {
+		e.MustEncode(nil)
+	}
 }
 
-func NewNodeLeaf() Node {
-	return Node{Type: NodeTypeLeaf}
+func (n *Node) CodecDecodeSelf(d *codec.Decoder) {
+	var nodeType NodeType
+	d.MustDecode(&nodeType)
+	switch nodeType {
+	case NodeTypeINode:
+		d.MustDecode(&n.INodes)
+	case NodeTypeLeaf:
+		d.MustDecode(&n.LeafHashes)
+	default:
+		panic("Unrecognized NodeType")
+	}
 }
 
 type PositionHashPair struct {
@@ -151,13 +151,14 @@ func (t *Tree) GenerateAndStoreMasterSecret(
 	return ms, nil
 }
 
-// Build builds a new tree version, taking a batch
-// input. The sortedKeyValuePairs must be sorted (lexicographically) by Key.
+// Build builds a new tree version, taking a batch input. The
+// sortedKeyValuePairs must be sorted (lexicographically) by Key.
 //
 // NOTE: The input to this function should contain at least all the keys which
-// were inserted in previous versions of the tree, otherwise this procedure will
-// put the tree into an inconsistent state. This function does not check the
-// condition is true for efficiency reasons.
+// were inserted in previous versions of the tree, and each key should only
+// appear once, otherwise this procedure will put the tree into an inconsistent
+// state. This function does not check the condition is true for efficiency
+// reasons.
 func (t *Tree) Build(
 	ctx context.Context, tr Transaction, sortedKVPairs []KeyValuePair) (rootHash Hash, err error) {
 	t.Lock()
@@ -218,8 +219,7 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno, m
 		return ret, err
 	}
 
-	node := NewNodeInternal()
-	node.INodes = make([]Hash, t.cfg.childrenPerNode)
+	node := Node{INodes: make([]Hash, t.cfg.childrenPerNode)}
 
 	j := 0
 	for i := ChildIndex(0); i < ChildIndex(t.cfg.childrenPerNode); i++ {
@@ -254,7 +254,7 @@ func (t *Tree) makeKeyHashPairsFromKeyValuePairs(ms MasterSecret, unhashed []Key
 	hashed = make([]KeyHashPair, len(unhashed))
 
 	for i, kvp := range unhashed {
-		hash, err := t.cfg.encoder.HashKeyValuePairWithMasterSecret(kvp, ms)
+		hash, err := t.cfg.encoder.HashKeyValuePairWithKeySpecificSecret(kvp, t.cfg.encoder.ComputeKeySpecificSecret(ms, kvp.Key))
 		if err != nil {
 			return nil, err
 		}
@@ -271,9 +271,7 @@ func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, ms
 		return nil, err
 	}
 
-	var leaf Node
-	leaf.Type = NodeTypeLeaf
-	leaf.LeafHashes = khps
+	leaf := Node{LeafHashes: khps}
 
 	if ret, err = t.cfg.encoder.EncodeAndHashGeneric(leaf); err != nil {
 		return nil, err
@@ -344,14 +342,23 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 	if err != nil {
 		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
-	// The level of the first sibling equals the level of the leaf node for the
-	// key we are producing the proof for.
-	leafLevel := t.cfg.getLevel(&(siblingPosHashPairs[0].p))
+
+	var leafLevel int
+	if len(siblingPosHashPairs) == 0 {
+		// If there are no siblings, the key must be stored on the root
+		leafLevel = 0
+	} else {
+		// The level of the first sibling equals the level of the leaf node for the
+		// key we are producing the proof for.
+		leafLevel = t.cfg.getLevel(&(siblingPosHashPairs[0].p))
+	}
+
 	deepestPosition, err := t.cfg.getDeepestPositionForKey(k)
 	if err != nil {
 		return KeyValuePair{}, MerkleInclusionProof{}, err
 	}
 	leafPos := t.cfg.getParentAtLevel(deepestPosition, uint(leafLevel))
+
 	proof.SiblingHashesOnPath = make([]Hash, leafLevel*(t.cfg.childrenPerNode-1))
 	leafChildIndexes := t.cfg.positionToChildIndexPath(leafPos)
 	// Flatten the siblingPosHashPairs Hashes into a []Hash.
@@ -376,8 +383,8 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 			return KeyValuePair{}, MerkleInclusionProof{}, err
 		}
 	}
-	proof.OtherPairsInLeaf = make([]KeyHashPair, len(kvps)-1)
-	j := 0
+
+	// Find the key value pair we are looking for in the leaf
 	for i, kvpi := range kvps {
 		if kvpi.Key.Equal(k) {
 			kvp = kvpi
@@ -386,15 +393,22 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 			} else {
 				proof.KeySpecificSecret = nil
 			}
+			break
+		}
+	}
+	if kvp.Key == nil {
+		return KeyValuePair{}, MerkleInclusionProof{}, NewKeyNotFoundError()
+	}
+
+	proof.OtherPairsInLeaf = make([]KeyHashPair, len(kvps)-1)
+	j := 0
+	for i, kvpi := range kvps {
+		if kvpi.Key.Equal(k) {
 			continue
 		}
 
 		var hash Hash
-		if t.cfg.useBlindedValueHashes {
-			hash, err = t.cfg.encoder.HashKeyValuePairWithMasterSecret(kvpi, msMap[seqnos[i]])
-		} else {
-			hash, err = t.cfg.encoder.HashKeyValuePairWithMasterSecret(kvpi, nil)
-		}
+		hash, err = t.cfg.encoder.HashKeyValuePairWithKeySpecificSecret(kvpi, t.cfg.encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], kvpi.Key))
 		if err != nil {
 			return KeyValuePair{}, MerkleInclusionProof{}, err
 		}
