@@ -129,8 +129,6 @@ func noTeambotEKNeeded(tc *libkb.TestContext, notifications *teamNotifyHandler) 
 }
 
 func TestEphemeralTeambotEK(t *testing.T) {
-	// TODO re-enable and fix flake
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
