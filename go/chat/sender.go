@@ -1680,8 +1680,10 @@ func (s *Deliverer) deliverLoop() {
 			}
 			continue
 		}
-		s.Debug(bgctx, "deliverLoop: flushing %d items from the outbox: uid: %s", len(obrs),
-			s.outbox.GetUID())
+		if len(obrs) > 0 {
+			s.Debug(bgctx, "deliverLoop: flushing %d items from the outbox: uid: %s", len(obrs),
+				s.outbox.GetUID())
+		}
 
 		// Send messages
 		var breaks []keybase1.TLFIdentifyFailure
