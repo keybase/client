@@ -24,7 +24,7 @@ class Icon extends Component<Props, void> {
   render() {
     let color = Shared.defaultColor(this.props.type)
     let hoverColor = Shared.defaultHoverColor(this.props.type)
-    let iconType = Shared.typeToIconMapper(this.props.type)
+    const iconType = Shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
       logger.warn('Null iconType passed')
@@ -138,6 +138,7 @@ class Icon extends Component<Props, void> {
             style={Styles.collapseStyles([
               style,
               this.props.padding && Shared.paddingStyles[this.props.padding],
+              this.props.color ? {color} : {}, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
               'icon',
