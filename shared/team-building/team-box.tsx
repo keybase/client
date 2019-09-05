@@ -25,21 +25,21 @@ type Props = {
 }
 
 const formatNameForUserBubble = (u: SelectedUser) => {
-  let technicalName: string
+  let displayName: string
   switch (u.service) {
     case 'keybase':
     case 'contact': // do not display "michal@keyba.se on email" or similar
     case 'email':
-      technicalName = u.username
+      displayName = u.username
       break
     case 'phone':
-      technicalName = formatPhoneNumber(u.username)
+      displayName = formatPhoneNumber(u.username)
       break
     default:
-      technicalName = `${u.username} on ${u.service}`
+      displayName = `${u.username} on ${u.service}`
       break
   }
-  return `${technicalName} ${u.prettyName ? `(${u.prettyName})` : ''}`
+  return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
