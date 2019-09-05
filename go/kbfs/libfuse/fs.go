@@ -572,9 +572,9 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	return res, nil
 }
 
-var _ fs.NodeLinker = (*Root)(nil)
+var _ fs.NodeSymlinker = (*Root)(nil)
 
-// Symlink implements the fs.NodeLinker interface for Root.
+// Symlink implements the fs.NodeSymlinker interface for Root.
 func (r *Root) Symlink(
 	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
 	return nil, fuse.ENOTSUP
