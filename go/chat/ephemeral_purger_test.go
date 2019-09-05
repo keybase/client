@@ -15,7 +15,6 @@ import (
 )
 
 func TestBackgroundPurge(t *testing.T) {
-	t.Skip()
 	ctx, tc, world, ri, baseSender, listener, conv1 := setupLoaderTest(t)
 	defer world.Cleanup()
 
@@ -187,11 +186,10 @@ func TestBackgroundPurge(t *testing.T) {
 	<-g.EphemeralPurger.Stop(context.Background())
 	g.EphemeralPurger.Start(context.Background(), uid)
 	g.EphemeralPurger.Start(context.Background(), uid)
-	assertListener(conv1.ConvID, 1)
 
 	t.Logf("assert listener 2")
 	world.Fc.Advance(lifetimeDuration)
-	assertListener(conv2.ConvID, 1)
+	assertListener(conv2.ConvID, 2)
 	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[1].GetMessageID()}, localVers1)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
@@ -245,19 +243,12 @@ func TestBackgroundPurge(t *testing.T) {
 	}()
 
 	t.Logf("assert listener 4 & 5")
-	assertListener(conv2.ConvID, 0)
 	assertListener(conv1.ConvID, 0)
-	for i := 0; i < 3; i++ {
-		select {
-		case <-listener.bgConvLoads:
-		case <-time.After(time.Second):
-			require.Fail(t, "did not drain")
-		}
-	}
-	localVers2++
-	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[3].GetMessageID()}, localVers2)
+	assertListener(conv2.ConvID, 0)
 	localVers1++
 	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[4].GetMessageID()}, localVers1)
+	localVers2++
+	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[3].GetMessageID()}, localVers2)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
 		MinUnexplodedID: msgs[4].GetMessageID(),
