@@ -303,7 +303,8 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		cb <- ret
 	}()
 	time.Sleep(100 * time.Millisecond)
-	require.NoError(t, j.Push(newTask(types.ConvLoaderPriorityLow)))
+	_, err := j.Push(newTask(types.ConvLoaderPriorityLow))
+	require.NoError(t, err)
 	require.True(t, <-cb)
 	task, ok := j.PopFront()
 	require.True(t, ok)

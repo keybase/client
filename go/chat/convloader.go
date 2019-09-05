@@ -34,15 +34,17 @@ type clTask struct {
 
 type jobQueue struct {
 	sync.Mutex
-	queue   *list.List
-	waitChs []chan struct{}
-	maxSize int
+	queue    *list.List
+	waitChs  []chan struct{}
+	queueMap map[string]bool
+	maxSize  int
 }
 
 func newJobQueue(maxSize int) *jobQueue {
 	return &jobQueue{
-		queue:   list.New(),
-		maxSize: maxSize,
+		queue:    list.New(),
+		queueMap: make(map[string]bool),
+		maxSize:  maxSize,
 	}
 }
 
@@ -59,28 +61,35 @@ func (j *jobQueue) Wait() <-chan struct{} {
 	return ch
 }
 
-func (j *jobQueue) Push(task clTask) error {
+func (j *jobQueue) Push(task clTask) (queued bool, err error) {
 	j.Lock()
 	defer j.Unlock()
 	if j.queue.Len() >= j.maxSize {
-		return errors.New("job queue full")
+		return false, errors.New("job queue full")
 	}
 	defer func() {
+		if !queued {
+			return
+		}
 		// Notify waiters we have some stuff for them now
 		for _, w := range j.waitChs {
 			close(w)
 		}
 		j.waitChs = nil
 	}()
+	if j.queueMap[task.job.String()] {
+		return false, nil
+	}
+	j.queueMap[task.job.String()] = true
 	for e := j.queue.Front(); e != nil; e = e.Next() {
 		eval := e.Value.(clTask)
 		if task.job.HigherPriorityThan(eval.job) {
 			j.queue.InsertBefore(task, e)
-			return nil
+			return true, nil
 		}
 	}
 	j.queue.PushBack(task)
-	return nil
+	return true, nil
 }
 
 func (j *jobQueue) PopFront() (res clTask, ok bool) {
@@ -92,6 +101,7 @@ func (j *jobQueue) PopFront() (res clTask, ok bool) {
 	el := j.queue.Front()
 	res = el.Value.(clTask)
 	j.queue.Remove(el)
+	delete(j.queueMap, res.job.String())
 	return res, true
 }
 
@@ -310,7 +320,14 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
 	b.Debug(ctx, "enqueue: adding task: %s", task.job)
-	return b.queue.Push(task)
+	queued, err := b.queue.Push(task)
+	if err != nil {
+		return err
+	}
+	if !queued {
+		b.Debug(ctx, "enqueue: skipped queueing job: %s", task.job)
+	}
+	return nil
 }
 
 func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}) error {
