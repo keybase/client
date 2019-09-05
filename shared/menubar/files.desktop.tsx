@@ -35,7 +35,7 @@ type FilesPreviewProps = {
 }
 
 export const FileUpdate = (props: FileUpdateProps) => (
-  <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
+  <Kb.ClickableBox className="hover-underline-container" onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
       <Kb.Icon type="icon-file-16" style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
       {props.uploading && (
@@ -127,7 +127,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
         <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
           in&nbsp;
         </Kb.Text>
-        <Kb.Text type="BodySmall" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+        <Kb.Text className="hover-underline" type="BodySmall" style={styles.tlfParticipants} onClick={props.onSelectPath}>
           {props.tlfType === 'team' ? (
             props.teamname
           ) : props.tlfType === 'public' ? (
