@@ -1514,7 +1514,8 @@ func (g *gregorHandler) connectTLS() error {
 		ReconnectBackoff: func() backoff.BackOff {
 			return backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 		},
-		DialerTimeout: 10 * time.Second,
+		DialerTimeout:    10 * time.Second,
+		HandshakeTimeout: 10 * time.Second,
 		// We deliberately avoid ForceInitialBackoff here, becuase we don't
 		// want to penalize mobile, which tears down its connection frequently.
 	}
