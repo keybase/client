@@ -355,6 +355,13 @@ func TestConvLoaderJobQueue(t *testing.T) {
 		require.True(t, ok)
 	}
 	require.Zero(t, j.queue.Len())
+	queued, err = j.Push(clTask{job: types.NewConvLoaderJob(convID2, &chat1.Pagination{Num: 150},
+		types.ConvLoaderPriorityHigh, types.ConvLoaderGeneric, nil)})
+	require.NoError(t, err)
+	require.True(t, queued)
+	_, ok = j.PopFront()
+	require.True(t, ok)
+	require.Zero(t, j.queue.Len())
 
 	t.Logf("test maxsize")
 	j = newJobQueue(2)
