@@ -77,7 +77,7 @@ func (j *jobQueue) Push(task clTask) (queued bool, err error) {
 		}
 		j.waitChs = nil
 	}()
-	if j.queueMap[task.job.String()] {
+	if task.job.Uniqueness == types.ConvLoaderGeneric && j.queueMap[task.job.String()] {
 		return false, nil
 	}
 	j.queueMap[task.job.String()] = true
@@ -470,28 +470,31 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	}()
 
 	job := task.job
-	query := job.Query
-	if query == nil {
-		query = &chat1.GetThreadQuery{MarkAsRead: false}
-	}
+	query := &chat1.GetThreadQuery{MarkAsRead: false}
 	pagination := job.Pagination
 	if pagination == nil {
 		pagination = &chat1.Pagination{Num: 50}
 	}
-	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid,
-		chat1.GetThreadReason_BACKGROUNDCONVLOAD, query, pagination)
-	if err != nil {
-		b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
-		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {
-			b.Debug(ctx, "transient error, retrying")
-			task.attempt++
-			task.lastAttemptAt = time.Now()
-			return &task
+	var tv chat1.ThreadView
+	if pagination.Num > 0 {
+		var err error
+		tv, err = b.G().ConvSource.Pull(ctx, job.ConvID, uid,
+			chat1.GetThreadReason_BACKGROUNDCONVLOAD, query, pagination)
+		if err != nil {
+			b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
+			if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {
+				b.Debug(ctx, "transient error, retrying")
+				task.attempt++
+				task.lastAttemptAt = time.Now()
+				return &task
+			}
+			b.Debug(ctx, "load: failed to load job: %s", job)
+			return nil
 		}
-		b.Debug(ctx, "load: failed to load job: %s", job)
-		return nil
+		b.Debug(ctx, "load: loaded job: %s", job)
+	} else {
+		b.Debug(ctx, "load: skipped job load because of 0 pagination")
 	}
-	b.Debug(ctx, "load: loaded job: %s", job)
 	if job.PostLoadHook != nil {
 		b.Debug(ctx, "load: invoking post load hook on job: %s", job)
 		job.PostLoadHook(ctx, tv, job)
