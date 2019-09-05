@@ -24,6 +24,8 @@ const _RootLogin = ({showLoading, showRelogin}: Props) => {
 
 _RootLogin.navigationOptions = {
   header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
 }
 
 const RootLogin = Container.connect(

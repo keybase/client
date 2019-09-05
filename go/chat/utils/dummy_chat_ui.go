@@ -9,6 +9,8 @@ import (
 
 type DummyChatUI struct{}
 
+var _ chat1.ChatUiInterface = (*DummyChatUI)(nil)
+
 func (r DummyChatUI) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) error {
 	return nil
 }
@@ -144,6 +146,8 @@ func (r DummyChatUI) TriggerContactSync(context.Context, int) error {
 }
 
 type DummyChatNotifications struct{}
+
+var _ chat1.NotifyChatInterface = (*DummyChatNotifications)(nil)
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
 	return nil
