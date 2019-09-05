@@ -59,6 +59,9 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   }
 
   let _onContinue = React.useCallback(() => {
+    if (!validity) {
+      return
+    }
     if (user) {
       onContinue(user)
     } else {
