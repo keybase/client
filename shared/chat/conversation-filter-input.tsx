@@ -185,123 +185,126 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  containerFiltering: Styles.platformStyles({
-    common: {position: 'relative'},
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      ...Styles.padding(0, Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
-      height: 39,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
-      backgroundColor: Styles.globalColors.fastBlank,
-      height: 48,
-    },
-  }),
-  containerNotFiltering: Styles.platformStyles({
-    common: {
-      height: undefined,
-      position: 'relative',
-    },
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xtiny),
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.fastBlank,
-    },
-  }),
-  filterContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      flexGrow: 1,
-      justifyContent: 'flex-start',
-    },
-    isElectron: {
-      ...Styles.desktopStyles.editable,
-      height: 28,
-      paddingLeft: 8,
-    },
-    isMobile: {
-      height: 32,
-      paddingLeft: 10,
-    },
-  }),
-  flexOne: {flex: 1},
-  icon: Styles.platformStyles({
-    common: {position: 'relative'},
-    isElectron: {top: 1},
-    isMobile: {top: 0},
-  }),
-  input: {
-    color: Styles.globalColors.black_50,
-    position: 'relative',
-    top: 1,
-  },
-  loadingContainer: {
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  newChatButton: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      paddingRight: Flags.wonderland ? Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
-    },
-  }),
-  newChatButtonText: {
-    color: Styles.globalColors.white,
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  newIcon: {
-    position: 'relative',
-    top: 1,
-  },
-  searchBox: Styles.platformStyles({
-    common: {flex: 1},
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-    isMobile: {...Styles.padding(10, 0)},
-  }),
-  text: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_50,
-      marginRight: Styles.globalMargins.xtiny,
-      position: 'relative',
-    },
-    isElectron: {
-      marginLeft: Styles.globalMargins.xtiny,
-      top: 0,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.tiny,
-      top: 1,
-    },
-  }),
-  textFaint: {
-    color: Styles.globalColors.black_35,
-    position: 'relative',
-  },
-  whiteBg: {backgroundColor: Styles.globalColors.white},
-  wonderlandBorder: Styles.platformStyles({
-    common: {
-      padding: 2,
-    },
-    isElectron: {
-      background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
-      borderRadius: 6,
-    },
-    isMobile: {
-      backgroundColor: '#0dff0c',
-      borderRadius: 8,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      containerFiltering: Styles.platformStyles({
+        common: {position: 'relative'},
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          ...Styles.padding(0, Styles.globalMargins.small),
+          backgroundColor: Styles.globalColors.blueGrey,
+          height: 39,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small, 0, Styles.globalMargins.xsmall),
+          backgroundColor: Styles.globalColors.fastBlank,
+          height: 48,
+        },
+      }),
+      containerNotFiltering: Styles.platformStyles({
+        common: {
+          height: undefined,
+          position: 'relative',
+        },
+        isElectron: {
+          ...Styles.padding(0, Styles.globalMargins.xtiny),
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.tiny),
+          backgroundColor: Styles.globalColors.fastBlank,
+        },
+      }),
+      filterContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: Styles.borderRadius,
+          flexGrow: 1,
+          justifyContent: 'flex-start',
+        },
+        isElectron: {
+          ...Styles.desktopStyles.editable,
+          height: 28,
+          paddingLeft: 8,
+        },
+        isMobile: {
+          height: 32,
+          paddingLeft: 10,
+        },
+      }),
+      flexOne: {flex: 1},
+      icon: Styles.platformStyles({
+        common: {position: 'relative'},
+        isElectron: {top: 1},
+        isMobile: {top: 0},
+      }),
+      input: {
+        color: Styles.globalColors.black_50,
+        position: 'relative',
+        top: 1,
+      },
+      loadingContainer: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      newChatButton: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          paddingRight: Flags.wonderland ? Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
+        },
+      }),
+      newChatButtonText: {
+        color: Styles.globalColors.white,
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      newIcon: {
+        position: 'relative',
+        top: 1,
+      },
+      searchBox: Styles.platformStyles({
+        common: {flex: 1},
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isMobile: {...Styles.padding(10, 0)},
+      }),
+      text: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black_50,
+          marginRight: Styles.globalMargins.xtiny,
+          position: 'relative',
+        },
+        isElectron: {
+          marginLeft: Styles.globalMargins.xtiny,
+          top: 0,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.tiny,
+          top: 1,
+        },
+      }),
+      textFaint: {
+        color: Styles.globalColors.black_35,
+        position: 'relative',
+      },
+      whiteBg: {backgroundColor: Styles.globalColors.white},
+      wonderlandBorder: Styles.platformStyles({
+        common: {
+          padding: 2,
+        },
+        isElectron: {
+          background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
+          borderRadius: 6,
+        },
+        isMobile: {
+          backgroundColor: '#0dff0c',
+          borderRadius: 8,
+        },
+      }),
+    } as const)
+)
 
 export default ConversationFilterInput

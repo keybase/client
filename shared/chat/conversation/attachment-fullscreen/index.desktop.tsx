@@ -11,14 +11,7 @@ import {
   OverlayParentProps,
 } from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
-import {
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  fileUIName,
-  platformStyles,
-} from '../../../styles'
+import * as Styles from '../../../styles'
 import {Props} from './index.types'
 import KeyHandler from '../../../util/key-handler.desktop'
 
@@ -48,19 +41,19 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
   render() {
     return (
       <PopupDialog onClose={this.props.onClose} fill={true}>
-        <Box style={containerStyle}>
-          <Box style={headerFooterStyle}>
-            <Text type="BodySemibold" style={{color: globalColors.black, flex: 1}}>
+        <Box style={styles.container}>
+          <Box style={styles.headerFooter}>
+            <Text type="BodySemibold" style={{color: Styles.globalColors.black, flex: 1}}>
               {this.props.title}
             </Text>
             <Icon
               ref={this.props.setAttachmentRef}
               type="iconfont-ellipsis"
-              style={platformStyles({
-                common: {marginLeft: globalMargins.tiny},
+              style={Styles.platformStyles({
+                common: {marginLeft: Styles.globalMargins.tiny},
                 isElectron: {cursor: 'pointer'},
               })}
-              color={globalColors.black_50}
+              color={Styles.globalColors.black_50}
               onClick={this.props.toggleShowingMenu}
             />
             <MessagePopup
@@ -73,8 +66,8 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
           </Box>
           {this.props.path && (
             <Box
-              style={collapseStyles([
-                this.state.isZoomed ? styleContentsZoom : styleContentsFit,
+              style={Styles.collapseStyles([
+                this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
                 this._isLoaded() ? null : {display: 'none'},
               ])}
               onClick={() => {
@@ -87,7 +80,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               {!this.props.isVideo ? (
                 <OrientedImage
                   src={this.props.path}
-                  style={this.state.isZoomed ? styleImageZoom : styleImageFit}
+                  style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
                   onLoad={() => {
                     if (this._mounted) {
                       this._setLoaded(this.props.path)
@@ -96,7 +89,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
                 />
               ) : (
                 <video
-                  style={styleVideoFit}
+                  style={styles.videoFit}
                   onLoadedMetadata={() => this._setLoaded(this.props.path)}
                   controlsList="nodownload nofullscreen noremoteplayback"
                   controls={true}
@@ -109,21 +102,24 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
             </Box>
           )}
           {!this._isLoaded() && <ProgressIndicator style={{margin: 'auto'}} />}
-          <Box style={headerFooterStyle}>
+          <Box style={styles.headerFooter}>
             {!!this.props.progressLabel && (
-              <Text type="BodySmall" style={{color: globalColors.black_50, marginRight: globalMargins.tiny}}>
+              <Text
+                type="BodySmall"
+                style={{color: Styles.globalColors.black_50, marginRight: Styles.globalMargins.tiny}}
+              >
                 {this.props.progressLabel}
               </Text>
             )}
             {!!this.props.progressLabel && <ProgressBar ratio={this.props.progress} />}
             {!this.props.progressLabel && this.props.onDownloadAttachment && (
-              <Text type="BodySmall" style={linkStyle} onClick={this.props.onDownloadAttachment}>
+              <Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
                 Download
               </Text>
             )}
             {this.props.onShowInFinder && (
-              <Text type="BodySmall" style={linkStyle} onClick={this.props.onShowInFinder}>
-                Show in {fileUIName}
+              <Text type="BodySmall" style={styles.link} onClick={this.props.onShowInFinder}>
+                Show in {Styles.fileUIName}
               </Text>
             )}
           </Box>
@@ -148,58 +144,32 @@ const Fullscreen = (p: Props) => {
   )
 }
 
-const linkStyle = platformStyles({
-  isElectron: {color: globalColors.black_50, cursor: 'pointer'},
-})
-
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  height: '100%',
-  width: '100%',
-}
-
-const headerFooterStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 32,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
-  width: '100%',
-}
-
-const styleContentsFit = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-}
-
-const styleContentsZoom = {
-  display: 'block',
-  flex: 1,
-  overflow: 'auto',
-}
-
-const styleImageFit = {
-  cursor: 'zoom-in',
-  display: 'block',
-  height: '100%',
-  objectFit: 'scale-down',
-  width: '100%',
-}
-
-const styleVideoFit = {
-  cursor: 'normal',
-  display: 'block',
-  height: '100%',
-  objectFit: 'scale-down' as const,
-  width: '100%',
-}
-
-const styleImageZoom = {
-  cursor: 'zoom-out',
-  display: 'block',
-  minHeight: '100%',
-  minWidth: '100%',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
+      contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1},
+      contentsZoom: {display: 'block', flex: 1, overflow: 'auto'},
+      headerFooter: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: 32,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        width: '100%',
+      },
+      imageFit: {cursor: 'zoom-in', display: 'block', height: '100%', objectFit: 'scale-down', width: '100%'},
+      imageZoom: {cursor: 'zoom-out', display: 'block', minHeight: '100%', minWidth: '100%'},
+      link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
+      videoFit: {
+        cursor: 'normal',
+        display: 'block',
+        height: '100%',
+        objectFit: 'scale-down' as const,
+        width: '100%',
+      },
+    } as const)
+)
 
 const showPlayButton = `
 video::-webkit-media-controls-play-button {

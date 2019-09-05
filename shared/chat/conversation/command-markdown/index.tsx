@@ -24,7 +24,7 @@ const CommandMarkdown = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyContainer: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.xsmall,
@@ -59,6 +59,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.xsmall,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+} as const))
 
 export default CommandMarkdown

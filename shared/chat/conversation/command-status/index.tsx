@@ -79,32 +79,35 @@ const CommandStatus = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  close: {
-    alignSelf: 'center',
-  },
-  container: {
-    padding: Styles.globalMargins.tiny,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-  outerContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      border: `1px solid ${Styles.globalColors.black_20}`,
-      borderRadius: Styles.borderRadius,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      overflow: 'hidden',
-    },
-    isMobile: {
-      borderColor: Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderTopWidth: 1,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      close: {
+        alignSelf: 'center',
+      },
+      container: {
+        padding: Styles.globalMargins.tiny,
+      },
+      contentContainer: {
+        flex: 1,
+      },
+      outerContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.boxShadow,
+          border: `1px solid ${Styles.globalColors.black_20}`,
+          borderRadius: Styles.borderRadius,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
+          overflow: 'hidden',
+        },
+        isMobile: {
+          borderColor: Styles.globalColors.black_20,
+          borderStyle: 'solid',
+          borderTopWidth: 1,
+        },
+      }),
+    } as const)
+)
 
 export default CommandStatus

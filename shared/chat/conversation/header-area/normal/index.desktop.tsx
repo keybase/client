@@ -1,13 +1,13 @@
 import * as React from 'react'
 import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {Props} from './index.types'
 
 const ShhIcon = props => (
   <Box style={{alignSelf: 'flex-start', height: 0, position: 'relative', width: 0}}>
     <Icon
       type="iconfont-shh"
-      style={shhIconStyle}
+      style={styles.shh}
       color={shhIconColor}
       fontSize={shhIconFontSize}
       onClick={props.onClick}
@@ -16,10 +16,10 @@ const ShhIcon = props => (
 )
 
 const ChannelHeader = (props: Props) => (
-  <Box style={containerStyle}>
+  <Box style={styles.container}>
     <Box
       style={{
-        ...globalStyles.flexBoxRow,
+        ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
@@ -28,12 +28,12 @@ const ChannelHeader = (props: Props) => (
     >
       <Text
         type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
-        style={props.smallTeam ? {color: globalColors.black} : {color: globalColors.black_50}}
+        style={props.smallTeam ? {color: Styles.globalColors.black} : {color: Styles.globalColors.black_50}}
       >
         {props.teamName}
       </Text>
       {!props.smallTeam && (
-        <Text type="BodyBig" style={{color: globalColors.black, marginLeft: 2}}>
+        <Text type="BodyBig" style={{color: Styles.globalColors.black, marginLeft: 2}}>
           #{props.channelName}
         </Text>
       )}
@@ -41,41 +41,41 @@ const ChannelHeader = (props: Props) => (
     </Box>
     {props.onToggleThreadSearch && <Icon type="iconfont-search" onClick={props.onToggleThreadSearch} />}
     {props.onOpenFolder && (
-      <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
+      <Icon type="iconfont-folder-private" style={styles.left} onClick={props.onOpenFolder} />
     )}
     <Icon
       type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-      style={styleLeft}
+      style={styles.left}
       onClick={props.onToggleInfoPanel}
     />
   </Box>
 )
 
 const UsernameHeader = (props: Props) => (
-  <Box style={containerStyle}>
-    <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
+  <Box style={styles.container}>
+    <Box style={{...Styles.globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <ConnectedUsernames
         colorFollowing={true}
         underline={true}
         inline={false}
-        commaColor={globalColors.black_50}
+        commaColor={Styles.globalColors.black_50}
         type="BodyBig"
         usernames={props.participants}
-        containerStyle={styleCenter}
+        containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
         skipSelf={props.participants.length > 1 /* length ===1 means just you so show yourself */}
       />
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
     {props.onToggleThreadSearch && (
-      <Icon type="iconfont-search" style={styleLeft} onClick={props.onToggleThreadSearch} />
+      <Icon type="iconfont-search" style={styles.left} onClick={props.onToggleThreadSearch} />
     )}
     {props.onOpenFolder && (
-      <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
+      <Icon type="iconfont-folder-private" style={styles.left} onClick={props.onOpenFolder} />
     )}
     <Icon
       type={props.infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-      style={styleLeft}
+      style={styles.left}
       onClick={props.onToggleInfoPanel}
     />
   </Box>
@@ -83,32 +83,26 @@ const UsernameHeader = (props: Props) => (
 
 // TODO: is there a desktop design for this
 export const PhoneOrEmailHeader = UsernameHeader
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      center: {justifyContent: 'center', textAlign: 'center'},
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        justifyContent: 'center',
+        minHeight: 32,
+        padding: Styles.globalMargins.tiny,
+      },
+      left: {marginLeft: Styles.globalMargins.tiny},
+      shh: {marginLeft: Styles.globalMargins.xtiny},
+    } as const)
+)
 
-const containerStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  borderBottomColor: globalColors.black_10,
-  borderBottomWidth: 1,
-  borderStyle: 'solid',
-  justifyContent: 'center',
-  minHeight: 32,
-  padding: globalMargins.tiny,
-}
-
-const styleCenter = {
-  justifyContent: 'center',
-  textAlign: 'center',
-} as const
-
-const styleLeft = {
-  marginLeft: globalMargins.tiny,
-}
-
-const shhIconStyle = {
-  marginLeft: globalMargins.xtiny,
-}
-
-const shhIconColor = globalColors.black_20
+const shhIconColor = Styles.globalColors.black_20
 
 const shhIconFontSize = 20
 
