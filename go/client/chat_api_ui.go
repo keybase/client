@@ -8,8 +8,11 @@ import (
 
 type ChatAPIUI struct {
 	utils.DummyChatUI
+	sessionID            int
 	allowStellarPayments bool
 }
+
+var _ chat1.ChatUiInterface = (*ChatAPIUI)(nil)
 
 func AllowStellarPayments(enabled bool) func(*ChatAPIUI) {
 	return func(c *ChatAPIUI) {
@@ -20,6 +23,7 @@ func AllowStellarPayments(enabled bool) func(*ChatAPIUI) {
 func NewChatAPIUI(opts ...func(*ChatAPIUI)) *ChatAPIUI {
 	c := &ChatAPIUI{
 		DummyChatUI: utils.DummyChatUI{},
+		sessionID:   randSessionID(),
 	}
 	for _, o := range opts {
 		o(c)
@@ -33,14 +37,4 @@ func (u *ChatAPIUI) ChatStellarDataConfirm(ctx context.Context, arg chat1.ChatSt
 
 func (u *ChatAPIUI) SetAllowStellarPayments(enabled bool) {
 	u.allowStellarPayments = enabled
-}
-
-type ChatAPINotifications struct {
-	utils.DummyChatNotifications
-}
-
-func NewChatAPINotifications() *ChatAPINotifications {
-	return &ChatAPINotifications{
-		DummyChatNotifications: utils.DummyChatNotifications{},
-	}
 }

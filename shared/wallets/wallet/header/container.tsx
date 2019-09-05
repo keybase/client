@@ -19,6 +19,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   const selectedAccount = Constants.getAccount(state, accountID)
   return {
     accountID: selectedAccount.accountID,
+    airdropSelected: accountID === Types.airdropAccountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
     thisDeviceIsLockedOut: selectedAccount.deviceReadOnly,

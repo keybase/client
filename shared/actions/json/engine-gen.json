@@ -103,6 +103,9 @@
         "chat1ChatUiChatBotCommandsUpdateStatus": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}"
         },
+        "chat1ChatUiTriggerContactSync": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void}"
+        },
         "chat1NotifyChatNewChatActivity": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}"
         },

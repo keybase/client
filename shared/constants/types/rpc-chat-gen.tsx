@@ -243,6 +243,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID}
     outParam: LocationWatchID
   }
+  'chat.1.chatUi.triggerContactSync': {
+    inParam: void
+    outParam: void
+  }
   'chat.1.local.CancelPost': {
     inParam: {readonly outboxID: OutboxID}
     outParam: void
@@ -1280,6 +1284,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatCommandStatus'?: (params: MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatBotCommandsUpdateStatus'?: (params: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.triggerContactSync'?: (params: MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.NewChatActivity'?: (params: MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatIdentifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: MessageTypes['chat.1.NotifyChat.ChatTLFFinalize']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1337,6 +1342,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatCommandStatus'?: (params: MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatBotCommandsUpdateStatus'?: (params: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.triggerContactSync'?: (params: MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void}) => IncomingReturn
 }
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1431,6 +1437,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatClearWatch'
 // 'chat.1.chatUi.chatCommandStatus'
 // 'chat.1.chatUi.chatBotCommandsUpdateStatus'
+// 'chat.1.chatUi.triggerContactSync'
 // 'chat.1.local.getCachedThread'
 // 'chat.1.local.getInboxAndUnboxLocal'
 // 'chat.1.local.postLocal'
