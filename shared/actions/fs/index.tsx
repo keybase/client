@@ -4,9 +4,6 @@ import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
-import * as ChatTypes from '../../constants/types/chat2'
-import * as ChatConstants from '../../constants/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
@@ -781,113 +778,6 @@ const closeDestinationPicker = () => {
   return [RouteTreeGen.createNavigateAppend({path: newRoute})]
 }
 
-const initSendLinkToChat = (state: TypedState) => {
-  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
-  if (elems.length < 3 || elems[1] === 'public') {
-    // Not a TLF, or a public TLF; just let user copy the path.
-    return
-  }
-
-  if (elems[1] !== 'team') {
-    // It's an impl team conversation. So resolve to a convID directly.
-    return RPCChatTypes.localFindConversationsLocalRpcPromise({
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      oneChatPerTLF: false,
-      tlfName: elems[2].replace('#', ','),
-      topicName: '',
-      topicType: RPCChatTypes.TopicType.chat,
-      visibility: RPCTypes.TLFVisibility.private,
-    }).then(result =>
-      // This action, no matter setting a real idKey or
-      // noConversationIDKey, causes a transition into 'read-to-send'
-      // state, which is what we want here. If we don't have a
-      // conversation we should create it when user tries to send.
-      FsGen.createSetSendLinkToChatConvID({
-        convID:
-          result.conversations && result.conversations.length
-            ? ChatTypes.conversationIDToKey(result.conversations[0].info.id)
-            : ChatConstants.noConversationIDKey,
-      })
-    )
-  }
-
-  // It's a real team, but we don't know if it's a small team or big team. So
-  // call RPCChatTypes.localGetTLFConversationsLocalRpcPromise to get all
-  // channels. We could have used the Teams store, but then we are doing
-  // cross-store stuff and are depending on the Teams store. If this turns
-  // out to feel slow, we can probably cahce the results.
-
-  return RPCChatTypes.localGetTLFConversationsLocalRpcPromise({
-    membersType: RPCChatTypes.ConversationMembersType.team,
-    tlfName: elems[2],
-    topicType: RPCChatTypes.TopicType.chat,
-  }).then(result =>
-    !result.convs || !result.convs.length
-      ? null // TODO: is this possible for teams at all?
-      : [
-          FsGen.createSetSendLinkToChatChannels({
-            channels: I.Map(
-              result.convs
-                .filter(conv => conv.memberStatus === RPCChatTypes.ConversationMemberStatus.active)
-                .map(conv => [ChatTypes.stringToConversationIDKey(conv.convID), conv.channel])
-            ),
-          }),
-
-          ...(result.convs && result.convs.length === 1
-            ? [
-                // Auto-select channel if it's the only one.
-                FsGen.createSetSendLinkToChatConvID({
-                  convID: ChatTypes.stringToConversationIDKey(result.convs[0].convID),
-                }),
-              ]
-            : []),
-        ]
-  )
-}
-
-const triggerSendLinkToChat = (state: TypedState) => {
-  const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
-  if (elems.length < 3 || elems[1] === 'public') {
-    // Not a TLF, or a public TLF; no-op
-    return
-  }
-
-  return (elems[1] === 'team'
-    ? Promise.resolve({
-        conversationIDKey: state.fs.sendLinkToChat.convID,
-        tlfName: elems[2],
-      })
-    : RPCChatTypes.localNewConversationLocalRpcPromise({
-        // It's an impl team conversation. So first make sure it exists.
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName: elems[2].replace('#', ','),
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      }).then(result => ({
-        conversationIDKey: ChatTypes.conversationIDToKey(result.conv.info.id),
-        tlfName: result.conv.info.tlfName,
-      }))
-  ).then(({conversationIDKey, tlfName}) =>
-    RPCChatTypes.localPostTextNonblockRpcPromise(
-      {
-        // intentional space in the end
-        body: `${Constants.escapePath(state.fs.sendLinkToChat.path)} `,
-        clientPrev: ChatConstants.getClientPrev(state, conversationIDKey),
-        conversationID: ChatTypes.keyToConversationID(conversationIDKey),
-        ephemeralLifetime: ChatConstants.getConversationExplodingMode(state, conversationIDKey) || undefined,
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        outboxID: null,
-        replyTo: null,
-        tlfName,
-        tlfPublic: false,
-      },
-      ChatConstants.waitingKeyPost
-    ).then(() => FsGen.createSentLinkToChat({convID: conversationIDKey}))
-  )
-}
-
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
@@ -1113,8 +1003,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction2([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   yield* Saga.chainAction2(FsGen.closeDestinationPicker, closeDestinationPicker)
-  yield* Saga.chainAction2(FsGen.initSendLinkToChat, initSendLinkToChat)
-  yield* Saga.chainAction2(FsGen.triggerSendLinkToChat, triggerSendLinkToChat)
   yield* Saga.chainAction2(
     [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon],
     waitForKbfsDaemon
