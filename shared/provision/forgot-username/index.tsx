@@ -12,28 +12,15 @@ type Props = {
 }
 
 const ForgotUsername = (props: Props) => {
-  const [emailSelected, _setEmailSelected] = React.useState(true)
-  const [phoneSelected, _setPhoneSelected] = React.useState(false)
-  const setEmailSelected = React.useCallback(
-    (newState: boolean) => {
-      _setEmailSelected(newState)
-      _setPhoneSelected(!newState)
-    },
-    [_setEmailSelected, _setPhoneSelected]
-  )
-  const setPhoneSelected = React.useCallback(
-    (newState: boolean) => {
-      _setEmailSelected(!newState)
-      _setPhoneSelected(newState)
-    },
-    [_setEmailSelected, _setPhoneSelected]
-  )
-
+  const [emailSelected, setEmailSelected] = React.useState(true)
   const [email, setEmail] = React.useState('')
+  // PhoneInput's callback gets passed a (phoneNumber, valid) tuple.
+  // If "valid" is false, phoneNumber gets set to null, therefore phoneNumber is only
+  // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | null>(null)
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => {
-    if (phoneSelected && phoneNumber) {
+    if (!emailSelected && phoneNumber) {
       onSubmit('', phoneNumber)
     } else if (emailSelected) {
       onSubmit(email, '')
@@ -41,7 +28,7 @@ const ForgotUsername = (props: Props) => {
   }, [onSubmit, email, phoneNumber])
 
   const error = props.forgotUsernameResult !== 'success' ? props.forgotUsernameResult : ''
-  const disabled = (phoneSelected && phoneNumber === null) || (emailSelected && !email)
+  const disabled = (!emailSelected && phoneNumber === null) || (emailSelected && !email)
 
   return (
     <SignupScreen
@@ -71,7 +58,11 @@ const ForgotUsername = (props: Props) => {
       title="Recover username"
     >
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.wrapper}>
-        <Kb.RadioButton label="Recover with email" onSelect={setEmailSelected} selected={emailSelected} />
+        <Kb.RadioButton
+          label="Recover with email"
+          onSelect={() => setEmailSelected(true)}
+          selected={emailSelected}
+        />
         {emailSelected && (
           <Kb.LabeledInput
             autoFocus={true}
@@ -84,10 +75,10 @@ const ForgotUsername = (props: Props) => {
         )}
         <Kb.RadioButton
           label="Recover with phone number"
-          onSelect={setPhoneSelected}
-          selected={phoneSelected}
+          onSelect={() => setEmailSelected(false)}
+          selected={!emailSelected}
         />
-        {phoneSelected && (
+        {!emailSelected && (
           <PhoneInput
             autoFocus={true}
             onChangeNumber={(phoneNumber, valid) => {
