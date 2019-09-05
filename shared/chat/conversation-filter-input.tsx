@@ -66,6 +66,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     const searchInput = (
       <Kb.SearchFilter
         ref={this._setRef}
+        size={'small'}
         style={styles.searchBox}
         icon="iconfont-search"
         placeholderText={

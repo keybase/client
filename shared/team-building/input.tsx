@@ -67,11 +67,11 @@ const Input = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.SearchFilter
+        size="full-width"
         valueControlled={true}
         value={props.searchString}
         icon="iconfont-search"
         focusOnMount={props.focusOnMount}
-        fullWidth={true}
         onChange={props.onChangeText}
         onCancel={props.onClear}
         placeholderText={props.placeholder}
