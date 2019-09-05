@@ -586,7 +586,7 @@ export const Transaction = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  breakWord: Styles.platformStyles({isElectron: {wordBreak: 'break-word'}}),
+  breakWord: Styles.platformStyles({isElectron: {wordBreak: 'break-word'} as const}),
   cancelButton: {
     alignSelf: 'flex-start',
   },

@@ -652,7 +652,7 @@ const styles = Styles.styleSheetCreate(() => ({
   tooltipText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-word',
-    },
+    } as const,
   }),
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {

@@ -40,7 +40,7 @@ const descStyleOverride = {
   paragraph: descStyle,
   preview: descStyle,
   strong: descStyle,
-}
+} as const
 
 const Header = (p: Props) => {
   let description = !!p.desc && (

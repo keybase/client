@@ -262,7 +262,7 @@ const styles = Styles.styleSheetCreate(()=> ({
     },
     isElectron: {
       wordBreak: 'break-word',
-    },
+    } as const,
   }),
   muteAction: {
     ...Styles.globalStyles.flexBoxRow,

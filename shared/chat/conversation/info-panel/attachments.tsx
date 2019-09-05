@@ -499,7 +499,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
-    },
+    } as const,
   }),
   durationContainer: {
     alignSelf: 'flex-start',
@@ -523,7 +523,7 @@ const styles = Styles.styleSheetCreate(() => ({
       lineHeight: 17,
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
-    },
+    }as const,
     isMobile: {
       fontSize: 15,
     },

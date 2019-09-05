@@ -308,7 +308,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       display: 'block',
       wordBreak: 'break-word',
-    },
+    }as const,
   }),
 } as const))
 

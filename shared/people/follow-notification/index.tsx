@@ -128,5 +128,5 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-  usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}}),
+  usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'} as const}),
 } as const))

@@ -364,7 +364,7 @@ class EditAvatar extends React.Component<_Props, State> {
                 top: this.state.offsetTop,
                 transition: 'opacity 0.25s ease-in',
                 width: this.state.scaledImageWidth,
-              }}
+              } as const}
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
             />

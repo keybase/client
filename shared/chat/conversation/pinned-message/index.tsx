@@ -170,7 +170,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
-    },
+    }as const,
   }),
 } as const))
 

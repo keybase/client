@@ -330,7 +330,7 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {
       color: Styles.globalColors.black,
     },
-    isElectron: {wordBreak: 'break-word'},
+    isElectron: {wordBreak: 'break-word'} as const,
   }),
   bodyTextWithIcon: {
     marginLeft: Styles.globalMargins.tiny,

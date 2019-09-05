@@ -68,7 +68,8 @@ export const platformStyles = (options: {
   isAndroid?: _StylesMobile
   isMobile?: _StylesMobile
   isElectron?: _StylesDesktop
-}): StylesCrossPlatform => ({
+  // TODO any for now, but we need the types to be handled differently
+}): any => ({
   ...(options.common ? unifyStyles(options.common) : {}),
   ...(isMobile && options.isMobile ? options.isMobile : {}),
   ...(isIOS && options.isIOS ? options.isIOS : {}),

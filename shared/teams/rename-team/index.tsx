@@ -150,7 +150,7 @@ class RenameTeam extends React.Component<
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   body: Styles.platformStyles({
     common: {flex: 1},
     isElectron: {paddingLeft: Styles.globalMargins.large, paddingRight: Styles.globalMargins.large},
@@ -194,8 +194,8 @@ const styles = Styles.styleSheetCreate({
   teamnameHeader: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-word',
-    },
+    } as const,
   }),
-})
+} as const))
 
 export default Kb.HeaderOrPopupWithHeader(RenameTeam)

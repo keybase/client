@@ -155,7 +155,7 @@ const sent = Styles.platformStyles({
     whiteSpace: 'pre-wrap',
     width: '100%',
     wordBreak: 'break-word',
-  },
+  }as const,
   isMobile: {
     ...Styles.globalStyles.flexBoxColumn,
   },

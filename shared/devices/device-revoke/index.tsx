@@ -143,7 +143,7 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: Styles.globalMargins.xxtiny,
   },
   tlf: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-word'},
+    isElectron: {wordBreak: 'break-word'} as const,
   }),
 } as const))
 

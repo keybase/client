@@ -68,7 +68,7 @@ const styles = Styles.styleSheetCreate({
       userSelect: 'text',
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
-    },
+    }as const,
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},
 })

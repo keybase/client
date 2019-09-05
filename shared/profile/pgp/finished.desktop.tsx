@@ -80,7 +80,7 @@ const styles = Styles.styleSheetCreate(() => ({
       whiteSpace: 'pre-wrap',
       width: '100%',
       wordWrap: 'break-word',
-    },
+    } as const,
   }),
 } as const))
 

@@ -3,7 +3,7 @@ import {StyleProp, ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
 export type Color = null | string
 type _StylesDesktopOverride = {
-  wordBreak?: 'normal' | 'break-all' | 'keep-all' | 'inherit' | 'initial' | 'unset'
+  wordBreak?: 'normal' | 'break-all' | 'keep-all' | 'inherit' | 'initial' | 'unset' | 'break-word'
 }
 export type _StylesDesktop = CSSProperties & _StylesDesktopOverride
 export type StylesDesktop = StyleProp<_StylesDesktop>
@@ -28,8 +28,6 @@ type _StylesCrossPlatform = {
       : never
     : never
 }
-
-type StyleObject = {[key: string]: _StylesCrossPlatform}
 
 export type StylesCrossPlatform = StyleProp<_StylesCrossPlatform>
 

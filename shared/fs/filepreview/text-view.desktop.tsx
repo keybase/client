@@ -31,27 +31,30 @@ const TextView = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-    overflow: 'scroll',
-    padding: Styles.globalMargins.medium,
-  },
-  innerContainer: {
-    ...Styles.globalStyles.flexGrow,
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black,
-    maxWidth: '100%',
-    paddingBottom: Styles.globalMargins.large,
-    paddingLeft: Styles.globalMargins.xlarge,
-    paddingRight: Styles.globalMargins.xlarge,
-    paddingTop: Styles.globalMargins.large,
-    width: 680,
-  },
-  text: {
-    color: Styles.globalColors.black_on_white,
-    whiteSpace: 'pre-wrap',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        backgroundColor: Styles.globalColors.blueLighter3,
+        overflow: 'scroll',
+        padding: Styles.globalMargins.medium,
+      },
+      innerContainer: {
+        ...Styles.globalStyles.flexGrow,
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.black,
+        maxWidth: '100%',
+        paddingBottom: Styles.globalMargins.large,
+        paddingLeft: Styles.globalMargins.xlarge,
+        paddingRight: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.large,
+        width: 680,
+      },
+      text: {
+        color: Styles.globalColors.black_on_white,
+        whiteSpace: 'pre-wrap',
+      },
+    } as const)
+)
 
 export default TextView

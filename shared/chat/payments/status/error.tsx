@@ -58,7 +58,7 @@ const styles = Styles.styleSheetCreate(
         common: {color: Styles.globalColors.redDark, textAlign: 'center'},
         isElectron: {
           wordBreak: 'break-word',
-        },
+        }as const,
       }),
       errorContainer: Styles.platformStyles({
         common: {

@@ -196,7 +196,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   fullName: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-any'},
+    isElectron: {wordBreak: 'break-any'} as const,
   }),
   fullNameContainer: {
     paddingLeft: Styles.globalMargins.mediumLarge,
@@ -211,7 +211,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       wordBreak: 'break-word',
-    },
+    } as const,
     isMobile: {
       lineHeight: 21,
     },
