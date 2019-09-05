@@ -5,11 +5,11 @@ import * as RPCTypes from './types/rpc-gen'
 
 const searchServices: Array<Types.ServiceId> = [
   'keybase',
+  'twitter',
   'facebook',
   'github',
-  'hackernews',
   'reddit',
-  'twitter',
+  'hackernews',
 ]
 // Order here determines order of tabs in team building
 export const allServices: Array<Types.ServiceIdWithContact> = [
