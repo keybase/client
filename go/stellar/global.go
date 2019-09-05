@@ -64,6 +64,8 @@ type Stellar struct {
 	// Slot for build payments that do not use BuildPaymentID.
 	buildPaymentSlot *slotctx.PrioritySlot
 
+	reconnectSlot *slotctx.Slot
+
 	badger *badges.Badger
 }
 
@@ -77,6 +79,7 @@ func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges
 		hasWalletCache:   make(map[keybase1.UserVersion]bool),
 		federationClient: getFederationClient(g),
 		buildPaymentSlot: slotctx.NewPriority(),
+		reconnectSlot:    slotctx.New(),
 		badger:           badger,
 	}
 }
@@ -288,6 +291,7 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 
 func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("Stellar.handleReconnect", func() error { return nil })()
+	mctx = mctx.WithCtx(s.reconnectSlot.Use(mctx.Ctx()))
 	mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
 	time.Sleep(4 * time.Second)
 	if libkb.IsMobilePlatform() {
