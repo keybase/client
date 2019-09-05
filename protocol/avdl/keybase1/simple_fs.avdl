@@ -558,7 +558,8 @@ protocol SimpleFS {
   enum SubscriptionTopic {
     FAVORITES_0,
     JOURNAL_STATUS_1,
-    ONLINE_STATUS_2
+    ONLINE_STATUS_2,
+    DOWNLOAD_STATUS_3
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,
@@ -571,4 +572,32 @@ protocol SimpleFS {
   void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
 
   void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID);
+
+  record DownloadInfo {
+    string downloadID;
+    KBFSPath path;
+    string filename;
+    Time startTime;
+    boolean isRegularDownload;
+  }
+  record DownloadState {
+    string downloadID;
+    double progress;
+    Time endEstimate;
+    string localPath;
+    string error;
+    boolean done;
+    boolean canceled;
+  }
+  record DownloadStatus {
+    array<string> regularDownloadIDs; // the ones showing up in the GUI footer
+    array<DownloadState> states; // all downloads including non-regular ones
+  }
+  // returns download ID. isRegularDownload causes moving to the Downloads
+  // folder. Save on mobile and share to other apps use isRegularDownload=false.
+  string simpleFSStartDownload(KBFSPath path, boolean isRegularDownload);
+  DownloadInfo simpleFSGetDownloadInfo(string downloadID);
+  DownloadStatus simpleFSGetDownloadStatus();
+  void simpleFSCancelDownload(string downloadID);
+  void simpleFSDismissDownload(string downloadID);
 }

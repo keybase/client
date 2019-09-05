@@ -1308,23 +1308,26 @@ func (o SimpleFSStats) DeepCopy() SimpleFSStats {
 type SubscriptionTopic int
 
 const (
-	SubscriptionTopic_FAVORITES      SubscriptionTopic = 0
-	SubscriptionTopic_JOURNAL_STATUS SubscriptionTopic = 1
-	SubscriptionTopic_ONLINE_STATUS  SubscriptionTopic = 2
+	SubscriptionTopic_FAVORITES       SubscriptionTopic = 0
+	SubscriptionTopic_JOURNAL_STATUS  SubscriptionTopic = 1
+	SubscriptionTopic_ONLINE_STATUS   SubscriptionTopic = 2
+	SubscriptionTopic_DOWNLOAD_STATUS SubscriptionTopic = 3
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
 
 var SubscriptionTopicMap = map[string]SubscriptionTopic{
-	"FAVORITES":      0,
-	"JOURNAL_STATUS": 1,
-	"ONLINE_STATUS":  2,
+	"FAVORITES":       0,
+	"JOURNAL_STATUS":  1,
+	"ONLINE_STATUS":   2,
+	"DOWNLOAD_STATUS": 3,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	0: "FAVORITES",
 	1: "JOURNAL_STATUS",
 	2: "ONLINE_STATUS",
+	3: "DOWNLOAD_STATUS",
 }
 
 func (e SubscriptionTopic) String() string {
@@ -1358,6 +1361,78 @@ func (e PathSubscriptionTopic) String() string {
 		return v
 	}
 	return ""
+}
+
+type DownloadInfo struct {
+	DownloadID        string   `codec:"downloadID" json:"downloadID"`
+	Path              KBFSPath `codec:"path" json:"path"`
+	Filename          string   `codec:"filename" json:"filename"`
+	StartTime         Time     `codec:"startTime" json:"startTime"`
+	IsRegularDownload bool     `codec:"isRegularDownload" json:"isRegularDownload"`
+}
+
+func (o DownloadInfo) DeepCopy() DownloadInfo {
+	return DownloadInfo{
+		DownloadID:        o.DownloadID,
+		Path:              o.Path.DeepCopy(),
+		Filename:          o.Filename,
+		StartTime:         o.StartTime.DeepCopy(),
+		IsRegularDownload: o.IsRegularDownload,
+	}
+}
+
+type DownloadState struct {
+	DownloadID  string  `codec:"downloadID" json:"downloadID"`
+	Progress    float64 `codec:"progress" json:"progress"`
+	EndEstimate Time    `codec:"endEstimate" json:"endEstimate"`
+	LocalPath   string  `codec:"localPath" json:"localPath"`
+	Error       string  `codec:"error" json:"error"`
+	Done        bool    `codec:"done" json:"done"`
+	Canceled    bool    `codec:"canceled" json:"canceled"`
+}
+
+func (o DownloadState) DeepCopy() DownloadState {
+	return DownloadState{
+		DownloadID:  o.DownloadID,
+		Progress:    o.Progress,
+		EndEstimate: o.EndEstimate.DeepCopy(),
+		LocalPath:   o.LocalPath,
+		Error:       o.Error,
+		Done:        o.Done,
+		Canceled:    o.Canceled,
+	}
+}
+
+type DownloadStatus struct {
+	RegularDownloadIDs []string        `codec:"regularDownloadIDs" json:"regularDownloadIDs"`
+	States             []DownloadState `codec:"states" json:"states"`
+}
+
+func (o DownloadStatus) DeepCopy() DownloadStatus {
+	return DownloadStatus{
+		RegularDownloadIDs: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RegularDownloadIDs),
+		States: (func(x []DownloadState) []DownloadState {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DownloadState, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.States),
+	}
 }
 
 type SimpleFSListArg struct {
@@ -1585,6 +1660,26 @@ type SimpleFSUnsubscribeArg struct {
 	SubscriptionID   string               `codec:"subscriptionID" json:"subscriptionID"`
 }
 
+type SimpleFSStartDownloadArg struct {
+	Path              KBFSPath `codec:"path" json:"path"`
+	IsRegularDownload bool     `codec:"isRegularDownload" json:"isRegularDownload"`
+}
+
+type SimpleFSGetDownloadInfoArg struct {
+	DownloadID string `codec:"downloadID" json:"downloadID"`
+}
+
+type SimpleFSGetDownloadStatusArg struct {
+}
+
+type SimpleFSCancelDownloadArg struct {
+	DownloadID string `codec:"downloadID" json:"downloadID"`
+}
+
+type SimpleFSDismissDownloadArg struct {
+	DownloadID string `codec:"downloadID" json:"downloadID"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1707,6 +1802,11 @@ type SimpleFSInterface interface {
 	SimpleFSSubscribePath(context.Context, SimpleFSSubscribePathArg) error
 	SimpleFSSubscribeNonPath(context.Context, SimpleFSSubscribeNonPathArg) error
 	SimpleFSUnsubscribe(context.Context, SimpleFSUnsubscribeArg) error
+	SimpleFSStartDownload(context.Context, SimpleFSStartDownloadArg) (string, error)
+	SimpleFSGetDownloadInfo(context.Context, string) (DownloadInfo, error)
+	SimpleFSGetDownloadStatus(context.Context) (DownloadStatus, error)
+	SimpleFSCancelDownload(context.Context, string) error
+	SimpleFSDismissDownload(context.Context, string) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2393,6 +2493,76 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSStartDownload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSStartDownloadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSStartDownloadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSStartDownloadArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSStartDownload(ctx, typedArgs[0])
+					return
+				},
+			},
+			"simpleFSGetDownloadInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetDownloadInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetDownloadInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetDownloadInfoArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetDownloadInfo(ctx, typedArgs[0].DownloadID)
+					return
+				},
+			},
+			"simpleFSGetDownloadStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetDownloadStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.SimpleFSGetDownloadStatus(ctx)
+					return
+				},
+			},
+			"simpleFSCancelDownload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSCancelDownloadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSCancelDownloadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSCancelDownloadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSCancelDownload(ctx, typedArgs[0].DownloadID)
+					return
+				},
+			},
+			"simpleFSDismissDownload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSDismissDownloadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSDismissDownloadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSDismissDownloadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSDismissDownload(ctx, typedArgs[0].DownloadID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2733,5 +2903,33 @@ func (c SimpleFSClient) SimpleFSSubscribeNonPath(ctx context.Context, __arg Simp
 
 func (c SimpleFSClient) SimpleFSUnsubscribe(ctx context.Context, __arg SimpleFSUnsubscribeArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUnsubscribe", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSStartDownload(ctx context.Context, __arg SimpleFSStartDownloadArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSStartDownload", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetDownloadInfo(ctx context.Context, downloadID string) (res DownloadInfo, err error) {
+	__arg := SimpleFSGetDownloadInfoArg{DownloadID: downloadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetDownloadInfo", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetDownloadStatus(ctx context.Context) (res DownloadStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetDownloadStatus", []interface{}{SimpleFSGetDownloadStatusArg{}}, &res)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSCancelDownload(ctx context.Context, downloadID string) (err error) {
+	__arg := SimpleFSCancelDownloadArg{DownloadID: downloadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSCancelDownload", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID string) (err error) {
+	__arg := SimpleFSDismissDownloadArg{DownloadID: downloadID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDismissDownload", []interface{}{__arg}, nil)
 	return
 }

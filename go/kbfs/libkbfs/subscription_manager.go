@@ -389,6 +389,18 @@ func (s subscriber) Unsubscribe(ctx context.Context, sid SubscriptionID) {
 
 var _ SubscriptionManagerPublisher = (*subscriptionManager)(nil)
 
+// DownloadStatusChanged implements the SubscriptionManagerPublisher interface.
+func (sm *subscriptionManager) DownloadStatusChanged() {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_DOWNLOAD_STATUS] == nil {
+		return
+	}
+	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_DOWNLOAD_STATUS] {
+		notifier.notify()
+	}
+}
+
 // FavoritesChanged implements the SubscriptionManagerPublisher interface.
 func (sm *subscriptionManager) FavoritesChanged() {
 	sm.lock.RLock()

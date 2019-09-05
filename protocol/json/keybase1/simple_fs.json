@@ -780,7 +780,8 @@
       "symbols": [
         "FAVORITES_0",
         "JOURNAL_STATUS_1",
-        "ONLINE_STATUS_2"
+        "ONLINE_STATUS_2",
+        "DOWNLOAD_STATUS_3"
       ]
     },
     {
@@ -789,6 +790,86 @@
       "symbols": [
         "CHILDREN_0",
         "STAT_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "downloadID"
+        },
+        {
+          "type": "KBFSPath",
+          "name": "path"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "Time",
+          "name": "startTime"
+        },
+        {
+          "type": "boolean",
+          "name": "isRegularDownload"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadState",
+      "fields": [
+        {
+          "type": "string",
+          "name": "downloadID"
+        },
+        {
+          "type": "double",
+          "name": "progress"
+        },
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "string",
+          "name": "localPath"
+        },
+        {
+          "type": "string",
+          "name": "error"
+        },
+        {
+          "type": "boolean",
+          "name": "done"
+        },
+        {
+          "type": "boolean",
+          "name": "canceled"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadStatus",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "regularDownloadIDs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DownloadState"
+          },
+          "name": "states"
+        }
       ]
     }
   ],
@@ -1389,6 +1470,50 @@
         },
         {
           "name": "subscriptionID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSStartDownload": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        },
+        {
+          "name": "isRegularDownload",
+          "type": "boolean"
+        }
+      ],
+      "response": "string"
+    },
+    "simpleFSGetDownloadInfo": {
+      "request": [
+        {
+          "name": "downloadID",
+          "type": "string"
+        }
+      ],
+      "response": "DownloadInfo"
+    },
+    "simpleFSGetDownloadStatus": {
+      "request": [],
+      "response": "DownloadStatus"
+    },
+    "simpleFSCancelDownload": {
+      "request": [
+        {
+          "name": "downloadID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSDismissDownload": {
+      "request": [
+        {
+          "name": "downloadID",
           "type": "string"
         }
       ],

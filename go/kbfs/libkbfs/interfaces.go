@@ -2040,6 +2040,7 @@ type SubscriptionManager interface {
 // SubscriptionManagerPublisher associates with one SubscriptionManager, and is
 // used to publish changes to subscribers mangaged by it.
 type SubscriptionManagerPublisher interface {
+	DownloadStatusChanged()
 	FavoritesChanged()
 	JournalStatusChanged()
 }
@@ -2232,6 +2233,8 @@ type Config interface {
 	// SubscriptionManagerPublisher retursn a publisher that can be used to
 	// publish events to the subscription manager.
 	SubscriptionManagerPublisher() SubscriptionManagerPublisher
+	// KbEnv returns the *libkb.Env.
+	KbEnv() *libkb.Env
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when

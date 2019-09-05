@@ -119,6 +119,8 @@ type SimpleFS struct {
 	localHTTPServer *libhttpserver.Server
 
 	subscriber libkbfs.Subscriber
+
+	downloadManager *downloadManager
 }
 
 type inprogress struct {
@@ -179,7 +181,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 			log.Fatalf("initializing localHTTPServer error: %v", err)
 		}
 	}
-	return &SimpleFS{
+	k := &SimpleFS{
 		config: config,
 
 		handles:         map[keybase1.OpID]*handle{},
@@ -191,6 +193,8 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		localHTTPServer: localHTTPServer,
 		subscriber:      config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
 	}
+	k.downloadManager = newDownloadManager(k)
+	return k
 }
 
 // NewSimpleFS creates a new SimpleFS instance.
@@ -2969,4 +2973,32 @@ func (k *SimpleFS) SimpleFSUnsubscribe(
 	}
 	k.subscriber.Unsubscribe(ctx, libkbfs.SubscriptionID(arg.SubscriptionID))
 	return nil
+}
+
+func (k *SimpleFS) SimpleFSStartDownload(
+	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (
+	downloadID string, err error) {
+	return k.downloadManager.startDownload(ctx, arg)
+}
+
+func (k *SimpleFS) SimpleFSGetDownloadStatus(ctx context.Context) (
+	status keybase1.DownloadStatus, err error) {
+	return k.downloadManager.getDownloadStatus(ctx), nil
+}
+
+func (k *SimpleFS) SimpleFSCancelDownload(
+	ctx context.Context, downloadID string) (err error) {
+	return k.downloadManager.cancelDownload(ctx, downloadID)
+}
+
+func (k *SimpleFS) SimpleFSDismissDownload(
+	ctx context.Context, downloadID string) (err error) {
+	k.downloadManager.dismissDownload(ctx, downloadID)
+	return nil
+}
+
+func (k *SimpleFS) SimpleFSGetDownloadInfo(
+	ctx context.Context, downloadID string) (
+	downloadInfo keybase1.DownloadInfo, err error) {
+	return k.downloadManager.getDownloadInfo(downloadID)
 }

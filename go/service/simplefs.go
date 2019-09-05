@@ -620,3 +620,58 @@ func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.
 	}
 	return cli.SimpleFSUnsubscribe(ctx, arg)
 }
+
+func (s *SimpleFSHandler) SimpleFSStartDownload(
+	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (downloadID string, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return "", err
+	}
+	return cli.SimpleFSStartDownload(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSGetDownloadStatus(ctx context.Context) (
+	status keybase1.DownloadStatus, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.DownloadStatus{}, err
+	}
+	return cli.SimpleFSGetDownloadStatus(ctx)
+}
+
+func (s *SimpleFSHandler) SimpleFSCancelDownload(
+	ctx context.Context, downloadID string) (err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSCancelDownload(ctx, downloadID)
+}
+
+func (s *SimpleFSHandler) SimpleFSDismissDownload(
+	ctx context.Context, downloadID string) (err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSDismissDownload(ctx, downloadID)
+}
+
+func (s *SimpleFSHandler) SimpleFSGetDownloadInfo(
+	ctx context.Context, downloadID string) (downloadInfo keybase1.DownloadInfo, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.DownloadInfo{}, err
+	}
+	return cli.SimpleFSGetDownloadInfo(ctx, downloadID)
+}
