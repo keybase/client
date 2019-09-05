@@ -214,7 +214,6 @@ const styles = Styles.styleSheetCreate(() => ({
   rowContainer: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     height: userResultHeight,
-    overflow: 'visible',
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
