@@ -4284,6 +4284,18 @@ func (m *MockSubscriptionManagerPublisher) EXPECT() *MockSubscriptionManagerPubl
 	return m.recorder
 }
 
+// DownloadStatusChanged mocks base method
+func (m *MockSubscriptionManagerPublisher) DownloadStatusChanged() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "DownloadStatusChanged")
+}
+
+// DownloadStatusChanged indicates an expected call of DownloadStatusChanged
+func (mr *MockSubscriptionManagerPublisherMockRecorder) DownloadStatusChanged() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadStatusChanged", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).DownloadStatusChanged))
+}
+
 // FavoritesChanged mocks base method
 func (m *MockSubscriptionManagerPublisher) FavoritesChanged() {
 	m.ctrl.T.Helper()
