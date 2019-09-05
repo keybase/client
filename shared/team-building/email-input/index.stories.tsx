@@ -4,24 +4,31 @@ import EmailInput from '.'
 
 const namespace = 'chat2'
 
-const storeCommon = Sb.createStoreWithCommon()
-const store = {
-  ...storeCommon,
-  [namespace]: storeCommon[namespace].setIn(['teamBuilding', 'teamBuildingEmailResult'], {
-    id: '[max@keybase.io]@email',
-    label: '',
-    prettyName: 'max@keybase.io',
-    serviceId: 'contact',
-    serviceMap: {keybase: 'max'},
-    username: 'max@keybase',
-  }),
-}
+const store = Sb.createStoreWithCommon()
 
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Email address', () => (
-      <EmailInput search={Sb.action('search')} namespace={namespace} teamBuildingSearchResults={{}} />
+      <EmailInput
+        search={Sb.action('search')}
+        namespace={namespace}
+        teamBuildingSearchResults={{
+          // @ts-ignore
+          ['max@keybase.io']: {
+            keybase: [
+              {
+                id: '[max@keybase.io]@email',
+                label: '',
+                prettyName: 'max@keybase.io',
+                serviceId: 'email',
+                serviceMap: {keybase: 'max'},
+                username: 'max@keybase.io',
+              },
+            ],
+          },
+        }}
+      />
     ))
 }
 
