@@ -16,7 +16,7 @@ import (
 func TestUIThreadLoaderGrouper(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	ctc := makeChatTestContext(t, "TestUIThreadLoaderGrouper", 5)
+	ctc := makeChatTestContext(t, "TestUIThreadLoaderGrouper", 6)
 	defer ctc.cleanup()
 
 	timeout := 2 * time.Second
@@ -90,13 +90,12 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	lastLeave := consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
 	consumeLeaveConv(t, listener1)
 
-	_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx, conv.Id)
+	_, err = ctc.as(t, users[5]).chatLocalHandler().JoinConversationByIDLocal(ctx, conv.Id)
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-	_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx, conv.Id)
+	_, err = ctc.as(t, users[5]).chatLocalHandler().LeaveConversationLocal(ctx, conv.Id)
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
-	consumeLeaveConv(t, listener1)
 
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
 	_, err = tc.Context().ConvSource.GetMessages(ctx, convFull.Conv, uid,

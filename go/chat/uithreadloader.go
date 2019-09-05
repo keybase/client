@@ -106,7 +106,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 					leavers = append(leavers, j.Valid().SenderUsername)
 				}
 			}
-			mvalid := grouped[len(grouped)-1].Valid()
+			mvalid := grouped[0].Valid()
 			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
 			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
 				Joiners: joiners,
@@ -115,10 +115,6 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			msg := chat1.NewMessageUnboxedWithValid(mvalid)
 			return &msg
 		})
-	t.Debug(ctx, "DEBUG: grouped")
-	for _, msg := range newMsgs {
-		t.Debug(ctx, "DEBUG: %v", msg.GetMessageType())
-	}
 
 	var activeMap map[string]struct{}
 	// group BULKADDTOCONV system messages
