@@ -127,7 +127,12 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
         <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
           in&nbsp;
         </Kb.Text>
-        <Kb.Text className="hover-underline" type="BodySmall" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+        <Kb.Text
+          className="hover-underline"
+          type="BodySmall"
+          style={styles.tlfParticipants}
+          onClick={props.onSelectPath}
+        >
           {props.tlfType === 'team' ? (
             props.teamname
           ) : props.tlfType === 'public' ? (
