@@ -107,7 +107,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
 
 export const rowHeight = Styles.isMobile ? 64 : 56
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     backgroundColor: Styles.globalColors.orange,
     borderRadius: 6,
@@ -151,6 +151,6 @@ const styles = Styles.styleSheetCreate({
     overflow: 'hidden',
     paddingRight: Styles.globalMargins.tiny,
   },
-})
+} as const))
 
 export default SelectableBigTeamChannel

@@ -341,6 +341,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.medium,
   },
-}))
+} as const))
 
 export default Qualify

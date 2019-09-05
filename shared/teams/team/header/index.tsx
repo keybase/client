@@ -156,7 +156,7 @@ const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): st
   return res
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   addYourselfBanner: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -213,6 +213,6 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-})
+} as const))
 
 export {TeamHeader}

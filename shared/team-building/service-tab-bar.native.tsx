@@ -205,6 +205,6 @@ const styles = Styles.styleSheetCreate(() => ({
     shadowRadius: 2,
     top: 0,
   },
-}))
+} as const))
 
 export default ServiceTabBar

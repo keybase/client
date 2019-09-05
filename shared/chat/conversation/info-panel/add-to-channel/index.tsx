@@ -161,6 +161,6 @@ const styles = Styles.styleSheetCreate(() => ({
       whiteSpace: 'nowrap',
     },
   }),
-}))
+}as const))
 
 export default Kb.HeaderOrPopup(AddToChannel)

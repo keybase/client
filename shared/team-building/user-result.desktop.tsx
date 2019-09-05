@@ -317,6 +317,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     marginLeft: Styles.globalMargins.small,
   },
-}))
+} as const))
 
 export default Row

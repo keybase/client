@@ -188,6 +188,6 @@ const styles = Styles.styleSheetCreate(() => ({
     alignSelf: 'center',
     marginLeft: 10,
   },
-}))
+} as const))
 
 export default TeamBox

@@ -232,6 +232,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...rightColumnStyle,
     color: Styles.globalColors.black,
   },
-}))
+} as const))
 
 export default ProofsList

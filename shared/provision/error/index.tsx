@@ -258,6 +258,6 @@ const styles = styleSheetCreate(() => ({
     ...globalStyles.flexBoxColumn,
     maxWidth: 460,
   },
-}))
+} as const))
 
 export default Render

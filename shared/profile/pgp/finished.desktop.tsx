@@ -82,7 +82,7 @@ const styles = Styles.styleSheetCreate(() => ({
       wordWrap: 'break-word',
     },
   }),
-}))
+} as const))
 
 export default namedConnect(
   state => ({

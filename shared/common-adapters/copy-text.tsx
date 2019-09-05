@@ -182,6 +182,6 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: 5,
     },
   }),
-}))
+} as const))
 
 export default CopyText

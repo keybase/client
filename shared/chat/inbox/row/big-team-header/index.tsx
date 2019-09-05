@@ -108,6 +108,6 @@ const styles = Styles.styleSheetCreate(() => ({
       height: '100%',
     },
   }),
-}))
+} as const))
 
 export {BigTeamHeader}

@@ -269,7 +269,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
 )
 
 const containerPadding = 8
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -353,7 +353,7 @@ const styles = Styles.styleSheetCreate({
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
   },
-})
+}as const))
 
 // Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
 const smallGap = <Kb.Box style={styles.smallGap} />

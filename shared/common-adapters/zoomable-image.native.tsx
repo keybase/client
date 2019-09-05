@@ -333,6 +333,6 @@ const styles = Styles.styleSheetCreate(() => ({
     overflow: 'hidden',
     width: '100%',
   },
-}))
+} as const))
 
 export default ZoomableImage

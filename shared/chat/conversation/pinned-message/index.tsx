@@ -172,6 +172,6 @@ const styles = Styles.styleSheetCreate(() => ({
       wordBreak: 'break-word',
     },
   }),
-}))
+} as const))
 
 export default PinnedMessage

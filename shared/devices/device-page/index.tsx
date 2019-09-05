@@ -186,6 +186,6 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 6,
     width: 2,
   },
-}))
+} as  const))
 
 export default Kb.HeaderHoc(DevicePage)

@@ -31,7 +31,7 @@ const QRScan = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bottomContainer: {
     paddingBottom: Styles.globalMargins.xlarge,
     paddingLeft: Styles.globalMargins.large,
@@ -78,6 +78,6 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     justifyContent: 'center',
   },
-})
+} as const))
 
 export default QRScan

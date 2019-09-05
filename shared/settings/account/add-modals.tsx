@@ -334,4 +334,4 @@ const styles = Styles.styleSheetCreate(() => ({
   verifyContainer: {
     ...Styles.padding(0, Styles.globalMargins.small),
   },
-}))
+} as const))

@@ -217,7 +217,7 @@ class InfoPanelMenu extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(()=> ({
   badge: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue,
@@ -276,6 +276,6 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.blueDark,
     },
   }),
-})
+} as const))
 
 export {InfoPanelMenu}

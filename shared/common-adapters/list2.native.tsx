@@ -67,6 +67,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     position: 'relative',
   },
-}))
+} as const))
 
 export default List2

@@ -128,6 +128,6 @@ const styles = Styles.styleSheetCreate(() => ({
     width: undefined,
   },
   positionRelative: {position: 'relative'},
-}))
+} as const))
 
 export default ManageContacts

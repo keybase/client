@@ -198,6 +198,6 @@ const styles = Styles.styleSheetCreate(() => ({
   smallProgress: {
     alignSelf: 'center',
   },
-}))
+} as const))
 
 export default LogOut

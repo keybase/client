@@ -472,7 +472,7 @@ export class AttachmentTypeSelector extends React.Component<SelectorProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: {
     marginRight: Styles.globalMargins.tiny,
   },
@@ -594,7 +594,7 @@ const styles = Styles.styleSheetCreate({
     overflow: 'hidden',
     position: 'relative',
   },
-})
+}as const))
 
 const linkStyleOverride = {
   link: Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}]),

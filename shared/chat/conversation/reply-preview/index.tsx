@@ -56,7 +56,7 @@ const ReplyPreview = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   close: {
     alignSelf: 'center',
   },
@@ -115,6 +115,6 @@ const styles = Styles.styleSheetCreate({
   username: {
     alignSelf: 'center',
   },
-})
+} as const))
 
 export default ReplyPreview

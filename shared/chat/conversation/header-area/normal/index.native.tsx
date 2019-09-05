@@ -115,7 +115,7 @@ const PhoneOrEmailHeader = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   center: {
     justifyContent: 'center',
     textAlign: 'center',
@@ -137,6 +137,6 @@ const styles = Styles.styleSheetCreate({
   },
   shhIcon: {marginLeft: Styles.globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
-})
+} as const))
 
 export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

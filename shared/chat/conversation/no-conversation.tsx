@@ -15,6 +15,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     justifyContent: 'center',
   },
-}))
+} as const))
 
 export default NoConversation

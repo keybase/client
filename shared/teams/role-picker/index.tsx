@@ -340,7 +340,7 @@ const styles = Styles.styleSheetCreate(() => ({
   text: {
     textAlign: 'left',
   },
-}))
+} as const))
 
 // Helper to use this as a floating box
 export type FloatingProps = {

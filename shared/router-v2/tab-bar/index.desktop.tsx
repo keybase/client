@@ -206,7 +206,7 @@ const styles = Styles.styleSheetCreate(() => ({
   username: Styles.platformStyles({
     isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
   }),
-}))
+} as const))
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
   map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab

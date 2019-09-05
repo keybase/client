@@ -129,4 +129,4 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}}),
-}))
+} as const))

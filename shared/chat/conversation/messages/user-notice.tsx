@@ -62,7 +62,7 @@ const SmallUserNotice = (props: SmallProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.clickable,
@@ -103,7 +103,7 @@ const styles = Styles.styleSheetCreate({
   smallNoticeAvatar: {
     marginRight: Styles.globalMargins.tiny,
   },
-})
+} as const))
 
 export {SmallUserNotice}
 export default UserNotice

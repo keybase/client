@@ -585,7 +585,7 @@ export const Transaction = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   breakWord: Styles.platformStyles({isElectron: {wordBreak: 'break-word'}}),
   cancelButton: {
     alignSelf: 'flex-start',
@@ -620,6 +620,6 @@ const styles = Styles.styleSheetCreate({
   transferIconContainer: {
     justifyContent: 'center',
   },
-})
+} as const))
 
 export default Transaction

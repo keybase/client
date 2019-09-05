@@ -71,6 +71,6 @@ const styles = Styles.styleSheetCreate(() => ({
     textDecorationLine: 'line-through' as const,
     textDecorationStyle: 'solid' as const,
   },
-}))
+} as const))
 
 export default DeviceRow

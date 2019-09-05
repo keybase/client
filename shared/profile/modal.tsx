@@ -34,6 +34,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     justifyContent: 'space-around',
   },
-}))
+} as const))
 
 export default Kb.HeaderOrPopup(Modal)

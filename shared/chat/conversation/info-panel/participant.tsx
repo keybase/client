@@ -40,7 +40,7 @@ const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Prop
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     paddingTop: Styles.globalMargins.tiny,
   },
@@ -70,6 +70,6 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.small,
     },
   }),
-})
+}as const))
 
 export default Participant

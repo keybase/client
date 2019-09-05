@@ -59,7 +59,7 @@ const bodyOverride = {
   strong: Styles.globalStyles.fontExtrabold,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
   buttonLabelStyle: {color: Styles.globalColors.purpleDark},
   buttonStyle: {width: '100%'},
@@ -79,6 +79,6 @@ const styles = Styles.styleSheetCreate({
   labelStyle: {
     color: Styles.globalColors.purpleDark,
   },
-})
+} as const))
 
 export default Intro

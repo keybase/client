@@ -65,7 +65,7 @@ export const Input = (props: any) => (
   </Box2>
 )
 
-export const styles = styleSheetCreate({
+export const styles = styleSheetCreate(() => ({
   avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
   buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
   header: {
@@ -81,4 +81,4 @@ export const styles = styleSheetCreate({
   inputErrorStyle: {minHeight: 0},
   inputInnerStyle: {width: '100%'},
   wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
-})
+} as const))

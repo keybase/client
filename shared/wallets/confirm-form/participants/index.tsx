@@ -87,7 +87,7 @@ const Participants = (props: ParticipantsProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: {
     marginRight: 8,
   },
@@ -100,6 +100,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     marginRight: Styles.globalMargins.xxtiny,
   },
-})
+} as const))
 
 export default Participants

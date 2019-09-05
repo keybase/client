@@ -111,6 +111,6 @@ const styles = Styles.styleSheetCreate(() => ({
   icon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-}))
+} as const))
 
 export default NewInput

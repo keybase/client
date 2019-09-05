@@ -75,7 +75,7 @@ class FileAttachment extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   containerStyle: {
     ...Styles.globalStyles.flexBoxColumn,
   },
@@ -113,6 +113,6 @@ const styles = Styles.styleSheetCreate({
   titleStyle: {
     flex: 1,
   },
-})
+} as const))
 
 export default FileAttachment

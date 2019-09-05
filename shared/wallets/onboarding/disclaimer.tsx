@@ -291,7 +291,7 @@ const bulletOverride = {
   strong: bodyOverride.strong,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyBullet: {
     marginLeft: Styles.globalMargins.tiny,
   },
@@ -344,6 +344,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   section: {marginBottom: Styles.globalMargins.xxtiny},
-})
+} as const))
 
 export default Disclaimer

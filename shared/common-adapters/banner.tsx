@@ -199,7 +199,7 @@ const styles = Styles.styleSheetCreate(() => ({
   underline: Styles.platformStyles({
     isMobile: {textDecorationLine: 'underline'},
   }),
-}))
+} as const))
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate(() => ({
   blue: {backgroundColor: Styles.globalColors.blue},

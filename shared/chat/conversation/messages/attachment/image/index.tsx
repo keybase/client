@@ -205,7 +205,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   absoluteContainer: {
     position: 'absolute',
   },
@@ -310,6 +310,6 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-word',
     },
   }),
-})
+} as const))
 
 export default ImageAttachment

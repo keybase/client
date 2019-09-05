@@ -68,7 +68,7 @@ const styles = Styles.styleSheetCreate(() => ({
   centered: {alignSelf: 'center'},
   content: {flexGrow: 1},
   math: {flexGrow: 1},
-}))
+} as const))
 
 const mapStateToProps = state => ({
   email1: state.profile.pgpEmail1,

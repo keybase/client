@@ -115,7 +115,7 @@ const QrImage = ({address}) => {
   return <Kb.Image src={url} style={{height: size, width: size}} />
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   closeButton: {
     alignSelf: 'center',
   },
@@ -177,6 +177,6 @@ const styles = Styles.styleSheetCreate({
   stellarAddressesContainer: {
     alignItems: 'flex-start',
   },
-})
+} as const))
 
 export default ReceiveModal

@@ -217,6 +217,6 @@ const styles = Styles.styleSheetCreate(() => ({
     alignSelf: 'flex-start',
     marginTop: Styles.globalMargins.xtiny,
   },
-}))
+} as const))
 
 export default UpdatePassword

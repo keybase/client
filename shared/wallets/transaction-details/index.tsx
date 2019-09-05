@@ -582,7 +582,7 @@ class LoadTransactionDetails extends React.Component<Props> {
 
 export default LoadTransactionDetails
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignItemsFlexStart: {alignItems: 'flex-start'},
   button: {
     alignSelf: 'center',
@@ -664,4 +664,4 @@ const styles = Styles.styleSheetCreate({
   warningBannerText: {
     color: Styles.globalColors.brown_75,
   },
-})
+} as const))

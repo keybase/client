@@ -86,6 +86,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flex: 1,
     width: '150%',
   },
-}))
+} as const))
 
 export default PushPrompt

@@ -194,7 +194,7 @@ const HeaderRow = ({section}: {section: Section}) => (
   </Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   alignItemsCenter: {
     alignItems: 'center',
   },
@@ -211,6 +211,6 @@ const styles = styleSheetCreate({
     height: 32,
     paddingLeft: globalMargins.tiny,
   },
-})
+} as const))
 
 export default EmojiPicker

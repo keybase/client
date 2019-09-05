@@ -364,7 +364,7 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   amountLoading: {
     height: 20,
     width: 20,
@@ -486,4 +486,4 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xtiny,
     maxWidth: '100%',
   },
-})
+} as const))

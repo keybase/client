@@ -315,6 +315,6 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.greenDark,
     flexShrink: 1,
   },
-}))
+} as const))
 
 export default (Styles.isMobile ? Kb.HeaderHoc(Airdrop) : Airdrop)

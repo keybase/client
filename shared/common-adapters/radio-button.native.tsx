@@ -64,6 +64,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.xtiny,
     paddingTop: Styles.globalMargins.xtiny,
   },
-}))
+} as const))
 
 export default RadioButton

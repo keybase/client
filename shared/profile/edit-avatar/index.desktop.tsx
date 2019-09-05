@@ -442,7 +442,7 @@ const hoverStyles = Styles.styleSheetCreate(() => ({
     width: AVATAR_CONTAINER_SIZE,
   },
   hoverIcon: {color: Styles.globalColors.black_50},
-}))
+} as const))
 
 const HoverBox = Styles.styled(Kb.Box)({
   '&.filled': hoverStyles.filled,

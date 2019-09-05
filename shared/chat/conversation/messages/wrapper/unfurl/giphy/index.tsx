@@ -56,7 +56,7 @@ class UnfurlGiphy extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   collapse: Styles.platformStyles({
     isElectron: {
       position: 'relative',
@@ -117,6 +117,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
-})
+} as const))
 
 export default UnfurlGiphy

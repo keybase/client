@@ -83,7 +83,7 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
     </Kb.Box2>
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   accountID: Styles.platformStyles({
     isElectron: Styles.desktopStyles.windowDraggingClickable,
   }),
@@ -124,4 +124,4 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: Styles.desktopStyles.windowDraggingClickable,
   }),
-})
+} as const))

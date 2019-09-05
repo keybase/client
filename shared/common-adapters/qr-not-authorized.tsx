@@ -28,7 +28,7 @@ const styles = Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
   },
   text: {color: Styles.globalColors.white_40},
-}))
+} as  const))
 
 const mapDispatchToProps = dispatch => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),

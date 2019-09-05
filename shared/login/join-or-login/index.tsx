@@ -73,7 +73,7 @@ const Intro = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignItemsCenter: {
     alignItems: 'center',
   },
@@ -94,6 +94,6 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.large,
   },
   join: {color: Styles.globalColors.orange},
-})
+} as const))
 
 export default Intro

@@ -179,6 +179,6 @@ const styles = Styles.styleSheetCreate(() => ({
   labelWrapper: {
     position: 'absolute',
   },
-}))
+} as const))
 
 export default LabeledInput

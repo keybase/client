@@ -145,6 +145,6 @@ const styles = Styles.styleSheetCreate(() => ({
   tlf: Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'},
   }),
-}))
+} as const))
 
 export default Kb.HeaderHoc(DeviceRevoke)

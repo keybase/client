@@ -151,7 +151,7 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   alertMeta: platformStyles({
     common: {
       alignSelf: 'center',
@@ -234,5 +234,5 @@ const styles = styleSheetCreate({
       lineHeight: 19,
     },
   }),
-})
+} as const))
 export {BottomLine}

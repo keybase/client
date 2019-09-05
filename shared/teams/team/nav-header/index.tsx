@@ -123,7 +123,7 @@ export const SubHeader = (props: SubHeaderProps) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignSelfFlexStart: {
     alignSelf: 'flex-start',
   },
@@ -145,4 +145,4 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-})
+} as const))

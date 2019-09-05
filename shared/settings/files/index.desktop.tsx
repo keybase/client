@@ -165,4 +165,4 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.tiny,
     width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
   },
-}))
+} as const))

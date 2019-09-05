@@ -163,4 +163,4 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
     isElectron: Styles.desktopStyles.scrollable,
   }),
-}))
+} as const))

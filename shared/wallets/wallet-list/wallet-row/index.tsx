@@ -22,7 +22,7 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   amount: {
     ...rightColumnStyle,
   },
@@ -69,7 +69,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-end',
     paddingRight: Styles.globalMargins.tiny,
   },
-})
+} as const))
 
 const HoverBox = Styles.isMobile
   ? Kb.Box2

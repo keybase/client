@@ -321,7 +321,7 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' 
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButtonBox: {
     backgroundColor: Styles.globalColors.purpleDark,
     minHeight: 46,
@@ -452,6 +452,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.transparent,
     marginLeft: Styles.globalMargins.xtiny,
   },
-})
+} as const))
 
 export default SEP7ConfirmWrapper

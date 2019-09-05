@@ -288,7 +288,7 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-}))
+} as const))
 
 const PopupWrapped = (props: Props) => (
   <Kb.PopupDialog onClose={props.onBack}>

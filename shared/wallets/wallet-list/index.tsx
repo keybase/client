@@ -159,7 +159,7 @@ class WalletList extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   addContainerBox: {alignItems: 'center', height: rowHeight},
   icon: {
     height: Styles.globalMargins.mediumLarge,
@@ -190,6 +190,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: '100%',
   },
-})
+} as const))
 
 export {WalletList}

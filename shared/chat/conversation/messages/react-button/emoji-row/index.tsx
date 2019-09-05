@@ -98,7 +98,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
@@ -141,6 +141,6 @@ const styles = Styles.styleSheetCreate({
       margin: Styles.globalMargins.tiny,
     },
   }),
-})
+} as const))
 
 export default EmojiRow

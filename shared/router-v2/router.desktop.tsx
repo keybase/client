@@ -336,7 +336,7 @@ const createElectronApp = Component => {
 
 const ElectronApp = createElectronApp(RootStackNavigator)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentArea: {
     flexGrow: 1,
     position: 'relative',
@@ -354,6 +354,6 @@ const styles = Styles.styleSheetCreate({
   modalContainer: {...Styles.globalStyles.fillAbsolute},
   sceneContainer: {flexDirection: 'column'},
   transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
-})
+} as const))
 
 export default ElectronApp

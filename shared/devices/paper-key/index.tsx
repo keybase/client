@@ -91,6 +91,6 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.fontTerminal,
     color: Styles.globalColors.blueDark,
   },
-}))
+} as const))
 
 export default PaperKey

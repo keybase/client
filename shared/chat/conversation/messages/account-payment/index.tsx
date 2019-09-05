@@ -127,7 +127,7 @@ const AccountPayment = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignItemsCenter: {
     alignItems: 'center',
   },
@@ -168,6 +168,6 @@ const styles = Styles.styleSheetCreate({
   tooltipText: Styles.platformStyles({
     isElectron: {wordBreak: 'normal'},
   }),
-})
+} as const))
 
 export default AccountPayment

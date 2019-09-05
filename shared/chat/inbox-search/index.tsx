@@ -203,7 +203,7 @@ class InboxSearch extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -229,6 +229,6 @@ const styles = Styles.styleSheetCreate({
   textHeader: {
     backgroundColor: Styles.globalColors.blueLighter3,
   },
-})
+} as const))
 
 export default InboxSearch

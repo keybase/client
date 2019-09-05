@@ -63,4 +63,4 @@ const styles = Styles.styleSheetCreate(() => ({
     top: '50%',
     width: 24,
   },
-}))
+} as const))

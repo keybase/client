@@ -55,7 +55,7 @@ const EnterKey = (props: EnterKeyProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   error: Styles.platformStyles({
     common: {
       color: Styles.globalColors.redDark,
@@ -88,6 +88,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
-})
+} as const))
 
 export default EnterKey

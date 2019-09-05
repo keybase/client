@@ -175,6 +175,6 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate(() => ({
     },
   }),
   flexOne: {flex: 1},
-}))
+} as const))
 
 export default Kb.HeaderOnMobile(Devices)

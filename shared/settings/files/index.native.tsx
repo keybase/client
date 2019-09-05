@@ -102,6 +102,6 @@ const styles = Styles.styleSheetCreate(() => ({
   syncNotificationCheckbox: {
     alignItems: 'center',
   },
-}))
+} as const))
 
 export default Kb.HeaderHoc(Files)

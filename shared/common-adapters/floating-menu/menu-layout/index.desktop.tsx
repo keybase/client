@@ -148,6 +148,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
-}))
+} as const))
 
 export default MenuLayout

@@ -132,7 +132,7 @@ const renderSectionHeader = ({
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   addReactionButtonBar: {
     paddingBottom: Styles.globalMargins.medium,
     paddingLeft: Styles.globalMargins.small,
@@ -192,6 +192,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.xtiny,
   },
-})
+} as const))
 
 export default ReactionTooltip

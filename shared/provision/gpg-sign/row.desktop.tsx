@@ -83,6 +83,6 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: 20,
     transition: 'background 0.1s ease-out',
   },
-}))
+} as const))
 
 export default Row

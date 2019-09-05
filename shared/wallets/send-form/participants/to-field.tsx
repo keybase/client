@@ -256,7 +256,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: {
     marginRight: 8,
   },
@@ -342,6 +342,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'flex-start',
     minHeight: 52,
   },
-})
+} as const))
 
 export {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount}

@@ -225,6 +225,6 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black_on_white,
   },
-}))
+} as const))
 
 export {SecretNote, PublicMemo}

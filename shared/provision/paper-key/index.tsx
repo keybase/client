@@ -93,6 +93,6 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.small,
     width: '100%',
   },
-}))
+} as const))
 
 export default PaperKey

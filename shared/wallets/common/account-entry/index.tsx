@@ -71,7 +71,7 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_50,
@@ -98,6 +98,6 @@ const styles = Styles.styleSheetCreate({
   userCenter: {
     justifyContent: 'center',
   },
-})
+} as const))
 
 export default AccountEntry

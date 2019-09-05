@@ -595,7 +595,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 const fast = {backgroundColor: Styles.globalColors.fastBlank}
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   authorContainer: Styles.platformStyles({
     common: {
       alignItems: 'flex-start',
@@ -735,6 +735,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {alignItems: 'center'},
   }),
-})
+} as const))
 
 export default WrapperMessage

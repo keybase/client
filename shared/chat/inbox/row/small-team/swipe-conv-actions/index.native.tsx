@@ -91,7 +91,7 @@ const SwipeConvActions = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionText: {
     backgroundColor: 'transparent',
     color: Styles.globalColors.white,
@@ -106,6 +106,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: 65, // set to one pixel larger to stop a visual blinking artifact
   },
-})
+} as const))
 
 export default SwipeConvActions

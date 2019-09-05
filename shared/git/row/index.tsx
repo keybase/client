@@ -281,6 +281,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
   },
-}))
+} as const))
 
 export default Row

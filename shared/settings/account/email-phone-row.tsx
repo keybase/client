@@ -190,7 +190,7 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 64,
   },
   menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
-}))
+} as const))
 
 // props exported for stories
 export type OwnProps = {

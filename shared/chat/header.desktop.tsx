@@ -154,37 +154,40 @@ const Header = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  actionIcons: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-  container: {
-    flexGrow: 1,
-    height: 40 - 1,
-  },
-  desc: {
-    ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-    color: Styles.globalColors.black_50,
-  },
-  descriptionContainer: {
-    height: 17,
-    overflow: 'hidden',
-  },
-  headerTitle: Styles.platformStyles({
-    common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-  }),
-  left: {minWidth: 260},
-  right: {
-    flexGrow: 1,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  shhIconStyle: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionIcons: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+      container: {
+        flexGrow: 1,
+        height: 40 - 1,
+      },
+      desc: {
+        ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+        color: Styles.globalColors.black_50,
+      },
+      descriptionContainer: {
+        height: 17,
+        overflow: 'hidden',
+      },
+      headerTitle: Styles.platformStyles({
+        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      left: {minWidth: 260},
+      right: {
+        flexGrow: 1,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+      },
+      shhIconStyle: {
+        marginLeft: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 const Connected = Container.connect(
   state => {

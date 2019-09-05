@@ -121,7 +121,7 @@ class Search extends React.Component<SearchProps, SearchState> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   input: {
     alignSelf: 'center',
@@ -173,7 +173,7 @@ const styles = Styles.styleSheetCreate({
   rowHeading: {
     marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
   },
-})
+} as const))
 
 const SendFormParticipantsSearch = Search
 export default SendFormParticipantsSearch

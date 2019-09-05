@@ -23,7 +23,7 @@ const UnreadShortcut = (props: Props) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     bottom: 0,
     left: 0,
@@ -35,6 +35,6 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+} as const))
 
 export default UnreadShortcut

@@ -276,14 +276,14 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.fastBlank,
     flex: 1,
     position: 'relative',
   },
-})
+} as const))
 
 export default Inbox
 export type RowItem = T.RowItem

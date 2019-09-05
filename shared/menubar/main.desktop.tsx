@@ -13,7 +13,7 @@ const style = {
   flex: 1,
   marginTop: 0,
   position: 'relative',
-}
+} as const
 
 load({
   child: <Menubar />,

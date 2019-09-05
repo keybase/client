@@ -230,7 +230,7 @@ class Header extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   appIcon: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
@@ -295,7 +295,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexGrow,
   },
   topRightContainer: {flex: 1, justifyContent: 'flex-end'},
-})
+} as const))
 
 const mapStateToProps = (state: Container.TypedState) => ({
   airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),

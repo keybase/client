@@ -50,7 +50,7 @@ const HeaderNewChatButton = namedConnect(
   'HeaderNewChatButton'
 )(_HeaderNewChatButton)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
@@ -111,6 +111,6 @@ const styles = Styles.styleSheetCreate({
       marginTop: 10,
     },
   }),
-})
+} as const))
 
 export {HeaderNewChatButton}

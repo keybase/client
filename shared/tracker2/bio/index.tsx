@@ -216,6 +216,6 @@ const styles = Styles.styleSheetCreate(() => ({
       lineHeight: 21,
     },
   }),
-}))
+} as const))
 
 export default Bio

@@ -12,14 +12,13 @@ export type StylesMobile = StyleProp<_StylesMobile>
 // override some problematic styles
 type _StylesCrossPlatformOverride = {
   fontWeight: _StylesMobile['fontWeight']
+  textAlign: _StylesMobile['textAlign']
 }
 
 type _StylesCrossPlatform = {
-  [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride
-    ? // use override
-      _StylesCrossPlatformOverride[k]
-    : // or if its shared between desktop and mobile choose one which extends the other
-    k extends keyof _StylesMobile
+  [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
+    ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
+    : k extends keyof _StylesMobile
     ? _StylesMobile[k] extends _StylesDesktop[k]
       ? _StylesMobile[k]
       : _StylesDesktop[k] extends _StylesMobile[k]

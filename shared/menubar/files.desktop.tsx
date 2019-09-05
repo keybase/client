@@ -243,4 +243,4 @@ const styles = Styles.styleSheetCreate(() => ({
       wordBreak: 'break-all',
     },
   }),
-}))
+} as const))

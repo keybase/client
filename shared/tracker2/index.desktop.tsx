@@ -282,6 +282,6 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.small,
   },
-}))
+} as const))
 
 export default Tracker

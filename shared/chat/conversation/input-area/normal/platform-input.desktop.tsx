@@ -482,7 +482,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginBottom: 6,
     marginRight: Styles.globalMargins.tiny,
   },
-}))
+}as const))
 
 const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {

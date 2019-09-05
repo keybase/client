@@ -35,11 +35,11 @@ class List extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentContainer: {
     display: 'flex',
     flexGrow: 1,
   },
-})
+} as const))
 
 export default List

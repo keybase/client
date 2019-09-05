@@ -12,6 +12,6 @@ const OpenMeta = ({isOpen}: Props) =>
 
 const styles = Styles.styleSheetCreate(() => ({
   meta: {alignSelf: 'center'},
-}))
+} as const))
 
 export default OpenMeta

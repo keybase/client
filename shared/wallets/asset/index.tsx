@@ -273,4 +273,4 @@ const styles = Styles.styleSheetCreate(() => ({
       cursor: 'pointer',
     },
   }),
-}))
+} as const))

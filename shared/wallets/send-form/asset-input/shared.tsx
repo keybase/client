@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export const sharedStyles = Styles.styleSheetCreate({
+export const sharedStyles = Styles.styleSheetCreate(() => ({
   container: {
     alignItems: 'flex-start',
     paddingBottom: Styles.globalMargins.tiny,
@@ -126,4 +126,4 @@ export const sharedStyles = Styles.styleSheetCreate({
   purple: {
     color: Styles.globalColors.purpleDark,
   },
-})
+} as const))

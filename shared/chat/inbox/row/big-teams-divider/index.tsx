@@ -43,7 +43,7 @@ const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
@@ -70,6 +70,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     marginTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xtiny,
   },
-})
+} as const))
 
 export {BigTeamsDivider, BigTeamsLabel}

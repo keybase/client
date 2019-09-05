@@ -106,7 +106,7 @@ const MessagePopupHeader = (props: {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   alignItemsCenter: {alignItems: 'center'},
   colorBlack40: {color: Styles.globalColors.black_50},
   headerContainer: Styles.platformStyles({
@@ -147,6 +147,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: -Styles.globalMargins.small,
     overflow: 'hidden',
   },
-})
+} as const))
 
 export default MessagePopupHeader

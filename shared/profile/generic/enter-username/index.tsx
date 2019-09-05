@@ -354,6 +354,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
-}))
+} as const))
 
 export default EnterUsername

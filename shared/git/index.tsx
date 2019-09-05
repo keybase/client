@@ -88,6 +88,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexShrink: 0,
     height: 48,
   },
-}))
+} as const))
 
 export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(Git))

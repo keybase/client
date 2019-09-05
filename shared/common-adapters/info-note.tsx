@@ -32,6 +32,6 @@ const styles = Styles.styleSheetCreate(() => ({
   alignCenter: {
     alignItems: 'center',
   },
-}))
+} as const))
 
 export default InfoNote

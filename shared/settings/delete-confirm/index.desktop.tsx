@@ -56,6 +56,6 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     right: -4,
   },
-}))
+} as const))
 
 export default DeleteConfirm

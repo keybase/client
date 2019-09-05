@@ -131,6 +131,6 @@ const styles = Styles.styleSheetCreate(() => ({
     justifyContent: 'center',
     marginLeft: Styles.globalMargins.small,
   },
-}))
+} as const))
 
 export default PhoneSearch

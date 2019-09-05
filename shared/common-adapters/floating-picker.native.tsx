@@ -82,6 +82,6 @@ const styles = Styles.styleSheetCreate(() => ({
   safeArea: {
     backgroundColor: Styles.globalColors.white,
   },
-}))
+} as const))
 
 export default FloatingPicker

@@ -271,6 +271,6 @@ const styles = Styles.styleSheetCreate(() => ({
   wonderland: {
     color: Styles.globalColors.white,
   },
-}))
+} as const))
 
 export default ServiceTabBar

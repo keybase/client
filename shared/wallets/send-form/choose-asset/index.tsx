@@ -284,7 +284,7 @@ const OtherChoice = (props: OtherChoiceProps) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   blue: {
     color: Styles.globalColors.blueDark,
   },
@@ -365,6 +365,6 @@ const styles = Styles.styleSheetCreate({
   spacer: {
     flex: 1,
   },
-})
+} as const))
 
 export default ChooseAsset

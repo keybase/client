@@ -22,6 +22,6 @@ const styles = styleSheetCreate(() => ({
   waiting: {
     alignSelf: 'center',
   },
-}))
+} as const))
 
 export default QRScan

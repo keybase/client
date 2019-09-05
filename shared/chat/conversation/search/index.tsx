@@ -299,7 +299,7 @@ class ThreadSearchMobile extends React.Component<SearchProps & Props> {
 
 export default ThreadSearch(Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   done: {
     color: Styles.globalColors.blueDark,
   },
@@ -371,4 +371,4 @@ const styles = Styles.styleSheetCreate({
   time: {
     flexShrink: 0,
   },
-})
+} as const))

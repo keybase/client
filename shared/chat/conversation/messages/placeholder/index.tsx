@@ -33,6 +33,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: 0,
     width: 13,
   },
-}))
+}as const))
 
 export default MessagePlaceholder

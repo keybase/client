@@ -183,7 +183,7 @@ const ExplodingPopupMenu = (props: Props) => {
 
 const oneMinuteInS = 60
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerIcon: {
     height: headerIconHeight,
     marginBottom: Styles.globalMargins.small,
@@ -223,6 +223,6 @@ const styles = Styles.styleSheetCreate({
   user: {
     alignItems: 'center',
   },
-})
+} as const))
 
 export default ExplodingPopupMenu

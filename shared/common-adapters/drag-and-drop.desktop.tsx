@@ -118,6 +118,6 @@ const styles = Styles.styleSheetCreate(() => ({
     height: 48,
     width: 48,
   },
-}))
+} as const))
 
 export default DragAndDrop

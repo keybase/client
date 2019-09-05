@@ -82,6 +82,6 @@ const styles = Styles.styleSheetCreate(() => ({
       flex: 1,
     },
   }),
-}))
+} as const))
 
 export default Result

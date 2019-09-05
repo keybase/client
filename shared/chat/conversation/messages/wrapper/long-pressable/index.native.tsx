@@ -35,7 +35,7 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => v
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   replyIcon: {
     paddingRight: Styles.globalMargins.small,
   },
@@ -43,6 +43,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     position: 'relative',
   },
-})
+} as const))
 
 export default LongPressable

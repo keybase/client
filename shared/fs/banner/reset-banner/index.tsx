@@ -107,7 +107,7 @@ const fixedHeight = height => ({
   minHeight: height,
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   banner: {
     backgroundColor: Styles.globalColors.red,
     padding: Styles.globalMargins.medium,
@@ -136,6 +136,6 @@ const styles = Styles.styleSheetCreate({
   textOrUntil: {
     marginTop: Styles.globalMargins.small,
   },
-})
+} as const))
 
 export default Banner

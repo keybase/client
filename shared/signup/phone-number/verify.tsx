@@ -199,6 +199,6 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
-}))
+} as const))
 
 export default VerifyPhoneNumber

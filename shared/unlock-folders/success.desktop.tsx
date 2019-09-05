@@ -20,17 +20,20 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   </div>
 )
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    bottom: 30,
-    justifyContent: 'space-between',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 40,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        bottom: 30,
+        justifyContent: 'space-between',
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 40,
+      },
+    } as const)
+)
 
 export default PaperKeyInput

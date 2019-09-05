@@ -163,7 +163,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
-}))
+} as const))
 
 Username.navigationOptions = {
   header: null,

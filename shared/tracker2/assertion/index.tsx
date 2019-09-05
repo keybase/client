@@ -444,6 +444,6 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {letterSpacing: 0.2},
     isElectron: {wordBreak: 'break-all'},
   }),
-}))
+} as const))
 
 export default Assertion

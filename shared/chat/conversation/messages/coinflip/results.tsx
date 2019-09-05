@@ -261,113 +261,116 @@ const paragraphOverrides = {
   } as const,
 }
 
-const styles = Styles.styleSheetCreate({
-  break: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-  card: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      flexShrink: 0,
-      height: 44,
-      marginRight: -4,
-      marginTop: Styles.globalMargins.tiny,
-      width: 28,
-    },
-    isMobile: {
-      height: 36,
-      marginRight: -2,
-      width: 20,
-    },
-  }),
-  cardSuit: Styles.platformStyles({
-    isMobile: {
-      position: 'relative',
-      top: -1,
-    },
-  }),
-  // compensate for the bottom margin on cards
-  cards: Styles.platformStyles({
-    common: {
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      marginTop: -Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      marginTop: -Styles.globalMargins.xtiny,
-    },
-  }),
-  coin: {
-    height: 48,
-    width: 48,
-  },
-  commonContainer: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  handContainer: {
-    flexShrink: 1,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  handTarget: {
-    height: 'auto',
-    justifyContent: 'space-around',
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  listContainer: {
-    marginTop: Styles.globalMargins.xsmall,
-  },
-  listFull: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black,
-    },
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-  }),
-  listFullContainer: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  listOrder: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.greyDark,
-      borderRadius: 2,
-      color: Styles.globalColors.black,
-      height: 14,
-      width: 14,
-    },
-    isMobile: {
-      height: 16,
-      position: 'relative',
-      top: -1,
-    },
-  }),
-  listOrderContainer: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-    width: 20,
-  },
-  listOrderFirst: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.black,
-      color: Styles.globalColors.white,
-      height: 18,
-      width: 18,
-    },
-    isMobile: {
-      height: 20,
-      top: -2,
-    },
-  }),
-  noMarginTop: {
-    marginTop: 0,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      break: Styles.platformStyles({
+        isElectron: {
+          wordBreak: 'break-all',
+        },
+      }),
+      card: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flexShrink: 0,
+          height: 44,
+          marginRight: -4,
+          marginTop: Styles.globalMargins.tiny,
+          width: 28,
+        },
+        isMobile: {
+          height: 36,
+          marginRight: -2,
+          width: 20,
+        },
+      }),
+      cardSuit: Styles.platformStyles({
+        isMobile: {
+          position: 'relative',
+          top: -1,
+        },
+      }),
+      // compensate for the bottom margin on cards
+      cards: Styles.platformStyles({
+        common: {
+          flexWrap: 'wrap',
+        },
+        isElectron: {
+          marginTop: -Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          marginTop: -Styles.globalMargins.xtiny,
+        },
+      }),
+      coin: {
+        height: 48,
+        width: 48,
+      },
+      commonContainer: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      handContainer: {
+        flexShrink: 1,
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      handTarget: {
+        height: 'auto',
+        justifyContent: 'space-around',
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      listContainer: {
+        marginTop: Styles.globalMargins.xsmall,
+      },
+      listFull: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isElectron: {
+          wordBreak: 'break-word',
+        },
+      }),
+      listFullContainer: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      listOrder: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.greyDark,
+          borderRadius: 2,
+          color: Styles.globalColors.black,
+          height: 14,
+          width: 14,
+        },
+        isMobile: {
+          height: 16,
+          position: 'relative',
+          top: -1,
+        },
+      }),
+      listOrderContainer: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xtiny,
+        width: 20,
+      },
+      listOrderFirst: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.black,
+          color: Styles.globalColors.white,
+          height: 18,
+          width: 18,
+        },
+        isMobile: {
+          height: 20,
+          top: -2,
+        },
+      }),
+      noMarginTop: {
+        marginTop: 0,
+      },
+    } as const)
+)
 
 export default CoinFlipResult

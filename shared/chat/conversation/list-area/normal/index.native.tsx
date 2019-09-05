@@ -216,7 +216,7 @@ class ConversationList extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     flex: 1,
     position: 'relative',
@@ -228,6 +228,6 @@ const styles = Styles.styleSheetCreate({
     bottom: 0,
     position: 'absolute',
   },
-})
+}as const))
 
 export default ConversationList

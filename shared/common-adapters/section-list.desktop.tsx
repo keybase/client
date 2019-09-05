@@ -270,6 +270,6 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     top: 0,
   },
-}))
+} as const))
 
 export default SectionList

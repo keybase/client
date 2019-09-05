@@ -46,7 +46,7 @@ class TeamsDivider extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
@@ -107,6 +107,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.small,
     },
   }),
-})
+} as const))
 
 export {TeamsDivider}

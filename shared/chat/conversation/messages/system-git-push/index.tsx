@@ -216,6 +216,6 @@ const styles = Styles.styleSheetCreate(() => ({
   marker: {marginRight: Styles.globalMargins.xtiny, ...(Styles.isMobile ? {marginTop: -3} : null)},
   repoText: {color: Styles.globalColors.black_50},
   textLeft: {textAlign: 'left'},
-}))
+}as const))
 
 export default GitPush

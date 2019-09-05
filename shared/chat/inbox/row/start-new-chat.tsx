@@ -41,7 +41,7 @@ const StartNewChat = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: {
     left: 0,
     position: 'absolute',
@@ -87,6 +87,6 @@ const styles = Styles.styleSheetCreate({
   startNewChatText: {
     color: Styles.globalColors.white,
   },
-})
+} as const))
 
 export default StartNewChat

@@ -78,7 +78,7 @@ class Conversation extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -98,6 +98,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute' as const,
     top: 0,
   },
-})
+} as const))
 
 export default Conversation

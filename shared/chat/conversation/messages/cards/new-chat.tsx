@@ -74,6 +74,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
   textContainer: {padding: Styles.globalMargins.medium},
-}))
+} as const))
 
 export default NewCard

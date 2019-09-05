@@ -111,6 +111,6 @@ const styles = Styles.styleSheetCreate(() => ({
     top: 1,
   },
   userBubbleTitle: {color: Styles.globalColors.black},
-}))
+} as const))
 
 export default UserBubble

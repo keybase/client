@@ -114,7 +114,7 @@ class _SimpleTopLine extends React.Component<Props> {
 }
 const SimpleTopLine = Kb.OverlayParentHOC(_SimpleTopLine)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bold: {...Styles.globalStyles.fontBold},
   container: {
     ...Styles.globalStyles.flexBoxRow,
@@ -156,6 +156,6 @@ const styles = Styles.styleSheetCreate({
     marginLeft: 4,
     width: 8,
   },
-})
+} as const))
 
 export {SimpleTopLine}

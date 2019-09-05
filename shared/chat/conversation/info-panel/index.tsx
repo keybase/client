@@ -360,7 +360,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
 }
 
 const border = `1px solid ${Styles.globalColors.black_10}`
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   attachmentsLoading: {
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
@@ -383,7 +383,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   tabTextSelected: {color: Styles.globalColors.black},
-})
+}as const))
 
 const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
 

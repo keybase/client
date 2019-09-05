@@ -78,6 +78,6 @@ const styles = Styles.styleSheetCreate(() => ({
   button: {
     alignSelf: 'center',
   },
-}))
+} as const))
 
 export default PlanDetails

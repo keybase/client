@@ -18,13 +18,15 @@ const ShhIcon = props => (
 const ChannelHeader = (props: Props) => (
   <Box style={styles.container}>
     <Box
-      style={{
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
-        marginLeft: 24,
-      }}
+      style={
+        {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
+          marginLeft: 24,
+        } as const
+      }
     >
       <Text
         type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
