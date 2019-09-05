@@ -385,14 +385,13 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if err != nil {
 			return err
 		}
-		var ityp string
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
 		switch category {
 		case keybase1.TeamInviteCategory_SBS:
 			//  resolve assertion in link (with uid in invite msg)
-			ityp, err = invite.Type.String()
-			if err != nil {
-				return err
-			}
 			assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, untrustedInviteeFromGregor.Uid)
 
 			arg := keybase1.Identify2Arg{
