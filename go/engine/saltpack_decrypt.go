@@ -135,8 +135,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 	// We don't load this in the --paperkey case.
 	var me *libkb.User
 
-	var keyring *saltpackBasic.Keyring
-	keyring = saltpackBasic.NewKeyring()
+	keyring := saltpackBasic.NewKeyring()
 
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
