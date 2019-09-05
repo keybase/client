@@ -5569,6 +5569,7 @@ type GetInboxNonblockLocalArg struct {
 }
 
 type PostLocalArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ReplyTo          *MessageID                   `codec:"replyTo,omitempty" json:"replyTo,omitempty"`

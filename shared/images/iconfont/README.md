@@ -2,15 +2,20 @@
 
 ### Dependencies
 
-[webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
+- [fontforge](https://fontforge.github.io/en-US/downloadsj)
+  - **Mac**: `brew install fontforge`
+  - **Windows**: Install the GUI application and the executable should be available via
+    the command line.
 
-[fontforge](https://fontforge.github.io/en-US/downloadsj)
+- [webfonts-generator](https://github.com/sunflowerdeath/webfonts-generator)
+  - Unfortunately this library is now archived / deprecated. Internally it uses the following packages, which can be used to replace the library if needed.
+    - **svg** - [svgicons2svgfont](https://github.com/nfroidure/svgicons2svgfont)
+    - **ttf** - [svg2ttf](https://github.com/fontello/svg2ttf)
+    - **woff2** - [ttf2woff2](https://github.com/nfroidure/ttf2woff2)
+    - **woff** - [ttf2woff](https://github.com/fontello/ttf2woff)
+    - **eot** - [ttf2eot](https://github.com/fontello/ttf2eot)
 
-- Mac: `brew install fontforge`
-- Window: Install the GUI application and the executable should be available via
-  the command line.
-
-### Other Documentation
+### Troubleshooting / Other Documentation
 
 [Sketch Best Practices for SVG Export](./SKETCH.md)
 

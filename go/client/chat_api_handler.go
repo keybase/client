@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/libkb"
@@ -696,7 +697,7 @@ func (a *ChatAPI) AttachV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 
 	// opts are valid for attach v1
-	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts, NewChatAPIUI(), NewChatAPINotifications()), w)
+	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts, NewChatAPIUI(), utils.DummyChatNotifications{}), w)
 }
 
 func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
