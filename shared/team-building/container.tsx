@@ -10,10 +10,10 @@ import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
+import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
-import {followStateHelperWithId} from '../constants/team-building'
 import {memoizeShallow, memoize} from '../util/memoize'
 import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
@@ -71,7 +71,11 @@ const deriveSearchResults = memoize(
       return {
         contact: !!info.contact,
         displayLabel: formatAnyPhoneNumbers(label),
-        followingState: followStateHelperWithId(myUsername, followingState, info.serviceMap.keybase),
+        followingState: Constants.followStateHelperWithId(
+          myUsername,
+          followingState,
+          info.serviceMap.keybase
+        ),
         inTeam: teamSoFar.some(u => u.id === info.id),
         isPreExistingTeamMember: preExistingTeamMembers.has(info.id),
         key: [info.id, info.prettyName, info.label, String(!!info.contact)].join('&'),
@@ -566,7 +570,14 @@ const mergeProps = (
         ],
         title,
       }
-    : {}
+    : emptyObj
+
+  const onChangeService = (service: Types.ServiceIdWithContact) => {
+    ownProps.onChangeService(service)
+    if (!Types.isContactServiceId(service)) {
+      dispatchProps._search(ownProps.searchString, service)
+    }
+  }
 
   return {
     ...headerHocProps,
@@ -579,7 +590,7 @@ const mergeProps = (
     onAdd,
     onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
-    onChangeService: ownProps.onChangeService,
+    onChangeService,
     onChangeText,
     onClear,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
