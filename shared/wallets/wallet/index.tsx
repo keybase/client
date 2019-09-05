@@ -152,42 +152,45 @@ class Wallet extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  clickable: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.clickable},
-  }),
-  historyPlaceholder: {
-    marginTop: 36,
-  },
-  historyPlaceholderText: {
-    color: Styles.globalColors.black_50,
-  },
-  loadingBox: {
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  loadingMore: {
-    bottom: 10,
-    height: 20,
-    position: 'absolute',
-    right: 10,
-    width: 20,
-  },
-  sectionHeader: {
-    ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.blueLighter3,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
-    width: '100%',
-  },
-  spinner: {
-    height: 46,
-    padding: Styles.globalMargins.tiny,
-    width: 46,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      clickable: Styles.platformStyles({
+        isElectron: {...Styles.desktopStyles.clickable},
+      }),
+      historyPlaceholder: {
+        marginTop: 36,
+      },
+      historyPlaceholderText: {
+        color: Styles.globalColors.black_50,
+      },
+      loadingBox: {
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+      },
+      loadingMore: {
+        bottom: 10,
+        height: 20,
+        position: 'absolute',
+        right: 10,
+        width: 20,
+      },
+      sectionHeader: {
+        ...Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Styles.globalColors.blueLighter3,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.xtiny,
+        width: '100%',
+      },
+      spinner: {
+        height: 46,
+        padding: Styles.globalMargins.tiny,
+        width: 46,
+      },
+    } as const)
+)
 
 // If we're on mobile, this is the entry point, so we need to wrap
 // with AccountReloader.
