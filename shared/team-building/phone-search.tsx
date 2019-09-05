@@ -95,6 +95,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 <Kb.ConnectedUsernames
                   colorFollowing={true}
                   inline={true}
+                  onUsernameClicked="profile"
                   type="BodySmallSemibold"
                   usernames={[user.username]}
                 />{' '}
