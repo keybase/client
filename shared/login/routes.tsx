@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
+import ResetModal from './reset-modal/container'
 import {ProxySettingsPopup} from '../settings/proxy'
 
 type OwnProps = {}
@@ -47,5 +48,8 @@ export const newRoutes = {
 export const newModalRoutes = {
   proxySettingsModal: {
     getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
+  },
+  resetAccountModal: {
+    getScreen: (): typeof ResetModal => require('./reset-modal/container').default,
   },
 }
