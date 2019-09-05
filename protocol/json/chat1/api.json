@@ -63,12 +63,14 @@
         {
           "type": "boolean",
           "name": "public",
-          "jsonkey": "public"
+          "jsonkey": "public",
+          "optional": true
         },
         {
           "type": "string",
           "name": "membersType",
-          "jsonkey": "members_type"
+          "jsonkey": "members_type",
+          "optional": true
         },
         {
           "type": "string",
@@ -82,7 +84,8 @@
           "jsonkey": "topic_name",
           "optional": true
         }
-      ]
+      ],
+      "doc": "A Keybase chat channel. This can be a channel in a team, or just an informal channel between two users.\n   name: the name of the team or comma-separated list of participants"
     },
     {
       "type": "record",
@@ -93,7 +96,8 @@
           "name": "body",
           "jsonkey": "body"
         }
-      ]
+      ],
+      "doc": "A chat message. The content goes in the `body` property!"
     },
     {
       "type": "record",
@@ -546,7 +550,8 @@
           "jsonkey": "error",
           "optional": true
         }
-      ]
+      ],
+      "doc": "A chat conversation. This is essentially a chat channel plus some additional metadata."
     },
     {
       "type": "record",

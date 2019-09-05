@@ -163,10 +163,14 @@
   }
 
   record Pagination {
+    @optional(true)
     bytes next;
+    @optional(true)
     bytes previous;
     int num; // Number of items requested when argument, and number returned when result
+    @optional(true)
     boolean last; // Will be true if the number of results is less than requested
+    @optional(true)
     boolean forceFirstPage; // Let downstream consumers of this Pagination know this is an initial request
   }
 
