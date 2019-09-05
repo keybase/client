@@ -124,3 +124,27 @@ func isAmountLessThanMin(amount, min string) bool {
 func EmptyAmountStack(mctx libkb.MetaContext) {
 	mctx.Debug("unexpected empty amount\n%v", string(debug.Stack()))
 }
+
+// cancelOnMobileBackground returns a copy of mctx that is canceled
+// when the app transitions out of foreground, in addition to its existing cancelation.
+//
+// Canceling this context releases resources associated with it, so code should
+// call cancel as soon as the operations running in this Context complete.
+func cancelOnMobileBackground(mctx libkb.MetaContext) (libkb.MetaContext, context.CancelFunc) {
+	mctx, cancel := mctx.WithContextCancel()
+	go func() {
+		for {
+			foreground := keybase1.MobileAppState_FOREGROUND
+			select {
+			case state := <-mctx.G().MobileAppState.NextUpdate(&foreground):
+				if state != foreground {
+					cancel()
+					return
+				}
+			case <-mctx.Ctx().Done():
+				return
+			}
+		}
+	}()
+	return mctx, cancel
+}
