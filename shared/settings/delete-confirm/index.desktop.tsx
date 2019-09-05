@@ -1,46 +1,38 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {Box, Button, Icon, Text, Avatar, ButtonBar} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 
 import {Props} from './index'
 
 function DeleteConfirm(props: Props) {
   return (
-    <Box
-      style={{
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        flex: 1,
-        justifyContent: 'center',
-        padding: Styles.globalMargins.medium,
-      }}
-    >
-      <Avatar size={48} username={props.username}>
-        <Icon type="iconfont-remove" style={styles.icon} color={Styles.globalColors.red} />
-      </Avatar>
-      <Text
-        type="BodySemibold"
-        style={{
-          ...Styles.globalStyles.italic,
-          color: Styles.globalColors.redDark,
-          textDecorationLine: 'line-through',
-        }}
-      >
-        {props.username}
-      </Text>
-      <Text center={true} type="Header" style={{marginTop: Styles.globalMargins.medium, width: 320}}>
-        Are you sure you want to permanently delete your account?
-      </Text>
-      <ButtonBar>
-        <Button type="Dim" label="Cancel" onClick={props.onCancel} />
-        <Button
-          disabled={!props.allowDeleteForever}
-          type="Danger"
-          label="Yes, permanently delete it"
-          onClick={props.onDeleteForever}
-        />
-      </ButtonBar>
-    </Box>
+    <Kb.ConfirmModal
+      confirmText="Yes, permanently delete it"
+      content={
+        <Kb.Text type="BodyBig">Are you sure you want to permanently delete your account?</Kb.Text>
+      }
+      description=""
+      header="Header"
+      onCancel={props.onCancel}
+      onConfirm={props.onDeleteForever}
+      prompt={
+        <>
+          <Kb.Avatar size={48} username={props.username}>
+            <Kb.Icon color={Styles.globalColors.red} style={styles.icon} type="iconfont-remove"  />
+          </Kb.Avatar>
+          <Kb.Text
+            type="BodySemibold"
+            style={{
+              ...Styles.globalStyles.italic,
+              color: Styles.globalColors.redDark,
+              textDecorationLine: 'line-through',
+            }}
+          >
+            {props.username}
+          </Kb.Text>
+        </>
+      }
+    />
   )
 }
 

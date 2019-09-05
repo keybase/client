@@ -25,7 +25,6 @@ const settingsSubRoutes = {
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   // TODO connect broken
   [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
@@ -77,6 +76,7 @@ export const newRoutes = {
   settingsRoot: {getScreen: () => SettingsSubNavigator},
 }
 export const newModalRoutes = {
+  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   // TODO connect broken
   changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
