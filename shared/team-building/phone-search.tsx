@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
+import * as Constants from '../constants/team-building'
+import * as Container from '../util/container'
 import {ServiceIdWithContact, User} from 'constants/types/team-building'
 import ContinueButton from './continue-button'
 
@@ -18,6 +20,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [validity, setValidity] = React.useState<boolean>(false)
   const [phoneNumber, setPhoneNumber] = React.useState<string>('')
   const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
+  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     setValidity(validity)
@@ -50,7 +53,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
       state = 'resolved'
     }
   }
-  if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] === undefined) {
+  if (state === 'none' && waiting) {
     state = 'loading'
   }
   if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] !== undefined) {

@@ -464,7 +464,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     let content
     switch (props.selectedService) {
       case 'email':
-        content = <EmailInput namespace={props.namespace} />
+        content = (
+          <EmailInput
+            namespace={props.namespace}
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+          />
+        )
         break
       case 'phone':
         content = (

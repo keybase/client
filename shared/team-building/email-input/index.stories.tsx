@@ -20,7 +20,9 @@ const store = {
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-    .add('Email address', () => <EmailInput namespace={namespace} />)
+    .add('Email address', () => (
+      <EmailInput search={Sb.action('search')} namespace={namespace} teamBuildingSearchResults={{}} />
+    ))
 }
 
 export default load
