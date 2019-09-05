@@ -26,6 +26,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   const emailHasKeybaseAccount =
     user !== null && user.serviceMap.keybase !== '' && emailString === user.username
 
+  // TODO use search from container instead
   const debouncedSearch = React.useCallback(
     debounce((query: string) => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query})), 200),
     [dispatch, namespace]

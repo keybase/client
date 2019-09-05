@@ -45,7 +45,7 @@ type _SearchPayload = {
   readonly includeContacts: boolean
   readonly namespace: Types.AllowedNamespace
   readonly query: string
-  readonly service: Types.ServiceIdWithContact
+  readonly service: Types.ServiceId
   readonly limit?: number
 }
 type _SearchResultsLoadedPayload = {

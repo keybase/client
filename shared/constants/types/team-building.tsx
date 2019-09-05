@@ -5,7 +5,14 @@ import {ServiceId} from '../../util/platforms'
 export type AllowedNamespace = 'chat2' | 'teams'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-export type ServiceIdWithContact = ServiceId | 'contact'
+// These are the services we can pass to apiSearch
+export type ServiceId = ServiceId
+
+export type ContactServiceId = 'email' | 'phone'
+// These are the possible tabs in team building
+export type ServiceIdWithContact = ServiceId | ContactServiceId
+
+export const isContactServiceId = (id: string): id is ContactServiceId => id === 'email' || id === 'phone'
 
 export type SearchString = string
 type UsernameOnService = string
@@ -44,7 +51,7 @@ export type _TeamBuildingSubState = {
   teamBuildingFinishedSelectedRole: TeamRoleType
   teamBuildingFinishedSendNotification: boolean
   teamBuildingSearchQuery: Query
-  teamBuildingSelectedService: ServiceIdWithContact
+  teamBuildingSelectedService: ServiceId
   teamBuildingSearchLimit: number
   teamBuildingUserRecs: Array<User> | null
   teamBuildingSelectedRole: TeamRoleType
