@@ -64,6 +64,8 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 			continue
 		}
 		addGrouped()
+		// some match functions may depend on messages in grouped, so after we clear it
+		// this message might be a candidate to get grouped.
 		if msg.IsValid() && matches(msg, grouped) {
 			grouped = append(grouped, msg)
 		} else {
