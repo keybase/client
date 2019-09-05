@@ -656,6 +656,18 @@ func installCommandLine(context Context, binPath string, force bool, log Log) er
 	return nil
 }
 
+func createCommandLine(binPath string, linkPath string, log Log) error {
+	if _, err := os.Lstat(linkPath); err == nil {
+		err := os.Remove(linkPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Info("Linking %s to %s", linkPath, binPath)
+	return os.Symlink(binPath, linkPath)
+}
+
 func installCommandLineForBinPath(binPath string, linkPath string, force bool, log Log) error {
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
@@ -760,6 +772,23 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 
 	log.Debug("KBFS installed via launchd successfully")
 	return nil
+}
+
+func uninstallCommandLine(log Log) error {
+	linkPath, err := defaultLinkPath()
+	if err != nil {
+		return nil
+	}
+
+	err = uninstallLink(linkPath, log)
+	if err != nil {
+		return err
+	}
+
+	// Now the git binary.
+	gitBinFilename := "git-remote-keybase"
+	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
+	return uninstallLink(gitLinkPath, log)
 }
 
 // InstallKBNM installs the Keybase NativeMessaging whitelist
