@@ -81,9 +81,15 @@ export declare const borderRadius: number
 export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string
 
-export declare function styleSheetCreate<T extends {[K in string]: CSS.StylesCrossPlatform}>(
-  map: T | (() => T)
-): T
+type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._MobileStyles}
+// export declare function styleSheetCreate<T extends NamedStyles<T> | NamedStyles<any>>(
+// styles: T | NamedStyles<T>
+// ): T
+// export declare function styleSheetCreate<T extends NamedStyles<T>>(styles: T): T
+// export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
+// order important!
+export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
+export declare function styleSheetCreate<T extends NamedStyles<T>>(styles: T): T
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -128,6 +134,9 @@ export {
   StylesCrossPlatform,
   Color,
   StylesCrossPlatformWithSomeDisallowed,
+  // TEMP just for debugging the styles
+  _StylesDesktop,
+  _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
