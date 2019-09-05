@@ -98,7 +98,7 @@ const styles = Styles.styleSheetCreate(() => ({
     padding: Styles.globalMargins.medium,
     width: '100%',
   },
-}))
+} as const))
 
 const DeviceHeader = ({onAddNew}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>

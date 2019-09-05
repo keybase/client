@@ -2,8 +2,10 @@ import {CSSProperties} from 'react'
 import {StyleProp, ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
 export type Color = null | string
-
-export type _StylesDesktop = CSSProperties
+type _StylesDesktopOverride = {
+  wordBreak?: 'normal' | 'break-all' | 'keep-all' | 'inherit' | 'initial' | 'unset'
+}
+export type _StylesDesktop = CSSProperties & _StylesDesktopOverride
 export type StylesDesktop = StyleProp<_StylesDesktop>
 
 export type _StylesMobile = ViewStyle & TextStyle & ImageStyle

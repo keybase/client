@@ -64,7 +64,7 @@ export class Video extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   absoluteContainer: {
     left: 0,
     position: 'absolute',
@@ -88,4 +88,4 @@ const styles = Styles.styleSheetCreate({
   player: {
     position: 'relative',
   },
-})
+} as const))

@@ -86,44 +86,50 @@ export const AmountInput = (props: AmountInputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  input: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.purple,
-      position: 'relative',
-    },
-    isElectron: {
-      height: '1em',
-    },
-  }),
-  inputContainer: {
-    alignItems: 'flex-start',
-    borderWidth: 0,
-    paddingLeft: 0,
-    paddingTop: 0,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      input: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.purple,
+          position: 'relative',
+        },
+        isElectron: {
+          height: '1em',
+        },
+      }),
+      inputContainer: {
+        alignItems: 'flex-start',
+        borderWidth: 0,
+        paddingLeft: 0,
+        paddingTop: 0,
+      },
+    } as const)
+)
 
-export const sharedStyles = Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'flex-start',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  currencyContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-end',
-    },
-    isElectron: {
-      height: 44,
-    },
-    isMobile: {
-      height: 52,
-    },
-  }),
-  purple: {
-    color: Styles.globalColors.purpleDark,
-  },
-} as const))
+export const sharedStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        alignItems: 'flex-start',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      currencyContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-end',
+        },
+        isElectron: {
+          height: 44,
+        },
+        isMobile: {
+          height: 52,
+        },
+      }),
+      purple: {
+        color: Styles.globalColors.purpleDark,
+      },
+    } as const)
+)

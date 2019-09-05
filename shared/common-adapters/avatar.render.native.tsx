@@ -128,6 +128,6 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     right: -28,
   },
-}))
+} as const))
 
 export default Avatar

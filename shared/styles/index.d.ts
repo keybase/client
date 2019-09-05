@@ -81,7 +81,7 @@ export declare const borderRadius: number
 export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string
 
-type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._MobileStyles}
+type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._StylesMobile}
 // export declare function styleSheetCreate<T extends NamedStyles<T> | NamedStyles<any>>(
 // styles: T | NamedStyles<T>
 // ): T

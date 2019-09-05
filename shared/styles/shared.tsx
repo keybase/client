@@ -1,6 +1,6 @@
 import globalColors from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
-import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
+import {StylesCrossPlatform, _StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import {Background} from '../common-adapters/text'
 
 /* eslint-disable sort-keys */
@@ -63,12 +63,12 @@ const unifyStyles = (s: any) => ({
 })
 
 export const platformStyles = (options: {
-  common?: _StylesCrossPlatform | null
+  common?: _StylesCrossPlatform
   isIOS?: _StylesMobile
   isAndroid?: _StylesMobile
   isMobile?: _StylesMobile
   isElectron?: _StylesDesktop
-}) => ({
+}): StylesCrossPlatform => ({
   ...(options.common ? unifyStyles(options.common) : {}),
   ...(isMobile && options.isMobile ? options.isMobile : {}),
   ...(isIOS && options.isIOS ? options.isIOS : {}),
