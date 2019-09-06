@@ -253,23 +253,26 @@ class SectionList extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: {
-    alignSelf: 'stretch',
-    flexShrink: 0,
-  },
-  container: {
-    alignSelf: 'flex-start',
-    position: 'relative',
-  },
-  scroll: {
-    flexGrow: 1,
-  },
-  stickyBox: {
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {
+        alignSelf: 'stretch',
+        flexShrink: 0,
+      },
+      container: {
+        alignSelf: 'flex-start',
+        position: 'relative',
+      },
+      scroll: {
+        flexGrow: 1,
+      },
+      stickyBox: {
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+    } as const)
+)
 
 export default SectionList

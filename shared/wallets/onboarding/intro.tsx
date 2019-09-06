@@ -59,26 +59,29 @@ const bodyOverride = {
   strong: Styles.globalStyles.fontExtrabold,
 }
 
-const styles = Styles.styleSheetCreate({
-  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
-  buttonLabelStyle: {color: Styles.globalColors.purpleDark},
-  buttonStyle: {width: '100%'},
-  container: {backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.medium},
-  headerText: {
-    color: Styles.globalColors.white,
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.medium,
-  },
-  icon: {
-    position: 'relative',
-    top: -10,
-  },
-  illustration: {
-    paddingBottom: Styles.globalMargins.mediumLarge,
-  },
-  labelStyle: {
-    color: Styles.globalColors.purpleDark,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
+      buttonLabelStyle: {color: Styles.globalColors.purpleDark},
+      buttonStyle: {width: '100%'},
+      container: {backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.medium},
+      headerText: {
+        color: Styles.globalColors.white,
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.medium,
+      },
+      icon: {
+        position: 'relative',
+        top: -10,
+      },
+      illustration: {
+        paddingBottom: Styles.globalMargins.mediumLarge,
+      },
+      labelStyle: {
+        color: Styles.globalColors.purpleDark,
+      },
+    } as const)
+)
 
 export default Intro

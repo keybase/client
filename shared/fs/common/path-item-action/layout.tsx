@@ -14,7 +14,6 @@ export type Layout = {
   saveMedia: boolean
   showInSystemFileManager: boolean
   sendAttachmentToChat: boolean
-  sendLinkToChat: boolean
   sendToOtherApp: boolean
   share: boolean
 }
@@ -32,7 +31,6 @@ const empty = {
   // share items
   // eslint-disable-next-line sort-keys
   sendAttachmentToChat: false,
-  sendLinkToChat: false,
   sendToOtherApp: false,
   share: false,
 }
@@ -72,7 +70,6 @@ const getRawLayout = (
             }
           : {}),
         ignoreTlf: parsedPath.kind === Types.PathKind.TeamTlf || !isMyOwn(parsedPath, me),
-        sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         showInSystemFileManager: !isMobile,
       }
     case Types.PathKind.InGroupTlf:
@@ -95,7 +92,6 @@ const getRawLayout = (
         // share menu items
         // eslint-disable-next-line sort-keys
         sendAttachmentToChat: pathItem.type === Types.PathType.File,
-        sendLinkToChat: Constants.canSendLinkToChat(parsedPath),
         sendToOtherApp: pathItem.type === Types.PathType.File && isMobile,
       }
     default:
@@ -104,15 +100,13 @@ const getRawLayout = (
   }
 }
 
-const totalShare = layout =>
-  (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendLinkToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
+const totalShare = layout => (layout.sendAttachmentToChat ? 1 : 0) + (layout.sendToOtherApp ? 1 : 0)
 
 const consolidateShares = (layout: Layout): Layout =>
   isMobile && totalShare(layout) > 1
     ? {
         ...layout,
         sendAttachmentToChat: false,
-        sendLinkToChat: false,
         sendToOtherApp: false,
         share: true,
       }
@@ -121,7 +115,6 @@ const consolidateShares = (layout: Layout): Layout =>
 const filterForOnlyShares = (layout: Layout): Layout => ({
   ...empty,
   sendAttachmentToChat: layout.sendAttachmentToChat,
-  sendLinkToChat: layout.sendLinkToChat,
   sendToOtherApp: layout.sendToOtherApp,
 })
 

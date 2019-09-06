@@ -20,12 +20,6 @@ type flakeyRooterAPI struct {
 	G        *libkb.GlobalContext
 }
 
-func newFlakeyRooterAPI(x libkb.ExternalAPI) *flakeyRooterAPI {
-	return &flakeyRooterAPI{
-		orig: x,
-	}
-}
-
 func (e *flakeyRooterAPI) GetText(m libkb.MetaContext, arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
 	e.G.Log.Debug("| flakeyRooterAPI.GetText, hard = %v, flake = %v", e.hardFail, e.flakeOut)
 	return e.orig.GetText(m, arg)
@@ -101,7 +95,7 @@ func TestSoftSnooze(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer runUntrack(tc, fu, username, sigVersion)
+	defer func() { _ = runUntrack(tc, fu, username, sigVersion) }()
 
 	// Now make her Rooter proof flakey / fail with a 429
 	flakeyAPI.flakeOut = true

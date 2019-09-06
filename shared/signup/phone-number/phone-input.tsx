@@ -433,7 +433,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           >
             <Kb.PlainInput
               autoFocus={this.props.autoFocus}
-              style={Styles.collapseStyles([styles.plainInput])}
+              style={styles.plainInput}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
               placeholder={getPlaceholder(this.state.country)}
@@ -463,98 +463,104 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 }
 const PhoneInput = Kb.OverlayParentHOC(_PhoneInput)
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      height: 38,
-      width: 368,
-    },
-  }),
-  countryLayout: {
-    maxHeight: 200,
-    overflow: 'hidden',
-    width: 240,
-  },
-  countryList: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      display: 'block',
-      maxHeight: 160,
-      overflowX: 'hidden',
-      overflowY: 'auto',
-      paddingBottom: 0,
-      paddingTop: 0,
-    },
-  }),
-  countrySelector: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      flexGrow: 1,
-    },
-  }),
-  countrySelectorContainer: Styles.platformStyles({
-    common: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-    },
-    isElectron: {
-      borderRightColor: Styles.globalColors.black_10,
-      borderRightWidth: '1px',
-      borderStyle: 'solid',
-      height: 36,
-    },
-  }),
-  countrySelectorRow: Styles.platformStyles({
-    isMobile: {
-      marginBottom: Styles.globalMargins.tiny,
-    },
-  }),
-  fakeInput: Styles.platformStyles({
-    isMobile: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      height: 48,
-    },
-  }),
-  fullWidth: {width: '100%'},
-  highlight: {borderColor: Styles.globalColors.blue, borderWidth: 1},
-  menuItem: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
-  },
-  phoneNumberContainer: {
-    flexGrow: 1,
-  },
-  plainInput: Styles.platformStyles({
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-      height: 36,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      height: 48,
-    },
-  }),
-  prefixContainer: {
-    flexGrow: 0,
-  },
-  prefixInput: {
-    textAlign: 'right',
-  },
-  prefixPlus: {
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  searchWrapper: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          height: 38,
+          width: '100%',
+        },
+      }),
+      countryLayout: {
+        maxHeight: 200,
+        overflow: 'hidden',
+        width: 240,
+      },
+      countryList: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          display: 'block',
+          maxHeight: 160,
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          paddingBottom: 0,
+          paddingTop: 0,
+        },
+      }),
+      countrySelector: Styles.platformStyles({
+        common: {
+          marginRight: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          flexGrow: 1,
+        },
+      }),
+      countrySelectorContainer: Styles.platformStyles({
+        common: {
+          ...Styles.padding(0, Styles.globalMargins.xsmall),
+        },
+        isElectron: {
+          borderRightColor: Styles.globalColors.black_10,
+          borderRightWidth: '1px',
+          borderStyle: 'solid',
+          height: 36,
+        },
+      }),
+      countrySelectorRow: Styles.platformStyles({
+        isMobile: {
+          marginBottom: Styles.globalMargins.tiny,
+        },
+      }),
+      fakeInput: Styles.platformStyles({
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          height: 48,
+        },
+      }),
+      fullWidth: {width: '100%'},
+      highlight: {borderColor: Styles.globalColors.blue, borderWidth: 1},
+      menuItem: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xtiny),
+      },
+      phoneNumberContainer: {
+        flexGrow: 1,
+      },
+      plainInput: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.transparent,
+        },
+        isElectron: {
+          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          height: 36,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small),
+          height: 48,
+        },
+      }),
+      prefixContainer: {
+        flexGrow: 0,
+      },
+      prefixInput: {
+        textAlign: 'right',
+      },
+      prefixPlus: {
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      searchWrapper: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny),
+      },
+    } as const)
+)
 
 export default PhoneInput

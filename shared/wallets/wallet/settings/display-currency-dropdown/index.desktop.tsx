@@ -56,19 +56,22 @@ const DisplayCurrencyDropdown = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {alignItems: 'center', justifyContent: 'flex-start'},
-  dropdown: {
-    alignItems: 'center',
-    flexShrink: 1,
-    marginBottom: Styles.globalMargins.xtiny,
-  },
-  dropdownHeader: {padding: Styles.globalMargins.xsmall},
-  itemSelected: {color: Styles.globalColors.blueDark},
-  progressIndicator: {
-    height: 17,
-    width: 17,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {alignItems: 'center', justifyContent: 'flex-start'},
+      dropdown: {
+        alignItems: 'center',
+        flexShrink: 1,
+        marginBottom: Styles.globalMargins.xtiny,
+      },
+      dropdownHeader: {padding: Styles.globalMargins.xsmall},
+      itemSelected: {color: Styles.globalColors.blueDark},
+      progressIndicator: {
+        height: 17,
+        width: 17,
+      },
+    } as const)
+)
 
 export default DisplayCurrencyDropdown

@@ -348,9 +348,32 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	if !found {
 		// If the node can't be found, then the entry has been removed
 		// already, and there won't be any conflicts to resolve
-		// anyway.  Mark it as deleted and return gracefully.
+		// anyway.  Mark it as deleted.
 		chains.deletedOriginals[cc.original] = true
+
+		// However, we still might be able to determine the type of
+		// the entry via the `rmOp` that actually deleted it.  This
+		// could be important if the entry ends up being recreated due
+		// to a conflict with another branch (e.g. HOTPOT-719).  So we
+		// still want to make an attempt to recover that entry type
+		// from the parent chain.
+		parentChain, ok := chains.byOriginal[parentOriginal]
+		if ok {
+			for _, op := range parentChain.ops {
+				rop, ok := op.(*rmOp)
+				if !ok {
+					continue
+				}
+				unrefs := rop.Unrefs()
+				if len(unrefs) > 0 && unrefs[0] == cc.mostRecent {
+					cc.file = rop.RemovedType == data.File ||
+						rop.RemovedType == data.Exec
+					break
+				}
+			}
+		}
 	}
+
 	return nil
 }
 

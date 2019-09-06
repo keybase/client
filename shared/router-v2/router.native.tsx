@@ -145,22 +145,25 @@ const TabNavigator = createBottomTabNavigator(
   }
 )
 
-const tabStyles = Styles.styleSheetCreate({
-  badge: {
-    position: 'absolute',
-    right: 8,
-    top: 3,
-  },
-  container: {
-    justifyContent: 'center',
-  },
-  tab: {
-    paddingBottom: 6,
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingTop: 6,
-  },
-})
+const tabStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        position: 'absolute',
+        right: 8,
+        top: 3,
+      },
+      container: {
+        justifyContent: 'center',
+      },
+      tab: {
+        paddingBottom: 6,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingTop: 6,
+      },
+    } as const)
+)
 
 const LoggedInStackNavigator = createStackNavigator(
   {

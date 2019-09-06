@@ -77,7 +77,9 @@ class TopMessage extends React.PureComponent<Props> {
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
           <Kb.Box style={moreStyle}>
-            <Kb.Text type="BodyBig">🗿</Kb.Text>
+            <Kb.Text type="BodyBig">
+              <Kb.Emoji size={16} emojiName=":moyai:" />
+            </Kb.Text>
             <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
           </Kb.Box>
         )}

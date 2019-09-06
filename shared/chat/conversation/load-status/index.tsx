@@ -55,13 +55,16 @@ const ThreadLoadStatus = (props: Props) => {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  banner: {
-    left: 0,
-    padding: Styles.globalMargins.xxtiny,
-    position: 'absolute',
-    top: 0,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        left: 0,
+        padding: Styles.globalMargins.xxtiny,
+        position: 'absolute',
+        top: 0,
+      },
+    } as const)
+)
 
 export default ThreadLoadStatus

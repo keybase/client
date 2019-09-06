@@ -16,8 +16,6 @@ import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
-export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
-export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -264,13 +262,6 @@ export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
   title: '',
 })
 
-export const makeSendLinkToChat = I.Record<Types._SendLinkToChat>({
-  channels: I.Map(),
-  convID: ChatConstants.noConversationIDKey,
-  path: Types.stringToPath('/keybase'),
-  state: Types.SendLinkToChatState.None,
-})
-
 export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
   downloadKey: null,
   previousView: Types.PathItemActionMenuView.Root,
@@ -342,7 +333,6 @@ export const makeState = I.Record<Types._State>({
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
-  sendLinkToChat: makeSendLinkToChat(),
   settings: makeSettings(),
   sfmi: makeSystemFileManagerIntegration(),
   softErrors: makeSoftErrors(),
@@ -845,23 +835,6 @@ export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Pat
       .join('/')
   )
 
-export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
-  switch (parsedPath.kind) {
-    case Types.PathKind.Root:
-    case Types.PathKind.TlfList:
-      return false
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.TeamTlf:
-      return false
-    case Types.PathKind.InGroupTlf:
-    case Types.PathKind.InTeamTlf:
-      return parsedPath.tlfType !== Types.TlfType.Public
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
-      return false
-  }
-}
-
 export const canChat = (path: Types.Path) => {
   const parsedPath = parsePath(path)
   switch (parsedPath.kind) {
@@ -1012,15 +985,6 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
-
-export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedActions> => [
-  FsGen.createInitSendLinkToChat({path}),
-  putActionIfOnPathForNav1(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {path}, selected: 'sendLinkToChat'}],
-    })
-  ),
-]
 
 export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendAttachmentToChat({path}),

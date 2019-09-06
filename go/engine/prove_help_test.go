@@ -286,11 +286,11 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 		res, err := g.GetAPI().Get(mctx, apiArg)
 		require.NoError(tc.T, err)
 		objects, err := jsonhelpers.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
-			keybase1.SelectorEntry{
+			{
 				IsKey: true,
 				Key:   "res",
 			},
-			keybase1.SelectorEntry{
+			{
 				IsKey: true,
 				Key:   "keybase_proofs",
 			},

@@ -132,66 +132,70 @@ const renderSectionHeader = ({
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  addReactionButtonBar: {
-    paddingBottom: Styles.globalMargins.medium,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  addReactionButtonIcon: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  addReactionButtonText: {
-    color: Styles.globalColors.black_50,
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
-    flexShrink: 0,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  closeButton: {
-    padding: Styles.globalMargins.small,
-  },
-  emojiText: {
-    color: Styles.globalColors.black_50,
-    flex: -1,
-  },
-  list: Styles.platformStyles({
-    isElectron: {
-      paddingBottom: Styles.globalMargins.small,
-    },
-  }),
-  listContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-    },
-    isElectron: {
-      maxHeight: 320,
-      width: 240,
-    },
-    isMobile: {
-      maxHeight: '90%',
-      width: '100%',
-    },
-  }),
-  overlay: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      margin: Styles.globalMargins.tiny,
-    },
-  }),
-  userContainer: {
-    backgroundColor: Styles.globalColors.white,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addReactionButtonBar: {
+        paddingBottom: Styles.globalMargins.medium,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      addReactionButtonIcon: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      addReactionButtonText: {
+        color: Styles.globalColors.black_50,
+      },
+      buttonContainer: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
+        borderTopLeftRadius: 3,
+        borderTopRightRadius: 3,
+        flexShrink: 0,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      closeButton: {
+        padding: Styles.globalMargins.small,
+      },
+      emojiText: {
+        color: Styles.globalColors.black_50,
+        flex: -1,
+      },
+      list: Styles.platformStyles({
+        isElectron: {
+          flex: 1,
+          paddingBottom: Styles.globalMargins.small,
+        },
+      }),
+      listContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        isElectron: {
+          maxHeight: 320,
+          width: 240,
+        },
+        isMobile: {
+          maxHeight: '90%',
+          width: '100%',
+        },
+      }),
+      overlay: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.white,
+          margin: Styles.globalMargins.tiny,
+        },
+      }),
+      userContainer: {
+        backgroundColor: Styles.globalColors.white,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default ReactionTooltip

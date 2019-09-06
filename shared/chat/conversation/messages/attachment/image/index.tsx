@@ -205,111 +205,114 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  absoluteContainer: {
-    position: 'absolute',
-  },
-  backgroundContainer: {
-    backgroundColor: Styles.globalColors.black_05,
-    borderRadius: Styles.borderRadius,
-    maxWidth: 330,
-    position: 'relative',
-  },
-  collapse: Styles.platformStyles({
-    isMobile: {
-      alignSelf: 'center',
-    },
-  }),
-  collapseBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  downloadIcon: {
-    maxHeight: 14,
-    position: 'relative',
-    top: 1,
-  },
-  downloadedIconWrapper: {
-    ...Styles.globalStyles.flexBoxCenter,
-    backgroundColor: Styles.globalColors.fastBlank,
-    borderRadius: 20,
-    bottom: 0,
-    padding: 3,
-    position: 'absolute',
-    right: 0,
-  },
-  durationContainer: {
-    alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.black_50,
-    borderRadius: 2,
-    bottom: Styles.globalMargins.tiny,
-    padding: 1,
-    position: 'absolute',
-    right: Styles.globalMargins.tiny,
-  },
-  durationText: {
-    color: Styles.globalColors.white,
-    paddingLeft: 3,
-    paddingRight: 3,
-  },
-  image: {
-    ...Styles.globalStyles.rounded,
-    backgroundColor: Styles.globalColors.fastBlank,
-    margin: 3,
-    maxWidth: 320,
-    position: 'relative',
-  },
-  imageContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
-    width: '100%',
-  },
-  link: {
-    color: Styles.globalColors.black_50,
-  },
-  playButton: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -32,
-    marginLeft: -32,
-    marginRight: -32,
-    marginTop: -32,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-  },
-  progress: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -24,
-    marginLeft: -24,
-    marginRight: -24,
-    marginTop: -24,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-    width: 48,
-  },
-  progressContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  progressLabel: {
-    color: Styles.globalColors.black_50,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  title: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      padding: 5,
-    },
-    isElectron: {
-      display: 'block',
-      wordBreak: 'break-word',
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      absoluteContainer: {
+        position: 'absolute',
+      },
+      backgroundContainer: {
+        backgroundColor: Styles.globalColors.black_05,
+        borderRadius: Styles.borderRadius,
+        maxWidth: 330,
+        position: 'relative',
+      },
+      collapse: Styles.platformStyles({
+        isMobile: {
+          alignSelf: 'center',
+        },
+      }),
+      collapseBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+      },
+      downloadIcon: {
+        maxHeight: 14,
+        position: 'relative',
+        top: 1,
+      },
+      downloadedIconWrapper: {
+        ...Styles.globalStyles.flexBoxCenter,
+        backgroundColor: Styles.globalColors.fastBlank,
+        borderRadius: 20,
+        bottom: 0,
+        padding: 3,
+        position: 'absolute',
+        right: 0,
+      },
+      durationContainer: {
+        alignSelf: 'flex-start',
+        backgroundColor: Styles.globalColors.black_50,
+        borderRadius: 2,
+        bottom: Styles.globalMargins.tiny,
+        padding: 1,
+        position: 'absolute',
+        right: Styles.globalMargins.tiny,
+      },
+      durationText: {
+        color: Styles.globalColors.white,
+        paddingLeft: 3,
+        paddingRight: 3,
+      },
+      image: {
+        ...Styles.globalStyles.rounded,
+        backgroundColor: Styles.globalColors.fastBlank,
+        margin: 3,
+        maxWidth: 320,
+        position: 'relative',
+      },
+      imageContainer: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-start',
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.xtiny,
+        width: '100%',
+      },
+      link: {
+        color: Styles.globalColors.black_50,
+      },
+      playButton: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -32,
+        marginLeft: -32,
+        marginRight: -32,
+        marginTop: -32,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+      },
+      progress: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -24,
+        marginLeft: -24,
+        marginRight: -24,
+        marginTop: -24,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+        width: 48,
+      },
+      progressContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+      },
+      progressLabel: {
+        color: Styles.globalColors.black_50,
+        marginRight: Styles.globalMargins.tiny,
+      },
+      title: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          padding: 5,
+        },
+        isElectron: {
+          display: 'block',
+          wordBreak: 'break-word',
+        } as const,
+      }),
+    } as const)
+)
 
 export default ImageAttachment

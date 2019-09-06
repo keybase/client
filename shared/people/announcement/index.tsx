@@ -42,9 +42,12 @@ const Announcement = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {alignSelf: 'flex-start'},
-  icon: {flexShrink: 0, height: 32, width: 32},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {alignSelf: 'flex-start'},
+      icon: {flexShrink: 0, height: 32, width: 32},
+    } as const)
+)
 
 export default Announcement

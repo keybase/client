@@ -331,11 +331,13 @@
       "fields": [
         {
           "type": "bytes",
-          "name": "next"
+          "name": "next",
+          "optional": true
         },
         {
           "type": "bytes",
-          "name": "previous"
+          "name": "previous",
+          "optional": true
         },
         {
           "type": "int",
@@ -343,11 +345,13 @@
         },
         {
           "type": "boolean",
-          "name": "last"
+          "name": "last",
+          "optional": true
         },
         {
           "type": "boolean",
-          "name": "forceFirstPage"
+          "name": "forceFirstPage",
+          "optional": true
         }
       ]
     },

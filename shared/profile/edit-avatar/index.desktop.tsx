@@ -356,15 +356,17 @@ class EditAvatar extends React.Component<_Props, State> {
             <Kb.OrientedImage
               forwardedRef={this._image}
               src={this.state.imageSource}
-              style={{
-                height: this.state.scaledImageHeight,
-                left: this.state.offsetLeft,
-                opacity: this.state.loading ? '0' : '1',
-                position: 'absolute',
-                top: this.state.offsetTop,
-                transition: 'opacity 0.25s ease-in',
-                width: this.state.scaledImageWidth,
-              }}
+              style={Styles.platformStyles({
+                isElectron: {
+                  height: this.state.scaledImageHeight,
+                  left: this.state.offsetLeft,
+                  opacity: this.state.loading ? 0 : 1,
+                  position: 'absolute',
+                  top: this.state.offsetTop,
+                  transition: 'opacity 0.25s ease-in',
+                  width: this.state.scaledImageWidth,
+                },
+              } as const)}
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
             />
@@ -411,38 +413,41 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 }
 
-const hoverStyles = Styles.styleSheetCreate(() => ({
-  dropping: {
-    backgroundColor: Styles.globalColors.blue_60,
-    borderColor: Styles.globalColors.blue_60,
-  },
-  droppingIcon: {color: Styles.globalColors.blue_60},
-  filled: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.grey,
-    borderStyle: 'solid',
-    cursor: '-webkit-grab',
-  },
-  filledHover: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.grey,
-  },
-  hover: {borderColor: Styles.globalColors.black_50},
-  hoverContainer: {
-    backgroundColor: Styles.globalColors.grey,
-    borderColor: Styles.globalColors.greyDark,
-    borderStyle: 'dotted',
-    borderWidth: AVATAR_BORDER_SIZE,
-    cursor: 'pointer',
-    height: AVATAR_CONTAINER_SIZE,
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.medium,
-    overflow: 'hidden',
-    position: 'relative',
-    width: AVATAR_CONTAINER_SIZE,
-  },
-  hoverIcon: {color: Styles.globalColors.black_50},
-}))
+const hoverStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      dropping: {
+        backgroundColor: Styles.globalColors.blue_60,
+        borderColor: Styles.globalColors.blue_60,
+      },
+      droppingIcon: {color: Styles.globalColors.blue_60},
+      filled: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.grey,
+        borderStyle: 'solid',
+        cursor: '-webkit-grab',
+      },
+      filledHover: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.grey,
+      },
+      hover: {borderColor: Styles.globalColors.black_50},
+      hoverContainer: {
+        backgroundColor: Styles.globalColors.grey,
+        borderColor: Styles.globalColors.greyDark,
+        borderStyle: 'dotted',
+        borderWidth: AVATAR_BORDER_SIZE,
+        cursor: 'pointer',
+        height: AVATAR_CONTAINER_SIZE,
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.medium,
+        overflow: 'hidden',
+        position: 'relative',
+        width: AVATAR_CONTAINER_SIZE,
+      },
+      hoverIcon: {color: Styles.globalColors.black_50},
+    } as const)
+)
 
 const HoverBox = Styles.styled(Kb.Box)({
   '&.filled': hoverStyles.filled,

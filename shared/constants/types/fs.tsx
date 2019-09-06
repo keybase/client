@@ -467,30 +467,6 @@ export type _SendAttachmentToChat = {
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
-export enum SendLinkToChatState {
-  None = 'none',
-  // when the modal is just shown and we don't know the convID(s) yet
-  LocatingConversation = 'locating-conversation',
-  // only applicable to big teams with multiple channels
-  PendingSelectConversation = 'pending-select-conversation',
-  // possibly without a convID, in which case we'll create it
-  ReadyToSend = 'ready-to-send',
-  Sending = 'sending',
-  Sent = 'sent',
-}
-
-export type _SendLinkToChat = {
-  // populated for teams only
-  channels: I.Map<ChatTypes.ConversationIDKey, string>
-  // This is the convID that we are sending into. So for group chats or small
-  // teams, this is the conversation. For big teams, this is the selected
-  // channel.
-  convID: ChatTypes.ConversationIDKey
-  path: Path
-  state: SendLinkToChatState
-}
-export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
-
 export enum PathItemActionMenuView {
   Root = 'root',
   Share = 'share',
@@ -624,7 +600,6 @@ export type _State = {
   pathInfos: I.Map<Path, PathInfo>
   pathUserSettings: I.Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
-  sendLinkToChat: SendLinkToChat
   settings: Settings
   sfmi: SystemFileManagerIntegration
   softErrors: SoftErrors

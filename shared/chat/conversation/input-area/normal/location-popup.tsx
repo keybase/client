@@ -79,19 +79,21 @@ const LocationPopup = (props: Props) => {
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button
               fullWidth={true}
-              onClick={() => onLocationShare('15m')}
               label="Share location for 15 minutes"
+              onClick={() => onLocationShare('15m')}
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
+              subLabel="Live location"
             />
             <Kb.Button
               fullWidth={true}
+              label="Share location for 1 hours"
               onClick={() => onLocationShare('1h')}
-              label="Share location for 1 hour"
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
+              subLabel="Live location"
             />
             <Kb.Button
               fullWidth={true}
@@ -100,25 +102,18 @@ const LocationPopup = (props: Props) => {
               mode="Secondary"
               type="Default"
               style={styles.liveButton}
+              subLabel="Live location"
             />
             <Kb.Divider />
             <Kb.Button
               fullWidth={true}
+              label="Send current location"
               onClick={() => onLocationShare('')}
               type="Default"
               style={{height: 53}}
-            >
-              <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-                <Kb.Text type="BodySemibold" negative={true}>
-                  Share current location
-                </Kb.Text>
-                {mapLoaded && (
-                  <Kb.Text type="BodyTiny" style={styles.accuracy}>
-                    Accurate to {location ? location.accuracy : 0} meters
-                  </Kb.Text>
-                )}
-              </Kb.Box2>
-            </Kb.Button>
+              subLabel={mapLoaded ? `Accurate to ${location ? location.accuracy : 0} meters` : undefined}
+              subLabelStyle={styles.accuracy}
+            />
           </Kb.Box2>
         ),
       }}
@@ -131,7 +126,6 @@ const LocationPopup = (props: Props) => {
 const styles = Styles.styleSheetCreate(() => ({
   accuracy: {
     color: Styles.globalColors.white_75,
-    lineHeight: 14,
   },
   liveButton: {
     height: 53,
