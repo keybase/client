@@ -278,6 +278,7 @@
     "react-hot-loader": "4.11.0",
     "react-test-renderer": "16.8.4",
     "redux-logger": "3.0.6",
+    "rimraf": "3.0.0",
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "1.2.1",
     "tls": "git://github.com/keybase/nullModule",
