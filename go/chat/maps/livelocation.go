@@ -276,6 +276,13 @@ func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) 
 	return nil
 }
 
+func (l *LiveLocationTracker) stopWatch(ctx context.Context, t *locationTrack) error {
+	if !t.getCurrentPosition {
+		return l.getChatUI(ctx).ChatStopLocationUpdates(ctx, t.convID)
+	}
+	return nil
+}
+
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
 	// check to see if we are being asked to start a tracker that is already expired
@@ -296,7 +303,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		delete(l.trackers, t.Key())
 		l.saveLocked(ctx)
 		if len(l.trackers) == 0 {
-			err := l.getChatUI(ctx).ChatStopLocationUpdates(ctx, t.convID)
+			err := l.stopWatch(ctx, t)
 			if err != nil {
 				l.Debug(ctx, "tracker: error stopping location updates: %+v", err)
 			}

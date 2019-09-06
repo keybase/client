@@ -129,7 +129,7 @@ const onChatStopLocationUpdates = async () => {
 
 const onChatGetCurrentPosition = async (
   _: Container.TypedState,
-  _: EngineGen.Chat1ChatUiChatGetCurrentPositionPayload,
+  _action: EngineGen.Chat1ChatUiChatGetCurrentPositionPayload,
   logger: Saga.SagaLogger
 ) => {
   const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)

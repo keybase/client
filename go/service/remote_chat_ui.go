@@ -198,7 +198,7 @@ func (r *RemoteChatUI) ChatStartLocationUpdates(ctx context.Context, convID chat
 }
 
 func (r *RemoteChatUI) ChatStopLocationUpdates(ctx context.Context, convID chat1.ConversationID) error {
-	return r.cli.ChatStartLocationUpdates(ctx, chat1.ChatStartLocationUpdatesArg{
+	return r.cli.ChatStopLocationUpdates(ctx, chat1.ChatStopLocationUpdatesArg{
 		SessionID: r.sessionID,
 		ConvID:    convID,
 	})
