@@ -67,68 +67,74 @@ const rpcConflictStateToConflictState = (
   }
 }
 
-const loadFavorites = (state: TypedState, action: FsGen.FavoritesLoadPayload) =>
-  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
-  state.config.loggedIn &&
-  RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
-    .then(results => {
-      const mutablePayload = [
-        ...(results.favoriteFolders
-          ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
-          : []),
-        ...(results.ignoredFolders
-          ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
-          : []),
-        ...(results.newFolders
-          ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
-          : []),
-      ].reduce(
-        (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
-          folders.reduce((mutablePayload, folder) => {
-            const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-            const tlfName =
-              tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-                ? tlfToPreferredOrder(folder.name, state.config.username)
-                : folder.name
-            return !tlfType
-              ? mutablePayload
-              : {
-                  ...mutablePayload,
-                  [tlfType]: mutablePayload[tlfType].set(
-                    tlfName,
-                    Constants.makeTlf({
-                      conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
-                      isFavorite,
-                      isIgnored,
-                      isNew,
-                      name: tlfName,
-                      resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
-                      syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
-                      teamId: folder.team_id || '',
-                      tlfMtime: folder.mtime || 0,
-                    })
-                  ),
-                }
-          }, mutablePayload),
-        {
-          private: I.Map().asMutable(),
-          public: I.Map().asMutable(),
-          team: I.Map().asMutable(),
-        }
-      )
-      return (
-        mutablePayload.private.size &&
-        FsGen.createFavoritesLoaded({
-          // @ts-ignore asImmutable returns a weak type
-          private: mutablePayload.private.asImmutable(),
-          // @ts-ignore asImmutable returns a weak type
-          public: mutablePayload.public.asImmutable(),
-          // @ts-ignore asImmutable returns a weak type
-          team: mutablePayload.team.asImmutable(),
-        })
-      )
-    })
-    .catch(makeRetriableErrorHandler(action))
+const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPayload) => {
+  try {
+    if (
+      state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected ||
+      !state.config.loggedIn
+    ) {
+      return false
+    }
+    const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
+    const mutablePayload = [
+      ...(results.favoriteFolders
+        ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
+        : []),
+      ...(results.ignoredFolders
+        ? [{folders: results.ignoredFolders, isFavorite: false, isIgnored: true, isNew: false}]
+        : []),
+      ...(results.newFolders
+        ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
+        : []),
+    ].reduce(
+      (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
+        folders.reduce((mutablePayload, folder) => {
+          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+          const tlfName =
+            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+              ? tlfToPreferredOrder(folder.name, state.config.username)
+              : folder.name
+          return !tlfType
+            ? mutablePayload
+            : {
+                ...mutablePayload,
+                [tlfType]: mutablePayload[tlfType].set(
+                  tlfName,
+                  Constants.makeTlf({
+                    conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+                    isFavorite,
+                    isIgnored,
+                    isNew,
+                    name: tlfName,
+                    resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
+                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+                    teamId: folder.team_id || '',
+                    tlfMtime: folder.mtime || 0,
+                  })
+                ),
+              }
+        }, mutablePayload),
+      {
+        private: I.Map().asMutable(),
+        public: I.Map().asMutable(),
+        team: I.Map().asMutable(),
+      }
+    )
+    return (
+      mutablePayload.private.size &&
+      FsGen.createFavoritesLoaded({
+        // @ts-ignore asImmutable returns a weak type
+        private: mutablePayload.private.asImmutable(),
+        // @ts-ignore asImmutable returns a weak type
+        public: mutablePayload.public.asImmutable(),
+        // @ts-ignore asImmutable returns a weak type
+        team: mutablePayload.team.asImmutable(),
+      })
+    )
+  } catch (e) {
+    return makeRetriableErrorHandler(action)(e)
+  }
+}
 
 const getSyncConfigFromRPC = (
   tlfName: string,
@@ -178,8 +184,8 @@ const loadTlfSyncConfig = async (
   }
 }
 
-const setTlfSyncConfig = (_: TypedState, action: FsGen.SetTlfSyncConfigPayload) =>
-  RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
+const setTlfSyncConfig = async (_: TypedState, action: FsGen.SetTlfSyncConfigPayload) => {
+  await RPCTypes.SimpleFSSimpleFSSetFolderSyncConfigRpcPromise(
     {
       config: {
         mode: action.payload.enabled ? RPCTypes.FolderSyncMode.enabled : RPCTypes.FolderSyncMode.disabled,
@@ -187,30 +193,34 @@ const setTlfSyncConfig = (_: TypedState, action: FsGen.SetTlfSyncConfigPayload) 
       path: Constants.pathToRPCPath(action.payload.tlfPath),
     },
     Constants.syncToggleWaitingKey
-  ).then(() =>
-    FsGen.createLoadTlfSyncConfig({
-      tlfPath: action.payload.tlfPath,
-    })
   )
+  return FsGen.createLoadTlfSyncConfig({
+    tlfPath: action.payload.tlfPath,
+  })
+}
 
-const loadSettings = () =>
-  RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
-    .then(settings =>
-      FsGen.createSettingsLoaded({
-        settings: Constants.makeSettings({
-          spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
-        }),
-      })
-    )
-    .catch(() => FsGen.createSettingsLoaded({}))
+const loadSettings = async () => {
+  try {
+    const settings = await RPCTypes.SimpleFSSimpleFSSettingsRpcPromise()
+    return FsGen.createSettingsLoaded({
+      settings: Constants.makeSettings({
+        spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
+      }),
+    })
+  } catch (_) {
+    return FsGen.createSettingsLoaded({})
+  }
+}
 
-const setSpaceNotificationThreshold = (
+const setSpaceNotificationThreshold = async (
   _: TypedState,
   action: FsGen.SetSpaceAvailableNotificationThresholdPayload
-) =>
-  RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
+) => {
+  await RPCTypes.SimpleFSSimpleFSSetNotificationThresholdRpcPromise({
     threshold: action.payload.spaceAvailableNotificationThreshold,
-  }).then(() => FsGen.createLoadSettings())
+  })
+  return FsGen.createLoadSettings()
+}
 
 const getPrefetchStatusFromRPC = (
   prefetchStatus: RPCTypes.PrefetchStatus,
@@ -480,7 +490,7 @@ function* upload(_: TypedState, action: FsGen.UploadPayload) {
   }
 }
 
-const cancelDownload = (state: TypedState, action: FsGen.CancelDownloadPayload) => {
+const cancelDownload = async (state: TypedState, action: FsGen.CancelDownloadPayload) => {
   const download = state.fs.downloads.get(action.payload.key)
   if (!download) {
     return
@@ -488,7 +498,7 @@ const cancelDownload = (state: TypedState, action: FsGen.CancelDownloadPayload) 
   const {
     meta: {opID},
   } = download
-  return RPCTypes.SimpleFSSimpleFSCancelRpcPromise({opID}).then(() => {})
+  await RPCTypes.SimpleFSSimpleFSCancelRpcPromise({opID})
 }
 
 const getWaitDuration = (endEstimate: number | null, lower: number, upper: number): number => {
@@ -613,11 +623,14 @@ const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Ty
     )
   )
 
-const refreshLocalHTTPServerInfo = (_: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) =>
-  RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
-    .then(({address, token}) => FsGen.createLocalHTTPServerInfo({address, token}))
-    .catch(makeUnretriableErrorHandler(action, null))
-
+const refreshLocalHTTPServerInfo = async (_: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) => {
+  try {
+    const {address, token} = await RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
+    return FsGen.createLocalHTTPServerInfo({address, token})
+  } catch (e) {
+    return makeUnretriableErrorHandler(action, null)(e)
+  }
+}
 // loadMimeType uses HEAD request to load mime type from the KBFS HTTP server.
 // If the server address/token are not populated yet, or if the token turns out
 // to be invalid, it automatically uses
@@ -660,25 +673,28 @@ function* _loadMimeType(path: Types.Path) {
   throw new Error('exceeded max retries')
 }
 
-const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
+const commitEdit = async (state: TypedState, action: FsGen.CommitEditPayload) => {
   const {editID} = action.payload
   const edit = state.fs.edits.get(editID)
   if (!edit) {
-    return null
+    return false
   }
   const {parentPath, name, type} = edit as Types.Edit
   switch (type) {
     case Types.EditType.NewFolder:
-      return RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
-        dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
-        flags: RPCTypes.OpenFlags.directory,
-        opID: Constants.makeUUID(),
-      })
-        .then(() => FsGen.createEditSuccess({editID, parentPath}))
-        .catch(makeRetriableErrorHandler(action, parentPath))
+      try {
+        await RPCTypes.SimpleFSSimpleFSOpenRpcPromise({
+          dest: Constants.pathToRPCPath(Types.pathConcat(parentPath, name)),
+          flags: RPCTypes.OpenFlags.directory,
+          opID: Constants.makeUUID(),
+        })
+        return FsGen.createEditSuccess({editID, parentPath})
+      } catch (e) {
+        return makeRetriableErrorHandler(action, parentPath)(e)
+      }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
-      return undefined
+      return false
   }
 }
 

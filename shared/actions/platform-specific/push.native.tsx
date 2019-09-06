@@ -307,11 +307,14 @@ function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
     yield Saga.spawn(requestPermissionsFromNative)
   } else {
     const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
-    const shownMonsterPushPromptTask = yield Saga._fork(() =>
-      RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-        .then(v => !!v.b)
-        .catch(() => false)
-    )
+    const shownMonsterPushPromptTask = yield Saga._fork(async () => {
+      try {
+        const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+        return !!v.b
+      } catch (_) {
+        return false
+      }
+    })
     const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
       shownNativePushPromptTask,
       shownMonsterPushPromptTask
@@ -382,14 +385,13 @@ function* getStartupDetailsFromInitialPush() {
   return null
 }
 
-const getInitialPushAndroid = (): Promise<PushGen.NotificationPayload | null> =>
-  NativeModules.KeybaseEngine.getInitialIntent().then(n => {
-    let notification = n && Constants.normalizePush(n)
-    return notification && PushGen.createNotification({notification})
-  })
+const getInitialPushAndroid = async () => {
+  const n = await NativeModules.KeybaseEngine.getInitialIntent()
+  const notification = n && Constants.normalizePush(n)
+  return notification && PushGen.createNotification({notification})
+}
 
-const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
-  new Promise(resolve =>
+const getInitialPushiOS = ()=> new Promise(resolve =>
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
       if (notification) {

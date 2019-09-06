@@ -99,14 +99,17 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
         if (!isStillInSameQuery(yield* Saga.selectState())) {
           break
         }
-        const action = yield apiSearch(
+        // TODO what happens if this fails?
+        const users: Saga.RPCPromiseType<typeof apiSearch> = yield apiSearch(
           teamBuildingSearchQuery,
           service,
           teamBuildingSearchLimit,
           true,
           null,
           false
-        ).then(users =>
+        )
+
+        yield Saga.put(
           TeamBuildingGen.createSearchResultsLoaded({
             namespace,
             query: teamBuildingSearchQuery,
@@ -114,7 +117,6 @@ function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction
             users,
           })
         )
-        yield Saga.put(action)
       }
     })
   }
