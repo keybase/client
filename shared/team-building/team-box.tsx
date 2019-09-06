@@ -28,7 +28,6 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   let displayName: string
   switch (u.service) {
     case 'keybase':
-    case 'phone':
     case 'email':
       displayName = u.username
       break
