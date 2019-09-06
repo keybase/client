@@ -2980,8 +2980,7 @@ const toggleMessageReaction = async (
       tlfName: meta.tlfname,
       tlfPublic: false,
     })
-    return
-    Chat2Gen.createToggleLocalReaction({
+    return Chat2Gen.createToggleLocalReaction({
       conversationIDKey,
       emoji,
       targetOrdinal: ordinal,
