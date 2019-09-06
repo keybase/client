@@ -1847,6 +1847,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
+	prefetchDoneCh := make(chan struct{})
+	defer close(prefetchDoneCh)
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
@@ -1913,7 +1915,6 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// prefetcher operation.  If we do, we introduce racy behavior
 	// where sometimes the prefetcher will be able to write stuff to
 	// the cache, and sometimes not.
-	prefetchDoneCh := make(chan struct{})
 	q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
 		return &backoff.ZeroBackOff{}
@@ -1990,8 +1991,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// We can't close the done channel right away since the prefetcher
 	// still needs to send on it for every remaining operation it
 	// processes, so just spawn a goroutine to drain it, and close the
-	// channel when the test is over.
-	defer close(prefetchDoneCh)
+	// channel when the test is over. (The defered close is at the top
+	// of this function.)
 	go func() {
 		for range prefetchDoneCh {
 		}
