@@ -9,7 +9,7 @@ import * as Container from '../../util/container'
 type OwnProps = {}
 
 const mapStateToProps = state => ({
-  error: state.provision.error.stringValue() || '',
+  error: state.provision.error.stringValue(),
   username: state.provision.username,
   waiting: Container.anyWaiting(state, Constants.waitingKey),
 })
