@@ -226,7 +226,6 @@ export const settingsWaitingKey = 'settings:generic'
 export const aboutTab = 'settingsTabs.aboutTab'
 export const advancedTab = 'settingsTabs.advancedTab'
 export const chatTab = 'settingsTabs.chatTab'
-export const deleteMeTab = 'settingsTabs.deleteMeTab'
 export const devicesTab = 'settingsTabs.devicesTab'
 export const feedbackTab = 'settingsTabs.feedbackTab'
 export const foldersTab = 'settingsTabs.foldersTab'
@@ -248,7 +247,6 @@ export type SettingsTab =
   | typeof invitationsTab
   | typeof notificationsTab
   | typeof advancedTab
-  | typeof deleteMeTab
   | typeof feedbackTab
   | typeof aboutTab
   | typeof devicesTab

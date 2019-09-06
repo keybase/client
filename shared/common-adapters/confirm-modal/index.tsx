@@ -20,6 +20,7 @@ export type Props = {
   iconColor?: Styles.Color
   onCancel?: () => void
   onConfirm?: () => void
+  onConfirmDeactivated?: boolean
   prompt: React.ReactNode
   waitingKey?: string
 }
@@ -64,7 +65,7 @@ class ConfirmModal extends React.PureComponent<Props> {
               )}
               <WaitingButton
                 key="confirm"
-                disabled={!this.props.onConfirm}
+                disabled={this.props.onConfirmDeactivated || !this.props.onConfirm}
                 type="Danger"
                 label={this.props.confirmText || 'Confirm'}
                 onClick={this.props.onConfirm}

@@ -174,12 +174,8 @@ const AccountSettings = (props: Props) => (
         <EmailPhone {...props} />
         <Kb.Divider />
         <Password {...props} />
-        {!Styles.isMobile && (
-          <>
-            <Kb.Divider />
-            <DeleteAccount {...props} />
-          </>
-        )}
+        <Kb.Divider />
+        <DeleteAccount {...props} />
       </Kb.Box2>
     </Kb.ScrollView>
   </Kb.Reloadable>
