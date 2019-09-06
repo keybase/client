@@ -130,7 +130,7 @@ const Advanced = (props: Props) => {
               />
               <Kb.RadioButton
                 label={
-                  <Kb.Text type="BodyBig">
+                  <Kb.Text type="Body">
                     Light all the time <Kb.Emoji size={16} emojiName=":sunglasses:" />
                   </Kb.Text>
                 }
