@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
+import {formatPhoneNumber} from '../util/phone-numbers'
 
 export type Props = {
   username: string
@@ -15,9 +16,13 @@ const removeSize = Styles.isMobile ? 22 : 16
 const UserBubble = (props: Props) => {
   const isKeybase = props.service === 'keybase'
   let {username} = props
+  let title = !isKeybase ? `${props.username}@${props.service}` : undefined
   if (!isKeybase) {
     // Show placeholder avatar instead of an icon
     username = 'invalidusernameforplaceholderavatar'
+    if (props.service === 'phone') {
+      title = formatPhoneNumber(props.username)
+    }
   }
   return (
     <Kb.Box2 direction="vertical" className="hover-container" style={styles.bubbleContainer}>
@@ -32,7 +37,7 @@ const UserBubble = (props: Props) => {
             // and for follow. Display `title` for non-Keybase users that always
             // stay gray and is not a link.
             username={username}
-            title={!isKeybase ? `${props.username}@${props.service}` : undefined}
+            title={title}
             titleStyle={styles.userBubbleTitle}
           />
         </Kb.Box2>

@@ -433,7 +433,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           >
             <Kb.PlainInput
               autoFocus={this.props.autoFocus}
-              style={Styles.collapseStyles([styles.plainInput])}
+              style={styles.plainInput}
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
               placeholder={getPlaceholder(this.state.country)}
@@ -474,7 +474,7 @@ const styles = Styles.styleSheetCreate(
           borderStyle: 'solid',
           borderWidth: 1,
           height: 38,
-          width: 368,
+          width: '100%',
         },
       }),
       countryLayout: {
@@ -536,6 +536,9 @@ const styles = Styles.styleSheetCreate(
         flexGrow: 1,
       },
       plainInput: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.transparent,
+        },
         isElectron: {
           ...Styles.padding(0, Styles.globalMargins.xsmall),
           height: 36,

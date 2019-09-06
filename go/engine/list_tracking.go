@@ -184,7 +184,7 @@ func (e *ListTrackingEngine) runTable(m libkb.MetaContext, trackList TrackList) 
 			Username:     link.ToDisplayString(),
 			SigIDDisplay: link.GetSigID().ToDisplayString(true),
 			TrackTime:    keybase1.ToTime(link.GetCTime()),
-			Uid:          keybase1.UID(uid),
+			Uid:          uid,
 		}
 		entry.Proofs.PublicKeys = e.linkPGPKeys(m, link)
 		entry.Proofs.Social = e.linkSocialProofs(link)
@@ -243,11 +243,26 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 	rp := l.RemoteKeyProofs()
 
 	out := jsonw.NewDictionary()
-	out.SetKey("uid", libkb.UIDWrapper(uid))
-	out.SetKey("keys", jsonw.NewString(strings.Join(fpsDisplay, ", ")))
-	out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
-	out.SetKey("username", jsonw.NewString(un.String()))
-	out.SetKey("proofs", rp)
+	err = out.SetKey("uid", libkb.UIDWrapper(uid))
+	if err != nil {
+		return nil, err
+	}
+	err = out.SetKey("keys", jsonw.NewString(strings.Join(fpsDisplay, ", ")))
+	if err != nil {
+		return nil, err
+	}
+	err = out.SetKey("ctime", jsonw.NewInt64(l.GetCTime().Unix()))
+	if err != nil {
+		return nil, err
+	}
+	err = out.SetKey("username", jsonw.NewString(un.String()))
+	if err != nil {
+		return nil, err
+	}
+	err = out.SetKey("proofs", rp)
+	if err != nil {
+		return nil, err
+	}
 
 	return out, nil
 }

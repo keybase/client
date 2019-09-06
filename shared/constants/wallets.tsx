@@ -6,7 +6,6 @@ import {AllowedColors} from '../common-adapters/text'
 import {assertionToDisplay} from '../common-adapters/usernames'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
-import * as Router2Constants from './router2'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
@@ -760,18 +759,8 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
-export const getAirdropSelected = () => {
-  const path = Router2Constants.getFullRoute()
-  const topPath = path[path.length - 1].routeName
-  const nextPathDown = path[path.length - 2].routeName
-  return (
-    topPath === 'airdrop' ||
-    topPath === 'airdropQualify' ||
-    (topPath === 'whatIsStellarModal' && nextPathDown === 'airdrop') ||
-    (topPath === 'createNewAccount' && nextPathDown === 'airdrop') ||
-    (topPath === 'linkExisting' && nextPathDown === 'airdrop')
-  )
-}
+export const getAirdropSelected = (state: TypedState) =>
+  state.wallets.selectedAccount === Types.airdropAccountID
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 

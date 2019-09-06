@@ -9,6 +9,7 @@ const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Header: () => ({
     accountID: stringToAccountID('fakeAccountID'),
+    airdropSelected: false,
     isDefaultWallet: true,
     keybaseUser: 'cecileb',
     onReceive: Sb.action('onReceive'),
@@ -33,6 +34,7 @@ const provider = Sb.createPropProviderWithCommon({
 const props = {
   acceptedDisclaimer: true,
   accountID: stringToAccountID('fakeAccountID'),
+  airdropSelected: false,
   loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),
   onBack: Sb.action('onBack'),

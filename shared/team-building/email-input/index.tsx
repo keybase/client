@@ -83,6 +83,7 @@ const EmailInput = ({namespace}: EmailInputProps) => {
               <Kb.ConnectedUsernames
                 colorFollowing={true}
                 inline={true}
+                onUsernameClicked="profile"
                 type="BodySmallSemibold"
                 usernames={[user.serviceMap.keybase]}
               />{' '}

@@ -440,6 +440,7 @@ type ChatUI interface {
 	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
 		[]chat1.UICommandStatusActionTyp) error
 	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
+	TriggerContactSync(context.Context) error
 }
 
 type PromptDefault int

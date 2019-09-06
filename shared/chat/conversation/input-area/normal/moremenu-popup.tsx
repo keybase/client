@@ -86,7 +86,7 @@ const MoreMenuPopup = (props: Props) => {
       : []),
     {
       onClick: onGiphy,
-      title: '',
+      title: 'gif',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="BodyBig" style={styles.item}>
@@ -98,7 +98,7 @@ const MoreMenuPopup = (props: Props) => {
     },
     {
       onClick: onCoinFlip,
-      title: '',
+      title: 'coin',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="BodyBig" style={styles.item}>
@@ -110,7 +110,7 @@ const MoreMenuPopup = (props: Props) => {
     },
     {
       onClick: onLocationShare,
-      title: '',
+      title: 'location',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="BodyBig" style={styles.item}>
@@ -122,7 +122,7 @@ const MoreMenuPopup = (props: Props) => {
     },
     {
       onClick: onInsertSlashCommand,
-      title: '',
+      title: 'slash',
       view: (
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="BodyBig" style={styles.item}>

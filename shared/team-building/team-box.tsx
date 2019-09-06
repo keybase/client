@@ -7,6 +7,7 @@ import * as Container from '../util/container'
 import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
+import {formatPhoneNumber} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
 
 type Props = {
@@ -24,19 +25,21 @@ type Props = {
 }
 
 const formatNameForUserBubble = (u: SelectedUser) => {
-  let technicalName: string
+  let displayName: string
   switch (u.service) {
     case 'keybase':
     case 'contact': // do not display "michal@keyba.se on email" or similar
-    case 'phone':
     case 'email':
-      technicalName = u.username
+      displayName = u.username
+      break
+    case 'phone':
+      displayName = formatPhoneNumber(u.username)
       break
     default:
-      technicalName = `${u.username} on ${u.service}`
+      displayName = `${u.username} on ${u.service}`
       break
   }
-  return `${technicalName} ${u.prettyName ? `(${u.prettyName})` : ''}`
+  return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{

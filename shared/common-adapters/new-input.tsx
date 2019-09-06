@@ -12,6 +12,7 @@ export type _Props = {
   error?: boolean
   hideBorder?: boolean
   icon?: IconType
+  dummyInput?: boolean
 }
 
 type Props = PropsWithInput<_Props>

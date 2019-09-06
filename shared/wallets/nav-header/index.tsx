@@ -23,7 +23,7 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
         <AddAccount />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
-        {props.loading ? (
+        {props.loading && !props.airdropSelected ? (
           <Kb.ProgressIndicator type="Small" style={styles.loading} />
         ) : props.airdropSelected ? (
           <Kb.Box2 direction="horizontal">

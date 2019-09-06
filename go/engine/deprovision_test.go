@@ -268,7 +268,9 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	// Unlike the first test, this time we log out before we run the
 	// deprovision. We should be able to do a deprovision with revocation
 	// disabled.
-	tc.G.Logout(context.TODO())
+	if err := tc.G.Logout(context.TODO()); err != nil {
+		tc.T.Fatal(err)
+	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, false /* doRevoke */)
 	uis = libkb.UIs{

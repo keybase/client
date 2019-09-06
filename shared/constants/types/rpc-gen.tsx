@@ -347,6 +347,10 @@ export type MessageTypes = {
     inParam: {readonly email: String}
     outParam: void
   }
+  'keybase.1.account.recoverUsernameWithPhone': {
+    inParam: {readonly phone: PhoneNumber}
+    outParam: void
+  }
   'keybase.1.account.setLockdownMode': {
     inParam: {readonly enabled: Boolean}
     outParam: void
@@ -3101,6 +3105,7 @@ export const accountHasServerKeysRpcPromise = (params: MessageTypes['keybase.1.a
 export const accountPassphraseChangeRpcPromise = (params: MessageTypes['keybase.1.account.passphraseChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountPassphraseCheckRpcPromise = (params: MessageTypes['keybase.1.account.passphraseCheck']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseCheck']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseCheck', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountRecoverUsernameWithEmailRpcPromise = (params: MessageTypes['keybase.1.account.recoverUsernameWithEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.recoverUsernameWithEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.recoverUsernameWithEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountRecoverUsernameWithPhoneRpcPromise = (params: MessageTypes['keybase.1.account.recoverUsernameWithPhone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.recoverUsernameWithPhone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.recoverUsernameWithPhone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountSetLockdownModeRpcPromise = (params: MessageTypes['keybase.1.account.setLockdownMode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.setLockdownMode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.setLockdownMode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverDeleteRpcPromise = (params: MessageTypes['keybase.1.apiserver.Delete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Delete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Delete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverGetRpcPromise = (params: MessageTypes['keybase.1.apiserver.Get']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Get']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Get', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3263,7 +3268,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.resetAccount'
-// 'keybase.1.account.recoverUsernameWithPhone'
 // 'keybase.1.account.enterResetPipeline'
 // 'keybase.1.account.cancelReset'
 // 'keybase.1.account.timeTravelReset'

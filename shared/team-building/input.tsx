@@ -73,6 +73,7 @@ const Input = (props: Props) => {
         focusOnMount={props.focusOnMount}
         fullWidth={true}
         onChange={props.onChangeText}
+        onCancel={props.onClear}
         placeholderText={props.placeholder}
         onKeyDown={e => {
           handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)

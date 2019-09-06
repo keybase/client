@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -172,10 +173,12 @@ func TestTrackNewUserWithPGP(t *testing.T) {
 
 	tracker := CreateAndSignupFakeUser(tc, "track")
 	t.Logf("first track:")
-	runTrack(tc, tracker, fu.Username, sigVersion)
+	_, _, err := runTrack(tc, tracker, fu.Username, sigVersion)
+	require.NoError(t, err)
 
 	t.Logf("second track:")
-	runTrack(tc, tracker, fu.Username, sigVersion)
+	_, _, err = runTrack(tc, tracker, fu.Username, sigVersion)
+	require.NoError(t, err)
 }
 
 // see issue #578
@@ -335,14 +338,15 @@ func _testIdentifyTrackRaceDetection(t *testing.T, sigVersion libkb.SigVersion) 
 			// We might have used the fact the userchanged notifications are bounced
 			// off of the server, but that might slow down this test, so do the
 			// simple and non-flakey thing.
-			dev2.G.GetUPAKLoader().Invalidate(nil, libkb.UsernameToUID(user.Username))
+			dev2.G.GetUPAKLoader().Invalidate(context.TODO(), libkb.UsernameToUID(user.Username))
 		}
 		doID(dev2, fui2)
 		trackSucceed(dev1, fui1)
 		trackFail(dev2, fui2, (i == 0))
 	}
 
-	runUntrack(dev1, user, trackee, sigVersion)
+	err := runUntrack(dev1, user, trackee, sigVersion)
+	require.NoError(t, err)
 }
 
 func TestTrackNoKeys(t *testing.T) {
