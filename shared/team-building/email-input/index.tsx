@@ -102,35 +102,38 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  background: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      flex: 1,
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      zIndex: -1,
-    },
-  }),
-  bottomContainer: {
-    flexGrow: 1,
-  },
-  input: Styles.platformStyles({
-    common: {},
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-      height: 38,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      height: 48,
-    },
-  }),
-  userMatchMention: {
-    alignSelf: 'flex-start',
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      background: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          flex: 1,
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          zIndex: -1,
+        },
+      }),
+      bottomContainer: {
+        flexGrow: 1,
+      },
+      input: Styles.platformStyles({
+        common: {},
+        isElectron: {
+          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          height: 38,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small),
+          height: 48,
+        },
+      }),
+      userMatchMention: {
+        alignSelf: 'flex-start',
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default EmailInput

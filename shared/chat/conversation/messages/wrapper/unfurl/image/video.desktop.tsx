@@ -55,25 +55,28 @@ export class Video extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  absoluteContainer: {
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    alignSelf: 'flex-start',
-    position: 'relative',
-  },
-  playButton: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -32,
-    marginLeft: -32,
-    marginRight: -32,
-    marginTop: -32,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      absoluteContainer: {
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      container: {
+        alignSelf: 'flex-start',
+        position: 'relative',
+      },
+      playButton: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -32,
+        marginLeft: -32,
+        marginRight: -32,
+        marginTop: -32,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+      },
+    } as const)
+)

@@ -239,82 +239,85 @@ const sectionBodyOverride = {
   paragraph: {fontSize: Styles.isMobile ? 16 : 13},
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bannerButton: {
-    alignSelf: Styles.isMobile ? ('center' as const) : ('flex-start' as const),
-  },
-  body: {
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-  },
-  bullet: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  friendContainer: {
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
-    backgroundColor: Styles.globalColors.blueLighter3,
-    display: 'flex',
-    flexWrap: 'wrap',
-  },
-  friendText: Styles.platformStyles({
-    isElectron: {whiteSpace: 'pre'},
-  }),
-  fullHeight: {height: '100%'},
-  grow: {flexGrow: 1, flexShrink: 1, width: 100},
-  header: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.purple,
-      paddingBottom: Styles.globalMargins.medium,
-    },
-    isElectron: {paddingTop: Styles.globalMargins.medium},
-  }),
-  headerText: Styles.platformStyles({
-    isElectron: {
-      paddingRight: Styles.globalMargins.large,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.small,
-    },
-  }),
-  leaveButtonBar: {marginBottom: Styles.globalMargins.small},
-  link: {color: Styles.globalColors.purpleDark, fontWeight: '600'},
-  progress: {
-    height: 20,
-    width: 20,
-  },
-  qualifyButton: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  scrollView: {
-    height: '100%',
-    width: '100%',
-  },
-  section: {marginBottom: Styles.globalMargins.xxtiny},
-  shrink: {
-    flexShrink: 1,
-  },
-  signedUpHeader: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.greenLighter,
-      borderRadius: Styles.borderRadius,
-      flexShrink: 1,
-      marginLeft: Styles.globalMargins.medium,
-      marginRight: Styles.globalMargins.medium,
-      marginTop: Styles.globalMargins.medium,
-      padding: Styles.globalMargins.tiny,
-    },
-    isElectron: {alignItems: 'center'},
-    isMobile: {alignItems: 'flex-start'},
-  }),
-  yourIn: {
-    color: Styles.globalColors.greenDark,
-    flexShrink: 1,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bannerButton: {
+        alignSelf: Styles.isMobile ? ('center' as const) : ('flex-start' as const),
+      },
+      body: {
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+      },
+      bullet: {
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.xtiny,
+      },
+      friendContainer: {
+        ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
+        backgroundColor: Styles.globalColors.blueLighter3,
+        display: 'flex',
+        flexWrap: 'wrap',
+      },
+      friendText: Styles.platformStyles({
+        isElectron: {whiteSpace: 'pre'},
+      }),
+      fullHeight: {height: '100%'},
+      grow: {flexGrow: 1, flexShrink: 1, width: 100},
+      header: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.purple,
+          paddingBottom: Styles.globalMargins.medium,
+        },
+        isElectron: {paddingTop: Styles.globalMargins.medium},
+      }),
+      headerText: Styles.platformStyles({
+        isElectron: {
+          paddingRight: Styles.globalMargins.large,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.small,
+        },
+      }),
+      leaveButtonBar: {marginBottom: Styles.globalMargins.small},
+      link: {color: Styles.globalColors.purpleDark, fontWeight: '600'},
+      progress: {
+        height: 20,
+        width: 20,
+      },
+      qualifyButton: {
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+      },
+      scrollView: {
+        height: '100%',
+        width: '100%',
+      },
+      section: {marginBottom: Styles.globalMargins.xxtiny},
+      shrink: {
+        flexShrink: 1,
+      },
+      signedUpHeader: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.greenLighter,
+          borderRadius: Styles.borderRadius,
+          flexShrink: 1,
+          marginLeft: Styles.globalMargins.medium,
+          marginRight: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.medium,
+          padding: Styles.globalMargins.tiny,
+        },
+        isElectron: {alignItems: 'center'},
+        isMobile: {alignItems: 'flex-start'},
+      }),
+      yourIn: {
+        color: Styles.globalColors.greenDark,
+        flexShrink: 1,
+      },
+    } as const)
+)
 
 export default Airdrop

@@ -64,18 +64,21 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
   }
 }
 
-const styles = styleSheetCreate({
-  alignItemsCenter: {
-    alignItems: 'center',
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderColor: globalColors.black_10,
-    borderRadius: 0,
-    borderWidth: 0,
-    padding: globalMargins.small,
-  },
-})
+const styles = styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {
+        alignItems: 'center',
+      },
+      input: {
+        borderBottomWidth: 1,
+        borderColor: globalColors.black_10,
+        borderRadius: 0,
+        borderWidth: 0,
+        padding: globalMargins.small,
+      },
+    } as const)
+)
 
 export default Container.connect(
   state => ({topReacjis: state.chat2.userReacjis.topReacjis}),

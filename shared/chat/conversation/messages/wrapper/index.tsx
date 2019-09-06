@@ -595,146 +595,149 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 const fast = {backgroundColor: Styles.globalColors.fastBlank}
-const styles = Styles.styleSheetCreate({
-  authorContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-start',
-      alignSelf: 'flex-start',
-      height: Styles.globalMargins.mediumLarge,
-    },
-    isMobile: {marginTop: 8},
-  }),
-  avatar: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-    },
-    isMobile: {marginLeft: Styles.globalMargins.tiny},
-  }),
-  centeredOrdinal: {
-    backgroundColor: Styles.globalColors.yellow,
-  },
-  container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-  containerJoinLeave: Styles.platformStyles({
-    isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-    },
-  }),
-  containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
-  containerNoUsername: Styles.platformStyles({
-    isMobile: {
-      paddingBottom: 3,
-      paddingLeft:
-        // Space for below the avatar
-        Styles.globalMargins.tiny + // right margin
-        Styles.globalMargins.tiny + // left margin
-        Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: 3,
-    },
-  }),
-  contentUnderAuthorContainer: Styles.platformStyles({
-    isElectron: {
-      marginTop: -16,
-      paddingLeft:
-        // Space for below the avatar
-        Styles.globalMargins.tiny + // right margin
-        Styles.globalMargins.small + // left margin
-        Styles.globalMargins.mediumLarge, // avatar
-    },
-    isMobile: {
-      marginTop: -12,
-      paddingBottom: 3,
-      paddingLeft:
-        // Space for below the avatar
-        Styles.globalMargins.tiny + // right margin
-        Styles.globalMargins.tiny + // left margin
-        Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  edited: {color: Styles.globalColors.black_20},
-  ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: Styles.platformStyles({
-    isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      bottom: -Styles.globalMargins.mediumLarge,
-      height: Styles.globalMargins.mediumLarge,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-      position: 'absolute',
-      right: 96,
-      zIndex: 2,
-    },
-  }),
-  emojiRowBorder: Styles.platformStyles({
-    isElectron: {
-      borderBottom: `1px solid ${Styles.globalColors.black_10}`,
-      borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-      borderRight: `1px solid ${Styles.globalColors.black_10}`,
-    },
-  }),
-  emojiRowLast: Styles.platformStyles({
-    isElectron: {
-      border: 'none',
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-      borderTopLeftRadius: Styles.borderRadius,
-      borderTopRightRadius: Styles.borderRadius,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.tiny,
-      top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
-    },
-  }),
-  fail: {color: Styles.globalColors.redDark},
-  failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-  fast,
-  marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
-  menuButtons: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      flexShrink: 0,
-      justifyContent: 'flex-end',
-      overflow: 'hidden',
-    },
-    isElectron: {height: 16},
-    isMobile: {height: 21},
-  }),
-  menuButtonsWithAuthor: {marginTop: -16},
-  messagePopupContainer: {
-    marginRight: Styles.globalMargins.small,
-  },
-  orangeLine: {
-    // don't push down content due to orange line
-    backgroundColor: Styles.globalColors.orange,
-    flexShrink: 0,
-    height: 1,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
-  },
-  send: Styles.platformStyles({
-    common: {position: 'absolute'},
-    isElectron: {
-      pointerEvents: 'none',
-      right: 12,
-    },
-    isMobile: {right: 0},
-  }),
-  timestamp: Styles.platformStyles({
-    common: {paddingLeft: Styles.globalMargins.xtiny},
-    isElectron: {lineHeight: 19},
-  }),
-  usernameCrown: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'baseline',
-      position: 'relative',
-      top: -2,
-    },
-    isMobile: {alignItems: 'center'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      authorContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+          alignSelf: 'flex-start',
+          height: Styles.globalMargins.mediumLarge,
+        },
+        isMobile: {marginTop: 8},
+      }),
+      avatar: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.small,
+        },
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
+      }),
+      centeredOrdinal: {
+        backgroundColor: Styles.globalColors.yellow,
+      },
+      container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
+      containerJoinLeave: Styles.platformStyles({
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
+      containerNoUsername: Styles.platformStyles({
+        isMobile: {
+          paddingBottom: 3,
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: 3,
+        },
+      }),
+      contentUnderAuthorContainer: Styles.platformStyles({
+        isElectron: {
+          marginTop: -16,
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.small + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+        },
+        isMobile: {
+          marginTop: -12,
+          paddingBottom: 3,
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+      edited: {color: Styles.globalColors.black_20},
+      ellipsis: {marginLeft: Styles.globalMargins.tiny},
+      emojiRow: Styles.platformStyles({
+        isElectron: {
+          borderBottomLeftRadius: Styles.borderRadius,
+          borderBottomRightRadius: Styles.borderRadius,
+          bottom: -Styles.globalMargins.mediumLarge,
+          height: Styles.globalMargins.mediumLarge,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+          position: 'absolute',
+          right: 96,
+          zIndex: 2,
+        },
+      }),
+      emojiRowBorder: Styles.platformStyles({
+        isElectron: {
+          borderBottom: `1px solid ${Styles.globalColors.black_10}`,
+          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          borderRight: `1px solid ${Styles.globalColors.black_10}`,
+        },
+      }),
+      emojiRowLast: Styles.platformStyles({
+        isElectron: {
+          border: 'none',
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+          borderTopLeftRadius: Styles.borderRadius,
+          borderTopRightRadius: Styles.borderRadius,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.tiny,
+          top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
+        },
+      }),
+      fail: {color: Styles.globalColors.redDark},
+      failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      fast,
+      marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
+      menuButtons: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          flexShrink: 0,
+          justifyContent: 'flex-end',
+          overflow: 'hidden',
+        },
+        isElectron: {height: 16},
+        isMobile: {height: 21},
+      }),
+      menuButtonsWithAuthor: {marginTop: -16},
+      messagePopupContainer: {
+        marginRight: Styles.globalMargins.small,
+      },
+      orangeLine: {
+        // don't push down content due to orange line
+        backgroundColor: Styles.globalColors.orange,
+        flexShrink: 0,
+        height: 1,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
+      },
+      send: Styles.platformStyles({
+        common: {position: 'absolute'},
+        isElectron: {
+          pointerEvents: 'none',
+          right: 12,
+        },
+        isMobile: {right: 0},
+      }),
+      timestamp: Styles.platformStyles({
+        common: {paddingLeft: Styles.globalMargins.xtiny},
+        isElectron: {lineHeight: 19},
+      }),
+      usernameCrown: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'baseline',
+          position: 'relative',
+          top: -2,
+        },
+        isMobile: {alignItems: 'center'},
+      }),
+    } as const)
+)
 
 export default WrapperMessage

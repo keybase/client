@@ -152,52 +152,55 @@ class LogOut extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bodyText: {
-    paddingBottom: Styles.globalMargins.tiny,
-    textAlign: 'center',
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  checkbox: {
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  container: {
-    ...Styles.padding(
-      Styles.globalMargins.medium,
-      Styles.globalMargins.small,
-      Styles.globalMargins.medium,
-      Styles.globalMargins.small
-    ),
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-  },
-  headerText: {
-    marginBottom: Styles.globalMargins.small,
-    textAlign: 'center',
-  },
-  logout: {
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  logoutContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      justifyContent: 'center',
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-  }),
-  progress: {
-    alignSelf: 'center',
-    marginBottom: Styles.globalMargins.xlarge,
-    marginTop: Styles.globalMargins.xlarge,
-  },
-  smallProgress: {
-    alignSelf: 'center',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyText: {
+        paddingBottom: Styles.globalMargins.tiny,
+        textAlign: 'center',
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      checkbox: {
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      container: {
+        ...Styles.padding(
+          Styles.globalMargins.medium,
+          Styles.globalMargins.small,
+          Styles.globalMargins.medium,
+          Styles.globalMargins.small
+        ),
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+      },
+      headerText: {
+        marginBottom: Styles.globalMargins.small,
+        textAlign: 'center',
+      },
+      logout: {
+        paddingLeft: Styles.globalMargins.xtiny,
+      },
+      logoutContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          justifyContent: 'center',
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      progress: {
+        alignSelf: 'center',
+        marginBottom: Styles.globalMargins.xlarge,
+        marginTop: Styles.globalMargins.xlarge,
+      },
+      smallProgress: {
+        alignSelf: 'center',
+      },
+    } as const)
+)
 
 export default LogOut

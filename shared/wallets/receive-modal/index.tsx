@@ -115,68 +115,71 @@ const QrImage = ({address}) => {
   return <Kb.Image src={url} style={{height: size, width: size}} />
 }
 
-const styles = Styles.styleSheetCreate({
-  closeButton: {
-    alignSelf: 'center',
-  },
-  container: Styles.platformStyles({
-    common: {
-      paddingLeft: 0,
-      paddingRight: 0,
-    },
-    isElectron: {
-      paddingBottom: 0,
-      paddingTop: 0,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.xlarge,
-      paddingTop: Styles.globalMargins.medium,
-    },
-  }),
-  header: Styles.platformStyles({
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
-      flex: 1,
-    },
-  }),
-  headerText: Styles.platformStyles({
-    isElectron: {
-      marginBottom: Styles.globalMargins.small,
-    },
-  }),
-  icon: Styles.platformStyles({
-    isElectron: {
-      marginBottom: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.medium,
-    },
-  }),
-  instructionText: {
-    marginBottom: Styles.globalMargins.small,
-  },
-  orText: {
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  qrContainer: {
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: Styles.globalMargins.tiny,
-  },
-  requestButton: {
-    flex: 0,
-    width: '100%',
-  },
-  requestIcon: {marginRight: Styles.globalMargins.tiny},
-  sidePaddings: {
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-  },
-  stellarAddressesContainer: {
-    alignItems: 'flex-start',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      closeButton: {
+        alignSelf: 'center',
+      },
+      container: Styles.platformStyles({
+        common: {
+          paddingLeft: 0,
+          paddingRight: 0,
+        },
+        isElectron: {
+          paddingBottom: 0,
+          paddingTop: 0,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xlarge,
+          paddingTop: Styles.globalMargins.medium,
+        },
+      }),
+      header: Styles.platformStyles({
+        isMobile: {
+          ...Styles.globalStyles.fillAbsolute,
+          flex: 1,
+        },
+      }),
+      headerText: Styles.platformStyles({
+        isElectron: {
+          marginBottom: Styles.globalMargins.small,
+        },
+      }),
+      icon: Styles.platformStyles({
+        isElectron: {
+          marginBottom: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          marginBottom: Styles.globalMargins.medium,
+        },
+      }),
+      instructionText: {
+        marginBottom: Styles.globalMargins.small,
+      },
+      orText: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      qrContainer: {
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        padding: Styles.globalMargins.tiny,
+      },
+      requestButton: {
+        flex: 0,
+        width: '100%',
+      },
+      requestIcon: {marginRight: Styles.globalMargins.tiny},
+      sidePaddings: {
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+      },
+      stellarAddressesContainer: {
+        alignItems: 'flex-start',
+      },
+    } as const)
+)
 
 export default ReceiveModal

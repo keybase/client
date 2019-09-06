@@ -9,12 +9,15 @@ const NoConversation = () => (
   </Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  noConvoText: {
-    alignSelf: 'center',
-    flex: 1,
-    justifyContent: 'center',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      noConvoText: {
+        alignSelf: 'center',
+        flex: 1,
+        justifyContent: 'center',
+      },
+    } as const)
+)
 
 export default NoConversation

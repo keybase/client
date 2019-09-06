@@ -60,6 +60,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     width: '100%',
   },
-})
+} as const)
 
 export default LoadingLine
