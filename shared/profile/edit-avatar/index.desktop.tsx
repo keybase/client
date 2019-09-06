@@ -356,15 +356,17 @@ class EditAvatar extends React.Component<_Props, State> {
             <Kb.OrientedImage
               forwardedRef={this._image}
               src={this.state.imageSource}
-              style={{
-                height: this.state.scaledImageHeight,
-                left: this.state.offsetLeft,
-                opacity: this.state.loading ? 0 : 1,
-                position: 'absolute',
-                top: this.state.offsetTop,
-                transition: 'opacity 0.25s ease-in',
-                width: this.state.scaledImageWidth,
-              }}
+              style={Styles.platformStyles({
+                isElectron: {
+                  height: this.state.scaledImageHeight,
+                  left: this.state.offsetLeft,
+                  opacity: this.state.loading ? 0 : 1,
+                  position: 'absolute',
+                  top: this.state.offsetTop,
+                  transition: 'opacity 0.25s ease-in',
+                  width: this.state.scaledImageWidth,
+                },
+              } as const)}
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
             />
