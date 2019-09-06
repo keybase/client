@@ -722,8 +722,9 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
   }
 }
 
-const letResetUserBackIn = (_: TypedState, {payload: {id, username}}) =>
-  RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username}).then(() => {})
+const letResetUserBackIn = async (_: TypedState, {payload: {id, username}}) => {
+  await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
+}
 
 const updateFsBadge = (state: TypedState) => {
   const counts = new Map<Tabs.Tab, number>()
@@ -731,18 +732,21 @@ const updateFsBadge = (state: TypedState) => {
   return NotificationsGen.createSetBadgeCounts({counts})
 }
 
-const deleteFile = (_: TypedState, action: FsGen.DeleteFilePayload) => {
+const deleteFile = async (_: TypedState, action: FsGen.DeleteFilePayload) => {
   const opID = Constants.makeUUID()
-  return RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
-    opID,
-    path: Constants.pathToRPCPath(action.payload.path),
-    recursive: true,
-  })
-    .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID}))
-    .catch(makeRetriableErrorHandler(action, action.payload.path))
+  try {
+    await RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+      opID,
+      path: Constants.pathToRPCPath(action.payload.path),
+      recursive: true,
+    })
+    return RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
+  } catch (e) {
+    return makeRetriableErrorHandler(action, action.payload.path)(e)
+  }
 }
 
-const moveOrCopy = (state: TypedState, action: FsGen.MovePayload | FsGen.CopyPayload) => {
+const moveOrCopy = async (state: TypedState, action: FsGen.MovePayload | FsGen.CopyPayload) => {
   if (state.fs.destinationPicker.source.type === Types.DestinationPickerSource.None) {
     return
   }
@@ -765,17 +769,20 @@ const moveOrCopy = (state: TypedState, action: FsGen.MovePayload | FsGen.CopyPay
             local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
           } as RPCTypes.Path),
   }
-  return (
-    (action.type === FsGen.move
-      ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
-      : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
-    )
-      .then(() => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID}))
-      // We get source/dest paths from state rather than action, so we can't
-      // just retry it. If we do want retry in the future we can include those
-      // paths in the action.
-      .catch(makeUnretriableErrorHandler(action, action.payload.destinationParentPath))
-  )
+
+  try {
+    if (action.type === FsGen.move) {
+      await RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
+    } else {
+      await RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
+    }
+    return RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID})
+    // We get source/dest paths from state rather than action, so we can't
+    // just retry it. If we do want retry in the future we can include those
+    // paths in the action.
+  } catch (e) {
+    return makeUnretriableErrorHandler(action, action.payload.destinationParentPath)(e)
+  }
 }
 
 const showMoveOrCopy = () =>
@@ -797,38 +804,42 @@ const closeDestinationPicker = () => {
 // Can't rely on kbfsDaemonStatus.rpcStatus === 'waiting' as that's set by
 // reducer and happens before this.
 let waitForKbfsDaemonOnFly = false
-const waitForKbfsDaemon = () => {
+const waitForKbfsDaemon = async () => {
   if (waitForKbfsDaemonOnFly) {
     return
   }
   waitForKbfsDaemonOnFly = true
-  return RPCTypes.configWaitForClientRpcPromise({
-    clientType: RPCTypes.ClientType.kbfs,
-    timeout: 20, // 20sec
-  })
-    .then(connected => {
-      waitForKbfsDaemonOnFly = false
-      return FsGen.createKbfsDaemonRpcStatusChanged({
-        rpcStatus: connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.WaitTimeout,
-      })
+  try {
+    const connected = await RPCTypes.configWaitForClientRpcPromise({
+      clientType: RPCTypes.ClientType.kbfs,
+      timeout: 20, // 20sec
     })
-    .catch(() => {
-      waitForKbfsDaemonOnFly = false
-      return FsGen.createKbfsDaemonRpcStatusChanged({
-        rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout,
-      })
+    // eslint-disable-next-line
+    waitForKbfsDaemonOnFly = false
+    return FsGen.createKbfsDaemonRpcStatusChanged({
+      rpcStatus: connected ? Types.KbfsDaemonRpcStatus.Connected : Types.KbfsDaemonRpcStatus.WaitTimeout,
     })
+  } catch (_) {
+    waitForKbfsDaemonOnFly = false
+    return FsGen.createKbfsDaemonRpcStatusChanged({
+      rpcStatus: Types.KbfsDaemonRpcStatus.WaitTimeout,
+    })
+  }
 }
 
-const startManualCR = (_: TypedState, action) =>
-  RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
+const startManualCR = async (_: TypedState, action) => {
+  await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
-  }).then(() => FsGen.createFavoritesLoad())
+  })
+  return FsGen.createFavoritesLoad()
+}
 
-const finishManualCR = (_: TypedState, action) =>
-  RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
+const finishManualCR = async (_: TypedState, action) => {
+  await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
-  }).then(() => FsGen.createFavoritesLoad())
+  })
+  return FsGen.createFavoritesLoad()
+}
 
 // At start-up we might have a race where we get connected to a kbfs daemon
 // which dies soon after, and we get an EOF here. So retry for a few times
@@ -950,11 +961,14 @@ const subscribeNonPath = (_: TypedState, action: FsGen.SubscribeNonPathPayload) 
     topic: action.payload.topic,
   }).catch(makeUnretriableErrorHandler(action))
 
-const unsubscribe = (_: TypedState, action: FsGen.UnsubscribePayload) =>
-  RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-    subscriptionID: action.payload.subscriptionID,
-  }).catch(() => {})
+const unsubscribe = async (_: TypedState, action: FsGen.UnsubscribePayload) => {
+  try {
+    await RPCTypes.SimpleFSSimpleFSUnsubscribeRpcPromise({
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+      subscriptionID: action.payload.subscriptionID,
+    })
+  } catch (_) {}
+}
 
 const onPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyPathPayload) => {
   const {path, topic} = action.payload.params
