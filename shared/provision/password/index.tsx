@@ -3,6 +3,7 @@ import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import {globalColors} from '../../styles'
 import {SignupScreen, errorBanner} from '../../signup/common'
+import {isMobile} from '../../constants/platform'
 
 export type Props = {
   onSubmit: (password: string) => void
@@ -31,7 +32,7 @@ const Password = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title="Enter your password"
+      title={isMobile ? 'Enter password' : 'Enter your password'}
     >
       <Kb.UserCard
         style={styles.card}
