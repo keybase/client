@@ -129,7 +129,11 @@ const Advanced = (props: Props) => {
                 onSelect={() => props.onSetDarkModePreference('alwaysDark')}
               />
               <Kb.RadioButton
-                label="Light all the time 😎"
+                label={
+                  <Kb.Text type="BodyBig">
+                    Light all the time <Kb.Emoji size={16} emojiName=":sunglasses:" />
+                  </Kb.Text>
+                }
                 selected={props.darkModePreference === 'alwaysLight'}
                 onSelect={() => props.onSetDarkModePreference('alwaysLight')}
               />
