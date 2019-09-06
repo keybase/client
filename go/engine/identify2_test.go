@@ -444,8 +444,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		return nil
 	}
 
-	var origUI libkb.IdentifyUI
-	origUI = tester
+	origUI := tester
 
 	checkBrokenRes := func(res *keybase1.Identify2ResUPK2) {
 		if !res.Upk.GetUID().Equal(tracyUID) {
@@ -485,7 +484,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		err := eng.Run(m)
 		// Since we threw away the test UI, we have to manually complete the UI here,
 		// otherwise the waiter() will block indefinitely.
-		origUI.Finish(m)
+		_ = origUI.Finish(m)
 		waiter()
 		if err != nil {
 			t.Fatalf("expected no ID2 error; got %v", err)
@@ -1078,7 +1077,8 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 
 	trackUser(tc, alice, eve.NormalizedUsername(), sigVersion)
 
-	tc.G.ProofCache.Reset()
+	err = tc.G.ProofCache.Reset()
+	require.NoError(t, err)
 
 	// Alice ID's Eve, in chat mode, with a track. Assert that we get an
 	// Active proof checker mode for rooter.
@@ -1184,11 +1184,13 @@ func TestTrackThenRevokeThenIdentifyWithDifferentChatModes(t *testing.T) {
 	alice := CreateAndSignupFakeUser(tc, "a")
 	trackUser(tc, alice, bob.NormalizedUsername(), 2)
 	Logout(tc)
-	bob.Login(tc.G)
+	err = bob.Login(tc.G)
+	require.NoError(t, err)
 	err = doRevokeSig(tc, bob, sigID)
 	require.NoError(t, err)
 	Logout(tc)
-	alice.Login(tc.G)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
 
 	// Blast through the cache
 	fakeClock.Advance(libkb.Identify2CacheLongTimeout + time.Minute)

@@ -35,6 +35,7 @@ const secondWalletMock = {
 
 const common = {
   accountID: Types.stringToAccountID('GDP25ACNJ6CDEJLILV5UZZIQS66SHHWQ3554EMBF4VPXXKKYXXXMTAGZ'),
+  airdropSelected: false,
   onBack: Sb.action('onBack'),
   onReceive: Sb.action('onReceive'),
   onSettings: Sb.action('onSettings'),

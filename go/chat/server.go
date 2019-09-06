@@ -809,7 +809,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Run Stellar UI on any payments in the body
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, 0, uid, arg.ConversationID,
+	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}

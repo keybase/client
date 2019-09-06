@@ -116,7 +116,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         usernames={[username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
-        colorYou={this.props.notFollowingColorOverride}
+        colorYou={this.props.notFollowingColorOverride || true}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
         style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
       />

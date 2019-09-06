@@ -191,32 +191,35 @@ class UpdatePassword extends Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bodyText: {
-    paddingBottom: Styles.globalMargins.small,
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  checkbox: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-    width: '100%',
-  },
-  container: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-    padding: Styles.globalMargins.small,
-  },
-  headerText: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  passwordFormat: {
-    alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.xtiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyText: {
+        paddingBottom: Styles.globalMargins.small,
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      checkbox: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+        width: '100%',
+      },
+      container: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+        padding: Styles.globalMargins.small,
+      },
+      headerText: {
+        paddingBottom: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      passwordFormat: {
+        alignSelf: 'flex-start',
+        marginTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default UpdatePassword

@@ -72,38 +72,41 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  backButton: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.medium,
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginLeft: 0,
-      marginTop: 0,
-    },
-  }),
-  contents: {
-    flexGrow: 1,
-    maxWidth: Styles.isMobile ? 300 : 460,
-    width: '100%',
-  },
-  hint: {
-    ...Styles.globalStyles.italic,
-  },
-  input: {
-    color: Styles.globalColors.black,
-    ...Styles.globalStyles.fontTerminal,
-  },
-  inputContainer: {
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    minHeight: 77,
-    padding: Styles.globalMargins.small,
-    width: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          marginLeft: 0,
+          marginTop: 0,
+        },
+      }),
+      contents: {
+        flexGrow: 1,
+        maxWidth: Styles.isMobile ? 300 : 460,
+        width: '100%',
+      },
+      hint: {
+        ...Styles.globalStyles.italic,
+      },
+      input: {
+        color: Styles.globalColors.black,
+        ...Styles.globalStyles.fontTerminal,
+      },
+      inputContainer: {
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: 4,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        minHeight: 77,
+        padding: Styles.globalMargins.small,
+        width: '100%',
+      },
+    } as const)
+)
 
 export default PaperKey

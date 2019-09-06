@@ -138,67 +138,70 @@ export const VerifyBody = (props: BodyProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  backButton: {
-    color: Styles.globalColors.white,
-    flex: 1,
-  },
-  body: Styles.platformStyles({
-    isMobile: {
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  container: {backgroundColor: Styles.globalColors.blue},
-  headerContainer: {
-    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.blue,
-    position: 'relative',
-  },
-  headerText: {color: Styles.globalColors.black_50},
-  iconVerticalAlign: Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: 1,
-    },
-  }),
-  input: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueDark,
-      borderRadius: Styles.borderRadius,
-      color: Styles.globalColors.white,
-      letterSpacing: 20,
-      textAlign: 'center',
-    },
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-      fontVariantLigatures: 'none', // ligatures interfere with letterSpacing
-      height: 38,
-      width: 368,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      minHeight: 48,
-      width: '100%',
-    },
-  }),
-  inputText: Styles.platformStyles({
-    isMobile: {
-      color: Styles.globalColors.white,
-      letterSpacing: 20,
-      lineHeight: 28, // arrived at by fiddling - doesn't affect android
-    },
-  }),
-  opacity30: {opacity: 0.3},
-  positionRelative: {position: 'relative'},
-  progressContainer: Styles.platformStyles({
-    common: {...Styles.globalStyles.fillAbsolute},
-    isElectron: {paddingTop: Styles.globalMargins.tiny},
-  }),
-  resend: Styles.platformStyles({
-    isElectron: {
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: {
+        color: Styles.globalColors.white,
+        flex: 1,
+      },
+      body: Styles.platformStyles({
+        isMobile: {
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      container: {backgroundColor: Styles.globalColors.blue},
+      headerContainer: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small),
+        backgroundColor: Styles.globalColors.blue,
+        position: 'relative',
+      },
+      headerText: {color: Styles.globalColors.black_50},
+      iconVerticalAlign: Styles.platformStyles({
+        isElectron: {
+          position: 'relative',
+          top: 1,
+        },
+      }),
+      input: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueDark,
+          borderRadius: Styles.borderRadius,
+          color: Styles.globalColors.white,
+          letterSpacing: 20,
+          textAlign: 'center',
+        },
+        isElectron: {
+          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          fontVariantLigatures: 'none', // ligatures interfere with letterSpacing
+          height: 38,
+          width: 368,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small),
+          minHeight: 48,
+          width: '100%',
+        },
+      }),
+      inputText: Styles.platformStyles({
+        isMobile: {
+          color: Styles.globalColors.white,
+          letterSpacing: 20,
+          lineHeight: 28, // arrived at by fiddling - doesn't affect android
+        },
+      }),
+      opacity30: {opacity: 0.3},
+      positionRelative: {position: 'relative'},
+      progressContainer: Styles.platformStyles({
+        common: {...Styles.globalStyles.fillAbsolute},
+        isElectron: {paddingTop: Styles.globalMargins.tiny},
+      }),
+      resend: Styles.platformStyles({
+        isElectron: {
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 export default VerifyPhoneNumber

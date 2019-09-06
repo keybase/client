@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRevokeSig(t *testing.T) {
@@ -36,10 +37,11 @@ func TestRevokeSig(t *testing.T) {
 		},
 		AllowMulti: true,
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIds(tc.G)
+	require.NoError(t, err)
 	pgpEngine := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	err := RunEngine2(m, pgpEngine)
+	err = RunEngine2(m, pgpEngine)
 	if err != nil {
 		t.Fatal(err)
 	}

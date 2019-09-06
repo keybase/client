@@ -12,7 +12,7 @@ import * as Container from '../util/container'
 type Props = {
   buttonType?: ButtonProps['type']
   containerStyle?: Styles.StylesCrossPlatform
-  multiline?: boolean
+  multiline?: boolean | number
   onCopy?: () => void
   hideOnCopy?: boolean
   onReveal?: () => void
@@ -49,7 +49,13 @@ const CopyText = (props: Props) => {
   }
 
   const isRevealed = !props.withReveal || revealed
-  const lineClamp = !props.multiline && isRevealed ? 1 : null
+  const lineClamp = props.multiline
+    ? typeof props.multiline === 'number'
+      ? props.multiline
+      : null
+    : isRevealed
+    ? 1
+    : null
   return (
     <Box2
       ref={attachmentRef}
@@ -97,85 +103,88 @@ const CopyText = (props: Props) => {
 }
 
 // border radii aren't literally so big, just sets it to maximum
-const styles = Styles.styleSheetCreate(() => ({
-  button: Styles.platformStyles({
-    common: {
-      alignSelf: 'stretch',
-      height: undefined,
-      marginLeft: 'auto',
-      minWidth: undefined,
-      paddingLeft: 17,
-      paddingRight: 17,
-    },
-    isElectron: {
-      display: 'flex',
-      paddingBottom: 6,
-      paddingTop: 6,
-    },
-    isMobile: {
-      paddingBottom: 10,
-      paddingTop: 10,
-    },
-  }),
-  buttonLabelContainer: {
-    height: undefined,
-  },
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.blueGrey,
-      borderRadius: Styles.borderRadius,
-      flexGrow: 1,
-      position: 'relative',
-      width: '100%',
-    },
-    isElectron: {
-      maxWidth: 460,
-      overflow: 'hidden',
-    },
-    isMobile: {
-      minHeight: 40,
-    },
-  }),
-  reveal: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  text: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fontTerminalSemibold,
-      color: Styles.globalColors.blueDark,
-      flexShrink: 1,
-      fontSize: Styles.isMobile ? 15 : 13,
-      marginBottom: Styles.globalMargins.xsmall / 2,
-      marginLeft: Styles.globalMargins.xsmall,
-      marginRight: Styles.globalMargins.xsmall,
-      marginTop: Styles.globalMargins.xsmall / 2,
-      minWidth: 0,
-      textAlign: 'left',
-    },
-    isAndroid: {
-      position: 'relative',
-      top: 3,
-    },
-    isElectron: {
-      userSelect: 'all',
-      wordBreak: 'break-all',
-    },
-    isMobile: {
-      minHeight: 15,
-    },
-  }),
-  toastText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-      textAlign: 'center',
-    },
-    isMobile: {
-      paddingLeft: 10,
-      paddingRight: 10,
-      paddingTop: 5,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: Styles.platformStyles({
+        common: {
+          alignSelf: 'stretch',
+          height: undefined,
+          marginLeft: 'auto',
+          minWidth: undefined,
+          paddingLeft: 17,
+          paddingRight: 17,
+        },
+        isElectron: {
+          display: 'flex',
+          paddingBottom: 6,
+          paddingTop: 6,
+        },
+        isMobile: {
+          paddingBottom: 10,
+          paddingTop: 10,
+        },
+      }),
+      buttonLabelContainer: {
+        height: undefined,
+      },
+      container: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.blueGrey,
+          borderRadius: Styles.borderRadius,
+          flexGrow: 1,
+          position: 'relative',
+          width: '100%',
+        },
+        isElectron: {
+          maxWidth: 460,
+          overflow: 'hidden',
+        },
+        isMobile: {
+          minHeight: 40,
+        },
+      }),
+      reveal: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      text: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fontTerminalSemibold,
+          color: Styles.globalColors.blueDark,
+          flexShrink: 1,
+          fontSize: Styles.isMobile ? 15 : 13,
+          marginBottom: Styles.globalMargins.xsmall / 2,
+          marginLeft: Styles.globalMargins.xsmall,
+          marginRight: Styles.globalMargins.xsmall,
+          marginTop: Styles.globalMargins.xsmall / 2,
+          minWidth: 0,
+          textAlign: 'left',
+        },
+        isAndroid: {
+          position: 'relative',
+          top: 3,
+        },
+        isElectron: {
+          userSelect: 'all',
+          wordBreak: 'break-all',
+        },
+        isMobile: {
+          minHeight: 15,
+        },
+      }),
+      toastText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.white,
+          textAlign: 'center',
+        },
+        isMobile: {
+          paddingLeft: 10,
+          paddingRight: 10,
+          paddingTop: 5,
+        },
+      }),
+    } as const)
+)
 
 export default CopyText

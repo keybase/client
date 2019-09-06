@@ -59,6 +59,9 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   }
 
   let _onContinue = React.useCallback(() => {
+    if (!validity) {
+      return
+    }
     if (user) {
       onContinue(user)
     } else {
@@ -86,6 +89,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             key={phoneInputKey}
             autoFocus={true}
             onChangeNumber={onChangeNumberCb}
+            onEnterKeyDown={_onContinue}
           />
           {state === 'resolved' && !!user && (
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
@@ -95,6 +99,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
                 <Kb.ConnectedUsernames
                   colorFollowing={true}
                   inline={true}
+                  onUsernameClicked="profile"
                   type="BodySmallSemibold"
                   usernames={[user.username]}
                 />{' '}
@@ -111,26 +116,29 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {flexGrow: 0},
-  containerStyle: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      flex: 1,
-      padding: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isMobile: {
-      zIndex: -1,
-    },
-  }),
-  loading: {alignSelf: 'center'},
-  spaceFillingBox: {flexGrow: 1},
-  userMatchMention: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {flexGrow: 0},
+      containerStyle: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          flex: 1,
+          padding: Styles.globalMargins.small,
+          width: '100%',
+        },
+        isMobile: {
+          zIndex: -1,
+        },
+      }),
+      loading: {alignSelf: 'center'},
+      spaceFillingBox: {flexGrow: 1},
+      userMatchMention: {
+        alignSelf: 'flex-start',
+        justifyContent: 'center',
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default PhoneSearch

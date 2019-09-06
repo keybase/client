@@ -523,6 +523,7 @@ type LiveLocationTracker interface {
 	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
 	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
 	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
+	GetEndTime(ctx context.Context, key LiveLocationKey) *time.Time
 	ActivelyTracking(ctx context.Context) bool
 	StopAllTracking(ctx context.Context)
 }

@@ -1,5 +1,4 @@
 import logger from '../logger'
-import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
@@ -8,11 +7,10 @@ import * as DevicesGen from '../actions/devices-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
+import * as Container from '../util/container'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {_setSystemIsDarkMode, _setDarkModePreference} from '../styles/dark-mode'
-
-const initialState = Constants.makeState()
 
 type Actions =
   | ConfigGen.Actions
@@ -22,289 +20,337 @@ type Actions =
   | EngineGen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   | EngineGen.Keybase1NotifyTeamAvatarUpdatedPayload
 
-export default function(state: Types.State = initialState, action: Actions): Types.State {
-  switch (action.type) {
-    case DevicesGen.revoked:
-      return state.merge({
-        configuredAccounts: state.configuredAccounts,
-        defaultUsername: action.payload.wasCurrentDevice // if revoking self find another name if it exists
-          ? (state.configuredAccounts.find(n => n.username !== state.defaultUsername) || {username: ''})
-              .username
-          : state.defaultUsername,
-      })
-    case Tracker2Gen.updatedDetails: {
-      let followers = state.followers
-      let following = state.following
-      const {username} = action.payload
-
-      if (action.payload.followThem) {
-        following = following.add(username)
-      } else {
-        following = following.delete(username)
-      }
-
-      if (action.payload.followsYou) {
-        followers = followers.add(username)
-      } else {
-        followers = followers.delete(username)
-      }
-      return state.merge({followers, following})
-    }
-    case ConfigGen.resetStore:
-      return initialState.merge({
-        appFocused: state.appFocused,
-        appFocusedCount: state.appFocusedCount,
-        configuredAccounts: state.configuredAccounts,
-        daemonHandshakeState: state.daemonHandshakeState,
-        daemonHandshakeVersion: state.daemonHandshakeVersion,
-        daemonHandshakeWaiters: state.daemonHandshakeWaiters,
-        defaultUsername: state.defaultUsername,
-        logoutHandshakeVersion: state.logoutHandshakeVersion,
-        logoutHandshakeWaiters: state.logoutHandshakeWaiters,
-        menubarWindowID: state.menubarWindowID,
-        pushLoaded: state.pushLoaded,
-        startupDetailsLoaded: state.startupDetailsLoaded,
-      })
-    case ConfigGen.restartHandshake:
-      return state.merge({
-        daemonError: null,
-        daemonHandshakeFailedReason: '',
-        daemonHandshakeRetriesLeft: Math.max(state.daemonHandshakeRetriesLeft - 1, 0),
-        daemonHandshakeState: 'starting',
-      })
-    case ConfigGen.startHandshake:
-      return state.merge({
-        daemonError: null,
-        daemonHandshakeFailedReason: '',
-        daemonHandshakeRetriesLeft: Constants.maxHandshakeTries,
-        daemonHandshakeState: 'starting',
-      })
-    case ConfigGen.logoutHandshake:
-      return state.merge({
-        logoutHandshakeVersion: action.payload.version,
-        logoutHandshakeWaiters: I.Map(),
-      })
-    case ConfigGen.daemonHandshake:
-      return state.merge({
-        daemonHandshakeState: 'waitingForWaiters',
-        daemonHandshakeVersion: action.payload.version,
-        daemonHandshakeWaiters: I.Map(),
-      })
-    case ConfigGen.daemonHandshakeWait: {
-      if (state.daemonHandshakeState !== 'waitingForWaiters') {
-        throw new Error("Should only get a wait while we're waiting")
-      }
-
-      if (action.payload.version !== state.daemonHandshakeVersion) {
-        logger.info(
-          'Ignoring handshake wait due to version mismatch',
-          action.payload.version,
-          state.daemonHandshakeVersion
-        )
-        return state
-      }
-
-      const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
-      const newCount = oldCount + (action.payload.increment ? 1 : -1)
-      const newState =
-        newCount === 0
-          ? state.deleteIn(['daemonHandshakeWaiters', action.payload.name])
-          : state.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
-
-      if (action.payload.failedFatal) {
-        return newState.merge({
-          daemonHandshakeFailedReason: action.payload.failedReason || '',
-          daemonHandshakeRetriesLeft: 0,
-        })
-      } else {
-        // Keep the first error
-        if (state.daemonHandshakeFailedReason) {
-          return newState
+export default (state: Types.State = Constants.initialState, action: Actions): Types.State =>
+  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
+    switch (action.type) {
+      case DevicesGen.revoked: {
+        // if revoking self find another name if it exists
+        if (action.payload.wasCurrentDevice) {
+          const {configuredAccounts, defaultUsername} = draftState
+          draftState.defaultUsername = (
+            configuredAccounts.find(n => n.username !== defaultUsername) || {
+              username: '',
+            }
+          ).username
         }
-        return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
+        return
       }
-    }
-    case ConfigGen.logoutHandshakeWait: {
-      if (action.payload.version !== state.logoutHandshakeVersion) {
-        logger.info(
-          'Ignoring logout handshake due to version mismatch',
-          action.payload.version,
-          state.logoutHandshakeVersion
-        )
-        return state
-      }
-      const oldCount = state.logoutHandshakeWaiters.get(action.payload.name, 0)
-      const newCount = oldCount + (action.payload.increment ? 1 : -1)
-      return newCount === 0
-        ? state.deleteIn(['logoutHandshakeWaiters', action.payload.name])
-        : state.setIn(['logoutHandshakeWaiters', action.payload.name], newCount)
-    }
-    case ConfigGen.setStartupDetails:
-      return state.startupDetailsLoaded
-        ? state
-        : state.merge({
-            startupConversation: action.payload.startupConversation || ChatConstants.noConversationIDKey,
-            startupDetailsLoaded: true,
-            startupFollowUser: action.payload.startupFollowUser,
-            startupLink: action.payload.startupLink,
-            startupSharePath: action.payload.startupSharePath,
-            startupTab: action.payload.startupTab,
-            startupWasFromPush: action.payload.startupWasFromPush,
-          })
-    case ConfigGen.pushLoaded:
-      return state.merge({pushLoaded: action.payload.pushLoaded})
-    case ConfigGen.bootstrapStatusLoaded:
-      return state.merge({
-        // keep it if we're logged out
-        defaultUsername: action.payload.username || state.defaultUsername,
-        deviceID: action.payload.deviceID,
-        deviceName: action.payload.deviceName,
-        loggedIn: action.payload.loggedIn,
-        registered: action.payload.registered,
-        uid: action.payload.uid,
-        username: action.payload.username,
-      })
-    case ConfigGen.followerInfoUpdated:
-      return state.uid === action.payload.uid
-        ? state.merge({
-            followers: I.Set(action.payload.followers),
-            following: I.Set(action.payload.followees),
-          })
-        : state
-    case ConfigGen.loggedIn:
-      return state.merge({loggedIn: true})
-    case ConfigGen.loggedOut:
-      return state.merge({loggedIn: false})
-    case EngineGen.keybase1NotifyTrackingTrackingChanged: {
-      const {isTracking, username} = action.payload.params
-      return state.updateIn(['following'], following =>
-        isTracking ? following.add(username) : following.delete(username)
-      )
-    }
-    case ConfigGen.globalError: {
-      const {globalError} = action.payload
-      if (globalError) {
-        logger.error('Error (global):', globalError)
-        if (isEOFError(globalError)) {
-          Stats.gotEOF()
-        }
-        if (isErrorTransient(globalError)) {
-          logger.info('globalError silencing:', globalError)
-          return state
-        }
-      }
-      return state.merge({globalError})
-    }
-    case ConfigGen.daemonError: {
-      const {daemonError} = action.payload
-      if (daemonError) {
-        logger.error('Error (daemon):', daemonError)
-      }
-      return state.merge({daemonError})
-    }
-    case ConfigGen.changedFocus:
-      return state.merge({
-        appFocused: action.payload.appFocused,
-        appFocusedCount: state.appFocusedCount + 1,
-      })
-    case ConfigGen.changedActive:
-      return state.merge({userActive: action.payload.userActive})
-    case ConfigGen.setNotifySound:
-      return state.merge({notifySound: action.payload.sound})
-    case ConfigGen.setOpenAtLogin:
-      return state.merge({openAtLogin: action.payload.open})
-    case ConfigGen.updateMenubarWindowID:
-      return state.merge({menubarWindowID: action.payload.id})
-    case ConfigGen.setAccounts: {
-      // already have one?
-      let defaultUsername = state.defaultUsername
-      let currentFound = action.payload.configuredAccounts.some(
-        account => account.username === defaultUsername
-      )
+      case Tracker2Gen.updatedDetails: {
+        const followers = new Set(draftState.followers)
+        const following = new Set(draftState.following)
+        const {username, followThem, followsYou} = action.payload
 
-      if (!currentFound) {
-        const defaultUsernames = action.payload.configuredAccounts
-          .filter(account => account.isCurrent)
-          .map(account => account.username)
-        defaultUsername = defaultUsernames[0] || ''
-      }
+        if (followThem) {
+          following.add(username)
+        } else {
+          following.delete(username)
+        }
 
-      return state.merge({
-        configuredAccounts: I.List(
-          action.payload.configuredAccounts.map(account =>
-            Constants.makeConfiguredAccount({
-              hasStoredSecret: account.hasStoredSecret,
-              username: account.username,
-            })
+        if (followsYou) {
+          followers.add(username)
+        } else {
+          followers.delete(username)
+        }
+        draftState.followers = followers
+        draftState.following = following
+        return
+      }
+      case ConfigGen.resetStore:
+        return {
+          ...Constants.initialState,
+          appFocused: draftState.appFocused,
+          appFocusedCount: draftState.appFocusedCount,
+          configuredAccounts: draftState.configuredAccounts,
+          daemonHandshakeState: draftState.daemonHandshakeState,
+          daemonHandshakeVersion: draftState.daemonHandshakeVersion,
+          daemonHandshakeWaiters: draftState.daemonHandshakeWaiters,
+          defaultUsername: draftState.defaultUsername,
+          logoutHandshakeVersion: draftState.logoutHandshakeVersion,
+          logoutHandshakeWaiters: draftState.logoutHandshakeWaiters,
+          menubarWindowID: draftState.menubarWindowID,
+          pushLoaded: draftState.pushLoaded,
+          startupDetailsLoaded: draftState.startupDetailsLoaded,
+        }
+      case ConfigGen.restartHandshake:
+        draftState.daemonError = undefined
+        draftState.daemonHandshakeFailedReason = ''
+        draftState.daemonHandshakeRetriesLeft = Math.max(draftState.daemonHandshakeRetriesLeft - 1, 0)
+        draftState.daemonHandshakeState = 'starting'
+        return
+      case ConfigGen.startHandshake:
+        draftState.daemonError = undefined
+        draftState.daemonHandshakeFailedReason = ''
+        draftState.daemonHandshakeRetriesLeft = Constants.maxHandshakeTries
+        draftState.daemonHandshakeState = 'starting'
+        return
+      case ConfigGen.logoutHandshake:
+        draftState.logoutHandshakeVersion = action.payload.version
+        draftState.logoutHandshakeWaiters = new Map()
+        return
+      case ConfigGen.daemonHandshake:
+        draftState.daemonHandshakeState = 'waitingForWaiters'
+        draftState.daemonHandshakeVersion = action.payload.version
+        draftState.daemonHandshakeWaiters = new Map()
+        return
+      case ConfigGen.daemonHandshakeWait: {
+        if (draftState.daemonHandshakeState !== 'waitingForWaiters') {
+          throw new Error("Should only get a wait while we're waiting")
+        }
+
+        const {version} = action.payload
+
+        if (version !== draftState.daemonHandshakeVersion) {
+          logger.info(
+            'Ignoring handshake wait due to version mismatch',
+            version,
+            draftState.daemonHandshakeVersion
           )
-        ),
-        defaultUsername,
-      })
-    }
-    case ConfigGen.setDefaultUsername:
-      return state.merge({defaultUsername: action.payload.username})
-    case ConfigGen.setDeletedSelf:
-      return state.merge({justDeletedSelf: action.payload.deletedUsername})
-    case ConfigGen.daemonHandshakeDone:
-      return state.merge({
-        daemonHandshakeState: 'done',
-        startupDetailsLoaded: isMobile ? state.startupDetailsLoaded : true,
-      })
-    case ConfigGen.updateNow:
-      return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
-    case ConfigGen.updateInfo:
-      return state.set(
-        'outOfDate',
-        action.payload.isOutOfDate
-          ? Constants.makeOutOfDate({
+          return
+        }
+
+        const daemonHandshakeWaiters = new Map(draftState.daemonHandshakeWaiters)
+        const {name, increment, failedFatal, failedReason} = action.payload
+        const oldCount = daemonHandshakeWaiters.get(name) || 0
+        const newCount = oldCount + (increment ? 1 : -1)
+        if (newCount === 0) {
+          daemonHandshakeWaiters.delete(name)
+        } else {
+          daemonHandshakeWaiters.set(name, newCount)
+        }
+
+        draftState.daemonHandshakeWaiters = daemonHandshakeWaiters
+        if (failedFatal) {
+          draftState.daemonHandshakeFailedReason = failedReason || ''
+          draftState.daemonHandshakeRetriesLeft = 0
+          return
+        } else {
+          // Keep the first error
+          if (draftState.daemonHandshakeFailedReason) {
+            return
+          }
+          draftState.daemonHandshakeFailedReason = failedReason || ''
+          return
+        }
+      }
+      case ConfigGen.logoutHandshakeWait: {
+        const {version} = action.payload
+        if (version !== draftState.logoutHandshakeVersion) {
+          logger.info(
+            'Ignoring logout handshake due to version mismatch',
+            version,
+            draftState.logoutHandshakeVersion
+          )
+          return
+        }
+        const {increment, name} = action.payload
+        const oldCount = draftState.logoutHandshakeWaiters.get(action.payload.name) || 0
+        const newCount = oldCount + (increment ? 1 : -1)
+        const logoutHandshakeWaiters = new Map(draftState.logoutHandshakeWaiters)
+        if (newCount === 0) {
+          logoutHandshakeWaiters.delete(name)
+        } else {
+          logoutHandshakeWaiters.set(name, newCount)
+        }
+
+        draftState.logoutHandshakeWaiters = logoutHandshakeWaiters
+        return
+      }
+      case ConfigGen.setStartupDetails:
+        if (draftState.startupDetailsLoaded) {
+          return
+        } else {
+          draftState.startupConversation =
+            action.payload.startupConversation || ChatConstants.noConversationIDKey
+          draftState.startupDetailsLoaded = true
+          draftState.startupFollowUser = action.payload.startupFollowUser
+          draftState.startupLink = action.payload.startupLink
+          draftState.startupSharePath = action.payload.startupSharePath
+          draftState.startupTab = action.payload.startupTab
+          draftState.startupWasFromPush = action.payload.startupWasFromPush
+          return
+        }
+      case ConfigGen.pushLoaded:
+        draftState.pushLoaded = action.payload.pushLoaded
+        return
+      case ConfigGen.bootstrapStatusLoaded:
+        // keep it if we're logged out
+        draftState.defaultUsername = action.payload.username || draftState.defaultUsername
+        draftState.deviceID = action.payload.deviceID
+        draftState.deviceName = action.payload.deviceName
+        draftState.loggedIn = action.payload.loggedIn
+        draftState.registered = action.payload.registered
+        draftState.uid = action.payload.uid
+        draftState.username = action.payload.username
+        return
+      case ConfigGen.followerInfoUpdated:
+        if (draftState.uid === action.payload.uid) {
+          draftState.followers = new Set(action.payload.followers)
+          draftState.following = new Set(action.payload.followees)
+        }
+        return
+      case ConfigGen.loggedIn:
+        draftState.loggedIn = true
+        return
+      case ConfigGen.loggedOut:
+        draftState.loggedIn = false
+        return
+      case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+        const {isTracking, username} = action.payload.params
+        const following = new Set(draftState.following)
+        if (isTracking) {
+          following.add(username)
+        } else {
+          following.delete(username)
+        }
+        draftState.following = following
+        return
+      }
+      case ConfigGen.globalError: {
+        const {globalError} = action.payload
+        if (globalError) {
+          logger.error('Error (global):', globalError)
+          if (isEOFError(globalError)) {
+            Stats.gotEOF()
+          }
+          if (isErrorTransient(globalError)) {
+            logger.info('globalError silencing:', globalError)
+            return
+          }
+        }
+        draftState.globalError = globalError
+        return
+      }
+      case ConfigGen.daemonError: {
+        const {daemonError} = action.payload
+        if (daemonError) {
+          logger.error('Error (daemon):', daemonError)
+        }
+        draftState.daemonError = daemonError
+        return
+      }
+      case ConfigGen.changedFocus:
+        draftState.appFocused = action.payload.appFocused
+        draftState.appFocusedCount = draftState.appFocusedCount + 1
+        return
+      case ConfigGen.changedActive:
+        draftState.userActive = action.payload.userActive
+        return
+      case ConfigGen.setNotifySound:
+        draftState.notifySound = action.payload.notifySound
+        return
+      case ConfigGen.setOpenAtLogin:
+        draftState.openAtLogin = action.payload.openAtLogin
+        return
+      case ConfigGen.updateMenubarWindowID:
+        draftState.menubarWindowID = action.payload.id
+        return
+      case ConfigGen.setAccounts: {
+        // already have one?
+        const {configuredAccounts} = action.payload
+        let defaultUsername = draftState.defaultUsername
+        const currentFound = configuredAccounts.some(account => account.username === defaultUsername)
+
+        if (!currentFound) {
+          const defaultUsernames = configuredAccounts
+            .filter(account => account.isCurrent)
+            .map(account => account.username)
+          defaultUsername = defaultUsernames[0] || ''
+        }
+
+        draftState.configuredAccounts = configuredAccounts.map(account => ({
+          hasStoredSecret: account.hasStoredSecret,
+          username: account.username,
+        }))
+        draftState.defaultUsername = defaultUsername
+        return
+      }
+      case ConfigGen.setDefaultUsername:
+        draftState.defaultUsername = action.payload.username
+        return
+      case ConfigGen.setDeletedSelf:
+        draftState.justDeletedSelf = action.payload.deletedUsername
+        return
+      case ConfigGen.daemonHandshakeDone:
+        draftState.daemonHandshakeState = 'done'
+        draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
+        return
+      case ConfigGen.updateNow:
+        if (draftState.outOfDate) {
+          draftState.outOfDate.updating = true
+        } else {
+          draftState.outOfDate = {
+            critical: false,
+            updating: true,
+          }
+        }
+        return
+      case ConfigGen.updateInfo:
+        draftState.outOfDate = action.payload.isOutOfDate
+          ? {
               critical: action.payload.critical,
               message: action.payload.message,
-            })
-          : null
-      )
-    case ConfigGen.updateCriticalCheckStatus:
-      return state.merge({
-        appOutOfDateMessage: action.payload.message,
-        appOutOfDateStatus: action.payload.status,
-      })
-    case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
-      return state.merge({
-        runtimeStats: action.payload.params.stats,
-      })
-    case ConfigGen.updateHTTPSrvInfo:
-      return state.merge({
-        httpSrvAddress: action.payload.address,
-        httpSrvToken: action.payload.token,
-      })
-    case EngineGen.keybase1NotifyTeamAvatarUpdated:
-      return state.updateIn(['avatarRefreshCounter', action.payload.params.name], (c = 0) => c + 1)
-    case ConfigGen.osNetworkStatusChanged:
-      return state.set('osNetworkOnline', action.payload.online)
-    case ConfigGen.setDarkModePreference:
-      _setDarkModePreference(action.payload.preference)
-      return state.merge({darkModePreference: action.payload.preference})
-    case ConfigGen.setSystemDarkMode:
-      _setSystemIsDarkMode(action.payload.dark)
-      return state.merge({systemDarkMode: action.payload.dark})
-    case ConfigGen.remoteWindowWantsProps: {
-      const {component, param} = action.payload
-      return state.updateIn(['remoteWindowNeedsProps', component, param], (m = 0) => m + 1)
+              updating: false,
+            }
+          : undefined
+        return
+      case ConfigGen.updateCriticalCheckStatus:
+        draftState.appOutOfDateMessage = action.payload.message
+        draftState.appOutOfDateStatus = action.payload.status
+        return
+      case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
+        draftState.runtimeStats = action.payload.params.stats || undefined
+        return
+      case ConfigGen.updateHTTPSrvInfo:
+        draftState.httpSrvAddress = action.payload.address
+        draftState.httpSrvToken = action.payload.token
+        return
+      case EngineGen.keybase1NotifyTeamAvatarUpdated: {
+        const {name} = action.payload.params
+        const avatarRefreshCounter = new Map(draftState.avatarRefreshCounter)
+        avatarRefreshCounter.set(name, (avatarRefreshCounter.get(name) || 0) + 1)
+        draftState.avatarRefreshCounter = avatarRefreshCounter
+        return
+      }
+      case ConfigGen.osNetworkStatusChanged:
+        draftState.osNetworkOnline = action.payload.online
+        return
+      case ConfigGen.setDarkModePreference:
+        _setDarkModePreference(action.payload.preference)
+        draftState.darkModePreference = action.payload.preference
+        return
+      case ConfigGen.setSystemDarkMode:
+        _setSystemIsDarkMode(action.payload.dark)
+        draftState.systemDarkMode = action.payload.dark
+        return
+      case ConfigGen.remoteWindowWantsProps: {
+        const {component, param} = action.payload
+        const remoteWindowNeedsProps = new Map(draftState.remoteWindowNeedsProps)
+        const oldMap = remoteWindowNeedsProps.get(component)
+        const newMap = oldMap ? new Map(oldMap) : new Map()
+        newMap.set(param, (newMap.get(param) || 0) + 1)
+        remoteWindowNeedsProps.set(component, newMap)
+        draftState.remoteWindowNeedsProps = remoteWindowNeedsProps
+        return
+      }
+      case ConfigGen.updateWindowState:
+        draftState.windowState = action.payload.windowState
+        return
+      case ConfigGen.setUseNativeFrame:
+        draftState.useNativeFrame = action.payload.useNativeFrame
+        return
+      // Saga only actions
+      case ConfigGen.dumpLogs:
+      case ConfigGen.logout:
+      case ConfigGen.mobileAppState:
+      case ConfigGen.openAppSettings:
+      case ConfigGen.showMain:
+      case ConfigGen.installerRan:
+      case ConfigGen.copyToClipboard:
+      case ConfigGen.checkForUpdate:
+      case ConfigGen.filePickerError:
+      case ConfigGen.persistRoute:
+      case ConfigGen.openAppStore:
+      case ConfigGen.setNavigator:
+        return
     }
-    // Saga only actions
-    case ConfigGen.dumpLogs:
-    case ConfigGen.logout:
-    case ConfigGen.mobileAppState:
-    case ConfigGen.openAppSettings:
-    case ConfigGen.showMain:
-    case ConfigGen.installerRan:
-    case ConfigGen.copyToClipboard:
-    case ConfigGen.checkForUpdate:
-    case ConfigGen.filePickerError:
-    case ConfigGen.persistRoute:
-    case ConfigGen.openAppStore:
-    case ConfigGen.setNavigator:
-      return state
-    default:
-      return state
-  }
-}
+  })

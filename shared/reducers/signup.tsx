@@ -91,16 +91,16 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
         : state
     case SignupGen.signedup:
-      return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
+      return state.merge({
+        signupError: actionHasError(action) ? action.payload.error : null,
+      })
     case SignupGen.setJustSignedUpEmail:
       return state.merge({
         justSignedUpEmail: action.payload.email,
       })
     case SignupGen.clearJustSignedUpEmail:
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      return state.merge({
-        justSignedUpEmail: '',
-      })
+      return state.merge({justSignedUpEmail: ''})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state

@@ -87,19 +87,22 @@ const Participants = (props: ParticipantsProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  avatar: {
-    marginRight: 8,
-  },
-  stellarAddressConfirmText: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-  stellarIcon: {
-    alignSelf: 'flex-start',
-    marginRight: Styles.globalMargins.xxtiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {
+        marginRight: 8,
+      },
+      stellarAddressConfirmText: Styles.platformStyles({
+        isElectron: {
+          wordBreak: 'break-all',
+        },
+      }),
+      stellarIcon: {
+        alignSelf: 'flex-start',
+        marginRight: Styles.globalMargins.xxtiny,
+      },
+    } as const)
+)
 
 export default Participants

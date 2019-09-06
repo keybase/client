@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateNewPGPKey(t *testing.T) {
@@ -22,14 +23,15 @@ func TestGenerateNewPGPKey(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	arg.Gen.MakeAllIds(tc.G)
+	err := arg.Gen.MakeAllIds(tc.G)
+	require.NoError(t, err)
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,
 	}
 	eng := NewPGPKeyImportEngine(tc.G, arg)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
-	err := RunEngine2(m, eng)
+	err = RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}

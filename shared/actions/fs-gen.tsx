@@ -35,14 +35,15 @@ export const fsError = 'fs:fsError'
 export const getOnlineStatus = 'fs:getOnlineStatus'
 export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
-export const initSendLinkToChat = 'fs:initSendLinkToChat'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
+export const loadedPathInfo = 'fs:loadedPathInfo'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
@@ -62,7 +63,6 @@ export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
-export const sentLinkToChat = 'fs:sentLinkToChat'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDirectMountDir = 'fs:setDirectMountDir'
@@ -78,8 +78,6 @@ export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
-export const setSendLinkToChatChannels = 'fs:setSendLinkToChatChannels'
-export const setSendLinkToChatConvID = 'fs:setSendLinkToChatConvID'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
@@ -95,7 +93,6 @@ export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
 export const subscribePath = 'fs:subscribePath'
 export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
-export const triggerSendLinkToChat = 'fs:triggerSendLinkToChat'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
@@ -156,7 +153,6 @@ type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOfflin
 type _GetOnlineStatusPayload = void
 type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
-type _InitSendLinkToChatPayload = {readonly path: Types.Path}
 type _JournalUpdatePayload = {
   readonly syncingPaths: Array<Types.Path>
   readonly totalSyncingBytes: number
@@ -165,9 +161,11 @@ type _JournalUpdatePayload = {
 type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
+type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
 type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
@@ -190,7 +188,6 @@ type _RefreshLocalHTTPServerInfoPayload = void
 type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
 type _SentAttachmentToChatPayload = void
-type _SentLinkToChatPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
@@ -206,8 +203,6 @@ type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: I.List<string
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
-type _SetSendLinkToChatChannelsPayload = {readonly channels: I.Map<ChatTypes.ConversationIDKey, string>}
-type _SetSendLinkToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
@@ -231,7 +226,6 @@ type _TlfSyncConfigLoadedPayload = {
   readonly tlfName: string
   readonly syncConfig: Types.TlfSyncConfig
 }
-type _TriggerSendLinkToChatPayload = void
 type _UninstallKBFSConfirmPayload = void
 type _UnsubscribePayload = {readonly subscriptionID: string}
 type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
@@ -338,10 +332,6 @@ export const createHideSystemFileManagerIntegrationBanner = (
 export const createInitSendAttachmentToChat = (
   payload: _InitSendAttachmentToChatPayload
 ): InitSendAttachmentToChatPayload => ({payload, type: initSendAttachmentToChat})
-export const createInitSendLinkToChat = (payload: _InitSendLinkToChatPayload): InitSendLinkToChatPayload => ({
-  payload,
-  type: initSendLinkToChat,
-})
 export const createJournalUpdate = (payload: _JournalUpdatePayload): JournalUpdatePayload => ({
   payload,
   type: journalUpdate,
@@ -356,6 +346,10 @@ export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload): L
   payload,
   type: letResetUserBackIn,
 })
+export const createLoadPathInfo = (payload: _LoadPathInfoPayload): LoadPathInfoPayload => ({
+  payload,
+  type: loadPathInfo,
+})
 export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload): LoadPathMetadataPayload => ({
   payload,
   type: loadPathMetadata,
@@ -367,6 +361,10 @@ export const createLoadSettings = (payload: _LoadSettingsPayload): LoadSettingsP
 export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): LoadTlfSyncConfigPayload => ({
   payload,
   type: loadTlfSyncConfig,
+})
+export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
+  payload,
+  type: loadedPathInfo,
 })
 export const createLocalHTTPServerInfo = (
   payload: _LocalHTTPServerInfoPayload
@@ -428,10 +426,6 @@ export const createSaveMedia = (payload: _SaveMediaPayload): SaveMediaPayload =>
 export const createSentAttachmentToChat = (
   payload: _SentAttachmentToChatPayload
 ): SentAttachmentToChatPayload => ({payload, type: sentAttachmentToChat})
-export const createSentLinkToChat = (payload: _SentLinkToChatPayload): SentLinkToChatPayload => ({
-  payload,
-  type: sentLinkToChat,
-})
 export const createSetDebugLevel = (payload: _SetDebugLevelPayload): SetDebugLevelPayload => ({
   payload,
   type: setDebugLevel,
@@ -481,12 +475,6 @@ export const createSetSendAttachmentToChatFilter = (
 export const createSetSendAttachmentToChatTitle = (
   payload: _SetSendAttachmentToChatTitlePayload
 ): SetSendAttachmentToChatTitlePayload => ({payload, type: setSendAttachmentToChatTitle})
-export const createSetSendLinkToChatChannels = (
-  payload: _SetSendLinkToChatChannelsPayload
-): SetSendLinkToChatChannelsPayload => ({payload, type: setSendLinkToChatChannels})
-export const createSetSendLinkToChatConvID = (
-  payload: _SetSendLinkToChatConvIDPayload
-): SetSendLinkToChatConvIDPayload => ({payload, type: setSendLinkToChatConvID})
 export const createSetSpaceAvailableNotificationThreshold = (
   payload: _SetSpaceAvailableNotificationThresholdPayload
 ): SetSpaceAvailableNotificationThresholdPayload => ({payload, type: setSpaceAvailableNotificationThreshold})
@@ -541,9 +529,6 @@ export const createSubscribePath = (payload: _SubscribePathPayload): SubscribePa
 export const createTlfSyncConfigLoaded = (
   payload: _TlfSyncConfigLoadedPayload
 ): TlfSyncConfigLoadedPayload => ({payload, type: tlfSyncConfigLoaded})
-export const createTriggerSendLinkToChat = (
-  payload: _TriggerSendLinkToChatPayload
-): TriggerSendLinkToChatPayload => ({payload, type: triggerSendLinkToChat})
 export const createUninstallKBFSConfirm = (
   payload: _UninstallKBFSConfirmPayload
 ): UninstallKBFSConfirmPayload => ({payload, type: uninstallKBFSConfirm})
@@ -660,10 +645,6 @@ export type InitSendAttachmentToChatPayload = {
   readonly payload: _InitSendAttachmentToChatPayload
   readonly type: typeof initSendAttachmentToChat
 }
-export type InitSendLinkToChatPayload = {
-  readonly payload: _InitSendLinkToChatPayload
-  readonly type: typeof initSendLinkToChat
-}
 export type JournalUpdatePayload = {
   readonly payload: _JournalUpdatePayload
   readonly type: typeof journalUpdate
@@ -680,6 +661,7 @@ export type LetResetUserBackInPayload = {
   readonly payload: _LetResetUserBackInPayload
   readonly type: typeof letResetUserBackIn
 }
+export type LoadPathInfoPayload = {readonly payload: _LoadPathInfoPayload; readonly type: typeof loadPathInfo}
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
   readonly type: typeof loadPathMetadata
@@ -688,6 +670,10 @@ export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; reado
 export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
+}
+export type LoadedPathInfoPayload = {
+  readonly payload: _LoadedPathInfoPayload
+  readonly type: typeof loadedPathInfo
 }
 export type LocalHTTPServerInfoPayload = {
   readonly payload: _LocalHTTPServerInfoPayload
@@ -756,10 +742,6 @@ export type SentAttachmentToChatPayload = {
   readonly payload: _SentAttachmentToChatPayload
   readonly type: typeof sentAttachmentToChat
 }
-export type SentLinkToChatPayload = {
-  readonly payload: _SentLinkToChatPayload
-  readonly type: typeof sentLinkToChat
-}
 export type SetDebugLevelPayload = {
   readonly payload: _SetDebugLevelPayload
   readonly type: typeof setDebugLevel
@@ -820,14 +802,6 @@ export type SetSendAttachmentToChatTitlePayload = {
   readonly payload: _SetSendAttachmentToChatTitlePayload
   readonly type: typeof setSendAttachmentToChatTitle
 }
-export type SetSendLinkToChatChannelsPayload = {
-  readonly payload: _SetSendLinkToChatChannelsPayload
-  readonly type: typeof setSendLinkToChatChannels
-}
-export type SetSendLinkToChatConvIDPayload = {
-  readonly payload: _SetSendLinkToChatConvIDPayload
-  readonly type: typeof setSendLinkToChatConvID
-}
 export type SetSpaceAvailableNotificationThresholdPayload = {
   readonly payload: _SetSpaceAvailableNotificationThresholdPayload
   readonly type: typeof setSpaceAvailableNotificationThreshold
@@ -881,10 +855,6 @@ export type SubscribePathPayload = {
 export type TlfSyncConfigLoadedPayload = {
   readonly payload: _TlfSyncConfigLoadedPayload
   readonly type: typeof tlfSyncConfigLoaded
-}
-export type TriggerSendLinkToChatPayload = {
-  readonly payload: _TriggerSendLinkToChatPayload
-  readonly type: typeof triggerSendLinkToChat
 }
 export type UninstallKBFSConfirmPayload = {
   readonly payload: _UninstallKBFSConfirmPayload
@@ -944,14 +914,15 @@ export type Actions =
   | GetOnlineStatusPayload
   | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
-  | InitSendLinkToChatPayload
   | JournalUpdatePayload
   | KbfsDaemonOnlineStatusChangedPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
+  | LoadPathInfoPayload
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
+  | LoadedPathInfoPayload
   | LocalHTTPServerInfoPayload
   | MovePayload
   | NewFolderNamePayload
@@ -971,7 +942,6 @@ export type Actions =
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
   | SentAttachmentToChatPayload
-  | SentLinkToChatPayload
   | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
   | SetDirectMountDirPayload
@@ -987,8 +957,6 @@ export type Actions =
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
   | SetSendAttachmentToChatTitlePayload
-  | SetSendLinkToChatChannelsPayload
-  | SetSendLinkToChatConvIDPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
@@ -1004,7 +972,6 @@ export type Actions =
   | SubscribeNonPathPayload
   | SubscribePathPayload
   | TlfSyncConfigLoadedPayload
-  | TriggerSendLinkToChatPayload
   | UninstallKBFSConfirmPayload
   | UnsubscribePayload
   | UploadPayload

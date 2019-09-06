@@ -3983,3 +3983,57 @@ func TestInodes(t *testing.T) {
 		t.Fatal("New and old files have the same inode")
 	}
 }
+
+func TestHardLinkNotSupported(t *testing.T) {
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	defer testCleanupDelayer(ctx, t)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	mnt, _, cancelFn := makeFS(ctx, t, config)
+	defer mnt.Close()
+	defer cancelFn()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	checkLinkErr := func(old, new string, checkPermErr bool) {
+		err := os.Link(old, new)
+		linkErr, ok := errors.Cause(err).(*os.LinkError)
+		require.True(t, ok)
+		if checkPermErr && runtime.GOOS == "darwin" {
+			// On macOS, in directories without the write bit set like
+			// /keybase and /keybase/private, the `Link` call gets an
+			// `EPERM` error back from the `Access()` Fuse request,
+			// and never even tries calling `Link()`.
+			require.Equal(t, syscall.EPERM, linkErr.Err)
+		} else {
+			require.Equal(t, syscall.ENOTSUP, linkErr.Err)
+		}
+	}
+
+	t.Log("Test hardlink in root of TLF")
+	old := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	err := ioutil.WriteFile(old, []byte("hello"), 0755)
+	require.NoError(t, err)
+	syncFilename(t, old)
+	new := path.Join(mnt.Dir, PrivateName, "jdoe", "hardlink")
+	checkLinkErr(old, new, false)
+
+	t.Log("Test hardlink in subdir of TLF")
+	mydir := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
+	err = ioutil.Mkdir(mydir, 0755)
+	require.NoError(t, err)
+	old2 := path.Join(mydir, "myfile")
+	err = ioutil.WriteFile(old2, []byte("hello"), 0755)
+	require.NoError(t, err)
+	syncFilename(t, old2)
+	new2 := path.Join(mydir, "hardlink")
+	checkLinkErr(old2, new2, false)
+
+	t.Log("Test hardlink in folder list")
+	old3 := path.Join(mnt.Dir, PrivateName, ".kbfs_status")
+	new3 := path.Join(mnt.Dir, PrivateName, "hardlink")
+	checkLinkErr(old3, new3, true)
+
+	t.Log("Test hardlink in root")
+	old4 := path.Join(mnt.Dir, ".kbfs_status")
+	new4 := path.Join(mnt.Dir, "hardlink")
+	checkLinkErr(old4, new4, true)
+}

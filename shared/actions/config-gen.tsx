@@ -1,7 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {ConnectionType} from '../constants/types/config'
+import * as Types from '../constants/types/config'
 import * as Tabs from '../constants/tabs'
 import * as ChatTypes from '../constants/types/chat2'
 import * as FsTypes from '../constants/types/fs'
@@ -46,6 +46,7 @@ export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
+export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -53,6 +54,7 @@ export const updateHTTPSrvInfo = 'config:updateHTTPSrvInfo'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
+export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
 type _BootstrapStatusLoadedPayload = {
@@ -69,14 +71,14 @@ type _ChangedActivePayload = {readonly userActive: boolean}
 type _ChangedFocusPayload = {readonly appFocused: boolean}
 type _CheckForUpdatePayload = void
 type _CopyToClipboardPayload = {readonly text: string}
-type _DaemonErrorPayload = {readonly daemonError: Error | null}
+type _DaemonErrorPayload = {readonly daemonError?: Error}
 type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = {readonly firstTimeConnecting: boolean; readonly version: number}
 type _DaemonHandshakeWaitPayload = {
   readonly name: string
   readonly version: number
   readonly increment: boolean
-  readonly failedReason?: string | null
+  readonly failedReason?: string
   readonly failedFatal?: true
 }
 type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
@@ -86,7 +88,7 @@ type _FollowerInfoUpdatedPayload = {
   readonly followers: Array<string>
   readonly followees: Array<string>
 }
-type _GlobalErrorPayload = {readonly globalError: null | Error | RPCError}
+type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
@@ -102,7 +104,7 @@ type _OpenAppSettingsPayload = void
 type _OpenAppStorePayload = void
 type _OsNetworkStatusChangedPayload = {
   readonly online: boolean
-  readonly type: ConnectionType
+  readonly type: Types.ConnectionType
   readonly isInit?: boolean
 }
 type _PersistRoutePayload = {readonly path: Array<any>}
@@ -116,17 +118,18 @@ type _SetDarkModePreferencePayload = {
 type _SetDefaultUsernamePayload = {readonly username: string}
 type _SetDeletedSelfPayload = {readonly deletedUsername: string}
 type _SetNavigatorPayload = {readonly navigator: any}
-type _SetNotifySoundPayload = {readonly sound: boolean; readonly writeFile: boolean}
-type _SetOpenAtLoginPayload = {readonly open: boolean; readonly writeFile: boolean}
+type _SetNotifySoundPayload = {readonly notifySound: boolean}
+type _SetOpenAtLoginPayload = {readonly openAtLogin: boolean}
 type _SetStartupDetailsPayload = {
   readonly startupWasFromPush: boolean
-  readonly startupConversation: ChatTypes.ConversationIDKey | null
+  readonly startupConversation?: ChatTypes.ConversationIDKey
   readonly startupLink: string
-  readonly startupTab: Tabs.Tab | null
+  readonly startupTab?: Tabs.Tab
   readonly startupFollowUser: string
-  readonly startupSharePath: FsTypes.LocalPath | null
+  readonly startupSharePath?: FsTypes.LocalPath
 }
 type _SetSystemDarkModePayload = {readonly dark: boolean}
+type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -141,6 +144,7 @@ type _UpdateInfoPayload = {
 }
 type _UpdateMenubarWindowIDPayload = {readonly id: number}
 type _UpdateNowPayload = void
+type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
 /**
@@ -187,6 +191,13 @@ export const createRestartHandshake = (payload: _RestartHandshakePayload): Resta
 export const createStartHandshake = (payload: _StartHandshakePayload): StartHandshakePayload => ({
   payload,
   type: startHandshake,
+})
+/**
+ * main electron window wants to store its state
+ */
+export const createUpdateWindowState = (payload: _UpdateWindowStatePayload): UpdateWindowStatePayload => ({
+  payload,
+  type: updateWindowState,
 })
 /**
  * mobile only: open the settings page
@@ -256,7 +267,7 @@ export const createCopyToClipboard = (payload: _CopyToClipboardPayload): CopyToC
   payload,
   type: copyToClipboard,
 })
-export const createDaemonError = (payload: _DaemonErrorPayload): DaemonErrorPayload => ({
+export const createDaemonError = (payload: _DaemonErrorPayload = Object.freeze({})): DaemonErrorPayload => ({
   payload,
   type: daemonError,
 })
@@ -264,7 +275,7 @@ export const createDumpLogs = (payload: _DumpLogsPayload): DumpLogsPayload => ({
 export const createFollowerInfoUpdated = (
   payload: _FollowerInfoUpdatedPayload
 ): FollowerInfoUpdatedPayload => ({payload, type: followerInfoUpdated})
-export const createGlobalError = (payload: _GlobalErrorPayload): GlobalErrorPayload => ({
+export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({})): GlobalErrorPayload => ({
   payload,
   type: globalError,
 })
@@ -318,6 +329,10 @@ export const createSetStartupDetails = (payload: _SetStartupDetailsPayload): Set
 export const createSetSystemDarkMode = (payload: _SetSystemDarkModePayload): SetSystemDarkModePayload => ({
   payload,
   type: setSystemDarkMode,
+})
+export const createSetUseNativeFrame = (payload: _SetUseNativeFramePayload): SetUseNativeFramePayload => ({
+  payload,
+  type: setUseNativeFrame,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
 export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
@@ -439,6 +454,10 @@ export type SetSystemDarkModePayload = {
   readonly payload: _SetSystemDarkModePayload
   readonly type: typeof setSystemDarkMode
 }
+export type SetUseNativeFramePayload = {
+  readonly payload: _SetUseNativeFramePayload
+  readonly type: typeof setUseNativeFrame
+}
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
@@ -458,6 +477,10 @@ export type UpdateMenubarWindowIDPayload = {
   readonly type: typeof updateMenubarWindowID
 }
 export type UpdateNowPayload = {readonly payload: _UpdateNowPayload; readonly type: typeof updateNow}
+export type UpdateWindowStatePayload = {
+  readonly payload: _UpdateWindowStatePayload
+  readonly type: typeof updateWindowState
+}
 
 // All Actions
 // prettier-ignore
@@ -498,6 +521,7 @@ export type Actions =
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
   | SetSystemDarkModePayload
+  | SetUseNativeFramePayload
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload
@@ -505,4 +529,5 @@ export type Actions =
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
+  | UpdateWindowStatePayload
   | {type: 'common:resetStore', payload: {}}

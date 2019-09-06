@@ -113,16 +113,19 @@ const CoinFlipCommitMismatchError = (props: CommitMismatchProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  bordered: {
-    borderColor: Styles.globalColors.grey,
-    borderLeftWidth: 4,
-    borderStyle: 'solid',
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  error: {
-    color: Styles.globalColors.redDark,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bordered: {
+        borderColor: Styles.globalColors.grey,
+        borderLeftWidth: 4,
+        borderStyle: 'solid',
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      error: {
+        color: Styles.globalColors.redDark,
+      },
+    } as const)
+)
 
 export default CoinFlipError

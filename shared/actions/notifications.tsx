@@ -56,9 +56,9 @@ const receivedBadgeState = (
   state: Container.TypedState,
   action: NotificationsGen.ReceivedBadgeStatePayload
 ) => {
-  const payload = Constants.badgeStateToBadgeCounts(action.payload.badgeState, state)
+  const counts = Constants.badgeStateToBadgeCounts(state, action.payload.badgeState)
   return [
-    payload && NotificationsGen.createSetBadgeCounts(payload),
+    counts && NotificationsGen.createSetBadgeCounts({counts}),
     Constants.shouldTriggerTlfLoad(action.payload.badgeState) && FsGen.createFavoritesLoad(),
   ]
 }

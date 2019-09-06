@@ -106,7 +106,7 @@ const Troubleshooting = ({onResetAccount}) => (
   </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   backButton: platformStyles({
     isElectron: {
       marginLeft: globalMargins.medium,
@@ -142,6 +142,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
-})
+}))
 
 export default SelectOtherDevice

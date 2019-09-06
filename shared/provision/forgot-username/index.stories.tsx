@@ -3,8 +3,10 @@ import * as Sb from '../../stories/storybook'
 import ForgotUsername from '.'
 
 const props = {
+  forgotUsernameResult: '',
   onBack: Sb.action('onBack'),
   onSubmit: Sb.action('onSubmit'),
+  waiting: false,
 }
 
 const load = () => {

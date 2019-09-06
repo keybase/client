@@ -11,17 +11,20 @@ const QRScan = (props: Props) => (
   </Box2>
 )
 
-const styles = styleSheetCreate({
-  container: {
-    alignSelf: 'stretch',
-    backgroundColor: globalColors.black,
-    height: 200,
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  waiting: {
-    alignSelf: 'center',
-  },
-})
+const styles = styleSheetCreate(
+  () =>
+    ({
+      container: {
+        alignSelf: 'stretch',
+        backgroundColor: globalColors.black,
+        height: 200,
+        justifyContent: 'center',
+        position: 'relative',
+      },
+      waiting: {
+        alignSelf: 'center',
+      },
+    } as const)
+)
 
 export default QRScan

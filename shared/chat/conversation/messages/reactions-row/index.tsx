@@ -105,24 +105,27 @@ class ReactionsRow extends React.Component<Props, State> {
   }
 }
 
-const styles = styleSheetCreate({
-  button: {marginBottom: globalMargins.tiny},
-  container: {
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    paddingRight: 66,
-    paddingTop: globalMargins.tiny,
-  },
-  emojiRow: {
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.black_10,
-    borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    marginBottom: globalMargins.tiny,
-    paddingRight: globalMargins.xtiny,
-  },
-  visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
-})
+const styles = styleSheetCreate(
+  () =>
+    ({
+      button: {marginBottom: globalMargins.tiny},
+      container: {
+        alignItems: 'flex-start',
+        flexWrap: 'wrap',
+        paddingRight: 66,
+        paddingTop: globalMargins.tiny,
+      },
+      emojiRow: {
+        backgroundColor: globalColors.white,
+        borderColor: globalColors.black_10,
+        borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        marginBottom: globalMargins.tiny,
+        paddingRight: globalMargins.xtiny,
+      },
+      visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
+    } as const)
+)
 
 export default ReactionsRow

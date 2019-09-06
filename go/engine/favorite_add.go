@@ -53,11 +53,7 @@ func (e *FavoriteAdd) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *FavoriteAdd) WantDelegate(kind libkb.UIKind) bool {
-	if kind == libkb.IdentifyUIKind {
-		return true
-	}
-
-	return false
+	return kind == libkb.IdentifyUIKind
 }
 
 // Run starts the engine.
@@ -80,7 +76,7 @@ func (e *FavoriteAdd) Run(m libkb.MetaContext) error {
 
 	// this should be in its own goroutine so that potential
 	// UI calls don't block FavoriteAdd calls
-	go e.checkInviteNeeded(m)
+	go func() { _ = e.checkInviteNeeded(m) }()
 
 	return nil
 }

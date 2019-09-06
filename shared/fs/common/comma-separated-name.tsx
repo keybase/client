@@ -10,6 +10,7 @@ export type Props = {
   elementStyle?: StylesTextCrossPlatform
   type: TextType
   selectable?: boolean
+  center?: boolean
 }
 
 // We are splitting on ',' here, so it won't work for
@@ -22,6 +23,7 @@ const CommaSeparatedName = (props: Props) => (
     {props.name.split(',').map<React.ReactElement>((elem, idx, {length}: Array<string>) => (
       <Kb.Text
         selectable={props.selectable}
+        center={props.center}
         key={idx.toString()}
         type={props.type}
         style={props.elementStyle}

@@ -71,7 +71,7 @@ export const HeaderRightActions = Kb.OverlayParentHOC((props: Kb.PropsWithOverla
   )
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {flex: 1, paddingBottom: Styles.globalMargins.xtiny, paddingLeft: Styles.globalMargins.xsmall},
   headerTitleLink: Styles.platformStyles({
     isElectron: {...Styles.desktopStyles.windowDraggingClickable, cursor: 'pointer'},
@@ -80,4 +80,4 @@ const styles = Styles.styleSheetCreate({
     common: {alignSelf: 'flex-end', marginBottom: 6, marginRight: Styles.globalMargins.xsmall},
     isElectron: Styles.desktopStyles.windowDraggingClickable,
   }),
-})
+}))

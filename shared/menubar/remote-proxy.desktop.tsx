@@ -7,6 +7,7 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
+import * as Constants from '../constants/config'
 import {BadgeType} from '../constants/types/notifications'
 import {isDarwin, isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
@@ -109,7 +110,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
         externalRemoteWindow,
         ...props
       } = this.props
-      return <ComposedComponent {...props} remoteWindow={externalRemoteWindow} />
+      return <ComposedComponent {...props} />
     }
   }
 
@@ -120,26 +121,26 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _edits: state.fs.edits,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  _following: state.config.following,
+  // _following: state.config.following, // Not used?
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
   daemonHandshakeState: state.config.daemonHandshakeState,
-  desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
+  desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,
   diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
   kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
-  remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.getIn(['menubar', ''], -1),
+  remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'menubar', ''),
   showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
   userInfo: state.users.infoMap,
   username: state.config.username,
-  widgetBadge: state.notifications.get('widgetBadge') || 'regular',
+  widgetBadge: state.notifications.widgetBadge,
 })
 
-let _lastUsername
+let _lastUsername: string | undefined
 let _lastClearCacheTrigger = 0
 
 // TODO better type
@@ -175,7 +176,6 @@ export default Container.namedConnect(
         ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
         : null,
       fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
-      following: stateProps._following,
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       kbfsEnabled: stateProps.kbfsEnabled,
       loggedIn: stateProps.loggedIn,

@@ -1,6 +1,5 @@
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import * as ConfigGen from '../../../actions/config-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
@@ -36,7 +35,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
     dispatch(
       FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSendToOtherApp})
     ),
-  _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -76,7 +74,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
   },
   _sendAttachmentToChat: () =>
     Constants.makeActionsForShowSendAttachmentToChat(path).forEach(action => dispatch(action)),
-  _sendLinkToChat: () => Constants.makeActionsForShowSendLinkToChat(path).forEach(action => dispatch(action)),
   _sendToOtherApp: () => {
     const key = Constants.makeDownloadKey(path)
     dispatch(FsGen.createShareNative({key, path}))
@@ -158,7 +155,6 @@ const mergeProps = (
     shouldHideMenu: shouldHideMenu(stateProps),
     // menu items
     // eslint-disable-next-line sort-keys
-    copyPath: layout.copyPath ? c(dispatchProps._copyPath) : null,
     delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
@@ -176,7 +172,6 @@ const mergeProps = (
     // share items
     // eslint-disable-next-line sort-keys
     sendAttachmentToChat: layout.sendAttachmentToChat ? c(dispatchProps._sendAttachmentToChat) : null, // TODO
-    sendLinkToChat: layout.sendLinkToChat ? c(dispatchProps._sendLinkToChat) : null,
     sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
     share: layout.share ? dispatchProps._share : null,
   }

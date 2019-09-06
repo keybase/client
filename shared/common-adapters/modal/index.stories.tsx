@@ -159,6 +159,23 @@ const load = () => {
         {filler}
       </Modal>
     ))
+    .add('Long title, small sides', () => (
+      <Modal
+        onClose={onClose}
+        header={{
+          leftButton: <Kb.Icon type="iconfont-add" />,
+          rightButton: (
+            <Kb.Box2 direction="horizontal" gap="tiny">
+              <Kb.Icon type="iconfont-file" />
+              <Kb.Icon type="iconfont-info" />
+            </Kb.Box2>
+          ),
+          title: 'Do one of a few possibilities for things',
+        }}
+      >
+        {filler}
+      </Modal>
+    ))
 }
 
 const generateColorFromSeed = s => `rgba(${s * 4}, ${s * 4}, ${s * 4}, 0.7)`

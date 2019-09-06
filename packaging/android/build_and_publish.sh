@@ -7,7 +7,6 @@ gopath=${GOPATH:-}
 kbfs_dir="$gopath/src/github.com/keybase/client/go/kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 shared_dir="$gopath/src/github.com/keybase/client/shared"
-rn_dir="$gopath/src/github.com/keybase/client/shared/react-native"
 android_dir="$gopath/src/github.com/keybase/client/shared/android"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}

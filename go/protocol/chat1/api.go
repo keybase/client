@@ -25,10 +25,12 @@ func (o RateLimitRes) DeepCopy() RateLimitRes {
 	}
 }
 
+// A Keybase chat channel. This can be a channel in a team, or just an informal channel between two users.
+// name: the name of the team or comma-separated list of participants
 type ChatChannel struct {
 	Name        string `codec:"name" json:"name"`
-	Public      bool   `codec:"public" json:"public"`
-	MembersType string `codec:"membersType" json:"members_type"`
+	Public      bool   `codec:"public,omitempty" json:"public,omitempty"`
+	MembersType string `codec:"membersType,omitempty" json:"members_type,omitempty"`
 	TopicType   string `codec:"topicType,omitempty" json:"topic_type,omitempty"`
 	TopicName   string `codec:"topicName,omitempty" json:"topic_name,omitempty"`
 }
@@ -43,6 +45,7 @@ func (o ChatChannel) DeepCopy() ChatChannel {
 	}
 }
 
+// A chat message. The content goes in the `body` property!
 type ChatMessage struct {
 	Body string `codec:"body" json:"body"`
 }
@@ -383,6 +386,7 @@ func (o Thread) DeepCopy() Thread {
 	}
 }
 
+// A chat conversation. This is essentially a chat channel plus some additional metadata.
 type ConvSummary struct {
 	Id           string                    `codec:"id" json:"id"`
 	Channel      ChatChannel               `codec:"channel" json:"channel"`
@@ -756,6 +760,30 @@ func (o MsgNotification) DeepCopy() MsgNotification {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Pagination),
+	}
+}
+
+type AdvertiseCommandAPIParam struct {
+	Typ      string                `codec:"typ" json:"type"`
+	Commands []UserBotCommandInput `codec:"commands" json:"commands"`
+	TeamName string                `codec:"teamName,omitempty" json:"team_name,omitempty"`
+}
+
+func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
+	return AdvertiseCommandAPIParam{
+		Typ: o.Typ,
+		Commands: (func(x []UserBotCommandInput) []UserBotCommandInput {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserBotCommandInput, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Commands),
+		TeamName: o.TeamName,
 	}
 }
 

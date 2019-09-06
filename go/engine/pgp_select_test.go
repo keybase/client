@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path"
 	"testing"
@@ -47,7 +46,7 @@ func TestSelectEngine(t *testing.T) {
 	}
 
 	key := publicKeys[0]
-	fp := fmt.Sprintf("%s", key.GetFingerprint())
+	fp := key.GetFingerprint().String()
 	garg := GPGImportKeyArg{
 		Query:      fp,
 		AllowMulti: true,

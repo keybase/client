@@ -34,8 +34,8 @@ export default Container.connect(
       error: stateProps.error,
       hint: stateProps.hint,
       onBack:
-        loggedInAccounts.size > 0
-          ? () => dispatchProps._onLogIn(loggedInAccounts.get(0) || '')
+        loggedInAccounts.length > 0
+          ? () => dispatchProps._onLogIn(loggedInAccounts[0] || '')
           : dispatchProps._onBack,
       onSubmit: dispatchProps.onSubmit,
       waiting: stateProps.waiting,

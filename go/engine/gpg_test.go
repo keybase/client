@@ -94,38 +94,3 @@ func (g *gpgPubOnlyTestUI) SelectKeyAndPushOption(_ context.Context, arg keybase
 	key := arg.Keys[0]
 	return keybase1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: false}, nil
 }
-
-// selects a key by email address
-type gpgSelectEmailUI struct {
-	*gpgtestui
-	Email string
-}
-
-func newGPGSelectEmailUI(g *libkb.GlobalContext, email string) *gpgSelectEmailUI {
-	return &gpgSelectEmailUI{
-		gpgtestui: &gpgtestui{Contextified: libkb.NewContextified(g)},
-		Email:     email,
-	}
-}
-
-func (g *gpgSelectEmailUI) SelectKey(_ context.Context, arg keybase1.SelectKeyArg) (string, error) {
-	for _, key := range arg.Keys {
-		for _, id := range key.Identities {
-			if id.Email == g.Email {
-				return key.KeyID, nil
-			}
-		}
-	}
-	return "", fmt.Errorf("no keys found for email %q", g.Email)
-}
-
-func (g *gpgSelectEmailUI) SelectKeyAndPushOption(_ context.Context, arg keybase1.SelectKeyAndPushOptionArg) (keybase1.SelectKeyRes, error) {
-	for _, key := range arg.Keys {
-		for _, id := range key.Identities {
-			if id.Email == g.Email {
-				return keybase1.SelectKeyRes{KeyID: key.KeyID, DoSecretPush: false}, nil
-			}
-		}
-	}
-	return keybase1.SelectKeyRes{}, fmt.Errorf("no keys found for email %q", g.Email)
-}

@@ -35,6 +35,7 @@ const generateTeamSofar = (count: number) => {
 }
 
 const commonProps = {
+  focusInputCounter: 0,
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
@@ -51,6 +52,7 @@ const contactProps = {
 }
 
 const eventHandlers = {
+  incFocusInputCounter: Sb.action('incFocusInputCounter'),
   onBackspace: Sb.action('onBackspace'),
   onChangeService: Sb.action('onChangeService'),
   onChangeText: Sb.action('onChangeText'),
@@ -566,6 +568,7 @@ const load = () => {
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         focusOnMount={true}
+        focusCounter={0}
       />
     ))
     .add('TeamBox', () => (
@@ -602,7 +605,7 @@ const load = () => {
     .add('Plain', () => (
       <UserBubble
         username="max"
-        prettyName="max (Max Krohn)"
+        tooltip="max (Max Krohn)"
         service="keybase"
         onRemove={Sb.action('onRemove')}
       />
@@ -610,7 +613,7 @@ const load = () => {
     .add('GitHub', () => (
       <UserBubble
         username="marcopolo"
-        prettyName="marcopolo (GitHub)"
+        tooltip="marcopolo (GitHub)"
         service="github"
         onRemove={Sb.action('onRemove')}
       />

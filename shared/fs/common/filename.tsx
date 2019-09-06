@@ -30,6 +30,7 @@ const Filename = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={props.style}>
       <Kb.Text
+        className="hover-underline-child"
         type={props.type}
         style={Styles.collapseStyles([props.style, styles.breakAll])}
         lineClamp={1}
@@ -39,6 +40,7 @@ const Filename = (props: Props) => {
       </Kb.Text>
       {!!fileExtension && (
         <Kb.Text
+          className="hover-underline-child"
           type={props.type}
           style={Styles.collapseStyles([props.style, styles.noShrink])}
           selectable={props.selectable}

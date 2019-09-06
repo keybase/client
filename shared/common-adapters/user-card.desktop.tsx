@@ -8,14 +8,42 @@ const Kb = {
   Avatar,
 }
 
-const avatarSize = 128
+const UserCard = ({
+  avatarSize,
+  outerStyle,
+  onAvatarClicked,
+  username,
+  style,
+  children,
+  lighterPlaceholders,
+}: Props) => {
+  return (
+    <div style={Styles.collapseStyles([styles.container, outerStyle])}>
+      <Kb.Avatar
+        size={avatarSize}
+        onClick={onAvatarClicked}
+        username={username}
+        lighterPlaceholders={lighterPlaceholders}
+      />
+      <div
+        style={Styles.collapseStyles([
+          styles.inside,
+          {
+            marginTop: -avatarSize / 2,
+            paddingTop: 30 + avatarSize / 2,
+          },
+          style,
+        ])}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
 
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
-  <div style={Styles.collapseStyles([styles.container, outerStyle])}>
-    <Kb.Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
-    <div style={Styles.collapseStyles([styles.inside, style])}>{children}</div>
-  </div>
-)
+UserCard.defaultProps = {
+  avatarSize: 128,
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
@@ -30,9 +58,7 @@ const styles = Styles.styleSheetCreate(() => ({
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.white,
     borderRadius: 4,
-    marginTop: -avatarSize / 2,
     padding: 30,
-    paddingTop: 30 + avatarSize / 2,
   },
 }))
 

@@ -246,9 +246,7 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           style={styles.addIdentityButton}
           mode="Secondary"
           label="Add more identities"
-        >
-          <Kb.Meta backgroundColor={Styles.globalColors.blue} title="NEW" style={styles.newMeta} />
-        </Kb.Button>
+        />
       </Kb.ButtonBar>
     ) : null
     return Styles.isMobile ? (

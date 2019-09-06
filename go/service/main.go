@@ -356,6 +356,7 @@ func (d *Service) Run() (err error) {
 }
 
 func (d *Service) SetupCriticalSubServices() error {
+	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
@@ -366,6 +367,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	teambot.ServiceInit(mctx)
 	d.avatarSrv = avatars.ServiceInit(d.G(), d.httpSrv, d.avatarLoader)
 	contacts.ServiceInit(d.G())
+	maps.ServiceInit(allG, d.httpSrv)
 	return nil
 }
 
@@ -388,6 +390,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletUpkeep()
 	d.runBackgroundBoxAuditRetry()
 	d.runBackgroundBoxAuditScheduler()
+	d.runBackgroundContactSync()
 	d.runTLFUpgrade()
 	d.runTrackerLoader(ctx)
 	d.runRuntimeStats(ctx)
@@ -931,6 +934,23 @@ func (d *Service) runBackgroundBoxAuditScheduler() {
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping background BoxAuditorScheduler")
+		eng.Shutdown()
+		return nil
+	})
+}
+
+func (d *Service) runBackgroundContactSync() {
+	eng := engine.NewContactSyncBackground(d.G())
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.Warning("background ContactSync error: %v", err)
+		}
+	}()
+
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping background ContactSync")
 		eng.Shutdown()
 		return nil
 	})

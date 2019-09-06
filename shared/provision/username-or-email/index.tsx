@@ -1,10 +1,8 @@
-// TODO remove Container
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Container from '../../login/forms/container'
-import * as Constants from '../../constants/provision'
 import {maxUsernameLength} from '../../constants/signup'
+import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   error: string
@@ -16,121 +14,164 @@ type Props = {
   onGoToSignup: () => void
   onSubmit: (username: string) => void
   submittedUsername: string
+  waiting: boolean
 }
 
-const InlineError = (props: {onGoToSignup: (() => void) | null; error: string}) => (
-  <Kb.Box2 direction="vertical" centerChildren={true}>
-    <Kb.Text type="BodySmallError" style={styles.error}>
-      {props.error}
-    </Kb.Text>
-    {!!props.onGoToSignup && (
-      <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
-        Sign up for a new account?
-      </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+const Username = (props: Props) => {
+  const [username, setUsername] = React.useState(props.initialUsername)
+  const onSubmit = React.useCallback(() => {
+    props.onSubmit(username)
+  }, [props.onSubmit, username])
 
-type State = {
-  username: string
-}
-
-class Username extends React.Component<Props, State> {
-  state = {username: this.props.initialUsername}
-
-  _submit = () => {
-    this.props.onSubmit(this.state.username)
-  }
-
-  render() {
-    let errorTextComponent
-    if (this.props.submittedUsername === this.state.username && !!this.props.inlineError) {
-      errorTextComponent = (
-        <InlineError
-          error={this.props.inlineError}
-          onGoToSignup={this.props.inlineSignUpLink ? this.props.onGoToSignup : null}
-        />
-      )
-    }
-
-    return (
-      <Container style={styles.container} outerStyle={styles.outerStyle} onBack={() => this.props.onBack()}>
-        <Kb.UserCard style={styles.card} outerStyle={styles.outerCard}>
-          <Kb.Input
+  return (
+    <SignupScreen
+      banners={[
+        ...errorBanner(props.error),
+        ...(props.inlineSignUpLink
+          ? [
+              <Kb.Banner key="usernameTaken" color="blue">
+                <Kb.BannerParagraph
+                  bannerColor="blue"
+                  content={[
+                    "This username doesn't exist. Did you mean to ",
+                    {
+                      onClick: () => props.inlineSignUpLink && props.onGoToSignup(),
+                      text: 'create a new account',
+                    },
+                    '?',
+                  ]}
+                />
+              </Kb.Banner>,
+            ]
+          : []),
+      ]}
+      buttons={[
+        {
+          disabled: !username,
+          label: 'Log in',
+          onClick: onSubmit,
+          type: 'Default',
+          waiting: props.waiting,
+        },
+      ]}
+      onBack={props.onBack}
+      title="Log in"
+      rightActionComponent={
+        <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
+      }
+    >
+      <Kb.UserCard
+        style={styles.card}
+        avatarBackgroundStyle={styles.outerCardAvatar}
+        outerStyle={styles.outerCard}
+        lighterPlaceholders={true}
+        avatarSize={96}
+      >
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
+          <Kb.LabeledInput
             autoFocus={true}
-            style={styles.input}
-            hintText="Username"
+            placeholder="Username"
             maxLength={maxUsernameLength}
-            errorText={this.props.submittedUsername === this.state.username ? this.props.error : ''}
-            errorTextComponent={errorTextComponent}
-            onEnterKeyDown={this._submit}
-            onChangeText={text => this.setState({username: text})}
-            value={this.state.username}
-          />
-          <Kb.WaitingButton
-            label="Continue"
-            fullWidth={true}
-            style={styles.button}
-            onClick={this._submit}
-            disabled={!this.state.username}
-            waitingKey={Constants.waitingKey}
+            onEnterKeyDown={onSubmit}
+            onChangeText={setUsername}
+            value={username}
+            textType="BodySemibold"
           />
           <Kb.Text
             style={styles.forgotUsername}
             type="BodySmallSecondaryLink"
-            onClick={this.props.onForgotUsername}
+            onClick={props.onForgotUsername}
           >
-            Forgot your username?
+            Forgot username?
           </Kb.Text>
-        </Kb.UserCard>
-      </Container>
-    )
-  }
+        </Kb.Box2>
+      </Kb.UserCard>
+    </SignupScreen>
+  )
 }
 
-const styles = Styles.styleSheetCreate({
-  button: Styles.platformStyles({
-    common: {
-      alignSelf: 'center',
-      width: '100%',
-    },
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-  }),
-  card: {
-    alignItems: 'stretch',
-  },
-  container: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-    isElectron: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  }),
-  error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
-  errorLink: {
-    color: Styles.globalColors.redDark,
-    textDecorationLine: 'underline',
-  },
-  forgotUsername: {
-    alignSelf: 'center',
-    paddingTop: Styles.globalMargins.small,
-  },
-  input: Styles.platformStyles({
-    isMobile: {
-      flexGrow: 1,
-      marginBottom: Styles.globalMargins.small,
-    },
-  }),
-  outerCard: {
-    marginTop: 40,
-  },
-  outerStyle: {
-    backgroundColor: Styles.globalColors.white,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: Styles.platformStyles({
+        common: {
+          alignSelf: 'center',
+          width: '100%',
+        },
+        isElectron: {
+          marginTop: Styles.globalMargins.medium,
+        },
+      }),
+      card: Styles.platformStyles({
+        common: {
+          alignItems: 'stretch',
+          backgroundColor: Styles.globalColors.transparent,
+        },
+        isMobile: {
+          paddingLeft: 0,
+          paddingRight: 0,
+        },
+      }),
+      error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
+      errorLink: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'underline',
+      },
+      forgotUsername: {
+        alignSelf: 'flex-end',
+      },
+      input: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.transparent,
+          padding: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          flexGrow: 1,
+          marginBottom: Styles.globalMargins.small,
+          minHeight: 48,
+        },
+      }),
+      inputContainer: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.blue,
+        borderRadius: 6,
+        borderStyle: 'solid',
+        borderWidth: 1,
+      },
+      inputLabel: {
+        color: Styles.globalColors.blue,
+        paddingBottom: 0,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      outerCard: {
+        height: 'auto',
+        marginTop: 40,
+      },
+      outerCardAvatar: {
+        backgroundColor: Styles.globalColors.transparent,
+      },
+      outerStyle: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      wrapper: Styles.platformStyles({
+        isElectron: {
+          width: 400,
+        },
+        isMobile: {
+          width: '100%',
+        },
+      }),
+    } as const)
+)
+
+Username.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}
 
 export default Username

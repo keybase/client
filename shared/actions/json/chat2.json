@@ -100,7 +100,8 @@
         "'inboxSyncedUnknown'",
         "'joinedAConversation'",
         "'leftAConversation'",
-        "'teamTypeChanged'"
+        "'teamTypeChanged'",
+        "'maybeKickedFromTeam'"
       ]
     },
     // We want to unbox an inbox row
@@ -742,6 +743,10 @@
     "dismissBottomBanner": {
       "_description": "Set the bottom banner on a new conversation as dismissed",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateLastCoord": {
+      "_description": "Update last known coordinate",
+      "coord": "Types.Coordinate"
     }
   }
 }

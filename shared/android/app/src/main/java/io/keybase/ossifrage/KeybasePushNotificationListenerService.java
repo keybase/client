@@ -84,6 +84,10 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
 
+            if (notificationManager.getNotificationChannel("keybase_all") != null) {
+                notificationManager.deleteNotificationChannel("keybase_all");
+            }
+
             // Chat Notifications
             {
                 CharSequence name = context.getString(R.string.channel_name);

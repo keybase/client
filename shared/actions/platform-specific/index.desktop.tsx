@@ -1,5 +1,4 @@
 import * as ConfigGen from '../config-gen'
-import * as SettingsGen from '../settings-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -10,16 +9,13 @@ import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
-import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../desktop/app/ctl.desktop'
-import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
-import AppState from '../../app/app-state.desktop'
 
 export function showShareActionSheetFromURL() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -35,9 +31,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  const mw = getMainWindow()
-  mw && mw.show()
-  showDockIcon()
+  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
@@ -68,28 +62,6 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (
-  _: Container.TypedState,
-  action: ConfigGen.SetOpenAtLoginPayload
-) => {
-  action.payload.writeFile &&
-    SafeElectron.getApp().emit('KBappState' as any, '', {
-      payload: {data: {openAtLogin: action.payload.open}},
-      type: 'set',
-    })
-}
-
-const writeElectronSettingsNotifySound = (
-  _: Container.TypedState,
-  action: ConfigGen.SetNotifySoundPayload
-) => {
-  action.payload.writeFile &&
-    SafeElectron.getApp().emit('KBappState' as any, '', {
-      payload: {data: {notifySound: action.payload.sound}},
-      type: 'set',
-    })
-}
-
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('focus', () => emitter('focus'))
@@ -114,9 +86,9 @@ function* handleWindowFocusEvents(): Iterable<any> {
 }
 
 function* initializeInputMonitor(): Iterable<any> {
+  const inputMonitor = new InputMonitor()
   const channel = Saga.eventChannel(emitter => {
-    // eslint-disable-next-line no-new
-    new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
+    inputMonitor.notifyActive = isActive => emitter(isActive ? 'active' : 'inactive')
     return () => {}
   }, Saga.buffers.expanding(1))
 
@@ -127,24 +99,6 @@ function* initializeInputMonitor(): Iterable<any> {
     } else {
       yield Saga.put(ConfigGen.createChangedActive({userActive: type === 'active'}))
     }
-  }
-}
-
-// get this value from electron and update our store version
-function* initializeAppSettingsState(): Iterable<any> {
-  const getAppState = () =>
-    new Promise(resolve => {
-      SafeElectron.getApp().once(
-        'KBappState' as any,
-        (_, action: any) => action.type === 'reply' && resolve(action.payload.data)
-      )
-      SafeElectron.getApp().emit('KBappState' as any, '', {type: 'get'})
-    })
-
-  const state = yield* Saga.callPromise(getAppState)
-  if (state) {
-    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
-    yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
   }
 }
 
@@ -357,32 +311,108 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = (state: Container.TypedState) => {
-  SafeElectron.getApp().emit('KBappState' as any, '', {
-    payload: {
-      data: {
-        useNativeFrame: state.settings.useNativeFrame,
-      },
+const nativeFrameKey = 'useNativeFrame'
+
+const saveUseNativeFrame = async (state: Container.TypedState) => {
+  const {useNativeFrame} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: nativeFrameKey,
+    value: {
+      b: useNativeFrame,
+      isNull: false,
     },
-    type: 'set',
   })
 }
 
 function* initializeUseNativeFrame() {
-  const useNativeFrame = new AppState().state.useNativeFrame
-  yield Saga.put(
-    SettingsGen.createOnChangeUseNativeFrame({
-      enabled:
-        useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : defaultUseNativeFrame,
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: nativeFrameKey,
     })
-  )
+    const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+    yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+  } catch (_) {}
+}
+
+const windowStateKey = 'windowState'
+const saveWindowState = async (state: Container.TypedState) => {
+  const {windowState} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: windowStateKey,
+    value: {
+      isNull: false,
+      s: JSON.stringify(windowState),
+    },
+  })
+}
+
+const notifySoundKey = 'notifySound'
+function* initializeNotifySound() {
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: notifySoundKey,
+    })
+    const notifySound: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (notifySound !== undefined && notifySound !== state.config.notifySound) {
+      yield Saga.put(ConfigGen.createSetNotifySound({notifySound}))
+    }
+  } catch (_) {}
+}
+
+const setNotifySound = async (state: Container.TypedState) => {
+  const {notifySound} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: notifySoundKey,
+    value: {
+      b: notifySound,
+      isNull: false,
+    },
+  })
+}
+
+const openAtLoginKey = 'openAtLogin'
+function* initializeOpenAtLogin() {
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: openAtLoginKey,
+    })
+
+    const openAtLogin: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
+      yield Saga.put(ConfigGen.createSetOpenAtLogin({openAtLogin}))
+    }
+  } catch (_) {}
+}
+
+const setOpenAtLogin = async (state: Container.TypedState) => {
+  const {openAtLogin} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: openAtLoginKey,
+    value: {
+      b: openAtLogin,
+      isNull: false,
+    },
+  })
+
+  if (!__DEV__ && SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+    logger.info(`Login item settings changed! now ${openAtLogin}`)
+    SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+  }
 }
 
 export const requestLocationPermission = () => Promise.resolve()
 
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
-  yield* Saga.chainAction2(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
+  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
+  yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
   yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
@@ -397,17 +427,19 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
-  yield* Saga.chainAction2(SettingsGen.onChangeUseNativeFrame, setUseNativeFrame)
+  yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(ConfigGen.updateWindowState, saveWindowState)
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
 
   yield Saga.spawn(initializeUseNativeFrame)
+  yield Saga.spawn(initializeNotifySound)
+  yield Saga.spawn(initializeOpenAtLogin)
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
-  yield Saga.spawn(initializeAppSettingsState)
   yield Saga.spawn(setupReachabilityWatcher)
   yield Saga.spawn(startOutOfDateCheckLoop)
   yield Saga.spawn(startPowerMonitor)

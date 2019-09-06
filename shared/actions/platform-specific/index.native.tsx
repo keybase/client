@@ -5,6 +5,7 @@ import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -272,11 +273,11 @@ function* setupNetInfoWatcher() {
 // TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
-  let startupConversation = null
+  let startupConversation = undefined
   let startupFollowUser = ''
   let startupLink = ''
-  let startupTab = null
-  let startupSharePath = null
+  let startupTab = undefined
+  let startupSharePath = undefined
 
   const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
@@ -310,12 +311,12 @@ function* loadStartupDetails() {
     try {
       const item = JSON.parse(routeState)
       if (item) {
-        startupConversation = item.param && item.param.selectedConversationIDKey
-        startupTab = item.routeName
+        startupConversation = (item.param && item.param.selectedConversationIDKey) || undefined
+        startupTab = item.routeName || undefined
       }
     } catch (_) {
-      startupConversation = null
-      startupTab = null
+      startupConversation = undefined
+      startupTab = undefined
     }
   }
 
@@ -453,13 +454,9 @@ function* requestContactPermissions(
 
 async function manageContactsCache(
   state: Container.TypedState,
-  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
 ) {
-  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
-    return
-  }
-
   if (state.settings.contacts.importEnabled === false) {
     return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
       SettingsGen.createSetContactImportedCount({count: null})
@@ -605,7 +602,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     'requestContactPermissions'
   )
   yield* Saga.chainAction2(
-    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
+    [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache,
     'manageContactsCache'
   )
