@@ -131,7 +131,17 @@ func testPrefetcherCheckGet(
 		err := dbcw.waitForDeletes(context.Background())
 		require.NoError(t, err)
 	}
-	require.Equal(t, expectedBlock, block)
+	if expectedFB, ok := expectedBlock.(*data.FileBlock); ok &&
+		!expectedFB.IsIndirect() {
+		fb, ok := block.(*data.FileBlock)
+		require.True(t, ok)
+		// For direct file blocks, the unexported hash pointer might
+		// differ between two instances of the same block, so just
+		// check the contents explicitly.
+		require.Equal(t, expectedFB.Contents, fb.Contents)
+	} else {
+		require.Equal(t, expectedBlock, block)
+	}
 	prefetchStatus, err := dcache.GetPrefetchStatus(
 		context.Background(), tlfID, ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
