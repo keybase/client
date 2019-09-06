@@ -82,11 +82,6 @@ export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string
 
 type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._StylesMobile}
-// export declare function styleSheetCreate<T extends NamedStyles<T> | NamedStyles<any>>(
-// styles: T | NamedStyles<T>
-// ): T
-// export declare function styleSheetCreate<T extends NamedStyles<T>>(styles: T): T
-// export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
 // order important!
 export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
 export declare function styleSheetCreate<T extends NamedStyles<T>>(styles: T): T
@@ -134,9 +129,6 @@ export {
   StylesCrossPlatform,
   Color,
   StylesCrossPlatformWithSomeDisallowed,
-  // TEMP just for debugging the styles
-  _StylesDesktop,
-  _StylesMobile,
 } from './css'
 export {default as classNames} from 'classnames'
 export {default as styled} from '@emotion/styled'
