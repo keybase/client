@@ -295,12 +295,18 @@ func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	mctx = mctx.WithCtx(s.reconnectSlot.Use(mctx.Ctx()))
 	mctx, cancel := cancelOnMobileBackground(mctx)
 	defer cancel()
-	time.Sleep(4 * time.Second)
+	if err := libkb.Sleep(mctx.Ctx(), 4*time.Second); err != nil {
+		mctx.Debug("Stellar.handleReconnect canceled")
+		return
+	}
 	if libkb.IsMobilePlatform() {
 		// sleep some more on mobile
-		time.Sleep(4 * time.Second)
+		if err := libkb.Sleep(mctx.Ctx(), 4*time.Second); err != nil {
+			mctx.Debug("Stellar.handleReconnect canceled")
+			return
+		}
 	}
-	mctx.Debug("stellar reconnect msg delay complete, refreshing wallet state")
+	mctx.Debug("Stellar.handleReconnect delay complete, refreshing wallet state")
 
 	if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
 		mctx.Debug("Stellar.handleReconnect RefreshAll error: %s", err)

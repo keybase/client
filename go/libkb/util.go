@@ -752,6 +752,17 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
+func Sleep(ctx context.Context, duration time.Duration) error {
+	timer := time.NewTimer(duration)
+	select {
+	case <-ctx.Done():
+		timer.Stop()
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 func UseCITime(g *GlobalContext) bool {
 	return g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn()
 }
