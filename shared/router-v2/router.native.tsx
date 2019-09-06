@@ -283,12 +283,12 @@ class RNApp extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {color: Styles.globalColors.black},
   keyboard: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default RNApp

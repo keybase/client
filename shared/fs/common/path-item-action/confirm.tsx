@@ -59,7 +59,7 @@ export default (props: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   confirmText: {
     textAlign: 'center',
   },
@@ -76,4 +76,4 @@ const styles = Styles.styleSheetCreate({
   progressIndicator: {
     marginRight: Styles.globalMargins.xtiny,
   },
-})
+}))

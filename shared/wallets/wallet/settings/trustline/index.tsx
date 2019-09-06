@@ -50,7 +50,7 @@ const WalletSettingTrustline = (props: Props) => {
 
 export default WalletSettingTrustline
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     flexShrink: 1,
     marginBottom: Styles.globalMargins.small,
@@ -70,4 +70,4 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   textUnknown: {color: Styles.globalColors.redDark},
-})
+}))

@@ -53,13 +53,13 @@ class LoadingLine extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   line: {
     backgroundColor: Styles.globalColors.blue,
     height: 1,
     position: 'absolute',
     width: '100%',
   },
-} as const)
+}) as const)
 
 export default LoadingLine

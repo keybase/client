@@ -5,13 +5,13 @@ import ConfirmModal from '.'
 import * as Styles from '../../styles'
 import {repeat} from 'lodash-es'
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatarBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     margin: Styles.globalMargins.small,
   },
-})
+}))
 
 const props = {
   description: 'Description - Explain here what are the consequences of tapping the Confirm button.',

@@ -137,11 +137,11 @@ export const TeamMember = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
       bottom: -32,
       position: 'relative',
     },
   }),
-})
+}))

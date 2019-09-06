@@ -150,7 +150,7 @@ const expandedHeight = Styles.isMobile ? 160 : 140
 
 export const getHeight = (props: Props): number => (props.expanded ? expandedHeight : nonExpandedHeight)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actions: Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -180,6 +180,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   textUnknown: {color: Styles.globalColors.redDark},
-})
+}))
 
 export default Asset

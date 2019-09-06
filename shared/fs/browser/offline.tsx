@@ -29,7 +29,7 @@ const OfflineFolder = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentContainer: {
     flex: 1,
   },
@@ -38,7 +38,7 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.blueGrey,
     flex: 1,
   },
-})
+}))
 
 type OwnProps = {
   path: Types.Path

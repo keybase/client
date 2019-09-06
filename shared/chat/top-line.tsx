@@ -52,7 +52,7 @@ class FilteredTopLine extends PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   boldOverride: {
     ...Styles.globalStyles.fontBold,
   },
@@ -62,6 +62,6 @@ const styles = Styles.styleSheetCreate({
   usernames: {
     paddingRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export {FilteredTopLine}

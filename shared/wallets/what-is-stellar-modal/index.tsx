@@ -63,7 +63,7 @@ const WhatIsStellarModal = () => {
   return <Body onCancel={onClose} customCancelText="Close" borderless={true} />
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       padding: Styles.globalMargins.xlarge,
@@ -88,6 +88,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.mediumLarge,
   },
-} as const)
+}) as const)
 
 export default WhatIsStellarModal

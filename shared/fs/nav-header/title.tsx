@@ -112,7 +112,7 @@ const FsNavHeaderTitle = (props: Props) =>
   )
 export default FsNavHeaderTitle
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       marginTop: -Styles.globalMargins.tiny,
@@ -139,4 +139,4 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.xxtiny,
     paddingRight: Styles.globalMargins.xxtiny,
   },
-})
+}))

@@ -55,7 +55,7 @@ export default class UnlockFoldersRender extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     height: 300,
     position: 'relative',
@@ -66,4 +66,4 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     width: '100%',
   },
-} as const)
+}) as const)

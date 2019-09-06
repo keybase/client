@@ -92,7 +92,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bannerStyle: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -109,6 +109,6 @@ const styles = Styles.styleSheetCreate({
       marginBottom: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
 
 export {InviteBanner}

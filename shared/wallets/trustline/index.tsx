@@ -205,7 +205,7 @@ const Trustline = Styles.isMobile
 
 export default Trustline
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   body: {
     ...Styles.globalStyles.flexGrow,
   },
@@ -236,4 +236,4 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.tiny,
     },
   }),
-})
+}))
