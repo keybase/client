@@ -57,10 +57,10 @@ class UnfurlImage extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   image: {
     borderRadius: Styles.borderRadius,
   },
-})
+}))
 
 export default UnfurlImage

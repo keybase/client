@@ -46,7 +46,7 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
   </Box>
 )
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -62,7 +62,7 @@ const styles = styleSheetCreate({
     marginRight: globalMargins.tiny,
     width: 17,
   },
-})
+}))
 
 const CustomComponent = OverlayParentHOC(_CustomComponent)
 export default CustomComponent

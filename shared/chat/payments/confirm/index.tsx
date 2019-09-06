@@ -145,7 +145,7 @@ const PaymentsConfirm = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBar: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.tiny,
@@ -246,6 +246,6 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.white,
     },
   }),
-})
+}))
 
 export default PaymentsConfirm

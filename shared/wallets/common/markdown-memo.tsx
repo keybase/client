@@ -51,7 +51,7 @@ const MarkdownMemo = (props: Props) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     marginBottom: Styles.globalMargins.xxtiny,
     marginTop: Styles.globalMargins.xxtiny,
@@ -71,6 +71,6 @@ const styles = Styles.styleSheetCreate({
     } as const,
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},
-})
+}))
 
 export default MarkdownMemo

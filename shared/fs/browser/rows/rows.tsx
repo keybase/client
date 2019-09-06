@@ -162,7 +162,7 @@ const RowsWithAutoLoad = (props: Props) => {
   return <Rows {...props} />
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   divider: {
     backgroundColor: Styles.globalColors.black_05,
     marginLeft: 64,
@@ -175,7 +175,7 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     height: normalRowHeight,
   },
-})
+}))
 
 const getRowHeight = (row: RowTypes.RowItem) =>
   row.rowType === RowTypes.RowType.Header ? row.height : normalRowHeight

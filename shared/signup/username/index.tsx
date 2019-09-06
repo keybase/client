@@ -94,7 +94,7 @@ EnterUsername.navigationOptions = {
   ),
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   body: {
     flex: 1,
   },
@@ -119,6 +119,6 @@ const styles = Styles.styleSheetCreate({
   inputSub: {
     marginLeft: 2,
   },
-})
+}))
 
 export default EnterUsername

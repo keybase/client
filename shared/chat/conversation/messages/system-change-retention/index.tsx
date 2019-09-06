@@ -106,9 +106,9 @@ const ChangeRetention = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   text: {color: Styles.globalColors.black_50},
   userNotice: {marginTop: Styles.globalMargins.small},
-})
+}))
 
 export default ChangeRetention

@@ -71,11 +71,11 @@ export class ImageRender extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {position: 'relative'},
   poster: {...Styles.globalStyles.fillAbsolute, borderRadius: Styles.borderRadius},
   video: {borderRadius: Styles.borderRadius},
-})
+}))
 
 export function imgMaxWidth() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')

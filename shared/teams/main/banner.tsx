@@ -35,7 +35,7 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   closeIcon: {
     padding: Styles.globalMargins.xtiny,
   },
@@ -100,6 +100,6 @@ const styles = Styles.styleSheetCreate({
       marginBottom: Styles.globalMargins.small,
     },
   }),
-})
+}))
 
 export default Banner

@@ -101,7 +101,7 @@ export const EnterEmailBody = (props: BodyProps) => (
   </Kb.ScrollView>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
   input: Styles.platformStyles({
     common: {},
@@ -121,6 +121,6 @@ const styles = Styles.styleSheetCreate({
       width: 368,
     },
   }),
-})
+}))
 
 export default EnterEmail

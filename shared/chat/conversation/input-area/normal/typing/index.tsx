@@ -78,7 +78,7 @@ export const Typing = (props: Props) => (
 )
 
 export const mobileTypingContainerHeight = 18
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   isTypingAnimation: Styles.platformStyles({
     isElectron: {
       left: 24,
@@ -137,4 +137,4 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-})
+}))

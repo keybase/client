@@ -171,7 +171,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {flexShrink: 0, height: RowSizes.smallRowHeight},
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -197,6 +197,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: Styles.desktopStyles.clickable,
   }),
-})
+}))
 
 export {SmallTeam}

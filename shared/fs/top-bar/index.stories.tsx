@@ -50,10 +50,10 @@ const load = () =>
 
 export default load
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.blue,
     padding: Styles.globalMargins.medium,
   },
   flex: {flex: 1},
-})
+}))

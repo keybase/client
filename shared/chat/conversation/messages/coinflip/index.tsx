@@ -147,7 +147,7 @@ class CoinFlip extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignSelf: 'flex-start',
     borderColor: Styles.globalColors.grey,
@@ -189,6 +189,6 @@ const styles = Styles.styleSheetCreate({
   statusContainer: {
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default CoinFlip

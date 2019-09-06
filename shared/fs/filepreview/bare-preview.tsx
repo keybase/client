@@ -49,7 +49,7 @@ export default class extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   closeBox: {
     height: 48,
     paddingLeft: Styles.globalMargins.tiny,
@@ -91,4 +91,4 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
     lineHeight: 48,
   },
-})
+}))

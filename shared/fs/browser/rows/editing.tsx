@@ -75,7 +75,7 @@ const Editing = (props: EditingProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     marginLeft: Styles.globalMargins.tiny,
   },
@@ -101,6 +101,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {marginTop: 22},
   }),
-})
+}))
 
 export default Editing

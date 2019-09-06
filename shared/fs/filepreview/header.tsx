@@ -37,7 +37,7 @@ const Header = (props: HeaderProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   close: Styles.platformStyles({
     isElectron: {
       marginLeft: Styles.globalMargins.tiny,
@@ -53,6 +53,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     marginRight: Styles.globalMargins.small,
   },
-})
+}))
 
 export default Header
