@@ -3,6 +3,7 @@ package merkletree2
 import (
 	"errors"
 	"fmt"
+	"math/bits"
 	"sort"
 
 	"golang.org/x/net/context"
@@ -12,13 +13,33 @@ import (
 // Transaction arguments, so it can't be used for concurrency tests.
 type InMemoryStorageEngine struct {
 	Roots            map[Seqno]RootMetadata
-	KVPs             map[string]*KVPRecord
+	sortedKVPRs      []*KVPRecord
 	Nodes            map[string]*NodeRecord
 	MasterSecretsMap map[Seqno]MasterSecret
+
+	// used to make prefix queries efficient. Not otherwise necessary
+	//PositionToKeys map[string](map[string]bool)
+	cfg Config
 }
 
 var _ StorageEngine = &InMemoryStorageEngine{}
 var _ StorageEngineWithBlinding = &InMemoryStorageEngine{}
+
+type SortedKVPR []*KVPRecord
+
+func (s SortedKVPR) Len() int {
+	return len(s)
+}
+
+func (s SortedKVPR) Less(i, j int) bool {
+	return s[i].kvp.Key.Cmp(s[j].kvp.Key) < 0
+}
+
+func (s SortedKVPR) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+var _ sort.Interface = SortedKVPR{}
 
 type NodeRecord struct {
 	p    Position
@@ -33,12 +54,14 @@ type KVPRecord struct {
 	next *KVPRecord
 }
 
-func NewInMemoryStorageEngine() *InMemoryStorageEngine {
+func NewInMemoryStorageEngine(cfg Config) *InMemoryStorageEngine {
 	i := InMemoryStorageEngine{}
 	i.MasterSecretsMap = make(map[Seqno]MasterSecret)
 	i.Roots = make(map[Seqno]RootMetadata)
-	i.KVPs = make(map[string]*KVPRecord)
+	//i.KVPs = make(map[string]*KVPRecord)
 	i.Nodes = make(map[string]*NodeRecord)
+	//	i.PositionToKeys = make(map[string](map[string]bool))
+	i.cfg = cfg
 	return &i
 }
 
@@ -50,18 +73,31 @@ func (i *InMemoryStorageEngine) CommitTransaction(c context.Context, t Transacti
 	return nil
 }
 
-func (i *InMemoryStorageEngine) AbortTransaction(c context.Context, t Transaction) {
-	return
+func (i *InMemoryStorageEngine) AbortTransaction(c context.Context, t Transaction) {}
+
+func (i *InMemoryStorageEngine) findKVPR(k Key) *KVPRecord {
+	j := sort.Search(len(i.sortedKVPRs), func(n int) bool {
+		return i.sortedKVPRs[n].kvp.Key.Cmp(k) >= 0
+	})
+	if j < len(i.sortedKVPRs) && i.sortedKVPRs[j].kvp.Key.Cmp(k) == 0 {
+		return i.sortedKVPRs[j]
+	}
+	return nil
 }
 
 func (i *InMemoryStorageEngine) StoreKVPairs(c context.Context, t Transaction, s Seqno, kvps []KeyValuePair) error {
-	for _, kvp := range kvps {
-		oldKvp := i.KVPs[string(kvp.Key)]
-		i.KVPs[string(kvp.Key)] = &KVPRecord{kvp: kvp, s: s, next: oldKvp}
+	newSKVPR := make([]*KVPRecord, len(kvps))
+
+	for j, kvp := range kvps {
+		oldKvp := i.findKVPR(kvp.Key)
+		newSKVPR[j] = &KVPRecord{kvp: kvp, s: s, next: oldKvp}
 		if oldKvp != nil && oldKvp.s >= s {
 			return errors.New("Engine does not support out of order insertions")
 		}
 	}
+
+	sort.Sort(SortedKVPR(newSKVPR))
+	i.sortedKVPRs = newSKVPR
 	return nil
 }
 
@@ -125,8 +161,8 @@ func (i *InMemoryStorageEngine) LookupNodes(c context.Context, t Transaction, s 
 }
 
 func (i *InMemoryStorageEngine) LookupKVPair(c context.Context, t Transaction, s Seqno, k Key) (KeyValuePair, Seqno, error) {
-	kvpr, found := i.KVPs[string(k)]
-	if !found {
+	kvpr := i.findKVPR(k)
+	if kvpr == nil {
 		return KeyValuePair{}, 0, NewKeyNotFoundError()
 	}
 	for ; kvpr != nil; kvpr = kvpr.next {
@@ -137,45 +173,56 @@ func (i *InMemoryStorageEngine) LookupKVPair(c context.Context, t Transaction, s
 	return KeyValuePair{}, 0, NewKeyNotFoundError()
 }
 
-type KVPRecordOrderedByKey []KVPRecord
+func (i *InMemoryStorageEngine) LookupKeyValuePairsUnderPosition(ctx context.Context, t Transaction, s Seqno, p Position) (kvps []KeyValuePair, seqnos []Seqno, err error) {
+	pBytes := p.getBytes()
 
-func (k KVPRecordOrderedByKey) Len() int {
-	return len(k)
-}
+	minIndex := sort.Search(len(i.sortedKVPRs), func(n int) bool {
+		k := i.sortedKVPRs[n].kvp.Key
+		pLeadingZeros := bits.LeadingZeros8(pBytes[0])
+		for j := 1; j < 8*len(pBytes)-pLeadingZeros; j++ {
+			jthBitP := (pBytes[(pLeadingZeros+j)/8] & byte(1<<uint(7-((pLeadingZeros+j)%8)))) != 0
+			jthBitK := (k[(j-1)/8] & byte(1<<uint(7-((j-1)%8)))) != 0
+			if !jthBitK && jthBitP {
+				return false
+			} else if jthBitK == jthBitP {
+				continue
+			} else if jthBitK && !jthBitP {
+				return true
+			}
+		}
+		return true
+	})
 
-func (k KVPRecordOrderedByKey) Less(i, j int) bool {
-	return k[i].kvp.Key.Cmp(k[j].kvp.Key) < 0
-}
+	maxIndex := sort.Search(len(i.sortedKVPRs), func(n int) bool {
+		k := i.sortedKVPRs[n].kvp.Key
+		pLeadingZeros := bits.LeadingZeros8(pBytes[0])
+		for j := 1; j < 8*len(pBytes)-pLeadingZeros; j++ {
+			jthBitP := (pBytes[(pLeadingZeros+j)/8] & byte(1<<uint(7-((pLeadingZeros+j)%8)))) != 0
+			jthBitK := (k[(j-1)/8] & byte(1<<uint(7-((j-1)%8)))) != 0
+			if !jthBitK && jthBitP {
+				return false
+			} else if jthBitK == jthBitP {
+				continue
+			} else if jthBitK && !jthBitP {
+				return true
+			}
+		}
+		return false
+	})
 
-func (k KVPRecordOrderedByKey) Swap(i, j int) {
-	k[i], k[j] = k[j], k[i]
-}
-
-var _ sort.Interface = KVPRecordOrderedByKey{}
-
-func (i *InMemoryStorageEngine) LookupKeyValuePairsUnderPosition(ctx context.Context, t Transaction, s Seqno, p Position) (kvp []KeyValuePair, seqnos []Seqno, err error) {
-	var kvprl []KVPRecord
-	for _, kvpr := range i.KVPs {
-		if p.isOnPathToKey(kvpr.kvp.Key) {
-			for ; kvpr != nil; kvpr = kvpr.next {
-				if kvpr.s <= s {
-					kvprl = append(kvprl, *kvpr)
-					break
-				}
+	kvps = make([]KeyValuePair, 0, maxIndex-minIndex)
+	seqnos = make([]Seqno, 0, maxIndex-minIndex)
+	for j := minIndex; j < maxIndex; j++ {
+		kvpr := i.sortedKVPRs[j]
+		for ; kvpr != nil; kvpr = kvpr.next {
+			if kvpr.s <= s {
+				kvps = append(kvps, kvpr.kvp)
+				seqnos = append(seqnos, kvpr.s)
+				break
 			}
 		}
 	}
-
-	sort.Sort(KVPRecordOrderedByKey(kvprl))
-
-	kvp = make([]KeyValuePair, len(kvprl))
-	seqnos = make([]Seqno, len(kvprl))
-	for i, v := range kvprl {
-		kvp[i] = v.kvp
-		seqnos[i] = v.s
-	}
-
-	return kvp, seqnos, nil
+	return kvps, seqnos, nil
 }
 
 func (i *InMemoryStorageEngine) StoreMasterSecret(ctx context.Context, t Transaction, s Seqno, ms MasterSecret) (err error) {

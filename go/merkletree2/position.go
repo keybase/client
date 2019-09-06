@@ -65,6 +65,13 @@ func (t *Config) getAllSiblings(p *Position) (siblings []Position, parent *Posit
 		return nil, nil
 	}
 
+	// Optimization for binary trees
+	if t.childrenPerNode == 2 {
+		var sib big.Int
+		sib.Xor((*big.Int)(p), big.NewInt(1))
+		return []Position{Position(sib)}, parent
+	}
+
 	siblings = make([]Position, t.childrenPerNode-1)
 
 	var child0 big.Int

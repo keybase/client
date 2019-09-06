@@ -65,13 +65,13 @@ type ChildIndex int
 // be of the same type returned by ValueConstructor in the TreeConfig, otherwise
 // the behavior is undefined.
 type KeyValuePair struct {
-	_struct struct{}    `codec:",toarray"`
+	_struct struct{}    `codec:",toarray"` //nolint
 	Key     Key         `codec:"k"`
 	Value   interface{} `codec:"v"`
 }
 
 type KeyHashPair struct {
-	_struct struct{} `codec:",toarray"`
+	_struct struct{} `codec:",toarray"` //nolint
 	Key     Key      `codec:"k"`
 	Hash    Hash     `codec:"h"`
 }
@@ -85,6 +85,8 @@ const (
 	NodeTypeLeaf  NodeType = 2
 )
 
+// A Node is either an internal node or a leaf: INodes and LeafHashes cannot
+// both have length > 0 (else msgpack encoding will fail).
 type Node struct {
 	INodes     []Hash
 	LeafHashes []KeyHashPair
@@ -120,15 +122,17 @@ func (n *Node) CodecDecodeSelf(d *codec.Decoder) {
 }
 
 type PositionHashPair struct {
-	p Position
-	h Hash
+	_struct struct{} `codec:",toarray"` //nolint
+	p       Position `codec:"p"`
+	h       Hash     `codec:"h"`
 }
 
 type RootMetadata struct {
 	// TODO Add timestamp, version.....
-	Seqno            Seqno
-	BareRootHash     Hash
-	SkipPointersHash Hash
+	_struct          struct{} `codec:",toarray"` //nolint
+	Seqno            Seqno    `codec:"n"`
+	BareRootHash     Hash     `codec:"r"`
+	SkipPointersHash Hash     `codec:"s"`
 }
 
 func (t *Tree) makeNextRootMetadata(curr *RootMetadata, newRootHash Hash) RootMetadata {
@@ -312,13 +316,13 @@ func (t *Tree) GetKeyValuePair(ctx context.Context, tr Transaction, s Seqno, k K
 }
 
 type MerkleInclusionProof struct {
-	_struct           struct{} `codec:",toarray"`
-	KeySpecificSecret KeySpecificSecret
-	OtherPairsInLeaf  []KeyHashPair
+	_struct           struct{}          `codec:",toarray"` //nolint
+	KeySpecificSecret KeySpecificSecret `codec:"k"`
+	OtherPairsInLeaf  []KeyHashPair     `codec:"l"`
 	// SiblingHashesOnPath are ordered by level from the farthest to the closest
 	// to the root, and lexicographically within each level.
-	SiblingHashesOnPath []Hash
-	RootMetadataNoHash  RootMetadata
+	SiblingHashesOnPath []Hash       `codec:"s"`
+	RootMetadataNoHash  RootMetadata `codec:"e"`
 }
 
 func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
