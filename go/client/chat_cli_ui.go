@@ -370,11 +370,15 @@ func (c *ChatCLIUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadGa
 	return nil
 }
 
-func (c *ChatCLIUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
-	return chat1.LocationWatchID(0), nil
+func (c *ChatCLIUI) ChatStartLocationUpdates(context.Context, chat1.ChatStartLocationUpdatesArg) error {
+	return nil
 }
 
-func (c *ChatCLIUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+func (c *ChatCLIUI) ChatStopLocationUpdates(context.Context, chat1.ChatStopLocationUpdatesArg) error {
+	return nil
+}
+
+func (c *ChatCLIUI) ChatGetCurrentPosition(context.Context, chat1.ChatGetCurrentPositionArg) error {
 	return nil
 }
 

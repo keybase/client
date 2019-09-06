@@ -1678,13 +1678,6 @@
       ]
     },
     {
-      "type": "record",
-      "name": "LocationWatchID",
-      "fields": [],
-      "typedef": "uint64",
-      "lint": "ignore"
-    },
-    {
       "type": "enum",
       "name": "UICommandStatusDisplayTyp",
       "symbols": [
@@ -2102,7 +2095,7 @@
       ],
       "response": null
     },
-    "chatWatchPosition": {
+    "chatStartLocationUpdates": {
       "request": [
         {
           "name": "sessionID",
@@ -2113,17 +2106,30 @@
           "type": "ConversationID"
         }
       ],
-      "response": "LocationWatchID"
+      "response": null
     },
-    "chatClearWatch": {
+    "chatStopLocationUpdates": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "id",
-          "type": "LocationWatchID"
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "chatGetCurrentPosition": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
         }
       ],
       "response": null

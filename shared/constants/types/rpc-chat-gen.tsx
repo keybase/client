@@ -131,10 +131,6 @@ export type MessageTypes = {
     inParam: {readonly convID: String; readonly status: UIBotCommandsUpdateStatus}
     outParam: void
   }
-  'chat.1.chatUi.chatClearWatch': {
-    inParam: {readonly id: LocationWatchID}
-    outParam: void
-  }
   'chat.1.chatUi.chatCoinFlipStatus': {
     inParam: {readonly statuses?: Array<UICoinFlipStatus> | null}
     outParam: void
@@ -150,6 +146,10 @@ export type MessageTypes = {
   'chat.1.chatUi.chatConfirmChannelDelete': {
     inParam: {readonly channel: String}
     outParam: Boolean
+  }
+  'chat.1.chatUi.chatGetCurrentPosition': {
+    inParam: {readonly convID: ConversationID}
+    outParam: void
   }
   'chat.1.chatUi.chatGiphySearchResults': {
     inParam: {readonly convID: String; readonly results: GiphySearchResults}
@@ -211,6 +211,10 @@ export type MessageTypes = {
     inParam: {readonly teamname: String}
     outParam: void
   }
+  'chat.1.chatUi.chatStartLocationUpdates': {
+    inParam: {readonly convID: ConversationID}
+    outParam: void
+  }
   'chat.1.chatUi.chatStellarDataConfirm': {
     inParam: {readonly summary: UIChatPaymentSummary}
     outParam: Boolean
@@ -227,6 +231,10 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'chat.1.chatUi.chatStopLocationUpdates': {
+    inParam: {readonly convID: ConversationID}
+    outParam: void
+  }
   'chat.1.chatUi.chatThreadCached': {
     inParam: {readonly thread?: String | null}
     outParam: void
@@ -238,10 +246,6 @@ export type MessageTypes = {
   'chat.1.chatUi.chatThreadStatus': {
     inParam: {readonly status: UIChatThreadStatus}
     outParam: void
-  }
-  'chat.1.chatUi.chatWatchPosition': {
-    inParam: {readonly convID: ConversationID}
-    outParam: LocationWatchID
   }
   'chat.1.chatUi.triggerContactSync': {
     inParam: void
@@ -1042,7 +1046,6 @@ export type LiveLocation = {readonly endTime: Gregor1.Time}
 export type LoadFlipRes = {readonly status: UICoinFlipStatus; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type LoadGalleryRes = {readonly messages?: Array<UIMessage> | null; readonly last: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type LocalConversationVers = Uint64
-export type LocationWatchID = Uint64
 export type MakePreviewRes = {readonly mimeType: String; readonly previewMimeType?: String | null; readonly location?: PreviewLocation | null; readonly metadata?: AssetMetadata | null; readonly baseMetadata?: AssetMetadata | null}
 export type MarkAsReadLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type MarkAsReadRes = {readonly rateLimit?: RateLimit | null}
@@ -1280,8 +1283,9 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}) => IncomingReturn
-  'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}) => IncomingReturn
-  'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatStartLocationUpdates'?: (params: MessageTypes['chat.1.chatUi.chatStartLocationUpdates']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatStopLocationUpdates'?: (params: MessageTypes['chat.1.chatUi.chatStopLocationUpdates']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatGetCurrentPosition'?: (params: MessageTypes['chat.1.chatUi.chatGetCurrentPosition']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatCommandStatus'?: (params: MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatBotCommandsUpdateStatus'?: (params: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.triggerContactSync'?: (params: MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1338,8 +1342,9 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatCommandMarkdown'?: (params: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandMarkdown']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatMaybeMentionUpdate'?: (params: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatMaybeMentionUpdate']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatLoadGalleryHit'?: (params: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatLoadGalleryHit']['outParam']) => void}) => IncomingReturn
-  'chat.1.chatUi.chatWatchPosition'?: (params: MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void}) => IncomingReturn
-  'chat.1.chatUi.chatClearWatch'?: (params: MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatStartLocationUpdates'?: (params: MessageTypes['chat.1.chatUi.chatStartLocationUpdates']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStartLocationUpdates']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatStopLocationUpdates'?: (params: MessageTypes['chat.1.chatUi.chatStopLocationUpdates']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStopLocationUpdates']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatGetCurrentPosition'?: (params: MessageTypes['chat.1.chatUi.chatGetCurrentPosition']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatGetCurrentPosition']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatCommandStatus'?: (params: MessageTypes['chat.1.chatUi.chatCommandStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatCommandStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatBotCommandsUpdateStatus'?: (params: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.triggerContactSync'?: (params: MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void}) => IncomingReturn
@@ -1433,8 +1438,9 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatCommandMarkdown'
 // 'chat.1.chatUi.chatMaybeMentionUpdate'
 // 'chat.1.chatUi.chatLoadGalleryHit'
-// 'chat.1.chatUi.chatWatchPosition'
-// 'chat.1.chatUi.chatClearWatch'
+// 'chat.1.chatUi.chatStartLocationUpdates'
+// 'chat.1.chatUi.chatStopLocationUpdates'
+// 'chat.1.chatUi.chatGetCurrentPosition'
 // 'chat.1.chatUi.chatCommandStatus'
 // 'chat.1.chatUi.chatBotCommandsUpdateStatus'
 // 'chat.1.chatUi.triggerContactSync'

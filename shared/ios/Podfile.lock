@@ -18,12 +18,21 @@ PODS:
   - EXImagePicker (5.0.2):
     - UMCore
     - UMFileSystemInterface
+  - EXLocation (5.0.0):
+    - UMCore
+    - UMPermissionsInterface
+    - UMTaskManagerInterface
   - EXPermissions (5.0.1):
     - UMCore
     - UMPermissionsInterface
   - EXSMS (5.0.0):
     - UMCore
     - UMPermissionsInterface
+  - EXTaskManager (5.0.0):
+    - EXAppLoaderProvider
+    - UMConstantsInterface
+    - UMCore
+    - UMTaskManagerInterface
   - Folly (2018.10.22.00):
     - boost-for-react-native
     - DoubleConversion
@@ -141,8 +150,10 @@ DEPENDENCIES:
   - EXContacts (from `../node_modules/expo-contacts/ios`)
   - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXImagePicker (from `../node_modules/expo-image-picker/ios`)
+  - EXLocation (from `../node_modules/expo-location/ios`)
   - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - EXSMS (from `../node_modules/expo-sms/ios`)
+  - EXTaskManager (from `../node_modules/expo-task-manager/ios`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - lottie-ios (from `../node_modules/lottie-ios`)
@@ -210,12 +221,18 @@ EXTERNAL SOURCES:
   EXImagePicker:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-image-picker/ios"
+  EXLocation:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-location/ios"
   EXPermissions:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-permissions/ios"
   EXSMS:
     :path: !ruby/object:Pathname
     path: "../node_modules/expo-sms/ios"
+  EXTaskManager:
+    :path: !ruby/object:Pathname
+    path: "../node_modules/expo-task-manager/ios"
   Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/Folly.podspec"
   glog:
@@ -292,8 +309,10 @@ SPEC CHECKSUMS:
   EXContacts: cba6db9b4d8ef590c2185711a648fa32d90041b9
   EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
   EXImagePicker: 80ebecae5905b1d642ef5b12a592cf8af9f051dc
+  EXLocation: d1fb7359158f4306bd8d1843f58411e9997faf89
   EXPermissions: 8e05008ed4fc8c9be6c17ea95301fc3f3f005a7b
   EXSMS: a9b5c82b4f290271779270eb51e2c3be80ab9dff
+  EXTaskManager: 00fb4f979f079ab32a252997c560e06bdeada952
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
   lottie-ios: d699fdee68d7b63e721d949388b015fef1aaa4ac
@@ -325,4 +344,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 90218e8e6c119afcddcb8ab5948231bdc58d0574
 
-COCOAPODS: 1.7.3
+COCOAPODS: 1.7.2

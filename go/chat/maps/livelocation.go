@@ -116,12 +116,16 @@ type nullChatUI struct {
 	libkb.ChatUI
 }
 
-func (n nullChatUI) ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error) {
-	return chat1.LocationWatchID(0), errors.New("no chat UI")
+func (n nullChatUI) ChatStartLocationUpdates(context.Context, chat1.ConversationID) error {
+	return errors.New("no chat UI")
 }
 
-func (n nullChatUI) ChatClearWatch(context.Context, chat1.LocationWatchID) error {
-	return nil
+func (n nullChatUI) ChatStopLocationUpdates(context.Context, chat1.ConversationID) error {
+	return errors.New("no chat UI")
+}
+
+func (n nullChatUI) ChatGetCurrentPosition(context.Context, chat1.ConversationID) error {
+	return errors.New("no chat UI")
 }
 
 func (n nullChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, string,
@@ -248,15 +252,15 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	return nil
 }
 
-func (l *LiveLocationTracker) startWatch(ctx context.Context, convID chat1.ConversationID) (watchID chat1.LocationWatchID, err error) {
+func (l *LiveLocationTracker) startWatch(ctx context.Context, convID chat1.ConversationID) (err error) {
 	// try this a couple times in case we are starting fresh and the UI isn't ready yet
 	maxWatchAttempts := 20
 	watchAttempts := 0
 	for {
-		if watchID, err = l.getChatUI(ctx).ChatWatchPosition(ctx, convID); err != nil {
+		if err = l.getChatUI(ctx).ChatStartLocationUpdates(ctx, convID); err != nil {
 			l.Debug(ctx, "startWatch: unable to watch position: attempt: %d msg: %s", watchAttempts, err)
 			if watchAttempts > maxWatchAttempts {
-				return 0, err
+				return err
 			}
 		} else {
 			break
@@ -264,7 +268,7 @@ func (l *LiveLocationTracker) startWatch(ctx context.Context, convID chat1.Conve
 		maxWatchAttempts++
 		time.Sleep(time.Second)
 	}
-	return watchID, nil
+	return nil
 }
 
 func (l *LiveLocationTracker) tracker(t *locationTrack) error {
@@ -275,20 +279,23 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	}
 
 	// start up the OS watch routine
-	watchID, err := l.startWatch(ctx, t.convID)
+	err := l.startWatch(ctx, t.convID)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		// drop everything when our live location ends
-		err := l.getChatUI(ctx).ChatClearWatch(ctx, watchID)
-		if err != nil {
-			l.Debug(ctx, "tracker[%v]: error clearing watch: %+v", watchID, err)
-		}
+
 		l.Lock()
 		defer l.Unlock()
 		delete(l.trackers, t.Key())
 		l.saveLocked(ctx)
+		if len(l.trackers) == 0 {
+			err := l.getChatUI(ctx).ChatStopLocationUpdates(ctx, t.convID)
+			if err != nil {
+				l.Debug(ctx, "tracker: error stopping location updates: %+v", err)
+			}
+		}
 	}()
 	// if this is a live location request, just put whatever the last coord is on the screen, makes it
 	// feel more live
@@ -302,9 +309,9 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 		select {
 		case coord := <-t.updateCh:
 			added := t.Drain(coord)
-			l.Debug(ctx, "tracker[%v]: got coords", watchID)
+			l.Debug(ctx, "tracker: got coords")
 			if firstUpdate {
-				l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
+				l.Debug(ctx, "tracker: updating due to live location first update")
 				err := l.updateMapUnfurl(ctx, t, false)
 				if err != nil {
 					return err
@@ -316,7 +323,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			l.Lock()
 			l.saveLocked(ctx)
 			l.Unlock()
-			l.Debug(ctx, "tracker[%v]: added %d coords", watchID, added)
+			l.Debug(ctx, "tracker: added %d coords", added)
 			if l.TestingCoordsAddedCh != nil {
 				for i := 0; i < added; i++ {
 					l.TestingCoordsAddedCh <- struct{}{}
@@ -327,7 +334,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			if shouldUpdate {
 				// drain anything in the buffer if we are being updated and posting at the same time
 				t.Drain(chat1.Coordinate{})
-				l.Debug(ctx, "tracker[%v]: updating due to next update", watchID)
+				l.Debug(ctx, "tracker: updating due to next update")
 				err := l.updateMapUnfurl(ctx, t, false)
 				if err != nil {
 					return err
@@ -336,7 +343,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
 		case <-l.clock.AfterTime(t.endTime):
-			l.Debug(ctx, "tracker[%v]: live location complete, updating", watchID)
+			l.Debug(ctx, "tracker: live location complete, updating")
 			added := t.Drain(chat1.Coordinate{})
 			if t.getCurrentPosition && !shouldUpdate && added == 0 {
 				// only bother for current position if we have a coordinate
@@ -344,7 +351,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			}
 			return l.updateMapUnfurl(ctx, t, true)
 		case <-t.stopCh:
-			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
+			l.Debug(ctx, "tracker: stopped, updating with done status")
 			if t.getCurrentPosition {
 				// don't need to update here
 				return nil

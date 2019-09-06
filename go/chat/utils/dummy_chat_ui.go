@@ -125,11 +125,15 @@ func (r DummyChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatLoadG
 	return nil
 }
 
-func (r DummyChatUI) ChatWatchPosition(context.Context, chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
-	return chat1.LocationWatchID(0), nil
+func (r DummyChatUI) ChatStartLocationUpdates(context.Context, chat1.ChatStartLocationUpdatesArg) error {
+	return nil
 }
 
-func (r DummyChatUI) ChatClearWatch(context.Context, chat1.ChatClearWatchArg) error {
+func (r DummyChatUI) ChatStopLocationUpdates(context.Context, chat1.ChatStopLocationUpdatesArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatGetCurrentPosition(context.Context, chat1.ChatGetCurrentPositionArg) error {
 	return nil
 }
 

@@ -473,9 +473,9 @@ protocol chatUi {
   void chatLoadGalleryHit(int sessionID, UIMessage message);
 
   // Location support
-  @typedef("uint64") @lint("ignore") record LocationWatchID {}
-  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
-  void chatClearWatch(int sessionID, LocationWatchID id);
+  void chatStartLocationUpdates(int sessionID, ConversationID convID);
+  void chatStopLocationUpdates(int sessionID, ConversationID convID);
+  void chatGetCurrentPosition(int sessionID, ConversationID convID);
 
   // Slash command feedback
   enum UICommandStatusDisplayTyp {

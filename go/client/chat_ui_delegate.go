@@ -263,16 +263,23 @@ func (c *DelegateChatUI) ChatLoadGalleryHit(ctx context.Context, arg chat1.ChatL
 	return nil
 }
 
-func (c *DelegateChatUI) ChatWatchPosition(ctx context.Context, arg chat1.ChatWatchPositionArg) (chat1.LocationWatchID, error) {
+func (c *DelegateChatUI) ChatStartLocationUpdates(ctx context.Context, arg chat1.ChatStartLocationUpdatesArg) error {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
-		return (*chatUI).ChatWatchPosition(ctx, arg)
+		return (*chatUI).ChatStartLocationUpdates(ctx, arg)
 	}
-	return chat1.LocationWatchID(0), nil
+	return nil
 }
 
-func (c *DelegateChatUI) ChatClearWatch(ctx context.Context, arg chat1.ChatClearWatchArg) error {
+func (c *DelegateChatUI) ChatStopLocationUpdates(ctx context.Context, arg chat1.ChatStopLocationUpdatesArg) error {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
-		return (*chatUI).ChatClearWatch(ctx, arg)
+		return (*chatUI).ChatStopLocationUpdates(ctx, arg)
+	}
+	return nil
+}
+
+func (c *DelegateChatUI) ChatGetCurrentPosition(ctx context.Context, arg chat1.ChatGetCurrentPositionArg) error {
+	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
+		return (*chatUI).ChatGetCurrentPosition(ctx, arg)
 	}
 	return nil
 }

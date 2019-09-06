@@ -29,6 +29,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
+import * as Location from 'expo-location'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {pluralize} from '../../util/string'
@@ -66,6 +67,30 @@ export const requestLocationPermission = (): Promise<void> => {
     )
   }
   return Promise.resolve()
+}
+
+const onChatStartLocationUpdates = async (
+  _: TypedState,
+  action: EngineGen.Chat1ChatUiChatStartLocationUpdatesPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)
+}
+
+const onChatStopLocationUpdates = async (
+  _: TypedState,
+  action: EngineGen.Chat1ChatUiChatStartLocationUpdatesPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)
+}
+
+const onChatGetCurrentPosition = async (
+  _: TypedState,
+  action: EngineGen.Chat1ChatUiChatStartLocationUpdatesPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)
 }
 
 export function saveAttachmentDialog(filePath: string): Promise<NextURI> {

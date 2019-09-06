@@ -2368,12 +2368,6 @@ func (o UICommandMarkdown) DeepCopy() UICommandMarkdown {
 	}
 }
 
-type LocationWatchID uint64
-
-func (o LocationWatchID) DeepCopy() LocationWatchID {
-	return o
-}
-
 type UICommandStatusDisplayTyp int
 
 const (
@@ -2602,14 +2596,19 @@ type ChatLoadGalleryHitArg struct {
 	Message   UIMessage `codec:"message" json:"message"`
 }
 
-type ChatWatchPositionArg struct {
+type ChatStartLocationUpdatesArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 }
 
-type ChatClearWatchArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Id        LocationWatchID `codec:"id" json:"id"`
+type ChatStopLocationUpdatesArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+}
+
+type ChatGetCurrentPositionArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
 }
 
 type ChatCommandStatusArg struct {
@@ -2659,8 +2658,9 @@ type ChatUiInterface interface {
 	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 	ChatMaybeMentionUpdate(context.Context, ChatMaybeMentionUpdateArg) error
 	ChatLoadGalleryHit(context.Context, ChatLoadGalleryHitArg) error
-	ChatWatchPosition(context.Context, ChatWatchPositionArg) (LocationWatchID, error)
-	ChatClearWatch(context.Context, ChatClearWatchArg) error
+	ChatStartLocationUpdates(context.Context, ChatStartLocationUpdatesArg) error
+	ChatStopLocationUpdates(context.Context, ChatStopLocationUpdatesArg) error
+	ChatGetCurrentPosition(context.Context, ChatGetCurrentPositionArg) error
 	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
 	ChatBotCommandsUpdateStatus(context.Context, ChatBotCommandsUpdateStatusArg) error
 	TriggerContactSync(context.Context, int) error
@@ -3090,33 +3090,48 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatWatchPosition": {
+			"chatStartLocationUpdates": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatWatchPositionArg
+					var ret [1]ChatStartLocationUpdatesArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatWatchPositionArg)
+					typedArgs, ok := args.(*[1]ChatStartLocationUpdatesArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatWatchPositionArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatStartLocationUpdatesArg)(nil), args)
 						return
 					}
-					ret, err = i.ChatWatchPosition(ctx, typedArgs[0])
+					err = i.ChatStartLocationUpdates(ctx, typedArgs[0])
 					return
 				},
 			},
-			"chatClearWatch": {
+			"chatStopLocationUpdates": {
 				MakeArg: func() interface{} {
-					var ret [1]ChatClearWatchArg
+					var ret [1]ChatStopLocationUpdatesArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatClearWatchArg)
+					typedArgs, ok := args.(*[1]ChatStopLocationUpdatesArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]ChatClearWatchArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ChatStopLocationUpdatesArg)(nil), args)
 						return
 					}
-					err = i.ChatClearWatch(ctx, typedArgs[0])
+					err = i.ChatStopLocationUpdates(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatGetCurrentPosition": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatGetCurrentPositionArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatGetCurrentPositionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatGetCurrentPositionArg)(nil), args)
+						return
+					}
+					err = i.ChatGetCurrentPosition(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -3317,13 +3332,18 @@ func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGall
 	return
 }
 
-func (c ChatUiClient) ChatWatchPosition(ctx context.Context, __arg ChatWatchPositionArg) (res LocationWatchID, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res)
+func (c ChatUiClient) ChatStartLocationUpdates(ctx context.Context, __arg ChatStartLocationUpdatesArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStartLocationUpdates", []interface{}{__arg}, nil)
 	return
 }
 
-func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil)
+func (c ChatUiClient) ChatStopLocationUpdates(ctx context.Context, __arg ChatStopLocationUpdatesArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStopLocationUpdates", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatGetCurrentPosition(ctx context.Context, __arg ChatGetCurrentPositionArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGetCurrentPosition", []interface{}{__arg}, nil)
 	return
 }
 

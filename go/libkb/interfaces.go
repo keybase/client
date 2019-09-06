@@ -435,8 +435,9 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error)
-	ChatClearWatch(context.Context, chat1.LocationWatchID) error
+	ChatStartLocationUpdates(context.Context, chat1.ConversationID) error
+	ChatStopLocationUpdates(context.Context, chat1.ConversationID) error
+	ChatGetCurrentPosition(context.Context, chat1.ConversationID) error
 	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
 		[]chat1.UICommandStatusActionTyp) error
 	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
