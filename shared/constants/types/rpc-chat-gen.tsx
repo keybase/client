@@ -240,7 +240,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.chatUi.chatWatchPosition': {
-    inParam: {readonly convID: ConversationID}
+    inParam: {readonly convID: ConversationID; readonly perm: UIWatchPositionPerm}
     outParam: LocationWatchID
   }
   'chat.1.chatUi.triggerContactSync': {
@@ -882,6 +882,11 @@ export enum UITextDecorationTyp {
   link = 4,
   mailto = 5,
   kbfspath = 6,
+}
+
+export enum UIWatchPositionPerm {
+  base = 0,
+  always = 1,
 }
 
 export enum UnfurlMode {

@@ -474,7 +474,11 @@ protocol chatUi {
 
   // Location support
   @typedef("uint64") @lint("ignore") record LocationWatchID {}
-  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
+  enum UIWatchPositionPerm {
+    BASE_0,
+    ALWAYS_1
+  }
+  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID, UIWatchPositionPerm perm);
   void chatClearWatch(int sessionID, LocationWatchID id);
 
   // Slash command feedback

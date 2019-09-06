@@ -2374,6 +2374,32 @@ func (o LocationWatchID) DeepCopy() LocationWatchID {
 	return o
 }
 
+type UIWatchPositionPerm int
+
+const (
+	UIWatchPositionPerm_BASE   UIWatchPositionPerm = 0
+	UIWatchPositionPerm_ALWAYS UIWatchPositionPerm = 1
+)
+
+func (o UIWatchPositionPerm) DeepCopy() UIWatchPositionPerm { return o }
+
+var UIWatchPositionPermMap = map[string]UIWatchPositionPerm{
+	"BASE":   0,
+	"ALWAYS": 1,
+}
+
+var UIWatchPositionPermRevMap = map[UIWatchPositionPerm]string{
+	0: "BASE",
+	1: "ALWAYS",
+}
+
+func (e UIWatchPositionPerm) String() string {
+	if v, ok := UIWatchPositionPermRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UICommandStatusDisplayTyp int
 
 const (
@@ -2603,8 +2629,9 @@ type ChatLoadGalleryHitArg struct {
 }
 
 type ChatWatchPositionArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID      `codec:"convID" json:"convID"`
+	Perm      UIWatchPositionPerm `codec:"perm" json:"perm"`
 }
 
 type ChatClearWatchArg struct {
