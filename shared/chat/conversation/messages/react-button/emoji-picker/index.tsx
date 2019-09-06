@@ -194,23 +194,26 @@ const HeaderRow = ({section}: {section: Section}) => (
   </Box2>
 )
 
-const styles = styleSheetCreate({
-  alignItemsCenter: {
-    alignItems: 'center',
-  },
-  emoji: {
-    padding: emojiPadding,
-    width: emojiWidthWithPadding,
-  },
-  flexWrap: {
-    flexWrap: 'wrap',
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    backgroundColor: globalColors.white,
-    height: 32,
-    paddingLeft: globalMargins.tiny,
-  },
-})
+const styles = styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {
+        alignItems: 'center',
+      },
+      emoji: {
+        padding: emojiPadding,
+        width: emojiWidthWithPadding,
+      },
+      flexWrap: {
+        flexWrap: 'wrap',
+      },
+      sectionHeader: {
+        alignItems: 'center',
+        backgroundColor: globalColors.white,
+        height: 32,
+        paddingLeft: globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default EmojiPicker

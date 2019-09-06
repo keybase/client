@@ -125,10 +125,12 @@ func TestBackgroundPurge(t *testing.T) {
 	// Load our conv with the initial tlf msg
 	t.Logf("assert listener 0")
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(conv1.ConvID, nil, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(conv1.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh,
+			types.ConvLoaderUnique, nil)))
 	assertListener(conv1.ConvID, 0)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(conv2.ConvID, nil, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(conv2.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh,
+			types.ConvLoaderUnique, nil)))
 	assertListener(conv2.ConvID, 0)
 
 	// Nothing is up for purging yet

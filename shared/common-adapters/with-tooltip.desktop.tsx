@@ -94,7 +94,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       color: Styles.globalColors.white,
       wordBreak: 'break-word',
-    },
+    } as const,
   }),
 }))
 

@@ -27,7 +27,7 @@ const styles = Styles.styleSheetCreate(() => ({
   notice: {marginTop: Styles.globalMargins.small},
   text: Styles.platformStyles({
     common: {color: Styles.globalColors.black_50},
-    isElectron: {wordBreak: 'break-word'},
+    isElectron: {wordBreak: 'break-word'} as const,
   }),
 }))
 

@@ -83,45 +83,48 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
     </Kb.Box2>
   )
 
-const styles = Styles.styleSheetCreate({
-  accountID: Styles.platformStyles({
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-  }),
-  accountInfo: {
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xsmall,
-  },
-  accountNameContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-    },
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      marginTop: -Styles.globalMargins.xtiny,
-    },
-  }),
-  gear: {
-    position: 'relative',
-    top: 1,
-  },
-  left: Styles.platformStyles({
-    common: {
-      minWidth: 240,
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-  }),
-  loading: {
-    height: 16,
-    width: 16,
-  },
-  rightActions: Styles.platformStyles({
-    common: {
-      alignSelf: 'stretch',
-      paddingBottom: 6,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      accountID: Styles.platformStyles({
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      accountInfo: {
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.xsmall,
+      },
+      accountNameContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          marginTop: -Styles.globalMargins.xtiny,
+        },
+      }),
+      gear: {
+        position: 'relative',
+        top: 1,
+      },
+      left: Styles.platformStyles({
+        common: {
+          minWidth: 240,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      loading: {
+        height: 16,
+        width: 16,
+      },
+      rightActions: Styles.platformStyles({
+        common: {
+          alignSelf: 'stretch',
+          paddingBottom: 6,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+    } as const)
+)

@@ -188,11 +188,18 @@ func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
 	return int(c) > int(c2)
 }
 
+type ConvLoaderUniqueness int
+
+const (
+	ConvLoaderUnique ConvLoaderUniqueness = iota
+	ConvLoaderGeneric
+)
+
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
-	Query        *chat1.GetThreadQuery
 	Pagination   *chat1.Pagination
 	Priority     ConvLoaderPriority
+	Uniqueness   ConvLoaderUniqueness
 	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
 }
 
@@ -201,17 +208,16 @@ func (j ConvLoaderJob) HigherPriorityThan(j2 ConvLoaderJob) bool {
 }
 
 func (j ConvLoaderJob) String() string {
-	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
+	return fmt.Sprintf("[convID: %s pagination: %s unique: %v]", j.ConvID, j.Pagination, j.Uniqueness)
 }
 
-func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination, priority ConvLoaderPriority,
-	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
+func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
+	uniqueness ConvLoaderUniqueness, postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
-		Query:        query,
 		Pagination:   pagination,
 		Priority:     priority,
+		Uniqueness:   uniqueness,
 		PostLoadHook: postLoadHook,
 	}
 }

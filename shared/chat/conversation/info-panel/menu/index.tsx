@@ -217,65 +217,68 @@ class InfoPanelMenu extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  badge: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blue,
-      borderRadius: 6,
-      height: 8,
-      margin: 6,
-      width: 8,
-    },
-    isElectron: {
-      margin: 4,
-      marginTop: 5,
-      position: 'absolute',
-      right: Styles.globalMargins.tiny,
-    },
-  }),
-  headerAvatar: Styles.platformStyles({
-    isElectron: {
-      marginBottom: 2,
-    },
-    isMobile: {
-      marginBottom: 4,
-    },
-  }),
-  headerContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-    },
-    isElectron: {
-      paddingTop: 16,
-      width: 200, // don't expand if text is long
-    },
-    isMobile: {paddingBottom: 24, paddingTop: 40},
-  }),
-  icon: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  maybeLongText: Styles.platformStyles({
-    common: {
-      ...Styles.padding(0, Styles.globalMargins.tiny),
-      textAlign: 'center',
-    },
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-  }),
-  muteAction: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  noTopborder: {
-    borderTopWidth: 0,
-  },
-  text: Styles.platformStyles({
-    isMobile: {
-      color: Styles.globalColors.blueDark,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blue,
+          borderRadius: 6,
+          height: 8,
+          margin: 6,
+          width: 8,
+        },
+        isElectron: {
+          margin: 4,
+          marginTop: 5,
+          position: 'absolute',
+          right: Styles.globalMargins.tiny,
+        },
+      }),
+      headerAvatar: Styles.platformStyles({
+        isElectron: {
+          marginBottom: 2,
+        },
+        isMobile: {
+          marginBottom: 4,
+        },
+      }),
+      headerContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+        },
+        isElectron: {
+          paddingTop: 16,
+          width: 200, // don't expand if text is long
+        },
+        isMobile: {paddingBottom: 24, paddingTop: 40},
+      }),
+      icon: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      maybeLongText: Styles.platformStyles({
+        common: {
+          ...Styles.padding(0, Styles.globalMargins.tiny),
+          textAlign: 'center',
+        },
+        isElectron: {
+          wordBreak: 'break-word',
+        } as const,
+      }),
+      muteAction: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+      },
+      noTopborder: {
+        borderTopWidth: 0,
+      },
+      text: Styles.platformStyles({
+        isMobile: {
+          color: Styles.globalColors.blueDark,
+        },
+      }),
+    } as const)
+)
 
 export {InfoPanelMenu}
