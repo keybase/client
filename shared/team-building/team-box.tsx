@@ -28,7 +28,6 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   let displayName: string
   switch (u.service) {
     case 'keybase':
-    case 'contact': // do not display "michal@keyba.se on email" or similar
     case 'email':
       displayName = u.username
       break
