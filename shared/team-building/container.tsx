@@ -352,6 +352,19 @@ const deriveRolePickerArrowKeyFns = memoize(
   })
 )
 
+const deriveOnChangeService = memoize(
+  (
+    onChangeService: OwnProps['onChangeService'],
+    search: (text: string, service: Types.ServiceIdWithContact) => void,
+    searchString: string
+  ) => (service: Types.ServiceIdWithContact) => {
+    onChangeService(service)
+    if (!Types.isContactServiceId(service)) {
+      search(searchString, service)
+    }
+  }
+)
+
 const alphabet = 'abcdefghijklmnopqrstuvwxyz'
 const aCharCode = alphabet.charCodeAt(0)
 const alphaSet = new Set(alphabet)
@@ -572,13 +585,6 @@ const mergeProps = (
       }
     : emptyObj
 
-  const onChangeService = (service: Types.ServiceIdWithContact) => {
-    ownProps.onChangeService(service)
-    if (!Types.isContactServiceId(service)) {
-      dispatchProps._search(ownProps.searchString, service)
-    }
-  }
-
   return {
     ...headerHocProps,
     ...contactProps,
@@ -590,7 +596,11 @@ const mergeProps = (
     onAdd,
     onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
-    onChangeService,
+    onChangeService: deriveOnChangeService(
+      ownProps.onChangeService,
+      dispatchProps._search,
+      ownProps.searchString
+    ),
     onChangeText,
     onClear,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
