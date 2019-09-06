@@ -131,6 +131,7 @@ type SignupScreenProps = {
   skipMobileHeader?: boolean
   headerStyle?: Styles.StylesCrossPlatform
   containerStyle?: Styles.StylesCrossPlatform
+  contentContainerStyle?: Styles.StylesCrossPlatform
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
@@ -181,7 +182,12 @@ export const SignupScreen = (props: SignupScreenProps) => (
       ])}
       fullWidth={true}
     >
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.body} fullWidth={true}>
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+        fullWidth={true}
+      >
         {props.children}
       </Kb.Box2>
       {/* Banners after children so they go on top */}
