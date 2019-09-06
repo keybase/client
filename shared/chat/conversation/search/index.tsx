@@ -299,76 +299,79 @@ class ThreadSearchMobile extends React.Component<SearchProps & Props> {
 
 export default ThreadSearch(Styles.isMobile ? ThreadSearchMobile : ThreadSearchDesktop)
 
-const styles = Styles.styleSheetCreate(() => ({
-  done: {
-    color: Styles.globalColors.blueDark,
-  },
-  doneContainer: {
-    flexShrink: 0,
-  },
-  hitList: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter3,
-      borderBottom: '1px solid',
-      borderColor: Styles.globalColors.black_20,
-      height: 4 * hitHeight,
-    },
-  }),
-  hitRow: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    height: hitHeight,
-    justifyContent: 'space-between',
-    padding: Styles.globalMargins.tiny,
-  },
-  hitSummary: Styles.platformStyles({
-    isElectron: {
-      display: 'inline',
-      flex: 1,
-      marginLeft: Styles.globalMargins.tiny,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-  inputContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_20,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      flex: 1,
-      justifyContent: 'space-between',
-    },
-    isElectron: {
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      padding: Styles.globalMargins.tiny,
-    },
-  }),
-  outerContainer: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-    justifyContent: 'space-between',
-    padding: Styles.globalMargins.tiny,
-  },
-  progress: {
-    height: 14,
-  },
-  queryContainer: {
-    flex: 1,
-  },
-  results: {
-    color: Styles.globalColors.black_50,
-  },
-  resultsContainer: {
-    flexShrink: 0,
-  },
-  time: {
-    flexShrink: 0,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      done: {
+        color: Styles.globalColors.blueDark,
+      },
+      doneContainer: {
+        flexShrink: 0,
+      },
+      hitList: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueLighter3,
+          borderBottom: '1px solid',
+          borderColor: Styles.globalColors.black_20,
+          height: 4 * hitHeight,
+        },
+      }),
+      hitRow: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: hitHeight,
+        justifyContent: 'space-between',
+        padding: Styles.globalMargins.tiny,
+      },
+      hitSummary: Styles.platformStyles({
+        isElectron: {
+          display: 'inline',
+          flex: 1,
+          marginLeft: Styles.globalMargins.tiny,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      inputContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_20,
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flex: 1,
+          justifyContent: 'space-between',
+        },
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          padding: Styles.globalMargins.tiny,
+        },
+      }),
+      outerContainer: {
+        backgroundColor: Styles.globalColors.blueLighter3,
+        justifyContent: 'space-between',
+        padding: Styles.globalMargins.tiny,
+      },
+      progress: {
+        height: 14,
+      },
+      queryContainer: {
+        flex: 1,
+      },
+      results: {
+        color: Styles.globalColors.black_50,
+      },
+      resultsContainer: {
+        flexShrink: 0,
+      },
+      time: {
+        flexShrink: 0,
+      },
+    } as const)
+)

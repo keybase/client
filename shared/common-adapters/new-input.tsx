@@ -82,35 +82,38 @@ const NewInput = React.forwardRef<PlainInput, Props>((props, ref) => (
   <ReflessNewInput {...props} forwardedRef={ref} />
 ))
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      margin: 0,
-      padding: Styles.globalMargins.xtiny,
-    },
-    isElectron: {width: '100%'},
-  }),
-  displayFlex: {
-    display: 'flex',
-  },
-  error: {
-    borderColor: Styles.globalColors.red,
-  },
-  focused: {
-    borderColor: Styles.globalColors.blue,
-  },
-  hideBorder: {
-    borderWidth: 0,
-  },
-  icon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: 4,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          margin: 0,
+          padding: Styles.globalMargins.xtiny,
+        },
+        isElectron: {width: '100%'},
+      }),
+      displayFlex: {
+        display: 'flex',
+      },
+      error: {
+        borderColor: Styles.globalColors.red,
+      },
+      focused: {
+        borderColor: Styles.globalColors.blue,
+      },
+      hideBorder: {
+        borderWidth: 0,
+      },
+      icon: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default NewInput

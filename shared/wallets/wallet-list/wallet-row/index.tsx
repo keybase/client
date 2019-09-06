@@ -22,54 +22,57 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  amount: {
-    ...rightColumnStyle,
-  },
-  amountSelected: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.white,
-  },
-  avatar: {marginRight: Styles.globalMargins.xtiny},
-  badge: {
-    marginLeft: 6,
-  },
-  containerBox: {
-    height: Styles.isMobile ? 56 : 48,
-  },
-  icon: {
-    alignSelf: 'center',
-    height: 32,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      amount: {
+        ...rightColumnStyle,
+      },
+      amountSelected: {
+        ...rightColumnStyle,
+        color: Styles.globalColors.white,
+      },
+      avatar: {marginRight: Styles.globalMargins.xtiny},
+      badge: {
+        marginLeft: 6,
+      },
+      containerBox: {
+        height: Styles.isMobile ? 56 : 48,
+      },
+      icon: {
+        alignSelf: 'center',
+        height: 32,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+      },
 
-  rightColumn: rightColumnStyle,
+      rightColumn: rightColumnStyle,
 
-  title: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black,
-  },
-  titleSelected: {
-    ...Styles.globalStyles.fontSemibold,
-    ...rightColumnStyle,
-    color: Styles.globalColors.white,
-  },
-  unread: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: 6,
-    flexShrink: 0,
-    height: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.tiny,
-  },
-  unreadContainer: {
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingRight: Styles.globalMargins.tiny,
-  },
-} as const))
+      title: {
+        ...rightColumnStyle,
+        color: Styles.globalColors.black,
+      },
+      titleSelected: {
+        ...Styles.globalStyles.fontSemibold,
+        ...rightColumnStyle,
+        color: Styles.globalColors.white,
+      },
+      unread: {
+        backgroundColor: Styles.globalColors.orange,
+        borderRadius: 6,
+        flexShrink: 0,
+        height: Styles.globalMargins.tiny,
+        width: Styles.globalMargins.tiny,
+      },
+      unreadContainer: {
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        flex: 1,
+        justifyContent: 'flex-end',
+        paddingRight: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 const HoverBox = Styles.isMobile
   ? Kb.Box2

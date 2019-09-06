@@ -116,62 +116,65 @@ const UnpinPrompt = (props: UnpinProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  author: {
-    color: Styles.globalColors.black,
-  },
-  blueBar: {
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.blue,
-    width: Styles.globalMargins.xtiny,
-  },
-  close: {
-    alignSelf: 'center',
-  },
-  container: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-    backgroundColor: Styles.globalColors.white,
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: 'solid',
-    left: 0,
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-  },
-  imageContainer: {
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  label: {
-    color: Styles.globalColors.blueDark,
-  },
-  popup: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
-    },
-    isElectron: {
-      maxWidth: 200,
-    },
-  }),
-  progress: Styles.platformStyles({
-    isElectron: {
-      alignSelf: 'center',
-      height: 17,
-      width: 17,
-    },
-  }),
-  text: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_50,
-    },
-    isElectron: {
-      whiteSpace: 'pre-wrap',
-      wordBreak: 'break-word',
-    }as const,
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      author: {
+        color: Styles.globalColors.black,
+      },
+      blueBar: {
+        alignSelf: 'stretch',
+        backgroundColor: Styles.globalColors.blue,
+        width: Styles.globalMargins.xtiny,
+      },
+      close: {
+        alignSelf: 'center',
+      },
+      container: {
+        ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+        backgroundColor: Styles.globalColors.white,
+        borderBottomWidth: 1,
+        borderColor: Styles.globalColors.black_10,
+        borderStyle: 'solid',
+        left: 0,
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+      },
+      imageContainer: {
+        overflow: 'hidden',
+        position: 'relative',
+      },
+      label: {
+        color: Styles.globalColors.blueDark,
+      },
+      popup: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+        },
+        isElectron: {
+          maxWidth: 200,
+        },
+      }),
+      progress: Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'center',
+          height: 17,
+          width: 17,
+        },
+      }),
+      text: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black_50,
+        },
+        isElectron: {
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        } as const,
+      }),
+    } as const)
+)
 
 export default PinnedMessage

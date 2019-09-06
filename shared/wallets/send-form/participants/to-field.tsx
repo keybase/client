@@ -256,92 +256,95 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  avatar: {
-    marginRight: 8,
-  },
-  colorBlack20: {
-    color: Styles.globalColors.black_20,
-  },
-  createNewAccountButton: Styles.platformStyles({
-    isElectron: {
-      width: 194,
-    },
-  }),
-  dropdown: Styles.platformStyles({
-    isMobile: {height: 32},
-  }),
-  dropdownSelectedBox: Styles.platformStyles({
-    isMobile: {minHeight: 32},
-  }),
-  errorText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.redDark,
-      width: '100%',
-    },
-    isElectron: {
-      wordWrap: 'break-word',
-    },
-  }),
-  heading: {
-    alignSelf: 'flex-start',
-  },
-  input: Styles.platformStyles({
-    common: {
-      padding: 0,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.xtiny,
-    },
-  }),
-  inputBox: Styles.platformStyles({isElectron: {flexGrow: 1}, isMobile: {flex: 1}}),
-  inputInner: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-start',
-      flex: 1,
-      position: 'relative',
-    },
-    isElectron: {
-      flexShrink: 0,
-    },
-  }),
-  keybaseUserRemoveButton: {
-    flex: 1,
-    marginRight: Styles.globalMargins.tiny,
-    textAlign: 'right', // consistent with UserInput
-  },
-  placeholderContainer: Styles.platformStyles({
-    common: {
-      display: 'flex',
-      flexDirection: 'column',
-      paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
-    },
-    isElectron: {
-      pointerEvents: 'none',
-    },
-  }),
-  publicKeyInputContainer: {flexGrow: 1, flexShrink: 1},
-  qrCode: {
-    marginRight: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  toAccountRow: Styles.platformStyles({
-    isMobile: {
-      height: 40,
-      paddingBottom: 4,
-      paddingTop: 4,
-    },
-  }),
-  toKeybaseUser: {
-    height: 48,
-  },
-  toKeybaseUserNameWithIcon: {
-    flexGrow: 1,
-  },
-  toStellarPublicKey: {
-    alignItems: 'flex-start',
-    minHeight: 52,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {
+        marginRight: 8,
+      },
+      colorBlack20: {
+        color: Styles.globalColors.black_20,
+      },
+      createNewAccountButton: Styles.platformStyles({
+        isElectron: {
+          width: 194,
+        },
+      }),
+      dropdown: Styles.platformStyles({
+        isMobile: {height: 32},
+      }),
+      dropdownSelectedBox: Styles.platformStyles({
+        isMobile: {minHeight: 32},
+      }),
+      errorText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.redDark,
+          width: '100%',
+        },
+        isElectron: {
+          wordWrap: 'break-word',
+        },
+      }),
+      heading: {
+        alignSelf: 'flex-start',
+      },
+      input: Styles.platformStyles({
+        common: {
+          padding: 0,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.xtiny,
+        },
+      }),
+      inputBox: Styles.platformStyles({isElectron: {flexGrow: 1}, isMobile: {flex: 1}}),
+      inputInner: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+          flex: 1,
+          position: 'relative',
+        },
+        isElectron: {
+          flexShrink: 0,
+        },
+      }),
+      keybaseUserRemoveButton: {
+        flex: 1,
+        marginRight: Styles.globalMargins.tiny,
+        textAlign: 'right', // consistent with UserInput
+      },
+      placeholderContainer: Styles.platformStyles({
+        common: {
+          display: 'flex',
+          flexDirection: 'column',
+          paddingLeft: (Styles.isMobile ? 0 : 16) + 4,
+        },
+        isElectron: {
+          pointerEvents: 'none',
+        },
+      }),
+      publicKeyInputContainer: {flexGrow: 1, flexShrink: 1},
+      qrCode: {
+        marginRight: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      toAccountRow: Styles.platformStyles({
+        isMobile: {
+          height: 40,
+          paddingBottom: 4,
+          paddingTop: 4,
+        },
+      }),
+      toKeybaseUser: {
+        height: 48,
+      },
+      toKeybaseUserNameWithIcon: {
+        flexGrow: 1,
+      },
+      toStellarPublicKey: {
+        alignItems: 'flex-start',
+        minHeight: 52,
+      },
+    } as const)
+)
 
 export {ToKeybaseUser, ToStellarPublicKey, ToOtherAccount}

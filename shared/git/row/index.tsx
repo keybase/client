@@ -216,71 +216,74 @@ const Row = (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  copyTextContainer: {
-    flexShrink: 1,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.tiny,
-    maxWidth: 460,
-    width: '100%',
-  },
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      copyTextContainer: {
+        flexShrink: 1,
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.tiny,
+        maxWidth: 460,
+        width: '100%',
+      },
 
-  device: {
-    ...Styles.globalStyles.fontSemibold,
-    ...Styles.globalStyles.italic,
-    color: Styles.globalColors.black_50,
-  },
+      device: {
+        ...Styles.globalStyles.fontSemibold,
+        ...Styles.globalStyles.italic,
+        color: Styles.globalColors.black_50,
+      },
 
-  iconCaret: Styles.platformStyles({
-    common: {
-      marginBottom: 2,
-      marginRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
+      iconCaret: Styles.platformStyles({
+        common: {
+          marginBottom: 2,
+          marginRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
 
-  meta: {
-    alignSelf: 'center',
-    marginLeft: 6,
-  },
+      meta: {
+        alignSelf: 'center',
+        marginLeft: 6,
+      },
 
-  rowBottom: {
-    ...Styles.globalStyles.flexBoxColumn,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.medium,
-    width: '100%',
-  },
+      rowBottom: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        width: '100%',
+      },
 
-  rowClick: {
-    ...Styles.globalStyles.flexBoxColumn,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
+      rowClick: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+        width: '100%',
+      },
 
-  rowClickExpanded: {
-    ...Styles.globalStyles.flexBoxColumn,
-    paddingBottom: 0,
-    paddingTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
+      rowClickExpanded: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: 0,
+        paddingTop: Styles.globalMargins.tiny,
+        width: '100%',
+      },
 
-  rowStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    flexShrink: 0,
-    minHeight: Styles.globalMargins.large,
-    paddingLeft: 0,
-    width: '100%',
-  },
-  rowTop: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-} as const))
+      rowStyle: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-start',
+        flexShrink: 0,
+        minHeight: Styles.globalMargins.large,
+        paddingLeft: 0,
+        width: '100%',
+      },
+      rowTop: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default Row

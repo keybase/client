@@ -39,41 +39,44 @@ const NewCard = (_: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueDark,
-      borderRadius: Styles.borderRadius,
-      overflow: 'hidden',
-    },
-    isElectron: {
-      height: 100,
-      maxWidth: 400,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
-      width: 288,
-    },
-  }),
-  header: {
-    maxWidth: Styles.isMobile ? 126 : undefined,
-  },
-  icon: Styles.platformStyles({
-    common: {fontSize: 12},
-    isElectron: {
-      display: 'block',
-      marginTop: 4,
-    },
-  }),
-  image: {
-    alignSelf: Styles.isMobile ? 'center' : undefined,
-    paddingRight: Styles.globalMargins.medium,
-    paddingTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xsmall,
-  },
-  link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
-  textContainer: {padding: Styles.globalMargins.medium},
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueDark,
+          borderRadius: Styles.borderRadius,
+          overflow: 'hidden',
+        },
+        isElectron: {
+          height: 100,
+          maxWidth: 400,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.small,
+          width: 288,
+        },
+      }),
+      header: {
+        maxWidth: Styles.isMobile ? 126 : undefined,
+      },
+      icon: Styles.platformStyles({
+        common: {fontSize: 12},
+        isElectron: {
+          display: 'block',
+          marginTop: 4,
+        },
+      }),
+      image: {
+        alignSelf: Styles.isMobile ? 'center' : undefined,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xsmall,
+      },
+      link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
+      textContainer: {padding: Styles.globalMargins.medium},
+    } as const)
+)
 
 export default NewCard

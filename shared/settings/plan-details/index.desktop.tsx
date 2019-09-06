@@ -74,10 +74,13 @@ function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: 
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {
-    alignSelf: 'center',
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {
+        alignSelf: 'center',
+      },
+    } as const)
+)
 
 export default PlanDetails

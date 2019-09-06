@@ -53,8 +53,11 @@ const Splash = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {alignItems: 'center', justifyContent: 'center'},
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {alignItems: 'center', justifyContent: 'center'},
+    } as const)
+)
 
 export default Splash

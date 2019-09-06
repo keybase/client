@@ -111,74 +111,77 @@ const LabeledInput = React.forwardRef<PlainInput, Props>((props, ref) => (
   <ReflessLabeledInput {...props} forwardedRef={ref} />
 ))
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      margin: 0,
-      position: 'relative',
-      width: '100%',
-    },
-    isElectron: {width: '100%'},
-  }),
-  containerError: {
-    borderColor: Styles.globalColors.red,
-  },
-  containerFocused: {
-    borderColor: Styles.globalColors.blue,
-  },
-  displayFlex: {
-    display: 'flex',
-  },
-  hideBorder: {
-    borderWidth: 0,
-  },
-  icon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  input: {
-    backgroundColor: Styles.globalColors.transparent,
-    height: '100%',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    width: '100%',
-    zIndex: 10,
-  },
-  inputSmall: {
-    paddingTop: 0,
-  },
-  label: {
-    alignSelf: 'flex-start',
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    zIndex: 1,
-  },
-  labelFocused: {
-    color: Styles.globalColors.blueDark,
-  },
-  labelLarge: {
-    color: Styles.globalColors.black_50,
-  },
-  labelSmall: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black,
-      height: '100%',
-    },
-    isElectron: {
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      paddingTop: 10,
-    },
-  }),
-  labelWrapper: {
-    position: 'absolute',
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: 4,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          margin: 0,
+          position: 'relative',
+          width: '100%',
+        },
+        isElectron: {width: '100%'},
+      }),
+      containerError: {
+        borderColor: Styles.globalColors.red,
+      },
+      containerFocused: {
+        borderColor: Styles.globalColors.blue,
+      },
+      displayFlex: {
+        display: 'flex',
+      },
+      hideBorder: {
+        borderWidth: 0,
+      },
+      icon: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      input: {
+        backgroundColor: Styles.globalColors.transparent,
+        height: '100%',
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+        width: '100%',
+        zIndex: 10,
+      },
+      inputSmall: {
+        paddingTop: 0,
+      },
+      label: {
+        alignSelf: 'flex-start',
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+        zIndex: 1,
+      },
+      labelFocused: {
+        color: Styles.globalColors.blueDark,
+      },
+      labelLarge: {
+        color: Styles.globalColors.black_50,
+      },
+      labelSmall: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+          height: '100%',
+        },
+        isElectron: {
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingTop: 10,
+        },
+      }),
+      labelWrapper: {
+        position: 'absolute',
+      },
+    } as const)
+)
 
 export default LabeledInput

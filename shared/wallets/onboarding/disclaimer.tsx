@@ -291,59 +291,62 @@ const bulletOverride = {
   strong: bodyOverride.strong,
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bodyBullet: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  bodyText: {
-    color: Styles.globalColors.white,
-    textAlign: 'left',
-  },
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      minHeight: 40,
-    },
-  }),
-  buttonLabelStyle: {color: Styles.globalColors.purpleDark},
-  buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
-  container: {
-    backgroundColor: Styles.globalColors.purple,
-    padding: Styles.globalMargins.medium,
-  },
-  gradient: Styles.platformStyles({
-    isElectron: {
-      backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
-        Styles.globalColors.purple
-      })`,
-      height: Styles.globalMargins.large,
-      position: 'relative',
-      top: -30,
-      width: '100%',
-    },
-  }),
-  header: {
-    marginTop: Styles.globalMargins.small,
-  },
-  headerText: {
-    color: Styles.globalColors.white,
-  },
-  labelStyle: {
-    color: Styles.globalColors.purpleDark,
-  },
-  notNowButtonStyle: {width: '100%'},
-  scrollView: {
-    marginBottom: 0,
-    marginTop: Styles.globalMargins.small,
-  },
-  scrollViewContentContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-    },
-    isElectron: {
-      height: 300,
-    },
-  }),
-  section: {marginBottom: Styles.globalMargins.xxtiny},
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyBullet: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      bodyText: {
+        color: Styles.globalColors.white,
+        textAlign: 'left',
+      },
+      buttonBar: Styles.platformStyles({
+        isElectron: {
+          minHeight: 40,
+        },
+      }),
+      buttonLabelStyle: {color: Styles.globalColors.purpleDark},
+      buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
+      container: {
+        backgroundColor: Styles.globalColors.purple,
+        padding: Styles.globalMargins.medium,
+      },
+      gradient: Styles.platformStyles({
+        isElectron: {
+          backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
+            Styles.globalColors.purple
+          })`,
+          height: Styles.globalMargins.large,
+          position: 'relative',
+          top: -30,
+          width: '100%',
+        },
+      }),
+      header: {
+        marginTop: Styles.globalMargins.small,
+      },
+      headerText: {
+        color: Styles.globalColors.white,
+      },
+      labelStyle: {
+        color: Styles.globalColors.purpleDark,
+      },
+      notNowButtonStyle: {width: '100%'},
+      scrollView: {
+        marginBottom: 0,
+        marginTop: Styles.globalMargins.small,
+      },
+      scrollViewContentContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+        },
+        isElectron: {
+          height: 300,
+        },
+      }),
+      section: {marginBottom: Styles.globalMargins.xxtiny},
+    } as const)
+)
 
 export default Disclaimer

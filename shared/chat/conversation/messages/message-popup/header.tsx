@@ -106,47 +106,50 @@ const MessagePopupHeader = (props: {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  alignItemsCenter: {alignItems: 'center'},
-  colorBlack40: {color: Styles.globalColors.black_50},
-  headerContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      width: '100%',
-    },
-    isElectron: {
-      maxWidth: 240,
-      minWidth: 200,
-      paddingTop: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium,
-    },
-  }),
-  headerDetailsContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  headerIcon: Styles.platformStyles({
-    common: {
-      height: headerIconHeight,
-      marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
-    },
-    isElectron: {marginTop: Styles.globalMargins.tiny},
-    isMobile: {
-      marginTop: Styles.globalMargins.small,
-    },
-  }),
-  revokedAtContainerLast: {
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-    marginBottom: -Styles.globalMargins.small,
-    overflow: 'hidden',
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {alignItems: 'center'},
+      colorBlack40: {color: Styles.globalColors.black_50},
+      headerContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          width: '100%',
+        },
+        isElectron: {
+          maxWidth: 240,
+          minWidth: 200,
+          paddingTop: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.medium,
+        },
+      }),
+      headerDetailsContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      headerIcon: Styles.platformStyles({
+        common: {
+          height: headerIconHeight,
+          marginBottom: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.small,
+        },
+        isElectron: {marginTop: Styles.globalMargins.tiny},
+        isMobile: {
+          marginTop: Styles.globalMargins.small,
+        },
+      }),
+      revokedAtContainerLast: {
+        borderBottomLeftRadius: 3,
+        borderBottomRightRadius: 3,
+        marginBottom: -Styles.globalMargins.small,
+        overflow: 'hidden',
+      },
+    } as const)
+)
 
 export default MessagePopupHeader

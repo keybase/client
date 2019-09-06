@@ -73,27 +73,30 @@ const Intro = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  alignItemsCenter: {
-    alignItems: 'center',
-  },
-  banner: {
-    backgroundColor: Styles.globalColors.blue,
-    justifyContent: 'center',
-    minHeight: 40,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-    paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-    paddingTop: Styles.globalMargins.tiny,
-    position: 'absolute',
-  },
-  bannerMessage: {color: Styles.globalColors.white},
-  innerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.large,
-  },
-  join: {color: Styles.globalColors.orange},
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {
+        alignItems: 'center',
+      },
+      banner: {
+        backgroundColor: Styles.globalColors.blue,
+        justifyContent: 'center',
+        minHeight: 40,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
+        paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.tiny,
+        position: 'absolute',
+      },
+      bannerMessage: {color: Styles.globalColors.white},
+      innerContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.large,
+      },
+      join: {color: Styles.globalColors.orange},
+    } as const)
+)
 
 export default Intro

@@ -166,45 +166,48 @@ export const ServiceTabBar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  activeTabBar: {
-    backgroundColor: Styles.globalColors.blue,
-    height: 2,
-  },
-  badgeContainerStyle: {
-    position: 'absolute',
-    right: -4,
-    top: -2,
-    zIndex: 1, // above the service icon
-  },
-  badgeStyle: {backgroundColor: Styles.globalColors.blue},
-  barPlaceholder: {
-    height: 48,
-    position: 'relative',
-  },
-  inactiveTabBar: {
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-    height: 2,
-  },
-  labelContainer: {
-    marginTop: Styles.globalMargins.xtiny,
-    overflow: 'hidden',
-  },
-  pendingIcon: {height: 17, width: 17},
-  serviceIconContainer: {
-    flex: 1,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny - 1,
-    position: 'relative',
-  },
-  tabBarContainer: {
-    backgroundColor: Styles.globalColors.white,
-    position: 'absolute',
-    shadowOffset: {height: 3, width: 0},
-    shadowRadius: 2,
-    top: 0,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      activeTabBar: {
+        backgroundColor: Styles.globalColors.blue,
+        height: 2,
+      },
+      badgeContainerStyle: {
+        position: 'absolute',
+        right: -4,
+        top: -2,
+        zIndex: 1, // above the service icon
+      },
+      badgeStyle: {backgroundColor: Styles.globalColors.blue},
+      barPlaceholder: {
+        height: 48,
+        position: 'relative',
+      },
+      inactiveTabBar: {
+        borderBottomWidth: 1,
+        borderColor: Styles.globalColors.black_10,
+        height: 2,
+      },
+      labelContainer: {
+        marginTop: Styles.globalMargins.xtiny,
+        overflow: 'hidden',
+      },
+      pendingIcon: {height: 17, width: 17},
+      serviceIconContainer: {
+        flex: 1,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny - 1,
+        position: 'relative',
+      },
+      tabBarContainer: {
+        backgroundColor: Styles.globalColors.white,
+        position: 'absolute',
+        shadowOffset: {height: 3, width: 0},
+        shadowRadius: 2,
+        top: 0,
+      },
+    } as const)
+)
 
 export default ServiceTabBar

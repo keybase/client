@@ -123,26 +123,29 @@ export const SubHeader = (props: SubHeaderProps) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate(() => ({
-  alignSelfFlexStart: {
-    alignSelf: 'flex-start',
-  },
-  banner: {
-    ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.xsmall, 0),
-  },
-  clickable: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-    },
-  }),
-  marginRightTiny: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  rightActionsContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      alignSelf: 'flex-end',
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignSelfFlexStart: {
+        alignSelf: 'flex-start',
+      },
+      banner: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.xsmall, 0),
+      },
+      clickable: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+        },
+      }),
+      marginRightTiny: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      rightActionsContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          alignSelf: 'flex-end',
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)

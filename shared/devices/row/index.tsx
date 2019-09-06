@@ -62,15 +62,18 @@ const DeviceRow = (props: Props) => {
     />
   )
 }
-const styles = Styles.styleSheetCreate(() => ({
-  icon: {opacity: 0.3},
-  meta: {alignSelf: 'flex-start'},
-  text: {
-    color: Styles.globalColors.black_20,
-    flex: 0,
-    textDecorationLine: 'line-through' as const,
-    textDecorationStyle: 'solid' as const,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      icon: {opacity: 0.3},
+      meta: {alignSelf: 'flex-start'},
+      text: {
+        color: Styles.globalColors.black_20,
+        flex: 0,
+        textDecorationLine: 'line-through' as const,
+        textDecorationStyle: 'solid' as const,
+      },
+    } as const)
+)
 
 export default DeviceRow

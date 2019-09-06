@@ -111,26 +111,29 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {flexGrow: 0},
-  containerStyle: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      flex: 1,
-      padding: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isMobile: {
-      zIndex: -1,
-    },
-  }),
-  loading: {alignSelf: 'center'},
-  spaceFillingBox: {flexGrow: 1},
-  userMatchMention: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.small,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {flexGrow: 0},
+      containerStyle: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          flex: 1,
+          padding: Styles.globalMargins.small,
+          width: '100%',
+        },
+        isMobile: {
+          zIndex: -1,
+        },
+      }),
+      loading: {alignSelf: 'center'},
+      spaceFillingBox: {flexGrow: 1},
+      userMatchMention: {
+        alignSelf: 'flex-start',
+        justifyContent: 'center',
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default PhoneSearch

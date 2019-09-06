@@ -125,81 +125,84 @@ export const Banner = (props: BannerProps) => (
   </Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({isElectron: {minHeight: 32}, isMobile: {minHeight: 40}}),
-  containerInline: Styles.platformStyles({
-    common: {borderRadius: Styles.borderRadius},
-    isElectron: {
-      maxWidth: '75%',
-      minWidth: 352,
-    },
-  }),
-  containerSmall: {minHeight: 28},
-  iconContainer: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.xtiny,
-      position: 'absolute',
-      right: 0,
-    },
-    isElectron: {paddingTop: Styles.globalMargins.tiny},
-    isMobile: {paddingTop: Styles.globalMargins.tiny},
-  }),
-  inlineText: {textAlign: 'left'},
-  inlineTextContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  narrowTextContainer: Styles.platformStyles({
-    common: {
-      flex: 1,
-      maxWidth: '100%',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  smallTextContainer: {
-    flex: 1,
-    maxWidth: '100%',
-    paddingBottom: Styles.globalMargins.xxtiny,
-    paddingTop: Styles.globalMargins.xxtiny,
-  },
-  text: Styles.platformStyles({
-    common: {
-      maxWidth: '100%',
-      textAlign: 'center',
-    },
-    isElectron: {overflowWrap: 'break-word'},
-  }),
-  textContainer: Styles.platformStyles({
-    common: {
-      flex: 1,
-      maxWidth: '100%',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.xlarge,
-      paddingRight: Styles.globalMargins.xlarge,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-  }),
-  underline: Styles.platformStyles({
-    isMobile: {textDecorationLine: 'underline'},
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({isElectron: {minHeight: 32}, isMobile: {minHeight: 40}}),
+      containerInline: Styles.platformStyles({
+        common: {borderRadius: Styles.borderRadius},
+        isElectron: {
+          maxWidth: '75%',
+          minWidth: 352,
+        },
+      }),
+      containerSmall: {minHeight: 28},
+      iconContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.xtiny,
+          position: 'absolute',
+          right: 0,
+        },
+        isElectron: {paddingTop: Styles.globalMargins.tiny},
+        isMobile: {paddingTop: Styles.globalMargins.tiny},
+      }),
+      inlineText: {textAlign: 'left'},
+      inlineTextContainer: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      narrowTextContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+          maxWidth: '100%',
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
+      smallTextContainer: {
+        flex: 1,
+        maxWidth: '100%',
+        paddingBottom: Styles.globalMargins.xxtiny,
+        paddingTop: Styles.globalMargins.xxtiny,
+      },
+      text: Styles.platformStyles({
+        common: {
+          maxWidth: '100%',
+          textAlign: 'center',
+        },
+        isElectron: {overflowWrap: 'break-word'},
+      }),
+      textContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+          maxWidth: '100%',
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xlarge,
+          paddingRight: Styles.globalMargins.xlarge,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+        },
+      }),
+      underline: Styles.platformStyles({
+        isMobile: {textDecorationLine: 'underline'},
+      }),
+    } as const)
+)
 
 const colorToBackgroundColorStyles = Styles.styleSheetCreate(() => ({
   blue: {backgroundColor: Styles.globalColors.blue},

@@ -585,41 +585,44 @@ export const Transaction = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  breakWord: Styles.platformStyles({isElectron: {wordBreak: 'break-word'} as const}),
-  cancelButton: {
-    alignSelf: 'flex-start',
-  },
-  container: {
-    padding: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-  },
-  flexOne: {flex: 1},
-  invert: Styles.platformStyles({isElectron: {filter: 'invert(100%)'}}),
-  invert50: Styles.platformStyles({isElectron: {filter: 'invert(50%)'}}),
-  lineThrough: {
-    textDecorationLine: 'line-through',
-  } as const,
-  marginLeftAuto: {marginLeft: 'auto'},
-  marginTopXTiny: {
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  memoStyle: {
-    marginTop: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.small,
-  },
-  orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1},
-  rightContainer: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  transferIcon: {
-    position: 'relative',
-    top: Styles.globalMargins.xtiny,
-  },
-  transferIconContainer: {
-    justifyContent: 'center',
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      breakWord: Styles.platformStyles({isElectron: {wordBreak: 'break-word'} as const}),
+      cancelButton: {
+        alignSelf: 'flex-start',
+      },
+      container: {
+        padding: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      flexOne: {flex: 1},
+      invert: Styles.platformStyles({isElectron: {filter: 'invert(100%)'}}),
+      invert50: Styles.platformStyles({isElectron: {filter: 'invert(50%)'}}),
+      lineThrough: {
+        textDecorationLine: 'line-through',
+      } as const,
+      marginLeftAuto: {marginLeft: 'auto'},
+      marginTopXTiny: {
+        marginTop: Styles.globalMargins.xtiny,
+      },
+      memoStyle: {
+        marginTop: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1},
+      rightContainer: {
+        flex: 1,
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      transferIcon: {
+        position: 'relative',
+        top: Styles.globalMargins.xtiny,
+      },
+      transferIconContainer: {
+        justifyContent: 'center',
+      },
+    } as const)
+)
 
 export default Transaction

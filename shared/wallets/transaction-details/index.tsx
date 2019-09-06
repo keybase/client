@@ -582,86 +582,89 @@ class LoadTransactionDetails extends React.Component<Props> {
 
 export default LoadTransactionDetails
 
-const styles = Styles.styleSheetCreate(() => ({
-  alignItemsFlexStart: {alignItems: 'flex-start'},
-  button: {
-    alignSelf: 'center',
-  },
-  buttonBox: Styles.platformStyles({
-    common: {
-      justifyContent: 'center',
-      minHeight: 0,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isElectron: {
-      marginTop: 'auto',
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.medium,
-    },
-  }),
-  chatButton: {
-    alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.tiny,
-  },
-  container: {
-    alignSelf: 'flex-start',
-    padding: Styles.globalMargins.small,
-  },
-  equals: Styles.platformStyles({isMobile: {flex: 1}}),
-  flexOne: {flex: 1},
-  icon32: {height: 32, width: 32},
-  operation: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
-  partyAccountContainer: {
-    alignSelf: 'flex-start',
-  },
-  progressIndicator: {height: 50, width: 50},
-  rightContainer: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  scrollView: {
-    display: 'flex',
-    flexGrow: 1,
-    width: '100%',
-  },
-  scrollViewContainer: {
-    flexGrow: 1,
-  },
-  statusBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-  },
-  statusIcon: {
-    position: 'relative',
-    top: 1,
-  },
-  statusText: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
-  stellarPublicKey: Styles.platformStyles({
-    common: {
-      flex: 1,
-      justifyContent: 'center',
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {wordBreak: 'break-all'},
-  }),
-  tooltipText: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-word',
-    } as const,
-  }),
-  transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
-  warningBannerContainer: {
-    backgroundColor: Styles.backgroundModeToColor.Information,
-    borderRadius: Styles.borderRadius,
-    marginTop: Styles.globalMargins.xtiny,
-    padding: Styles.globalMargins.tiny,
-  },
-  warningBannerText: {
-    color: Styles.globalColors.brown_75,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsFlexStart: {alignItems: 'flex-start'},
+      button: {
+        alignSelf: 'center',
+      },
+      buttonBox: Styles.platformStyles({
+        common: {
+          justifyContent: 'center',
+          minHeight: 0,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isElectron: {
+          marginTop: 'auto',
+        },
+        isMobile: {
+          marginTop: Styles.globalMargins.medium,
+        },
+      }),
+      chatButton: {
+        alignSelf: 'flex-start',
+        marginTop: Styles.globalMargins.tiny,
+      },
+      container: {
+        alignSelf: 'flex-start',
+        padding: Styles.globalMargins.small,
+      },
+      equals: Styles.platformStyles({isMobile: {flex: 1}}),
+      flexOne: {flex: 1},
+      icon32: {height: 32, width: 32},
+      operation: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
+      partyAccountContainer: {
+        alignSelf: 'flex-start',
+      },
+      progressIndicator: {height: 50, width: 50},
+      rightContainer: {
+        flex: 1,
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      scrollView: {
+        display: 'flex',
+        flexGrow: 1,
+        width: '100%',
+      },
+      scrollViewContainer: {
+        flexGrow: 1,
+      },
+      statusBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+      },
+      statusIcon: {
+        position: 'relative',
+        top: 1,
+      },
+      statusText: {
+        marginLeft: Styles.globalMargins.xtiny,
+      },
+      stellarPublicKey: Styles.platformStyles({
+        common: {
+          flex: 1,
+          justifyContent: 'center',
+          marginLeft: Styles.globalMargins.tiny,
+        },
+        isElectron: {wordBreak: 'break-all'},
+      }),
+      tooltipText: Styles.platformStyles({
+        isElectron: {
+          wordBreak: 'break-word',
+        } as const,
+      }),
+      transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
+      warningBannerContainer: {
+        backgroundColor: Styles.backgroundModeToColor.Information,
+        borderRadius: Styles.borderRadius,
+        marginTop: Styles.globalMargins.xtiny,
+        padding: Styles.globalMargins.tiny,
+      },
+      warningBannerText: {
+        color: Styles.globalColors.brown_75,
+      },
+    } as const)
+)

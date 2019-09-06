@@ -107,50 +107,53 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
 
 export const rowHeight = Styles.isMobile ? 64 : 56
 
-const styles = Styles.styleSheetCreate(() => ({
-  badge: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: 6,
-    flexShrink: 0,
-    height: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.tiny,
-  },
-  channelname: Styles.platformStyles({
-    // TODO: tweak this so that they take up full space in popup
-    common: {
-      flexShrink: 0,
-      maxWidth: '70%',
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-  filteredRow: {
-    height: rowHeight,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
-  },
-  selectedText: {
-    color: Styles.globalColors.white,
-  },
-  teamname: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black,
-      flexShrink: 1,
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-  textContainer: {
-    flexShrink: 1,
-    overflow: 'hidden',
-    paddingRight: Styles.globalMargins.tiny,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        backgroundColor: Styles.globalColors.orange,
+        borderRadius: 6,
+        flexShrink: 0,
+        height: Styles.globalMargins.tiny,
+        width: Styles.globalMargins.tiny,
+      },
+      channelname: Styles.platformStyles({
+        // TODO: tweak this so that they take up full space in popup
+        common: {
+          flexShrink: 0,
+          maxWidth: '70%',
+        },
+        isElectron: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      filteredRow: {
+        height: rowHeight,
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.xtiny,
+      },
+      selectedText: {
+        color: Styles.globalColors.white,
+      },
+      teamname: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+          flexShrink: 1,
+        },
+        isElectron: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      textContainer: {
+        flexShrink: 1,
+        overflow: 'hidden',
+        paddingRight: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default SelectableBigTeamChannel

@@ -128,47 +128,50 @@ const styleRowText = (props: {
   return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  badge: {
-    alignSelf: 'center',
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  flexGrow: {
-    flexGrow: 1,
-  },
-  flexOne: {
-    flex: 1,
-  },
-  itemContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    height: 56,
-    justifyContent: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  menuBox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'flex-end',
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  menuGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    justifyContent: 'flex-end',
-  },
-  safeArea: {
-    backgroundColor: Styles.globalColors.white,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        alignSelf: 'center',
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      divider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      flexGrow: {
+        flexGrow: 1,
+      },
+      flexOne: {
+        flex: 1,
+      },
+      itemContainer: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
+        height: 56,
+        justifyContent: 'center',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      menuBox: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+        backgroundColor: Styles.globalColors.white,
+        justifyContent: 'flex-end',
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      menuGroup: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+        justifyContent: 'flex-end',
+      },
+      safeArea: {
+        backgroundColor: Styles.globalColors.white,
+      },
+    } as const)
+)
 
 export default MenuLayout

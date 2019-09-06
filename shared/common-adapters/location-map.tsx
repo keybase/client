@@ -35,32 +35,35 @@ const LocationMap = (props: Props) => {
 
 export default LocationMap
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    backgroundColor: Styles.globalColors.white,
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    ...Styles.globalStyles.fillAbsolute,
-    justifyContent: 'center',
-  },
-  learn: {
-    color: Styles.globalColors.blueDark,
-  },
-  loading: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -12,
-    marginLeft: -12,
-    marginRight: -12,
-    marginTop: -12,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-    width: 24,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        backgroundColor: Styles.globalColors.white,
+        borderBottomWidth: 1,
+        borderColor: Styles.globalColors.black_10,
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      container: {
+        ...Styles.globalStyles.fillAbsolute,
+        justifyContent: 'center',
+      },
+      learn: {
+        color: Styles.globalColors.blueDark,
+      },
+      loading: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -12,
+        marginLeft: -12,
+        marginRight: -12,
+        marginTop: -12,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+        width: 24,
+      },
+    } as const)
+)

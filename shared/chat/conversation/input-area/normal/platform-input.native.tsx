@@ -269,91 +269,94 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
 )
 
 const containerPadding = 8
-const styles = Styles.styleSheetCreate(() => ({
-  accessory: {
-    bottom: 1,
-    display: 'flex',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  accessoryContainer: {
-    position: 'relative',
-    width: '100%',
-  },
-  actionButton: {
-    alignSelf: isIOS ? 'flex-end' : 'center',
-  },
-  actionIconsContainer: {
-    paddingRight: Styles.globalMargins.small - containerPadding,
-  },
-  actionText: {
-    alignSelf: 'flex-end',
-    paddingBottom: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.fastBlank,
-    borderTopColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-    flexShrink: 0,
-    overflow: 'hidden',
-    paddingRight: containerPadding,
-  },
-  editingTabStyle: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    backgroundColor: Styles.globalColors.yellowLight,
-    flexShrink: 0,
-    height: '100%',
-    minWidth: 32,
-    padding: Styles.globalMargins.xtiny,
-  },
-  exploding: {
-    backgroundColor: Styles.globalColors.black,
-    borderRadius: Styles.globalMargins.mediumLarge / 2,
-    height: Styles.globalMargins.mediumLarge,
-    marginLeft: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.mediumLarge,
-  },
-  explodingOuterContainer: {
-    alignSelf: isIOS ? 'flex-end' : 'center',
-    paddingBottom: 7,
-  },
-  input: {
-    flex: 1,
-    fontSize: 17, // Override Body's font size with BodyBig.
-    marginBottom: Styles.globalMargins.xsmall,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.xsmall,
-  },
-  marginRightSmall: {
-    marginRight: Styles.globalMargins.small,
-  },
-  mentionHud: {
-    borderColor: Styles.globalColors.black_20,
-    borderTopWidth: 1,
-    flex: 1,
-    height: 160,
-    width: '100%',
-  },
-  nonExploding: {
-    paddingBottom: 5,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: 7,
-  },
-  send: {
-    alignSelf: isIOS ? 'flex-end' : 'center',
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  smallGap: {
-    height: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
-  },
-}as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      accessory: {
+        bottom: 1,
+        display: 'flex',
+        left: 0,
+        position: 'absolute',
+        right: 0,
+      },
+      accessoryContainer: {
+        position: 'relative',
+        width: '100%',
+      },
+      actionButton: {
+        alignSelf: isIOS ? 'flex-end' : 'center',
+      },
+      actionIconsContainer: {
+        paddingRight: Styles.globalMargins.small - containerPadding,
+      },
+      actionText: {
+        alignSelf: 'flex-end',
+        paddingBottom: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.fastBlank,
+        borderTopColor: Styles.globalColors.black_10,
+        borderTopWidth: 1,
+        flexShrink: 0,
+        overflow: 'hidden',
+        paddingRight: containerPadding,
+      },
+      editingTabStyle: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-start',
+        backgroundColor: Styles.globalColors.yellowLight,
+        flexShrink: 0,
+        height: '100%',
+        minWidth: 32,
+        padding: Styles.globalMargins.xtiny,
+      },
+      exploding: {
+        backgroundColor: Styles.globalColors.black,
+        borderRadius: Styles.globalMargins.mediumLarge / 2,
+        height: Styles.globalMargins.mediumLarge,
+        marginLeft: Styles.globalMargins.tiny,
+        width: Styles.globalMargins.mediumLarge,
+      },
+      explodingOuterContainer: {
+        alignSelf: isIOS ? 'flex-end' : 'center',
+        paddingBottom: 7,
+      },
+      input: {
+        flex: 1,
+        fontSize: 17, // Override Body's font size with BodyBig.
+        marginBottom: Styles.globalMargins.xsmall,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.xsmall,
+      },
+      marginRightSmall: {
+        marginRight: Styles.globalMargins.small,
+      },
+      mentionHud: {
+        borderColor: Styles.globalColors.black_20,
+        borderTopWidth: 1,
+        flex: 1,
+        height: 160,
+        width: '100%',
+      },
+      nonExploding: {
+        paddingBottom: 5,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: 7,
+      },
+      send: {
+        alignSelf: isIOS ? 'flex-end' : 'center',
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      smallGap: {
+        height: Styles.globalMargins.small,
+        width: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 // Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
 const smallGap = <Kb.Box style={styles.smallGap} />

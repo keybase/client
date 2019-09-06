@@ -56,61 +56,64 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  bubble: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-      marginRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      flexShrink: 1,
-    },
-  }),
-  bubbleContainer: Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
-  container: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.xtiny,
-      marginLeft: Styles.globalMargins.tiny,
-      marginTop: Styles.globalMargins.xtiny,
-    },
-  }),
-  generalService: Styles.platformStyles({
-    isElectron: {
-      lineHeight: '35px',
-    },
-  }),
-  // TODO: the service icons are too high without this - are they right?
-  iconBox: Styles.platformStyles({
-    isElectron: {
-      marginBottom: -3,
-      marginTop: 3,
-    },
-  }),
-  remove: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: 100,
-      height: removeSize,
-      justifyContent: 'center',
-      position: 'absolute',
-      top: 0,
-      width: removeSize,
-    },
-    isElectron: {
-      cursor: 'pointer',
-      marginRight: Styles.globalMargins.tiny,
-      right: -4,
-    },
-    isMobile: {
-      right: 12,
-    },
-  }),
-  removeIcon: {
-    position: 'relative',
-    top: 1,
-  },
-  userBubbleTitle: {color: Styles.globalColors.black},
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bubble: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          flexShrink: 1,
+        },
+      }),
+      bubbleContainer: Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
+      container: Styles.platformStyles({
+        common: {
+          marginBottom: Styles.globalMargins.xtiny,
+          marginLeft: Styles.globalMargins.tiny,
+          marginTop: Styles.globalMargins.xtiny,
+        },
+      }),
+      generalService: Styles.platformStyles({
+        isElectron: {
+          lineHeight: '35px',
+        },
+      }),
+      // TODO: the service icons are too high without this - are they right?
+      iconBox: Styles.platformStyles({
+        isElectron: {
+          marginBottom: -3,
+          marginTop: 3,
+        },
+      }),
+      remove: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: 100,
+          height: removeSize,
+          justifyContent: 'center',
+          position: 'absolute',
+          top: 0,
+          width: removeSize,
+        },
+        isElectron: {
+          cursor: 'pointer',
+          marginRight: Styles.globalMargins.tiny,
+          right: -4,
+        },
+        isMobile: {
+          right: 12,
+        },
+      }),
+      removeIcon: {
+        position: 'relative',
+        top: 1,
+      },
+      userBubbleTitle: {color: Styles.globalColors.black},
+    } as const)
+)
 
 export default UserBubble

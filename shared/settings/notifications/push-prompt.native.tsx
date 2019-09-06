@@ -67,25 +67,28 @@ const PushPrompt = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {maxHeight: 40},
-  container: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.blue,
-    justifyContent: 'center',
-    padding: Styles.globalMargins.small,
-  },
-  footer: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  header: {
-    backgroundColor: Styles.globalColors.blue,
-    color: Styles.globalColors.white,
-  },
-  image: {
-    flex: 1,
-    width: '150%',
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {maxHeight: 40},
+      container: {
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: Styles.globalColors.blue,
+        justifyContent: 'center',
+        padding: Styles.globalMargins.small,
+      },
+      footer: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      header: {
+        backgroundColor: Styles.globalColors.blue,
+        color: Styles.globalColors.white,
+      },
+      image: {
+        flex: 1,
+        width: '150%',
+      },
+    } as const)
+)
 
 export default PushPrompt

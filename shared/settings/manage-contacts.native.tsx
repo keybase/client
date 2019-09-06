@@ -121,13 +121,16 @@ const ManageContactsBanner = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  buttonBar: {
-    marginTop: Styles.globalMargins.tiny,
-    minHeight: undefined,
-    width: undefined,
-  },
-  positionRelative: {position: 'relative'},
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      buttonBar: {
+        marginTop: Styles.globalMargins.tiny,
+        minHeight: undefined,
+        width: undefined,
+      },
+      positionRelative: {position: 'relative'},
+    } as const)
+)
 
 export default ManageContacts

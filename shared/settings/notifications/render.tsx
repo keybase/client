@@ -150,17 +150,20 @@ const Notifications = (props: Props) =>
 
 export default Notifications
 
-const styles = Styles.styleSheetCreate(() => ({
-  checkbox: {marginRight: 0, marginTop: Styles.globalMargins.xtiny},
-  divider: {
-    marginBottom: Styles.globalMargins.small,
-    marginLeft: -Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-  },
-  label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
-  loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
-  main: Styles.platformStyles({
-    common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
-    isElectron: Styles.desktopStyles.scrollable,
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      checkbox: {marginRight: 0, marginTop: Styles.globalMargins.xtiny},
+      divider: {
+        marginBottom: Styles.globalMargins.small,
+        marginLeft: -Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
+      label: {marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny},
+      loading: {alignItems: 'center', flex: 1, justifyContent: 'center'},
+      main: Styles.platformStyles({
+        common: {flex: 1, padding: Styles.globalMargins.small, width: '100%'},
+        isElectron: Styles.desktopStyles.scrollable,
+      }),
+    } as const)
+)

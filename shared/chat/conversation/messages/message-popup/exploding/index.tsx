@@ -183,46 +183,49 @@ const ExplodingPopupMenu = (props: Props) => {
 
 const oneMinuteInS = 60
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerIcon: {
-    height: headerIconHeight,
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-  },
-  messageInfoContainer: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  popupContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-    },
-    isElectron: {
-      maxWidth: 240,
-      minWidth: 200,
-    },
-  }),
-  revokedAt: {
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-    marginBottom: -Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-    minHeight: 40,
-    width: '100%',
-  },
-  timerBox: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      height: 46,
-    },
-  }),
-  user: {
-    alignItems: 'center',
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerIcon: {
+        height: headerIconHeight,
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
+      messageInfoContainer: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      popupContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+        },
+        isElectron: {
+          maxWidth: 240,
+          minWidth: 200,
+        },
+      }),
+      revokedAt: {
+        borderBottomLeftRadius: 3,
+        borderBottomRightRadius: 3,
+        marginBottom: -Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+        minHeight: 40,
+        width: '100%',
+      },
+      timerBox: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          height: 46,
+        },
+      }),
+      user: {
+        alignItems: 'center',
+      },
+    } as const)
+)
 
 export default ExplodingPopupMenu

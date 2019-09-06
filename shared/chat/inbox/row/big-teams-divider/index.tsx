@@ -43,33 +43,36 @@ const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  badge: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: 0,
-    position: 'relative',
-  },
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      backgroundColor: Styles.globalColors.blueLighter3,
-      flexShrink: 0,
-      height: RowSizes.floatingDivider,
-      top: undefined,
-    },
-    isMobile: {
-      backgroundColor: Styles.globalColors.fastBlank,
-      flexShrink: 0,
-      height: RowSizes.floatingDivider,
-    },
-  }),
-  icon: {
-    ...Styles.globalStyles.fillAbsolute,
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-    marginTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xtiny,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: 0,
+        position: 'relative',
+      },
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fillAbsolute,
+          backgroundColor: Styles.globalColors.blueLighter3,
+          flexShrink: 0,
+          height: RowSizes.floatingDivider,
+          top: undefined,
+        },
+        isMobile: {
+          backgroundColor: Styles.globalColors.fastBlank,
+          flexShrink: 0,
+          height: RowSizes.floatingDivider,
+        },
+      }),
+      icon: {
+        ...Styles.globalStyles.fillAbsolute,
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        marginTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export {BigTeamsDivider, BigTeamsLabel}

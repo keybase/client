@@ -248,99 +248,102 @@ class Qualify extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  buttonAccept: {flexGrow: 0},
-  buttonAcceptLoading: {flexGrow: 0, opacity: 0},
-  buttonClose: {
-    backgroundColor: Styles.globalColors.black_20,
-    flexGrow: 0,
-  },
-  container: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.purple},
-    isElectron: {
-      height: 550,
-      width: 400,
-    },
-    isMobile: {
-      height: '100%',
-      width: '100%',
-    },
-  }),
-  content: Styles.platformStyles({
-    isElectron: {
-      minHeight: 550,
-      padding: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      minHeight: '100%',
-      padding: Styles.globalMargins.small,
-    },
-  }),
-  friendText: Styles.platformStyles({
-    isElectron: {whiteSpace: 'pre'},
-  }),
-  grow: {
-    flexGrow: 1,
-    flexShrink: 1,
-    width: 100,
-  },
-  headerText: {color: Styles.globalColors.white},
-  loadingText: {color: Styles.globalColors.white_40},
-  popupContainer: {backgroundColor: Styles.globalColors.purple},
-  progress: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white_75,
-    },
-    isElectron: {
-      height: 16,
-      width: 16,
-    },
-    isMobile: {
-      height: 22,
-      width: 22,
-    },
-  }),
-  row: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      minHeight: Styles.globalMargins.large,
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
-    },
-  }),
-  rowBorder: {
-    borderStyle: 'solid',
-    borderTopColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-  },
-  rowText: {
-    color: Styles.globalColors.white,
-    flexGrow: 1,
-    flexShrink: 1,
-    marginRight: Styles.globalMargins.medium,
-  },
-  scrollView: {...Styles.globalStyles.fillAbsolute},
-  scrollViewContent: {
-    flex: 1,
-  },
-  star: {
-    alignSelf: 'center',
-    height: 120,
-    marginTop: Styles.globalMargins.medium,
-    width: 120,
-  },
-  titleBox: {
-    justifyContent: 'center',
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.medium,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      buttonAccept: {flexGrow: 0},
+      buttonAcceptLoading: {flexGrow: 0, opacity: 0},
+      buttonClose: {
+        backgroundColor: Styles.globalColors.black_20,
+        flexGrow: 0,
+      },
+      container: Styles.platformStyles({
+        common: {backgroundColor: Styles.globalColors.purple},
+        isElectron: {
+          height: 550,
+          width: 400,
+        },
+        isMobile: {
+          height: '100%',
+          width: '100%',
+        },
+      }),
+      content: Styles.platformStyles({
+        isElectron: {
+          minHeight: 550,
+          padding: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          minHeight: '100%',
+          padding: Styles.globalMargins.small,
+        },
+      }),
+      friendText: Styles.platformStyles({
+        isElectron: {whiteSpace: 'pre'},
+      }),
+      grow: {
+        flexGrow: 1,
+        flexShrink: 1,
+        width: 100,
+      },
+      headerText: {color: Styles.globalColors.white},
+      loadingText: {color: Styles.globalColors.white_40},
+      popupContainer: {backgroundColor: Styles.globalColors.purple},
+      progress: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.white_75,
+        },
+        isElectron: {
+          height: 16,
+          width: 16,
+        },
+        isMobile: {
+          height: 22,
+          width: 22,
+        },
+      }),
+      row: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          minHeight: Styles.globalMargins.large,
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+      }),
+      rowBorder: {
+        borderStyle: 'solid',
+        borderTopColor: Styles.globalColors.black_10,
+        borderTopWidth: 1,
+      },
+      rowText: {
+        color: Styles.globalColors.white,
+        flexGrow: 1,
+        flexShrink: 1,
+        marginRight: Styles.globalMargins.medium,
+      },
+      scrollView: {...Styles.globalStyles.fillAbsolute},
+      scrollViewContent: {
+        flex: 1,
+      },
+      star: {
+        alignSelf: 'center',
+        height: 120,
+        marginTop: Styles.globalMargins.medium,
+        width: 120,
+      },
+      titleBox: {
+        justifyContent: 'center',
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.medium,
+      },
+    } as const)
+)
 
 export default Qualify

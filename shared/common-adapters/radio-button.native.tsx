@@ -57,13 +57,16 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default RadioButton

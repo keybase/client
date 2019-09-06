@@ -331,7 +331,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           wordBreak: 'break-word',
-        }as const,
+        } as const,
       }),
       listFullContainer: {
         marginTop: Styles.globalMargins.tiny,

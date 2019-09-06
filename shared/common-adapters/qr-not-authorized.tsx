@@ -20,15 +20,18 @@ const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => 
   </Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black,
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  text: {color: Styles.globalColors.white_40},
-} as  const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.black,
+        flexGrow: 1,
+        justifyContent: 'center',
+      },
+      text: {color: Styles.globalColors.white_40},
+    } as const)
+)
 
 const mapDispatchToProps = dispatch => ({
   onOpenSettings: () => dispatch(ConfigGen.createOpenAppSettings()),

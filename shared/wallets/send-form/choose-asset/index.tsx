@@ -284,87 +284,90 @@ const OtherChoice = (props: OtherChoiceProps) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  blue: {
-    color: Styles.globalColors.blueDark,
-  },
-  checkIcon: Styles.platformStyles({
-    isElectron: {display: 'inline-flex'},
-    isMobile: {marginLeft: Styles.globalMargins.tiny},
-  }),
-  choice: {width: '100%'},
-  choiceContainer: Styles.platformStyles({
-    common: {
-      // needed to get on top of absolutely positioned background color
-      alignItems: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      position: 'relative',
-      width: '100%',
-    },
-    isElectron: {
-      height: 40,
-    },
-    isMobile: {
-      height: 56,
-    },
-  }),
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 560,
-      width: 400,
-    },
-    isMobile: {
-      flex: 1,
-      width: '100%',
-    },
-  }),
-  displayChoice: {
-    width: '100%',
-  },
-  expanderContainer: {
-    backgroundColor: Styles.globalColors.black_05,
-    borderRadius: Styles.borderRadius,
-    height: 22,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  expanderText: {color: Styles.globalColors.black_50},
-  grey: {color: Styles.globalColors.black_50},
-  growContainer: {
-    alignItems: 'center',
-    height: '100%',
-  },
-  listContainer: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 560 - 48,
-    },
-    isMobile: {
-      flex: 1,
-    },
-  }),
-  sectionHeaderContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-start',
-      backgroundColor: Styles.globalColors.blueLighter3,
-      justifyContent: 'center',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      // must be uniform height with current SectionList implementation
-      // so first doesn't peek out from under the second
-      height: 32,
-    },
-  }),
-  sectionList: {
-    flexGrow: 0,
-  },
-  spacer: {
-    flex: 1,
-  },
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      blue: {
+        color: Styles.globalColors.blueDark,
+      },
+      checkIcon: Styles.platformStyles({
+        isElectron: {display: 'inline-flex'},
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
+      }),
+      choice: {width: '100%'},
+      choiceContainer: Styles.platformStyles({
+        common: {
+          // needed to get on top of absolutely positioned background color
+          alignItems: 'center',
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          position: 'relative',
+          width: '100%',
+        },
+        isElectron: {
+          height: 40,
+        },
+        isMobile: {
+          height: 56,
+        },
+      }),
+      container: Styles.platformStyles({
+        isElectron: {
+          height: 560,
+          width: 400,
+        },
+        isMobile: {
+          flex: 1,
+          width: '100%',
+        },
+      }),
+      displayChoice: {
+        width: '100%',
+      },
+      expanderContainer: {
+        backgroundColor: Styles.globalColors.black_05,
+        borderRadius: Styles.borderRadius,
+        height: 22,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      expanderText: {color: Styles.globalColors.black_50},
+      grey: {color: Styles.globalColors.black_50},
+      growContainer: {
+        alignItems: 'center',
+        height: '100%',
+      },
+      listContainer: Styles.platformStyles({
+        isElectron: {
+          maxHeight: 560 - 48,
+        },
+        isMobile: {
+          flex: 1,
+        },
+      }),
+      sectionHeaderContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+          backgroundColor: Styles.globalColors.blueLighter3,
+          justifyContent: 'center',
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          // must be uniform height with current SectionList implementation
+          // so first doesn't peek out from under the second
+          height: 32,
+        },
+      }),
+      sectionList: {
+        flexGrow: 0,
+      },
+      spacer: {
+        flex: 1,
+      },
+    } as const)
+)
 
 export default ChooseAsset

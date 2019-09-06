@@ -156,63 +156,66 @@ const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): st
   return res
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addYourselfBanner: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.blue,
-    justifyContent: 'center',
-    marginBottom: Styles.globalMargins.tiny,
-    minHeight: 40,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  addYourselfBannerText: {color: Styles.globalColors.white},
-  buttonBar: Styles.platformStyles({
-    isMobile: {
-      marginBottom: -8,
-      width: 'auto',
-    },
-  }),
-  chatIcon: {
-    marginRight: 8,
-  },
-  cliTerminalText: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    position: 'relative',
-    width: '100%',
-  },
-  description: {
-    maxWidth: 560,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  meta: {
-    alignSelf: 'center',
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  teamHeader: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      paddingTop: Styles.globalMargins.medium,
-      textAlign: 'center',
-    },
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addYourselfBanner: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        backgroundColor: Styles.globalColors.blue,
+        justifyContent: 'center',
+        marginBottom: Styles.globalMargins.tiny,
+        minHeight: 40,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      addYourselfBannerText: {color: Styles.globalColors.white},
+      buttonBar: Styles.platformStyles({
+        isMobile: {
+          marginBottom: -8,
+          width: 'auto',
+        },
+      }),
+      chatIcon: {
+        marginRight: 8,
+      },
+      cliTerminalText: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.xtiny,
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        height: '100%',
+        position: 'relative',
+        width: '100%',
+      },
+      description: {
+        maxWidth: 560,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      meta: {
+        alignSelf: 'center',
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      teamHeader: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          paddingTop: Styles.globalMargins.medium,
+          textAlign: 'center',
+        },
+      }),
+    } as const)
+)
 
 export {TeamHeader}

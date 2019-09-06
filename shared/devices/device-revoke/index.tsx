@@ -111,40 +111,43 @@ const DeviceRevoke = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {padding: Styles.globalMargins.small},
-  endangeredTLFContainer: Styles.platformStyles({
-    isElectron: {alignSelf: 'center'},
-    isMobile: {flexGrow: 1},
-  }),
-  headerName: {
-    color: Styles.globalColors.redDark,
-    textDecorationLine: 'line-through',
-  },
-  italicName: {...Styles.globalStyles.italic},
-  listContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignContent: 'center',
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      flexGrow: 1,
-      marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isElectron: {height: 162, width: 440},
-  }),
-  row: {
-    paddingBottom: Styles.globalMargins.xxtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xxtiny,
-  },
-  tlf: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-word'} as const,
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {padding: Styles.globalMargins.small},
+      endangeredTLFContainer: Styles.platformStyles({
+        isElectron: {alignSelf: 'center'},
+        isMobile: {flexGrow: 1},
+      }),
+      headerName: {
+        color: Styles.globalColors.redDark,
+        textDecorationLine: 'line-through',
+      },
+      italicName: {...Styles.globalStyles.italic},
+      listContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignContent: 'center',
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: 4,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flexGrow: 1,
+          marginBottom: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.small,
+          width: '100%',
+        },
+        isElectron: {height: 162, width: 440},
+      }),
+      row: {
+        paddingBottom: Styles.globalMargins.xxtiny,
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.xxtiny,
+      },
+      tlf: Styles.platformStyles({
+        isElectron: {wordBreak: 'break-word'} as const,
+      }),
+    } as const)
+)
 
 export default Kb.HeaderHoc(DeviceRevoke)
