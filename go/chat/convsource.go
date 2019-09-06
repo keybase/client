@@ -58,7 +58,8 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
+	err := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, &chat1.Pagination{Num: 0},
+		types.ConvLoaderPriorityHigh, types.ConvLoaderUnique,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
@@ -1060,16 +1061,17 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
-	qErr := s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
-		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-			if len(tv.Messages) == 0 {
-				return
-			}
-			bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
-			if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
-				s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
-			}
-		}))
+	qErr := s.G().ConvLoader.Queue(ctx,
+		types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
+			func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
+				if len(tv.Messages) == 0 {
+					return
+				}
+				bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
+				if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
+					s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
+				}
+			}))
 	if qErr != nil {
 		s.Debug(ctx, "ClearFromDelete: failed error queuing conv job: %+v", err)
 	}

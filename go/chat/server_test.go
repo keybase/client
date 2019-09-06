@@ -3575,13 +3575,10 @@ func TestChatSrvGetThreadNonblockOldPages(t *testing.T) {
 
 		t.Logf("send a bunch of messages")
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		// need two for new conversation, plus the gregor message
-		for i := 0; i < 2; i++ {
-			select {
-			case <-bgConvLoads:
-			case <-time.After(20 * time.Second):
-				require.Fail(t, "no bkg load")
-			}
+		select {
+		case <-bgConvLoads:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no bkg load")
 		}
 		numMsgs := 20
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
