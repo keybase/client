@@ -272,7 +272,6 @@
     "msgpack": "git://github.com/keybase/nullModule",
     "net": "git://github.com/keybase/nullModule",
     "null-loader": "0.1.1",
-    "pegjs": "0.10.0",
     "prettier": "1.17.1",
     "randexp": "0.5.3",
     "react-hot-loader": "4.11.0",
