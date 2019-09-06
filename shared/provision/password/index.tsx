@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {globalColors} from '../../styles'
 import {SignupScreen, errorBanner} from '../../signup/common'
 import {isMobile} from '../../constants/platform'
 
@@ -90,9 +89,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   outerCardAvatar: {
     backgroundColor: Styles.globalColors.transparent,
-  },
-  username: {
-    color: globalColors.orange,
   },
   wrapper: Styles.platformStyles({
     isElectron: {

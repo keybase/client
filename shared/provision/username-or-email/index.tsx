@@ -93,15 +93,6 @@ const Username = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      button: Styles.platformStyles({
-        common: {
-          alignSelf: 'center',
-          width: '100%',
-        },
-        isElectron: {
-          marginTop: Styles.globalMargins.medium,
-        },
-      }),
       card: Styles.platformStyles({
         common: {
           alignItems: 'stretch',
@@ -112,40 +103,8 @@ const styles = Styles.styleSheetCreate(
           paddingRight: 0,
         },
       }),
-      error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
-      errorLink: {
-        color: Styles.globalColors.redDark,
-        textDecorationLine: 'underline',
-      },
       forgotUsername: {
         alignSelf: 'flex-end',
-      },
-      input: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.transparent,
-          padding: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-        },
-        isMobile: {
-          flexGrow: 1,
-          marginBottom: Styles.globalMargins.small,
-          minHeight: 48,
-        },
-      }),
-      inputContainer: {
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.blue,
-        borderRadius: 6,
-        borderStyle: 'solid',
-        borderWidth: 1,
-      },
-      inputLabel: {
-        color: Styles.globalColors.blue,
-        paddingBottom: 0,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
       },
       outerCard: {
         flex: 1,
