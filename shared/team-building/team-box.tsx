@@ -93,7 +93,7 @@ const TeamBox = (props: Props) => {
         <Kb.ScrollView
           horizontal={true}
           ref={scrollViewRef}
-          showsHorizontalScrollIndicator={false}
+          showsHorizontalScrollIndicator={true}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
@@ -147,7 +147,7 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.blueGrey,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.xsmall,
+          paddingLeft: Styles.globalMargins.xtiny,
           paddingRight: Styles.globalMargins.xsmall,
         },
         isMobile: {

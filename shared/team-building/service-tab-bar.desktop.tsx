@@ -130,7 +130,7 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
     <Kb.Icon
       style={styles.moreNetworkItemIcon}
-      color={Styles.globalColors.black}
+      color={serviceIdToAccentColor(props.service)}
       type={serviceIdToIconFont(props.service)}
     />
     <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
