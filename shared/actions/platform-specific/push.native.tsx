@@ -391,7 +391,8 @@ const getInitialPushAndroid = async () => {
   return notification && PushGen.createNotification({notification})
 }
 
-const getInitialPushiOS = ()=> new Promise(resolve =>
+const getInitialPushiOS = () =>
+  new Promise(resolve =>
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
       if (notification) {
