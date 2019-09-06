@@ -3126,23 +3126,6 @@ const onChatMaybeMentionUpdate = (
   })
 }
 
-let locationEmitter: ((input: unknown) => void) | null = null
-
-function* setupLocationUpdateLoop() {
-  if (locationEmitter) {
-    return
-  }
-  const locationChannel = yield Saga.eventChannel(emitter => {
-    locationEmitter = emitter
-    // we never unsubscribe
-    return () => {}
-  }, Saga.buffers.expanding(10))
-  while (true) {
-    const action = yield Saga.take(locationChannel)
-    yield Saga.put(action)
-  }
-}
-
 const onChatWatchPosition = async (
   _: TypedState,
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
@@ -3716,9 +3699,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus, 'onChatCommandStatus')
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatMaybeMentionUpdate, onChatMaybeMentionUpdate)
-  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
-  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition, 'onChatWatchPosition')
-  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch, 'onChatClearWatch')
 
   yield* Saga.chainAction2(Chat2Gen.replyJump, onReplyJump)
 
@@ -3750,10 +3730,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
 
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
-    ConfigGen.daemonHandshake,
-    setupLocationUpdateLoop
-  )
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()

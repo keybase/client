@@ -475,7 +475,7 @@ protocol chatUi {
   // Location support
   void chatStartLocationUpdates(int sessionID, ConversationID convID);
   void chatStopLocationUpdates(int sessionID, ConversationID convID);
-  void chatGetCurrentPosition(int sessionID, ConversationID convID);
+  void chatGetCurrentPosition(int sessionID, ConversationID convID) oneway;
 
   // Slash command feedback
   enum UICommandStatusDisplayTyp {

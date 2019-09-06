@@ -290,8 +290,9 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatCommandMarkdown': enginegen.Chat1ChatUiChatCommandMarkdownPayload
   'engine-gen:chat1ChatUiChatMaybeMentionUpdate': enginegen.Chat1ChatUiChatMaybeMentionUpdatePayload
   'engine-gen:chat1ChatUiChatLoadGalleryHit': enginegen.Chat1ChatUiChatLoadGalleryHitPayload
-  'engine-gen:chat1ChatUiChatWatchPosition': enginegen.Chat1ChatUiChatWatchPositionPayload
-  'engine-gen:chat1ChatUiChatClearWatch': enginegen.Chat1ChatUiChatClearWatchPayload
+  'engine-gen:chat1ChatUiChatStartLocationUpdates': enginegen.Chat1ChatUiChatStartLocationUpdatesPayload
+  'engine-gen:chat1ChatUiChatStopLocationUpdates': enginegen.Chat1ChatUiChatStopLocationUpdatesPayload
+  'engine-gen:chat1ChatUiChatGetCurrentPosition': enginegen.Chat1ChatUiChatGetCurrentPositionPayload
   'engine-gen:chat1ChatUiChatCommandStatus': enginegen.Chat1ChatUiChatCommandStatusPayload
   'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus': enginegen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   'engine-gen:chat1ChatUiTriggerContactSync': enginegen.Chat1ChatUiTriggerContactSyncPayload

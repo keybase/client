@@ -5974,7 +5974,7 @@ type LoadFlipArg struct {
 }
 
 type LocationUpdateArg struct {
-	Coord Coordinate `codec:"coord" json:"coord"`
+	Coords Coordinate `codec:"coords" json:"coords"`
 }
 
 type LocationDeniedArg struct {
@@ -7138,7 +7138,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LocationUpdateArg)(nil), args)
 						return
 					}
-					err = i.LocationUpdate(ctx, typedArgs[0].Coord)
+					err = i.LocationUpdate(ctx, typedArgs[0].Coords)
 					return
 				},
 			},
@@ -7617,8 +7617,8 @@ func (c LocalClient) LoadFlip(ctx context.Context, __arg LoadFlipArg) (res LoadF
 	return
 }
 
-func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err error) {
-	__arg := LocationUpdateArg{Coord: coord}
+func (c LocalClient) LocationUpdate(ctx context.Context, coords Coordinate) (err error) {
+	__arg := LocationUpdateArg{Coords: coords}
 	err = c.Cli.Call(ctx, "chat.1.local.locationUpdate", []interface{}{__arg}, nil)
 	return
 }

@@ -360,7 +360,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.local.locationUpdate': {
-    inParam: {readonly coord: Coordinate}
+    inParam: {readonly coords: Coordinate}
     outParam: void
   }
   'chat.1.local.makePreview': {

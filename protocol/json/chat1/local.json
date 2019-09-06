@@ -4922,7 +4922,7 @@
     "locationUpdate": {
       "request": [
         {
-          "name": "coord",
+          "name": "coords",
           "type": "Coordinate"
         }
       ],

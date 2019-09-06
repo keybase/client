@@ -2,6 +2,7 @@ import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
+import * as Chat2Gen from '../chat2-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
@@ -29,6 +30,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
+import * as TaskManager from 'expo-task-manager'
 import * as Location from 'expo-location'
 import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
@@ -69,28 +71,83 @@ export const requestLocationPermission = (): Promise<void> => {
   return Promise.resolve()
 }
 
+const locationTaskName = 'bkg-location-updates'
+
 const onChatStartLocationUpdates = async (
-  _: TypedState,
+  _: Container.TypedState,
   action: EngineGen.Chat1ChatUiChatStartLocationUpdatesPayload,
   logger: Saga.SagaLogger
 ) => {
   const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)
+  logger.info(
+    `onChatStartLocationUpdates: status: ${JSON.stringify(status)} permissions: ${JSON.stringify(
+      permissions
+    )}`
+  )
+  await Location.startLocationUpdatesAsync(locationTaskName, {
+    accuracy: Location.Accuracy.Highest,
+  })
 }
 
-const onChatStopLocationUpdates = async (
-  _: TypedState,
-  action: EngineGen.Chat1ChatUiChatStartLocationUpdatesPayload,
-  logger: Saga.SagaLogger
-) => {
-  const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)
+let locationEmitter: ((input: unknown) => void) | null = null
+
+function* setupLocationUpdateLoop() {
+  const locationChannel = yield Saga.eventChannel(emitter => {
+    locationEmitter = emitter
+    return () => {}
+  }, Saga.buffers.expanding(10))
+  while (true) {
+    const action = yield Saga.take(locationChannel)
+    yield Saga.put(action)
+  }
+}
+
+TaskManager.defineTask(locationTaskName, ({data: {locations}, error}: any) => {
+  if (error) {
+    return
+  }
+  if (!locations.length) {
+    return
+  }
+  const lastCoord: Location.LocationData = locations[locations.length - 1]
+  if (locationEmitter) {
+    locationEmitter(
+      Chat2Gen.createUpdateLastCoord({
+        coord: {
+          accuracy: Math.floor(lastCoord.coords.accuracy),
+          lat: lastCoord.coords.latitude,
+          lon: lastCoord.coords.longitude,
+        },
+      })
+    )
+  }
+})
+
+const onChatStopLocationUpdates = async () => {
+  await Location.stopLocationUpdatesAsync(locationTaskName)
 }
 
 const onChatGetCurrentPosition = async (
-  _: TypedState,
-  action: EngineGen.Chat1ChatUiChatStartLocationUpdatesPayload,
+  _: Container.TypedState,
+  _: EngineGen.Chat1ChatUiChatGetCurrentPositionPayload,
   logger: Saga.SagaLogger
 ) => {
   const {status, permissions} = await Permissions.askAsync(Permissions.LOCATION)
+  logger.info(
+    `onChatStartLocationUpdates: status: ${JSON.stringify(status)} permissions: ${JSON.stringify(
+      permissions
+    )}`
+  )
+  const lastCoord = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.Highest,
+  })
+  return Chat2Gen.createUpdateLastCoord({
+    coord: {
+      accuracy: Math.floor(lastCoord.coords.accuracy),
+      lat: lastCoord.coords.latitude,
+      lon: lastCoord.coords.longitude,
+    },
+  })
 }
 
 export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
@@ -631,6 +688,26 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     manageContactsCache,
     'manageContactsCache'
   )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatStartLocationUpdates,
+    onChatStartLocationUpdates,
+    'onChatStartLocationUpdates'
+  )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatStopLocationUpdates,
+    onChatStopLocationUpdates,
+    'onChatStopLocationUpdates'
+  )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatGetCurrentPosition,
+    onChatGetCurrentPosition,
+    'onChatGetCurrentPosition'
+  )
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    setupLocationUpdateLoop
+  )
+
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)

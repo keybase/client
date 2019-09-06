@@ -12,11 +12,11 @@ export const chat1ChatUiChatAttachmentDownloadProgress =
   'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
 export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
 export const chat1ChatUiChatBotCommandsUpdateStatus = 'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus'
-export const chat1ChatUiChatClearWatch = 'engine-gen:chat1ChatUiChatClearWatch'
 export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatCommandMarkdown = 'engine-gen:chat1ChatUiChatCommandMarkdown'
 export const chat1ChatUiChatCommandStatus = 'engine-gen:chat1ChatUiChatCommandStatus'
 export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
+export const chat1ChatUiChatGetCurrentPosition = 'engine-gen:chat1ChatUiChatGetCurrentPosition'
 export const chat1ChatUiChatGiphySearchResults = 'engine-gen:chat1ChatUiChatGiphySearchResults'
 export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiChatGiphyToggleResultWindow'
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
@@ -32,14 +32,15 @@ export const chat1ChatUiChatSearchInboxHit = 'engine-gen:chat1ChatUiChatSearchIn
 export const chat1ChatUiChatSearchInboxStart = 'engine-gen:chat1ChatUiChatSearchInboxStart'
 export const chat1ChatUiChatSearchIndexStatus = 'engine-gen:chat1ChatUiChatSearchIndexStatus'
 export const chat1ChatUiChatShowManageChannels = 'engine-gen:chat1ChatUiChatShowManageChannels'
+export const chat1ChatUiChatStartLocationUpdates = 'engine-gen:chat1ChatUiChatStartLocationUpdates'
 export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStellarDataConfirm'
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
 export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone'
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
+export const chat1ChatUiChatStopLocationUpdates = 'engine-gen:chat1ChatUiChatStopLocationUpdates'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
 export const chat1ChatUiChatThreadStatus = 'engine-gen:chat1ChatUiChatThreadStatus'
-export const chat1ChatUiChatWatchPosition = 'engine-gen:chat1ChatUiChatWatchPosition'
 export const chat1ChatUiTriggerContactSync = 'engine-gen:chat1ChatUiTriggerContactSync'
 export const chat1NotifyChatChatAttachmentUploadProgress =
   'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
@@ -260,13 +261,6 @@ type _Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void
   }
 }
-type _Chat1ChatUiChatClearWatchPayload = {
-  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['inParam'] & {sessionID: number}
-  response: {
-    error: chat1Types.IncomingErrorCallback
-    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatClearWatch']['outParam']) => void
-  }
-}
 type _Chat1ChatUiChatCoinFlipStatusPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatCoinFlipStatus']['inParam'] & {
     sessionID: number
@@ -299,6 +293,15 @@ type _Chat1ChatUiChatConfirmChannelDeletePayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatGetCurrentPositionPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatGetCurrentPosition']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatGetCurrentPosition']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatGiphySearchResultsPayload = {
@@ -430,6 +433,15 @@ type _Chat1ChatUiChatShowManageChannelsPayload = {
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatShowManageChannels']['outParam']) => void
   }
 }
+type _Chat1ChatUiChatStartLocationUpdatesPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStartLocationUpdates']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStartLocationUpdates']['outParam']) => void
+  }
+}
 type _Chat1ChatUiChatStellarDataConfirmPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'] & {
     sessionID: number
@@ -464,6 +476,15 @@ type _Chat1ChatUiChatStellarShowConfirmPayload = {
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['outParam']) => void
   }
 }
+type _Chat1ChatUiChatStopLocationUpdatesPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatStopLocationUpdates']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatStopLocationUpdates']['outParam']) => void
+  }
+}
 type _Chat1ChatUiChatThreadCachedPayload = {
   readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatThreadCached']['inParam'] & {sessionID: number}
   response: {
@@ -483,13 +504,6 @@ type _Chat1ChatUiChatThreadStatusPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void
-  }
-}
-type _Chat1ChatUiChatWatchPositionPayload = {
-  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['inParam'] & {sessionID: number}
-  response: {
-    error: chat1Types.IncomingErrorCallback
-    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatWatchPosition']['outParam']) => void
   }
 }
 type _Chat1ChatUiTriggerContactSyncPayload = {
@@ -1809,9 +1823,6 @@ export const createChat1ChatUiChatAttachmentDownloadStart = (
 export const createChat1ChatUiChatBotCommandsUpdateStatus = (
   payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
 ): Chat1ChatUiChatBotCommandsUpdateStatusPayload => ({payload, type: chat1ChatUiChatBotCommandsUpdateStatus})
-export const createChat1ChatUiChatClearWatch = (
-  payload: _Chat1ChatUiChatClearWatchPayload
-): Chat1ChatUiChatClearWatchPayload => ({payload, type: chat1ChatUiChatClearWatch})
 export const createChat1ChatUiChatCoinFlipStatus = (
   payload: _Chat1ChatUiChatCoinFlipStatusPayload
 ): Chat1ChatUiChatCoinFlipStatusPayload => ({payload, type: chat1ChatUiChatCoinFlipStatus})
@@ -1824,6 +1835,9 @@ export const createChat1ChatUiChatCommandStatus = (
 export const createChat1ChatUiChatConfirmChannelDelete = (
   payload: _Chat1ChatUiChatConfirmChannelDeletePayload
 ): Chat1ChatUiChatConfirmChannelDeletePayload => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
+export const createChat1ChatUiChatGetCurrentPosition = (
+  payload: _Chat1ChatUiChatGetCurrentPositionPayload
+): Chat1ChatUiChatGetCurrentPositionPayload => ({payload, type: chat1ChatUiChatGetCurrentPosition})
 export const createChat1ChatUiChatGiphySearchResults = (
   payload: _Chat1ChatUiChatGiphySearchResultsPayload
 ): Chat1ChatUiChatGiphySearchResultsPayload => ({payload, type: chat1ChatUiChatGiphySearchResults})
@@ -1869,6 +1883,9 @@ export const createChat1ChatUiChatSearchIndexStatus = (
 export const createChat1ChatUiChatShowManageChannels = (
   payload: _Chat1ChatUiChatShowManageChannelsPayload
 ): Chat1ChatUiChatShowManageChannelsPayload => ({payload, type: chat1ChatUiChatShowManageChannels})
+export const createChat1ChatUiChatStartLocationUpdates = (
+  payload: _Chat1ChatUiChatStartLocationUpdatesPayload
+): Chat1ChatUiChatStartLocationUpdatesPayload => ({payload, type: chat1ChatUiChatStartLocationUpdates})
 export const createChat1ChatUiChatStellarDataConfirm = (
   payload: _Chat1ChatUiChatStellarDataConfirmPayload
 ): Chat1ChatUiChatStellarDataConfirmPayload => ({payload, type: chat1ChatUiChatStellarDataConfirm})
@@ -1881,6 +1898,9 @@ export const createChat1ChatUiChatStellarDone = (
 export const createChat1ChatUiChatStellarShowConfirm = (
   payload: _Chat1ChatUiChatStellarShowConfirmPayload
 ): Chat1ChatUiChatStellarShowConfirmPayload => ({payload, type: chat1ChatUiChatStellarShowConfirm})
+export const createChat1ChatUiChatStopLocationUpdates = (
+  payload: _Chat1ChatUiChatStopLocationUpdatesPayload
+): Chat1ChatUiChatStopLocationUpdatesPayload => ({payload, type: chat1ChatUiChatStopLocationUpdates})
 export const createChat1ChatUiChatThreadCached = (
   payload: _Chat1ChatUiChatThreadCachedPayload
 ): Chat1ChatUiChatThreadCachedPayload => ({payload, type: chat1ChatUiChatThreadCached})
@@ -1890,9 +1910,6 @@ export const createChat1ChatUiChatThreadFull = (
 export const createChat1ChatUiChatThreadStatus = (
   payload: _Chat1ChatUiChatThreadStatusPayload
 ): Chat1ChatUiChatThreadStatusPayload => ({payload, type: chat1ChatUiChatThreadStatus})
-export const createChat1ChatUiChatWatchPosition = (
-  payload: _Chat1ChatUiChatWatchPositionPayload
-): Chat1ChatUiChatWatchPositionPayload => ({payload, type: chat1ChatUiChatWatchPosition})
 export const createChat1ChatUiTriggerContactSync = (
   payload: _Chat1ChatUiTriggerContactSyncPayload
 ): Chat1ChatUiTriggerContactSyncPayload => ({payload, type: chat1ChatUiTriggerContactSync})
@@ -2503,10 +2520,6 @@ export type Chat1ChatUiChatBotCommandsUpdateStatusPayload = {
   readonly payload: _Chat1ChatUiChatBotCommandsUpdateStatusPayload
   readonly type: typeof chat1ChatUiChatBotCommandsUpdateStatus
 }
-export type Chat1ChatUiChatClearWatchPayload = {
-  readonly payload: _Chat1ChatUiChatClearWatchPayload
-  readonly type: typeof chat1ChatUiChatClearWatch
-}
 export type Chat1ChatUiChatCoinFlipStatusPayload = {
   readonly payload: _Chat1ChatUiChatCoinFlipStatusPayload
   readonly type: typeof chat1ChatUiChatCoinFlipStatus
@@ -2522,6 +2535,10 @@ export type Chat1ChatUiChatCommandStatusPayload = {
 export type Chat1ChatUiChatConfirmChannelDeletePayload = {
   readonly payload: _Chat1ChatUiChatConfirmChannelDeletePayload
   readonly type: typeof chat1ChatUiChatConfirmChannelDelete
+}
+export type Chat1ChatUiChatGetCurrentPositionPayload = {
+  readonly payload: _Chat1ChatUiChatGetCurrentPositionPayload
+  readonly type: typeof chat1ChatUiChatGetCurrentPosition
 }
 export type Chat1ChatUiChatGiphySearchResultsPayload = {
   readonly payload: _Chat1ChatUiChatGiphySearchResultsPayload
@@ -2583,6 +2600,10 @@ export type Chat1ChatUiChatShowManageChannelsPayload = {
   readonly payload: _Chat1ChatUiChatShowManageChannelsPayload
   readonly type: typeof chat1ChatUiChatShowManageChannels
 }
+export type Chat1ChatUiChatStartLocationUpdatesPayload = {
+  readonly payload: _Chat1ChatUiChatStartLocationUpdatesPayload
+  readonly type: typeof chat1ChatUiChatStartLocationUpdates
+}
 export type Chat1ChatUiChatStellarDataConfirmPayload = {
   readonly payload: _Chat1ChatUiChatStellarDataConfirmPayload
   readonly type: typeof chat1ChatUiChatStellarDataConfirm
@@ -2599,6 +2620,10 @@ export type Chat1ChatUiChatStellarShowConfirmPayload = {
   readonly payload: _Chat1ChatUiChatStellarShowConfirmPayload
   readonly type: typeof chat1ChatUiChatStellarShowConfirm
 }
+export type Chat1ChatUiChatStopLocationUpdatesPayload = {
+  readonly payload: _Chat1ChatUiChatStopLocationUpdatesPayload
+  readonly type: typeof chat1ChatUiChatStopLocationUpdates
+}
 export type Chat1ChatUiChatThreadCachedPayload = {
   readonly payload: _Chat1ChatUiChatThreadCachedPayload
   readonly type: typeof chat1ChatUiChatThreadCached
@@ -2610,10 +2635,6 @@ export type Chat1ChatUiChatThreadFullPayload = {
 export type Chat1ChatUiChatThreadStatusPayload = {
   readonly payload: _Chat1ChatUiChatThreadStatusPayload
   readonly type: typeof chat1ChatUiChatThreadStatus
-}
-export type Chat1ChatUiChatWatchPositionPayload = {
-  readonly payload: _Chat1ChatUiChatWatchPositionPayload
-  readonly type: typeof chat1ChatUiChatWatchPosition
 }
 export type Chat1ChatUiTriggerContactSyncPayload = {
   readonly payload: _Chat1ChatUiTriggerContactSyncPayload
@@ -3265,11 +3286,11 @@ export type Actions =
   | Chat1ChatUiChatAttachmentDownloadProgressPayload
   | Chat1ChatUiChatAttachmentDownloadStartPayload
   | Chat1ChatUiChatBotCommandsUpdateStatusPayload
-  | Chat1ChatUiChatClearWatchPayload
   | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatCommandMarkdownPayload
   | Chat1ChatUiChatCommandStatusPayload
   | Chat1ChatUiChatConfirmChannelDeletePayload
+  | Chat1ChatUiChatGetCurrentPositionPayload
   | Chat1ChatUiChatGiphySearchResultsPayload
   | Chat1ChatUiChatGiphyToggleResultWindowPayload
   | Chat1ChatUiChatInboxConversationPayload
@@ -3285,14 +3306,15 @@ export type Actions =
   | Chat1ChatUiChatSearchInboxStartPayload
   | Chat1ChatUiChatSearchIndexStatusPayload
   | Chat1ChatUiChatShowManageChannelsPayload
+  | Chat1ChatUiChatStartLocationUpdatesPayload
   | Chat1ChatUiChatStellarDataConfirmPayload
   | Chat1ChatUiChatStellarDataErrorPayload
   | Chat1ChatUiChatStellarDonePayload
   | Chat1ChatUiChatStellarShowConfirmPayload
+  | Chat1ChatUiChatStopLocationUpdatesPayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
   | Chat1ChatUiChatThreadStatusPayload
-  | Chat1ChatUiChatWatchPositionPayload
   | Chat1ChatUiTriggerContactSyncPayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload

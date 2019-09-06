@@ -2132,7 +2132,8 @@
           "type": "ConversationID"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "chatCommandStatus": {
       "request": [

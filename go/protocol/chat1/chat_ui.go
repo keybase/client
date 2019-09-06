@@ -3343,7 +3343,7 @@ func (c ChatUiClient) ChatStopLocationUpdates(ctx context.Context, __arg ChatSto
 }
 
 func (c ChatUiClient) ChatGetCurrentPosition(ctx context.Context, __arg ChatGetCurrentPositionArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGetCurrentPosition", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatGetCurrentPosition", []interface{}{__arg})
 	return
 }
 

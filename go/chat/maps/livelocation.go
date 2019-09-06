@@ -252,12 +252,17 @@ func (l *LiveLocationTracker) updateMapUnfurl(ctx context.Context, t *locationTr
 	return nil
 }
 
-func (l *LiveLocationTracker) startWatch(ctx context.Context, convID chat1.ConversationID) (err error) {
+func (l *LiveLocationTracker) startWatch(ctx context.Context, t *locationTrack) (err error) {
 	// try this a couple times in case we are starting fresh and the UI isn't ready yet
 	maxWatchAttempts := 20
 	watchAttempts := 0
 	for {
-		if err = l.getChatUI(ctx).ChatStartLocationUpdates(ctx, convID); err != nil {
+		if t.getCurrentPosition {
+			err = l.getChatUI(ctx).ChatGetCurrentPosition(ctx, t.convID)
+		} else {
+			err = l.getChatUI(ctx).ChatStartLocationUpdates(ctx, t.convID)
+		}
+		if err != nil {
 			l.Debug(ctx, "startWatch: unable to watch position: attempt: %d msg: %s", watchAttempts, err)
 			if watchAttempts > maxWatchAttempts {
 				return err
@@ -279,7 +284,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	}
 
 	// start up the OS watch routine
-	err := l.startWatch(ctx, t.convID)
+	err := l.startWatch(ctx, t)
 	if err != nil {
 		return err
 	}
