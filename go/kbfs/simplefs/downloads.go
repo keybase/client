@@ -61,20 +61,6 @@ func (m *downloadManager) makeContext() (ctx context.Context, cancel func()) {
 	return context.WithCancel(libkbfs.CtxWithRandomIDReplayable(context.Background(), dlCtxIDKey, dlCtxOpID, m.k.log))
 }
 
-func (m *downloadManager) accessDownloads(isWrite bool, f func()) {
-	if isWrite {
-		m.lock.Lock()
-		defer m.lock.Unlock()
-	} else {
-		m.lock.RLock()
-		defer m.lock.RUnlock()
-	}
-	f()
-	if isWrite {
-		m.publisher.DownloadStatusChanged()
-	}
-}
-
 func (m *downloadManager) getDownload(downloadID string) (download, error) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
@@ -86,6 +72,7 @@ func (m *downloadManager) getDownload(downloadID string) (download, error) {
 }
 
 func (m *downloadManager) updateDownload(downloadID string, f func(original download) download) (err error) {
+	defer m.publisher.DownloadStatusChanged()
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	download, ok := m.downloads[downloadID]
@@ -188,13 +175,13 @@ func (m *downloadManager) moveToDownloadFolder(
 	return destPath, nil
 }
 
-func (m *downloadManager) waitForDownload(ctx context.Context, opid keybase1.OpID, downloadID string, downloadPath string, done func(error)) {
+func (m *downloadManager) waitForDownload(ctx context.Context, downloadID string, downloadPath string, done func(error)) {
 	d, err := m.getDownload(downloadID)
 	if err != nil {
 		done(err)
 		return
 	}
-	err = m.k.SimpleFSWait(ctx, opid)
+	err = m.k.SimpleFSWait(ctx, d.opid)
 	if err != nil {
 		done(err)
 		return
@@ -243,6 +230,7 @@ func (m *downloadManager) startDownload(
 	}
 
 	func() {
+		defer m.publisher.DownloadStatusChanged()
 		m.lock.Lock()
 		defer m.lock.Unlock()
 		m.downloads[downloadID] = download{
@@ -253,6 +241,7 @@ func (m *downloadManager) startDownload(
 				StartTime:         keybase1.ToTime(time.Now()),
 				IsRegularDownload: arg.IsRegularDownload,
 			},
+			opid: opid,
 			state: keybase1.DownloadState{
 				DownloadID: downloadID,
 			},
@@ -265,7 +254,9 @@ func (m *downloadManager) startDownload(
 			if d.state.Done || d.state.Canceled || len(d.state.Error) > 0 {
 				return d
 			}
-			if err != nil {
+			if err == context.Canceled {
+				d.state.Canceled = true
+			} else if err != nil {
 				d.state.Error = err.Error()
 			} else {
 				d.state.EndEstimate = keybase1.ToTime(time.Now())
@@ -277,7 +268,7 @@ func (m *downloadManager) startDownload(
 		cancelBtCtx()
 	}
 	go m.monitorDownload(bgCtx, opid, downloadID, done)
-	go m.waitForDownload(bgCtx, opid, downloadID, downloadPath, done)
+	go m.waitForDownload(bgCtx, downloadID, downloadPath, done)
 
 	return downloadID, nil
 }
@@ -319,9 +310,10 @@ func (m *downloadManager) cancelDownload(
 func (m *downloadManager) dismissDownload(
 	ctx context.Context, downloadID string) {
 	m.cancelDownload(ctx, downloadID)
-	m.accessDownloads(true, func() {
-		delete(m.downloads, downloadID)
-	})
+	defer m.publisher.DownloadStatusChanged()
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	delete(m.downloads, downloadID)
 }
 
 func (m *downloadManager) getDownloadInfo(downloadID string) (keybase1.DownloadInfo, error) {

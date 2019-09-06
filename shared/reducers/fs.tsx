@@ -278,50 +278,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           (setting || Constants.defaultPathUserSetting).set('sort', action.payload.sortSetting)
         )
       )
-    case FsGen.downloadStarted: {
-      const {key, path, localPath, intent, opID} = action.payload
-      const entryType = action.payload.entryType || state.pathItems.get(path, Constants.unknownPathItem).type
-      return state.setIn(
-        ['downloads', key],
-        Constants.makeDownload({
-          meta: Constants.makeDownloadMeta({
-            entryType,
-            intent,
-            localPath,
-            opID,
-            path,
-          }),
-          state: Constants.makeDownloadState({
-            completePortion: 0,
-            isDone: false,
-            startedAt: Date.now(),
-          }),
-        })
-      )
-    }
-    case FsGen.downloadProgress: {
-      const {key, completePortion, endEstimate} = action.payload
-      return state.update('downloads', d =>
-        d.update(key, k =>
-          k.update('state', original => original && original.merge({completePortion, endEstimate}))
-        )
-      )
-    }
-    case FsGen.downloadSuccess: {
-      return state.updateIn(
-        ['downloads', action.payload.key, 'state'],
-        original => original && original.set('isDone', true)
-      )
-    }
-    case FsGen.dismissDownload: {
-      return state.removeIn(['downloads', action.payload.key])
-    }
-    case FsGen.cancelDownload:
-      return state.update('downloads', downloads =>
-        downloads.update(action.payload.key, download =>
-          download.update('state', state => state.set('canceled', true))
-        )
-      )
     case FsGen.uploadStarted:
       return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
         writingToJournal.add(action.payload.path)
@@ -479,9 +435,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('pathItemActionMenu', pathItemActionMenu =>
         pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
       )
-    case FsGen.setPathItemActionMenuDownloadKey:
+    case FsGen.setPathItemActionMenuDownload:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
-        pathItemActionMenu.set('downloadKey', action.payload.key)
+        pathItemActionMenu
+          .set('downloadID', action.payload.downloadID)
+          .set('downloadIntent', action.payload.intent)
       )
     case FsGen.waitForKbfsDaemon:
       return state.update('kbfsDaemonStatus', kbfsDaemonStatus =>
@@ -571,7 +529,21 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('pathInfos', pathInfos =>
         pathInfos.set(action.payload.path, action.payload.pathInfo)
       )
-
+    case FsGen.loadedDownloadStatus:
+      return state.update('downloads', downloads =>
+        downloads
+          .update('regularDownloads', regularDownloads =>
+            regularDownloads.equals(action.payload.regularDownloads)
+              ? regularDownloads
+              : action.payload.regularDownloads
+          )
+          .update('state', s => (s.equals(action.payload.state) ? s : action.payload.state))
+          .update('info', info => info.filter((v, downloadID) => action.payload.state.has(downloadID)))
+      )
+    case FsGen.loadedDownloadInfo:
+      return state.update('downloads', downloads =>
+        downloads.update('info', info => info.set(action.payload.downloadID, action.payload.info))
+      )
     case FsGen.startManualConflictResolution:
     case FsGen.finishManualConflictResolution:
     case FsGen.driverDisable:
@@ -609,6 +581,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.refreshMountDirsAfter10s:
     case FsGen.loadPathInfo:
     case FsGen.getOnlineStatus:
+    case FsGen.loadDownloadStatus:
+    case FsGen.loadDownloadInfo:
+    case FsGen.cancelDownload:
+    case FsGen.dismissDownload:
     case FsGen.setDebugLevel:
       return state
     default:

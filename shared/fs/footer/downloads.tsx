@@ -1,15 +1,16 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import Download from './download-container'
+import * as Container from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
+import * as Kbfs from '../common'
+import Download from './download'
+import {downloadFolder} from '../../util/file'
 
-export type DownloadsProps = {
-  downloadKeys: Array<string>
-  openDownloadFolder?: () => void
-}
-
-const Mobile = (props: DownloadsProps) =>
-  props.downloadKeys.length ? (
+const Mobile = () => {
+  Kbfs.useFsDownloadStatus()
+  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads).toArray()
+  return downloadIDs.length ? (
     <>
       <Kb.Divider />
       <Kb.ScrollView horizontal={true} snapToInterval={160 + Styles.globalMargins.xtiny}>
@@ -21,16 +22,22 @@ const Mobile = (props: DownloadsProps) =>
           gapStart={true}
           gapEnd={true}
         >
-          {props.downloadKeys.map((key, index) => (
-            <Download downloadKey={key} key={key} isFirst={index === 0} />
+          {downloadIDs.map((downloadID, index) => (
+            <Download downloadID={downloadID} key={downloadID} isFirst={index === 0} />
           ))}
         </Kb.Box2>
       </Kb.ScrollView>
     </>
   ) : null
+}
 
-const Desktop = (props: DownloadsProps) =>
-  props.downloadKeys.length ? (
+const Desktop = () => {
+  Kbfs.useFsDownloadStatus()
+  const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads).toArray()
+  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const openDownloadFolder = () =>
+    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
+  return downloadIDs.length ? (
     <>
       <Kb.Divider />
       <Kb.Box2
@@ -42,10 +49,10 @@ const Desktop = (props: DownloadsProps) =>
         gapEnd={true}
         centerChildren={true}
       >
-        {props.downloadKeys.slice(0, 3).map((key, index) => (
-          <Download downloadKey={key} key={key} isFirst={index === 0} />
+        {downloadIDs.slice(0, 3).map((downloadID, index) => (
+          <Download downloadID={downloadID} key={downloadID} isFirst={index === 0} />
         ))}
-        {props.downloadKeys.length > 3 && (
+        {downloadIDs.length > 3 && (
           <Kb.WithTooltip tooltip="Open Downloads folder">
             <Kb.Icon
               style={styles.iconBoxEllipsis}
@@ -53,7 +60,7 @@ const Desktop = (props: DownloadsProps) =>
               hint="Open downloads folder"
               color={Styles.globalColors.black_50}
               padding="tiny"
-              onClick={props.openDownloadFolder}
+              onClick={openDownloadFolder}
             />
           </Kb.WithTooltip>
         )}
@@ -64,12 +71,13 @@ const Desktop = (props: DownloadsProps) =>
             hint="Open downloads folder"
             color={Styles.globalColors.black_50}
             padding="tiny"
-            onClick={props.openDownloadFolder}
+            onClick={openDownloadFolder}
           />
         </Kb.WithTooltip>
       </Kb.Box2>
     </>
   ) : null
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

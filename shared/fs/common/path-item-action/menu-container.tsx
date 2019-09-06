@@ -19,7 +19,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
-  _downloadKey: state.fs.pathItemActionMenu.downloadKey,
+  _downloadID: state.fs.pathItemActionMenu.downloadID,
   _downloads: state.fs.downloads,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
       })
     )
   },
-  _download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
+  _download: () => dispatch(FsGen.createDownload({path})),
   _ignoreTlf: () => dispatch(FsGen.createFavoriteIgnore({path})),
   _moveOrCopy: () => {
     dispatch(FsGen.createSetMoveOrCopySource({path}))

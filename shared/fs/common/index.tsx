@@ -15,9 +15,12 @@ export {default as Filename} from './filename'
 export {
   useFsPathMetadata,
   useFsChildren,
+  useFsDownloadInfo,
+  useFsDownloadStatus,
   useFsTlfs,
   useFsJournalStatus,
   useFsOnlineStatus,
   useFsPathInfo,
   useFsSoftError,
+  useDispatchWhenConnected as useDispatchWhenKbfsIsConnected,
 } from './hooks'

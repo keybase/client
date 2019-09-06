@@ -57,40 +57,12 @@
       "path": "Types.Path",
       "sortSetting": "Types.SortSetting"
     },
-    "download": {
-      "path": "Types.Path",
-      "key": "string"
-    },
     "shareNative": {
       "path": "Types.Path",
       "key": "string"
     },
     "saveMedia": {
       "path": "Types.Path",
-      "key": "string"
-    },
-    "downloadStarted": {
-      "entryType?": "Types.PathType",
-      "key": "string",
-      "path": "Types.Path",
-      "localPath": "Types.LocalPath",
-      "intent": "Types.DownloadIntent",
-      "opID": "RPCTypes.OpID"
-    },
-    "downloadSuccess": {
-      "intent": "Types.DownloadIntent",
-      "key": "string",
-      "mimeType": "string"
-    },
-    "downloadProgress": {
-      "key": "string",
-      "completePortion": "number",
-      "endEstimate?": "number"
-    },
-    "cancelDownload": {
-      "key": "string"
-    },
-    "dismissDownload": {
       "key": "string"
     },
     "upload": {
@@ -233,9 +205,6 @@
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
-    "setPathItemActionMenuDownloadKey": {
-      "key": "string | null"
-    },
     "waitForKbfsDaemon": {},
     "kbfsDaemonRpcStatusChanged": {
       "rpcStatus": "Types.KbfsDaemonRpcStatus"
@@ -272,6 +241,21 @@
     "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
+    "download": {"path": "Types.Path", "intent": "Types.DownloadIntent"},
+    "loadDownloadStatus": {},
+    "loadDownloadInfo": {"downloadID": "string"},
+    "loadedDownloadStatus": {
+      "regularDownloads": "I.List<string>",
+      "state": "I.Map<string, Types.DownloadState>"
+    },
+    "loadedDownloadInfo": {"downloadID": "string", "info": "Types.DownloadInfo"},
+    "cancelDownload": {"downloadID": "string"},
+    "dismissDownload": {"downloadID": "string"},
+    "setPathItemActionMenuDownload": {
+      "downloadID": "string | null",
+      "intent": "Types.DownloadIntent | null"
+    },
+
     "setDebugLevel": {
       "level": "string"
     }

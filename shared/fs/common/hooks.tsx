@@ -10,7 +10,7 @@ import flags from '../../util/feature-flags'
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
 
-const useDispatchWhenConnected = () => {
+export const useDispatchWhenConnected = () => {
   const kbfsDaemonConnected =
     Container.useSelector(state => state.fs.kbfsDaemonStatus.rpcStatus) ===
     Types.KbfsDaemonRpcStatus.Connected
@@ -110,4 +110,24 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
 export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
   const softErrors = Container.useSelector(state => state.fs.softErrors)
   return Constants.getSoftError(softErrors, path)
+}
+
+export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
+  const info = Container.useSelector(state =>
+    state.fs.downloads.info.get(downloadID, Constants.emptyDownloadInfo)
+  )
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    // This never changes, so simply just load it once.
+    dispatch(FsGen.createLoadDownloadInfo({downloadID}))
+  }, [downloadID, dispatch])
+  return info
+}
+
+export const useFsDownloadStatus = () => {
+  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createLoadDownloadStatus())
+  }, [dispatch])
 }

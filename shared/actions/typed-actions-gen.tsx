@@ -477,14 +477,8 @@ export type TypedActionsMap = {
   'fs:pathItemLoaded': fs.PathItemLoadedPayload
   'fs:loadPathMetadata': fs.LoadPathMetadataPayload
   'fs:sortSetting': fs.SortSettingPayload
-  'fs:download': fs.DownloadPayload
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
-  'fs:downloadStarted': fs.DownloadStartedPayload
-  'fs:downloadSuccess': fs.DownloadSuccessPayload
-  'fs:downloadProgress': fs.DownloadProgressPayload
-  'fs:cancelDownload': fs.CancelDownloadPayload
-  'fs:dismissDownload': fs.DismissDownloadPayload
   'fs:upload': fs.UploadPayload
   'fs:uploadStarted': fs.UploadStartedPayload
   'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
@@ -536,7 +530,6 @@ export type TypedActionsMap = {
   'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
   'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
-  'fs:setPathItemActionMenuDownloadKey': fs.SetPathItemActionMenuDownloadKeyPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
   'fs:kbfsDaemonOnlineStatusChanged': fs.KbfsDaemonOnlineStatusChangedPayload
@@ -554,6 +547,14 @@ export type TypedActionsMap = {
   'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
   'fs:loadPathInfo': fs.LoadPathInfoPayload
   'fs:loadedPathInfo': fs.LoadedPathInfoPayload
+  'fs:download': fs.DownloadPayload
+  'fs:loadDownloadStatus': fs.LoadDownloadStatusPayload
+  'fs:loadDownloadInfo': fs.LoadDownloadInfoPayload
+  'fs:loadedDownloadStatus': fs.LoadedDownloadStatusPayload
+  'fs:loadedDownloadInfo': fs.LoadedDownloadInfoPayload
+  'fs:cancelDownload': fs.CancelDownloadPayload
+  'fs:dismissDownload': fs.DismissDownloadPayload
+  'fs:setPathItemActionMenuDownload': fs.SetPathItemActionMenuDownloadPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

@@ -16,9 +16,6 @@ export const discardEdit = 'fs:discardEdit'
 export const dismissDownload = 'fs:dismissDownload'
 export const dismissFsError = 'fs:dismissFsError'
 export const download = 'fs:download'
-export const downloadProgress = 'fs:downloadProgress'
-export const downloadStarted = 'fs:downloadStarted'
-export const downloadSuccess = 'fs:downloadSuccess'
 export const driverDisable = 'fs:driverDisable'
 export const driverDisabling = 'fs:driverDisabling'
 export const driverEnable = 'fs:driverEnable'
@@ -39,10 +36,14 @@ export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
 export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadDownloadInfo = 'fs:loadDownloadInfo'
+export const loadDownloadStatus = 'fs:loadDownloadStatus'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
+export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
+export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
 export const loadedPathInfo = 'fs:loadedPathInfo'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
@@ -71,7 +72,7 @@ export const setFolderViewFilter = 'fs:setFolderViewFilter'
 export const setIncomingShareLocalPath = 'fs:setIncomingShareLocalPath'
 export const setLastPublicBannerClosedTlf = 'fs:setLastPublicBannerClosedTlf'
 export const setMoveOrCopySource = 'fs:setMoveOrCopySource'
-export const setPathItemActionMenuDownloadKey = 'fs:setPathItemActionMenuDownloadKey'
+export const setPathItemActionMenuDownload = 'fs:setPathItemActionMenuDownload'
 export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
 export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
@@ -103,33 +104,15 @@ export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
-type _CancelDownloadPayload = {readonly key: string}
+type _CancelDownloadPayload = {readonly downloadID: string}
 type _CloseDestinationPickerPayload = void
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
 type _DeleteFilePayload = {readonly path: Types.Path}
 type _DiscardEditPayload = {readonly editID: Types.EditID}
-type _DismissDownloadPayload = {readonly key: string}
+type _DismissDownloadPayload = {readonly downloadID: string}
 type _DismissFsErrorPayload = {readonly key: string}
-type _DownloadPayload = {readonly path: Types.Path; readonly key: string}
-type _DownloadProgressPayload = {
-  readonly key: string
-  readonly completePortion: number
-  readonly endEstimate?: number
-}
-type _DownloadStartedPayload = {
-  readonly entryType?: Types.PathType
-  readonly key: string
-  readonly path: Types.Path
-  readonly localPath: Types.LocalPath
-  readonly intent: Types.DownloadIntent
-  readonly opID: RPCTypes.OpID
-}
-type _DownloadSuccessPayload = {
-  readonly intent: Types.DownloadIntent
-  readonly key: string
-  readonly mimeType: string
-}
+type _DownloadPayload = {readonly path: Types.Path; readonly intent: Types.DownloadIntent}
 type _DriverDisablePayload = void
 type _DriverDisablingPayload = void
 type _DriverEnablePayload = {readonly isRetry?: boolean | null}
@@ -161,10 +144,17 @@ type _JournalUpdatePayload = {
 type _KbfsDaemonOnlineStatusChangedPayload = {readonly online: boolean}
 type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonRpcStatus}
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
+type _LoadDownloadInfoPayload = {readonly downloadID: string}
+type _LoadDownloadStatusPayload = void
 type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
+type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
+type _LoadedDownloadStatusPayload = {
+  readonly regularDownloads: I.List<string>
+  readonly state: I.Map<string, Types.DownloadState>
+}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
 type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
@@ -196,7 +186,10 @@ type _SetFolderViewFilterPayload = {readonly filter: string}
 type _SetIncomingShareLocalPathPayload = {readonly localPath: Types.LocalPath}
 type _SetLastPublicBannerClosedTlfPayload = {readonly tlf: string}
 type _SetMoveOrCopySourcePayload = {readonly path: Types.Path}
-type _SetPathItemActionMenuDownloadKeyPayload = {readonly key: string | null}
+type _SetPathItemActionMenuDownloadPayload = {
+  readonly downloadID: string | null
+  readonly intent: Types.DownloadIntent | null
+}
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
 type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: I.List<string>}
@@ -265,18 +258,6 @@ export const createDismissFsError = (payload: _DismissFsErrorPayload): DismissFs
   type: dismissFsError,
 })
 export const createDownload = (payload: _DownloadPayload): DownloadPayload => ({payload, type: download})
-export const createDownloadProgress = (payload: _DownloadProgressPayload): DownloadProgressPayload => ({
-  payload,
-  type: downloadProgress,
-})
-export const createDownloadStarted = (payload: _DownloadStartedPayload): DownloadStartedPayload => ({
-  payload,
-  type: downloadStarted,
-})
-export const createDownloadSuccess = (payload: _DownloadSuccessPayload): DownloadSuccessPayload => ({
-  payload,
-  type: downloadSuccess,
-})
 export const createDriverDisable = (payload: _DriverDisablePayload): DriverDisablePayload => ({
   payload,
   type: driverDisable,
@@ -346,6 +327,14 @@ export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload): L
   payload,
   type: letResetUserBackIn,
 })
+export const createLoadDownloadInfo = (payload: _LoadDownloadInfoPayload): LoadDownloadInfoPayload => ({
+  payload,
+  type: loadDownloadInfo,
+})
+export const createLoadDownloadStatus = (payload: _LoadDownloadStatusPayload): LoadDownloadStatusPayload => ({
+  payload,
+  type: loadDownloadStatus,
+})
 export const createLoadPathInfo = (payload: _LoadPathInfoPayload): LoadPathInfoPayload => ({
   payload,
   type: loadPathInfo,
@@ -362,6 +351,13 @@ export const createLoadTlfSyncConfig = (payload: _LoadTlfSyncConfigPayload): Loa
   payload,
   type: loadTlfSyncConfig,
 })
+export const createLoadedDownloadInfo = (payload: _LoadedDownloadInfoPayload): LoadedDownloadInfoPayload => ({
+  payload,
+  type: loadedDownloadInfo,
+})
+export const createLoadedDownloadStatus = (
+  payload: _LoadedDownloadStatusPayload
+): LoadedDownloadStatusPayload => ({payload, type: loadedDownloadStatus})
 export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
   payload,
   type: loadedPathInfo,
@@ -453,9 +449,9 @@ export const createSetLastPublicBannerClosedTlf = (
 export const createSetMoveOrCopySource = (
   payload: _SetMoveOrCopySourcePayload
 ): SetMoveOrCopySourcePayload => ({payload, type: setMoveOrCopySource})
-export const createSetPathItemActionMenuDownloadKey = (
-  payload: _SetPathItemActionMenuDownloadKeyPayload
-): SetPathItemActionMenuDownloadKeyPayload => ({payload, type: setPathItemActionMenuDownloadKey})
+export const createSetPathItemActionMenuDownload = (
+  payload: _SetPathItemActionMenuDownloadPayload
+): SetPathItemActionMenuDownloadPayload => ({payload, type: setPathItemActionMenuDownload})
 export const createSetPathItemActionMenuView = (
   payload: _SetPathItemActionMenuViewPayload
 ): SetPathItemActionMenuViewPayload => ({payload, type: setPathItemActionMenuView})
@@ -578,18 +574,6 @@ export type DismissFsErrorPayload = {
   readonly type: typeof dismissFsError
 }
 export type DownloadPayload = {readonly payload: _DownloadPayload; readonly type: typeof download}
-export type DownloadProgressPayload = {
-  readonly payload: _DownloadProgressPayload
-  readonly type: typeof downloadProgress
-}
-export type DownloadStartedPayload = {
-  readonly payload: _DownloadStartedPayload
-  readonly type: typeof downloadStarted
-}
-export type DownloadSuccessPayload = {
-  readonly payload: _DownloadSuccessPayload
-  readonly type: typeof downloadSuccess
-}
 export type DriverDisablePayload = {
   readonly payload: _DriverDisablePayload
   readonly type: typeof driverDisable
@@ -661,6 +645,14 @@ export type LetResetUserBackInPayload = {
   readonly payload: _LetResetUserBackInPayload
   readonly type: typeof letResetUserBackIn
 }
+export type LoadDownloadInfoPayload = {
+  readonly payload: _LoadDownloadInfoPayload
+  readonly type: typeof loadDownloadInfo
+}
+export type LoadDownloadStatusPayload = {
+  readonly payload: _LoadDownloadStatusPayload
+  readonly type: typeof loadDownloadStatus
+}
 export type LoadPathInfoPayload = {readonly payload: _LoadPathInfoPayload; readonly type: typeof loadPathInfo}
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
@@ -670,6 +662,14 @@ export type LoadSettingsPayload = {readonly payload: _LoadSettingsPayload; reado
 export type LoadTlfSyncConfigPayload = {
   readonly payload: _LoadTlfSyncConfigPayload
   readonly type: typeof loadTlfSyncConfig
+}
+export type LoadedDownloadInfoPayload = {
+  readonly payload: _LoadedDownloadInfoPayload
+  readonly type: typeof loadedDownloadInfo
+}
+export type LoadedDownloadStatusPayload = {
+  readonly payload: _LoadedDownloadStatusPayload
+  readonly type: typeof loadedDownloadStatus
 }
 export type LoadedPathInfoPayload = {
   readonly payload: _LoadedPathInfoPayload
@@ -774,9 +774,9 @@ export type SetMoveOrCopySourcePayload = {
   readonly payload: _SetMoveOrCopySourcePayload
   readonly type: typeof setMoveOrCopySource
 }
-export type SetPathItemActionMenuDownloadKeyPayload = {
-  readonly payload: _SetPathItemActionMenuDownloadKeyPayload
-  readonly type: typeof setPathItemActionMenuDownloadKey
+export type SetPathItemActionMenuDownloadPayload = {
+  readonly payload: _SetPathItemActionMenuDownloadPayload
+  readonly type: typeof setPathItemActionMenuDownload
 }
 export type SetPathItemActionMenuViewPayload = {
   readonly payload: _SetPathItemActionMenuViewPayload
@@ -895,9 +895,6 @@ export type Actions =
   | DismissDownloadPayload
   | DismissFsErrorPayload
   | DownloadPayload
-  | DownloadProgressPayload
-  | DownloadStartedPayload
-  | DownloadSuccessPayload
   | DriverDisablePayload
   | DriverDisablingPayload
   | DriverEnablePayload
@@ -918,10 +915,14 @@ export type Actions =
   | KbfsDaemonOnlineStatusChangedPayload
   | KbfsDaemonRpcStatusChangedPayload
   | LetResetUserBackInPayload
+  | LoadDownloadInfoPayload
+  | LoadDownloadStatusPayload
   | LoadPathInfoPayload
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
+  | LoadedDownloadInfoPayload
+  | LoadedDownloadStatusPayload
   | LoadedPathInfoPayload
   | LocalHTTPServerInfoPayload
   | MovePayload
@@ -950,7 +951,7 @@ export type Actions =
   | SetIncomingShareLocalPathPayload
   | SetLastPublicBannerClosedTlfPayload
   | SetMoveOrCopySourcePayload
-  | SetPathItemActionMenuDownloadKeyPayload
+  | SetPathItemActionMenuDownloadPayload
   | SetPathItemActionMenuViewPayload
   | SetPathSoftErrorPayload
   | SetPreferredMountDirsPayload

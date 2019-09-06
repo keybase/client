@@ -11,13 +11,13 @@ type OwnProps = {
 }
 
 const mapStateToProps = state => ({
-  _downloadKey: state.fs.pathItemActionMenu.downloadKey,
+  _downloadID: state.fs.pathItemActionMenu.downloadID,
 })
 
 const mapDispatchToProps = (dispatch, {initView}: OwnProps) => ({
   _onHidden: (toCancel: string | null) => {
-    dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key: null}))
-    toCancel && dispatch(FsGen.createCancelDownload({key: toCancel}))
+    dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))
+    toCancel && dispatch(FsGen.createCancelDownload({downloadID: toCancel}))
   },
   init: () => dispatch(FsGen.createSetPathItemActionMenuView({view: initView})),
 })
@@ -26,7 +26,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   clickable: ownProps.clickable,
   init: dispatchProps.init,
   mode: ownProps.mode,
-  onHidden: () => dispatchProps._onHidden(stateProps._downloadKey),
+  onHidden: () => dispatchProps._onHidden(stateProps._downloadID),
   path: ownProps.path,
 })
 

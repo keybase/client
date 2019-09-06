@@ -539,34 +539,28 @@ func (k *SimpleFS) setResult(opid keybase1.OpID, val interface{}) {
 
 func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 	opType keybase1.AsyncOps, desc keybase1.OpDescription) (
-	_ context.Context, err error) {
+	_ context.Context, w *inprogress, err error) {
 	ctx = k.makeContext(ctx)
 	ctx, cancel := context.WithCancel(ctx)
-	k.lock.Lock()
-	k.inProgress[opid] = &inprogress{
+	w = &inprogress{
 		desc,
 		cancel,
 		make(chan error, 1),
 		keybase1.OpProgress{OpType: opType},
 	}
+	k.lock.Lock()
+	k.inProgress[opid] = w
 	k.lock.Unlock()
 	// ignore error, this is just for logging.
 	descBS, _ := json.Marshal(desc)
 	k.vlog.CLogf(ctx, libkb.VLog1, "start %X %s", opid, descBS)
-	return k.startOpWrapContext(ctx)
+	newCtx, err := k.startOpWrapContext(ctx)
+	return newCtx, w, err
 }
 
-func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, err error) {
-	k.lock.Lock()
-	w, ok := k.inProgress[opid]
-	if ok {
-		w.progress.EndEstimate = keybase1.ToTime(k.config.Clock().Now())
-	}
-	k.lock.Unlock()
-	if ok {
-		w.done <- err
-		close(w.done)
-	}
+func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, w *inprogress, err error) {
+	w.done <- err
+	close(w.done)
 	k.log.CDebugf(ctx, "done op %X, status=%+v", opid, err)
 	if ctx != nil {
 		err := libcontext.CleanupCancellationDelayer(ctx)
@@ -582,7 +576,7 @@ func (k *SimpleFS) startAsync(
 	path1ForIdentifyBehavior *keybase1.Path,
 	path2ForIdentifyBehavior *keybase1.Path,
 	callback func(context.Context) error) (err error) {
-	ctxAsync, e0 := k.startOp(context.Background(), opid, opType, desc)
+	ctxAsync, w, e0 := k.startOp(context.Background(), opid, opType, desc)
 	if e0 != nil {
 		return e0
 	}
@@ -596,7 +590,15 @@ func (k *SimpleFS) startAsync(
 		ctxAsync.Value(ctxIDKey))
 	go func() {
 		var err error
-		defer func() { k.doneOp(ctxAsync, opid, err) }()
+		// Capture the inprogress reference here rather than let doneOp
+		// retrieve it when called, so that doneOp always has it when it's
+		// called. This is needed when SimpleFSCancel is called when a
+		// SimpleFSWait is already in the air. Since SimpleFSCancel deletes the
+		// inprogress object from k.inProgress, doneOp wouldn't be able to get
+		// the object when it's called. To make sure SimpleFSWait returns and
+		// returns the correct error, we just pass in the inprogress reference
+		// here.
+		defer func() { k.doneOp(ctxAsync, opid, w, err) }()
 		err = callback(ctxAsync)
 		if err != nil {
 			k.log.CDebugf(ctxAsync, "Error making async callback: %+v", err)

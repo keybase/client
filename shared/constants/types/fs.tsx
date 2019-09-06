@@ -329,32 +329,30 @@ export enum DownloadIntent {
   Share = 'share',
 }
 
-export type _DownloadMeta = {
-  entryType: PathType
-  intent: DownloadIntent
-  path: Path
-  localPath: LocalPath
-  opID: RPCTypes.OpID
-}
-export type DownloadMeta = I.RecordOf<_DownloadMeta>
-
 export type _DownloadState = {
   canceled: boolean
-  completePortion: number
-  endEstimate?: number
-  error?: FsError
-  isDone: boolean
-  startedAt: number
+  done: boolean
+  endEstimate: number
+  error: string
+  localPath: string
+  progress: number
 }
 export type DownloadState = I.RecordOf<_DownloadState>
 
-export type _Download = {
-  meta: DownloadMeta
-  state: DownloadState
+export type _DownloadInfo = {
+  filename: string
+  isRegularDownload: boolean
+  path: Path
+  startTime: number
 }
-export type Download = I.RecordOf<_Download>
+export type DownloadInfo = I.RecordOf<_DownloadInfo>
 
-export type Downloads = I.Map<string, Download>
+export type _Downloads = {
+  info: I.Map<string, DownloadInfo>
+  regularDownloads: I.List<string>
+  state: I.Map<string, DownloadState>
+}
+export type Downloads = I.RecordOf<_Downloads>
 
 export type _Uploads = {
   writingToJournal: I.Set<Path>
@@ -474,9 +472,10 @@ export enum PathItemActionMenuView {
   ConfirmSendToOtherApp = 'confirm-send-to-other-app',
 }
 export type _PathItemActionMenu = {
-  view: PathItemActionMenuView
+  downloadID: string | null
+  downloadIntent: DownloadIntent | null
   previousView: PathItemActionMenuView
-  downloadKey: string | null
+  view: PathItemActionMenuView
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 

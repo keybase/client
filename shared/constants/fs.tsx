@@ -166,26 +166,30 @@ export const defaultTlfListPathUserSetting = makePathUserSetting({
   sort: Types.SortSetting.TimeAsc,
 })
 
-export const makeDownloadMeta = I.Record<Types._DownloadMeta>({
-  entryType: Types.PathType.Unknown,
-  intent: Types.DownloadIntent.None,
-  localPath: '',
-  opID: null,
-  path: Types.stringToPath(''),
-})
-
 export const makeDownloadState = I.Record<Types._DownloadState>({
   canceled: false,
-  completePortion: 0,
-  endEstimate: undefined,
-  error: undefined,
-  isDone: false,
-  startedAt: 0,
+  done: false,
+  endEstimate: 0,
+  error: '',
+  localPath: '',
+  progress: 0,
 })
 
-export const makeDownload = I.Record<Types._Download>({
-  meta: makeDownloadMeta(),
-  state: makeDownloadState(),
+export const emptyDownloadState = makeDownloadState()
+
+export const makeDownloadInfo = I.Record<Types._DownloadInfo>({
+  filename: '',
+  isRegularDownload: false,
+  path: defaultPath,
+  startTime: 0,
+})
+
+export const emptyDownloadInfo = makeDownloadInfo()
+
+export const makeDownloads = I.Record<Types._Downloads>({
+  info: I.Map(),
+  regularDownloads: I.List(),
+  state: I.Map(),
 })
 
 export const makeLocalHTTPServer = I.Record<Types._LocalHTTPServer>({
@@ -263,7 +267,8 @@ export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
 })
 
 export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
-  downloadKey: null,
+  downloadID: null,
+  downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
 })
@@ -320,7 +325,7 @@ export const emptyPathInfo = makePathInfo()
 
 export const makeState = I.Record<Types._State>({
   destinationPicker: makeDestinationPicker(),
-  downloads: I.Map(),
+  downloads: makeDownloads(),
   edits: I.Map(),
   errors: I.Map(),
   folderViewFilter: '',
@@ -1084,6 +1089,9 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
   Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
+
+export const downloadIsOngoing = (dlState: Types.DownloadState) =>
+  dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
 
 export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline
