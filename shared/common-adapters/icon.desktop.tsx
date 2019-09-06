@@ -97,7 +97,7 @@ class Icon extends Component<Props, void> {
     }
 
     if (hasContainer) {
-      let colorStyleName
+      let colorStyleName: null | string = null // Populated if using CSS
       let hoverStyleName
       let inheritStyle
 
@@ -113,7 +113,9 @@ class Icon extends Component<Props, void> {
         const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
-        colorStyleName = `color_${colorName}`
+        if (colorName) {
+          colorStyleName = `color_${colorName}`
+        }
       }
 
       const style = Styles.collapseStyles([
@@ -138,7 +140,7 @@ class Icon extends Component<Props, void> {
             style={Styles.collapseStyles([
               style,
               this.props.padding && Shared.paddingStyles[this.props.padding],
-              this.props.color ? {color} : {}, // For colors that are not in Styles.globalColors
+              colorStyleName === null ? {color} : null, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
               'icon',
