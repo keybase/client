@@ -82,8 +82,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle}>
-        <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <PhoneInput
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
@@ -123,7 +123,6 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
       flex: 1,
       padding: Styles.globalMargins.small,
-      width: '100%',
     },
     isMobile: {
       zIndex: -1,
