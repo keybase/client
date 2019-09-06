@@ -72,8 +72,8 @@ const longOperationDebugDumpDuration = time.Minute
 
 type ctxKBFSOpsSkipEditHistoryBlockType int
 
-// This context key indicates that we should blocking on TLF edit
-// history initialization, as it would be a deadlock.
+// This context key indicates that we should not block on TLF edit
+// history initialization, as it would cause a deadlock.
 const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
