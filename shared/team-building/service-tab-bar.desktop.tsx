@@ -45,20 +45,14 @@ const ServiceIcon = (props: IconProps) => {
               boxStyle={styles.serviceIconBox}
             />
           </Kb.Box2>
-          <Kb.Text
-            type="BodyTiny"
-            center={true}
-            lineClamp={2}
-            style={Styles.collapseStyles([styles.label, {color}])}
+          <Kb.Box2
+            direction="vertical"
+            style={styles.label}
           >
-            {props.label}
-            {serviceIdToWonderland(props.service) && (
-              <Kb.Text type="Body" style={styles.wonderland}>
-                {' '}
-                <Kb.Emoji size={16} emojiName=":rabbit2:" />
-              </Kb.Text>
-            )}
-          </Kb.Text>
+            {props.label.map((label, i) => (
+              <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>{label}</Kb.Text>
+            ))}
+          </Kb.Box2>
           {!!props.showCount &&
             (props.count !== null ? (
               <Kb.Text type="BodyTinySemibold">
@@ -133,7 +127,7 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
       color={serviceIdToAccentColor(props.service)}
       type={serviceIdToIconFont(props.service)}
     />
-    <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
+    <Kb.Text type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text>
   </Kb.Box2>
 )
 
