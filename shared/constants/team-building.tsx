@@ -52,9 +52,6 @@ export function followStateHelperWithId(
 }
 
 const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
-  teamBuildingEmailIsSearching: false,
-  teamBuildingEmailResult: null,
-  teamBuildingEmailSearchQuery: '',
   teamBuildingFinishedSelectedRole: 'writer',
   teamBuildingFinishedSendNotification: true,
   teamBuildingFinishedTeam: I.OrderedSet(),
@@ -178,3 +175,5 @@ export const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Typ
     username: username,
   }
 }
+
+export const searchWaitingKey = 'teamBuilding:search'

@@ -41,9 +41,6 @@ export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact,
 
 // TODO remove teamBuilding prefix
 export type _TeamBuildingSubState = {
-  teamBuildingEmailSearchQuery: Query
-  teamBuildingEmailIsSearching: boolean
-  teamBuildingEmailResult: User | null
   teamBuildingTeamSoFar: I.OrderedSet<User>
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount
