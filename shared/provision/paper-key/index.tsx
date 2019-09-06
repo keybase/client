@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {isMobile} from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
@@ -38,7 +39,7 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
         ]}
         noBackground={true}
         onBack={this.props.onBack}
-        title="Enter your paper key"
+        title={isMobile ? 'Enter paper key' : 'Enter your paper key'}
       >
         <Kb.Box2
           direction="vertical"
