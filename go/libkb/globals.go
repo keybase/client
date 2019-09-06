@@ -391,6 +391,8 @@ func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username 
 	return nil
 }
 
+// ConfigureLogging should be given non-nil Usage if called by the main
+// service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
