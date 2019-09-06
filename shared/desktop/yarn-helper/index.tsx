@@ -111,21 +111,10 @@ const decorateInfo = info => {
   return temp
 }
 
-const warnFail = path => () => console.warn(`Error cleaning tscache ${path}, tsc may be inaccurate.`)
+const warnFail = err => console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
 const clearTSCache = () => {
-  const tsOutDir = path.resolve(__dirname, '..', '..', '.tsOuts')
-  const reg = path.resolve(tsOutDir, '.tsOut')
-  const slow = path.resolve(tsOutDir, '.tsOutSlow')
-  const strict = path.resolve(tsOutDir, '.tsOutSctrict')
-  if (fs.existsSync(reg)) {
-    rimraf(reg, {}, warnFail(reg))
-  }
-  if (fs.existsSync(slow)) {
-    rimraf(slow, {}, warnFail(slow))
-  }
-  if (fs.existsSync(strict)) {
-    rimraf(strict, {}, warnFail(strict))
-  }
+  const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
+  rimraf(glob, {}, warnFail)
 }
 
 function main() {
