@@ -12,7 +12,7 @@ import ContinueButton from '../continue-button'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
-  search: (query: string, service: Types.ServiceIdWithContact) => void
+  search: (query: string, service: 'email') => void
   teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
 }
 
@@ -32,7 +32,7 @@ const EmailInput = ({namespace, search, teamBuildingSearchResults}: EmailInputPr
     user = teamBuildingSearchResults[emailString].keybase[0]
   }
   const canSubmit = !!user && !waiting && isEmailValid
-  const emailHasKeybaseAccount = user && user.serviceMap.keybase !== '' && emailString === user.username
+  const emailHasKeybaseAccount = user && user.serviceMap.keybase !== ''
 
   const onChange = React.useCallback(
     text => {

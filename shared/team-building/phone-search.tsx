@@ -9,7 +9,7 @@ import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   onContinue: (user: User) => void
-  search: (query: string, service: ServiceIdWithContact) => void
+  search: (query: string, service: 'phone') => void
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
 }
 
