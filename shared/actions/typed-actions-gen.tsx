@@ -555,6 +555,8 @@ export type TypedActionsMap = {
   'fs:cancelDownload': fs.CancelDownloadPayload
   'fs:dismissDownload': fs.DismissDownloadPayload
   'fs:setPathItemActionMenuDownload': fs.SetPathItemActionMenuDownloadPayload
+  'fs:finishedDownloadWithIntent': fs.FinishedDownloadWithIntentPayload
+  'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

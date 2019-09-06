@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import {isMobile} from '../../constants/platform'
 import uuidv1 from 'uuid/v1'
 import flags from '../../util/feature-flags'
 
@@ -119,7 +120,7 @@ export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
     // This never changes, so simply just load it once.
-    dispatch(FsGen.createLoadDownloadInfo({downloadID}))
+    downloadID && dispatch(FsGen.createLoadDownloadInfo({downloadID}))
   }, [downloadID, dispatch])
   return info
 }
@@ -131,3 +132,29 @@ export const useFsDownloadStatus = () => {
     dispatch(FsGen.createLoadDownloadStatus())
   }, [dispatch])
 }
+
+export const useFsWatchDownloadForMobile = isMobile
+  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
+      const dlState = Container.useSelector(state =>
+        state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
+      )
+      const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
+
+      const dlInfo = useFsDownloadInfo(downloadID)
+      const pathItem = Container.useSelector(state =>
+        state.fs.pathItems.get(dlInfo.path, Constants.unknownPathItem)
+      )
+      const mimeType =
+        (pathItem.type === Types.PathType.File && pathItem.mimeType && pathItem.mimeType.mimeType) || ''
+
+      const dispatch = useDispatchWhenConnected()
+      React.useEffect(() => {
+        if (!downloadID || !downloadIntent || !finished || !mimeType) {
+          return
+        }
+        downloadIntent === Types.DownloadIntent.None
+          ? dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
+          : dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+      }, [finished, mimeType, downloadID, downloadIntent, dispatch])
+    }
+  : () => {}

@@ -26,6 +26,8 @@ export const favoriteIgnoreError = 'fs:favoriteIgnoreError'
 export const favoritesLoad = 'fs:favoritesLoad'
 export const favoritesLoaded = 'fs:favoritesLoaded'
 export const finishManualConflictResolution = 'fs:finishManualConflictResolution'
+export const finishedDownloadWithIntent = 'fs:finishedDownloadWithIntent'
+export const finishedRegularDownload = 'fs:finishedRegularDownload'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
@@ -112,7 +114,7 @@ type _DeleteFilePayload = {readonly path: Types.Path}
 type _DiscardEditPayload = {readonly editID: Types.EditID}
 type _DismissDownloadPayload = {readonly downloadID: string}
 type _DismissFsErrorPayload = {readonly key: string}
-type _DownloadPayload = {readonly path: Types.Path; readonly intent: Types.DownloadIntent}
+type _DownloadPayload = {readonly path: Types.Path}
 type _DriverDisablePayload = void
 type _DriverDisablingPayload = void
 type _DriverEnablePayload = {readonly isRetry?: boolean | null}
@@ -127,6 +129,12 @@ type _FavoritesLoadedPayload = {
   readonly team: I.Map<string, Types.Tlf>
 }
 type _FinishManualConflictResolutionPayload = {readonly localViewTlfPath: Types.Path}
+type _FinishedDownloadWithIntentPayload = {
+  readonly downloadID: string
+  readonly downloadIntent: Types.DownloadIntent
+  readonly mimeType: string
+}
+type _FinishedRegularDownloadPayload = {readonly downloadID: string; readonly mimeType: string}
 type _FolderListLoadPayload = {readonly path: Types.Path}
 type _FolderListLoadedPayload = {
   readonly path: Types.Path
@@ -176,7 +184,7 @@ type _PollJournalStatusPayload = void
 type _RefreshDriverStatusPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _RefreshMountDirsAfter10sPayload = void
-type _SaveMediaPayload = {readonly path: Types.Path; readonly key: string}
+type _SaveMediaPayload = {readonly path: Types.Path}
 type _SentAttachmentToChatPayload = void
 type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
@@ -201,7 +209,7 @@ type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: T
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
 type _SetTlfsAsUnloadedPayload = void
 type _SettingsLoadedPayload = {readonly settings?: Types.Settings}
-type _ShareNativePayload = {readonly path: Types.Path; readonly key: string}
+type _ShareNativePayload = {readonly path: Types.Path}
 type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
 type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
@@ -294,6 +302,12 @@ export const createFavoritesLoaded = (payload: _FavoritesLoadedPayload): Favorit
 export const createFinishManualConflictResolution = (
   payload: _FinishManualConflictResolutionPayload
 ): FinishManualConflictResolutionPayload => ({payload, type: finishManualConflictResolution})
+export const createFinishedDownloadWithIntent = (
+  payload: _FinishedDownloadWithIntentPayload
+): FinishedDownloadWithIntentPayload => ({payload, type: finishedDownloadWithIntent})
+export const createFinishedRegularDownload = (
+  payload: _FinishedRegularDownloadPayload
+): FinishedRegularDownloadPayload => ({payload, type: finishedRegularDownload})
 export const createFolderListLoad = (payload: _FolderListLoadPayload): FolderListLoadPayload => ({
   payload,
   type: folderListLoad,
@@ -608,6 +622,14 @@ export type FinishManualConflictResolutionPayload = {
   readonly payload: _FinishManualConflictResolutionPayload
   readonly type: typeof finishManualConflictResolution
 }
+export type FinishedDownloadWithIntentPayload = {
+  readonly payload: _FinishedDownloadWithIntentPayload
+  readonly type: typeof finishedDownloadWithIntent
+}
+export type FinishedRegularDownloadPayload = {
+  readonly payload: _FinishedRegularDownloadPayload
+  readonly type: typeof finishedRegularDownload
+}
 export type FolderListLoadPayload = {
   readonly payload: _FolderListLoadPayload
   readonly type: typeof folderListLoad
@@ -905,6 +927,8 @@ export type Actions =
   | FavoritesLoadPayload
   | FavoritesLoadedPayload
   | FinishManualConflictResolutionPayload
+  | FinishedDownloadWithIntentPayload
+  | FinishedRegularDownloadPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
   | FsErrorPayload

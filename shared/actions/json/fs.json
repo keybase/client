@@ -58,12 +58,10 @@
       "sortSetting": "Types.SortSetting"
     },
     "shareNative": {
-      "path": "Types.Path",
-      "key": "string"
+      "path": "Types.Path"
     },
     "saveMedia": {
-      "path": "Types.Path",
-      "key": "string"
+      "path": "Types.Path"
     },
     "upload": {
       "parentPath": "Types.Path",
@@ -241,7 +239,7 @@
     "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
-    "download": {"path": "Types.Path", "intent": "Types.DownloadIntent"},
+    "download": {"path": "Types.Path"},
     "loadDownloadStatus": {},
     "loadDownloadInfo": {"downloadID": "string"},
     "loadedDownloadStatus": {
@@ -254,6 +252,15 @@
     "setPathItemActionMenuDownload": {
       "downloadID": "string | null",
       "intent": "Types.DownloadIntent | null"
+    },
+    "finishedDownloadWithIntent": {
+      "downloadID": "string",
+      "downloadIntent": "Types.DownloadIntent",
+      "mimeType": "string"
+    },
+    "finishedRegularDownload": {
+      "downloadID": "string",
+      "mimeType": "string"
     },
 
     "setDebugLevel": {

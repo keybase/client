@@ -366,7 +366,7 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
 }
 
 const download = (
-  state: TypedState,
+  _: TypedState,
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ) =>
   RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
@@ -381,92 +381,11 @@ const download = (
         })
   )
 
-const cancelDownload = (state: TypedState, action: FsGen.CancelDownloadPayload) =>
+const cancelDownload = (_: TypedState, action: FsGen.CancelDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID: action.payload.downloadID})
 
-const dismissDownload = (state: TypedState, action: FsGen.DismissDownloadPayload) =>
+const dismissDownload = (_: TypedState, action: FsGen.DismissDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
-
-function* olddownload(
-  _: TypedState,
-  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
-) {
-  const {path, key} = action.payload
-  const intent = Constants.getDownloadIntentFromAction(action)
-  const opID = Constants.makeUUID()
-
-  // Figure out the local path we are downloading into.
-  let localPath = ''
-  switch (intent) {
-    case Types.DownloadIntent.None:
-      // This adds " (1)" suffix to the base name, if the destination path
-      // already exists.
-      localPath = yield Constants.downloadFilePathFromPath(path)
-      break
-    case Types.DownloadIntent.CameraRoll:
-    case Types.DownloadIntent.Share:
-      // For saving to camera roll or sharing to other apps, we are
-      // downloading to the app's local storage. So don't bother trying to
-      // avoid overriding existing files. Just download over them.
-      localPath = Constants.downloadFilePathFromPathNoSearch(path)
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      localPath = yield Constants.downloadFilePathFromPath(path)
-      break
-  }
-
-  yield Saga.put(
-    FsGen.createDownloadStarted({
-      intent,
-      key,
-      localPath,
-      opID,
-      path,
-      // Omit entryType to let reducer figure out.
-    })
-  )
-
-  yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
-    dest: {
-      PathType: RPCTypes.PathType.local,
-      local: localPath,
-    },
-    opID,
-    src: Constants.pathToRPCPath(path),
-  })
-
-  try {
-    yield Saga.race({
-      monitor: Saga.callUntyped(monitorDownloadProgress, key, opID),
-      wait: Saga.callUntyped(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
-    })
-
-    // No error, so the download has finished successfully. Set the
-    // completePortion to 1.
-    yield Saga.put(FsGen.createDownloadProgress({completePortion: 1, key}))
-
-    const mimeType = yield* _loadMimeType(path)
-    yield Saga.put(
-      FsGen.createDownloadSuccess({
-        intent,
-        key,
-        mimeType: (mimeType && mimeType.mimeType) || '',
-      })
-    )
-  } catch (error) {
-    // This needs to be before the dismiss below, so that if it's a legit
-    // error we'd show the red bar.
-    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
-  } finally {
-    if (intent !== Types.DownloadIntent.None) {
-      // If it's a normal download, we show a red card for the user to dismiss.
-      // TODO: when we get rid of download cards on Android, check isMobile
-      // here.
-      yield Saga.put(FsGen.createDismissDownload({key}))
-    }
-  }
-}
 
 function* upload(_: TypedState, action: FsGen.UploadPayload) {
   const {parentPath, localPath} = action.payload
@@ -1000,7 +919,7 @@ const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
   })
 }
 
-const loadDownloadInfo = (state: TypedState, action: FsGen.LoadDownloadInfoPayload) =>
+const loadDownloadInfo = (_: TypedState, action: FsGen.LoadDownloadInfoPayload) =>
   RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
     downloadID: action.payload.downloadID,
   })
@@ -1010,14 +929,14 @@ const loadDownloadInfo = (state: TypedState, action: FsGen.LoadDownloadInfoPaylo
         info: Constants.makeDownloadInfo({
           filename: res.filename,
           isRegularDownload: res.isRegularDownload,
-          path: res.path.path,
+          path: '/keybase' + res.path.path,
           startTime: res.startTime,
         }),
       })
     )
     .catch()
 
-const loadDownloadStatus = (state: TypedState, action: FsGen.LoadDownloadStatusPayload) =>
+const loadDownloadStatus = () =>
   RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise().then(res =>
     FsGen.createLoadedDownloadStatus({
       regularDownloads: I.List(res.regularDownloadIDs || []),
@@ -1082,10 +1001,7 @@ function* fsSaga() {
   }
   yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
 
-  yield* Saga.chainAction2<FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload>(
-    [FsGen.download, FsGen.shareNative, FsGen.saveMedia],
-    download
-  )
+  yield* Saga.chainAction2([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
   yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
   yield* Saga.chainAction2(FsGen.dismissDownload, dismissDownload)
   yield* Saga.chainAction2(FsGen.loadDownloadStatus, loadDownloadStatus)

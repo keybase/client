@@ -349,7 +349,9 @@ export const makeState = I.Record<Types._State>({
 // RPC expects a string that's interpreted as [16]byte on Go side.
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
-export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
+export const pathToRPCPath = (
+  path: Types.Path
+): {PathType: RPCTypes.PathType.kbfs; kbfs: RPCTypes.KBFSPath} => ({
   PathType: RPCTypes.PathType.kbfs,
   kbfs: {
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
@@ -395,7 +397,6 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-export const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
@@ -654,9 +655,6 @@ export const resetBannerType = (state: TypedState, path: Types.Path): Types.Rese
   return resetParticipants.size
 }
 
-export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
-  download.meta.path === path && download.meta.intent === intent && !download.state.isDone
-
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
   Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
 
@@ -883,20 +881,6 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
   return 'conversation'
 }
 
-const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
-  switch (intent) {
-    case Types.DownloadIntent.CameraRoll:
-      return 'save'
-    case Types.DownloadIntent.Share:
-      return 'prepare to share'
-    case Types.DownloadIntent.None:
-      return 'download'
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      return ''
-  }
-}
-
 export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
   picker.source.type === Types.DestinationPickerSource.MoveOrCopy
     ? Types.getPathName(picker.source.path)
@@ -1115,7 +1099,7 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.download:
-      return `Failed to download: ${Types.getPathName(action.payload.path)}.` + suffix
+      return `Failed to download.` + suffix
     case FsGen.shareNative:
       return `Failed to share: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.saveMedia:
@@ -1130,11 +1114,6 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
       return `Failed to open path: ${action.payload.localPath}.` + suffix
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.downloadSuccess:
-      return (
-        `Failed to ${humanizeDownloadIntent(action.payload.intent)}. ` +
-        (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
-      )
     case FsGen.pickAndUpload:
       return 'Failed to upload. ' + (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
     case FsGen.driverEnable:

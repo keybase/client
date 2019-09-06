@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as Kbfs from '../../common'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
 import Header from './header'
@@ -183,6 +185,8 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
 ]
 
 export default (props: Props) => {
+  const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
+  Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
   props.shouldHideMenu && props.floatingMenuProps.hideOnce()
   return (
     <Kb.FloatingMenu

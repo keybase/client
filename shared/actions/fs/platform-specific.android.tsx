@@ -1,7 +1,7 @@
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
-import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
@@ -49,21 +49,18 @@ const copyToDownloadDir = async (path: string, mimeType: string) => {
   }
 }
 
-const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => {
-  const {key, mimeType} = action.payload
-  const download = state.fs.downloads.get(key)
-  if (!download) {
-    logger.warn('missing download key', key)
+const finishedRegularDownload = (state, action: FsGen.FinishedRegularDownloadPayload) => {
+  const {downloadID, mimeType} = action.payload
+  const downloadState = state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
+  if (downloadState === Constants.emptyDownloadInfo) {
+    logger.warn('missing download', downloadID)
     return
   }
-  const {intent, localPath} = download.meta
-  if (intent !== Types.DownloadIntent.None) {
-    return
-  }
+  const {localPath} = downloadState
   return copyToDownloadDir(localPath, mimeType)
 }
 
 export default function* platformSpecificSaga() {
   yield Saga.spawn(nativeSaga)
-  yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccessAndroid)
+  yield* Saga.chainAction2(FsGen.finishedRegularDownload, finishedRegularDownload)
 }

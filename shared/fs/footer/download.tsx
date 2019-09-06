@@ -5,6 +5,7 @@ import * as Kbfs from '../common'
 import * as Container from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import DownloadWrapper from './download-wrapper'
 import {formatDurationFromNowTo} from '../../util/timestamp'
 import {isMobile} from '../../constants/platform'
@@ -37,16 +38,13 @@ const Download = (props: Props) => {
   const dlState = Container.useSelector(state =>
     state.fs.downloads.state.get(props.downloadID, Constants.emptyDownloadState)
   )
-  React.useEffect(() => {
-    console.log({songgao: 'download'})
-    return () => console.log({songgao: 'download-exit'})
-  }, [])
   const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
   const open = dlState.localPath
     ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: dlState.localPath}))
     : () => {}
   const dismiss = () => dispatch(FsGen.createDismissDownload({downloadID: props.downloadID}))
   const cancel = () => dispatch(FsGen.createCancelDownload({downloadID: props.downloadID}))
+  Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
   return (
     <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>
       <Kb.Box2

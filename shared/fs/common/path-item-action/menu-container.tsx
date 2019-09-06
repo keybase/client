@@ -22,13 +22,14 @@ const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _downloadID: state.fs.pathItemActionMenu.downloadID,
   _downloads: state.fs.downloads,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItemActionMenu: state.fs.pathItemActionMenu,
   _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
   _username: state.config.username,
   _view: state.fs.pathItemActionMenu.view,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: OwnProps) => ({
-  _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
+  _cancel: (downloadID: string) => dispatch(FsGen.createCancelDownload({downloadID})),
   _confirmSaveMedia: () =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia})),
   _confirmSendToOtherApp: () =>
@@ -68,16 +69,12 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
       })
     ),
   _saveMedia: () => {
-    const key = Constants.makeDownloadKey(path)
-    dispatch(FsGen.createSaveMedia({key, path}))
-    dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
+    dispatch(FsGen.createSaveMedia({path}))
   },
   _sendAttachmentToChat: () =>
     Constants.makeActionsForShowSendAttachmentToChat(path).forEach(action => dispatch(action)),
   _sendToOtherApp: () => {
-    const key = Constants.makeDownloadKey(path)
-    dispatch(FsGen.createShareNative({key, path}))
-    dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
+    dispatch(FsGen.createShareNative({path}))
   },
   _share: () => dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.Share})),
   _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
@@ -86,24 +83,24 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
 const needConfirm = (pathItem: Types.PathItem) =>
   pathItem.type === Types.PathType.File && pathItem.size > 50 * 1024 * 1024
 
-const getDownloadingStateUnmemoized = (downloads: Types.Downloads, downloadKey: string | null) => {
-  if (!downloadKey) {
-    return {done: true, saving: false, sharing: false}
+const getDownloadingState = memoize(
+  (downloads: Types.Downloads, downloadID: string | null, pathItemActionMenu: Types.PathItemActionMenu) => {
+    if (!downloadID) {
+      return {done: true, saving: false, sharing: false}
+    }
+    const downloadState = downloads.state.get(downloadID, Constants.emptyDownloadState)
+    const intent = pathItemActionMenu.downloadIntent
+    const done = downloadState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(downloadState)
+    if (!intent) {
+      return {done, saving: false, sharing: false}
+    }
+    return {
+      done,
+      saving: intent === Types.DownloadIntent.CameraRoll,
+      sharing: intent === Types.DownloadIntent.Share,
+    }
   }
-  const download = downloads.get(downloadKey)
-  const intent = download && download.meta.intent
-  const done = !download || download.state.isDone || !!download.state.error || download.state.canceled
-  if (!intent) {
-    return {done, saving: false, sharing: false}
-  }
-  return {
-    done,
-    saving: intent === Types.DownloadIntent.CameraRoll,
-    sharing: intent === Types.DownloadIntent.Share,
-  }
-}
-
-const getDownloadingState = memoize(getDownloadingStateUnmemoized)
+)
 
 const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, toCancel: string | null) =>
   toCancel
@@ -114,12 +111,20 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
     : action
 
 const shouldHideMenu = stateProps => {
-  const {saving, sharing, done} = getDownloadingState(stateProps._downloads, stateProps._downloadKey)
+  const {saving, sharing, done} = getDownloadingState(
+    stateProps._downloads,
+    stateProps._downloadID,
+    stateProps._pathItemActionMenu
+  )
   return (saving || sharing) && done
 }
 
 const getSendToOtherApp = (stateProps, dispatchProps, c) => {
-  const {sharing} = getDownloadingState(stateProps._downloads, stateProps._downloadKey)
+  const {sharing} = getDownloadingState(
+    stateProps._downloads,
+    stateProps._downloadID,
+    stateProps._pathItemActionMenu
+  )
   if (sharing) {
     return 'in-progress'
   } else {
@@ -130,7 +135,11 @@ const getSendToOtherApp = (stateProps, dispatchProps, c) => {
 }
 
 const getSaveMedia = (stateProps, dispatchProps, c) => {
-  const {saving} = getDownloadingState(stateProps._downloads, stateProps._downloadKey)
+  const {saving} = getDownloadingState(
+    stateProps._downloads,
+    stateProps._downloadID,
+    stateProps._pathItemActionMenu
+  )
   if (saving) {
     return 'in-progress'
   } else {
@@ -149,7 +158,7 @@ const mergeProps = (
   const {mode, ...rest} = ownProps
   const layout = getLayout(mode, ownProps.path, stateProps._pathItem, stateProps._username)
   const c = action =>
-    isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadKey) : action
+    isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadID) : action
   return {
     ...rest,
     shouldHideMenu: shouldHideMenu(stateProps),

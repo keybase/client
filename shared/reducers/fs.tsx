@@ -196,19 +196,7 @@ const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.
       )
     case FsGen.saveMedia:
     case FsGen.shareNative:
-    case FsGen.download: {
-      const download = state.downloads.get(erroredAction.payload.key)
-      if (!download || download.state.canceled) {
-        // Ignore errors for canceled downloads.
-        return state
-      }
-      return withFsErrorBar(state, action).update('downloads', downloads =>
-        downloads.update(
-          erroredAction.payload.key,
-          download => download && download.update('state', original => original.set('error', fsError))
-        )
-      )
-    }
+    case FsGen.download:
     default:
       return withFsErrorBar(state, action)
   }
@@ -538,7 +526,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
               : action.payload.regularDownloads
           )
           .update('state', s => (s.equals(action.payload.state) ? s : action.payload.state))
-          .update('info', info => info.filter((v, downloadID) => action.payload.state.has(downloadID)))
+          .update('info', info => info.filter((_, downloadID) => action.payload.state.has(downloadID)))
       )
     case FsGen.loadedDownloadInfo:
       return state.update('downloads', downloads =>
@@ -585,6 +573,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.loadDownloadInfo:
     case FsGen.cancelDownload:
     case FsGen.dismissDownload:
+    case FsGen.finishedRegularDownload:
+    case FsGen.finishedDownloadWithIntent:
     case FsGen.setDebugLevel:
       return state
     default:
