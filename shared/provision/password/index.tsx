@@ -86,8 +86,7 @@ const styles = Styles.styleSheetCreate(() => ({
     alignSelf: 'flex-end',
   },
   outerCard: {
-    height: 'auto',
-    marginTop: 40,
+    flex: 1,
   },
   outerCardAvatar: {
     backgroundColor: Styles.globalColors.transparent,

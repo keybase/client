@@ -148,8 +148,7 @@ const styles = Styles.styleSheetCreate(
         paddingTop: Styles.globalMargins.tiny,
       },
       outerCard: {
-        height: 'auto',
-        marginTop: 40,
+        flex: 1,
       },
       outerCardAvatar: {
         backgroundColor: Styles.globalColors.transparent,
