@@ -197,14 +197,15 @@ type ConnectionTransportTLS struct {
 	dialable       Dialable
 
 	// Protects everything below.
-	mutex           sync.Mutex
-	transport       Transporter
-	stagedTransport Transporter
-	conn            net.Conn
-	dialerTimeout   time.Duration
-	logFactory      LogFactory
-	wef             WrapErrorFunc
-	log             ConnectionLog
+	mutex            sync.Mutex
+	transport        Transporter
+	stagedTransport  Transporter
+	conn             net.Conn
+	dialerTimeout    time.Duration
+	handshakeTimeout time.Duration
+	logFactory       LogFactory
+	wef              WrapErrorFunc
+	log              ConnectionLog
 }
 
 // Test that ConnectionTransportTLS fully implements the ConnectionTransport interface.
@@ -274,8 +275,23 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		LogField{Key: "local-addr", Value: baseConn.LocalAddr()},
 		LogField{Key: ConnectionLogMsgKey, Value: "Handshake"})
 	conn := tls.Client(baseConn, config)
-	if err := conn.Handshake(); err != nil {
-		return nil, err
+
+	// run TLS handshake with a timeout
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- conn.Handshake()
+	}()
+	handshakeTimeout := ct.handshakeTimeout
+	if handshakeTimeout == 0 {
+		handshakeTimeout = time.Minute
+	}
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return nil, err
+		}
+	case <-time.After(handshakeTimeout):
+		return nil, errors.New("handshake timeout")
 	}
 	ct.log.Debug("%s", LogField{Key: ConnectionLogMsgKey, Value: "Handshaken"})
 
@@ -391,6 +407,9 @@ type ConnectionOpts struct {
 	// connections. Zero value is passed as-is to net.Dialer, which means no
 	// timeout. Note that OS may impose its own timeout.
 	DialerTimeout time.Duration
+	// HandshakeTimeout is a timeout on how long we wait for TLS handshake to
+	// complete. If no value specified, we default to time.Minute.
+	HandshakeTimeout time.Duration
 }
 
 // NewTLSConnectionWithConnectionLogFactory is like NewTLSConnection,
@@ -406,13 +425,14 @@ func NewTLSConnectionWithConnectionLogFactory(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:      rootCerts,
-		srvRemote:      srvRemote,
-		maxFrameLength: maxFrameLength,
-		logFactory:     logFactory,
-		wef:            opts.WrapErrorFunc,
-		dialerTimeout:  opts.DialerTimeout,
-		log:            connectionLogFactory.Make("conn_tspt"),
+		rootCerts:        rootCerts,
+		srvRemote:        srvRemote,
+		maxFrameLength:   maxFrameLength,
+		logFactory:       logFactory,
+		wef:              opts.WrapErrorFunc,
+		dialerTimeout:    opts.DialerTimeout,
+		handshakeTimeout: opts.HandshakeTimeout,
+		log:              connectionLogFactory.Make("conn_tspt"),
 	}
 	connLog := connectionLogFactory.Make("conn")
 	return newConnectionWithTransportAndProtocolsWithLog(
@@ -432,13 +452,14 @@ func NewTLSConnection(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:      rootCerts,
-		srvRemote:      srvRemote,
-		maxFrameLength: maxFrameLength,
-		logFactory:     logFactory,
-		wef:            opts.WrapErrorFunc,
-		dialerTimeout:  opts.DialerTimeout,
-		log:            newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		rootCerts:        rootCerts,
+		srvRemote:        srvRemote,
+		maxFrameLength:   maxFrameLength,
+		logFactory:       logFactory,
+		wef:              opts.WrapErrorFunc,
+		dialerTimeout:    opts.DialerTimeout,
+		handshakeTimeout: opts.HandshakeTimeout,
+		log:              newConnectionLogUnstructured(logOutput, "CONNTSPT"),
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -456,13 +477,14 @@ func NewTLSConnectionWithTLSConfig(
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		srvRemote:      srvRemote,
-		tlsConfig:      copyTLSConfig(tlsConfig),
-		maxFrameLength: maxFrameLength,
-		logFactory:     logFactory,
-		wef:            opts.WrapErrorFunc,
-		dialerTimeout:  opts.DialerTimeout,
-		log:            newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		srvRemote:        srvRemote,
+		tlsConfig:        copyTLSConfig(tlsConfig),
+		maxFrameLength:   maxFrameLength,
+		logFactory:       logFactory,
+		wef:              opts.WrapErrorFunc,
+		dialerTimeout:    opts.DialerTimeout,
+		handshakeTimeout: opts.HandshakeTimeout,
+		log:              newConnectionLogUnstructured(logOutput, "CONNTSPT"),
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -481,14 +503,15 @@ func NewTLSConnectionWithDialable(
 	dialable Dialable,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:      rootCerts,
-		srvRemote:      srvRemote,
-		maxFrameLength: maxFrameLength,
-		logFactory:     logFactory,
-		wef:            opts.WrapErrorFunc,
-		dialerTimeout:  opts.DialerTimeout,
-		log:            newConnectionLogUnstructured(logOutput, "CONNTSPT"),
-		dialable:       dialable,
+		rootCerts:        rootCerts,
+		srvRemote:        srvRemote,
+		maxFrameLength:   maxFrameLength,
+		logFactory:       logFactory,
+		wef:              opts.WrapErrorFunc,
+		dialerTimeout:    opts.DialerTimeout,
+		handshakeTimeout: opts.HandshakeTimeout,
+		log:              newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		dialable:         dialable,
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }

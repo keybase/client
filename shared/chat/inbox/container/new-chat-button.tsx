@@ -33,7 +33,14 @@ const _HeaderNewChatButton = (props: OwnProps) => {
       />
     </Kb.Box>
   ) : (
-    <Kb.Button label={'New chat'} onClick={props.onNewChat} small={true} style={styles.button} />
+    <Kb.Button
+      label={'New chat'}
+      mode="Primary"
+      type="Default"
+      onClick={props.onNewChat}
+      small={true}
+      style={styles.button}
+    />
   )
 }
 
@@ -54,8 +61,6 @@ const styles = Styles.styleSheetCreate({
   button: {
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.tiny,
   },
   gradientContainer: {flex: 1, height: 36, left: 0, position: 'absolute', top: 0, width: '100%'},
   gradientGreen: Styles.platformStyles({

@@ -42,7 +42,6 @@ type bufferedIdentifyUI struct {
 	launchNetworkChecks *launchNetworkChecks
 	keys                []keybase1.IdentifyKey
 	lastTrack           **keybase1.TrackSummary
-	token               *keybase1.TrackToken
 	suppressed          bool
 	userCard            *keybase1.UserCard
 }

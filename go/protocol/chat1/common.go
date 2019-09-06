@@ -583,11 +583,11 @@ func (e ConversationMemberStatus) String() string {
 }
 
 type Pagination struct {
-	Next           []byte `codec:"next" json:"next"`
-	Previous       []byte `codec:"previous" json:"previous"`
+	Next           []byte `codec:"next,omitempty" json:"next,omitempty"`
+	Previous       []byte `codec:"previous,omitempty" json:"previous,omitempty"`
 	Num            int    `codec:"num" json:"num"`
-	Last           bool   `codec:"last" json:"last"`
-	ForceFirstPage bool   `codec:"forceFirstPage" json:"forceFirstPage"`
+	Last           bool   `codec:"last,omitempty" json:"last,omitempty"`
+	ForceFirstPage bool   `codec:"forceFirstPage,omitempty" json:"forceFirstPage,omitempty"`
 }
 
 func (o Pagination) DeepCopy() Pagination {

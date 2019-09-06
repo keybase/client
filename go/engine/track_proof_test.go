@@ -162,7 +162,8 @@ func TestTrackProofServiceBlocks(t *testing.T) {
 	for _, test := range sbtests {
 		err := checkTrack(tc, fu, test.name, test.blocks, &test.outcome, sigVersion)
 		require.NoError(t, err)
-		runUntrack(tc, fu, test.name, sigVersion)
+		err = runUntrack(tc, fu, test.name, sigVersion)
+		require.NoError(t, err)
 	}
 }
 
@@ -245,12 +246,12 @@ func TestTrackProofGubble(t *testing.T) {
 	trackUser := CreateAndSignupFakeUser(tc, "track")
 
 	rbl := []sb{
-		sb{
+		{
 			social:     true,
 			id:         proofUser.Username + "@gubble.cloud",
 			proofState: keybase1.ProofState_OK,
 		},
-		sb{
+		{
 			social:     true,
 			id:         proofUser.Username + "@gubble.social",
 			proofState: keybase1.ProofState_OK,

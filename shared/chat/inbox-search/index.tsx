@@ -6,7 +6,6 @@ import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
-import {Owl} from '../inbox/owl'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -155,12 +154,6 @@ class InboxSearch extends React.Component<Props, State> {
   render() {
     const textResults = this._textResults()
     const nameResults = this._nameResults()
-    const noResults =
-      this._isStatusDone(this.props.nameStatus) &&
-      this._isStatusDone(this.props.textStatus) &&
-      this.props.nameResults.length === 0 &&
-      this.props.textResults.length === 0 &&
-      this.props.query.length > 0
     const sections = [
       {
         data: nameResults,
@@ -197,7 +190,6 @@ class InboxSearch extends React.Component<Props, State> {
           keyboardShouldPersistTaps="handled"
           sections={sections}
         />
-        {noResults && <Owl />}
       </Kb.Box2>
     )
   }

@@ -172,7 +172,7 @@ func (e *GPGImportKeyEngine) Run(mctx libkb.MetaContext) (err error) {
 			return libkb.SibkeyAlreadyExistsError{}
 		}
 		// We're sending a key update, then.
-		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
+		fp := selected.GetFingerprint().String()
 		eng := NewPGPUpdateEngine(e.G(), []string{fp}, false)
 		err = RunEngine2(mctx, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints

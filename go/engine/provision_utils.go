@@ -112,12 +112,12 @@ func (e *ephemeralKeyReboxer) storeEKs(mctx libkb.MetaContext) (err error) {
 	return userEKBoxStorage.Put(mctx, e.userEKBox.Metadata.Generation, *e.userEKBox)
 }
 
-func makeUserEKBoxForProvisionee(mctx libkb.MetaContext, KID keybase1.KID) (*keybase1.UserEkBoxed, error) {
+func makeUserEKBoxForProvisionee(mctx libkb.MetaContext, kid keybase1.KID) (*keybase1.UserEkBoxed, error) {
 	ekLib := mctx.G().GetEKLib()
 	if ekLib == nil {
 		return nil, nil
 	}
-	ekPair, err := libkb.ImportKeypairFromKID(KID)
+	ekPair, err := libkb.ImportKeypairFromKID(kid)
 	if err != nil {
 		return nil, err
 	}

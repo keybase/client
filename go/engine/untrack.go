@@ -24,7 +24,7 @@ type UntrackEngine struct {
 
 // NewUntrackEngine creates a default UntrackEngine for tracking theirName.
 func NewUntrackEngine(g *libkb.GlobalContext, arg *UntrackEngineArg) *UntrackEngine {
-	if libkb.SigVersion(arg.SigVersion) == libkb.KeybaseNullSigVersion {
+	if arg.SigVersion == libkb.KeybaseNullSigVersion {
 		arg.SigVersion = libkb.GetDefaultSigVersion(g)
 	}
 
@@ -175,8 +175,6 @@ func (e *UntrackEngine) loadThem(m libkb.MetaContext) (them *libkb.User, remoteL
 			err = libkb.NewUntrackError("Username mismatch: expected @%s, got @%s", e.arg.Username, trackedUsername)
 			return
 		}
-
-		uidTrusted = true
 	}
 
 	them = libkb.NewUserThin(e.arg.Username.String(), uid)
@@ -203,7 +201,7 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 		return
 	}
 
-	sigVersion := libkb.SigVersion(e.arg.SigVersion)
+	sigVersion := e.arg.SigVersion
 	sig, sigID, linkID, err := libkb.MakeSig(
 		m,
 		signingKey,

@@ -163,6 +163,7 @@ const styles = Styles.styleSheetCreate({
   },
   list: Styles.platformStyles({
     isElectron: {
+      flex: 1,
       paddingBottom: Styles.globalMargins.small,
     },
   }),

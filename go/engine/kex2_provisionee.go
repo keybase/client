@@ -38,7 +38,6 @@ type Kex2Provisionee struct {
 	kex2Cancel   func()
 	mctx         libkb.MetaContext
 	salt         []byte
-	v1Only       bool // only support protocol v1 (for testing)
 	ekReboxer    *ephemeralKeyReboxer
 	expectedUID  keybase1.UID
 }
@@ -463,7 +462,10 @@ func (e *Kex2Provisionee) addDeviceSibkey(m libkb.MetaContext, jw *jsonw.Wrapper
 	if err != nil {
 		return err
 	}
-	jw.SetValueAtPath("body.device", dw)
+	err = jw.SetValueAtPath("body.device", dw)
+	if err != nil {
+		return err
+	}
 
 	return jw.SetValueAtPath("body.sibkey.kid", jsonw.NewString(e.eddsa.GetKID().String()))
 }
@@ -564,7 +566,10 @@ func (e *Kex2Provisionee) pushLKSServerHalf(m libkb.MetaContext) (err error) {
 	ppstream := libkb.NewPassphraseStream(e.pps.PassphraseStream)
 	ppstream.SetGeneration(libkb.PassphraseGeneration(e.pps.Generation))
 	e.lks = libkb.NewLKSec(ppstream, e.uid)
-	e.lks.GenerateServerHalf()
+	err = e.lks.GenerateServerHalf()
+	if err != nil {
+		return err
+	}
 
 	// make client half recovery
 	chrKID := e.dh.GetKID()

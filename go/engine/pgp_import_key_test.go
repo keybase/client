@@ -416,7 +416,7 @@ func genPGPKeyAndArmor(t *testing.T, tc libkb.TestContext, email string) (libkb.
 	}
 	fp := *bundle.GetFingerprintP()
 	kid := bundle.GetKID()
-	return fp, kid, string(buf.Bytes())
+	return fp, kid, buf.String()
 }
 
 const pubkeyIssue325 = `-----BEGIN PGP PUBLIC KEY BLOCK-----

@@ -806,6 +806,11 @@ func (rua *renameUnmergedAction) updateOps(
 		rua.fromName.Plaintext() != rua.toName.Plaintext() &&
 		rua.symPath.Plaintext() == "" {
 		co.AddUnrefBlock(unmergedEntry.BlockPointer)
+		orig, ok := unmergedChains.originals[unmergedEntry.BlockPointer]
+		if !ok {
+			orig = unmergedEntry.BlockPointer
+		}
+		unmergedChains.deletedOriginals[orig] = true
 	}
 
 	return nil
