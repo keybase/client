@@ -1,35 +1,38 @@
 import * as React from 'react'
-import {debounce} from 'lodash-es'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as TeamBuildingGen from '../../actions/team-building-gen'
+import * as Constants from '../../constants/team-building'
+import * as Types from '../../constants/types/team-building'
 import {AllowedNamespace} from '../../constants/types/team-building'
 import {validateEmailAddress} from '../../util/email-address'
+import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
+  search: (query: string, service: 'email') => void
+  teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
 }
 
-const EmailInput = ({namespace}: EmailInputProps) => {
+const EmailInput = ({namespace, search, teamBuildingSearchResults}: EmailInputProps) => {
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
+  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
   const dispatch = Container.useDispatch()
-  const user = Container.useSelector(state => {
-    return state[namespace].teamBuilding.teamBuildingEmailResult
-  })
-  const isSearching = Container.useSelector(
-    state => state[namespace].teamBuilding.teamBuildingEmailIsSearching
-  )
-  const canSubmit = user !== null && !isSearching && isEmailValid
-  const emailHasKeybaseAccount =
-    user !== null && user.serviceMap.keybase !== '' && emailString === user.username
 
-  const debouncedSearch = React.useCallback(
-    debounce((query: string) => dispatch(TeamBuildingGen.createSearchEmailAddress({namespace, query})), 200),
-    [dispatch, namespace]
-  )
+  let user: Types.User | undefined
+  if (
+    teamBuildingSearchResults &&
+    teamBuildingSearchResults[emailString] &&
+    teamBuildingSearchResults[emailString].keybase &&
+    teamBuildingSearchResults[emailString].keybase[0]
+  ) {
+    user = teamBuildingSearchResults[emailString].keybase[0]
+  }
+  const canSubmit = !!user && !waiting && isEmailValid
+  const emailHasKeybaseAccount = user && user.serviceMap.keybase !== ''
 
   const onChange = React.useCallback(
     text => {
@@ -41,14 +44,14 @@ const EmailInput = ({namespace}: EmailInputProps) => {
         setEmailValidity(isNewInputValid)
       }
       if (isNewInputValid) {
-        debouncedSearch(text)
+        search(text, 'email')
       }
     },
-    [isEmailValid, debouncedSearch]
+    [isEmailValid, search]
   )
 
   const onSubmit = React.useCallback(() => {
-    if (user === null || !canSubmit) {
+    if (!user || !canSubmit) {
       return
     }
 
@@ -70,26 +73,13 @@ const EmailInput = ({namespace}: EmailInputProps) => {
           textContentType="emailAddress"
           value={emailString}
         />
-        {isSearching && (
+        {waiting && (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         )}
-        {user !== null && canSubmit && emailHasKeybaseAccount && user.serviceMap.keybase && (
-          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention}>
-            <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
-            <Kb.Text type="BodySmall">
-              Great! That's{' '}
-              <Kb.ConnectedUsernames
-                colorFollowing={true}
-                inline={true}
-                onUsernameClicked="profile"
-                type="BodySmallSemibold"
-                usernames={[user.serviceMap.keybase]}
-              />{' '}
-              on Keybase.
-            </Kb.Text>
-          </Kb.Box2>
+        {!!user && canSubmit && emailHasKeybaseAccount && user.serviceMap.keybase && (
+          <UserMatchMention username={user.serviceMap.keybase} />
         )}
         {/* TODO: add support for multiple emails  */}
       </Kb.Box2>
@@ -102,35 +92,38 @@ const EmailInput = ({namespace}: EmailInputProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  background: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      flex: 1,
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      zIndex: -1,
-    },
-  }),
-  bottomContainer: {
-    flexGrow: 1,
-  },
-  input: Styles.platformStyles({
-    common: {},
-    isElectron: {
-      ...Styles.padding(0, Styles.globalMargins.xsmall),
-      height: 38,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      height: 48,
-    },
-  }),
-  userMatchMention: {
-    alignSelf: 'flex-start',
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      background: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          flex: 1,
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          zIndex: -1,
+        },
+      }),
+      bottomContainer: {
+        flexGrow: 1,
+      },
+      input: Styles.platformStyles({
+        common: {},
+        isElectron: {
+          ...Styles.padding(0, Styles.globalMargins.xsmall),
+          height: 38,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small),
+          height: 48,
+        },
+      }),
+      userMatchMention: {
+        alignSelf: 'flex-start',
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default EmailInput

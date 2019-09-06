@@ -28,7 +28,6 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   let displayName: string
   switch (u.service) {
     case 'keybase':
-    case 'contact': // do not display "michal@keyba.se on email" or similar
     case 'email':
       displayName = u.username
       break
@@ -93,7 +92,7 @@ const TeamBox = (props: Props) => {
         <Kb.ScrollView
           horizontal={true}
           ref={scrollViewRef}
-          showsHorizontalScrollIndicator={false}
+          showsHorizontalScrollIndicator={true}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
@@ -133,64 +132,67 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
-  bubbles: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-    isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      minHeight: 90,
-    },
-  }),
-  scrollContent: Styles.platformStyles({
-    isElectron: {
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  search: Styles.platformStyles({
-    common: {
-      flex: 1,
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      maxHeight: 170,
-      minHeight: 40,
-      overflowY: 'scroll',
-    },
-    isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      minHeight: 48,
-    },
-  }),
-  searchIcon: {
-    alignSelf: 'center',
-    marginLeft: 10,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
+      bubbles: Styles.platformStyles({
+        isElectron: {
+          overflow: 'hidden',
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          minHeight: 90,
+        },
+      }),
+      scrollContent: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      search: Styles.platformStyles({
+        common: {
+          flex: 1,
+          flexWrap: 'wrap',
+        },
+        isElectron: {
+          ...Styles.globalStyles.rounded,
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_20,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          maxHeight: 170,
+          minHeight: 40,
+          overflowY: 'scroll',
+        },
+        isMobile: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          minHeight: 48,
+        },
+      }),
+      searchIcon: {
+        alignSelf: 'center',
+        marginLeft: 10,
+      },
+    } as const)
+)
 
 export default TeamBox

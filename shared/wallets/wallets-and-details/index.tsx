@@ -2,7 +2,7 @@ import * as React from 'react'
 import {Box2} from '../../common-adapters'
 import AccountReloader from '../common/account-reloader'
 import WalletList from '../wallet-list/container'
-import {globalColors, styleSheetCreate} from '../../styles'
+import * as Styles from '../../styles'
 
 type Props = {
   children: React.ReactNode
@@ -19,14 +19,17 @@ const WalletsAndDetails = (props: Props) => (
   </AccountReloader>
 )
 
-const styles = styleSheetCreate({
-  walletListContainer: {
-    backgroundColor: globalColors.blueGrey,
-    borderStyle: 'solid',
-    flexGrow: 0,
-    flexShrink: 0,
-    width: 240,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      walletListContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        borderStyle: 'solid',
+        flexGrow: 0,
+        flexShrink: 0,
+        width: 240,
+      },
+    } as const)
+)
 
 export default WalletsAndDetails

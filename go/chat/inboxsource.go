@@ -791,8 +791,8 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
 				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
 			bgEnqueued < maxBgEnqueued {
-			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
-				types.ConvLoaderPriorityMedium, nil)
+			job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: 50},
+				types.ConvLoaderPriorityMedium, types.ConvLoaderGeneric, nil)
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}

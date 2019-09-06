@@ -40,36 +40,39 @@ const Participant = ({fullname, isAdmin, isOwner, username, onShowProfile}: Prop
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  row: {
-    alignItems: 'center',
-    flex: 1,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  rowContainer: Styles.platformStyles({
-    common: {
-      minHeight: 48,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-    isMobile: {
-      minHeight: 56,
-    },
-  }),
-  wrapper: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.small,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      row: {
+        alignItems: 'center',
+        flex: 1,
+        marginRight: Styles.globalMargins.tiny,
+      },
+      rowContainer: Styles.platformStyles({
+        common: {
+          minHeight: 48,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+        isMobile: {
+          minHeight: 56,
+        },
+      }),
+      wrapper: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.small,
+        },
+      }),
+    } as const)
+)
 
 export default Participant

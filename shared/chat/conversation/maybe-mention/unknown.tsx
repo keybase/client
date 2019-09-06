@@ -113,36 +113,39 @@ class UnknownMention extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-  popupContainer: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.tiny,
-      textAlign: 'center',
-    },
-    isElectron: {
-      width: 200,
-    },
-  }),
-  text: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.greyLight,
-      borderRadius: 2,
-      letterSpacing: 0.3,
-      paddingLeft: 2,
-      paddingRight: 2,
-    },
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-  warning: {
-    color: Styles.globalColors.redDark,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+      popupContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+          textAlign: 'center',
+        },
+        isElectron: {
+          width: 200,
+        },
+      }),
+      text: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.greyLight,
+          borderRadius: 2,
+          letterSpacing: 0.3,
+          paddingLeft: 2,
+          paddingRight: 2,
+        },
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+      warning: {
+        color: Styles.globalColors.redDark,
+      },
+    } as const)
+)
 
 export default UnknownMention

@@ -69,6 +69,7 @@ const _Text = (p: TextProps, ref) => {
   const fontSizeStyle = {fontSize: p.fontSize || Shared.typeToFontSize(p.sizeType)}
 
   return (
+    // @ts-ignore TODO fix styles
     <Kb.NativeText
       // @ts-ignore TODO fix styles
       style={[styles.text, style, fontSizeStyle, p.style]}

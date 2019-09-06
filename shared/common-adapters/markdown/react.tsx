@@ -12,7 +12,7 @@ const wrapStyle = Styles.platformStyles({
   isElectron: {
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
-  },
+  } as const,
 })
 
 const bigTextBlockStyle = Styles.platformStyles({

@@ -305,33 +305,36 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  blueBackground: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  body: {
-    ...Styles.padding(
-      Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
-      Styles.globalMargins.small,
-      0
-    ),
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-    position: 'relative',
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  footer: {
-    ...Styles.padding(Styles.globalMargins.small),
-  },
-  verifyContainer: {
-    ...Styles.padding(0, Styles.globalMargins.small),
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      blueBackground: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      body: {
+        ...Styles.padding(
+          Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
+          Styles.globalMargins.small,
+          0
+        ),
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+        position: 'relative',
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      footer: {
+        ...Styles.padding(Styles.globalMargins.small),
+      },
+      verifyContainer: {
+        ...Styles.padding(0, Styles.globalMargins.small),
+      },
+    } as const)
+)

@@ -46,67 +46,70 @@ class TeamsDivider extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  badge: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: 0,
-  },
-  buttonText: {color: Styles.globalColors.black_50},
-  containerButton: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      flexShrink: 0,
-      height: RowSizes.dividerHeight(true),
-      justifyContent: 'center',
-      width: '100%',
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  containerNoButton: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flexShrink: 0,
-    height: RowSizes.dividerHeight(false),
-    justifyContent: 'center',
-    width: '100%',
-  },
-  containerToggleButton: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    flexShrink: 0,
-  },
-  dividerText: {
-    alignSelf: 'flex-start',
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  toggleButton: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: Styles.globalMargins.xtiny,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
-      marginRight: Styles.globalMargins.tiny,
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: 0,
+      },
+      buttonText: {color: Styles.globalColors.black_50},
+      containerButton: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          flexShrink: 0,
+          height: RowSizes.dividerHeight(true),
+          justifyContent: 'center',
+          width: '100%',
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      containerNoButton: {
+        ...Styles.globalStyles.flexBoxColumn,
+        flexShrink: 0,
+        height: RowSizes.dividerHeight(false),
+        justifyContent: 'center',
+        width: '100%',
+      },
+      containerToggleButton: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        alignSelf: 'center',
+        flexShrink: 0,
+      },
+      dividerText: {
+        alignSelf: 'flex-start',
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+      },
+      toggleButton: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.black_10,
+          borderRadius: Styles.borderRadius,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: Styles.globalMargins.xtiny,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+        isElectron: {
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
 
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
 
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-})
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
+    } as const)
+)
 
 export {TeamsDivider}
