@@ -255,7 +255,10 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   )
 }
 
-const updateMobileNetState = async (_: Container.TypedState, action) => {
+const updateMobileNetState = async (
+  _: Container.TypedState,
+  action: ConfigGen.OsNetworkStatusChangedPayload
+) => {
   try {
     await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type})
   } catch (err) {
@@ -263,10 +266,10 @@ const updateMobileNetState = async (_: Container.TypedState, action) => {
   }
 }
 
-const initOsNetworkStatus = () =>
-  NetInfo.getConnectionInfo().then(({type}) =>
-    ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
-  )
+const initOsNetworkStatus = async () => {
+  const {type} = await NetInfo.getConnectionInfo()
+  return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
+}
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
@@ -302,13 +305,13 @@ function* loadStartupDetails() {
   const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Clear last value to be extra safe bad things don't hose us forever
-  yield Saga._fork(() => {
-    RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s: ''},
-    })
-      .then(() => {})
-      .catch(() => {})
+  yield Saga._fork(async () => {
+    try {
+      await RPCTypes.configGuiSetValueRpcPromise({
+        path: 'ui.routeState2',
+        value: {isNull: false, s: ''},
+      })
+    } catch (_) {}
   })
 
   // Top priority, push
@@ -376,16 +379,18 @@ const handleFilePickerError = (_: Container.TypedState, action: ConfigGen.FilePi
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = () =>
-  launchImageLibraryAsync('photo')
-    .then(result =>
-      result.cancelled === true
-        ? null
-        : RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
-          })
-    )
-    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
+const editAvatar = async () => {
+  try {
+    const result = await launchImageLibraryAsync('photo')
+    return result.cancelled === true
+      ? null
+      : RouteTreeGen.createNavigateAppend({
+          path: [{props: {image: result}, selected: 'profileEditAvatar'}],
+        })
+  } catch (error) {
+    return ConfigGen.createFilePickerError({error: new Error(error)})
+  }
+}
 
 const openAppStore = () =>
   Linking.openURL(

@@ -1366,25 +1366,22 @@ const renameTeam = async (_: TypedState, action: TeamsGen.RenameTeamPayload) => 
   const {newName: _newName, oldName} = action.payload
   const prevName = {parts: oldName.split('.')}
   const newName = {parts: _newName.split('.')}
-    try {
-          await RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, Constants.teamRenameWaitingKey)
-    }
-    catch (_) {
+  try {
+    await RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, Constants.teamRenameWaitingKey)
+  } catch (_) {
     // err displayed from waiting store in component
-    }
+  }
 }
 
-const clearNavBadges = () =>
-  RPCTypes.gregorDismissCategoryRpcPromise({
-    category: 'team.newly_added_to_team',
-  })
-    .then(() =>
-      RPCTypes.gregorDismissCategoryRpcPromise({
-        category: 'team.request_access',
-      })
-    )
-    .then(() => RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'}))
-    .catch(err => logError(err))
+const clearNavBadges = async () => {
+  try {
+    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.newly_added_to_team'})
+    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.request_access'})
+    await RPCTypes.gregorDismissCategoryRpcPromise({category: 'team.delete'})
+  } catch (err) {
+    logError(err)
+  }
+}
 
 function addThemToTeamFromTeamBuilder(
   state: TypedState,

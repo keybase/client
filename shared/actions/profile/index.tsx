@@ -131,27 +131,27 @@ const submitBlockUser = async (_: TypedState, action: ProfileGen.SubmitBlockUser
   }
 }
 
-const submitUnblockUser = (_: TypedState, action: ProfileGen.SubmitUnblockUserPayload) => {
-  return RPCTypes.userUnblockUserRpcPromise(
-    {username: action.payload.username},
-    Constants.blockUserWaitingKey
-  )
-    .then(() =>
-      Tracker2Gen.createLoad({
-        assertion: action.payload.username,
-        guiID: TrackerConstants.generateGUIID(),
-        inTracker: false,
-        reason: '',
-      })
+const submitUnblockUser = async (_: TypedState, action: ProfileGen.SubmitUnblockUserPayload) => {
+  try {
+    await RPCTypes.userUnblockUserRpcPromise(
+      {username: action.payload.username},
+      Constants.blockUserWaitingKey
     )
-    .catch((error: RPCError) => {
-      logger.warn(`Error unblocking user ${action.payload.username}`, error)
-      return Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: `Failed to unblock ${action.payload.username}: ${error.desc}`,
-        result: 'error',
-      })
+    return Tracker2Gen.createLoad({
+      assertion: action.payload.username,
+      guiID: TrackerConstants.generateGUIID(),
+      inTracker: false,
+      reason: '',
     })
+  } catch (e) {
+    const error: RPCError = e
+    logger.warn(`Error unblocking user ${action.payload.username}`, error)
+    return Tracker2Gen.createUpdateResult({
+      guiID: action.payload.guiID,
+      reason: `Failed to unblock ${action.payload.username}: ${error.desc}`,
+      result: 'error',
+    })
+  }
 }
 
 const editAvatar = () =>

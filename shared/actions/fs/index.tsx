@@ -846,20 +846,21 @@ const finishManualCR = async (_: TypedState, action) => {
 // until we get through. After each try we delay for 2s, so this should give us
 // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
 // and we deserve a black bar.
-const checkIfWeReConnectedToMDServerUpToNTimes = (n: number) =>
-  RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise()
-    .then(connectedToMDServer => FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer}))
-    .catch(
-      n > 0
-        ? error => {
-            logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
-            return Saga.delay(2000).then(() => checkIfWeReConnectedToMDServerUpToNTimes(n - 1))
-          }
-        : error => {
-            logger.warn(`failed to check if we are connected to MDServer : ${error}; n=${n}, throwing`)
-            throw error
-          }
-    )
+const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
+  try {
+    const connectedToMDServer = await RPCTypes.SimpleFSSimpleFSAreWeConnectedToMDServerRpcPromise()
+    return FsGen.createKbfsDaemonOnlineStatusChanged({online: connectedToMDServer})
+  } catch (error) {
+    if (n > 0) {
+      logger.warn(`failed to check if we are connected to MDServer: ${error}; n=${n}`)
+      await Saga.delay(2000)
+      return checkIfWeReConnectedToMDServerUpToNTimes(n - 1)
+    } else {
+      logger.warn(`failed to check if we are connected to MDServer : ${error}; n=${n}, throwing`)
+      throw error
+    }
+  }
+}
 
 // We don't trigger the reachability check at init. Reachability checks cause
 // any pending "reconnect" fire right away, and overrides any random back-off
@@ -994,17 +995,18 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
 
 const getOnlineStatus = () => checkIfWeReConnectedToMDServerUpToNTimes(2)
 
-const loadPathInfo = (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
-  RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({standardPath: Types.pathToString(action.payload.path)}).then(
-    pathInfo =>
-      FsGen.createLoadedPathInfo({
-        path: action.payload.path,
-        pathInfo: Constants.makePathInfo({
-          deeplinkPath: pathInfo.deeplinkPath,
-          platformAfterMountPath: pathInfo.platformAfterMountPath,
-        }),
-      })
-  )
+const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) => {
+  const pathInfo = await RPCTypes.kbfsMountGetKBFSPathInfoRpcPromise({
+    standardPath: Types.pathToString(action.payload.path),
+  })
+  return FsGen.createLoadedPathInfo({
+    path: action.payload.path,
+    pathInfo: Constants.makePathInfo({
+      deeplinkPath: pathInfo.deeplinkPath,
+      platformAfterMountPath: pathInfo.platformAfterMountPath,
+    }),
+  })
+}
 
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
