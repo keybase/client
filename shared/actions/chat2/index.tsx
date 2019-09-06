@@ -3151,10 +3151,21 @@ const onChatWatchPosition = async (
   const response = action.payload.response
   if (isMobile) {
     try {
-      await requestLocationPermission()
+      await requestLocationPermission(action.payload.params.perm)
     } catch (e) {
       logger.info('failed to get location perms: ' + e)
-      return []
+      return Chat2Gen.createSetCommandStatusInfo({
+        conversationIDKey: Types.conversationIDToKey(action.payload.params.convID),
+        info: {
+          actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+          displayText: `Failed to access location. ${
+            action.payload.params.perm === RPCChatTypes.UIWatchPositionPerm.always
+              ? ' Make sure Keybase has access to location information when the app is not running for live location.'
+              : ''
+          }`,
+          displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+        },
+      })
     }
     const watchID = navigator.geolocation.watchPosition(
       pos => {

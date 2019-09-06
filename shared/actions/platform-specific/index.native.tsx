@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
@@ -52,20 +53,28 @@ const requestPermissionsToWrite = (): Promise<void> => {
   return Promise.resolve()
 }
 
-export const requestLocationPermission = (): Promise<void> => {
-  if (isAndroid) {
-    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
-      buttonNegative: 'Cancel',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your location in order to post it.',
-      title: 'Keybase Location Permission',
-    }).then(permissionStatus =>
-      permissionStatus !== 'granted'
-        ? Promise.reject(new Error('Unable to acquire location permissions'))
-        : Promise.resolve()
-    )
+export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
+  if (isIOS && mode === RPCChatTypes.UIWatchPositionPerm.always) {
+    const {permissions} = await Permissions.getAsync(Permissions.LOCATION)
+    const iOSPerms = permissions[Permissions.LOCATION].ios
+    if (!iOSPerms || iOSPerms.scope !== 'always') {
+      throw new Error('location always perm not set')
+    }
   }
-  return Promise.resolve()
+  if (isAndroid) {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+        message: 'Keybase needs access to your location in order to post it.',
+        title: 'Keybase Location Permission',
+      }
+    )
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire location permissions')
+    }
+  }
 }
 
 export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
