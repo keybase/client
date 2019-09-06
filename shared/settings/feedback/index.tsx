@@ -162,15 +162,18 @@ class Feedback extends React.Component<Props, State> {
 
 export default Feedback
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {flex: 1},
-  }),
-  mainBox: {padding: Styles.globalMargins.small},
-  outerStyle: {backgroundColor: 'white'},
-  smallLabel: {color: 'black'},
-  text: Styles.platformStyles({
-    isElectron: {cursor: 'default'},
-  }),
-  textBox: {flex: 1},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {flex: 1},
+      }),
+      mainBox: {padding: Styles.globalMargins.small},
+      outerStyle: {backgroundColor: 'white'},
+      smallLabel: {color: 'black'},
+      text: Styles.platformStyles({
+        isElectron: {cursor: 'default'},
+      }),
+      textBox: {flex: 1},
+    } as const)
+)

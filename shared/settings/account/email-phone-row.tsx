@@ -161,36 +161,39 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 }
 const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
-const styles = Styles.styleSheetCreate(() => ({
-  badge: {
-    borderRadius: Styles.isMobile ? 5 : 4,
-    height: Styles.isMobile ? 10 : 8,
-    width: Styles.isMobile ? 10 : 8,
-  },
-  badgeGearIcon: {
-    position: 'absolute',
-    right: 1,
-    top: 3,
-  },
-  badgeMenuItem: {
-    alignSelf: 'center',
-    marginLeft: 'auto',
-  },
-  container: {
-    height: Styles.isMobile ? 48 : 40,
-  },
-  gearIcon: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.clickable},
-  }),
-  gearIconContainer: {
-    padding: Styles.globalMargins.xtiny,
-    position: 'relative',
-  },
-  menuHeader: {
-    height: 64,
-  },
-  menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        borderRadius: Styles.isMobile ? 5 : 4,
+        height: Styles.isMobile ? 10 : 8,
+        width: Styles.isMobile ? 10 : 8,
+      },
+      badgeGearIcon: {
+        position: 'absolute',
+        right: 1,
+        top: 3,
+      },
+      badgeMenuItem: {
+        alignSelf: 'center',
+        marginLeft: 'auto',
+      },
+      container: {
+        height: Styles.isMobile ? 48 : 40,
+      },
+      gearIcon: Styles.platformStyles({
+        isElectron: {...Styles.desktopStyles.clickable},
+      }),
+      gearIconContainer: {
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
+      },
+      menuHeader: {
+        height: 64,
+      },
+      menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
+    } as const)
+)
 
 // props exported for stories
 export type OwnProps = {

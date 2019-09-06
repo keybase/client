@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
+import {formatPhoneNumber} from '../util/phone-numbers'
 
 export type Props = {
   username: string
@@ -15,9 +16,13 @@ const removeSize = Styles.isMobile ? 22 : 16
 const UserBubble = (props: Props) => {
   const isKeybase = props.service === 'keybase'
   let {username} = props
+  let title = !isKeybase ? `${props.username}@${props.service}` : undefined
   if (!isKeybase) {
     // Show placeholder avatar instead of an icon
     username = 'invalidusernameforplaceholderavatar'
+    if (props.service === 'phone') {
+      title = formatPhoneNumber(props.username)
+    }
   }
   return (
     <Kb.Box2 direction="vertical" className="hover-container" style={styles.bubbleContainer}>
@@ -32,7 +37,7 @@ const UserBubble = (props: Props) => {
             // and for follow. Display `title` for non-Keybase users that always
             // stay gray and is not a link.
             username={username}
-            title={!isKeybase ? `${props.username}@${props.service}` : undefined}
+            title={title}
             titleStyle={styles.userBubbleTitle}
           />
         </Kb.Box2>
@@ -56,61 +61,64 @@ const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
   </Kb.ClickableBox>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  bubble: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-      marginRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      flexShrink: 1,
-    },
-  }),
-  bubbleContainer: Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
-  container: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.xtiny,
-      marginLeft: Styles.globalMargins.tiny,
-      marginTop: Styles.globalMargins.xtiny,
-    },
-  }),
-  generalService: Styles.platformStyles({
-    isElectron: {
-      lineHeight: '35px',
-    },
-  }),
-  // TODO: the service icons are too high without this - are they right?
-  iconBox: Styles.platformStyles({
-    isElectron: {
-      marginBottom: -3,
-      marginTop: 3,
-    },
-  }),
-  remove: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: 100,
-      height: removeSize,
-      justifyContent: 'center',
-      position: 'absolute',
-      top: 0,
-      width: removeSize,
-    },
-    isElectron: {
-      cursor: 'pointer',
-      marginRight: Styles.globalMargins.tiny,
-      right: -4,
-    },
-    isMobile: {
-      right: 12,
-    },
-  }),
-  removeIcon: {
-    position: 'relative',
-    top: 1,
-  },
-  userBubbleTitle: {color: Styles.globalColors.black},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bubble: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          flexShrink: 1,
+        },
+      }),
+      bubbleContainer: Styles.platformStyles({common: {position: 'relative'}, isMobile: {width: 91}}),
+      container: Styles.platformStyles({
+        common: {
+          marginBottom: Styles.globalMargins.xtiny,
+          marginLeft: Styles.globalMargins.tiny,
+          marginTop: Styles.globalMargins.xtiny,
+        },
+      }),
+      generalService: Styles.platformStyles({
+        isElectron: {
+          lineHeight: '35px',
+        },
+      }),
+      // TODO: the service icons are too high without this - are they right?
+      iconBox: Styles.platformStyles({
+        isElectron: {
+          marginBottom: -3,
+          marginTop: 3,
+        },
+      }),
+      remove: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: 100,
+          height: removeSize,
+          justifyContent: 'center',
+          position: 'absolute',
+          top: 0,
+          width: removeSize,
+        },
+        isElectron: {
+          cursor: 'pointer',
+          marginRight: Styles.globalMargins.tiny,
+          right: -4,
+        },
+        isMobile: {
+          right: 12,
+        },
+      }),
+      removeIcon: {
+        position: 'relative',
+        top: 1,
+      },
+      userBubbleTitle: {color: Styles.globalColors.black},
+    } as const)
+)
 
 export default UserBubble

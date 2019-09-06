@@ -65,20 +65,23 @@ export const Input = (props: any) => (
   </Box2>
 )
 
-export const styles = styleSheetCreate({
-  avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
-  buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
-  header: {
-    backgroundColor: globalColors.transparent,
-    borderBottomWidth: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  input: {maxWidth: 460, width: '100%'},
-  inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
-  inputErrorStyle: {minHeight: 0},
-  inputInnerStyle: {width: '100%'},
-  wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
-})
+export const styles = styleSheetCreate(
+  () =>
+    ({
+      avatar: {marginBottom: isMobile ? globalMargins.xtiny : 0},
+      buttonBar: {maxWidth: 460, padding: 0, paddingTop: globalMargins.medium},
+      header: {
+        backgroundColor: globalColors.transparent,
+        borderBottomWidth: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      input: {maxWidth: 460, width: '100%'},
+      inputContainer: {alignItems: 'center', alignSelf: 'stretch'},
+      inputErrorStyle: {minHeight: 0},
+      inputInnerStyle: {width: '100%'},
+      wrapper: {paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium},
+    } as const)
+)

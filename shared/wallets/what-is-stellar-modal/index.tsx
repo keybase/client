@@ -88,6 +88,6 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.mediumLarge,
   },
-})
+} as const)
 
 export default WhatIsStellarModal

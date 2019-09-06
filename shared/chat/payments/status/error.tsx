@@ -51,27 +51,30 @@ const PaymentStatusError = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  bodyError: Styles.platformStyles({
-    common: {color: Styles.globalColors.redDark, textAlign: 'center'},
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-  }),
-  errorContainer: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.small,
-    },
-    isElectron: {
-      maxWidth: 200,
-      minHeight: 100,
-    },
-  }),
-  headerError: {
-    alignSelf: 'center',
-    color: Styles.globalColors.redDark,
-    padding: Styles.globalMargins.tiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyError: Styles.platformStyles({
+        common: {color: Styles.globalColors.redDark, textAlign: 'center'},
+        isElectron: {
+          wordBreak: 'break-word',
+        } as const,
+      }),
+      errorContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.small,
+        },
+        isElectron: {
+          maxWidth: 200,
+          minHeight: 100,
+        },
+      }),
+      headerError: {
+        alignSelf: 'center',
+        color: Styles.globalColors.redDark,
+        padding: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default PaymentStatusError

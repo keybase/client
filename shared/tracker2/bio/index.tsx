@@ -180,42 +180,45 @@ const Bio = (p: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  airdropText: Styles.platformStyles({
-    common: {color: Styles.globalColors.white},
-    isElectron: {textAlign: 'center'},
-  }),
-  bold: {...Styles.globalStyles.fontBold},
-  container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
-  floatingContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.purple,
-    },
-    isElectron: {
-      maxWidth: 200,
-    },
-  }),
-  fullName: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-any'},
-  }),
-  fullNameContainer: {
-    paddingLeft: Styles.globalMargins.mediumLarge,
-    paddingRight: Styles.globalMargins.mediumLarge,
-  },
-  learnButton: {alignSelf: 'center', marginTop: Styles.globalMargins.tiny},
-  star: {alignSelf: 'center', marginBottom: Styles.globalMargins.tiny},
-  text: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.mediumLarge,
-      paddingRight: Styles.globalMargins.mediumLarge,
-    },
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-    isMobile: {
-      lineHeight: 21,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      airdropText: Styles.platformStyles({
+        common: {color: Styles.globalColors.white},
+        isElectron: {textAlign: 'center'},
+      }),
+      bold: {...Styles.globalStyles.fontBold},
+      container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+      floatingContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.purple,
+        },
+        isElectron: {
+          maxWidth: 200,
+        },
+      }),
+      fullName: Styles.platformStyles({
+        isElectron: {wordBreak: 'break-all'} as const,
+      }),
+      fullNameContainer: {
+        paddingLeft: Styles.globalMargins.mediumLarge,
+        paddingRight: Styles.globalMargins.mediumLarge,
+      },
+      learnButton: {alignSelf: 'center', marginTop: Styles.globalMargins.tiny},
+      star: {alignSelf: 'center', marginBottom: Styles.globalMargins.tiny},
+      text: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.mediumLarge,
+          paddingRight: Styles.globalMargins.mediumLarge,
+        },
+        isElectron: {
+          wordBreak: 'break-word',
+        } as const,
+        isMobile: {
+          lineHeight: 21,
+        },
+      }),
+    } as const)
+)
 
 export default Bio

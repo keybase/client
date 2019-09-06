@@ -130,7 +130,7 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
   <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
     <Kb.Icon
       style={styles.moreNetworkItemIcon}
-      color={Styles.globalColors.black}
+      color={serviceIdToAccentColor(props.service)}
       type={serviceIdToIconFont(props.service)}
     />
     <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
@@ -189,88 +189,91 @@ export const ServiceTabBar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  activeTabBar: {
-    backgroundColor: Styles.globalColors.blue,
-    height: 2,
-  },
-  badgeContainerStyle: {
-    position: 'absolute',
-    right: 0,
-    top: 10,
-  },
-  badgeStyle: {backgroundColor: Styles.globalColors.blue},
-  inactiveTabBar: {
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: 'solid',
-    height: 2,
-  },
-  label: {
-    marginTop: Styles.globalMargins.xtiny,
-    minWidth: 64,
-  },
-  moreNetworkItemIcon: {marginRight: Styles.globalMargins.tiny},
-  moreNetworks0: {
-    flex: 1,
-  },
-  moreNetworks1: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  moreNetworks2: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'row',
-    height: '100%',
-    justifyContent: 'center',
-    maxHeight: '100%',
-    maxWidth: '100%',
-    width: '100%',
-  },
-  moreNetworks3: {
-    alignItems: 'center',
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    display: 'flex',
-    flexDirection: 'row',
-    height: '100%',
-    justifyContent: 'center',
-    maxHeight: '100%',
-    maxWidth: '100%',
-    width: '100%',
-  },
-  moreText: {
-    color: Styles.globalColors.black_50,
-  },
-  pendingIcon: {height: 10, width: 10},
-  serviceIcon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  serviceIconBox: {
-    marginTop: 14,
-  },
-  serviceIconContainer: {
-    flex: 1,
-    height: 70,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-    maxWidth: 72,
-    minWidth: 40,
-  },
-  serviceIconContainerInner: {
-    justifyContent: 'flex-start',
-  },
-  tabBarContainer: {
-    minHeight: 30,
-  },
-  wonderland: {
-    color: Styles.globalColors.white,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      activeTabBar: {
+        backgroundColor: Styles.globalColors.blue,
+        height: 2,
+      },
+      badgeContainerStyle: {
+        position: 'absolute',
+        right: 0,
+        top: 10,
+      },
+      badgeStyle: {backgroundColor: Styles.globalColors.blue},
+      inactiveTabBar: {
+        borderBottomWidth: 1,
+        borderColor: Styles.globalColors.black_10,
+        borderStyle: 'solid',
+        height: 2,
+      },
+      label: {
+        marginTop: Styles.globalMargins.xtiny,
+        minWidth: 64,
+      },
+      moreNetworkItemIcon: {marginRight: Styles.globalMargins.tiny},
+      moreNetworks0: {
+        flex: 1,
+      },
+      moreNetworks1: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      moreNetworks2: {
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'row',
+        height: '100%',
+        justifyContent: 'center',
+        maxHeight: '100%',
+        maxWidth: '100%',
+        width: '100%',
+      },
+      moreNetworks3: {
+        alignItems: 'center',
+        borderColor: Styles.globalColors.black_20,
+        borderRadius: 4,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        display: 'flex',
+        flexDirection: 'row',
+        height: '100%',
+        justifyContent: 'center',
+        maxHeight: '100%',
+        maxWidth: '100%',
+        width: '100%',
+      },
+      moreText: {
+        color: Styles.globalColors.black_50,
+      },
+      pendingIcon: {height: 10, width: 10},
+      serviceIcon: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      serviceIconBox: {
+        marginTop: 14,
+      },
+      serviceIconContainer: {
+        flex: 1,
+        height: 70,
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xtiny,
+        maxWidth: 72,
+        minWidth: 40,
+      },
+      serviceIconContainerInner: {
+        justifyContent: 'flex-start',
+      },
+      tabBarContainer: {
+        minHeight: 30,
+      },
+      wonderland: {
+        color: Styles.globalColors.white,
+      },
+    } as const)
+)
 
 export default ServiceTabBar

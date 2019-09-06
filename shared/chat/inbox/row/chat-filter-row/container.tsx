@@ -28,8 +28,6 @@ const mapDispatchToProps = dispatch => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(appendNewChatBuilder())
-    } else {
-      dispatch(Chat2Gen.createToggleInboxSearch({enabled: true}))
     }
   },
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
@@ -40,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _onHotkey: dispatchProps._onHotkey,
   filter: stateProps.filter,
-  hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
+  hotkeys: isDarwin ? ['command+n'] : ['ctrl+n'],
   isLoading: stateProps.isLoading,
   isSearching: stateProps.isSearching,
   onBack: dispatchProps.onBack,

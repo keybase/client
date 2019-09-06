@@ -144,94 +144,97 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      borderRadius: 4,
-      height: 485,
-      overflow: 'hidden',
-      width: 560,
-    },
-    isMobile: {
-      flex: 1,
-      width: '100%',
-    },
-  }),
-  containerBox: {
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'row',
-    height: Styles.isMobile ? 56 : 48,
-    justifyContent: 'flex-start',
-  },
-  description: {
-    ...rightColumnStyle,
-  },
-  flexOne: {
-    flex: 1,
-  },
-  footer: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.blueGrey,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    padding: Styles.globalMargins.xsmall,
-  },
-  footerText: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black_50,
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  header: {
-    color: Styles.globalColors.black,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  icon: {
-    height: 32,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    width: 32,
-  },
-  iconArrow: {
-    marginRight: Styles.globalMargins.small,
-  },
-  inputContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    marginBottom: Styles.globalMargins.xsmall,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.xsmall,
-    padding: Styles.globalMargins.tiny,
-  },
-  listContainer: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-    isElectron: {
-      maxHeight: 560 - 48,
-    },
-  }),
-  mobileFlex: Styles.platformStyles({
-    isMobile: {flex: 1},
-  }),
-  new: {
-    marginRight: Styles.globalMargins.xtiny,
-    marginTop: 1,
-  },
-  text: {
-    backgroundColor: Styles.globalColors.transparent,
-    color: Styles.globalColors.black_50,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  title: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          borderRadius: 4,
+          height: 485,
+          overflow: 'hidden',
+          width: 560,
+        },
+        isMobile: {
+          flex: 1,
+          width: '100%',
+        },
+      }),
+      containerBox: {
+        alignItems: 'center',
+        display: 'flex',
+        flexDirection: 'row',
+        height: Styles.isMobile ? 56 : 48,
+        justifyContent: 'flex-start',
+      },
+      description: {
+        ...rightColumnStyle,
+      },
+      flexOne: {
+        flex: 1,
+      },
+      footer: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.blueGrey,
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        padding: Styles.globalMargins.xsmall,
+      },
+      footerText: {
+        ...rightColumnStyle,
+        color: Styles.globalColors.black_50,
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      header: {
+        color: Styles.globalColors.black,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      icon: {
+        height: 32,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        width: 32,
+      },
+      iconArrow: {
+        marginRight: Styles.globalMargins.small,
+      },
+      inputContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
+        marginBottom: Styles.globalMargins.xsmall,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.xsmall,
+        padding: Styles.globalMargins.tiny,
+      },
+      listContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+        },
+        isElectron: {
+          maxHeight: 560 - 48,
+        },
+      }),
+      mobileFlex: Styles.platformStyles({
+        isMobile: {flex: 1},
+      }),
+      new: {
+        marginRight: Styles.globalMargins.xtiny,
+        marginTop: 1,
+      },
+      text: {
+        backgroundColor: Styles.globalColors.transparent,
+        color: Styles.globalColors.black_50,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+      },
+      title: {
+        ...rightColumnStyle,
+        color: Styles.globalColors.black,
+      },
+    } as const)
+)
 
 export default ProofsList

@@ -532,11 +532,6 @@ export type TypedActionsMap = {
   'fs:setSendAttachmentToChatFilter': fs.SetSendAttachmentToChatFilterPayload
   'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
   'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
-  'fs:initSendLinkToChat': fs.InitSendLinkToChatPayload
-  'fs:setSendLinkToChatConvID': fs.SetSendLinkToChatConvIDPayload
-  'fs:setSendLinkToChatChannels': fs.SetSendLinkToChatChannelsPayload
-  'fs:triggerSendLinkToChat': fs.TriggerSendLinkToChatPayload
-  'fs:sentLinkToChat': fs.SentLinkToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
   'fs:setPathItemActionMenuDownloadKey': fs.SetPathItemActionMenuDownloadKeyPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload

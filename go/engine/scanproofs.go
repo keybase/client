@@ -78,7 +78,10 @@ func (c *ScanProofsCache) Save(filepath string) error {
 		return err
 	}
 	f.Close()
-	os.Rename(temppath, filepath)
+	err = os.Rename(temppath, filepath)
+	if err != nil {
+		return err
+	}
 	c.dirty = false
 	return nil
 }
