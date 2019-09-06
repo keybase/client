@@ -59,33 +59,40 @@ const Username = (props: Props) => {
       rightActionComponent={
         <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
       }
+      contentContainerStyle={styles.contentContainer}
     >
-      <Kb.UserCard
-        style={styles.card}
-        avatarBackgroundStyle={styles.outerCardAvatar}
-        outerStyle={styles.outerCard}
-        lighterPlaceholders={true}
-        avatarSize={96}
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={styles.fill}
+        contentContainerStyle={styles.scrollContentContainer}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-          <Kb.LabeledInput
-            autoFocus={true}
-            placeholder="Username"
-            maxLength={maxUsernameLength}
-            onEnterKeyDown={onSubmit}
-            onChangeText={setUsername}
-            value={username}
-            textType="BodySemibold"
-          />
-          <Kb.Text
-            style={styles.forgotUsername}
-            type="BodySmallSecondaryLink"
-            onClick={props.onForgotUsername}
-          >
-            Forgot username?
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.UserCard>
+        <Kb.UserCard
+          style={styles.card}
+          avatarBackgroundStyle={styles.outerCardAvatar}
+          outerStyle={styles.outerCard}
+          lighterPlaceholders={true}
+          avatarSize={96}
+        >
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
+            <Kb.LabeledInput
+              autoFocus={true}
+              placeholder="Username"
+              maxLength={maxUsernameLength}
+              onEnterKeyDown={onSubmit}
+              onChangeText={setUsername}
+              value={username}
+              textType="BodySemibold"
+            />
+            <Kb.Text
+              style={styles.forgotUsername}
+              type="BodySmallSecondaryLink"
+              onClick={props.onForgotUsername}
+            >
+              Forgot username?
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.UserCard>
+      </Kb.ScrollView>
     </SignupScreen>
   )
 }
@@ -103,6 +110,8 @@ const styles = Styles.styleSheetCreate(
           paddingRight: 0,
         },
       }),
+      contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
+      fill: Styles.platformStyles({isMobile: {height: '100%', width: '100%'}}),
       forgotUsername: {
         alignSelf: 'flex-end',
       },
@@ -112,6 +121,12 @@ const styles = Styles.styleSheetCreate(
       outerCardAvatar: {
         backgroundColor: Styles.globalColors.transparent,
       },
+      scrollContentContainer: Styles.platformStyles({
+        isElectron: {
+          margin: 'auto',
+        },
+        isMobile: {...Styles.padding(Styles.globalMargins.small)},
+      }),
       wrapper: Styles.platformStyles({
         isElectron: {
           width: 400,
