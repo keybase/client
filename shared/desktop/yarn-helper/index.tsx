@@ -6,6 +6,7 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
+import rimraf from 'rimraf'
 
 const [, , command, ...rest] = process.argv
 
@@ -31,6 +32,7 @@ const commands = {
       makeShims()
       fixTypes()
       checkFSEvents()
+      clearTSCache()
     },
     help: '',
   },
@@ -107,6 +109,12 @@ const decorateInfo = info => {
   }
 
   return temp
+}
+
+const warnFail = err => console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
+const clearTSCache = () => {
+  const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
+  rimraf(glob, {}, warnFail)
 }
 
 function main() {

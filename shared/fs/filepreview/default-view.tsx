@@ -79,7 +79,7 @@ const DefaultView = (props: DefaultViewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       padding: Styles.globalMargins.medium,
@@ -106,7 +106,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.large,
     },
   }),
-})
+}))
 
 const stylesSymlink = {marginTop: Styles.globalMargins.medium}
 

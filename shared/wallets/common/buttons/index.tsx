@@ -105,7 +105,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 }
 export const DropdownButton = Kb.OverlayParentHOC(_DropdownButton)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   dropdownButton: Styles.platformStyles({
     common: {
       minWidth: undefined,
@@ -123,4 +123,4 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: 10,
     paddingRight: 10,
   },
-})
+}))

@@ -37,10 +37,10 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   text: {
     maxWidth: '100%',
   },
-})
+}))
 
 export default SmallAccountID

@@ -113,7 +113,7 @@ const TlfInfoLine = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   meta: {
     alignSelf: 'center',
     marginRight: Styles.globalMargins.xtiny,
@@ -128,6 +128,6 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
-})
+}))
 
 export default TlfInfoLine

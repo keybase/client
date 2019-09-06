@@ -142,7 +142,7 @@ const HighOrderDestinationPickerMobile = withProps(
 
 export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionRowContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -203,4 +203,4 @@ const styles = Styles.styleSheetCreate({
   rowsContainer: {
     flex: 1,
   },
-})
+}))

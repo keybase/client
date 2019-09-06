@@ -33,8 +33,8 @@ const Main = (_: Props) => (
 
 const ViewForGatewayDest = (props: Props) => <View {...props} />
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   gatewayDest: {flexGrow: 1, width: '100%'},
-})
+}))
 
 export default Main

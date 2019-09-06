@@ -69,11 +69,11 @@ const Tlf = (props: TlfProps) => (
   </StillCommon>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatarBox: {marginRight: Styles.globalMargins.xsmall},
   kerning: {letterSpacing: 0.2},
   leftBox: {flex: 1, justifyContent: 'center', minWidth: 0},
   minWidth: {minWidth: 0},
-})
+}))
 
 export default Tlf

@@ -54,7 +54,7 @@ export const StillCommon = (
   />
 )
 
-export const rowStyles = Styles.styleSheetCreate({
+export const rowStyles = Styles.styleSheetCreate(() => ({
   itemBox: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -74,6 +74,6 @@ export const rowStyles = Styles.styleSheetCreate({
   rowText_30: {
     opacity: 0.3,
   },
-})
+}))
 
 export const normalRowHeight = Kb.smallListItem2Height
