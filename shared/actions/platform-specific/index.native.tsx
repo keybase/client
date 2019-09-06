@@ -54,11 +54,22 @@ const requestPermissionsToWrite = (): Promise<void> => {
 }
 
 export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
-  if (isIOS && mode === RPCChatTypes.UIWatchPositionPerm.always) {
-    const {permissions} = await Permissions.getAsync(Permissions.LOCATION)
-    const iOSPerms = permissions[Permissions.LOCATION].ios
-    if (!iOSPerms || iOSPerms.scope !== 'always') {
-      throw new Error('location always perm not set')
+  if (isIOS) {
+    const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
+    switch (mode) {
+      case RPCChatTypes.UIWatchPositionPerm.base:
+        if (status !== 'granted') {
+          throw new Error('Please allow Keybase to access your location in the phone settings.')
+        }
+        break
+      case RPCChatTypes.UIWatchPositionPerm.always:
+        const iOSPerms = permissions[Permissions.LOCATION].ios
+        if (!iOSPerms || iOSPerms.scope !== 'always') {
+          throw new Error(
+            'Please allow Keybase to access your location even if the app is not running for live location.'
+          )
+        }
+        break
     }
   }
   if (isAndroid) {

@@ -3164,15 +3164,11 @@ const onChatWatchPosition = async (
   }
   try {
     await requestLocationPermission(action.payload.params.perm)
-  } catch (e) {
-    logger.info('failed to get location perms: ' + e)
+  } catch (err) {
+    logger.info('failed to get location perms: ' + err)
     return setLocationDeniedCommandStatus(
       Types.conversationIDToKey(action.payload.params.convID),
-      `Failed to access location. ${
-        action.payload.params.perm === RPCChatTypes.UIWatchPositionPerm.always
-          ? 'Make sure Keybase has access to location information when the app is not running for live location.'
-          : ''
-      }`
+      `Failed to access location. ${err.message}`
     )
   }
   const watchID = navigator.geolocation.watchPosition(
@@ -3191,7 +3187,7 @@ const onChatWatchPosition = async (
         locationEmitter(
           setLocationDeniedCommandStatus(
             Types.conversationIDToKey(action.payload.params.convID),
-            'Failed to access your location. Please allow Keybase to access your location in the phone settings.'
+            `Failed to access location. ${err.message}`
           )
         )
       }

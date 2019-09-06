@@ -101,6 +101,7 @@ const LocationPopup = (props: Props) => {
         content: (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.Button
+              disabled={locationDenied}
               fullWidth={true}
               label="Share location for 15 minutes"
               onClick={() => onLocationShare('15m')}
@@ -110,6 +111,7 @@ const LocationPopup = (props: Props) => {
               subLabel="Live location"
             />
             <Kb.Button
+              disabled={locationDenied}
               fullWidth={true}
               label="Share location for 1 hours"
               onClick={() => onLocationShare('1h')}
@@ -119,6 +121,7 @@ const LocationPopup = (props: Props) => {
               subLabel="Live location"
             />
             <Kb.Button
+              disabled={locationDenied}
               fullWidth={true}
               onClick={() => onLocationShare('8h')}
               label="Share location for 8 hours"
@@ -129,6 +132,7 @@ const LocationPopup = (props: Props) => {
             />
             <Kb.Divider />
             <Kb.Button
+              disabled={locationDenied}
               fullWidth={true}
               label="Send current location"
               onClick={() => onLocationShare('')}
