@@ -7,11 +7,12 @@ import * as Constants from '../../constants/team-building'
 import * as Types from '../../constants/types/team-building'
 import {AllowedNamespace} from '../../constants/types/team-building'
 import {validateEmailAddress} from '../../util/email-address'
+import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
 type EmailInputProps = {
   namespace: AllowedNamespace
-  search: (query: string, service: Types.ServiceIdWithContact) => void
+  search: (query: string, service: 'email') => void
   teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
 }
 
@@ -31,7 +32,7 @@ const EmailInput = ({namespace, search, teamBuildingSearchResults}: EmailInputPr
     user = teamBuildingSearchResults[emailString].keybase[0]
   }
   const canSubmit = !!user && !waiting && isEmailValid
-  const emailHasKeybaseAccount = user && user.serviceMap.keybase !== '' && emailString === user.username
+  const emailHasKeybaseAccount = user && user.serviceMap.keybase !== ''
 
   const onChange = React.useCallback(
     text => {
@@ -78,20 +79,7 @@ const EmailInput = ({namespace, search, teamBuildingSearchResults}: EmailInputPr
           </Kb.Box2>
         )}
         {!!user && canSubmit && emailHasKeybaseAccount && user.serviceMap.keybase && (
-          <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention}>
-            <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
-            <Kb.Text type="BodySmall">
-              Great! That's{' '}
-              <Kb.ConnectedUsernames
-                colorFollowing={true}
-                inline={true}
-                onUsernameClicked="profile"
-                type="BodySmallSemibold"
-                usernames={[user.serviceMap.keybase]}
-              />{' '}
-              on Keybase.
-            </Kb.Text>
-          </Kb.Box2>
+          <UserMatchMention username={user.serviceMap.keybase} />
         )}
         {/* TODO: add support for multiple emails  */}
       </Kb.Box2>

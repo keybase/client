@@ -9,7 +9,7 @@ import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   onContinue: (user: User) => void
-  search: (query: string, service: ServiceIdWithContact) => void
+  search: (query: string, service: 'phone') => void
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
 }
 
@@ -93,22 +93,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
           />
-          {state === 'resolved' && !!user && (
-            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-              <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
-              <Kb.Text type="BodySmall">
-                Great! That's{' '}
-                <Kb.ConnectedUsernames
-                  colorFollowing={true}
-                  inline={true}
-                  onUsernameClicked="profile"
-                  type="BodySmallSemibold"
-                  usernames={[user.username]}
-                />{' '}
-                on Keybase.
-              </Kb.Text>
-            </Kb.Box2>
-          )}
+          {state === 'resolved' && !!user && <UserMatchMention username={user.username} />}
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
@@ -117,6 +102,26 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     </>
   )
 }
+
+type UserMatchMentionProps = {
+  username: string
+}
+export const UserMatchMention = ({username}: UserMatchMentionProps) => (
+  <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
+    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+    <Kb.Text type="BodySmall">
+      Great! That's{' '}
+      <Kb.ConnectedUsernames
+        colorFollowing={true}
+        inline={true}
+        onUsernameClicked="profile"
+        type="BodySmallSemibold"
+        usernames={[username]}
+      />{' '}
+      on Keybase.
+    </Kb.Text>
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   button: {flexGrow: 0},

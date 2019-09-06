@@ -1,6 +1,5 @@
 import logger from '../logger'
 import * as Constants from '../constants/team-building'
-import * as Types from '../constants/types/team-building'
 import * as TeamBuildingTypes from '../constants/types/team-building'
 import * as TeamBuildingGen from './team-building-gen'
 import * as RouteTreeGen from './route-tree-gen'
@@ -42,76 +41,6 @@ const apiSearch = async (
   } catch (err) {
     logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
     return []
-  }
-}
-
-function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
-  const teamBuildingState = state[namespace].teamBuilding
-  const {teamBuildingSearchQuery, teamBuildingSelectedService} = teamBuildingState
-  const teamBuildingSearchLimit = 11 // Hard coded since this happens for background tabs
-
-  if (teamBuildingSearchQuery === '') {
-    return
-  }
-
-  // Filter on `services` so we only get what's searchable through API.
-  // Also filter out if we already have that result cached.
-  const servicesToSearch = Constants.allServices
-    .filter(s => s !== teamBuildingSelectedService && !Types.isContactServiceId(s))
-    .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
-
-  const isStillInSameQuery = (state: TypedState): boolean => {
-    const teamBuildingState = state[namespace].teamBuilding
-
-    return (
-      teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-      teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
-    )
-  }
-
-  // Defer so we aren't conflicting with the main search
-  yield Saga.callUntyped(Saga.delay, 100)
-
-  // Change this to control how many requests are in flight at a time
-  const parallelRequestsCount = 2
-
-  // Channel to interact with workers. Initial buffer size to handle all the messages we'll put
-  // + 1 because we'll put the END message at the end when we close
-  const serviceChannel = yield Saga.callUntyped(
-    Saga.channel,
-    Saga.buffers.expanding(servicesToSearch.length + 1)
-  )
-  servicesToSearch.forEach(service => serviceChannel.put(service))
-  // After the workers pull all the services they can stop
-  serviceChannel.close()
-
-  for (let i = 0; i < parallelRequestsCount; i++) {
-    yield Saga.spawn(function*() {
-      // The loop will exit when we run out of services
-      while (true) {
-        const service = yield Saga.take(serviceChannel)
-        // if we aren't in the same query, let's stop
-        if (!isStillInSameQuery(yield* Saga.selectState())) {
-          break
-        }
-        const action = yield apiSearch(
-          teamBuildingSearchQuery,
-          service,
-          teamBuildingSearchLimit,
-          true,
-          null,
-          false
-        ).then(users =>
-          TeamBuildingGen.createSearchResultsLoaded({
-            namespace,
-            query: teamBuildingSearchQuery,
-            service,
-            users,
-          })
-        )
-        yield Saga.put(action)
-      }
-    })
   }
 }
 
@@ -203,26 +132,11 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-function filterGenForNs<S, A, L>(
-  namespace: TeamBuildingTypes.AllowedNamespace,
-  fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
-) {
-  return function*(s, a, l) {
-    if (a && a.payload && a.payload.namespace === namespace) {
-      yield* fn(s, a, l)
-    }
-  }
-}
-
 export default function* commonSagas(
   namespace: TeamBuildingTypes.AllowedNamespace
 ): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
-  yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(
-    TeamBuildingGen.search,
-    filterGenForNs(namespace, searchResultCounts)
-  )
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
