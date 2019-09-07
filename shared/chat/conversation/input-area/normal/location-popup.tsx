@@ -68,7 +68,7 @@ const LocationPopup = (props: Props) => {
             setLocationDenied(true)
           }
         },
-        {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
+        {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
       )
     }
     watchPosition()
