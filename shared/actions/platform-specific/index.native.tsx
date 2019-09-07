@@ -62,7 +62,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
           throw new Error('Please allow Keybase to access your location in the phone settings.')
         }
         break
-      case RPCChatTypes.UIWatchPositionPerm.always:
+      case RPCChatTypes.UIWatchPositionPerm.always: {
         const iOSPerms = permissions[Permissions.LOCATION].ios
         if (!iOSPerms || iOSPerms.scope !== 'always') {
           throw new Error(
@@ -70,6 +70,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
           )
         }
         break
+      }
     }
   }
   if (isAndroid) {
