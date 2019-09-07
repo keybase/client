@@ -275,8 +275,9 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	if err != nil {
 		return msg, nil, err
 	}
-	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
-		// Don't do anything here for reactions, they can't be edited
+	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION ||
+		deleteTarget.ClientHeader.MessageType == chat1.MessageType_UNFURL {
+		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil
 	}
 
