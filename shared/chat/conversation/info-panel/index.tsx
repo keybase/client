@@ -169,7 +169,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     return res
   }
 
-  _onSelectTab = tab => {
+  _onSelectTab = (tab: React.ReactNode) => {
+    // @ts-ignore TODO avoid using key on a node
     this.props.onSelectTab(tab.key)
   }
   _renderHeader = () => {
@@ -359,7 +360,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 }
 
-const border = `1px solid ${Styles.globalColors.black_10}`
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -371,7 +371,7 @@ const styles = Styles.styleSheetCreate(
         common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
           backgroundColor: Styles.globalColors.white,
-          borderLeft: border,
+          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
         },
       }),
       tabContainerStyle: {
