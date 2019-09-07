@@ -311,6 +311,12 @@ interface WithBackgroundActive {
         } else {
           Keybase.setAppStateBackgroundActive();
           this.task();
+
+          // Check if we are foreground now for some reason. In that case we don't want to go background again
+          if (Keybase.isAppStateForeground()) {
+              return;
+          }
+
           if (Keybase.appDidEnterBackground()) {
               Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(context, new Bundle()));
           } else {
