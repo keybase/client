@@ -164,7 +164,7 @@ class InboxSearch extends React.Component<Props, State> {
         renderHeader: this._renderNameHeader,
         renderItem: this._renderHit,
         status: this.props.nameStatus,
-        title: this.props.nameResultsUnread ? 'Recent' : 'Chats',
+        title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
     ]
     if (!this.props.nameResultsUnread) {
