@@ -195,32 +195,35 @@ class InboxSearch extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
-      contain: 'strict',
-      height: '100%',
-      maxWidth: inboxWidth,
-      minWidth: inboxWidth,
-      position: 'relative',
-    },
-  }),
-  errorText: {
-    color: Styles.globalColors.redDark,
-  },
-  percentContainer: {
-    padding: Styles.globalMargins.tiny,
-  },
-  progressBar: {
-    alignSelf: 'center',
-    flex: 1,
-    width: '100%',
-  },
-  textHeader: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.blueGrey,
+          contain: 'strict',
+          height: '100%',
+          maxWidth: inboxWidth,
+          minWidth: inboxWidth,
+          position: 'relative',
+        },
+      }),
+      errorText: {
+        color: Styles.globalColors.redDark,
+      },
+      percentContainer: {
+        padding: Styles.globalMargins.tiny,
+      },
+      progressBar: {
+        alignSelf: 'center',
+        flex: 1,
+        width: '100%',
+      },
+      textHeader: {
+        backgroundColor: Styles.globalColors.blueLighter3,
+      },
+    } as const)
+)
 
 export default InboxSearch

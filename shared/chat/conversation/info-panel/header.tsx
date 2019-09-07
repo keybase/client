@@ -120,47 +120,50 @@ export const AdhocHeader = (props: AdhocProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  addMembers: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-  adhocPartContainer: {padding: Styles.globalMargins.tiny},
-  adhocScrollContainer: Styles.platformStyles({
-    isElectron: {maxHeight: 230},
-    isMobile: {maxHeight: 220},
-  }),
-  channelnameContainer: {
-    alignSelf: 'center',
-    marginBottom: 2,
-    marginTop: Styles.globalMargins.medium,
-    position: 'relative',
-  },
-  description: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  editBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    position: 'absolute',
-    right: -50,
-    top: Styles.isMobile ? 2 : 1,
-  },
-  editIcon: {marginRight: Styles.globalMargins.xtiny},
-  flexOne: {flex: 1},
-  gear: Styles.platformStyles({
-    common: {
-      height: gearIconSize,
-      paddingLeft: 16,
-      paddingRight: 16,
-      width: gearIconSize,
-    },
-    isMobile: {width: gearIconSize + 32},
-  }),
-  smallContainer: {
-    alignItems: 'center',
-    paddingLeft: Styles.globalMargins.small,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addMembers: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
+      adhocPartContainer: {padding: Styles.globalMargins.tiny},
+      adhocScrollContainer: Styles.platformStyles({
+        isElectron: {maxHeight: 230},
+        isMobile: {maxHeight: 220},
+      }),
+      channelnameContainer: {
+        alignSelf: 'center',
+        marginBottom: 2,
+        marginTop: Styles.globalMargins.medium,
+        position: 'relative',
+      },
+      description: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      editBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        position: 'absolute',
+        right: -50,
+        top: Styles.isMobile ? 2 : 1,
+      },
+      editIcon: {marginRight: Styles.globalMargins.xtiny},
+      flexOne: {flex: 1},
+      gear: Styles.platformStyles({
+        common: {
+          height: gearIconSize,
+          paddingLeft: 16,
+          paddingRight: 16,
+          width: gearIconSize,
+        },
+        isMobile: {width: gearIconSize + 32},
+      }),
+      smallContainer: {
+        alignItems: 'center',
+        paddingLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export {TeamHeader}

@@ -118,7 +118,7 @@ const Display = ({minWriterRole}) => (
   </Kb.Text>
 )
 
-const styles = Style.styleSheetCreate({
+const styles = Style.styleSheetCreate(() => ({
   container: {
     paddingLeft: Style.globalMargins.small,
     paddingRight: Style.globalMargins.small,
@@ -156,6 +156,6 @@ const styles = Style.styleSheetCreate({
       height: Style.globalMargins.medium,
     },
   }),
-})
+}))
 
 export default MinWriterRole

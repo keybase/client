@@ -54,5 +54,5 @@ const dispatchToProps = (dispatch: Container.TypedDispatch) => ({
 
 export default Container.compose(
   Container.connect(mapStateToProps, dispatchToProps, (s, d, _: OwnProps) => ({...s, ...d})),
-  Container.safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError'])
+  Container.safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError', 'inlineSignUpLink'])
 )(Username)

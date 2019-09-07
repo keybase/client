@@ -2447,6 +2447,25 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return inbox.Convs[0], nil
 }
 
+func IsMapUnfurl(msg chat1.MessageUnboxed) bool {
+	if !msg.IsValid() {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_UNFURL) {
+		return false
+	}
+	unfurl := body.Unfurl()
+	typ, err := unfurl.Unfurl.Unfurl.UnfurlType()
+	if err != nil {
+		return false
+	}
+	if typ != chat1.UnfurlType_GENERIC {
+		return false
+	}
+	return body.Unfurl().Unfurl.Unfurl.Generic().MapInfo != nil
+}
+
 func DedupStringLists(lists ...[]string) (res []string) {
 	seen := make(map[string]struct{})
 	for _, list := range lists {

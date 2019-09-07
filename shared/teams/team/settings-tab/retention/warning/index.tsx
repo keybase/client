@@ -98,7 +98,7 @@ const getConvType = (entityType: RetentionEntityType) => {
   return convType
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyStyle: {marginBottom: Styles.globalMargins.small},
   checkboxStyle: Styles.platformStyles({
     isElectron: {
@@ -130,6 +130,6 @@ const styles = Styles.styleSheetCreate({
   flexOne: {flex: 1},
   headerStyle: {marginBottom: Styles.globalMargins.small},
   iconStyle: {marginBottom: 20},
-})
+}))
 
 export default Kb.HeaderOnMobile(RetentionWarning)

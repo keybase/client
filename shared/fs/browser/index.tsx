@@ -64,10 +64,10 @@ const Browser = (props: Props) =>
     </Kb.Box2>
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentContainer: {
     flex: 1,
   },
-})
+}))
 
 export default Browser

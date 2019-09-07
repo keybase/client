@@ -622,7 +622,7 @@ const load = () => {
   Sb.storiesOf('Team-Building/Service Tab Bar', module)
     .add('With Service Results counts', () => (
       <ServiceTabBar
-        services={Constants.services}
+        services={Constants.allServices}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{
@@ -635,7 +635,7 @@ const load = () => {
     ))
     .add('Pending results', () => (
       <ServiceTabBar
-        services={Constants.services}
+        services={Constants.allServices}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{}}
@@ -656,7 +656,7 @@ const load = () => {
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
-        services={Constants.services}
+        services={Constants.allServices}
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{}}

@@ -97,7 +97,7 @@ const Footer = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   background: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueLighter3,
@@ -132,6 +132,6 @@ const styles = Styles.styleSheetCreate({
   questionIcon: {
     marginLeft: 1,
   },
-})
+}))
 
 export default Footer

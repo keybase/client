@@ -131,7 +131,7 @@ const LiveDuration = (props: DurationProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   liveLocation: {
     backgroundColor: Styles.globalColors.blueGrey,
     borderBottomLeftRadius: Styles.borderRadius,
@@ -140,6 +140,6 @@ const styles = Styles.styleSheetCreate({
     marginTop: -2,
     padding: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default UnfurlMap

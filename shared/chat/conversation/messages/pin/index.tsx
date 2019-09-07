@@ -12,6 +12,6 @@ const Pin = () => {
 
 export default Pin
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   text: {flexGrow: 1},
-})
+}))

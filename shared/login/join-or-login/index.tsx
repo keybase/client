@@ -61,43 +61,46 @@ const Intro = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    backgroundColor: Styles.globalColors.blue,
-    justifyContent: 'center',
-    minHeight: 40,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-    paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-    paddingTop: Styles.globalMargins.tiny,
-    position: 'absolute',
-    top: 50,
-  },
-  bannerMessage: {color: Styles.globalColors.white},
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
-      width: 368,
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
-    },
-  }),
-  header: Styles.platformStyles({
-    common: {
-      justifyContent: 'flex-end',
-    },
-    isElectron: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: 10,
-    },
-  }),
-  text: {
-    color: Styles.globalColors.orange,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        backgroundColor: Styles.globalColors.blue,
+        justifyContent: 'center',
+        minHeight: 40,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
+        paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.tiny,
+        position: 'absolute',
+        top: 50,
+      },
+      bannerMessage: {color: Styles.globalColors.white},
+      buttonBar: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
+          width: 368,
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
+        },
+      }),
+      header: Styles.platformStyles({
+        common: {
+          justifyContent: 'flex-end',
+        },
+        isElectron: {
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: 10,
+        },
+      }),
+      text: {
+        color: Styles.globalColors.orange,
+      },
+    } as const)
+)
 
 export default Intro

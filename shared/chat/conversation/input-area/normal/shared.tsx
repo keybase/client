@@ -44,7 +44,7 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   botCommandContainer: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -72,4 +72,4 @@ const styles = Styles.styleSheetCreate({
       marginTop: -1,
     },
   }),
-})
+}))

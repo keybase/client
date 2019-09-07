@@ -464,7 +464,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     let content
     switch (props.selectedService) {
       case 'email':
-        content = <EmailInput namespace={props.namespace} />
+        content = (
+          <EmailInput
+            namespace={props.namespace}
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            search={props.search}
+          />
+        )
         break
       case 'phone':
         content = (
@@ -549,115 +555,118 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  alphabetIndex: {
-    maxHeight: '80%',
-    position: 'absolute',
-    right: 0,
-    top: Styles.globalMargins.large,
-  },
-  banner: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blue,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      zIndex: -1, // behind ServiceTabBar
-    },
-  }),
-  bannerButtonContainer: {
-    flexWrap: 'wrap',
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  bannerIcon: {
-    maxHeight: 112,
-  },
-  bannerImportButton: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  bannerLaterButton: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  bannerText: {
-    flexWrap: 'wrap',
-    marginTop: Styles.globalMargins.tiny,
-  },
-  bannerTextContainer: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  container: Styles.platformStyles({
-    common: {
-      flex: 1,
-      minHeight: 200,
-      position: 'relative',
-    },
-    isElectron: {
-      borderRadius: 4,
-      height: 560,
-      overflow: 'hidden',
-      width: 400,
-    },
-  }),
-  emptyContainer: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-    isElectron: {
-      maxWidth: 290,
-      paddingBottom: 40,
-    },
-    isMobile: {
-      maxWidth: '80%',
-    },
-  }),
-  importContactsContainer: {
-    justifyContent: 'flex-start',
-    padding: Styles.globalMargins.xsmall,
-  },
-  list: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.small,
-    },
-  }),
-  listContentContainer: Styles.platformStyles({
-    isMobile: {
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-  }),
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
-  },
-  loadingIcon: Styles.platformStyles({
-    isElectron: {
-      height: 32,
-      width: 32,
-    },
-    isMobile: {
-      height: 48,
-      width: 48,
-    },
-  }),
-  mobileFlex: Styles.platformStyles({
-    isMobile: {flex: 1},
-  }),
-  shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
-  waiting: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.black_20,
-  },
-  waitingProgress: {
-    height: 48,
-    width: 48,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alphabetIndex: {
+        maxHeight: '80%',
+        position: 'absolute',
+        right: 0,
+        top: Styles.globalMargins.large,
+      },
+      banner: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blue,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          zIndex: -1, // behind ServiceTabBar
+        },
+      }),
+      bannerButtonContainer: {
+        flexWrap: 'wrap',
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      bannerIcon: {
+        maxHeight: 112,
+      },
+      bannerImportButton: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      bannerLaterButton: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      bannerText: {
+        flexWrap: 'wrap',
+        marginTop: Styles.globalMargins.tiny,
+      },
+      bannerTextContainer: {
+        flex: 1,
+        justifyContent: 'center',
+      },
+      container: Styles.platformStyles({
+        common: {
+          flex: 1,
+          minHeight: 200,
+          position: 'relative',
+        },
+        isElectron: {
+          borderRadius: 4,
+          height: 560,
+          overflow: 'hidden',
+          width: 400,
+        },
+      }),
+      emptyContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+        },
+        isElectron: {
+          maxWidth: 290,
+          paddingBottom: 40,
+        },
+        isMobile: {
+          maxWidth: '80%',
+        },
+      }),
+      importContactsContainer: {
+        justifyContent: 'flex-start',
+        padding: Styles.globalMargins.xsmall,
+      },
+      list: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.small,
+        },
+      }),
+      listContentContainer: Styles.platformStyles({
+        isMobile: {
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+      }),
+      loadingContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+      },
+      loadingIcon: Styles.platformStyles({
+        isElectron: {
+          height: 32,
+          width: 32,
+        },
+        isMobile: {
+          height: 48,
+          width: 48,
+        },
+      }),
+      mobileFlex: Styles.platformStyles({
+        isMobile: {flex: 1},
+      }),
+      shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
+      waiting: {
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: Styles.globalColors.black_20,
+      },
+      waitingProgress: {
+        height: 48,
+        width: 48,
+      },
+    } as const)
+)
 
 export default TeamBuilding

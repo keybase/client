@@ -126,7 +126,7 @@ class Login extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
@@ -188,6 +188,6 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white,
     width: '100%',
   },
-})
+}))
 
 export default Login

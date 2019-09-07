@@ -133,34 +133,37 @@ class AddToChannel extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {...Styles.padding(Styles.globalMargins.small, 0), height: 400, width: 400},
-    isMobile: {
-      ...Styles.padding(0, 0, Styles.globalMargins.small, 0),
-    },
-  }),
-  flexOne: {flex: 1},
-  list: Styles.platformStyles({
-    isMobile: {...Styles.padding(Styles.globalMargins.tiny, 0)},
-  }),
-  listContainer: {
-    borderBottomWidth: 1,
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: 'solid',
-    borderTopWidth: Styles.isMobile ? 0 : 1, // header adds this on mobile
-    width: '100%',
-  },
-  userSubtext: Styles.platformStyles({
-    common: {
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {...Styles.padding(Styles.globalMargins.small, 0), height: 400, width: 400},
+        isMobile: {
+          ...Styles.padding(0, 0, Styles.globalMargins.small, 0),
+        },
+      }),
+      flexOne: {flex: 1},
+      list: Styles.platformStyles({
+        isMobile: {...Styles.padding(Styles.globalMargins.tiny, 0)},
+      }),
+      listContainer: {
+        borderBottomWidth: 1,
+        borderColor: Styles.globalColors.black_10,
+        borderStyle: 'solid',
+        borderTopWidth: Styles.isMobile ? 0 : 1, // header adds this on mobile
+        width: '100%',
+      },
+      userSubtext: Styles.platformStyles({
+        common: {
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+    } as const)
+)
 
 export default Kb.HeaderOrPopup(AddToChannel)

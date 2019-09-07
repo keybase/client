@@ -41,48 +41,51 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  header: {
-    color: Styles.globalColors.blueDark,
-  },
-  icon: {
-    ...Styles.transition('transform'),
-    height: 'inherit',
-    textAlign: 'center',
-    width: 'inherit',
-    zIndex: 1,
-  },
-  iconBackground: {
-    ...Styles.transition('opacity'),
-    backgroundColor: Styles.globalColors.greyLight,
-    borderRadius: 40,
-    left: 0,
-    maxHeight: 80,
-    maxWidth: 80,
-    minHeight: 80,
-    minWidth: 80,
-    position: 'absolute',
-    top: 0,
-  },
-  iconContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 25,
-    maxHeight: 80,
-    maxWidth: 80,
-    minHeight: 80,
-    minWidth: 80,
-    position: 'relative',
-  },
-  rowContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    maxHeight: 100,
-    minHeight: 100,
-    padding: 20,
-    transition: 'background 0.1s ease-out',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      header: {
+        color: Styles.globalColors.blueDark,
+      },
+      icon: {
+        ...Styles.transition('transform'),
+        height: 'inherit',
+        textAlign: 'center',
+        width: 'inherit',
+        zIndex: 1,
+      },
+      iconBackground: {
+        ...Styles.transition('opacity'),
+        backgroundColor: Styles.globalColors.greyLight,
+        borderRadius: 40,
+        left: 0,
+        maxHeight: 80,
+        maxWidth: 80,
+        minHeight: 80,
+        minWidth: 80,
+        position: 'absolute',
+        top: 0,
+      },
+      iconContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 25,
+        maxHeight: 80,
+        maxWidth: 80,
+        minHeight: 80,
+        minWidth: 80,
+        position: 'relative',
+      },
+      rowContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        maxHeight: 100,
+        minHeight: 100,
+        padding: 20,
+        transition: 'background 0.1s ease-out',
+      },
+    } as const)
+)
 
 export default Row

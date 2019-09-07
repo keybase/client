@@ -44,18 +44,21 @@ function DeleteConfirm(props: Props) {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  icon: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.white,
-    borderRadius: 16,
-    borderStyle: 'solid',
-    borderWidth: 2,
-    bottom: 0,
-    padding: '1px 0px 0px 1px',
-    position: 'absolute',
-    right: -4,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      icon: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.white,
+        borderRadius: 16,
+        borderStyle: 'solid',
+        borderWidth: 2,
+        bottom: 0,
+        padding: '1px 0px 0px 1px',
+        position: 'absolute',
+        right: -4,
+      },
+    } as const)
+)
 
 export default DeleteConfirm

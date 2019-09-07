@@ -230,72 +230,75 @@ class Header extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  appIcon: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      padding: Styles.globalMargins.xtiny,
-      position: 'relative',
-      top: Styles.globalMargins.xxtiny,
-    },
-  }),
-  appIconBox: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      padding: Styles.globalMargins.tiny,
-      position: 'relative',
-      right: -Styles.globalMargins.tiny,
-      top: -Styles.globalMargins.xtiny,
-    },
-  }),
-  bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
-  bottomExpandable: {minHeight: 40 - 1},
-  bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-  disabledIcon: Styles.platformStyles({
-    isElectron: {
-      cursor: 'default',
-      marginRight: 6,
-      padding: Styles.globalMargins.xtiny,
-    },
-  }),
-  flexOne: {
-    flex: 1,
-  },
-  headerBack: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      height: 40,
-      justifyContent: 'space-between',
-      padding: Styles.globalMargins.tiny,
-    },
-  }),
-  headerBorder: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-  },
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-      alignItems: 'center',
-    },
-  }),
-  icon: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      marginRight: 6,
-      padding: Styles.globalMargins.xtiny,
-    },
-  }),
-  plainContainer: {
-    ...Styles.globalStyles.flexGrow,
-    marginLeft: Styles.globalMargins.xsmall,
-  },
-  plainText: {
-    ...Styles.globalStyles.flexGrow,
-  },
-  topRightContainer: {flex: 1, justifyContent: 'flex-end'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      appIcon: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          padding: Styles.globalMargins.xtiny,
+          position: 'relative',
+          top: Styles.globalMargins.xxtiny,
+        },
+      }),
+      appIconBox: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          padding: Styles.globalMargins.tiny,
+          position: 'relative',
+          right: -Styles.globalMargins.tiny,
+          top: -Styles.globalMargins.xtiny,
+        },
+      }),
+      bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
+      bottomExpandable: {minHeight: 40 - 1},
+      bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
+      disabledIcon: Styles.platformStyles({
+        isElectron: {
+          cursor: 'default',
+          marginRight: 6,
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      flexOne: {
+        flex: 1,
+      },
+      headerBack: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'center',
+          height: 40,
+          justifyContent: 'space-between',
+          padding: Styles.globalMargins.tiny,
+        },
+      }),
+      headerBorder: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+      },
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDragging,
+          alignItems: 'center',
+        },
+      }),
+      icon: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          marginRight: 6,
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      plainContainer: {
+        ...Styles.globalStyles.flexGrow,
+        marginLeft: Styles.globalMargins.xsmall,
+      },
+      plainText: {
+        ...Styles.globalStyles.flexGrow,
+      },
+      topRightContainer: {flex: 1, justifyContent: 'flex-end'},
+    } as const)
+)
 
 const mapStateToProps = (state: Container.TypedState) => ({
   airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),

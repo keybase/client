@@ -202,7 +202,7 @@ export default (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   menuRowText: {
     color: Styles.globalColors.blueDark,
   },
@@ -218,4 +218,4 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: 0,
   },
-})
+}))

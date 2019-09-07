@@ -49,7 +49,7 @@ class UnfurlPrompt extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   choiceContainer: Styles.platformStyles({
     isElectron: {
       width: 370,
@@ -84,6 +84,6 @@ const styles = Styles.styleSheetCreate({
       marginRight: Styles.globalMargins.small,
     },
   }),
-})
+}))
 
 export default UnfurlPrompt

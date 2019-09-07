@@ -131,6 +131,7 @@ type SignupScreenProps = {
   skipMobileHeader?: boolean
   headerStyle?: Styles.StylesCrossPlatform
   containerStyle?: Styles.StylesCrossPlatform
+  contentContainerStyle?: Styles.StylesCrossPlatform
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
@@ -181,7 +182,12 @@ export const SignupScreen = (props: SignupScreenProps) => (
       ])}
       fullWidth={true}
     >
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.body} fullWidth={true}>
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+        fullWidth={true}
+      >
         {props.children}
       </Kb.Box2>
       {/* Banners after children so they go on top */}
@@ -210,85 +216,88 @@ export const errorBanner = (error: string) =>
       ]
     : []
 
-const styles = Styles.styleSheetCreate(() => ({
-  backButton: {
-    bottom: Styles.globalMargins.small,
-    left: Styles.globalMargins.small,
-    position: 'absolute',
-  },
-  backText: {
-    color: Styles.globalColors.black_50,
-  },
-  background: {
-    flex: 1,
-    position: 'relative',
-  },
-  banners: {
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  blueBackground: {
-    backgroundColor: Styles.globalColors.blueGrey,
-  },
-  body: {
-    ...Styles.padding(
-      Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
-      Styles.globalMargins.small
-    ),
-    flex: 1,
-  },
-  button: Styles.platformStyles({
-    isElectron: {
-      width: 368,
-    },
-    isMobile: {
-      width: '100%',
-    },
-  }),
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
-    },
-    isMobile: {
-      ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
-    },
-  }),
-  fixIconAlignment: {
-    position: 'relative',
-    top: 2,
-  },
-  headerContainer: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  infoIconContainer: {
-    justifyContent: 'flex-end',
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
-  },
-  opacityNone: {
-    opacity: 0,
-  },
-  rightAction: {
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    bottom: 0,
-    justifyContent: 'center',
-    paddingRight: Styles.globalMargins.small,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  titleContainer: {
-    ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
-    position: 'relative',
-  },
-  whiteBackground: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  whiteHeaderContainer: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: {
+        bottom: Styles.globalMargins.small,
+        left: Styles.globalMargins.small,
+        position: 'absolute',
+      },
+      backText: {
+        color: Styles.globalColors.black_50,
+      },
+      background: {
+        flex: 1,
+        position: 'relative',
+      },
+      banners: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      blueBackground: {
+        backgroundColor: Styles.globalColors.blueGrey,
+      },
+      body: {
+        ...Styles.padding(
+          Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.xlarge,
+          Styles.globalMargins.small
+        ),
+        flex: 1,
+      },
+      button: Styles.platformStyles({
+        isElectron: {
+          width: 368,
+        },
+        isMobile: {
+          width: '100%',
+        },
+      }),
+      buttonBar: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
+        },
+        isMobile: {
+          ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
+        },
+      }),
+      fixIconAlignment: {
+        position: 'relative',
+        top: 2,
+      },
+      headerContainer: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      infoIconContainer: {
+        justifyContent: 'flex-end',
+        ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0),
+      },
+      opacityNone: {
+        opacity: 0,
+      },
+      rightAction: {
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        bottom: 0,
+        justifyContent: 'center',
+        paddingRight: Styles.globalMargins.small,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      titleContainer: {
+        ...Styles.padding(Styles.globalMargins.xsmall, 0, Styles.globalMargins.small),
+        position: 'relative',
+      },
+      whiteBackground: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      whiteHeaderContainer: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+      },
+    } as const)
+)

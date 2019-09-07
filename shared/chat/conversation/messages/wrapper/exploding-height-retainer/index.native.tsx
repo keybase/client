@@ -230,7 +230,7 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     </>
   )
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   ashes: {
     height: 80,
     width: 400,
@@ -270,5 +270,5 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
-})
+}))
 export default ExplodingHeightRetainer

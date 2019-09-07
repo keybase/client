@@ -183,52 +183,55 @@ class InflationDestinationPopup extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {flexGrow: 1},
-    isElectron: {
-      borderRadius: 'inherit',
-      paddingBottom: Styles.globalMargins.medium,
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium,
-      textAlign: 'center',
-    },
-    isMobile: {
-      padding: Styles.globalMargins.small,
-    },
-  }),
-  header: {borderBottomWidth: 0},
-  otherContainer: {alignItems: 'flex-start'},
-  otherInput: {
-    alignItems: 'flex-start',
-    alignSelf: 'stretch',
-    borderColor: Styles.globalColors.black_20,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    marginLeft: Styles.globalMargins.medium,
-    marginRight: Styles.globalMargins.medium,
-    minHeight: 88,
-    padding: Styles.globalMargins.tiny,
-  },
-  radioContainer: Styles.platformStyles({
-    isElectron: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  row: {
-    alignItems: 'center',
-    flexShrink: 0,
-  },
-  specify: {
-    color: Styles.globalColors.blueDark,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {flexGrow: 1},
+        isElectron: {
+          borderRadius: 'inherit',
+          paddingBottom: Styles.globalMargins.medium,
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.medium,
+          textAlign: 'center',
+        },
+        isMobile: {
+          padding: Styles.globalMargins.small,
+        },
+      }),
+      header: {borderBottomWidth: 0},
+      otherContainer: {alignItems: 'flex-start'},
+      otherInput: {
+        alignItems: 'flex-start',
+        alignSelf: 'stretch',
+        borderColor: Styles.globalColors.black_20,
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        marginLeft: Styles.globalMargins.medium,
+        marginRight: Styles.globalMargins.medium,
+        minHeight: 88,
+        padding: Styles.globalMargins.tiny,
+      },
+      radioContainer: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+      row: {
+        alignItems: 'center',
+        flexShrink: 0,
+      },
+      specify: {
+        color: Styles.globalColors.blueDark,
+      },
+    } as const)
+)
 
 export default InflationDestinationPopup

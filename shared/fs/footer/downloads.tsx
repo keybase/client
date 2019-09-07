@@ -71,7 +71,7 @@ const Desktop = (props: DownloadsProps) =>
     </>
   ) : null
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   box: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueLighter3,
@@ -86,6 +86,6 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
   },
   space: {flex: 1},
-})
+}))
 
 export default (Styles.isMobile ? Mobile : Desktop)

@@ -171,42 +171,45 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  avatar: {marginLeft: 14},
-  badgeIcon: {
-    bottom: -4,
-    position: 'absolute',
-    right: 8,
-  },
-  caret: {marginRight: 12},
-  divider: {marginTop: Styles.globalMargins.tiny},
-  fullname: {maxWidth: 180},
-  header: {flexShrink: 0, height: 80, marginBottom: 20},
-  headerBox: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  iconBox: {
-    justifyContent: 'flex-end',
-    position: 'relative',
-  },
-  menu: {marginLeft: Styles.globalMargins.tiny},
-  nameContainer: {height: 24},
-  osButtons: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-      flexGrow: 1,
-    },
-  }),
-  tab: {
-    alignItems: 'center',
-    paddingRight: 12,
-    position: 'relative',
-  },
-  username: Styles.platformStyles({
-    isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {marginLeft: 14},
+      badgeIcon: {
+        bottom: -4,
+        position: 'absolute',
+        right: 8,
+      },
+      caret: {marginRight: 12},
+      divider: {marginTop: Styles.globalMargins.tiny},
+      fullname: {maxWidth: 180},
+      header: {flexShrink: 0, height: 80, marginBottom: 20},
+      headerBox: {
+        paddingBottom: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      iconBox: {
+        justifyContent: 'flex-end',
+        position: 'relative',
+      },
+      menu: {marginLeft: Styles.globalMargins.tiny},
+      nameContainer: {height: 24},
+      osButtons: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDragging,
+          flexGrow: 1,
+        },
+      }),
+      tab: {
+        alignItems: 'center',
+        paddingRight: 12,
+        position: 'relative',
+      },
+      username: Styles.platformStyles({
+        isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
+      }),
+    } as const)
+)
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
   map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab

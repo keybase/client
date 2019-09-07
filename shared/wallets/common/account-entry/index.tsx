@@ -71,33 +71,36 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const styles = Styles.styleSheetCreate({
-  amount: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black_50,
-  },
-  amountCenter: {
-    textAlign: 'center',
-  },
-  avatar: {marginRight: Styles.globalMargins.xtiny},
-  containerBox: {
-    overflow: 'hidden',
-  },
-  icon: {
-    alignSelf: 'center',
-    height: 32,
-  },
-  rightColumn: rightColumnStyle,
-  title: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black,
-  },
-  user: {
-    alignItems: 'center',
-  },
-  userCenter: {
-    justifyContent: 'center',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      amount: {
+        ...rightColumnStyle,
+        color: Styles.globalColors.black_50,
+      },
+      amountCenter: {
+        textAlign: 'center',
+      },
+      avatar: {marginRight: Styles.globalMargins.xtiny},
+      containerBox: {
+        overflow: 'hidden',
+      },
+      icon: {
+        alignSelf: 'center',
+        height: 32,
+      },
+      rightColumn: rightColumnStyle,
+      title: {
+        ...rightColumnStyle,
+        color: Styles.globalColors.black,
+      },
+      user: {
+        alignItems: 'center',
+      },
+      userCenter: {
+        justifyContent: 'center',
+      },
+    } as const)
+)
 
 export default AccountEntry

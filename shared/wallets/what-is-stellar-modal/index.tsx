@@ -63,31 +63,34 @@ const WhatIsStellarModal = () => {
   return <Body onCancel={onClose} customCancelText="Close" borderless={true} />
 }
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      padding: Styles.globalMargins.xlarge,
-      width: 560,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.mediumLarge,
-      marginLeft: Styles.globalMargins.mediumLarge,
-      marginRight: Styles.globalMargins.mediumLarge,
-      marginTop: Styles.globalMargins.xsmall,
-    },
-  }),
-  header: {
-    alignSelf: 'center',
-    marginBottom: Styles.globalMargins.mediumLarge,
-    marginTop: Styles.globalMargins.small,
-  },
-  stellarIcon: {
-    alignSelf: 'center',
-  },
-  subheader: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.mediumLarge,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          padding: Styles.globalMargins.xlarge,
+          width: 560,
+        },
+        isMobile: {
+          marginBottom: Styles.globalMargins.mediumLarge,
+          marginLeft: Styles.globalMargins.mediumLarge,
+          marginRight: Styles.globalMargins.mediumLarge,
+          marginTop: Styles.globalMargins.xsmall,
+        },
+      }),
+      header: {
+        alignSelf: 'center',
+        marginBottom: Styles.globalMargins.mediumLarge,
+        marginTop: Styles.globalMargins.small,
+      },
+      stellarIcon: {
+        alignSelf: 'center',
+      },
+      subheader: {
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.mediumLarge,
+      },
+    } as const)
+)
 
 export default WhatIsStellarModal
