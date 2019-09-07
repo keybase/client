@@ -306,10 +306,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 			l.Debug(ctx, "tracker[%v]: got coords", watchID)
 			if firstUpdate {
 				l.Debug(ctx, "tracker[%v]: updating due to live location first update", watchID)
-				err := l.updateMapUnfurl(ctx, t, false)
-				if err != nil {
-					return err
-				}
+				_ = l.updateMapUnfurl(ctx, t, false)
 			} else {
 				shouldUpdate = true
 			}
@@ -329,10 +326,7 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				// drain anything in the buffer if we are being updated and posting at the same time
 				t.Drain(chat1.Coordinate{})
 				l.Debug(ctx, "tracker[%v]: updating due to next update", watchID)
-				err := l.updateMapUnfurl(ctx, t, false)
-				if err != nil {
-					return err
-				}
+				_ = l.updateMapUnfurl(ctx, t, false)
 				shouldUpdate = false
 			}
 			nextUpdate = l.clock.Now().Add(l.updateInterval)
@@ -343,14 +337,16 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 				// only bother for current position if we have a coordinate
 				return nil
 			}
-			return l.updateMapUnfurl(ctx, t, true)
+			_ = l.updateMapUnfurl(ctx, t, true)
+			return nil
 		case <-t.stopCh:
 			l.Debug(ctx, "tracker[%v]: stopped, updating with done status", watchID)
 			if t.getCurrentPosition {
 				// don't need to update here
 				return nil
 			}
-			return l.updateMapUnfurl(ctx, t, true)
+			_ = l.updateMapUnfurl(ctx, t, true)
+			return nil
 		}
 	}
 }
