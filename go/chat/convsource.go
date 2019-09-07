@@ -1026,7 +1026,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	var unfurlTargets []chat1.MessageUnboxed
 	for _, r := range mergeRes.UnfurlTargets {
 		if r.IsMapDelete {
-			// we don't tell the UI about map deletes so they so jump in and out
+			// we don't tell the UI about map deletes so they don't jump in and out
 			continue
 		}
 		unfurlTargets = append(unfurlTargets, r.Msg)
