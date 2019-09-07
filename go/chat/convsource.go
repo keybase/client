@@ -1023,10 +1023,18 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	if err != nil {
 		return err
 	}
+	var unfurlTargets []chat1.MessageUnboxed
+	for _, r := range mergeRes.UnfurlTargets {
+		if r.IsMapDelete {
+			// we don't tell the UI about map deletes so they so jump in and out
+			continue
+		}
+		unfurlTargets = append(unfurlTargets, r.Msg)
+	}
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
-	s.notifyUpdated(ctx, uid, convID, mergeRes.UnfurlTargets)
+	s.notifyUpdated(ctx, uid, convID, unfurlTargets)
 	s.notifyUpdated(ctx, uid, convID, mergeRes.RepliesAffected)
 	return nil
 }
