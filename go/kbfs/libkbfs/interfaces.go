@@ -1955,6 +1955,10 @@ type InitMode interface {
 	// DoLogObfuscation indicates whether senstive data like filenames
 	// should be obfuscated in log messages.
 	DoLogObfuscation() bool
+	// BlockTLFEditHistoryIntialization indicates where we should
+	// delay initializing the edit histories of the most recent TLFs
+	// until the first request that uses them is made.
+	BlockTLFEditHistoryIntialization() bool
 	// InitialDelayForBackgroundWork indicates how long non-critical
 	// work that happens in the background on startup should wait
 	// before it begins.
