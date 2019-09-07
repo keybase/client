@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {errorBanner, SignupScreen} from '../../signup/common'
 import {Props} from '.'
 
 type State = {
@@ -51,7 +52,7 @@ class Login extends React.Component<Props, State> {
   render() {
     const inputProps = {
       autoFocus: true,
-      errorText: this.props.inputError ? this.props.error : '',
+      errorText: this.props.inputError,
       floatingHintTextOverride: '',
       hintText: 'Password',
       key: this.props.inputKey,
@@ -79,61 +80,70 @@ class Login extends React.Component<Props, State> {
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
 
     return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        {this.props.bannerError && (
-          <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
-          </Kb.Banner>
-        )}
-        <Kb.Box style={stylesContainer}>
-          <Kb.UserCard username={this.props.selectedUser}>
-            <Kb.Dropdown
-              onChanged={this._onClickUser}
-              selected={userRows[selectedIdx]}
-              items={userRows}
-              position="bottom center"
-            />
-            <Kb.FormWithCheckbox
-              style={{alignSelf: 'stretch'}}
-              inputProps={inputProps}
-              checkboxesProps={checkboxProps}
-            />
-            <Kb.WaitingButton
-              disabled={!this.props.password}
-              fullWidth={true}
-              waitingKey={Constants.waitingKey}
-              style={{marginTop: 0, width: '100%'}}
-              label="Log in"
-              onClick={() => this.props.onSubmit()}
-            />
-            <Kb.Text
-              type="BodySmallSecondaryLink"
-              onClick={this.props.onForgotPassword}
-              style={{marginTop: 24}}
-            >
-              Forgot password?
+      <SignupScreen banners={errorBanner(this.props.bannerError)} title="Log in">
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          fullWidth={true}
+          style={styles.contentBox}
+          gap="medium"
+        >
+          <Kb.Box style={styles.userContainer}>
+            <Kb.UserCard username={this.props.selectedUser}>
+              <Kb.Dropdown
+                onChanged={this._onClickUser}
+                selected={userRows[selectedIdx]}
+                items={userRows}
+                position="bottom center"
+              />
+              <Kb.FormWithCheckbox
+                style={{alignSelf: 'stretch'}}
+                inputProps={inputProps}
+                checkboxesProps={checkboxProps}
+              />
+              <Kb.WaitingButton
+                disabled={!this.props.password}
+                fullWidth={true}
+                waitingKey={Constants.waitingKey}
+                style={{marginTop: 0, width: '100%'}}
+                label="Log in"
+                onClick={() => this.props.onSubmit()}
+              />
+              <Kb.Text
+                type="BodySmallSecondaryLink"
+                onClick={this.props.onForgotPassword}
+                style={{marginTop: 24}}
+              >
+                Forgot password?
+              </Kb.Text>
+            </Kb.UserCard>
+            <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
+              Create an account
             </Kb.Text>
-          </Kb.UserCard>
-          <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
-            Create an account
-          </Kb.Text>
-        </Kb.Box>
-      </Kb.Box2>
+          </Kb.Box>
+        </Kb.Box2>
+      </SignupScreen>
     )
   }
 }
 
-const stylesContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.white,
-  flex: 1,
-  justifyContent: 'center',
-}
-
 const styles = Styles.styleSheetCreate({
+  contentBox: Styles.platformStyles({
+    common: {alignSelf: 'center', flexGrow: 1},
+    isElectron: {
+      maxWidth: 460,
+      padding: Styles.globalMargins.small,
+    },
+  }),
   other: {color: Styles.globalColors.black},
   provisioned: {color: Styles.globalColors.orange},
+  userContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.transparent,
+    flex: 1,
+    justifyContent: 'center',
+  },
 })
 
 export default Login

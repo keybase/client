@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {InfoIcon} from '../../signup/common'
+import {SignupScreen, InfoIcon} from '../../signup/common'
 
 type Props = Kb.PropsWithTimer<{
   bannerMessage: string | null
@@ -15,47 +15,49 @@ type Props = Kb.PropsWithTimer<{
 const Intro = (props: Props) => {
   Kb.useInterval(props.checkIsOnline, 2000)
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <InfoIcon />
-      </Kb.Box2>
-
-      {!!props.bannerMessage && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.banner}>
-          <Kb.Text center={true} type="BodySmallSemibold" style={styles.bannerMessage}>
-            {props.bannerMessage}
-          </Kb.Text>
+    <SignupScreen noBackground={true} title="Log in foo">
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+          <InfoIcon />
         </Kb.Box2>
-      )}
 
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        gap="large"
-        alignItems="center"
-        centerChildren={true}
-      >
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
-          <Kb.Icon type="icon-keybase-logo-64" />
-          <Kb.Text type="HeaderBig" style={styles.text}>
-            Join Keybase
-          </Kb.Text>
+        {(true || !!props.bannerMessage) && (
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.banner}>
+            <Kb.Text center={true} type="BodySmallSemibold" style={styles.bannerMessage}>
+              {'test banner' || props.bannerMessage}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          gap="large"
+          alignItems="center"
+          centerChildren={true}
+        >
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
+            <Kb.Icon type="icon-keybase-logo-64" />
+            <Kb.Text type="HeaderBig" style={styles.text}>
+              Join Keybase
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+            <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
+            <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
+            {props.isOnline === false && (
+              <Kb.Button
+                label="Configure a proxy"
+                mode="Secondary"
+                onClick={props.showProxySettings}
+                fullWidth={true}
+              />
+            )}
+          </Kb.ButtonBar>
         </Kb.Box2>
-        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-          <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
-          <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
-          {props.isOnline === false && (
-            <Kb.Button
-              label="Configure a proxy"
-              mode="Secondary"
-              onClick={props.showProxySettings}
-              fullWidth={true}
-            />
-          )}
-        </Kb.ButtonBar>
       </Kb.Box2>
-    </Kb.Box2>
+    </SignupScreen>
   )
 }
 

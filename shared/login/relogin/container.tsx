@@ -19,9 +19,8 @@ type State = {
 }
 
 type Props = {
-  bannerError: boolean
-  inputError: boolean
-  error: string
+  bannerError: string
+  inputError: string
   loggedInMap: Map<string, boolean>
   onFeedback: () => void
   onForgotPassword: () => void
@@ -65,7 +64,6 @@ class LoginWrapper extends React.Component<Props, State> {
       <Login
         bannerError={this.props.bannerError}
         inputError={this.props.inputError}
-        error={this.props.error}
         inputKey={String(this.state.inputKey)}
         onFeedback={this.props.onFeedback}
         onForgotPassword={this.props.onForgotPassword}
@@ -101,12 +99,12 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const users = sortBy(stateProps._users, 'username')
-    const bannerError = !!stateProps.error && Container.isNetworkErr(stateProps.error.code)
-    const inputError = !!stateProps.error && !bannerError
+    const error = (stateProps.error && stateProps.error.desc) || ''
+    const bannerError = Container.isNetworkErr(stateProps.error ? stateProps.error.code : -1) ? error : ''
+    const inputError = !bannerError ? error : ''
 
     return {
       bannerError,
-      error: stateProps.error ? stateProps.error.desc : '',
       inputError,
       loggedInMap: new Map<string, boolean>(
         stateProps._users.map(account => [account.username, account.hasStoredSecret])

@@ -23,15 +23,15 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _checkIsOnline: () => dispatch(LoginGen.createLoadIsOnline()),
     _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
+    checkIsOnline: () => dispatch(LoginGen.createLoadIsOnline()),
     onLogin: () => dispatch(ProvisionGen.createStartProvision()),
     onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
     showProxySettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     bannerMessage: stateProps.bannerMessage,
-    checkIsOnline: dispatchProps._checkIsOnline,
+    checkIsOnline: dispatchProps.checkIsOnline,
     isOnline: stateProps.isOnline,
     onFeedback: Container.isMobile ? dispatchProps._onFeedback : null,
     onLogin: dispatchProps.onLogin,

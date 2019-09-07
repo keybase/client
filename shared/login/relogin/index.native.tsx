@@ -26,7 +26,7 @@ class LoginRender extends React.Component<Props> {
   render() {
     const inputProps: InputProps = {
       autoFocus: true,
-      errorText: this.props.inputError ? this.props.error : '',
+      errorText: this.props.inputError,
       hintText: 'Password',
       key: this.props.inputKey,
       onChangeText: password => this.props.passwordChange(password),
@@ -59,7 +59,7 @@ class LoginRender extends React.Component<Props> {
               </Kb.Text>
             </Kb.Box>
           )}
-          {this.props.bannerError && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
+          {!!this.props.bannerError && <Kb.Banner color="red">{this.props.bannerError}</Kb.Banner>}
           <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
             <Dropdown
               type="Username"
