@@ -80,8 +80,8 @@ const LocationPopup = (props: Props) => {
   }, [])
 
   // render
-  const width = Styles.dimensionWidth
-  const height = Styles.dimensionHeight - 320
+  const width = Math.ceil(Styles.dimensionWidth)
+  const height = Math.ceil(Styles.dimensionHeight - 320)
   const mapSrc = location
     ? `http://${httpSrvAddress}/map?lat=${location.lat}&lon=${
         location.lon
