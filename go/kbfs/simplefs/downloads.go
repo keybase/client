@@ -45,15 +45,19 @@ type downloadManager struct {
 	k         *SimpleFS
 	publisher libkbfs.SubscriptionManagerPublisher
 
-	lock      sync.RWMutex
-	downloads map[string]download // download ID -> download
+	lock        sync.RWMutex
+	cacheDir    string
+	downloadDir string
+	downloads   map[string]download // download ID -> download
 }
 
 func newDownloadManager(simpleFS *SimpleFS) *downloadManager {
 	return &downloadManager{
-		k:         simpleFS,
-		publisher: simpleFS.config.SubscriptionManagerPublisher(),
-		downloads: make(map[string]download),
+		k:           simpleFS,
+		publisher:   simpleFS.config.SubscriptionManagerPublisher(),
+		cacheDir:    simpleFS.config.KbEnv().GetCacheDir(),
+		downloadDir: filepath.Join(simpleFS.config.KbEnv().GetHome(), "Downloads"),
+		downloads:   make(map[string]download),
 	}
 }
 
@@ -116,15 +120,27 @@ func (m *downloadManager) monitorDownload(
 	}
 }
 
+func (m *downloadManager) getCacheDir() string {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	return m.cacheDir
+}
+
+func (m *downloadManager) getDownloadDir() string {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	return m.downloadDir
+}
+
 func (m *downloadManager) getDownloadPath(
 	ctx context.Context, kbfsPath keybase1.KBFSPath, downloadID string) (
 	downloadPath string, filename string, err error) {
-	parentDir := filepath.Join(m.k.config.KbEnv().GetCacheDir(), "simplefsdownload")
+	parentDir := filepath.Join(m.getCacheDir(), "simplefsdownload")
 	if err = os.MkdirAll(parentDir, 0700); err != nil {
 		return "", "", err
 	}
 	_, filename = path.Split(path.Clean(kbfsPath.Path))
-	downloadPath = filepath.Join(parentDir, filename+"-"+downloadID)
+	downloadPath = filepath.Join(parentDir, downloadID+path.Ext(kbfsPath.Path))
 	return downloadPath, filename, nil
 }
 
@@ -133,8 +149,7 @@ func (m *downloadManager) moveToDownloadFolder(
 	if libkb.GetPlatformString() == "ios" {
 		return "", errors.New("MoveToDownloadFolder is not supported on iOS")
 	}
-	// TODO test android
-	parentDir := filepath.Join(m.k.config.KbEnv().GetHome(), "Downloads")
+	parentDir := m.getDownloadDir()
 	if err = os.MkdirAll(parentDir, 0700); err != nil {
 		return "", err
 	}
@@ -160,6 +175,7 @@ func (m *downloadManager) moveToDownloadFolder(
 			return "", err
 		}
 		err = m.k.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+			OpID: opid,
 			Src:  keybase1.NewPathWithLocal(srcPath),
 			Dest: keybase1.NewPathWithLocal(destPath),
 		})
@@ -175,7 +191,8 @@ func (m *downloadManager) moveToDownloadFolder(
 	return destPath, nil
 }
 
-func (m *downloadManager) waitForDownload(ctx context.Context, downloadID string, downloadPath string, done func(error)) {
+func (m *downloadManager) waitForDownload(ctx context.Context,
+	downloadID string, downloadPath string, done func(error)) {
 	d, err := m.getDownload(downloadID)
 	if err != nil {
 		done(err)
@@ -322,4 +339,15 @@ func (m *downloadManager) getDownloadInfo(downloadID string) (keybase1.DownloadI
 		return keybase1.DownloadInfo{}, err
 	}
 	return d.info, nil
+}
+
+func (m *downloadManager) configureDownload(cacheDirOverride string, downloadDirOverride string) {
+	m.lock.Lock()
+	defer m.lock.Unlock()
+	if len(cacheDirOverride) > 0 {
+		m.cacheDir = cacheDirOverride
+	}
+	if len(downloadDirOverride) > 0 {
+		m.downloadDir = downloadDirOverride
+	}
 }

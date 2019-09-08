@@ -675,3 +675,14 @@ func (s *SimpleFSHandler) SimpleFSGetDownloadInfo(
 	}
 	return cli.SimpleFSGetDownloadInfo(ctx, downloadID)
 }
+
+func (s *SimpleFSHandler) SimpleFSConfigureDownload(
+	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSConfigureDownload(ctx, arg)
+}

@@ -6,7 +6,7 @@ import * as Saga from '../../util/saga'
 import {TypedState} from '../../constants/reducer'
 import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {makeRetriableErrorHandler} from './shared'
-import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
+import {saveAttachmentToCameraRoll, showShareActionSheetFromURL} from '../platform-specific'
 
 const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUploadPayload) => {
   try {
@@ -32,11 +32,20 @@ const finishedDownloadWithIntent = async (
     logger.warn('missing download', downloadID)
     return
   }
+  if (downloadState.error) {
+    return [
+      FsGen.createDismissDownload({downloadID}),
+      FsGen.createFsError({
+        error: Constants.makeError({error: downloadState.error, erroredAction: action}),
+        expectedIfOffline: false,
+      }),
+    ]
+  }
   const {localPath} = downloadState
   try {
     switch (downloadIntent) {
       case Types.DownloadIntent.CameraRoll:
-        await saveAttachmentDialog(localPath)
+        await saveAttachmentToCameraRoll(localPath, mimeType)
         return FsGen.createDismissDownload({downloadID})
       case Types.DownloadIntent.Share:
         // @ts-ignore codemod-issue probably a real issue
@@ -47,7 +56,7 @@ const finishedDownloadWithIntent = async (
       default:
         return undefined
     }
-  } catch {
+  } catch (err) {
     return makeRetriableErrorHandler(action)
   }
 }

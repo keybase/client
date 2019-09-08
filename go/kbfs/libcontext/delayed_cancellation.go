@@ -5,7 +5,6 @@
 package libcontext
 
 import (
-	"fmt"
 	"sync/atomic"
 	"time"
 
@@ -179,16 +178,13 @@ func NewContextWithCancellationDelayer(
 	go func() {
 		select {
 		case <-ctx.Done():
-			fmt.Println("SONGGAO-cancellationDelayer ctx.Done()")
 		case <-c.done:
-			fmt.Println("SONGGAO-cancellationDelayer c.done")
 		}
 		d := time.Duration(atomic.LoadInt64(&c.delay))
 		if d != 0 {
 			time.Sleep(d)
 		}
 		atomic.StoreInt64(&c.canceled, 1)
-		fmt.Println("SONGGAO-cancellationDelayer cancel()")
 		cancel()
 	}()
 	return newCtx, nil

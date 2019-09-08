@@ -239,6 +239,10 @@ export type MessageTypes = {
     inParam: {readonly path: Path}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSConfigureDownload': {
+    inParam: {readonly cacheDirOverride: String; readonly downloadDirOverride: String}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSCopyRecursive': {
     inParam: {readonly opID: OpID; readonly src: Path; readonly dest: Path}
     outParam: void
@@ -3107,6 +3111,7 @@ export const SimpleFSSimpleFSCancelRpcPromise = (params: MessageTypes['keybase.1
 export const SimpleFSSimpleFSCheckReachabilityRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheckReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCheckRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCheck']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCheck']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheck', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSClearConflictStateRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSClearConflictState']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSClearConflictState']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSClearConflictState', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSConfigureDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSConfigureDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSConfigureDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSConfigureDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCopyRecursiveRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCopyRecursive']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCopyRecursive']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCopyRecursive', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSDismissDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSDismissDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSDismissDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSDismissDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFinishResolvingConflict']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFinishResolvingConflict', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

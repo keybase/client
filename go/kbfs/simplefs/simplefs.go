@@ -3004,3 +3004,9 @@ func (k *SimpleFS) SimpleFSGetDownloadInfo(
 	downloadInfo keybase1.DownloadInfo, err error) {
 	return k.downloadManager.getDownloadInfo(downloadID)
 }
+
+func (k *SimpleFS) SimpleFSConfigureDownload(
+	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	k.downloadManager.configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)
+	return nil
+}

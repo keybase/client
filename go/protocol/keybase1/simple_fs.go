@@ -1680,6 +1680,11 @@ type SimpleFSDismissDownloadArg struct {
 	DownloadID string `codec:"downloadID" json:"downloadID"`
 }
 
+type SimpleFSConfigureDownloadArg struct {
+	CacheDirOverride    string `codec:"cacheDirOverride" json:"cacheDirOverride"`
+	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1807,6 +1812,7 @@ type SimpleFSInterface interface {
 	SimpleFSGetDownloadStatus(context.Context) (DownloadStatus, error)
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
+	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2563,6 +2569,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSConfigureDownload": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSConfigureDownloadArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSConfigureDownloadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSConfigureDownloadArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSConfigureDownload(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2931,5 +2952,10 @@ func (c SimpleFSClient) SimpleFSCancelDownload(ctx context.Context, downloadID s
 func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID string) (err error) {
 	__arg := SimpleFSDismissDownloadArg{DownloadID: downloadID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSDismissDownload", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg SimpleFSConfigureDownloadArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil)
 	return
 }

@@ -1,4 +1,4 @@
-export {default as PathItemAction} from './path-item-action/container'
+export {default as PathItemAction} from './path-item-action'
 export {default as OpenInSystemFileManager} from './open-in-system-file-manager-container'
 export {default as LastModifiedLine} from './last-modified-line-container'
 export {default as TlfInfoLine} from './tlf-info-line-container'

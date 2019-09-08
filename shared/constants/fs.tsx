@@ -1099,6 +1099,7 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.download:
+    case FsGen.finishedDownloadWithIntent:
       return `Failed to download.` + suffix
     case FsGen.shareNative:
       return `Failed to share: ${Types.getPathName(action.payload.path)}.` + suffix

@@ -11,7 +11,7 @@ import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import {TypedState} from '../../util/container'
 import logger from '../../logger'
-import platformSpecificSaga from './platform-specific'
+import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
@@ -365,21 +365,22 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
   }
 }
 
-const download = (
+const download = async (
   _: TypedState,
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
-) =>
-  RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
+) => {
+  await ensureDownloadPermissionPromise()
+  const downloadID = await RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
     isRegularDownload: action.type === FsGen.download,
     path: Constants.pathToRPCPath(action.payload.path).kbfs,
-  }).then(downloadID =>
-    action.type === FsGen.download
-      ? null
-      : FsGen.createSetPathItemActionMenuDownload({
-          downloadID,
-          intent: Constants.getDownloadIntentFromAction(action),
-        })
-  )
+  })
+  return action.type === FsGen.download
+    ? null
+    : FsGen.createSetPathItemActionMenuDownload({
+        downloadID,
+        intent: Constants.getDownloadIntentFromAction(action),
+      })
+}
 
 const cancelDownload = (_: TypedState, action: FsGen.CancelDownloadPayload) =>
   RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID: action.payload.downloadID})

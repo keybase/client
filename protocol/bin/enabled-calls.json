@@ -92,6 +92,7 @@
   "keybase.1.SimpleFS.simpleFSGetDownloadStatus": {"promise": true},
   "keybase.1.SimpleFS.simpleFSCancelDownload": {"promise": true},
   "keybase.1.SimpleFS.simpleFSDismissDownload": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSConfigureDownload": {"promise": true},
   "keybase.1.account.emailChange": {"promise": true},
   "keybase.1.account.getLockdownMode": {"promise": true},
   "keybase.1.account.hasServerKeys": {"promise": true},

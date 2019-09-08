@@ -599,5 +599,8 @@ protocol SimpleFS {
   DownloadInfo simpleFSGetDownloadInfo(string downloadID);
   DownloadStatus simpleFSGetDownloadStatus();
   void simpleFSCancelDownload(string downloadID);
+  // Remove a download from the download manager. If the download is still
+  // running, this cancels it as well.
   void simpleFSDismissDownload(string downloadID);
+  void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
 }

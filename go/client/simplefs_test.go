@@ -350,6 +350,11 @@ func (s SimpleFSMock) SimpleFSGetDownloadInfo(
 	return keybase1.DownloadInfo{}, nil
 }
 
+func (s SimpleFSMock) SimpleFSConfigureDownload(
+	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	return nil
+}
+
 /*
  file source cases:
  1. file

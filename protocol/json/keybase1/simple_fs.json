@@ -1518,6 +1518,19 @@
         }
       ],
       "response": null
+    },
+    "simpleFSConfigureDownload": {
+      "request": [
+        {
+          "name": "cacheDirOverride",
+          "type": "string"
+        },
+        {
+          "name": "downloadDirOverride",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
