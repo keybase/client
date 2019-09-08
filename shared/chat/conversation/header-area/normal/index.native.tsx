@@ -106,7 +106,9 @@ const PhoneOrEmailHeader = (props: Props) => {
     <Wrapper {...props}>
       <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
         <Box2 direction="horizontal" style={styles.lessMargins}>
-          <Text type="BodyBig">{formattedPhoneOrEmail}</Text>
+          <Text type="BodyBig" lineClamp={1} ellipsizeMode="middle" allowFontScaling>
+            {formattedPhoneOrEmail}
+          </Text>
           {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
         </Box2>
         {!!name && <Text type="BodyTiny">{name}</Text>}

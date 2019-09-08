@@ -20,6 +20,11 @@ const defaultProps = {
   unMuteConversation: Sb.action('unMuteConversation'),
 }
 const phones = ['ayoubd', '+15558675309@phone']
+const emails = [
+  'max@keybase.io@email',
+  'bobross@happlittletrees.org@email',
+  'extremelylongusernameataveryshortdomain@a.com@email',
+]
 const contactNames = {'+15558675309@phone': 'Max Goodman'}
 
 const load = () => {
@@ -60,8 +65,20 @@ const load = () => {
     .add('Channel Header for big team - long', () => (
       <ChannelHeader {...defaultProps} smallTeam={false} channelName="uweiohfiwehfiowehfioweuhf" />
     ))
-    .add('Phone header', () => (
+    .add('Phone header - no contact name', () => (
+      <PhoneOrEmailHeader {...defaultProps} participants={phones} />
+    ))
+    .add('Phone header - contact name', () => (
       <PhoneOrEmailHeader {...defaultProps} participants={phones} contactNames={contactNames} />
+    ))
+    .add('Email Header - short', () => (
+      <PhoneOrEmailHeader {...defaultProps} participants={['max@keybase.io@email']} />
+    ))
+    .add('Email Header - long', () => (
+      <PhoneOrEmailHeader
+        {...defaultProps}
+        participants={['extremelylongusernameataveryshortdomain@a.com@email']}
+      />
     ))
 }
 
