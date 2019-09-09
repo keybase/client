@@ -72,6 +72,7 @@ class Login extends React.Component<Props, State> {
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
 
+    // Remove
     const temp = (
       <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
         Create an account
@@ -183,6 +184,7 @@ const styles = Styles.styleSheetCreate(() => ({
   provisioned: {color: Styles.globalColors.orange},
   userContainer: {
     backgroundColor: Styles.globalColors.transparent,
+    flex: 1,
   },
   userDropdown: {
     backgroundColor: Styles.globalColors.white,
