@@ -47,15 +47,10 @@ class TeamsDivider extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      badge: {
-        marginLeft: Styles.globalMargins.xtiny,
-        marginRight: 0,
-      },
       button: {
         alignSelf: 'center',
         width: undefined,
       },
-      buttonText: {color: Styles.globalColors.black_50},
       containerButton: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
@@ -76,41 +71,11 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         width: '100%',
       },
-      containerToggleButton: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-        alignSelf: 'center',
-        flexShrink: 0,
-      },
       dividerText: {
         alignSelf: 'flex-start',
         marginLeft: Styles.globalMargins.tiny,
         marginRight: Styles.globalMargins.tiny,
       },
-      toggleButton: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.black_10,
-          borderRadius: Styles.borderRadius,
-          marginBottom: Styles.globalMargins.xtiny,
-          marginTop: Styles.globalMargins.xtiny,
-          paddingBottom: Styles.globalMargins.xtiny,
-          paddingTop: Styles.globalMargins.xtiny,
-        },
-        isElectron: {
-          marginLeft: Styles.globalMargins.tiny,
-          marginRight: Styles.globalMargins.tiny,
-
-          paddingLeft: Styles.globalMargins.tiny,
-          paddingRight: Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          marginLeft: Styles.globalMargins.small,
-          marginRight: Styles.globalMargins.small,
-
-          paddingLeft: Styles.globalMargins.small,
-          paddingRight: Styles.globalMargins.small,
-        },
-      }),
     } as const)
 )
 
