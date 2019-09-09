@@ -20,12 +20,7 @@ const defaultProps = {
   unMuteConversation: Sb.action('unMuteConversation'),
 }
 const phones = ['ayoubd', '+15558675309@phone']
-const emails = [
-  'max@keybase.io@email',
-  'bobross@happlittletrees.org@email',
-  'extremelylongusernameataveryshortdomain@a.com@email',
-]
-const contactNames = {'+15558675309@phone': 'Max Goodman'}
+const contactNames = {'+15558675309@phone': 'Max Goodman', '+17083585828@phone': 'Ian'}
 
 const load = () => {
   Sb.storiesOf('Chat/Header', module)
@@ -68,16 +63,23 @@ const load = () => {
     .add('Phone header - no contact name', () => (
       <PhoneOrEmailHeader {...defaultProps} participants={phones} />
     ))
-    .add('Phone header - contact name', () => (
+    .add('Phone header - contact name - first only', () => (
+      <PhoneOrEmailHeader
+        {...defaultProps}
+        participants={['ayoubd', '+17083585828@phone']}
+        contactNames={contactNames}
+      />
+    ))
+    .add('Phone header - contact name - full name', () => (
       <PhoneOrEmailHeader {...defaultProps} participants={phones} contactNames={contactNames} />
     ))
     .add('Email Header - short', () => (
-      <PhoneOrEmailHeader {...defaultProps} participants={['max@keybase.io@email']} />
+      <PhoneOrEmailHeader {...defaultProps} participants={['[max@keybase.io]@email']} />
     ))
     .add('Email Header - long', () => (
       <PhoneOrEmailHeader
         {...defaultProps}
-        participants={['extremelylongusernameataveryshortdomain@a.com@email']}
+        participants={['[extremelylongusernameataveryshortdomain@a.com]@email']}
       />
     ))
 }
