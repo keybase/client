@@ -2238,7 +2238,7 @@ func TestProvisionPaperFailures(t *testing.T) {
 		}
 	}
 	if !didSwap {
-		t.Fatal("paper key words were all the same; could not swap: %s", uxPaper)
+		t.Fatalf("paper key words were all the same; could not swap: %s", uxPaper)
 	}
 	swapped := strings.Join(words, " ")
 	secUI = ux.NewSecretUI()
