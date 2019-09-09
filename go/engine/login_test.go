@@ -2230,14 +2230,15 @@ func TestProvisionPaperFailures(t *testing.T) {
 
 	words := strings.Fields(uxPaper)
 	didSwap := false
-	for i := 2; i < len(words) - 1; i++ {
+	for i := 2; i < len(words)-1; i++ {
 		if words[i] != words[i+1] {
+			tc.G.Log.Debug("swapped word %d (%s) and %d (%s)", i, words[i], i+1, words[i+1])
 			didSwap = true
 			words[i], words[i+1] = words[i+1], words[i]
 		}
 	}
 	if !didSwap {
-		t.Fatal("paper key words were all the same; could not swap")
+		t.Fatal("paper key words were all the same; could not swap: %s", uxPaper)
 	}
 	swapped := strings.Join(words, " ")
 	secUI = ux.NewSecretUI()
