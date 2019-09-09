@@ -520,6 +520,8 @@ func TestContactSearchMobilePhonesGoFirst(t *testing.T) {
 	require.NoError(t, err)
 
 	{
+		// We expect to see the "mobile" phone number ranked above the "home" phone
+		// number, and both should rank above email.
 		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
 			Service:         "keybase",
