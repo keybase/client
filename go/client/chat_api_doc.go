@@ -105,4 +105,10 @@ Clear bot commands:
 
 List bot commands for a conversation:
     {"method": "listcommands", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Pin a message to a chat:
+   {"method": "pin", "params": {"options": {"message_id": 5, "channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Unpin the message of chat:
+   {"method": "unpin", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 `
