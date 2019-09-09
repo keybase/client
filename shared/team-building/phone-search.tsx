@@ -4,84 +4,57 @@ import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import {ServiceIdWithContact, User} from 'constants/types/team-building'
+import {AllowedNamespace} from '../constants/types/team-building'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   continueLabel: string
-  onContinue: (user: User) => void
+  namespace: AllowedNamespace
   search: (query: string, service: 'phone') => void
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
 }
 
-type CurrentState = 'resolved' | 'loading' | 'notfound' | 'none'
-
 const PhoneSearch = (props: PhoneSearchProps) => {
-  const {onContinue} = props
-  const [validity, setValidity] = React.useState<boolean>(false)
-  const [phoneNumber, setPhoneNumber] = React.useState<string>('')
-  const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
+  const {namespace} = props
+  const [isPhoneValid, setPhoneValidity] = React.useState(false)
+  const [phoneNumber, setPhoneNumber] = React.useState('')
+  const [phoneInputKey, setPhoneInputKey] = React.useState(0)
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
+  const dispatch = Container.useDispatch()
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
-    setValidity(validity)
+    setPhoneValidity(validity)
     setPhoneNumber(phoneNumber)
     if (validity) {
       props.search(phoneNumber, 'phone')
     }
   }
 
-  let state: CurrentState = 'none'
   let user: User | null = null
   if (
-    validity &&
+    isPhoneValid &&
     props.teamBuildingSearchResults &&
     props.teamBuildingSearchResults[phoneNumber] &&
-    props.teamBuildingSearchResults[phoneNumber].keybase &&
-    props.teamBuildingSearchResults[phoneNumber].keybase[0]
+    props.teamBuildingSearchResults[phoneNumber].phone &&
+    props.teamBuildingSearchResults[phoneNumber].phone[0]
   ) {
-    let serviceMap = props.teamBuildingSearchResults[phoneNumber].keybase[0].serviceMap
-    let username = props.teamBuildingSearchResults[phoneNumber].keybase[0].serviceMap.keybase
-    let prettyName = props.teamBuildingSearchResults[phoneNumber].keybase[0].prettyName
-    if (serviceMap && username && prettyName) {
-      user = {
-        id: username,
-        prettyName,
-        serviceId: 'keybase',
-        serviceMap,
-        username,
-      }
-      state = 'resolved'
-    }
-  }
-  if (state === 'none' && waiting) {
-    state = 'loading'
-  }
-  if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] !== undefined) {
-    state = 'notfound'
+    user = props.teamBuildingSearchResults[phoneNumber].phone[0]
   }
 
+  const canSubmit = !!user && !waiting && isPhoneValid
+
   let _onContinue = React.useCallback(() => {
-    if (!validity) {
+    if (!canSubmit || !user) {
       return
     }
-    if (user) {
-      onContinue(user)
-    } else {
-      // Continue in order to start a conversation with their phone number
-      onContinue({
-        // substr to chop off the '+' at the start so it is in the correct format for an assertion
-        id: phoneNumber.substr(1) + '@phone',
-        prettyName: phoneNumber,
-        serviceId: 'phone',
-        serviceMap: {},
-        username: phoneNumber,
-      })
-    }
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]}))
+    // Clear input
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
-    setValidity(false)
-  }, [user, phoneNumber, setPhoneNumber, setValidity, setPhoneInputKey, onContinue])
+    setPhoneValidity(false)
+  }, [dispatch, namespace, user, phoneNumber, setPhoneNumber, canSubmit, setPhoneInputKey])
 
   return (
     <>
@@ -94,11 +67,11 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
           />
-          {state === 'resolved' && !!user && <UserMatchMention username={user.username} />}
-          {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
+          {!!user && user.serviceMap.keybase && <UserMatchMention username={user.username} />}
+          {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
-        <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!validity} />
+        <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!canSubmit} />
       </Kb.Box2>
     </>
   )

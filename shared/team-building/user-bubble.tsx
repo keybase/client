@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {ServiceIdWithContact} from '../constants/types/team-building'
-import {formatPhoneNumber} from '../util/phone-numbers'
+import {e164ToDisplay} from '../util/phone-numbers'
 
 export type Props = {
   username: string
@@ -21,7 +21,9 @@ const UserBubble = (props: Props) => {
     // Show placeholder avatar instead of an icon
     username = 'invalidusernameforplaceholderavatar'
     if (props.service === 'phone') {
-      title = formatPhoneNumber(props.username)
+      // Username is the assertion username here (E164 without '+'), add '+' to
+      // obtain a valid number for formatting.
+      title = e164ToDisplay('+' + props.username)
     }
   }
   return (

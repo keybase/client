@@ -83,7 +83,6 @@ export type Props = ContactProps & {
   highlightedIndex: number | null
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
-  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -474,9 +473,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         content = (
           <PhoneSearch
             continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
-            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            namespace={props.namespace}
             search={props.search}
-            onContinue={props.onAddRaw}
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
           />
         )
         break

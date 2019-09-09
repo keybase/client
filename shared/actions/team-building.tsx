@@ -6,8 +6,6 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
-import {validateNumber} from '../util/phone-numbers'
-import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -15,16 +13,14 @@ type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespac
 
 const apiSearch = async (
   query: string,
-  service: TeamBuildingTypes.ServiceId,
+  service: TeamBuildingTypes.ServiceIdWithContact,
   maxResults: number,
   includeServicesSummary: boolean,
-  impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
   try {
     const results = await RPCTypes.userSearchUserSearchRpcPromise(
       {
-        impTofuQuery,
         includeContacts: service === 'keybase' && includeContacts,
         includeServicesSummary,
         maxResults,
@@ -44,22 +40,6 @@ const apiSearch = async (
   }
 }
 
-const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTofuQuery | null => {
-  const phoneNumber = validateNumber(query, region)
-  if (phoneNumber.valid) {
-    return {
-      phone: phoneNumber.e164,
-      t: RPCTypes.ImpTofuSearchType.phone,
-    }
-  } else if (validateEmailAddress(query)) {
-    return {
-      email: query,
-      t: RPCTypes.ImpTofuSearchType.email,
-    }
-  }
-  return null
-}
-
 const search = async (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state[
     namespace
@@ -70,25 +50,16 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
     return false
   }
 
-  // search tab services include phone/email - 'keybase' is the ServiceId for these, and we transform the query into impTofuQuery
-  const query = teamBuildingSearchQuery
-  let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
-  if (teamBuildingSelectedService === 'keybase') {
-    const userRegion = state.settings.contacts.userCountryCode
-    impTofuQuery = makeImpTofuQuery(query, userRegion)
-  }
-
   const users = await apiSearch(
-    query,
+    teamBuildingSearchQuery,
     teamBuildingSelectedService,
     teamBuildingSearchLimit,
-    true,
-    impTofuQuery,
+    true /* includeServicesSummary */,
     includeContacts
   )
   return TeamBuildingGen.createSearchResultsLoaded({
     namespace,
-    query,
+    query: teamBuildingSearchQuery,
     service: teamBuildingSelectedService,
     users,
   })

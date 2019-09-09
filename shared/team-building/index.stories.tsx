@@ -108,7 +108,6 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -203,7 +202,6 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -295,7 +293,6 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[]}
@@ -324,7 +321,6 @@ const load = () => {
         teamBuildingSearchResults={{}}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
       />
     ))
@@ -347,7 +343,6 @@ const load = () => {
         teamSoFar={generateTeamSofar(9)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -423,7 +418,6 @@ const load = () => {
         teamSoFar={generateTeamSofar(10)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -499,7 +493,6 @@ const load = () => {
         teamSoFar={generateTeamSofar(100)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -762,12 +755,16 @@ const load = () => {
     ))
 
   Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
+<<<<<<< HEAD
     <PhoneSearch
       continueLabel="Continue"
       onContinue={Sb.action('onContinue')}
       search={Sb.action('search')}
       teamBuildingSearchResults={{}}
     />
+=======
+    <PhoneSearch namespace="chat2" search={Sb.action('search')} teamBuildingSearchResults={{}} />
+>>>>>>> wip
   ))
 
   emailInput()

@@ -48,7 +48,7 @@ export type _TeamBuildingSubState = {
   teamBuildingFinishedSelectedRole: TeamRoleType
   teamBuildingFinishedSendNotification: boolean
   teamBuildingSearchQuery: Query
-  teamBuildingSelectedService: ServiceId
+  teamBuildingSelectedService: ServiceIdWithContact
   teamBuildingSearchLimit: number
   teamBuildingUserRecs: Array<User> | null
   teamBuildingSelectedRole: TeamRoleType

@@ -27,10 +27,10 @@ const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults
   if (
     teamBuildingSearchResults &&
     teamBuildingSearchResults[emailString] &&
-    teamBuildingSearchResults[emailString].keybase &&
-    teamBuildingSearchResults[emailString].keybase[0]
+    teamBuildingSearchResults[emailString].email &&
+    teamBuildingSearchResults[emailString].email[0]
   ) {
-    user = teamBuildingSearchResults[emailString].keybase[0]
+    user = teamBuildingSearchResults[emailString].email[0]
   }
   const canSubmit = !!user && !waiting && isEmailValid
   const emailHasKeybaseAccount = user && user.serviceMap.keybase !== ''
@@ -40,15 +40,13 @@ const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults
       // Remove leading or trailing whitespace
       text = text.trim()
       setEmailString(text)
-      const isNewInputValid = validateEmailAddress(text)
-      if (isNewInputValid !== isEmailValid) {
-        setEmailValidity(isNewInputValid)
-      }
-      if (isNewInputValid) {
+      const valid = validateEmailAddress(text)
+      setEmailValidity(valid)
+      if (valid) {
         search(text, 'email')
       }
     },
-    [isEmailValid, search]
+    [search]
   )
 
   const onSubmit = React.useCallback(() => {
