@@ -92,7 +92,15 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getColorScheme)
 }
 
 - (NSDictionary *)constantsToExport {
-  return @{ @"initialColorScheme": RCTColorSchemePreference(nil) };
+  #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && defined(__IPHONE_13_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_13_0
+  return @{ @"initialColorScheme": RCTColorSchemePreference(nil),
+            @"supported": @"1"
+            };
+#else
+  return @{ @"initialColorScheme": @"light",
+            @"supported": @"0"
+            };
+#endif
 }
 
 @end
