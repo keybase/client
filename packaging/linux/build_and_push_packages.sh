@@ -12,11 +12,11 @@ set -e -u -o pipefail
 mode="$1"
 build_dir="$2"
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfs_dir="$client_dir/../kbfs"
 
-if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
+if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ]  || [ "${KEYBASE_TEST:-}" = 1 ] ; then
   default_bucket_name="jack-testing.keybase.io"
   echo
   echo
@@ -24,8 +24,10 @@ if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
   echo "================================="
   if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
       echo "= This build+push is a DRY RUN. ="
-  else
+  elif [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
       echo "= This build+push is a NIGHTLY. ="
+  else
+      echo "= This build+push is a TEST. ="
   fi
   echo "================================="
   echo "================================="
@@ -90,8 +92,10 @@ echo Doing a prerelease push to S3...
 # (Our s3cmd commands would be happy to read that file directly if we put it
 # in /root, but the s3_index.sh script ends up running Go code that depends
 # on the variables.)
-export AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
-export AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
+export AWS_ACCESS_KEY
+AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+export AWS_SECRET_KEY
 
 # Upload both repos to S3.
 echo Syncing the deb repo...
@@ -108,6 +112,11 @@ for blob in $dot_deb_blobs ; do
   s3cmd modify --remove-header "Cache-Control" "$blob"
   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
   s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
+
+  if [ "${KEYBASE_TEST:-}" = 1 ] ; then
+    s3cmd cp "$blob" "s3://prerelease.keybase.io/test/"
+    s3cmd cp "$blob.sig" "s3://prerelease.keybase.io/test/"
+  fi
 done
 echo Unsetting .rpm Cache-Control headers...
 dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
@@ -115,7 +124,17 @@ for blob in $dot_rpm_blobs ; do
   s3cmd modify --remove-header "Cache-Control" "$blob"
   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
   s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+
+  if [ "${KEYBASE_TEST:-}" = 1 ] ; then
+    s3cmd cp "$blob" "s3://prerelease.keybase.io/test/"
+    s3cmd cp "$blob.sig" "s3://prerelease.keybase.io/test/"
+  fi
 done
+
+if [ "${KEYBASE_TEST:-}" = 1 ] ; then
+    echo "Ending test build."
+    exit 0
+fi
 
 # Make yet another copy of the .deb and .rpm packages we just made, in a
 # constant location for the friend-of-keybase instructions. Also make a
