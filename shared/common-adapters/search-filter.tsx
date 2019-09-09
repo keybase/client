@@ -25,7 +25,7 @@ const Kb = {
 type Props = {
   icon?: IconType | null
   focusOnMount?: boolean
-  fullWidth?: boolean
+  size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
   negative?: boolean
   onChange: (text: string) => void
   placeholderText: string
@@ -144,7 +144,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
     )
   }
   _iconSizeType() {
-    return !Styles.isMobile && this.props.fullWidth ? 'Default' : 'Small'
+    return !Styles.isMobile && this.props.size === 'full-width' ? 'Default' : 'Small'
   }
   _iconColor() {
     return this.props.negative ? Styles.globalColors.white_75 : Styles.globalColors.black_50
@@ -160,7 +160,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           boxStyle={styles.icon}
           style={{
             marginRight:
-              !Styles.isMobile && !this.props.fullWidth
+              !Styles.isMobile && this.props.size === 'small'
                 ? Styles.globalMargins.xtiny
                 : Styles.globalMargins.tiny,
           }}
@@ -206,7 +206,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         <Kb.Icon
           type={this.props.negative ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
           boxStyle={styles.icon}
-          style={this.props.fullWidth ? styles.spinnerFullWidth : styles.spinnerSmall}
+          style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
         />
       ))
     )
@@ -239,7 +239,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
           // use onMouseDown to work around input's onBlur disappearing the "x" button prior to onClick firing.
           // https://stackoverflow.com/questions/9335325/blur-event-stops-click-event-from-working
           onMouseDown={Styles.isMobile ? undefined : this._cancel}
-          style={this.props.fullWidth ? styles.removeIconFullWidth : styles.removeIconNonFullWidth}
+          style={
+            this.props.size === 'full-width' ? styles.removeIconFullWidth : styles.removeIconNonFullWidth
+          }
         >
           <Kb.Icon
             type="iconfont-remove"
@@ -257,8 +259,8 @@ class SearchFilter extends React.PureComponent<Props, State> {
         style={Styles.collapseStyles([
           styles.container,
           this.props.placeholderCentered && styles.containerCenter,
-          !Styles.isMobile && !this.props.fullWidth && styles.containerSmall,
-          (Styles.isMobile || this.props.fullWidth) && styles.containerNonSmall,
+          !Styles.isMobile && this.props.size === 'small' && styles.containerSmall,
+          (Styles.isMobile || this.props.size === 'full-width') && styles.containerNonSmall,
           !this.props.negative && (this.state.focused || this.state.hover ? styles.light : styles.dark),
           this.props.negative &&
             (this.state.focused || this.state.hover ? styles.lightNegative : styles.darkNegative),

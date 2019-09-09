@@ -117,19 +117,24 @@ const Advanced = (props: Props) => {
             <Kb.Divider style={styles.proxyDivider} />
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Body">Dark mode</Kb.Text>
+              {isDarwin && (
+                <Kb.RadioButton
+                  label="Respect system settings"
+                  selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
+                  onSelect={() => props.onSetDarkModePreference('system')}
+                />
+              )}
               <Kb.RadioButton
-                label="Respect system settings"
-                disabled={!isDarwin}
-                selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
-                onSelect={() => props.onSetDarkModePreference('system')}
-              />
-              <Kb.RadioButton
-                label="Dark all the time"
+                label="Dark"
                 selected={props.darkModePreference === 'alwaysDark'}
                 onSelect={() => props.onSetDarkModePreference('alwaysDark')}
               />
               <Kb.RadioButton
-                label="Light all the time 😎"
+                label={
+                  <Kb.Text type="Body">
+                    Light <Kb.Emoji size={16} emojiName=":sunglasses:" />
+                  </Kb.Text>
+                }
                 selected={props.darkModePreference === 'alwaysLight'}
                 onSelect={() => props.onSetDarkModePreference('alwaysLight')}
               />

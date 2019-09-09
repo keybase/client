@@ -26,7 +26,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   stellarExternalPartners: true,
-  wonderland: true,
+  wonderland: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
