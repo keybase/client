@@ -139,13 +139,13 @@ class GlobalError extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.black,
     position: 'absolute',
     top: 0,
   },
-})
+}))
 
 const summaryRowStyle = {
   ...Styles.globalStyles.flexBoxRow,

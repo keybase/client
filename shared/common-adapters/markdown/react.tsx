@@ -12,7 +12,7 @@ const wrapStyle = Styles.platformStyles({
   isElectron: {
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
-  },
+  } as const,
 })
 
 const bigTextBlockStyle = Styles.platformStyles({
@@ -383,6 +383,8 @@ const serviceOnlyOutput = SimpleMarkdown.reactFor(
       return ast
     }
     switch (ast.type) {
+      case 'emoji':
+        return reactComponentsForMarkdownType.emoji(ast, output, state)
       case 'serviceDecoration':
         return (
           <ServiceDecoration

@@ -314,25 +314,28 @@ class ZoomableImage extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    height: '100%',
-    position: 'relative',
-    width: '100%',
-  },
-  image: {
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  outerContainer: {flexGrow: 1, position: 'relative'},
-  pannedView: {
-    alignItems: 'flex-start',
-    height: '100%',
-    justifyContent: 'flex-start',
-    overflow: 'hidden',
-    width: '100%',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        height: '100%',
+        position: 'relative',
+        width: '100%',
+      },
+      image: {
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      outerContainer: {flexGrow: 1, position: 'relative'},
+      pannedView: {
+        alignItems: 'flex-start',
+        height: '100%',
+        justifyContent: 'flex-start',
+        overflow: 'hidden',
+        width: '100%',
+      },
+    } as const)
+)
 
 export default ZoomableImage

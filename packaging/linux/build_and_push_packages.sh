@@ -12,11 +12,11 @@ set -e -u -o pipefail
 mode="$1"
 build_dir="$2"
 
-here="$(dirname "$BASH_SOURCE")"
+here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfs_dir="$client_dir/../kbfs"
 
-if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
+if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ]  || [ "${KEYBASE_TEST:-}" = 1 ] ; then
   default_bucket_name="jack-testing.keybase.io"
   echo
   echo
@@ -24,8 +24,10 @@ if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
   echo "================================="
   if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
       echo "= This build+push is a DRY RUN. ="
-  else
+  elif [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
       echo "= This build+push is a NIGHTLY. ="
+  else
+      echo "= This build+push is a TEST. ="
   fi
   echo "================================="
   echo "================================="
@@ -90,8 +92,10 @@ echo Doing a prerelease push to S3...
 # (Our s3cmd commands would be happy to read that file directly if we put it
 # in /root, but the s3_index.sh script ends up running Go code that depends
 # on the variables.)
-export AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
-export AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+AWS_ACCESS_KEY="$(grep access_key ~/.s3cfg | awk '{print $3}')"
+export AWS_ACCESS_KEY
+AWS_SECRET_KEY="$(grep secret_key ~/.s3cfg | awk '{print $3}')"
+export AWS_SECRET_KEY
 
 # Upload both repos to S3.
 echo Syncing the deb repo...
@@ -165,5 +169,10 @@ if [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
     echo "Ending nightly."
     exit 0
 fi
+if [ "${KEYBASE_TEST:-}" = 1 ] ; then
+    echo "Ending test build."
+    exit 0
+fi
 
 "$here/arch/update_aur_packages.sh" "$build_dir"
+#"$here/docker/build_and_push.sh"

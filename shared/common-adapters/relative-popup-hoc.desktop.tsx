@@ -347,13 +347,17 @@ function ModalPositionRelative<PP>(
     )
 
     componentDidMount() {
-      document.body && document.body.addEventListener('click', this._handleClick)
-      document.body && document.body.addEventListener('scroll', this._handleScroll, true)
+      const node = document.body
+      if (!__STORYBOOK__ && node) {
+        node.addEventListener('click', this._handleClick, false)
+      }
     }
 
     componentWillUnmount() {
-      document.body && document.body.removeEventListener('click', this._handleClick)
-      document.body && document.body.removeEventListener('scroll', this._handleScroll, true)
+      const node = document.body
+      if (!__STORYBOOK__ && node) {
+        node.removeEventListener('click', this._handleClick, false)
+      }
     }
 
     _setRef = r => {

@@ -112,51 +112,54 @@ const Header = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  backButton: {
-    left: 0,
-    position: 'absolute',
-  },
-  caret: {
-    marginLeft: Styles.globalMargins.xtiny,
-    width: 10,
-  },
-  container: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    flexShrink: 0,
-  },
-  gear: {
-    position: 'relative',
-    top: 1,
-  },
-  settingsButton: {
-    minWidth: undefined,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  smallAccountID: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-    textAlign: 'center',
-  },
-  spinner: {
-    height: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
-  },
-  topContainer: {
-    position: 'relative',
-  },
-  unread: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: 6,
-    flexShrink: 0,
-    height: Styles.globalMargins.tiny,
-    marginLeft: -Styles.globalMargins.tiny,
-    marginTop: -Styles.globalMargins.xtiny,
-    width: Styles.globalMargins.tiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: {
+        left: 0,
+        position: 'absolute',
+      },
+      caret: {
+        marginLeft: Styles.globalMargins.xtiny,
+        width: 10,
+      },
+      container: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        flexShrink: 0,
+      },
+      gear: {
+        position: 'relative',
+        top: 1,
+      },
+      settingsButton: {
+        minWidth: undefined,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      smallAccountID: {
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+        textAlign: 'center',
+      },
+      spinner: {
+        height: Styles.globalMargins.small,
+        width: Styles.globalMargins.small,
+      },
+      topContainer: {
+        position: 'relative',
+      },
+      unread: {
+        backgroundColor: Styles.globalColors.orange,
+        borderRadius: 6,
+        flexShrink: 0,
+        height: Styles.globalMargins.tiny,
+        marginLeft: -Styles.globalMargins.tiny,
+        marginTop: -Styles.globalMargins.xtiny,
+        width: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default Header

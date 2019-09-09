@@ -40,7 +40,7 @@ const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
     </Kb.ClickableBox>
   ) : null
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,
@@ -60,6 +60,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     minHeight: 24,
   },
-})
+}))
 
 export default BuildTeam

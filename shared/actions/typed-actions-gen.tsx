@@ -769,11 +769,9 @@ export type TypedActionsMap = {
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
-  'team-building:searchEmailAddress': teambuilding.SearchEmailAddressPayload
   'team-building:addUsersToTeamSoFar': teambuilding.AddUsersToTeamSoFarPayload
   'team-building:removeUsersFromTeamSoFar': teambuilding.RemoveUsersFromTeamSoFarPayload
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
-  'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload

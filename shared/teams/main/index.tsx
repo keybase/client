@@ -196,16 +196,19 @@ class Teams extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  avatarContainer: {position: 'relative'},
-  badge: {
-    position: 'absolute',
-    right: -5,
-    top: -5,
-  },
-  kerning: {letterSpacing: 0.2},
-  maxWidth: {maxWidth: '100%'},
-  openMeta: {alignSelf: 'center'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatarContainer: {position: 'relative'},
+      badge: {
+        position: 'absolute',
+        right: -5,
+        top: -5,
+      },
+      kerning: {letterSpacing: 0.2},
+      maxWidth: {maxWidth: '100%'},
+      openMeta: {alignSelf: 'center'},
+    } as const)
+)
 
 export default Teams

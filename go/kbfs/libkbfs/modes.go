@@ -175,6 +175,10 @@ func (md modeDefault) DoLogObfuscation() bool {
 	return true
 }
 
+func (md modeDefault) BlockTLFEditHistoryIntialization() bool {
+	return false
+}
+
 func (md modeDefault) InitialDelayForBackgroundWork() time.Duration {
 	return 0
 }
@@ -336,6 +340,11 @@ func (mm modeMinimal) DoRefreshFavoritesOnInit() bool {
 
 func (mm modeMinimal) DoLogObfuscation() bool {
 	return true
+}
+
+func (mm modeMinimal) BlockTLFEditHistoryIntialization() bool {
+	// Never used.
+	return false
 }
 
 func (mm modeMinimal) InitialDelayForBackgroundWork() time.Duration {
@@ -523,6 +532,14 @@ func (mc modeConstrained) SendEditNotificationsEnabled() bool {
 }
 
 func (mc modeConstrained) LocalHTTPServerEnabled() bool {
+	return true
+}
+
+func (mc modeConstrained) BlockTLFEditHistoryIntialization() bool {
+	// In constrained mode, we don't want to incur this work in the
+	// background when it might interfere with other foreground tasks.
+	// Instead, make requests that depend on the edit history block
+	// and effectively foreground that initialization work.
 	return true
 }
 

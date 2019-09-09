@@ -668,6 +668,7 @@ type UIMessageValid struct {
 	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	PinnedMessageID       *MessageID             `codec:"pinnedMessageID,omitempty" json:"pinnedMessageID,omitempty"`
 	BotUID                *gregor1.UID           `codec:"botUID,omitempty" json:"botUID,omitempty"`
 }
 
@@ -792,6 +793,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
+		PinnedMessageID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMessageID),
 		BotUID: (func(x *gregor1.UID) *gregor1.UID {
 			if x == nil {
 				return nil
@@ -2374,6 +2382,32 @@ func (o LocationWatchID) DeepCopy() LocationWatchID {
 	return o
 }
 
+type UIWatchPositionPerm int
+
+const (
+	UIWatchPositionPerm_BASE   UIWatchPositionPerm = 0
+	UIWatchPositionPerm_ALWAYS UIWatchPositionPerm = 1
+)
+
+func (o UIWatchPositionPerm) DeepCopy() UIWatchPositionPerm { return o }
+
+var UIWatchPositionPermMap = map[string]UIWatchPositionPerm{
+	"BASE":   0,
+	"ALWAYS": 1,
+}
+
+var UIWatchPositionPermRevMap = map[UIWatchPositionPerm]string{
+	0: "BASE",
+	1: "ALWAYS",
+}
+
+func (e UIWatchPositionPerm) String() string {
+	if v, ok := UIWatchPositionPermRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UICommandStatusDisplayTyp int
 
 const (
@@ -2603,8 +2637,9 @@ type ChatLoadGalleryHitArg struct {
 }
 
 type ChatWatchPositionArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID      `codec:"convID" json:"convID"`
+	Perm      UIWatchPositionPerm `codec:"perm" json:"perm"`
 }
 
 type ChatClearWatchArg struct {

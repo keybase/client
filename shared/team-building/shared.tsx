@@ -14,13 +14,6 @@ const services: {
     wonderland?: boolean
   }
 } = {
-  contact: {
-    color: '#000',
-    icon: 'iconfont-identity-twitter',
-    label: 'Your contacts', // TODO: rethink this for the empty state when we're actually using it
-    longLabel: 'A contact',
-    searchPlaceholder: 'contacts',
-  },
   email: {
     color: '#3663ea',
     icon: 'iconfont-mention',
@@ -56,13 +49,6 @@ const services: {
     label: 'Keybase and contacts',
     longLabel: Styles.isMobile ? 'Keybase & Contacts' : 'A Keybase user',
     searchPlaceholder: Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
-  },
-  pgp: {
-    color: '#000',
-    icon: 'iconfont-identity-pgp',
-    label: 'PGP',
-    longLabel: 'A PGP user',
-    searchPlaceholder: 'PGP',
   },
   phone: {
     color: '#3663ea',

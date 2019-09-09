@@ -361,7 +361,7 @@ const stylesPublicitySettingsBox = {
   paddingTop: globalMargins.small,
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   floatingRolePicker: platformStyles({
     isElectron: {
       position: 'relative',
@@ -373,4 +373,4 @@ const styles = styleSheetCreate({
       paddingRight: 2,
     },
   }),
-})
+}))

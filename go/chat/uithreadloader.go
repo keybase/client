@@ -351,8 +351,9 @@ func (t *UIThreadLoader) dispatchOldPagesJob(ctx context.Context, uid gregor1.UI
 			Next: resultPagination.Next,
 		}
 		t.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
-		if err := t.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /* query */, p,
-			types.ConvLoaderPriorityLow, newConvLoaderPagebackHook(t.G(), 0, 3))); err != nil {
+		if err := t.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p,
+			types.ConvLoaderPriorityLow, types.ConvLoaderGeneric,
+			newConvLoaderPagebackHook(t.G(), 0, 3))); err != nil {
 			t.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
 		}
 	}

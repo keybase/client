@@ -63,12 +63,13 @@ const unifyStyles = (s: any) => ({
 })
 
 export const platformStyles = (options: {
-  common?: _StylesCrossPlatform | null
+  common?: _StylesCrossPlatform
   isIOS?: _StylesMobile
   isAndroid?: _StylesMobile
   isMobile?: _StylesMobile
   isElectron?: _StylesDesktop
-}) => ({
+  // TODO any for now, but we need the types to be handled differently
+}): any => ({
   ...(options.common ? unifyStyles(options.common) : {}),
   ...(isMobile && options.isMobile ? options.isMobile : {}),
   ...(isIOS && options.isIOS ? options.isIOS : {}),

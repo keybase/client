@@ -350,121 +350,124 @@ class AccountSettings extends React.Component<SettingsProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  alignSelfFlexStart: {alignSelf: 'flex-start'},
-  copyTextContainer: {
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-  },
-  deleteOpacity: {opacity: 0.3},
-  divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  header: {
-    ...(!Styles.isMobile ? {minHeight: 48} : {}),
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-  },
-  icon: {marginLeft: Styles.globalMargins.xtiny},
-  identity: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  identityBox: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
-  mobileOnlySpinner: {
-    backgroundColor: Styles.globalColors.white_90,
-  },
-  noShrink: {flexShrink: 0},
-  openIcon: Styles.platformStyles({
-    common: {
-      left: Styles.globalMargins.xtiny,
-      position: 'relative',
-    },
-    isElectron: {
-      top: Styles.globalMargins.xtiny,
-    },
-  }),
-  partnerDivider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginLeft: 40,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  partnerIcon: {flexShrink: 0, height: 32, width: 32},
-  partnerLink: {color: Styles.globalColors.black},
-  partnerLinkContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignSelf: 'flex-start',
-  },
-  progressContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fillAbsolute,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white_90,
-      display: 'flex',
-      justifyContent: 'center',
-    },
-  }),
-  progressIndicator: Styles.platformStyles({
-    isElectron: {
-      height: 17,
-      width: 17,
-    },
-    isMobile: {
-      height: 22,
-      width: 22,
-    },
-  }),
-  red: {color: Styles.globalColors.redDark},
-  remove: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  removeContainer: Styles.platformStyles({
-    isElectron: {marginTop: 'auto'},
-    isMobile: {marginTop: Styles.globalMargins.medium},
-  }),
-  removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
-  rightMargin: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  scrollView: {
-    display: 'flex',
-    flexGrow: 1,
-    paddingTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
-    width: '100%',
-  },
-  secretKeyContainer: {
-    marginTop: Styles.globalMargins.tiny,
-    position: 'relative',
-  },
-  section: {
-    alignItems: 'flex-start',
-    flexShrink: 0,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  sectionLabel: {
-    alignSelf: 'flex-start',
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  setAsDefaultError: {
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  settingsPage: {
-    alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.white,
-    flexShrink: 0,
-    paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
-  },
-  setupInflation: {
-    alignSelf: 'flex-start',
-  },
-  yesShrink: {flexShrink: 1},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignSelfFlexStart: {alignSelf: 'flex-start'},
+      copyTextContainer: {
+        alignSelf: 'flex-start',
+        maxWidth: '100%',
+      },
+      deleteOpacity: {opacity: 0.3},
+      divider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      header: {
+        ...(!Styles.isMobile ? {minHeight: 48} : {}),
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+      },
+      icon: {marginLeft: Styles.globalMargins.xtiny},
+      identity: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      identityBox: {
+        flexGrow: 1,
+        flexShrink: 1,
+      },
+      mobileOnlySpinner: {
+        backgroundColor: Styles.globalColors.white_90,
+      },
+      noShrink: {flexShrink: 0},
+      openIcon: Styles.platformStyles({
+        common: {
+          left: Styles.globalMargins.xtiny,
+          position: 'relative',
+        },
+        isElectron: {
+          top: Styles.globalMargins.xtiny,
+        },
+      }),
+      partnerDivider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginLeft: 40,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      partnerIcon: {flexShrink: 0, height: 32, width: 32},
+      partnerLink: {color: Styles.globalColors.black},
+      partnerLinkContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignSelf: 'flex-start',
+      },
+      progressContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fillAbsolute,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white_90,
+          display: 'flex',
+          justifyContent: 'center',
+        },
+      }),
+      progressIndicator: Styles.platformStyles({
+        isElectron: {
+          height: 17,
+          width: 17,
+        },
+        isMobile: {
+          height: 22,
+          width: 22,
+        },
+      }),
+      red: {color: Styles.globalColors.redDark},
+      remove: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      removeContainer: Styles.platformStyles({
+        isElectron: {marginTop: 'auto'},
+        isMobile: {marginTop: Styles.globalMargins.medium},
+      }),
+      removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
+      rightMargin: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      scrollView: {
+        display: 'flex',
+        flexGrow: 1,
+        paddingTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
+        width: '100%',
+      },
+      secretKeyContainer: {
+        marginTop: Styles.globalMargins.tiny,
+        position: 'relative',
+      },
+      section: {
+        alignItems: 'flex-start',
+        flexShrink: 0,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      sectionLabel: {
+        alignSelf: 'flex-start',
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      setAsDefaultError: {
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      settingsPage: {
+        alignSelf: 'flex-start',
+        backgroundColor: Styles.globalColors.white,
+        flexShrink: 0,
+        paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
+      },
+      setupInflation: {
+        alignSelf: 'flex-start',
+      },
+      yesShrink: {flexShrink: 1},
+    } as const)
+)
 
 export default AccountSettings

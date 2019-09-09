@@ -106,7 +106,7 @@ class TeamMention extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       display: 'inline-block',
@@ -127,6 +127,6 @@ const styles = Styles.styleSheetCreate({
       display: 'inline-block',
     },
   }),
-})
+}))
 
 export default TeamMention

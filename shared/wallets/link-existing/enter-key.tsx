@@ -55,39 +55,42 @@ const EnterKey = (props: EnterKeyProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  error: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.redDark,
-      textAlign: 'left',
-      width: '100%',
-    },
-    isElectron: {
-      wordWrap: 'break-word',
-    },
-  }),
-  infoText: Styles.platformStyles({
-    isMobile: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-  }),
-  input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
-  inputContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-start',
-    },
-    isElectron: {width: '100%'},
-    isMobile: {
-      borderBottomWidth: 1,
-      borderColor: Styles.globalColors.black_05,
-      borderStyle: 'solid',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      error: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.redDark,
+          textAlign: 'left',
+          width: '100%',
+        },
+        isElectron: {
+          wordWrap: 'break-word',
+        },
+      }),
+      infoText: Styles.platformStyles({
+        isMobile: {
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+        },
+      }),
+      input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
+      inputContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+        },
+        isElectron: {width: '100%'},
+        isMobile: {
+          borderBottomWidth: 1,
+          borderColor: Styles.globalColors.black_05,
+          borderStyle: 'solid',
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 export default EnterKey

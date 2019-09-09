@@ -3,7 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
-import CommandStatus from './index'
+import CommandStatus from '.'
 
 const errorProps = {
   actions: [],

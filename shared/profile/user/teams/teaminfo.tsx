@@ -81,7 +81,7 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
                 metaOne={<OpenMeta isOpen={this.props.isOpen} />}
                 metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
               />
-              <Kb.Text type="Body" style={styles.description}>
+              <Kb.Text type="Body" selectable={true} style={styles.description}>
                 {this.props.description}
               </Kb.Text>
               {this.props.onChat && (
@@ -135,15 +135,18 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  description: {textAlign: 'center'},
-  infoPopup: {
-    maxWidth: 225,
-    padding: Styles.globalMargins.small,
-  },
-  publicAdmins: Styles.platformStyles({
-    isElectron: {display: 'unset'},
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      description: {textAlign: 'center'},
+      infoPopup: {
+        maxWidth: 225,
+        padding: Styles.globalMargins.small,
+      },
+      publicAdmins: Styles.platformStyles({
+        isElectron: {display: 'unset'},
+      }),
+    } as const)
+)
 
 export default TeamInfo

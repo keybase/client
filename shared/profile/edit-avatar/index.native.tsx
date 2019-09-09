@@ -136,25 +136,28 @@ class AvatarUpload extends React.Component<Props> {
   }
 }
 
-const styles = styleSheetCreate({
-  button: {
-    marginTop: globalMargins.tiny,
-    width: '100%',
-  },
-  container: {
-    ...padding(0, globalMargins.medium),
-    marginBottom: globalMargins.small,
-    marginTop: globalMargins.small,
-  },
-  standardScreen: {...padding(0)},
-  zoomContainer: {
-    backgroundColor: globalColors.grey,
-    height: AVATAR_SIZE,
-    marginBottom: globalMargins.tiny,
-    overflow: 'hidden',
-    position: 'relative',
-    width: AVATAR_SIZE,
-  },
-} as const)
+const styles = styleSheetCreate(
+  () =>
+    ({
+      button: {
+        marginTop: globalMargins.tiny,
+        width: '100%',
+      },
+      container: {
+        ...padding(0, globalMargins.medium),
+        marginBottom: globalMargins.small,
+        marginTop: globalMargins.small,
+      },
+      standardScreen: {...padding(0)},
+      zoomContainer: {
+        backgroundColor: globalColors.grey,
+        height: AVATAR_SIZE,
+        marginBottom: globalMargins.tiny,
+        overflow: 'hidden',
+        position: 'relative',
+        width: AVATAR_SIZE,
+      },
+    } as const)
+)
 
 export default AvatarUpload

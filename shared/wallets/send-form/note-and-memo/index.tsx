@@ -199,32 +199,35 @@ const Divider = ({error}: {error: boolean}) => (
 
 const placeholderColor = Styles.globalColors.black_20
 
-const styles = Styles.styleSheetCreate(() => ({
-  alignItemsCenter: {
-    alignItems: 'center',
-  },
-  container: {
-    marginTop: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  divider: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  dividerError: {
-    backgroundColor: Styles.globalColors.red,
-  },
-  emojiIcon: {
-    alignSelf: 'flex-end',
-    marginTop: 1, // otherwise top is cut off w/ long note
-  },
-  flexOne: {
-    flex: 1,
-  },
-  input: {
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black_on_white,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {
+        alignItems: 'center',
+      },
+      container: {
+        marginTop: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      divider: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      dividerError: {
+        backgroundColor: Styles.globalColors.red,
+      },
+      emojiIcon: {
+        alignSelf: 'flex-end',
+        marginTop: 1, // otherwise top is cut off w/ long note
+      },
+      flexOne: {
+        flex: 1,
+      },
+      input: {
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.black_on_white,
+      },
+    } as const)
+)
 
 export {SecretNote, PublicMemo}

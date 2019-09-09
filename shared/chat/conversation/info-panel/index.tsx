@@ -169,7 +169,8 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     return res
   }
 
-  _onSelectTab = tab => {
+  _onSelectTab = (tab: React.ReactNode) => {
+    // @ts-ignore TODO avoid using key on a node
     this.props.onSelectTab(tab.key)
   }
   _renderHeader = () => {
@@ -359,31 +360,33 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 }
 
-const border = `1px solid ${Styles.globalColors.black_10}`
-const styles = Styles.styleSheetCreate({
-  attachmentsLoading: {
-    height: Styles.globalMargins.small,
-    width: Styles.globalMargins.small,
-  },
-  container: Styles.platformStyles({
-    common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      borderLeft: border,
-    },
-  }),
-  tabContainerStyle: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  tabStyle: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  tabTextContainer: {
-    justifyContent: 'center',
-  },
-  tabTextSelected: {color: Styles.globalColors.black},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      attachmentsLoading: {
+        height: Styles.globalMargins.small,
+        width: Styles.globalMargins.small,
+      },
+      container: Styles.platformStyles({
+        common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
+        isElectron: {
+          backgroundColor: Styles.globalColors.white,
+          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+        },
+      }),
+      tabContainerStyle: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      tabStyle: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+      },
+      tabTextContainer: {
+        justifyContent: 'center',
+      },
+      tabTextSelected: {color: Styles.globalColors.black},
+    } as const)
+)
 
 const InfoPanel = Kb.HeaderOnMobile(_InfoPanel)
 

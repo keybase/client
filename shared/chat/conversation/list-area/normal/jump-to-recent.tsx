@@ -28,7 +28,7 @@ const JumpToRecent = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   arrowBox: Styles.platformStyles({
     isElectron: {
       display: 'inline',
@@ -51,6 +51,6 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.white,
   },
-})
+}))
 
 export default JumpToRecent

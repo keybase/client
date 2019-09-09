@@ -2,12 +2,14 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
+import * as Constants from '../constants/team-building'
+import * as Container from '../util/container'
 import {ServiceIdWithContact, User} from 'constants/types/team-building'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
   onContinue: (user: User) => void
-  search: (query: string, service: ServiceIdWithContact) => void
+  search: (query: string, service: 'phone') => void
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
 }
 
@@ -18,13 +20,13 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   const [validity, setValidity] = React.useState<boolean>(false)
   const [phoneNumber, setPhoneNumber] = React.useState<string>('')
   const [phoneInputKey, setPhoneInputKey] = React.useState<number>(0)
+  const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
 
   const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
     setValidity(validity)
     setPhoneNumber(phoneNumber)
     if (validity) {
-      // TODO: Is this okay to reuse the 'keybase' service name? Or should we add a 'phone' one to iced?
-      props.search(phoneNumber, 'keybase')
+      props.search(phoneNumber, 'phone')
     }
   }
 
@@ -51,7 +53,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
       state = 'resolved'
     }
   }
-  if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] === undefined) {
+  if (state === 'none' && waiting) {
     state = 'loading'
   }
   if (state === 'none' && validity && props.teamBuildingSearchResults[phoneNumber] !== undefined) {
@@ -82,8 +84,8 @@ const PhoneSearch = (props: PhoneSearchProps) => {
 
   return (
     <>
-      <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle}>
-        <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.containerStyle} fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
           <PhoneInput
             // Supply a key to force reset the PhoneInput state after a user is added
             key={phoneInputKey}
@@ -91,22 +93,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
           />
-          {state === 'resolved' && !!user && (
-            <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-              <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
-              <Kb.Text type="BodySmall">
-                Great! That's{' '}
-                <Kb.ConnectedUsernames
-                  colorFollowing={true}
-                  inline={true}
-                  onUsernameClicked="profile"
-                  type="BodySmallSemibold"
-                  usernames={[user.username]}
-                />{' '}
-                on Keybase.
-              </Kb.Text>
-            </Kb.Box2>
-          )}
+          {state === 'resolved' && !!user && <UserMatchMention username={user.username} />}
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
@@ -116,26 +103,48 @@ const PhoneSearch = (props: PhoneSearchProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {flexGrow: 0},
-  containerStyle: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      flex: 1,
-      padding: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isMobile: {
-      zIndex: -1,
-    },
-  }),
-  loading: {alignSelf: 'center'},
-  spaceFillingBox: {flexGrow: 1},
-  userMatchMention: {
-    alignSelf: 'flex-start',
-    justifyContent: 'center',
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
+type UserMatchMentionProps = {
+  username: string
+}
+export const UserMatchMention = ({username}: UserMatchMentionProps) => (
+  <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
+    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+    <Kb.Text type="BodySmall">
+      Great! That's{' '}
+      <Kb.ConnectedUsernames
+        colorFollowing={true}
+        inline={true}
+        onUsernameClicked="profile"
+        type="BodySmallSemibold"
+        usernames={[username]}
+      />{' '}
+      on Keybase.
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {flexGrow: 0},
+      containerStyle: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+          flex: 1,
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          zIndex: -1,
+        },
+      }),
+      loading: {alignSelf: 'center'},
+      spaceFillingBox: {flexGrow: 1},
+      userMatchMention: {
+        alignSelf: 'flex-start',
+        justifyContent: 'center',
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default PhoneSearch

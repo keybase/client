@@ -105,7 +105,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   background: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.yellow},
   }),
@@ -135,6 +135,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
-})
+}))
 
 export default ReallyRemoveAccountPopup

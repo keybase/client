@@ -131,9 +131,9 @@ const stylesContainer = {
   justifyContent: 'center',
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   other: {color: Styles.globalColors.black},
   provisioned: {color: Styles.globalColors.orange},
-})
+}))
 
 export default Login

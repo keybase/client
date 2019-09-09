@@ -106,7 +106,9 @@ const PhoneOrEmailHeader = (props: Props) => {
     <Wrapper {...props}>
       <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
         <Box2 direction="horizontal" style={styles.lessMargins}>
-          <Text type="BodyBig">{formattedPhoneOrEmail}</Text>
+          <Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
+            {formattedPhoneOrEmail}
+          </Text>
           {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
         </Box2>
         {!!name && <Text type="BodyTiny">{name}</Text>}
@@ -115,28 +117,31 @@ const PhoneOrEmailHeader = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  center: {
-    justifyContent: 'center',
-    textAlign: 'center',
-  },
-  channelHeaderContainer: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  channelName: {
-    color: Styles.globalColors.black,
-  },
-  channelNameLight: {
-    color: Styles.globalColors.black_50,
-  },
-  lessMargins: {
-    marginBottom: -5,
-  },
-  shhIcon: {marginLeft: Styles.globalMargins.xtiny},
-  usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      center: {
+        justifyContent: 'center',
+        textAlign: 'center',
+      },
+      channelHeaderContainer: {
+        alignItems: 'center',
+        alignSelf: 'center',
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      channelName: {
+        color: Styles.globalColors.black,
+      },
+      channelNameLight: {
+        color: Styles.globalColors.black_50,
+      },
+      lessMargins: {
+        marginBottom: -5,
+      },
+      shhIcon: {marginLeft: Styles.globalMargins.xtiny},
+      usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
+    } as const)
+)
 
 export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

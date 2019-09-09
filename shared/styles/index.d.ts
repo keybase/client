@@ -81,9 +81,9 @@ export declare const borderRadius: number
 export declare const hairlineWidth: number
 export declare function backgroundURL(...path: Array<string>): string
 
-export declare function styleSheetCreate<T extends {[K in string]: CSS.StylesCrossPlatform}>(
-  map: T | (() => T)
-): T
+type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._StylesMobile}
+// order important!
+export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
