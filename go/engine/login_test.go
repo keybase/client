@@ -2235,6 +2235,7 @@ func TestProvisionPaperFailures(t *testing.T) {
 			tc.G.Log.Debug("swapped word %d (%s) and %d (%s)", i, words[i], i+1, words[i+1])
 			didSwap = true
 			words[i], words[i+1] = words[i+1], words[i]
+			break
 		}
 	}
 	if !didSwap {
