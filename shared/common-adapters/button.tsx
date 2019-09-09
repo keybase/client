@@ -161,7 +161,7 @@ class Button extends React.Component<Props> {
               </Kb.Text>
             )}
           </Kb.Box2>
-          {this.props.badgeNumber && this.props.badgeNumber !== 0 && (
+          {!!this.props.badgeNumber && (
             <Kb.Badge badgeNumber={this.props.badgeNumber} badgeStyle={styles.badge} />
           )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}

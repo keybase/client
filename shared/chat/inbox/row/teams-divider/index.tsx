@@ -26,26 +26,13 @@ class TeamsDivider extends React.PureComponent<Props> {
       >
         {this.props.showButton && (
           <Kb.Button
-            badgeNumber={10}
+            badgeNumber={this.props.badgeCount}
             label={this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
             onClick={this.props.toggle}
             small={true}
-            style={{
-              alignSelf: 'center',
-              width: 100,
-            }}
+            style={styles.button}
             type="Dim"
           />
-        )}
-        {this.props.showButton && (
-          <Kb.ClickableBox onClick={this.props.toggle} style={styles.containerToggleButton}>
-            <Kb.Box2 direction="horizontal" className="toggleButtonClass" style={styles.toggleButton}>
-              <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
-                {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
-              </Kb.Text>
-                <Kb.Badge badgeStyle={styles.badge} badgeNumber={10} />
-            </Kb.Box2>
-          </Kb.ClickableBox>
         )}
         {!this.props.showButton && (
           <Kb.Text type="BodySmallSemibold" style={styles.dividerText}>
@@ -63,6 +50,10 @@ const styles = Styles.styleSheetCreate(
       badge: {
         marginLeft: Styles.globalMargins.xtiny,
         marginRight: 0,
+      },
+      button: {
+        alignSelf: 'center',
+        width: undefined,
       },
       buttonText: {color: Styles.globalColors.black_50},
       containerButton: Styles.platformStyles({
