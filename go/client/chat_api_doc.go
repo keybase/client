@@ -96,4 +96,13 @@ Get unfurl settings:
 
 Set unfurl setings (thumbnails for sent links):
     {"method": "setunfurlsettings", "params": {"options":{"mode": "always/never/whitelisted", "whitelist":["example.com"]}}}
+
+Advertise availabe bot commands in the UI:
+    {"method": "advertisecommands", "params": {"options":{"alias": "helpbot", "advertisements":[{"type": "public", "commands": [{"name": "help", "description": "Get help using this bot"}]}]}}}
+
+Clear bot commands:
+    {"method": "clearcommands"}
+
+List bot commands for a conversation:
+    {"method": "listcommands", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 `
