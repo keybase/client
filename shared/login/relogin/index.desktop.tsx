@@ -72,14 +72,20 @@ class Login extends React.Component<Props, State> {
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
 
-    // Remove
-    const temp = (
-      <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
-        Create an account
-      </Kb.Text>
-    )
     return (
-      <SignupScreen banners={errorBanner(this.props.bannerError)} headerStyle={styles.header} title="Log in">
+      <SignupScreen
+        banners={errorBanner(this.props.bannerError)}
+        headerStyle={styles.header}
+        rightActionComponent={
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            onClick={this.props.onSignup}
+            label="Create an account"
+          />
+        }
+        title="Log in"
+      >
         <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
           <Kb.UserCard
             username={this.props.selectedUser}
