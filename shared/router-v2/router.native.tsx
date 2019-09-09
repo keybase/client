@@ -1,25 +1,26 @@
-import * as Kb from '../common-adapters/mobile.native'
-import {IconType} from '../common-adapters/icon.constants-gen'
-import * as Styles from '../styles'
-import * as React from 'react'
-import GlobalError from '../app/global-errors/container'
-import {connect} from '../util/container'
-import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import {createBottomTabNavigator} from 'react-navigation-tabs'
-import Stack from 'react-navigation-stack'
-import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters/mobile.native'
+import * as React from 'react'
 import * as Shared from './router.shared'
-import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
-import {debounce} from 'lodash-es'
-import logger from '../logger'
+import * as Styles from '../styles'
+import * as Tabs from '../constants/tabs'
+import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
+import Stack from 'react-navigation-stack'
+import logger from '../logger'
+import {IconType} from '../common-adapters/icon.constants-gen'
+import {LeftAction} from '../common-adapters/header-hoc'
 import {Props} from './router'
+import {connect} from '../util/container'
+import {createAppContainer} from '@react-navigation/native'
+import {createBottomTabNavigator} from 'react-navigation-tabs'
+import {createSwitchNavigator, StackActions} from '@react-navigation/core'
+import {debounce} from 'lodash-es'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {useScreens} from 'react-native-screens'
 
 const {createStackNavigator} = Stack
 
@@ -42,8 +43,12 @@ const defaultNavigationOptions: any = {
       />
     ),
   headerStyle: {
-    backgroundColor: Styles.globalColors.white,
-    borderBottomColor: Styles.globalColors.black_10,
+    get backgroundColor() {
+      return Styles.globalColors.white
+    },
+    get borderBottomColor() {
+      return Styles.globalColors.black_10
+    },
     borderBottomWidth: 1,
     borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
@@ -108,7 +113,7 @@ const TabBarIconContainer = props => (
   </Kb.NativeTouchableWithoutFeedback>
 )
 
-const TabNavigator = createBottomTabNavigator(
+const VanillaTabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
     map[tab] = createStackNavigator(Shim.shim(routes), {
       defaultNavigationOptions,
@@ -135,15 +140,34 @@ const TabNavigator = createBottomTabNavigator(
     }),
     order: tabs,
     tabBarOptions: {
-      activeBackgroundColor: Styles.globalColors.blueDark,
-      inactiveBackgroundColor: Styles.globalColors.blueDark,
+      get activeBackgroundColor() {
+        return Styles.globalColors.blueDark
+      },
+      get inactiveBackgroundColor() {
+        return Styles.globalColors.blueDark
+      },
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
-      style: {backgroundColor: Styles.globalColors.blueDark},
+      get style() {
+        return {backgroundColor: Styles.globalColors.blueDark}
+      },
     },
   }
 )
+
+class UnconnectedTabNavigator extends React.PureComponent<any> {
+  static router = VanillaTabNavigator.router
+  render() {
+    const {navigation, isDarkMode} = this.props
+    return <VanillaTabNavigator navigation={navigation} key={isDarkMode ? 'dark' : 'light'} />
+  }
+}
+
+const TabNavigator = Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o) => ({
+  ...s,
+  ...o,
+}))(UnconnectedTabNavigator)
 
 const tabStyles = Styles.styleSheetCreate(
   () =>
@@ -184,7 +208,6 @@ const LoggedOutStackNavigator = createStackNavigator(
       // show the header
       header: undefined,
     },
-
     headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,
