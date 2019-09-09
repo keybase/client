@@ -12,6 +12,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
+import io.keybase.ossifrage.modules.NativeLogger;
 import keybase.Keybase;
 
 public class ChatBroadcastReceiver extends BroadcastReceiver {
@@ -47,12 +48,12 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
         repliedNotification.setContentText("Replied");
       } catch (Exception e) {
         repliedNotification.setContentText("Couldn't send reply");
-        e.printStackTrace();
+        NativeLogger.error("Failed to send quick reply", e);
       }
 
     } else {
       repliedNotification.setContentText("Couldn't send reply - Failed to read input.");
-      Log.d("KBQuickReply", "MessageBody was null");
+      NativeLogger.error("Message Body in quick reply was null");
     }
 
     notificationManager.notify(convData.convID, 0, repliedNotification.build());
