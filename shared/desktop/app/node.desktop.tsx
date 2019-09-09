@@ -1,4 +1,5 @@
 // Entry point for the node part of the electron app
+import './preload.desktop' // MUST be first
 import MainWindow, {showDockIcon} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
@@ -15,7 +16,7 @@ import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import {resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 
 let mainWindow: (ReturnType<typeof MainWindow>) | null = null
 let appStartedUp = false
@@ -264,6 +265,7 @@ const plumbEvents = () => {
           webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
+            preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
           },
           width: 500,
         }

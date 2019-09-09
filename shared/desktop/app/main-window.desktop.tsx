@@ -8,7 +8,7 @@ import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {dataRoot, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import logger from '../../logger'
-import {resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 import {debounce} from 'lodash-es'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
@@ -248,6 +248,7 @@ export default () => {
   loadWindowState()
 
   const win = new Electron.BrowserWindow({
+    backgroundColor: '#fff',
     frame: useNativeFrame,
     height: windowState.height,
     minHeight: 600,
@@ -258,6 +259,7 @@ export default () => {
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
+      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
     width: windowState.width,
     x: windowState.x,

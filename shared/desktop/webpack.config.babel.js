@@ -12,9 +12,8 @@ import HtmlWebpackPlugin from 'html-webpack-plugin'
 const config = (_, {mode}) => {
   const isDev = mode !== 'production'
   const isHot = isDev && !!process.env['HOT']
-  const isStats = !!process.env['STATS']
 
-  !isStats && console.error('Flags: ', {isDev, isHot})
+  console.error('Flags: ', {isDev, isHot})
 
   const makeRules = nodeThread => {
     const fileLoaderRule = {
@@ -116,12 +115,8 @@ const config = (_, {mode}) => {
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/), // Skip a bunch of crap moment pulls in
       ],
       resolve: {
-        ...(isHot
-          ? {
-              alias: {'react-dom': '@hot-loader/react-dom'},
-            }
-          : {}),
-        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json', '.flow'],
+        ...(isHot ? {alias: {'react-dom': '@hot-loader/react-dom'}} : {}),
+        extensions: ['.desktop.js', '.desktop.tsx', '.js', '.jsx', '.tsx', '.ts', '.json'],
       },
       stats: {
         ...(isDev
@@ -150,9 +145,7 @@ const config = (_, {mode}) => {
                       inline: 2,
                       warnings: false,
                     },
-                    output: {
-                      comments: false,
-                    },
+                    output: {comments: false},
                     // warnings: 'verbose', // uncomment to see more of what uglify is doing
                   },
                 }),
@@ -198,33 +191,41 @@ const config = (_, {mode}) => {
     ].filter(Boolean)
 
   // just keeping main in its old place
-  const entryOverride = {
-    main: 'desktop/renderer',
-  }
-
-  const typeOverride = {
-    main: 'tsx',
-    menubar: 'tsx',
-    pinentry: 'tsx',
-    tracker2: 'tsx',
-    'unlock-folders': 'tsx',
-  }
+  const entryOverride = {main: 'desktop/renderer'}
 
   // multiple entries so we can chunk shared parts
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
-      map[name] = `./${entryOverride[name] || name}/main.desktop.${typeOverride[name] || 'js'}`
+      map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
       return map
     }, {}),
+    externals: {
+      ...(isDev
+        ? {
+            // needed by webpack dev server, fulfilled by preload
+            punycode: 'KB.punycode',
+          }
+        : {
+            punycode: 'KB.punycode',
+          }),
+    },
     module: {rules: makeRules(false)},
     name: 'Keybase',
     optimization: {splitChunks: {chunks: 'all'}},
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })
+  const preloadConfig = merge(commonConfig, {
+    entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
+    module: {rules: makeRules(true)},
+    name: 'Keybase',
+    optimization: {splitChunks: {chunks: 'all'}},
+    plugins: [],
+    target: 'electron-main',
+  })
 
-  return [nodeConfig, viewConfig]
+  return [nodeConfig, viewConfig, preloadConfig]
 }
 
 export default config
