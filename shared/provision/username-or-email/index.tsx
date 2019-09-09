@@ -59,33 +59,40 @@ const Username = (props: Props) => {
       rightActionComponent={
         <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
       }
+      contentContainerStyle={styles.contentContainer}
     >
-      <Kb.UserCard
-        style={styles.card}
-        avatarBackgroundStyle={styles.outerCardAvatar}
-        outerStyle={styles.outerCard}
-        lighterPlaceholders={true}
-        avatarSize={96}
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={styles.fill}
+        contentContainerStyle={styles.scrollContentContainer}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
-          <Kb.LabeledInput
-            autoFocus={true}
-            placeholder="Username"
-            maxLength={maxUsernameLength}
-            onEnterKeyDown={onSubmit}
-            onChangeText={setUsername}
-            value={username}
-            textType="BodySemibold"
-          />
-          <Kb.Text
-            style={styles.forgotUsername}
-            type="BodySmallSecondaryLink"
-            onClick={props.onForgotUsername}
-          >
-            Forgot username?
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.UserCard>
+        <Kb.UserCard
+          style={styles.card}
+          avatarBackgroundStyle={styles.outerCardAvatar}
+          outerStyle={styles.outerCard}
+          lighterPlaceholders={true}
+          avatarSize={96}
+        >
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.wrapper} gap="xsmall">
+            <Kb.LabeledInput
+              autoFocus={true}
+              placeholder="Username"
+              maxLength={maxUsernameLength}
+              onEnterKeyDown={onSubmit}
+              onChangeText={setUsername}
+              value={username}
+              textType="BodySemibold"
+            />
+            <Kb.Text
+              style={styles.forgotUsername}
+              type="BodySmallSecondaryLink"
+              onClick={props.onForgotUsername}
+            >
+              Forgot username?
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.UserCard>
+      </Kb.ScrollView>
     </SignupScreen>
   )
 }
@@ -93,15 +100,6 @@ const Username = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      button: Styles.platformStyles({
-        common: {
-          alignSelf: 'center',
-          width: '100%',
-        },
-        isElectron: {
-          marginTop: Styles.globalMargins.medium,
-        },
-      }),
       card: Styles.platformStyles({
         common: {
           alignItems: 'stretch',
@@ -112,51 +110,23 @@ const styles = Styles.styleSheetCreate(
           paddingRight: 0,
         },
       }),
-      error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
-      errorLink: {
-        color: Styles.globalColors.redDark,
-        textDecorationLine: 'underline',
-      },
+      contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
+      fill: Styles.platformStyles({isMobile: {height: '100%', width: '100%'}}),
       forgotUsername: {
         alignSelf: 'flex-end',
       },
-      input: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.transparent,
-          padding: Styles.globalMargins.tiny,
-          paddingLeft: Styles.globalMargins.xsmall,
-          paddingRight: Styles.globalMargins.xsmall,
-        },
-        isMobile: {
-          flexGrow: 1,
-          marginBottom: Styles.globalMargins.small,
-          minHeight: 48,
-        },
-      }),
-      inputContainer: {
-        backgroundColor: Styles.globalColors.white,
-        borderColor: Styles.globalColors.blue,
-        borderRadius: 6,
-        borderStyle: 'solid',
-        borderWidth: 1,
-      },
-      inputLabel: {
-        color: Styles.globalColors.blue,
-        paddingBottom: 0,
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingRight: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.tiny,
-      },
       outerCard: {
-        height: 'auto',
-        marginTop: 40,
+        flex: 1,
       },
       outerCardAvatar: {
         backgroundColor: Styles.globalColors.transparent,
       },
-      outerStyle: {
-        backgroundColor: Styles.globalColors.white,
-      },
+      scrollContentContainer: Styles.platformStyles({
+        isElectron: {
+          margin: 'auto',
+        },
+        isMobile: {...Styles.padding(Styles.globalMargins.small)},
+      }),
       wrapper: Styles.platformStyles({
         isElectron: {
           width: 400,

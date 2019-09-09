@@ -60,7 +60,7 @@ class ImageView extends React.Component<ImageViewProps, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   image: {
     alignSelf: 'center',
     flex: 1,
@@ -74,6 +74,6 @@ const styles = Styles.styleSheetCreate({
     overflow: 'hidden',
     position: 'relative',
   },
-})
+}))
 
 export default ImageView

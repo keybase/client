@@ -1613,6 +1613,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			replyTo = new(chat1.UIMessage)
 			*replyTo = PresentMessageUnboxed(ctx, g, *valid.ReplyTo, uid, convID)
 		}
+		var pinnedMessageID *chat1.MessageID
+		if valid.MessageBody.IsType(chat1.MessageType_PIN) {
+			pinnedMessageID = new(chat1.MessageID)
+			*pinnedMessageID = valid.MessageBody.Pin().MsgID
+		}
 		loadTeamMentions(ctx, g, uid, valid)
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
@@ -1645,6 +1650,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			ReplyTo:               replyTo,
+			PinnedMessageID:       pinnedMessageID,
 			BotUID:                valid.ClientHeader.BotUID,
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
@@ -2445,6 +2451,25 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.Convs[0].GetConvID(), convID)
 	}
 	return inbox.Convs[0], nil
+}
+
+func IsMapUnfurl(msg chat1.MessageUnboxed) bool {
+	if !msg.IsValid() {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_UNFURL) {
+		return false
+	}
+	unfurl := body.Unfurl()
+	typ, err := unfurl.Unfurl.Unfurl.UnfurlType()
+	if err != nil {
+		return false
+	}
+	if typ != chat1.UnfurlType_GENERIC {
+		return false
+	}
+	return body.Unfurl().Unfurl.Unfurl.Generic().MapInfo != nil
 }
 
 func DedupStringLists(lists ...[]string) (res []string) {

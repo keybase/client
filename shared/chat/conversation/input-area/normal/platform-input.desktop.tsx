@@ -375,7 +375,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       cancelEditingText: {
-        color: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.whiteOrBlack,
       },
       container: {
         ...Styles.globalStyles.flexBoxColumn,

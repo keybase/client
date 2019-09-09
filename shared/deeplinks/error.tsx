@@ -42,7 +42,7 @@ const KeybaseLinkError = (props: OwnProps) => {
   return <Body onCancel={onClose} customCancelText="Close" isError={isError} message={message} />
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -58,6 +58,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 export default KeybaseLinkError

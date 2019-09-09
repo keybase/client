@@ -3159,56 +3159,58 @@ function* setupLocationUpdateLoop() {
   }
 }
 
+const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+  Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey,
+    info: {
+      actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+      displayText: text,
+      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+    },
+  })
+
 const onChatWatchPosition = async (
   _: TypedState,
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
   logger: Saga.SagaLogger
 ) => {
   const response = action.payload.response
-  if (isMobile) {
-    try {
-      await requestLocationPermission()
-    } catch (e) {
-      logger.info('failed to get location perms: ' + e)
-      return []
-    }
-    const watchID = navigator.geolocation.watchPosition(
-      pos => {
-        if (locationEmitter) {
-          locationEmitter(
-            Chat2Gen.createUpdateLastCoord({
-              coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-            })
-          )
-        }
-      },
-      err => {
-        logger.warn(err.message)
-        if (err.code && err.code === 1) {
-          RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
-        }
-      },
-      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
-    )
-    response.result(watchID)
-  } else {
-    setTimeout(() => {
-      RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.80424, lon: -73.962962},
-      })
-    }, 1000)
-    setTimeout(() => {
-      RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.756325, lon: -73.992533},
-      })
-    }, 6000)
-    setTimeout(() => {
-      RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.704454, lon: -74.010893},
-      })
-    }, 10000)
-    response.result(10)
+  if (!isMobile) {
+    return []
   }
+  try {
+    await requestLocationPermission(action.payload.params.perm)
+  } catch (err) {
+    logger.info('failed to get location perms: ' + err)
+    return setLocationDeniedCommandStatus(
+      Types.conversationIDToKey(action.payload.params.convID),
+      `Failed to access location. ${err.message}`
+    )
+  }
+  const watchID = navigator.geolocation.watchPosition(
+    pos => {
+      if (locationEmitter) {
+        locationEmitter(
+          Chat2Gen.createUpdateLastCoord({
+            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+          })
+        )
+      }
+    },
+    err => {
+      logger.warn(err.message)
+      if (err.code && err.code === 1 && locationEmitter) {
+        locationEmitter(
+          setLocationDeniedCommandStatus(
+            Types.conversationIDToKey(action.payload.params.convID),
+            `Failed to access location. ${err.message}`
+          )
+        )
+      }
+    },
+    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+  )
+  response.result(watchID)
   return []
 }
 

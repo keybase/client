@@ -1,5 +1,6 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
@@ -52,7 +53,26 @@ const requestPermissionsToWrite = async () => {
   return Promise.resolve()
 }
 
-export const requestLocationPermission = async () => {
+export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
+  if (isIOS) {
+    const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
+    switch (mode) {
+      case RPCChatTypes.UIWatchPositionPerm.base:
+        if (status !== 'granted') {
+          throw new Error('Please allow Keybase to access your location in the phone settings.')
+        }
+        break
+      case RPCChatTypes.UIWatchPositionPerm.always: {
+        const iOSPerms = permissions[Permissions.LOCATION].ios
+        if (!iOSPerms || iOSPerms.scope !== 'always') {
+          throw new Error(
+            'Please allow Keybase to access your location even if the app is not running for live location.'
+          )
+        }
+        break
+      }
+    }
+  }
   if (isAndroid) {
     const permissionStatus = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
@@ -63,11 +83,10 @@ export const requestLocationPermission = async () => {
         title: 'Keybase Location Permission',
       }
     )
-    return permissionStatus !== 'granted'
-      ? Promise.reject(new Error('Unable to acquire location permissions'))
-      : Promise.resolve()
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire location permissions')
+    }
   }
-  return Promise.resolve()
 }
 
 export const saveAttachmentDialog = async (filePath: string) => {

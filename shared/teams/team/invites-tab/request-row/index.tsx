@@ -107,11 +107,11 @@ const styleCharm = {
   marginRight: Styles.globalMargins.xtiny,
 } as const
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -32,
     },
   }),
-})
+}))

@@ -276,7 +276,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 		return msg, nil, err
 	}
 	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
-		// Don't do anything here for reactions, they can't be edited
+		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil
 	}
 
@@ -294,15 +294,21 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	// Use ConvSource with an `After` which query. Fetches from a combination of local cache
 	// and the server. This is an opportunity for the server to retain messages that should
 	// have been deleted without getting caught.
-	tv, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
-		chat1.GetThreadReason_PREPARE,
-		&chat1.GetThreadQuery{
-			MarkAsRead:   false,
-			MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
-			After:        &timeBeforeFirst,
-		}, nil)
-	if err != nil {
-		return msg, nil, err
+	var tv chat1.ThreadView
+	switch deleteTarget.ClientHeader.MessageType {
+	case chat1.MessageType_UNFURL:
+		// no edits/deletes possible here
+	default:
+		tv, err = s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
+			chat1.GetThreadReason_PREPARE,
+			&chat1.GetThreadQuery{
+				MarkAsRead:   false,
+				MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
+				After:        &timeBeforeFirst,
+			}, nil)
+		if err != nil {
+			return msg, nil, err
+		}
 	}
 
 	// Get all affected messages to be deleted

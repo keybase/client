@@ -139,7 +139,7 @@ class GetTitles extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonContainer: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-end',
@@ -222,6 +222,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {borderRadius: Styles.borderRadius},
   }),
-})
+}))
 
 export default Kb.HeaderOrPopup(GetTitles)

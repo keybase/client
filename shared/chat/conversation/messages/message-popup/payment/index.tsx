@@ -212,7 +212,7 @@ const PaymentPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   errorDetails: {
     maxWidth: 200,
     paddingLeft: Styles.globalMargins.tiny,
@@ -287,7 +287,7 @@ const styles = Styles.styleSheetCreate({
   popupContainer: Styles.platformStyles({
     isElectron: {maxWidth: 240, minWidth: 200},
   }),
-})
+}))
 
 const headerTop = (props: HeaderProps) => {
   return props.status === 'pending' ? styles.pendingHeaderTop : styles.headerTop

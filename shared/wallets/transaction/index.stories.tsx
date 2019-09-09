@@ -87,7 +87,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   })
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: platformStyles({
     isElectron: {
       maxWidth: 520,
@@ -96,7 +96,7 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 const load = () => {
   const stories = Sb.storiesOf('Wallets/Transaction', module)

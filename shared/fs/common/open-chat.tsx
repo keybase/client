@@ -24,11 +24,11 @@ const OpenChat = props =>
     </Kb.WithTooltip>
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerIcon: {
     padding: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   isTeam: Constants.isTeamPath(path),

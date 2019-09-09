@@ -35,7 +35,7 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contentContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -69,4 +69,4 @@ const styles = Styles.styleSheetCreate({
       top: 0,
     },
   }),
-})
+}))

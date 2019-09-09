@@ -51,7 +51,7 @@ const stylePieWhole = {
   position: 'absolute' as const,
   width: pieSize,
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     height: pieSize,
     position: 'relative' as const,
@@ -95,6 +95,6 @@ const styles = Styles.styleSheetCreate({
     ...stylePieWhole,
     borderRadius: pieHalfSize,
   },
-})
+}))
 
 export default PieSlice

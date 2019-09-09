@@ -65,7 +65,7 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
   </>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   stylesBox: {
     flexShrink: 0, // need this to be whole in menubar
     height,
@@ -86,6 +86,6 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
-})
+}))
 
 export default Upload

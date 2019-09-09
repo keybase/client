@@ -34,7 +34,7 @@ export const Task = (props: Props) => (
   </PeopleItem>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -50,4 +50,4 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
   },
-})
+}))

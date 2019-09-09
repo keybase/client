@@ -28,11 +28,11 @@ const AccountPageHeader = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.fillAbsolute,
     flex: 1,
   },
-})
+}))
 
 export default AccountPageHeader

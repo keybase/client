@@ -120,7 +120,7 @@ class PaymentStatus extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   claimable: {
     backgroundColor: Styles.globalColors.black_05OrBlack_60,
     borderRadius: Styles.globalMargins.xxtiny,
@@ -161,6 +161,6 @@ const styles = Styles.styleSheetCreate({
   pendingIcon: {
     color: Styles.globalColors.black_50OrWhite,
   },
-})
+}))
 
 export default PaymentStatus
