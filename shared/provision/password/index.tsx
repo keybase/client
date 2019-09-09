@@ -95,6 +95,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   outerCard: {
     flex: 1,
+    height: 'inherit',
   },
   outerCardAvatar: {
     backgroundColor: Styles.globalColors.transparent,
