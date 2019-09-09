@@ -108,6 +108,7 @@ const menuItems = memoize((countryData, filter, onClick) => {
       return a.name.localeCompare(b.name)
     })
     .map((cd: CountryData) => ({
+      alpha2: cd.alpha2,
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
       view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
@@ -141,6 +142,10 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     filter: '',
     selected: this.props.selected,
   }
+  _desktopItems:
+    | Array<{alpha2: string; onClick: () => void; title: string; view: React.ReactNode}>
+    | undefined
+  _mobileItems: Array<{label: string; value: string}> | undefined
 
   componentDidUpdate(prevProps: CountrySelectorProps) {
     if (this.props.selected !== prevProps.selected) {
@@ -149,6 +154,15 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   }
 
   _onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+
+  _onSelectFirst = () => {
+    if (Styles.isMobile && this._mobileItems && this._mobileItems.length >= 1) {
+      this.onSelectMenu(this._mobileItems[0].value)
+    } else if (this._desktopItems && this._desktopItems.length >= 1) {
+      this.onSelectMenu(this._desktopItems[0].alpha2)
+    }
+    this.props.onHidden()
+  }
 
   _onCancel = () => {
     this._onSelect(this.props.selected)
@@ -172,6 +186,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
 
   render() {
     if (!Styles.isMobile) {
+      this._desktopItems = menuItems(countryData, this.state.filter, this.onSelectMenu)
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
@@ -188,11 +203,12 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
                   onChange={this._onChangeFilter}
                   placeholderText="Search"
                   focusOnMount={true}
+                  onEnterKeyDown={this._onSelectFirst}
                 />
               </Kb.Box2>
             ),
           }}
-          items={menuItems(countryData, this.state.filter, this.onSelectMenu)}
+          items={this._desktopItems}
           listStyle={styles.countryList}
           onHidden={this.props.onHidden}
           visible={this.props.visible}
@@ -200,9 +216,10 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
         />
       )
     }
+    this._mobileItems = pickerItems(countryData)
     return (
       <Kb.FloatingPicker
-        items={pickerItems(countryData)}
+        items={this._mobileItems}
         onSelect={this._onSelect}
         onHidden={this._onCancel}
         onCancel={this._onCancel}
