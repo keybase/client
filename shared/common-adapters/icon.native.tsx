@@ -221,7 +221,7 @@ export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
 
-const styles = Styles.styleSheetCreate(() => () => ({
+const styles = Styles.styleSheetCreate(() => ({
   text: {
     color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',
