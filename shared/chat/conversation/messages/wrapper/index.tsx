@@ -457,7 +457,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <SetDescription key="setDescription" message={message} />
         break
       case 'pin':
-        child = <Pin key="pin" />
+        child = (
+          <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
+        )
         break
       case 'setChannelname':
         child = <SetChannelname key="setChannelname" message={message} />
