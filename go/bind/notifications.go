@@ -48,7 +48,9 @@ type ChatNotification struct {
 	BadgeCount          int
 }
 
-func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
+func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body string) (err error) {
+	ctx := context.Background()
+	defer kbCtx.CTraceTimed(ctx, fmt.Sprintf("HandlePostTextReply()"), func() error { return flattenError(err) })()
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
@@ -58,6 +60,17 @@ func HandlePostTextReply(strConvID, tlfName string, body string) (err error) {
 		return err
 	}
 	_, err = kbCtx.ChatHelper.SendTextByIDNonblock(context.Background(), convID, tlfName, body, &outboxID, nil)
+
+	kbCtx.Log.CDebugf(ctx, "Marking as read from QuickReply: convID: %s", strConvID)
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	uid, err := utils.AssertLoggedInUID(ctx, gc)
+	msgID := chat1.MessageID(intMessageID)
+	if err = kbChatCtx.InboxSource.MarkAsRead(context.Background(), convID, uid, msgID); err != nil {
+		kbCtx.Log.CDebugf(ctx, "Failed to mark as read from QuickReply: convID: %s. Err: %s", strConvID, err)
+		// We don't want to fail this method call just because we couldn't mark it as aread
+		err = nil
+	}
+
 	return err
 }
 
