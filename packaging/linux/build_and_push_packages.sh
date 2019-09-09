@@ -112,11 +112,6 @@ for blob in $dot_deb_blobs ; do
   s3cmd modify --remove-header "Cache-Control" "$blob"
   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
   s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
-
-  if [ "${KEYBASE_TEST:-}" = 1 ] ; then
-    s3cmd cp "$blob" "s3://prerelease.keybase.io/test/"
-    s3cmd cp "$blob.sig" "s3://prerelease.keybase.io/test/"
-  fi
 done
 echo Unsetting .rpm Cache-Control headers...
 dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
@@ -124,17 +119,7 @@ for blob in $dot_rpm_blobs ; do
   s3cmd modify --remove-header "Cache-Control" "$blob"
   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
   s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
-
-  if [ "${KEYBASE_TEST:-}" = 1 ] ; then
-    s3cmd cp "$blob" "s3://prerelease.keybase.io/test/"
-    s3cmd cp "$blob.sig" "s3://prerelease.keybase.io/test/"
-  fi
 done
-
-if [ "${KEYBASE_TEST:-}" = 1 ] ; then
-    echo "Ending test build."
-    exit 0
-fi
 
 # Make yet another copy of the .deb and .rpm packages we just made, in a
 # constant location for the friend-of-keybase instructions. Also make a
@@ -182,6 +167,10 @@ if [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
     echo "Ending nightly."
+    exit 0
+fi
+if [ "${KEYBASE_TEST:-}" = 1 ] ; then
+    echo "Ending test build."
     exit 0
 fi
 
