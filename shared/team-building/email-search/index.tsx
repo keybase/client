@@ -10,14 +10,14 @@ import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
-type EmailInputProps = {
+type EmailSearchProps = {
   continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'email') => void
   teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
 }
 
-const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailInputProps) => {
+const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailSearchProps) => {
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
@@ -125,4 +125,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default EmailInput
+export default EmailSearch

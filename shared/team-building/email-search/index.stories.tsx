@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import EmailInput from '.'
+import EmailSearch from '.'
 
 const namespace = 'chat2'
 
@@ -10,8 +10,12 @@ const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Email address', () => (
+<<<<<<< HEAD:shared/team-building/email-input/index.stories.tsx
       <EmailInput
         continueLabel="Continue"
+=======
+      <EmailSearch
+>>>>>>> email-input -> email-search:shared/team-building/email-search/index.stories.tsx
         search={Sb.action('search')}
         namespace={namespace}
         teamBuildingSearchResults={{

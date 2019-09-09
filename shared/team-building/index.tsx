@@ -26,7 +26,7 @@ import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
-import EmailInput from './email-input'
+import EmailSearch from './email-search'
 import * as Constants from '../constants/team-building'
 
 export const numSectionLabel = '0-9'
@@ -461,7 +461,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     switch (props.selectedService) {
       case 'email':
         content = (
-          <EmailInput
+          <EmailSearch
             continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
             namespace={props.namespace}
             teamBuildingSearchResults={props.teamBuildingSearchResults}
