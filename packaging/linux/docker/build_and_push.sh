@@ -30,7 +30,7 @@ docker build \
   -t "keybaseio/client:$tag-slim" \
   $client_dir
 
-# Push it
+# Push it (TODO Y2K-607)
 #docker tag keybaseio/client:$tag keybaseio/client:nightly
 #docker push keybaseio/client:$tag
 #docker push keybaseio/client:nightly
