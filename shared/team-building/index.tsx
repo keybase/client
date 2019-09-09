@@ -105,6 +105,7 @@ export type Props = ContactProps & {
   showServiceResultCount: boolean
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
   teamSoFar: Array<SelectedUser>
+  teamname: string
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
   title: string
@@ -509,10 +510,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : (
-          <Kb.Box2 direction="horizontal" alignItems="center">
-            <Kb.Text type="Header" style={{margin: Styles.globalMargins.xsmall}}>
-              {props.title}
-            </Kb.Text>
+          <Kb.Box2 direction="vertical" alignItems="center">
+            {props.rolePickerProps && (
+              <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+            )}
+            <Kb.Text type="Header">{props.title}</Kb.Text>
+            {props.rolePickerProps && (
+              <Kb.Text type="BodyTiny">Add as many members as you would like</Kb.Text>
+            )}
           </Kb.Box2>
         )}
         {teamBox &&
@@ -655,6 +660,11 @@ const styles = Styles.styleSheetCreate(
         isMobile: {flex: 1},
       }),
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
+      teamAvatar: Styles.platformStyles({
+        isElectron: {
+          marginTop: -16,
+        },
+      }),
       waiting: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: Styles.globalColors.black_20,

@@ -39,6 +39,7 @@ const commonProps = {
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
+  teamname: '',
 }
 
 const contactProps = {
