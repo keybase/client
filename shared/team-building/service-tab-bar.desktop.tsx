@@ -39,9 +39,9 @@ const ServiceIcon = (props: IconProps) => {
               />
             )}
             <Kb.Icon
+              color={color}
               fontSize={16}
               type={serviceIdToIconFont(props.service)}
-              style={Styles.collapseStyles([styles.serviceIcon, {color}])}
               boxStyle={styles.serviceIconBox}
             />
           </Kb.Box2>
@@ -250,9 +250,6 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
       },
       pendingIcon: {height: 10, width: 10},
-      serviceIcon: {
-        marginRight: Styles.globalMargins.xtiny,
-      },
       serviceIconBox: {
         marginTop: 14,
       },
