@@ -512,7 +512,7 @@ def testGo(prefix, packagesToTest) {
       println("Running golangci-lint for dead code")
       timeout(activity: true, time: 360, unit: 'SECONDS') {
         def diffFileList = getDiffFileList()
-        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | grep '^go\\/' | grep -v 'go/revision' | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
+        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | { grep '^go\\/' || true; } | { grep -v 'go/revision' || true; } | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
         diffPackageList.each { pkg ->
           dir(pkg) {
             // Ignore the exit code 5, which indicates that there were
