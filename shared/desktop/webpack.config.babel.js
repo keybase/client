@@ -204,7 +204,9 @@ const config = (_, {mode}) => {
       ...(isDev
         ? {
             // needed by webpack dev server, fulfilled by preload
+            events: 'KB.DEV.events',
             punycode: 'KB.punycode',
+            url: 'KB.DEV.url',
           }
         : {
             punycode: 'KB.punycode',
