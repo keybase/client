@@ -12,6 +12,7 @@ import {
   getTeamMembers,
   teamWaitingKey,
   getDisabledReasonsForRolePicker,
+  hasCanPerform,
 } from '../../../constants/teams'
 import {anyWaiting} from '../../../constants/waiting'
 
@@ -29,7 +30,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     disabledReasonsForRolePicker,
     follower: state.config.followers.has(username),
     following: state.config.following.has(username),
-    loading: anyWaiting(state, teamWaitingKey(teamname)),
+    loading: anyWaiting(state, teamWaitingKey(teamname)) || !hasCanPerform(state, teamname),
     teamname: teamname,
     yourOperations: getCanPerform(state, teamname),
   }
