@@ -3,8 +3,8 @@ FROM golang:1.12.4-stretch AS builder
 ARG SOURCE_COMMIT=unknown
 
 ARG SIGNING_FINGERPRINT
-ARG ARMORED_PRIVATE_KEY
-RUN echo "$ARMORED_PRIVATE_KEY" | gpg --import
+COPY .docker/code_signing_key /code_signing_key
+RUN gpg --import /code_signing_key
 
 COPY . /go/src/github.com/keybase/client
 RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
