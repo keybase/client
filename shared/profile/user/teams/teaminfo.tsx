@@ -81,7 +81,7 @@ class TeamInfo extends React.Component<Props, {requested: boolean}> {
                 metaOne={<OpenMeta isOpen={this.props.isOpen} />}
                 metaTwo={<Kb.Text type="BodySmall">{memberText}</Kb.Text>}
               />
-              <Kb.Text type="Body" selectable={true} style={styles.description}>
+              <Kb.Text type="Body" style={styles.description}>
                 {this.props.description}
               </Kb.Text>
               {this.props.onChat && (
