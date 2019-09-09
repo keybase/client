@@ -9,33 +9,32 @@ export type Props = {
   label: Label
 }
 
-const Go = (label: Label) => () => (
+const Go = (props: {label: Label}) => (
   <Kb.Text type="BodyBig" style={styles.go}>
-    {label}
+    {props.label}
   </Kb.Text>
 )
 
-const GoIcon = () => (
-  <Kb.Icon
-    type="iconfont-return"
-    fontSize={16}
-    color={Styles.globalColors.white}
-    style={Kb.iconCastPlatformStyles(styles.goIcon)}
-  />
-)
-
-const GoWithIconHover = Kb.HoverHoc(Go('Start'), GoIcon)
-const AddWithIconHover = Kb.HoverHoc(Go('Add'), GoIcon)
-
 const GoButton = (props: Props) => (
   <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
-    <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-      {props.label === 'Start' ? (
-        <GoWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />
-      ) : (
-        <AddWithIconHover hoverContainerStyle={styles.hoverContainerStyle} />
-      )}
-    </Kb.Box2>
+    <Kb.WithTooltip
+      text={
+        <Kb.Box2 direction="horizontal">
+          <Kb.Icon
+            type="iconfont-return"
+            sizeType="Small"
+            color={Styles.globalColors.white}
+            style={styles.goTooltipIcon}
+          />
+          Enter
+        </Kb.Box2>
+      }
+      containerStyle={styles.goTooltipIconContainer}
+    >
+      <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
+        {props.label === 'Start' ? <Go label="Start" /> : <Go label="Add" />}
+      </Kb.Box2>
+    </Kb.WithTooltip>
   </Kb.ClickableBox>
 )
 
@@ -59,6 +58,17 @@ const styles = Styles.styleSheetCreate(() => ({
   goIcon: Styles.platformStyles({
     isElectron: {
       lineHeight: 40,
+    },
+  }),
+  goTooltipIcon: Styles.platformStyles({
+    isElectron: {
+      marginRight: Styles.globalMargins.xtiny,
+      verticalAlign: 'middle',
+    },
+  }),
+  goTooltipIconContainer: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.fullHeight,
     },
   }),
   hoverContainerStyle: Styles.platformStyles({
