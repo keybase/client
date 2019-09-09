@@ -2229,7 +2229,16 @@ func TestProvisionPaperFailures(t *testing.T) {
 	defer tcSwap.Cleanup()
 
 	words := strings.Fields(uxPaper)
-	words[2], words[3] = words[3], words[2]
+	didSwap := false
+	for i := 2; i < len(words) - 1; i++ {
+		if words[i] != words[i+1] {
+			didSwap = true
+			words[i], words[i+1] = words[i+1], words[i]
+		}
+	}
+	if !didSwap {
+		t.Fatal("paper key words were all the same; could not swap")
+	}
 	swapped := strings.Join(words, " ")
 	secUI = ux.NewSecretUI()
 	secUI.Passphrase = swapped
