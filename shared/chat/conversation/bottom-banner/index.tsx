@@ -38,11 +38,12 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
       : `these ${users.length} people`
   const mobileClickInstall =
     users.length === 1 && users[0].endsWith('@phone') ? () => openSMS(users[0].slice(0, -6)) : openShareSheet
+  const caption = `Last step: summon ${theirName}`!
 
   if (isMobile) {
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
-        <BannerText>Last step: summon {theirName}!</BannerText>
+        <BannerText>{caption}</BannerText>
         <Box2 direction="horizontal" gap="tiny">
           <Button
             label={Flags.wonderland ? '🐇 Send install link' : 'Send install link'}
@@ -55,19 +56,6 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
       </BannerBox>
     )
   }
-
-  const hasPhoneNumber = users.some(user => user.endsWith('@phone'))
-  const hasEmailAddress = users.some(user => user.endsWith('@email'))
-
-  let caption = 'Your messages will unlock once they join Keybase'
-  if (hasPhoneNumber && hasEmailAddress) {
-    caption += ' and verify their phone number or email address'
-  } else if (hasPhoneNumber) {
-    caption += ' and verify their phone number'
-  } else if (hasEmailAddress) {
-    caption += ' and verify their email address'
-  }
-  caption += '.'
 
   return (
     <BannerBox color={Styles.globalColors.blue}>
@@ -83,6 +71,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
           onClickURL="https://keybase.io/app"
           underline={true}
           type="BodySmallPrimaryLink"
+          selectable={true}
           style={{marginLeft: Styles.globalMargins.xtiny}}
         >
           https://keybase.io/app
