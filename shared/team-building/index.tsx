@@ -335,13 +335,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           style={styles.loadingContainer}
         >
           {showLoading && (
-            <>
-              <Kb.Icon
-                style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
-                type="icon-progress-grey-animated"
-              />
-              <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
-            </>
+            <Kb.Icon
+              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
+              type="icon-progress-grey-animated"
+            />
           )}
         </Kb.Box2>
       )
