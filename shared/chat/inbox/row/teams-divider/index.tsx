@@ -25,14 +25,25 @@ class TeamsDivider extends React.PureComponent<Props> {
         gapEnd={true}
       >
         {this.props.showButton && (
+          <Kb.Button
+            badgeNumber={10}
+            label={this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
+            onClick={this.props.toggle}
+            small={true}
+            style={{
+              alignSelf: 'center',
+              width: 100,
+            }}
+            type="Dim"
+          />
+        )}
+        {this.props.showButton && (
           <Kb.ClickableBox onClick={this.props.toggle} style={styles.containerToggleButton}>
             <Kb.Box2 direction="horizontal" className="toggleButtonClass" style={styles.toggleButton}>
               <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
                 {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
               </Kb.Text>
-              {this.props.hiddenCount > 0 && this.props.badgeCount > 0 && (
-                <Kb.Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
-              )}
+                <Kb.Badge badgeStyle={styles.badge} badgeNumber={10} />
             </Kb.Box2>
           </Kb.ClickableBox>
         )}

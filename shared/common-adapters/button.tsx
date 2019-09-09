@@ -1,4 +1,5 @@
 /* eslint-disable sort-keys */
+import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles} from './icon'
@@ -8,6 +9,7 @@ import * as Styles from '../styles'
 import './button.css'
 
 const Kb = {
+  Badge,
   Box,
   Box2,
   ClickableBox,
@@ -19,6 +21,7 @@ export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim'
 export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yellow'
 // Either type or backgroundColor must be set
 export type Props = {
+  badgeNumber?: number
   children?: React.ReactNode
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
@@ -158,6 +161,9 @@ class Button extends React.Component<Props> {
               </Kb.Text>
             )}
           </Kb.Box2>
+          {this.props.badgeNumber && this.props.badgeNumber !== 0 && (
+            <Kb.Badge badgeNumber={this.props.badgeNumber} badgeStyle={styles.badge} />
+          )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Kb.Box>
       </Kb.ClickableBox>
@@ -200,6 +206,10 @@ const common = () =>
   })
 
 const styles = Styles.styleSheetCreate(() => ({
+  badge: {
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: 0,
+  },
   fullWidth: {
     flexGrow: 1,
     maxWidth: 460,
