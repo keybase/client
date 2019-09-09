@@ -249,9 +249,11 @@ const styles = Styles.styleSheetCreate(
       },
       button: Styles.platformStyles({
         isElectron: {
+          height: 32,
           width: 368,
         },
         isMobile: {
+          height: 40,
           width: '100%',
         },
       }),
