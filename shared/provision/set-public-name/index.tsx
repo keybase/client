@@ -51,7 +51,7 @@ const SetPublicName = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   backButton: platformStyles({
     isElectron: {
       marginLeft: globalMargins.medium,
@@ -75,13 +75,13 @@ const styles = styleSheetCreate({
   }),
   wrapper: platformStyles({
     isElectron: {
-      width: 460,
+      width: 400,
     },
     isMobile: {
       width: '100%',
     },
   }),
-})
+}))
 
 SetPublicName.navigationOptions = {
   header: null,

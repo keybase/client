@@ -347,6 +347,10 @@ export type MessageTypes = {
     inParam: {readonly email: String}
     outParam: void
   }
+  'keybase.1.account.recoverUsernameWithPhone': {
+    inParam: {readonly phone: PhoneNumber}
+    outParam: void
+  }
   'keybase.1.account.setLockdownMode': {
     inParam: {readonly enabled: Boolean}
     outParam: void
@@ -794,6 +798,10 @@ export type MessageTypes = {
   'keybase.1.kbfsMount.GetCurrentMountDir': {
     inParam: void
     outParam: String
+  }
+  'keybase.1.kbfsMount.GetKBFSPathInfo': {
+    inParam: {readonly standardPath: String}
+    outParam: KBFSPathInfo
   }
   'keybase.1.kbfsMount.GetPreferredMountDirs': {
     inParam: void
@@ -2492,6 +2500,7 @@ export type InterestingPerson = {readonly uid: UID; readonly username: String; r
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision | null} | {KBFSArchivedType: KBFSArchivedType.time; time: Time | null} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String | null} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String | null}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
 export type KBFSPath = {readonly path: String; readonly identifyBehavior?: TLFIdentifyBehavior | null}
+export type KBFSPathInfo = {readonly standardPath: String; readonly deeplinkPath: String; readonly platformAfterMountPath: String}
 export type KBFSRevision = Int64
 export type KBFSRoot = {readonly treeID: MerkleTreeID; readonly root: KBFSRootHash}
 export type KBFSRootHash = Bytes
@@ -2591,7 +2600,7 @@ export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devic
 export type ProblemTLF = {readonly tlf: TLF; readonly score: Int; readonly solution_kids?: Array<KID> | null}
 export type Process = {readonly pid: String; readonly command: String; readonly fileDescriptors?: Array<FileDescriptor> | null}
 export type ProcessRuntimeStats = {readonly type: ProcessType; readonly cpu: String; readonly resident: String; readonly virt: String; readonly free: String; readonly goheap: String; readonly goheapsys: String; readonly goreleased: String; readonly cpuSeverity: StatsSeverityLevel; readonly residentSeverity: StatsSeverityLevel}
-export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly assertion: String; readonly displayName: String; readonly displayLabel: String}
+export type ProcessedContact = {readonly contactIndex: Int; readonly contactName: String; readonly component: ContactComponent; readonly resolved: Boolean; readonly uid: UID; readonly username: String; readonly fullName: String; readonly following: Boolean; readonly serviceMap: {[key: string]: String}; readonly assertion: String; readonly displayName: String; readonly displayLabel: String}
 export type ProfileTeamLoadRes = {readonly loadTimeNsec: Long}
 export type Progress = Int
 export type ProofResult = {readonly state: ProofState; readonly status: ProofStatus; readonly desc: String}
@@ -3096,6 +3105,7 @@ export const accountHasServerKeysRpcPromise = (params: MessageTypes['keybase.1.a
 export const accountPassphraseChangeRpcPromise = (params: MessageTypes['keybase.1.account.passphraseChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountPassphraseCheckRpcPromise = (params: MessageTypes['keybase.1.account.passphraseCheck']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseCheck']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseCheck', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountRecoverUsernameWithEmailRpcPromise = (params: MessageTypes['keybase.1.account.recoverUsernameWithEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.recoverUsernameWithEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.recoverUsernameWithEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountRecoverUsernameWithPhoneRpcPromise = (params: MessageTypes['keybase.1.account.recoverUsernameWithPhone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.recoverUsernameWithPhone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.recoverUsernameWithPhone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountSetLockdownModeRpcPromise = (params: MessageTypes['keybase.1.account.setLockdownMode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.setLockdownMode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.setLockdownMode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverDeleteRpcPromise = (params: MessageTypes['keybase.1.apiserver.Delete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Delete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Delete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverGetRpcPromise = (params: MessageTypes['keybase.1.apiserver.Get']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Get']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Get', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3175,6 +3185,7 @@ export const installInstallFuseRpcPromise = (params: MessageTypes['keybase.1.ins
 export const installInstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.installKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.installKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installUninstallKBFSRpcPromise = (params: MessageTypes['keybase.1.install.uninstallKBFS']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.install.uninstallKBFS']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.uninstallKBFS', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetCurrentMountDirRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetCurrentMountDir']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetCurrentMountDir', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const kbfsMountGetKBFSPathInfoRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetKBFSPathInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetKBFSPathInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const kbfsMountGetPreferredMountDirsRpcPromise = (params: MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.kbfsMount.GetPreferredMountDirs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.kbfsMount.GetPreferredMountDirs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginAccountDeleteRpcPromise = (params: MessageTypes['keybase.1.login.accountDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.accountDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.accountDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const loginDeprovisionRpcPromise = (params: MessageTypes['keybase.1.login.deprovision']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.login.deprovision']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.login.deprovision', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3257,7 +3268,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.resetAccount'
-// 'keybase.1.account.recoverUsernameWithPhone'
 // 'keybase.1.account.enterResetPipeline'
 // 'keybase.1.account.cancelReset'
 // 'keybase.1.account.timeTravelReset'

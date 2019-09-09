@@ -291,7 +291,7 @@ function* unboxRows(
             Chat2Gen.createMetaReceivedError({
               conversationIDKey: conversationIDKey,
               error,
-              username: state.config.username || '',
+              username: state.config.username,
             })
           )
         })
@@ -1238,11 +1238,26 @@ function* loadMoreMessages(
     )
   } catch (e) {
     logger.warn(e.message)
+    // no longer in team
+    if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
+      yield* maybeKickedFromTeam(conversationIDKey)
+      return
+    }
     if (e.code !== RPCTypes.StatusCode.scteamreaderror) {
       // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
       throw e
     }
   }
+}
+
+function* maybeKickedFromTeam(conversationIDKey: Types.ConversationIDKey) {
+  yield Saga.put(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
+  yield Saga.put(
+    Chat2Gen.createNavigateToInbox({
+      avoidConversationID: conversationIDKey,
+      findNewConversation: true,
+    })
+  )
 }
 
 function* getUnreadline(
@@ -1274,18 +1289,25 @@ function* getUnreadline(
   }
 
   const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
-  const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
-    convID,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-    readMsgID: readMsgID < 0 ? 0 : readMsgID,
-  })
-  const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-  yield Saga.put(
-    Chat2Gen.createUpdateUnreadline({
-      conversationIDKey,
-      messageID: Types.numberToMessageID(unreadlineID),
+  try {
+    const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
+      convID,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      readMsgID: readMsgID < 0 ? 0 : readMsgID,
     })
-  )
+    const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+    yield Saga.put(
+      Chat2Gen.createUpdateUnreadline({
+        conversationIDKey,
+        messageID: Types.numberToMessageID(unreadlineID),
+      })
+    )
+  } catch (e) {
+    if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
+      yield* maybeKickedFromTeam(conversationIDKey)
+    }
+    // ignore this error in general
+  }
 }
 
 // Show a desktop notification
@@ -2949,7 +2971,7 @@ const toggleMessageReaction = (
         conversationIDKey,
         emoji,
         targetOrdinal: ordinal,
-        username: state.config.username || '',
+        username: state.config.username,
       })
     )
     .catch(() =>
@@ -2957,7 +2979,7 @@ const toggleMessageReaction = (
         conversationIDKey,
         emoji,
         targetOrdinal: ordinal,
-        username: state.config.username || '',
+        username: state.config.username,
       })
     )
 }
@@ -3104,51 +3126,75 @@ const onChatMaybeMentionUpdate = (
   })
 }
 
+let locationEmitter: ((input: unknown) => void) | null = null
+
+function* setupLocationUpdateLoop() {
+  if (locationEmitter) {
+    return
+  }
+  const locationChannel = yield Saga.eventChannel(emitter => {
+    locationEmitter = emitter
+    // we never unsubscribe
+    return () => {}
+  }, Saga.buffers.expanding(10))
+  while (true) {
+    const action = yield Saga.take(locationChannel)
+    yield Saga.put(action)
+  }
+}
+
+const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+  Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey,
+    info: {
+      actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+      displayText: text,
+      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+    },
+  })
+
 const onChatWatchPosition = async (
   _: TypedState,
   action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
   logger: Saga.SagaLogger
 ) => {
   const response = action.payload.response
-  if (isMobile) {
-    try {
-      await requestLocationPermission()
-    } catch (e) {
-      logger.info('failed to get location perms: ' + e)
-      return []
-    }
-    const watchID = navigator.geolocation.watchPosition(
-      pos =>
-        RPCChatTypes.localLocationUpdateRpcPromise({
-          coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-        }),
-      err => {
-        logger.warn(err.message)
-        if (err.code && err.code === 1) {
-          RPCChatTypes.localLocationDeniedRpcPromise({convID: action.payload.params.convID})
-        }
-      },
-      {enableHighAccuracy: isIOS, maximumAge: 0, timeout: 30000}
-    )
-    response.result(watchID)
-  } else {
-    setTimeout(() => {
-      RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.80424, lon: -73.962962},
-      })
-    }, 1000)
-    setTimeout(() => {
-      RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.756325, lon: -73.992533},
-      })
-    }, 6000)
-    setTimeout(() => {
-      RPCChatTypes.localLocationUpdateRpcPromise({
-        coord: {accuracy: 65, lat: 40.704454, lon: -74.010893},
-      })
-    }, 10000)
-    response.result(10)
+  if (!isMobile) {
+    return []
   }
+  try {
+    await requestLocationPermission(action.payload.params.perm)
+  } catch (err) {
+    logger.info('failed to get location perms: ' + err)
+    return setLocationDeniedCommandStatus(
+      Types.conversationIDToKey(action.payload.params.convID),
+      `Failed to access location. ${err.message}`
+    )
+  }
+  const watchID = navigator.geolocation.watchPosition(
+    pos => {
+      if (locationEmitter) {
+        locationEmitter(
+          Chat2Gen.createUpdateLastCoord({
+            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+          })
+        )
+      }
+    },
+    err => {
+      logger.warn(err.message)
+      if (err.code && err.code === 1 && locationEmitter) {
+        locationEmitter(
+          setLocationDeniedCommandStatus(
+            Types.conversationIDToKey(action.payload.params.convID),
+            `Failed to access location. ${err.message}`
+          )
+        )
+      }
+    },
+    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+  )
+  response.result(watchID)
   return []
 }
 
@@ -3188,6 +3234,15 @@ const unpinMessage = async (_: TypedState, action: Chat2Gen.UnpinMessagePayload)
 const ignorePinnedMessage = (_: TypedState, action: Chat2Gen.IgnorePinnedMessagePayload) =>
   RPCChatTypes.localIgnorePinnedMessageRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
+  })
+
+const onUpdateLastCoord = (_: TypedState, action: Chat2Gen.UpdateLastCoordPayload) =>
+  RPCChatTypes.localLocationUpdateRpcPromise({
+    coord: {
+      accuracy: action.payload.coord.accuracy,
+      lat: action.payload.coord.lat,
+      lon: action.payload.coord.lon,
+    },
   })
 
 const openChatFromWidget = (
@@ -3688,6 +3743,8 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(Chat2Gen.unpinMessage, unpinMessage)
   yield* Saga.chainAction2(Chat2Gen.ignorePinnedMessage, ignorePinnedMessage)
 
+  yield* Saga.chainAction2(Chat2Gen.updateLastCoord, onUpdateLastCoord)
+
   yield* Saga.chainGenerator<Chat2Gen.LoadAttachmentViewPayload>(
     Chat2Gen.loadAttachmentView,
     loadAttachmentView
@@ -3695,6 +3752,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
 
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    setupLocationUpdateLoop
+  )
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()

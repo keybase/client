@@ -277,3 +277,52 @@ func TestHiddenNeedRotate(t *testing.T) {
 	// look nicer.
 	time.Sleep(10 * time.Millisecond)
 }
+
+// See Y2K-611, the scenario we are testing is:
+//
+//    visible[1] - root - PTK[1]
+//    visible[2] - add member
+//    visible[3] - rotate - PTK[2]
+//    hidden[1] - rotate - PTK[3]
+//
+// Now let's say we FTL load this team first, and then full load it. We'll be slotting in
+// the PTK at generation 2 after we've loaded PTK at generation 3 via the hidden chain.
+//
+func TestHiddenRotateOtherFTLThenSlowLoad(t *testing.T) {
+
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	ctx := context.TODO()
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(ctx, tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	rot := func(typ keybase1.RotationType) {
+		team, err := GetForTestByID(ctx, tcs[0].G, teamID)
+		require.NoError(t, err)
+		err = team.rotate(ctx, typ)
+		require.NoError(t, err)
+	}
+
+	t.Logf("U0 rotates the team once (via visible)")
+	rot(keybase1.RotationType_VISIBLE)
+	t.Logf("U0 rotates the team once (via hidden)")
+	rot(keybase1.RotationType_HIDDEN)
+
+	mctx := libkb.NewMetaContextForTest(*tcs[1])
+	farg := keybase1.FastTeamLoadArg{
+		ID:            teamID,
+		NeedLatestKey: true,
+		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+	}
+	_, err = tcs[1].G.GetFastTeamLoader().Load(mctx, farg)
+	require.NoError(t, err)
+	team, err := Load(ctx, tcs[1].G, keybase1.LoadTeamArg{ID: teamID, Public: false, ForceRepoll: true})
+	require.NoError(t, err)
+	require.Equal(t, team.Generation(), keybase1.PerTeamKeyGeneration(3))
+}

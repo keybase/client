@@ -44,7 +44,7 @@ export default namedConnect(
   'FsNavHeaderRightActions'
 )(FsNavHeaderRightActions)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDraggingClickable,
@@ -63,4 +63,4 @@ const styles = Styles.styleSheetCreate({
       marginRight: Styles.globalMargins.tiny,
     },
   }),
-})
+}))

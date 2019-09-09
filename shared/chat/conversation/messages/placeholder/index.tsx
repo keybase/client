@@ -22,17 +22,20 @@ const MessagePlaceholder = React.memo((props: Props) => {
   )
 })
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    alignItems: 'center',
-    height: Styles.isMobile ? 22 : 17, // to match a line of text
-    width: '100%',
-  },
-  spinner: {
-    height: 13,
-    marginLeft: 0,
-    width: 13,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        alignItems: 'center',
+        height: Styles.isMobile ? 22 : 17, // to match a line of text
+        width: '100%',
+      },
+      spinner: {
+        height: 13,
+        marginLeft: 0,
+        width: 13,
+      },
+    } as const)
+)
 
 export default MessagePlaceholder

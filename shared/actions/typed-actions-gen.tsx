@@ -198,6 +198,7 @@ export type TypedActionsMap = {
   'chat2:unpinMessage': chat2.UnpinMessagePayload
   'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
+  'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -293,6 +294,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatClearWatch': enginegen.Chat1ChatUiChatClearWatchPayload
   'engine-gen:chat1ChatUiChatCommandStatus': enginegen.Chat1ChatUiChatCommandStatusPayload
   'engine-gen:chat1ChatUiChatBotCommandsUpdateStatus': enginegen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
+  'engine-gen:chat1ChatUiTriggerContactSync': enginegen.Chat1ChatUiTriggerContactSyncPayload
   'engine-gen:chat1NotifyChatNewChatActivity': enginegen.Chat1NotifyChatNewChatActivityPayload
   'engine-gen:chat1NotifyChatChatIdentifyUpdate': enginegen.Chat1NotifyChatChatIdentifyUpdatePayload
   'engine-gen:chat1NotifyChatChatTLFFinalize': enginegen.Chat1NotifyChatChatTLFFinalizePayload
@@ -530,11 +532,6 @@ export type TypedActionsMap = {
   'fs:setSendAttachmentToChatFilter': fs.SetSendAttachmentToChatFilterPayload
   'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
   'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
-  'fs:initSendLinkToChat': fs.InitSendLinkToChatPayload
-  'fs:setSendLinkToChatConvID': fs.SetSendLinkToChatConvIDPayload
-  'fs:setSendLinkToChatChannels': fs.SetSendLinkToChatChannelsPayload
-  'fs:triggerSendLinkToChat': fs.TriggerSendLinkToChatPayload
-  'fs:sentLinkToChat': fs.SentLinkToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
   'fs:setPathItemActionMenuDownloadKey': fs.SetPathItemActionMenuDownloadKeyPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
@@ -552,6 +549,8 @@ export type TypedActionsMap = {
   'fs:refreshMountDirsAfter10s': fs.RefreshMountDirsAfter10sPayload
   'fs:setDirectMountDir': fs.SetDirectMountDirPayload
   'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
+  'fs:loadPathInfo': fs.LoadPathInfoPayload
+  'fs:loadedPathInfo': fs.LoadedPathInfoPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -770,11 +769,9 @@ export type TypedActionsMap = {
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
-  'team-building:searchEmailAddress': teambuilding.SearchEmailAddressPayload
   'team-building:addUsersToTeamSoFar': teambuilding.AddUsersToTeamSoFarPayload
   'team-building:removeUsersFromTeamSoFar': teambuilding.RemoveUsersFromTeamSoFarPayload
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
-  'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload

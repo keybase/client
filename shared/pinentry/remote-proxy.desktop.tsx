@@ -36,7 +36,7 @@ const RemotePinentry = compose(
 )(NullComponent)
 
 type Props = {
-  remoteWindowNeedsProps?: I.Map<string, number>
+  remoteWindowNeedsProps?: Map<string, number>
   sessionIDToPinentry: I.Map<number, Types.PinentryState>
 }
 

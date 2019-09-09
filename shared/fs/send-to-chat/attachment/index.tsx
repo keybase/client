@@ -86,7 +86,7 @@ const SendAttachmentToChat = Styles.isMobile
 
 export default SendAttachmentToChat
 
-const mobileStyles = Styles.styleSheetCreate({
+const mobileStyles = Styles.styleSheetCreate(() => ({
   button: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
@@ -104,9 +104,9 @@ const mobileStyles = Styles.styleSheetCreate({
     flexShrink: 1,
     padding: Styles.globalMargins.xtiny,
   },
-})
+}))
 
-const desktopStyles = Styles.styleSheetCreate({
+const desktopStyles = Styles.styleSheetCreate(() => ({
   belly: {
     ...Styles.globalStyles.flexGrow,
     alignItems: 'center',
@@ -135,4 +135,4 @@ const desktopStyles = Styles.styleSheetCreate({
   pathItem: {
     marginTop: Styles.globalMargins.mediumLarge,
   },
-})
+}))

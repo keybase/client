@@ -1,11 +1,10 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
-import * as Constants from '../../../constants/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
-import Header from './header-container'
+import Header from './header'
 
 type ActionOrInProgress = (() => void) | 'in-progress'
 
@@ -27,7 +26,6 @@ type Props = {
   showInSystemFileManager?: (() => void) | null
   share?: (() => void) | null
   sendAttachmentToChat?: (() => void) | null
-  sendLinkToChat?: (() => void) | null
   sendToOtherApp?: ActionOrInProgress | null
 }
 
@@ -106,7 +104,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy path',
+          title: 'Copy universal path',
         },
       ]
     : []),
@@ -115,20 +113,6 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
         {
           onClick: props.share,
           title: 'Share...',
-        },
-      ]
-    : []),
-  ...(props.sendLinkToChat
-    ? [
-        {
-          onClick: () => {
-            props.floatingMenuProps.hideOnce()
-            props.sendLinkToChat && props.sendLinkToChat()
-          },
-          subTitle: `The ${
-            props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
-          } will be sent as a link.`,
-          title: `Send to ${Constants.getChatTarget(props.path, props.me)}`,
         },
       ]
     : []),
@@ -208,7 +192,7 @@ export default (props: Props) => {
       attachTo={props.floatingMenuProps.attachTo}
       visible={props.floatingMenuProps.visible}
       onHidden={props.floatingMenuProps.hideOnce}
-      position="bottom right"
+      position="left center"
       header={{
         title: 'unused',
         view: <Header path={props.path} />,
@@ -218,7 +202,7 @@ export default (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   menuRowText: {
     color: Styles.globalColors.blueDark,
   },
@@ -234,4 +218,4 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: 0,
   },
-})
+}))

@@ -351,7 +351,10 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 	// If no identifyUI was specified (because running the background)
 	// then don't do anything.
 	if m.UIs().IdentifyUI != nil {
-		m.UIs().IdentifyUI.Cancel(m)
+		err := m.UIs().IdentifyUI.Cancel(m)
+		if err != nil {
+			m.Debug("| error during cancel: %+v", err)
+		}
 	}
 }
 
@@ -558,7 +561,10 @@ func (e *Identify2WithUID) maybeCacheSelf(m libkb.MetaContext) {
 	if e.getCache() != nil {
 		v, err := e.exportToResult(m)
 		if v != nil && err == nil {
-			e.getCache().Insert(v)
+			err := e.getCache().Insert(v)
+			if err != nil {
+				m.Debug("| error inserting: %+v", err)
+			}
 		}
 	}
 }
@@ -602,7 +608,10 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 	if !isOK && !canCacheFailures {
 		m.Debug("| clearing cache due to failure")
 		uid := e.them.GetUID()
-		e.getCache().Delete(uid)
+		err := e.getCache().Delete(uid)
+		if err != nil {
+			m.Debug("| Error deleting uid: %+v", err)
+		}
 		if err := e.removeSlowCacheFromDB(m); err != nil {
 			m.Debug("| Error in removing slow cache from db: %s", err)
 		}
@@ -619,7 +628,11 @@ func (e *Identify2WithUID) maybeCacheResult(m libkb.MetaContext) {
 		m.Debug("| not caching; nil result")
 		return
 	}
-	e.getCache().Insert(v)
+	err = e.getCache().Insert(v)
+	if err != nil {
+		m.Debug("| error inserting: %+v", err)
+	}
+
 	m.VLogf(libkb.VLog1, "| insert %+v", v)
 
 	// Don't write failures to the disk cache
@@ -856,7 +869,10 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	e.insertTrackToken(m, outcome)
+	err = e.insertTrackToken(m, outcome)
+	if err != nil {
+		m.Debug("| Error inserting track token: %+v", err)
+	}
 
 	if err = iui.Finish(m); err != nil {
 		m.Debug("| Failure in iui.Finish")
@@ -1170,7 +1186,10 @@ func (e *Identify2WithUID) checkSlowCacheHit(m libkb.MetaContext) (ret bool) {
 
 	// Update so that it hits the fast cache the next time
 	u.Upk.Uvv.CachedAt = keybase1.ToTime(e.getNow(m))
-	e.getCache().Insert(u)
+	err = e.getCache().Insert(u)
+	if err != nil {
+		m.Debug("| error on insert: %+v", err)
+	}
 	return true
 }
 

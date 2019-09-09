@@ -13,6 +13,7 @@ const props: Props = {
     type: 'desktop',
   }),
   endangeredTLFs: [],
+  iconNumber: 1,
   onCancel: Sb.action('oncancel'),
   onSubmit: Sb.action('onsubmit'),
   waiting: false,

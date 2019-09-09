@@ -38,10 +38,10 @@ const NoteAndMemo = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: Styles.platformStyles({
     common: {color: Styles.globalColors.black},
-    isElectron: {wordBreak: 'break-word'},
+    isElectron: {wordBreak: 'break-word'} as const,
   }),
   headingText: {
     color: Styles.globalColors.blueDark,
@@ -53,6 +53,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default NoteAndMemo

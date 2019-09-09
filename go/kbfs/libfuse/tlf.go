@@ -287,6 +287,14 @@ func (tlf *TLF) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	return dir.Symlink(ctx, req)
 }
 
+var _ fs.NodeLinker = (*TLF)(nil)
+
+// Link implements the fs.NodeLinker interface for TLF.
+func (tlf *TLF) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
 // Rename implements the fs.NodeRenamer interface for TLF.
 func (tlf *TLF) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) error {

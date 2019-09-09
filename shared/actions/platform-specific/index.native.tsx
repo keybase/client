@@ -1,10 +1,12 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -51,20 +53,40 @@ const requestPermissionsToWrite = (): Promise<void> => {
   return Promise.resolve()
 }
 
-export const requestLocationPermission = (): Promise<void> => {
-  if (isAndroid) {
-    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
-      buttonNegative: 'Cancel',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your location in order to post it.',
-      title: 'Keybase Location Permission',
-    }).then(permissionStatus =>
-      permissionStatus !== 'granted'
-        ? Promise.reject(new Error('Unable to acquire location permissions'))
-        : Promise.resolve()
-    )
+export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
+  if (isIOS) {
+    const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
+    switch (mode) {
+      case RPCChatTypes.UIWatchPositionPerm.base:
+        if (status !== 'granted') {
+          throw new Error('Please allow Keybase to access your location in the phone settings.')
+        }
+        break
+      case RPCChatTypes.UIWatchPositionPerm.always: {
+        const iOSPerms = permissions[Permissions.LOCATION].ios
+        if (!iOSPerms || iOSPerms.scope !== 'always') {
+          throw new Error(
+            'Please allow Keybase to access your location even if the app is not running for live location.'
+          )
+        }
+        break
+      }
+    }
   }
-  return Promise.resolve()
+  if (isAndroid) {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+        message: 'Keybase needs access to your location in order to post it.',
+        title: 'Keybase Location Permission',
+      }
+    )
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire location permissions')
+    }
+  }
 }
 
 export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
@@ -272,11 +294,11 @@ function* setupNetInfoWatcher() {
 // TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
-  let startupConversation = null
+  let startupConversation = undefined
   let startupFollowUser = ''
   let startupLink = ''
-  let startupTab = null
-  let startupSharePath = null
+  let startupTab = undefined
+  let startupSharePath = undefined
 
   const routeStateTask = yield Saga._fork(() =>
     RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
@@ -310,12 +332,12 @@ function* loadStartupDetails() {
     try {
       const item = JSON.parse(routeState)
       if (item) {
-        startupConversation = item.param && item.param.selectedConversationIDKey
-        startupTab = item.routeName
+        startupConversation = (item.param && item.param.selectedConversationIDKey) || undefined
+        startupTab = item.routeName || undefined
       }
     } catch (_) {
-      startupConversation = null
-      startupTab = null
+      startupConversation = undefined
+      startupTab = undefined
     }
   }
 
@@ -453,13 +475,9 @@ function* requestContactPermissions(
 
 async function manageContactsCache(
   state: Container.TypedState,
-  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
 ) {
-  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
-    return
-  }
-
   if (state.settings.contacts.importEnabled === false) {
     return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
       SettingsGen.createSetContactImportedCount({count: null})
@@ -605,7 +623,7 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     'requestContactPermissions'
   )
   yield* Saga.chainAction2(
-    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
+    [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache,
     'manageContactsCache'
   )

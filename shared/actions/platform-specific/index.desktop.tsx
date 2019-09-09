@@ -86,9 +86,9 @@ function* handleWindowFocusEvents(): Iterable<any> {
 }
 
 function* initializeInputMonitor(): Iterable<any> {
+  const inputMonitor = new InputMonitor()
   const channel = Saga.eventChannel(emitter => {
-    // eslint-disable-next-line no-new
-    new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
+    inputMonitor.notifyActive = isActive => emitter(isActive ? 'active' : 'inactive')
     return () => {}
   }, Saga.buffers.expanding(1))
 

@@ -54,7 +54,7 @@ func checkNewTeambotKeyNotifications(tc *libkb.TestContext, notifications *teamN
 	case arg := <-notifications.newTeambotKeyCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on newTeambotKey")
 	}
 }
@@ -65,7 +65,7 @@ func checkTeambotKeyNeededNotifications(tc *libkb.TestContext, notifications *te
 	case arg := <-notifications.teambotKeyNeededCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on teambotKeyNeeded")
 	}
 }

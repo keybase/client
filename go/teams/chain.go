@@ -371,6 +371,36 @@ func (t TeamSigChainState) getLatestPerTeamKeyWithMerkleSeqno(mctx libkb.MetaCon
 	return res, t.inner.MerkleRoots[res.Seqno], nil
 }
 
+// checkNewPTK takes an existing state (t) and checks that a new PTK found (ptk) doesn't clash
+// against any PTKs already in the state.
+func (t *TeamSigChainState) checkNewPTK(ptk SCPerTeamKey) error {
+	// If there was no prior state, then the new PTK is OK
+	if t == nil {
+		return nil
+	}
+	gen := ptk.Generation
+	chk := func(existing keybase1.PerTeamKey, found bool) error {
+		if !found {
+			return nil
+		}
+		if !existing.SigKID.Equal(ptk.SigKID) || !existing.EncKID.Equal(ptk.EncKID) {
+			return fmt.Errorf("PTK clash at generation %d", gen)
+		}
+		return nil
+	}
+	if t.hidden != nil {
+		tmp, found := t.hidden.GetReaderPerTeamKeyAtGeneration(gen)
+		if err := chk(tmp, found); err != nil {
+			return err
+		}
+	}
+	tmp, found := t.inner.PerTeamKeys[gen]
+	if err := chk(tmp, found); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (t *TeamSigChainState) GetLatestPerTeamKeyCTime() keybase1.UnixTime {
 	return t.inner.PerTeamKeyCTime
 }
@@ -1030,7 +1060,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			return res, err
 		}
 
-		perTeamKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, 1)
+		perTeamKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, nil)
 		if err != nil {
 			return res, err
 		}
@@ -1249,11 +1279,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
 		if team.PerTeamKey != nil {
-			lastKey, err := res.newState.GetLatestPerTeamKey(mctx)
-			if err != nil {
-				return res, fmt.Errorf("getting previous per-team-key: %s", err)
-			}
-			newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
+			newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, &res.newState)
 			if err != nil {
 				return res, err
 			}
@@ -1288,11 +1314,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			}
 		}
 
-		lastKey, err := prevState.GetLatestPerTeamKey(mctx)
-		if err != nil {
-			return res, fmt.Errorf("getting previous per-team-key: %s", err)
-		}
-		newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
+		newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, prevState)
 		if err != nil {
 			return res, err
 		}
@@ -1420,7 +1442,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			return res, err
 		}
 
-		perTeamKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, 1)
+		perTeamKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, nil)
 		if err != nil {
 			return res, err
 		}
@@ -1698,11 +1720,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		// When team is changed from open to closed, per-team-key should be rotated. But
 		// this is not enforced.
 		if team.PerTeamKey != nil {
-			lastKey, err := res.newState.GetLatestPerTeamKey(mctx)
-			if err != nil {
-				return res, fmt.Errorf("getting previous per-team-key: %s", err)
-			}
-			newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, lastKey.Gen+keybase1.PerTeamKeyGeneration(1))
+			newKey, err := t.checkPerTeamKey(*link.source, *team.PerTeamKey, &res.newState)
 			if err != nil {
 				return res, err
 			}
@@ -2116,13 +2134,12 @@ func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, ro
 	return false
 }
 
-func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, expectedGeneration keybase1.PerTeamKeyGeneration) (res keybase1.PerTeamKey, err error) {
+func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerTeamKey, prevState *TeamSigChainState) (res keybase1.PerTeamKey, err error) {
 
-	// check the per-team-key; with some links from hidden chains, it's possible to leave "holes" in the sequence of
-	// PTKs that'll later be filled in by playing the hidden chain; however, we should never be trampling old keys
-	// as we insert visible links. (this check used to be strict inequality (!=), but we've relaxed it to be onesided (<)).
-	if perTeamKey.Generation < expectedGeneration {
-		return res, fmt.Errorf("per-team-key generation must be greater or equal to %v but got %v; we can't go backwards", expectedGeneration, perTeamKey.Generation)
+	// Check that the new key doesn't conflict with keys we already have.
+	err = prevState.checkNewPTK(perTeamKey)
+	if err != nil {
+		return res, err
 	}
 
 	// validate signing kid

@@ -115,7 +115,7 @@ export default PaymentPath
 // circles and lines
 const pathTextHeight = 22
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   paymentPathEndText: {
     color: Styles.globalColors.greenDark,
   },
@@ -134,4 +134,4 @@ const styles = Styles.styleSheetCreate({
     marginLeft: pathCircleDiameter / 2 - pathCircleDiameter / 2,
     marginTop: (pathCircleDiameter - pathTextHeight) / 2,
   },
-})
+}))

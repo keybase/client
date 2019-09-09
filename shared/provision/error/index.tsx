@@ -243,21 +243,24 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
   }
 }
 
-const styles = styleSheetCreate({
-  container: {
-    maxWidth: 550,
-  },
-  header: {
-    alignSelf: 'center',
-    marginBottom: 20,
-    marginTop: 46,
-  },
-  list: {
-    marginBottom: 10,
-    marginLeft: globalMargins.tiny,
-    ...globalStyles.flexBoxColumn,
-    maxWidth: 460,
-  },
-})
+const styles = styleSheetCreate(
+  () =>
+    ({
+      container: {
+        maxWidth: 550,
+      },
+      header: {
+        alignSelf: 'center',
+        marginBottom: 20,
+        marginTop: 46,
+      },
+      list: {
+        marginBottom: 10,
+        marginLeft: globalMargins.tiny,
+        ...globalStyles.flexBoxColumn,
+        maxWidth: 460,
+      },
+    } as const)
+)
 
 export default Render

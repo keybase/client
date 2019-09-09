@@ -125,10 +125,12 @@ func TestBackgroundPurge(t *testing.T) {
 	// Load our conv with the initial tlf msg
 	t.Logf("assert listener 0")
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(conv1.ConvID, nil, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(conv1.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh,
+			types.ConvLoaderUnique, nil)))
 	assertListener(conv1.ConvID, 0)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(conv2.ConvID, nil, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(conv2.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh,
+			types.ConvLoaderUnique, nil)))
 	assertListener(conv2.ConvID, 0)
 
 	// Nothing is up for purging yet
@@ -186,7 +188,6 @@ func TestBackgroundPurge(t *testing.T) {
 	<-g.EphemeralPurger.Stop(context.Background())
 	g.EphemeralPurger.Start(context.Background(), uid)
 	g.EphemeralPurger.Start(context.Background(), uid)
-	assertListener(conv1.ConvID, 2)
 
 	t.Logf("assert listener 2")
 	world.Fc.Advance(lifetimeDuration)
@@ -244,19 +245,12 @@ func TestBackgroundPurge(t *testing.T) {
 	}()
 
 	t.Logf("assert listener 4 & 5")
-	assertListener(conv2.ConvID, 0)
 	assertListener(conv1.ConvID, 0)
-	for i := 0; i < 3; i++ {
-		select {
-		case <-listener.bgConvLoads:
-		case <-time.After(time.Second):
-			require.Fail(t, "did not drain")
-		}
-	}
-	localVers2++
-	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[3].GetMessageID()}, localVers2)
+	assertListener(conv2.ConvID, 0)
 	localVers1++
 	assertEphemeralPurgeNotifInfo(conv1.ConvID, []chat1.MessageID{msgs[4].GetMessageID()}, localVers1)
+	localVers2++
+	assertEphemeralPurgeNotifInfo(conv2.ConvID, []chat1.MessageID{msgs[3].GetMessageID()}, localVers2)
 	assertTrackerState(conv1.ConvID, chat1.EphemeralPurgeInfo{
 		ConvID:          conv1.ConvID,
 		MinUnexplodedID: msgs[4].GetMessageID(),

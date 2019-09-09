@@ -528,6 +528,22 @@ func (o ChannelNameMention) DeepCopy() ChannelNameMention {
 	}
 }
 
+type KBFSPath struct {
+	StartIndex   int                   `codec:"startIndex" json:"startIndex"`
+	RawPath      string                `codec:"rawPath" json:"rawPath"`
+	StandardPath string                `codec:"standardPath" json:"standardPath"`
+	PathInfo     keybase1.KBFSPathInfo `codec:"pathInfo" json:"pathInfo"`
+}
+
+func (o KBFSPath) DeepCopy() KBFSPath {
+	return KBFSPath{
+		StartIndex:   o.StartIndex,
+		RawPath:      o.RawPath,
+		StandardPath: o.StandardPath,
+		PathInfo:     o.PathInfo.DeepCopy(),
+	}
+}
+
 type ConversationMemberStatus int
 
 const (
@@ -567,11 +583,11 @@ func (e ConversationMemberStatus) String() string {
 }
 
 type Pagination struct {
-	Next           []byte `codec:"next" json:"next"`
-	Previous       []byte `codec:"previous" json:"previous"`
+	Next           []byte `codec:"next,omitempty" json:"next,omitempty"`
+	Previous       []byte `codec:"previous,omitempty" json:"previous,omitempty"`
 	Num            int    `codec:"num" json:"num"`
-	Last           bool   `codec:"last" json:"last"`
-	ForceFirstPage bool   `codec:"forceFirstPage" json:"forceFirstPage"`
+	Last           bool   `codec:"last,omitempty" json:"last,omitempty"`
+	ForceFirstPage bool   `codec:"forceFirstPage,omitempty" json:"forceFirstPage,omitempty"`
 }
 
 func (o Pagination) DeepCopy() Pagination {

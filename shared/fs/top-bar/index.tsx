@@ -31,13 +31,13 @@ const TopBar = (props: Props) => (
 
 export const height = Styles.isMobile ? 40 : 32
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.blueLighter3,
     height,
   },
   flex: {flex: 1},
-})
+}))
 
 export default TopBar
 export const asRows = (path: Types.Path): Array<RowTypes.HeaderRowItem> => [

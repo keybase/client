@@ -179,7 +179,7 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 
 	defer m.Trace("Kex2Provisioner#GetHelloArg()", func() error { return err })()
 
-	m.UIs().ProvisionUI.DisplaySecretExchanged(context.Background(), 0)
+	_ = m.UIs().ProvisionUI.DisplaySecretExchanged(context.Background(), 0)
 
 	// get a session token that device Y can use
 	mctx := libkb.NewMetaContextBackground(e.G())
@@ -375,7 +375,10 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	}
 
 	// set reverse_sig to nil to verify it:
-	e.proof.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewNil())
+	err = e.proof.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewNil())
+	if err != nil {
+		return err
+	}
 
 	// Copy known fields that provisionee set into e.proof
 	deviceWrapper := jw.AtPath("body.device")
@@ -388,8 +391,14 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	if err != nil {
 		return err
 	}
-	e.proof.SetValueAtPath("body.device", dw)
-	e.proof.SetValueAtPath("body.sibkey.kid", jsonw.NewString(kid))
+	err = e.proof.SetValueAtPath("body.device", dw)
+	if err != nil {
+		return err
+	}
+	err = e.proof.SetValueAtPath("body.sibkey.kid", jsonw.NewString(kid))
+	if err != nil {
+		return err
+	}
 
 	msg, err := e.proof.Marshal()
 	if err != nil {
@@ -401,9 +410,7 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	}
 
 	// put reverse_sig back in
-	e.proof.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(revsig))
-
-	return nil
+	return e.proof.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(revsig))
 }
 
 // rememberDeviceInfo saves the device name and type in

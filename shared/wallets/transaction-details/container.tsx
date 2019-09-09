@@ -14,7 +14,7 @@ import {anyWaiting} from '../../constants/waiting'
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID; paymentID: Types.PaymentID}>
 
 const mapStateToProps = (state, ownProps) => {
-  const you = state.config.username || ''
+  const you = state.config.username
   const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
   const paymentID = Container.getRouteProps(ownProps, 'paymentID', Types.noPaymentID)
   const _transaction = Constants.getPayment(state, accountID, paymentID)

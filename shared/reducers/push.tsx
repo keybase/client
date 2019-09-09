@@ -1,33 +1,35 @@
+import * as Container from '../util/container'
 import * as PushGen from '../actions/push-gen'
 import * as Types from '../constants/types/push'
-import * as Constants from '../constants/push'
 
-const initialState = Constants.makeInitialState()
-
-function reducer(state: Types.State = initialState, action: PushGen.Actions): Types.State {
-  switch (action.type) {
-    case PushGen.resetStore:
-      // when you sign out we need to keep all this info as its per device
-      return initialState.merge({
-        hasPermissions: state.hasPermissions,
-        showPushPrompt: state.showPushPrompt,
-        token: state.token,
-      })
-    case PushGen.rejectPermissions:
-      return state.merge({hasPermissions: false, showPushPrompt: false})
-    case PushGen.updateHasPermissions:
-      return state.merge({hasPermissions: action.payload.hasPermissions})
-    case PushGen.showPermissionsPrompt:
-      return state.merge({showPushPrompt: action.payload.show})
-    case PushGen.updatePushToken:
-      return state.merge({token: action.payload.token})
-    // Saga only actions
-    case PushGen.requestPermissions:
-    case PushGen.notification:
-      return state
-    default:
-      return state
-  }
+const initialState: Types.State = {
+  hasPermissions: true,
+  showPushPrompt: false,
+  token: '',
 }
 
-export default reducer
+export default (state: Types.State = initialState, action: PushGen.Actions): Types.State =>
+  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
+    switch (action.type) {
+      case PushGen.resetStore:
+        // when you sign out we need to keep all this info as its per device
+        return
+      case PushGen.rejectPermissions:
+        draftState.hasPermissions = false
+        draftState.showPushPrompt = false
+        return
+      case PushGen.updateHasPermissions:
+        draftState.hasPermissions = action.payload.hasPermissions
+        return
+      case PushGen.showPermissionsPrompt:
+        draftState.showPushPrompt = action.payload.show
+        return
+      case PushGen.updatePushToken:
+        draftState.token = action.payload.token
+        return
+      // Saga only actions
+      case PushGen.requestPermissions:
+      case PushGen.notification:
+        return
+    }
+  })

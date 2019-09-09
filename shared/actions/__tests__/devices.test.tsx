@@ -15,11 +15,7 @@ jest.mock('../../engine/require')
 const blankStore = Testing.getInitialStore()
 const initialStore = {
   ...blankStore,
-  config: blankStore.config.merge({
-    deviceID: '999',
-    loggedIn: true,
-    username: 'username',
-  }),
+  config: {...blankStore.config, deviceID: '999', loggedIn: true, username: 'username'},
 }
 
 const loadedStore = Container.produce(initialStore, draftState => {

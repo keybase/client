@@ -1,5 +1,5 @@
 import * as Kb from '../common-adapters/mobile.native'
-import {IconType} from '../common-adapters/icon.constants'
+import {IconType} from '../common-adapters/icon.constants-gen'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
@@ -145,22 +145,25 @@ const TabNavigator = createBottomTabNavigator(
   }
 )
 
-const tabStyles = Styles.styleSheetCreate({
-  badge: {
-    position: 'absolute',
-    right: 8,
-    top: 3,
-  },
-  container: {
-    justifyContent: 'center',
-  },
-  tab: {
-    paddingBottom: 6,
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingTop: 6,
-  },
-})
+const tabStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        position: 'absolute',
+        right: 8,
+        top: 3,
+      },
+      container: {
+        justifyContent: 'center',
+      },
+      tab: {
+        paddingBottom: 6,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingTop: 6,
+      },
+    } as const)
+)
 
 const LoggedInStackNavigator = createStackNavigator(
   {
@@ -280,12 +283,12 @@ class RNApp extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {color: Styles.globalColors.black},
   keyboard: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default RNApp

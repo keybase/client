@@ -62,48 +62,51 @@ const SmallUserNotice = (props: SmallProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  avatar: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-  }),
-  avatarContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    height: AVATAR_SIZE,
-    position: 'relative',
-    top: AVATAR_SIZE / 2,
-    zIndex: 10,
-  },
-  innerContainer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-    borderRadius: Styles.globalMargins.xtiny,
-    marginLeft: Styles.isMobile ? Styles.globalMargins.medium : Styles.globalMargins.xlarge,
-    marginRight: Styles.isMobile ? Styles.globalMargins.medium : Styles.globalMargins.xlarge,
-  },
-  outerContainer: {
-    flex: 1,
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  smallNotice: Styles.platformStyles({
-    common: {
-      justifyContent: 'flex-start',
-      marginBottom: Styles.globalMargins.xtiny,
-      marginRight: Styles.globalMargins.medium,
-      marginTop: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-    },
-    isMobile: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
-  smallNoticeAvatar: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      avatarContainer: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        height: AVATAR_SIZE,
+        position: 'relative',
+        top: AVATAR_SIZE / 2,
+        zIndex: 10,
+      },
+      innerContainer: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        borderRadius: Styles.globalMargins.xtiny,
+        marginLeft: Styles.isMobile ? Styles.globalMargins.medium : Styles.globalMargins.xlarge,
+        marginRight: Styles.isMobile ? Styles.globalMargins.medium : Styles.globalMargins.xlarge,
+      },
+      outerContainer: {
+        flex: 1,
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      smallNotice: Styles.platformStyles({
+        common: {
+          justifyContent: 'flex-start',
+          marginBottom: Styles.globalMargins.xtiny,
+          marginRight: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.xtiny,
+        },
+        isElectron: {
+          marginLeft: Styles.globalMargins.small,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      smallNoticeAvatar: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export {SmallUserNotice}
 export default UserNotice

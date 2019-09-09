@@ -1,5 +1,5 @@
 /* eslint-disable sort-keys */
-import Box from './box'
+import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
@@ -9,6 +9,7 @@ import './button.css'
 
 const Kb = {
   Box,
+  Box2,
   ClickableBox,
   Icon,
   Text,
@@ -32,6 +33,8 @@ export type Props = {
   disabled?: boolean
   waiting?: boolean
   small?: boolean
+  subLabel?: string
+  subLabelStyle?: Styles.StylesCrossPlatform
   fullWidth?: boolean
   className?: string
 }
@@ -137,11 +140,24 @@ class Button extends React.Component<Props> {
           ])}
         >
           {!this.props.waiting && this.props.children}
-          {!!this.props.label && (
-            <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, this.props.labelStyle])}>
-              {this.props.label}
-            </Kb.Text>
-          )}
+          <Kb.Box2 direction="vertical" centerChildren={true}>
+            {!!this.props.label && (
+              <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, this.props.labelStyle])}>
+                {this.props.label}
+              </Kb.Text>
+            )}
+            {!!this.props.subLabel && (
+              <Kb.Text
+                type="BodyTiny"
+                style={Styles.collapseStyles([
+                  this.props.waiting && styles.opacity0,
+                  this.props.subLabelStyle,
+                ])}
+              >
+                {this.props.subLabel}
+              </Kb.Text>
+            )}
+          </Kb.Box2>
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Kb.Box>
       </Kb.ClickableBox>

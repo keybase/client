@@ -58,7 +58,7 @@ func TestPGPDecrypt(t *testing.T) {
 	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
-	decmsg := string(decoded.Bytes())
+	decmsg := decoded.String()
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}
@@ -100,7 +100,7 @@ func TestPGPDecryptArmored(t *testing.T) {
 	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
-	decmsg := string(decoded.Bytes())
+	decmsg := decoded.String()
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}
@@ -161,7 +161,7 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
-	decmsg := string(decoded.Bytes())
+	decmsg := decoded.String()
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}
@@ -224,7 +224,7 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
-	decmsg := string(decoded.Bytes())
+	decmsg := decoded.String()
 	if decmsg != msg {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}

@@ -80,7 +80,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   progressIndicator: {
     height: 22,
     width: 22,
@@ -90,6 +90,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.medium,
   },
   toastText: {color: Styles.globalColors.white},
-})
+}))
 
 export default DisplayCurrencyDropdown

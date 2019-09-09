@@ -55,15 +55,18 @@ export default class UnlockFoldersRender extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    height: 300,
-    position: 'relative',
-    width: 500,
-  },
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        height: 300,
+        position: 'relative',
+        width: 500,
+      },
 
-  header: {
-    position: 'absolute',
-    width: '100%',
-  },
-})
+      header: {
+        position: 'absolute',
+        width: '100%',
+      },
+    } as const)
+)

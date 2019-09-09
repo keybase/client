@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
 import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building'
-import {IconType} from '../common-adapters/icon.constants'
+import {IconType} from '../common-adapters/icon.constants-gen'
 import Flags from '../util/feature-flags'
 import {allServices} from '../constants/team-building'
 
@@ -14,15 +14,8 @@ const services: {
     wonderland?: boolean
   }
 } = {
-  contact: {
-    color: '#000',
-    icon: 'iconfont-identity-twitter',
-    label: 'Your contacts', // TODO: rethink this for the empty state when we're actually using it
-    longLabel: 'A contact',
-    searchPlaceholder: 'contacts',
-  },
   email: {
-    color: '#4C8EFF',
+    color: '#3663ea',
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
     longLabel: 'An email address',
@@ -51,21 +44,14 @@ const services: {
     searchPlaceholder: 'Hacker News',
   },
   keybase: {
-    color: '#4C8EFF',
+    color: '#3663ea',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
     longLabel: Styles.isMobile ? 'Keybase & Contacts' : 'A Keybase user',
     searchPlaceholder: Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
   },
-  pgp: {
-    color: '#000',
-    icon: 'iconfont-identity-pgp',
-    label: 'PGP',
-    longLabel: 'A PGP user',
-    searchPlaceholder: 'PGP',
-  },
   phone: {
-    color: '#4C8EFF',
+    color: '#3663ea',
     icon: 'iconfont-number-pad',
     label: 'Phone',
     longLabel: 'A phone number',

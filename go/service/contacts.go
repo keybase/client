@@ -16,7 +16,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-type bulkLookupContactsProvider struct{}
+type bulkLookupContactsProvider struct {
+	serviceMapper libkb.ServiceSummaryMapper
+}
 
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
@@ -40,7 +42,7 @@ func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
 		func() error { return nil })()
 
 	const fullnameFreshness = 10 * time.Minute
-	const networkTimeBudget = 0
+	const networkTimeBudget = uidmap.DefaultNetworkBudget
 	const forceNetworkForFullNames = true
 
 	nameMap, err := uidmap.MapUIDsReturnMapMctx(mctx, uids, fullnameFreshness, networkTimeBudget, forceNetworkForFullNames)
@@ -110,6 +112,24 @@ func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 	return res, nil
 }
 
+func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
+	uids []keybase1.UID) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FindServiceMaps(len=%d)", len(uids)),
+		func() error { return err })()
+
+	const serviceMapFreshness = 12 * time.Hour
+	const networkTimeBudget = uidmap.DefaultNetworkBudget
+	pkgs := c.serviceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
+		uids, serviceMapFreshness, networkTimeBudget)
+	res = make(map[keybase1.UID]libkb.UserServiceSummary, len(pkgs))
+	for uid, pkg := range pkgs {
+		if pkg.ServiceMap != nil {
+			res[uid] = pkg.ServiceMap
+		}
+	}
+	return res, nil
+}
+
 type ContactsHandler struct {
 	libkb.Contextified
 	*BaseHandler
@@ -119,8 +139,10 @@ type ContactsHandler struct {
 
 func NewCachedContactsProvider(g *libkb.GlobalContext) *contacts.CachedContactsProvider {
 	return &contacts.CachedContactsProvider{
-		Provider: &bulkLookupContactsProvider{},
-		Store:    contacts.NewContactCacheStore(g),
+		Provider: &bulkLookupContactsProvider{
+			serviceMapper: uidmap.NewServiceSummaryMap(500),
+		},
+		Store: contacts.NewContactCacheStore(g),
 	}
 }
 

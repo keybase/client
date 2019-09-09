@@ -189,13 +189,16 @@ const _styleContainer = {
   borderRadius: 5,
 }
 
-const styles = Styles.styleSheetCreate({
-  floatingRolePicker: Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -32,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      floatingRolePicker: Styles.platformStyles({
+        isElectron: {
+          position: 'relative',
+          top: -32,
+        },
+      }),
+    } as const)
+)
 
 export {InviteByEmailDesktop}

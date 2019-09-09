@@ -23,6 +23,7 @@ type locationTrack struct {
 	getCurrentPosition bool
 	maxCoords          int
 	stopped            bool
+	perm               chat1.UIWatchPositionPerm
 }
 
 func (t *locationTrack) GetCoords() (res []chat1.Coordinate) {
@@ -104,6 +105,10 @@ func (t *locationTrack) ToDisk() diskLocationTrack {
 
 func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
 	endTime time.Time, getCurrentPosition bool, maxCoords int, stopped bool) *locationTrack {
+	perm := chat1.UIWatchPositionPerm_BASE
+	if !getCurrentPosition {
+		perm = chat1.UIWatchPositionPerm_ALWAYS
+	}
 	return &locationTrack{
 		stopCh:             make(chan struct{}),
 		updateCh:           make(chan chat1.Coordinate, 50),
@@ -113,6 +118,7 @@ func newLocationTrack(convID chat1.ConversationID, msgID chat1.MessageID,
 		getCurrentPosition: getCurrentPosition,
 		maxCoords:          maxCoords,
 		stopped:            stopped,
+		perm:               perm,
 	}
 }
 

@@ -115,28 +115,31 @@ const PhoneOrEmailHeader = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  center: {
-    justifyContent: 'center',
-    textAlign: 'center',
-  },
-  channelHeaderContainer: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  channelName: {
-    color: Styles.globalColors.black,
-  },
-  channelNameLight: {
-    color: Styles.globalColors.black_50,
-  },
-  lessMargins: {
-    marginBottom: -5,
-  },
-  shhIcon: {marginLeft: Styles.globalMargins.xtiny},
-  usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      center: {
+        justifyContent: 'center',
+        textAlign: 'center',
+      },
+      channelHeaderContainer: {
+        alignItems: 'center',
+        alignSelf: 'center',
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      channelName: {
+        color: Styles.globalColors.black,
+      },
+      channelNameLight: {
+        color: Styles.globalColors.black_50,
+      },
+      lessMargins: {
+        marginBottom: -5,
+      },
+      shhIcon: {marginLeft: Styles.globalMargins.xtiny},
+      usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
+    } as const)
+)
 
 export {ChannelHeader, PhoneOrEmailHeader, UsernameHeader}

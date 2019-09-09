@@ -361,11 +361,16 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 	return maxMsgID, nil
 }
 
+type UnfurlMergeResult struct {
+	Msg         chat1.MessageUnboxed
+	IsMapDelete bool
+}
+
 type MergeResult struct {
 	Expunged        *chat1.Expunge
 	Exploded        []chat1.MessageUnboxed
 	ReactionTargets []chat1.MessageUnboxed
-	UnfurlTargets   []chat1.MessageUnboxed
+	UnfurlTargets   []UnfurlMergeResult
 	RepliesAffected []chat1.MessageUnboxed
 }
 
@@ -460,7 +465,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 
 type updateAllSupersededByRes struct {
 	reactionTargets []chat1.MessageUnboxed
-	unfurlTargets   []chat1.MessageUnboxed
+	unfurlTargets   []UnfurlMergeResult
 	repliesAffected []chat1.MessageUnboxed
 }
 
@@ -485,7 +490,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	// We return a set of reaction targets that have been updated
 	updatedReactionTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
 	// Unfurl targets
-	updatedUnfurlTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
+	updatedUnfurlTargets := make(map[chat1.MessageID]UnfurlMergeResult)
 	repliesAffected := map[chat1.MessageID]chat1.MessageUnboxed{}
 
 	// Sort in reverse order so this playback works as it would have if we received these
@@ -545,7 +550,10 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					utils.SetUnfurl(&mvalid, msg.GetMessageID(), unfurl.Unfurl)
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 					newMsgs = append(newMsgs, newMsg)
-					updatedUnfurlTargets[superMsg.GetMessageID()] = newMsg
+					updatedUnfurlTargets[superMsg.GetMessageID()] = UnfurlMergeResult{
+						Msg:         newMsg,
+						IsMapDelete: false,
+					}
 				case chat1.MessageType_REACTION:
 					// If we haven't modified any reaction data, we don't want
 					// to send it up for a notification.
@@ -568,7 +576,10 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 						if err != nil {
 							s.Debug(ctx, "updateSupersededBy: failed to update unfurl target: %s", err)
 						} else {
-							updatedUnfurlTargets[updatedTarget.GetMessageID()] = updatedTarget
+							updatedUnfurlTargets[updatedTarget.GetMessageID()] = UnfurlMergeResult{
+								Msg:         updatedTarget,
+								IsMapDelete: utils.IsMapUnfurl(*superMsg),
+							}
 							newMsgs = append(newMsgs, updatedTarget)
 						}
 					case chat1.MessageType_REACTION:
@@ -616,10 +627,13 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			s.Debug(ctx, "Error removing from indexer: %+v", err)
 		}
 	}()
-
+	var flattenedUnfurlTargets []UnfurlMergeResult
+	for _, r := range updatedUnfurlTargets {
+		flattenedUnfurlTargets = append(flattenedUnfurlTargets, r)
+	}
 	return updateAllSupersededByRes{
 		reactionTargets: s.flatten(updatedReactionTargets),
-		unfurlTargets:   s.flatten(updatedUnfurlTargets),
+		unfurlTargets:   flattenedUnfurlTargets,
 		repliesAffected: s.flatten(repliesAffected),
 	}, nil
 }

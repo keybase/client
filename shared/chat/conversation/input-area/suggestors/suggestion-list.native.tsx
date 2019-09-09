@@ -22,9 +22,9 @@ const SuggestionList = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   listContainer: {flexGrow: 0, marginTop: 'auto'},
   noGrow: {flexGrow: 0},
-})
+}))
 
 export default SuggestionList

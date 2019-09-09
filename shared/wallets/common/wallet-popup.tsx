@@ -67,7 +67,7 @@ const WalletPopup = (props: WalletPopupProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBar: Styles.platformStyles({
     isElectron: {
       minHeight: 0,
@@ -117,7 +117,7 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
-})
+}))
 
 export default compose(
   withProps((props: WalletPopupProps) => ({

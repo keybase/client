@@ -222,6 +222,7 @@ protocol chatUi {
     boolean isDeleteable;
     boolean isEditable;
     union { null, UIMessage } replyTo;
+    union { null, MessageID} pinnedMessageID;
     // TODO HOTPOT-330 convert to bot username
     union { null, gregor1.UID } botUID;
   }
@@ -278,7 +279,8 @@ protocol chatUi {
     CHANNELNAMEMENTION_2,
     MAYBEMENTION_3,
     LINK_4,
-    MAILTO_5
+    MAILTO_5,
+    KBFSPATH_6
   }
 
   enum UIMaybeMentionStatus {
@@ -307,6 +309,7 @@ protocol chatUi {
     case MAYBEMENTION: MaybeMention;
     case LINK: UILinkDecoration;
     case MAILTO: UILinkDecoration;
+    case KBFSPATH: KBFSPath;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
@@ -472,7 +475,11 @@ protocol chatUi {
 
   // Location support
   @typedef("uint64") @lint("ignore") record LocationWatchID {}
-  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
+  enum UIWatchPositionPerm {
+    BASE_0,
+    ALWAYS_1
+  }
+  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID, UIWatchPositionPerm perm);
   void chatClearWatch(int sessionID, LocationWatchID id);
 
   // Slash command feedback
@@ -492,4 +499,6 @@ protocol chatUi {
     BLANK_3
   }
   void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status);
+
+  void triggerContactSync(int sessionID);
 }

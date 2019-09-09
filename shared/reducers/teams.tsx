@@ -145,8 +145,6 @@ const rootReducer = (
     case TeamBuildingGen.fetchedUserRecs:
     case TeamBuildingGen.fetchUserRecs:
     case TeamBuildingGen.search:
-    case TeamBuildingGen.searchEmailAddress:
-    case TeamBuildingGen.searchEmailAddressResultLoaded:
     case TeamBuildingGen.selectRole:
     case TeamBuildingGen.labelsSeen:
     case TeamBuildingGen.changeSendNotification:

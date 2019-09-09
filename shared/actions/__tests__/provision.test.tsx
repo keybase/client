@@ -140,11 +140,11 @@ describe('text code happy path', () => {
     expect(response.error).not.toHaveBeenCalled()
     expect(getState().provision.codePageOutgoingTextCode).toEqual(outgoing)
     expect(getState().provision.error).toEqual(noError)
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitTextCode({phrase: outgoing}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -180,11 +180,11 @@ describe('text code error path', () => {
 
     expect(response.result).toHaveBeenCalledWith({code: null, phrase: reply.stringValue()})
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitTextCode({phrase: reply}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -227,10 +227,10 @@ describe('device name happy path', () => {
     dispatch(ProvisionGen.createSubmitDeviceName({name}))
     expect(response.result).toHaveBeenCalledWith(name)
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     dispatch(ProvisionGen.createSubmitDeviceName({name}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -263,11 +263,11 @@ describe('device name error path', () => {
     expect(getState().provision.error).toEqual(noError)
     expect(response.result).toHaveBeenCalledWith(name)
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitDeviceName({name}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -302,13 +302,13 @@ describe('other device happy path', () => {
     expect(getState().provision.codePageOtherDeviceId).toEqual(mobile.deviceID)
     expect(getState().provision.codePageOtherDeviceType).toEqual('mobile')
     expect(getState().provision.error).toEqual(noError)
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
     expect(response.result).toHaveBeenCalledWith(mobile.deviceID)
     expect(response.error).not.toHaveBeenCalled()
 
     // only submit once
     dispatch(ProvisionGen.createSubmitDeviceSelect({name: mobile.name}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 
   it('submit desktop', () => {
@@ -317,13 +317,13 @@ describe('other device happy path', () => {
     expect(getState().provision.codePageOtherDeviceId).toEqual(desktop.deviceID)
     expect(getState().provision.codePageOtherDeviceType).toEqual('desktop')
     expect(getState().provision.error).toEqual(noError)
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
     expect(response.result).toHaveBeenCalledWith(desktop.deviceID)
     expect(response.error).not.toHaveBeenCalled()
 
     // only submit once
     dispatch(ProvisionGen.createSubmitDeviceSelect({name: desktop.name}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 
   it('submit paperkey/backup', () => {
@@ -332,13 +332,13 @@ describe('other device happy path', () => {
     expect(getState().provision.codePageOtherDeviceId).toEqual(backup.deviceID)
     expect(getState().provision.codePageOtherDeviceType).toEqual('mobile')
     expect(getState().provision.error).toEqual(noError)
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
     expect(response.result).toHaveBeenCalledWith(backup.deviceID)
     expect(response.error).not.toHaveBeenCalled()
 
     // only submit once
     dispatch(ProvisionGen.createSubmitDeviceSelect({name: backup.name}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 
   it('doesnt allow unknown', () => {
@@ -414,11 +414,11 @@ describe('choose gpg happy path', () => {
     dispatch(ProvisionGen.createSubmitGPGMethod({exportKey: true}))
     expect(response.result).toHaveBeenCalledWith(RPCTypes.GPGMethod.gpgImport)
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitGPGMethod({exportKey: true}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 
   it('submit sign key', () => {
@@ -426,11 +426,11 @@ describe('choose gpg happy path', () => {
     dispatch(ProvisionGen.createSubmitGPGMethod({exportKey: false}))
     expect(response.result).toHaveBeenCalledWith(RPCTypes.GPGMethod.gpgSign)
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitGPGMethod({exportKey: false}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -464,11 +464,11 @@ describe('password happy path', () => {
     dispatch(ProvisionGen.createSubmitPassword({password}))
     expect(response.result).toHaveBeenCalledWith({passphrase: password.stringValue(), storeSecret: false})
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitPassword({password}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -504,11 +504,11 @@ describe('passphrase error path', () => {
     expect(getState().provision.error).toEqual(noError)
     expect(response.result).toHaveBeenCalledWith({passphrase: password.stringValue(), storeSecret: false})
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitPassword({password}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -542,11 +542,11 @@ describe('paperkey happy path', () => {
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey}))
     expect(response.result).toHaveBeenCalledWith({passphrase: paperkey.stringValue(), storeSecret: false})
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 
@@ -582,11 +582,11 @@ describe('paperkey error path', () => {
     expect(getState().provision.error).toEqual(noError)
     expect(response.result).toHaveBeenCalledWith({passphrase: paperkey.stringValue(), storeSecret: false})
     expect(response.error).not.toHaveBeenCalled()
-    expect(getState().config.globalError).toEqual(null)
+    expect(getState().config.globalError).toEqual(undefined)
 
     // only submit once
     dispatch(ProvisionGen.createSubmitPaperkey({paperkey}))
-    expect(getState().config.globalError).not.toEqual(null)
+    expect(getState().config.globalError).not.toEqual(undefined)
   })
 })
 

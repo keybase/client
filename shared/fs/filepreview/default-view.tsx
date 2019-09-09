@@ -3,7 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
-import {PathItemAction, PathItemInfo, PathItemIcon} from '../common'
+import {PathItemAction, LastModifiedLine, PathItemIcon} from '../common'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
 
@@ -29,7 +29,7 @@ const DefaultView = (props: DefaultViewProps) => (
         {props.pathItem.name}
       </Kb.Text>
       <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
-      {isMobile && <PathItemInfo path={props.path} mode="default" />}
+      {isMobile && <LastModifiedLine path={props.path} mode="default" />}
       {props.pathItem.type === Types.PathType.Symlink && (
         <Kb.Text type="BodySmall" style={stylesSymlink}>
           {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
@@ -79,7 +79,7 @@ const DefaultView = (props: DefaultViewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       padding: Styles.globalMargins.medium,
@@ -106,7 +106,7 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.large,
     },
   }),
-})
+}))
 
 const stylesSymlink = {marginTop: Styles.globalMargins.medium}
 
