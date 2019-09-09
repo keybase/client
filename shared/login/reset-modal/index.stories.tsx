@@ -4,7 +4,16 @@ import ResetModal from '.'
 
 const load = () => {
   Sb.storiesOf('Login/Reset account modal', module).add('Default state', () => (
-    <ResetModal onCancelReset={Sb.action('onCancelReset')} timeLeft="2 days" />
+    <ResetModal
+      onCancelReset={Sb.action('onCancelReset')}
+      timeLeft="2 days"
+      coord={{
+        lat: 10,
+        lon: 10,
+      }}
+      httpSrvAddress="asd"
+      httpSrvToken="asd"
+    />
   ))
 }
 
