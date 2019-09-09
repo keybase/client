@@ -484,14 +484,14 @@ func (h *UserSearchHandler) UserSearch(ctx context.Context, arg keybase1.UserSea
 	defer mctx.TraceTimed(fmt.Sprintf("UserSearch#UserSearch(s=%q, q=%q)", arg.Service, arg.Query),
 		func() error { return err })()
 
-	if arg.Query == "" {
-		return nil, nil
+	if arg.Service == "" {
+		return nil, fmt.Errorf("unexpected empty `Service` argument")
+	} else if arg.IncludeContacts && arg.Service != "keybase" {
+		return nil, fmt.Errorf("`IncludeContacts` is only valid with service=\"keybase\" (got service=%q)", arg.Service)
 	}
 
-	fmt.Printf("search: %+v\n", arg)
-
-	if arg.IncludeContacts && arg.Service != "keybase" {
-		return nil, fmt.Errorf("`IncludeContacts` is only valid with service=\"keybase\" (got service=%q)", arg.Service)
+	if arg.Query == "" {
+		return nil, nil
 	}
 
 	switch arg.Service {

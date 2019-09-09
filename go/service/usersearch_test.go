@@ -291,13 +291,14 @@ func TestContactSearch(t *testing.T) {
 	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
 	searchHandler.searchProvider = &emptyUserSearchProvider{}
 
+	// Invalid: `IncludeContacts` can only be passed with service="keybase"
+	// (even if query is empty).
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "",
 		Query:           "",
 	})
-	require.NoError(t, err)
-	require.Empty(t, res)
+	require.Error(t, err)
 
 	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
@@ -313,7 +314,7 @@ func TestContactSearch(t *testing.T) {
 
 	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
-		Service:         "",
+		Service:         "keybase",
 		Query:           "building",
 	})
 	require.NoError(t, err)
@@ -347,7 +348,7 @@ func TestContactSearchWide(t *testing.T) {
 
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
-		Service:         "",
+		Service:         "keybase",
 		Query:           "高橋",
 	})
 	require.NoError(t, err)
@@ -357,7 +358,7 @@ func TestContactSearchWide(t *testing.T) {
 	for _, v := range []string{"🍜", "🍱", "lunch"} {
 		res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
-			Service:         "",
+			Service:         "keybase",
 			Query:           v,
 		})
 		require.NoError(t, err)
@@ -536,7 +537,7 @@ func TestContactSearchMobilePhonesGoFirst(t *testing.T) {
 	}
 }
 
-func TestUserSearchDirectTofu(t *testing.T) {
+func TestUserSearchPhoneEmail(t *testing.T) {
 	tc, searchHandler, _ := setupUserSearchTest(t)
 	defer tc.Cleanup()
 
@@ -548,12 +549,11 @@ func TestUserSearchDirectTofu(t *testing.T) {
 	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
 	require.NoError(t, err)
 
-	doSearch := func(query string, tofu keybase1.ImpTofuQuery) []keybase1.APIUserSearchResult {
+	doSearch := func(service, query string) []keybase1.APIUserSearchResult {
 		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
-			IncludeContacts: true,
-			Service:         "keybase",
+			IncludeContacts: false,
+			Service:         service,
 			Query:           query,
-			ImpTofuQuery:    &tofu,
 			MaxResults:      10,
 		})
 		require.NoError(t, err)
@@ -561,34 +561,30 @@ func TestUserSearchDirectTofu(t *testing.T) {
 	}
 
 	{
-		// Even though we are doing an imp tofu query, we should get our contact back.
+		// Imptofu searches (service "phone" or "email") do not search in
+		// synced contacts anymore.
 		query := "+1555165432"
-		tofu := keybase1.NewImpTofuQueryWithPhone(keybase1.PhoneNumber(query))
-		res := doSearch(query, tofu)
+		res := doSearch("phone", query)
 		require.Len(t, res, 1)
-		require.Nil(t, res[0].Imptofu)
-		require.NotNil(t, res[0].Contact)
-		require.Equal(t, "Gottfried Wilhelm Leibniz", res[0].Contact.ContactName)
-		require.Equal(t, "1555165432@phone", res[0].Contact.Assertion)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "1555165432@phone", res[0].Imptofu.Assertion)
 	}
 
 	{
 		// Same with e-mail.
 		query := "fermatp@keyba.se"
-		tofu := keybase1.NewImpTofuQueryWithEmail(keybase1.EmailAddress(query))
-		res := doSearch(query, tofu)
+		res := doSearch("email", query)
 		require.Len(t, res, 1)
-		require.Nil(t, res[0].Imptofu)
-		require.NotNil(t, res[0].Contact)
-		require.Equal(t, "Pierre de Fermat", res[0].Contact.ContactName)
-		require.Equal(t, "[fermatp@keyba.se]@email", res[0].Contact.Assertion)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "[fermatp@keyba.se]@email", res[0].Imptofu.Assertion)
 	}
 
 	{
 		// Ask for a different number and get an imptofu result.
 		query := "+1201555201"
-		tofu := keybase1.NewImpTofuQueryWithPhone(keybase1.PhoneNumber(query))
-		res := doSearch(query, tofu)
+		res := doSearch("phone", query)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Contact)
 		require.NotNil(t, res[0].Imptofu)
@@ -603,8 +599,7 @@ func TestUserSearchDirectTofu(t *testing.T) {
 	{
 		// Imp tofu email.
 		query := "test@keyba.se"
-		tofu := keybase1.NewImpTofuQueryWithEmail(keybase1.EmailAddress(query))
-		res := doSearch(query, tofu)
+		res := doSearch("email", query)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Contact)
 		require.NotNil(t, res[0].Imptofu)
@@ -619,8 +614,7 @@ func TestUserSearchDirectTofu(t *testing.T) {
 	{
 		// Email should be lowercased when returning search result.
 		query := "TEST@keyba.se"
-		tofu := keybase1.NewImpTofuQueryWithEmail(keybase1.EmailAddress(query))
-		res := doSearch(query, tofu)
+		res := doSearch("email", query)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Contact)
 		require.NotNil(t, res[0].Imptofu)
@@ -632,4 +626,28 @@ func TestUserSearchDirectTofu(t *testing.T) {
 		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
 		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
 	}
+}
+
+func TestUserSearchBadArgs(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	// Invalid empty service name
+	_, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: false,
+		Service:         "",
+		Query:           "test",
+		MaxResults:      10,
+	})
+	require.Error(t, err)
+
+	// IncludeContacts=true with invalid `Service` (only "keybase" is allowed
+	// for IncludeContacts).
+	_, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "twitter",
+		Query:           "test",
+		MaxResults:      10,
+	})
+	require.Error(t, err)
 }
