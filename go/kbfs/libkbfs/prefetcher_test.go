@@ -1857,8 +1857,13 @@ func TestPrefetcherReschedules(t *testing.T) {
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
+
+	// Declare and defer the close of this channel before the defer of
+	// the prefetcher shutdown, to avoid data races where the
+	// prefetcher could send to the channel after it's closed.
 	prefetchDoneCh := make(chan struct{})
 	defer close(prefetchDoneCh)
+
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
