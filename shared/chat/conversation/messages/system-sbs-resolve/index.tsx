@@ -22,11 +22,11 @@ const formatAssertion = (serviceUser: string, service: string, isYou: boolean): 
   }
   switch (service) {
     case 'phone':
-      return `their phone number ${serviceUser}`
+      return `verified their phone number ${serviceUser}`
     case 'email':
-      return `their email address ${serviceUser}`
+      return `verified their email address ${serviceUser}`
     default:
-      return `that they are ${serviceUser} on ${service}`
+      return `proved that they are ${serviceUser} on ${service}`
   }
 }
 const formatAssertionYou = (serviceUser: string, service: string): string => {
@@ -47,7 +47,7 @@ const SBSProvedNotice = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text type="BodyTiny">{formatTimeForChat(timestamp)}</Kb.Text>
       <Kb.Text type="BodySmall">
-        {isYou ? 'You' : <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[prover]} />} proved{' '}
+        {isYou ? 'You' : <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[prover]} />}{' '}
         {formatAssertion(assertionUsername, assertionService, isYou)}, so now {isYou ? 'you' : 'they'} can see
         this chat.
       </Kb.Text>
