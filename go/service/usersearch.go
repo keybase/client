@@ -230,6 +230,15 @@ func contactSearch(mctx libkb.MetaContext, arg keybase1.UserSearchArg) (res []ke
 					// all non-resolved components.
 					continue
 				}
+				if contact.Component.PhoneNumber != nil {
+					// Phone numbers are better, "mobile" phone numbers are best.
+					// This is for sorting matches within one contact, so it's alright
+					// to multiply by a small value.
+					score *= 1.01
+					if contact.Component.Label == "mobile" {
+						score *= 1.01
+					}
+				}
 			}
 
 			key := displayNameAndLabel{contact.DisplayName, contact.DisplayLabel}
