@@ -1,12 +1,23 @@
 FROM golang:1.12.4-stretch AS builder
 
 ARG SOURCE_COMMIT=unknown
+
+ARG SIGNING_FINGERPRINT
+ARG ARMORED_PRIVATE_KEY
+RUN echo "$ARMORED_PRIVATE_KEY" | gpg --import
+
 COPY . /go/src/github.com/keybase/client
 RUN SOURCE_COMMIT=${SOURCE_COMMIT} \
     KEYBASE_NO_GUI=1 \
     KEYBASE_SKIP_32_BIT=1 \
     /go/src/github.com/keybase/client/packaging/linux/build_binaries.sh \
     prerelease /
+RUN gpg --detach-sign --armor --use-agent --local-user "$SIGNING_FINGERPRINT" \
+    -o "/binaries/amd64/usr/bin/keybase.sig" /binaries/amd64/usr/bin/keybase && \
+    gpg --detach-sign --armor --use-agent --local-user "$SIGNING_FINGERPRINT" \
+    -o "/binaries/amd64/usr/bin/kbfsfuse.sig" /binaries/amd64/usr/bin/kbfsfuse && \
+    gpg --detach-sign --armor --use-agent --local-user "$SIGNING_FINGERPRINT" \
+    -o "/binaries/amd64/usr/bin/git-remote-keybase.sig" /binaries/amd64/usr/bin/git-remote-keybase
 RUN chmod +x /binaries/amd64/usr/bin/keybase \
     && chmod +x /binaries/amd64/usr/bin/kbfsfuse \
     && chmod +x /binaries/amd64/usr/bin/git-remote-keybase
@@ -36,8 +47,11 @@ RUN useradd --create-home --shell /bin/bash keybase \
 USER keybase
 
 COPY --from=builder /binaries/amd64/usr/bin/keybase /usr/bin/keybase
+COPY --from=builder /binaries/amd64/usr/bin/keybase.sig /usr/bin/keybase.sig
 COPY --from=builder /binaries/amd64/usr/bin/kbfsfuse /usr/bin/kbfsfuse
+COPY --from=builder /binaries/amd64/usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
 COPY --from=builder /binaries/amd64/usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
+COPY --from=builder /binaries/amd64/usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
 
 ENTRYPOINT ["/tini", "--", "start.sh"]
 CMD ["keybase status"]
