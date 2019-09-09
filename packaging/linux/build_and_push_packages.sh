@@ -175,3 +175,4 @@ if [ "${KEYBASE_TEST:-}" = 1 ] ; then
 fi
 
 "$here/arch/update_aur_packages.sh" "$build_dir"
+#"$here/docker/build_and_push.sh"
