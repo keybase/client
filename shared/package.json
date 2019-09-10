@@ -148,6 +148,7 @@
     "menubar": "5.2.3",
     "moment": "2.23.0",
     "mousetrap": "1.6.2",
+    "path-parse": "1.0.6",
     "purepack": "1.0.4",
     "qrcode-generator": "git://github.com/keybase/qrcode-generator#keybase-changes-off-140",
     "react": "16.8.4",
