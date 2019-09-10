@@ -62,7 +62,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal">
           <Kb.Divider style={styles.divider} vertical={true} />
-          <Kb.WithTooltip text="React">
+          <Kb.WithTooltip tooltip="React">
             <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
               <Kb.Icon
                 className="hover_contained_color_blue"
@@ -72,7 +72,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             </Kb.Box>
           </Kb.WithTooltip>
           {!!this.props.onReply && (
-            <Kb.WithTooltip text="Reply">
+            <Kb.WithTooltip tooltip="Reply">
               <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
                 <Kb.Icon
                   className="hover_contained_color_blue"

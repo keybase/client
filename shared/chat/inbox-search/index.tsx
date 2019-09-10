@@ -127,7 +127,7 @@ class InboxSearch extends React.Component<Props, State> {
               <Kb.WithTooltip
                 containerStyle={styles.progressBar}
                 position="bottom center"
-                text={`${this.props.indexPercent}% complete`}
+                tooltip={`${this.props.indexPercent}% complete`}
               >
                 <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
               </Kb.WithTooltip>

@@ -448,7 +448,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>
           <Kb.WithTooltip
             containerStyle={styles.statusBox}
-            text={
+            tooltip={
               props.status === 'claimable'
                 ? `${
                     props.counterparty

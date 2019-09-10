@@ -156,7 +156,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 onUsernameClicked={this._onAuthorClick}
               />
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-                <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
+                <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
                     color={
                       this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
