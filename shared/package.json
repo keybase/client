@@ -282,7 +282,7 @@
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "1.2.1",
     "tls": "git://github.com/keybase/nullModule",
-    "typescript": "3.6.2",
+    "typescript": "typescript@3.6.3-insiders.20190909",
     "webpack": "4.28.2",
     "webpack-cli": "3.2.1",
     "webpack-dashboard": "2.0.0",
