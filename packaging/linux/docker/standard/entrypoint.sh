@@ -40,7 +40,7 @@ until keybase --no-auto-fork fs ls /keybase/private &> /dev/null; do
 done
 
 # Possibly run oneshot if it was requested by the user
-if [[ -z "${KEYBASE_USERNAME}" ]] -a [[ -z "${KEYBASE_PAPERKEY}" ]]; then
+if [[ -v KEYBASE_USERNAME ]] -a [[ -v KEYBASE_PAPERKEY ]]; then
     keybase --no-auto-fork oneshot
 fi
 

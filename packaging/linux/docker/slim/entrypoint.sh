@@ -28,7 +28,7 @@ done
 
 
 # Possibly run oneshot if it was requested by the user
-if [[ -z "${KEYBASE_USERNAME}" ]] -a [[ -z "${KEYBASE_PAPERKEY}" ]]; then
+if [[ -v KEYBASE_USERNAME ]] -a [[ -v KEYBASE_PAPERKEY ]]; then
     keybase --no-auto-fork oneshot
 fi
 
