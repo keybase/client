@@ -78,6 +78,10 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.ClearCommandsV1(ctx, c, w)
 	case methodListCommands:
 		return d.handler.ListCommandsV1(ctx, c, w)
+	case methodPin:
+		return d.handler.PinV1(ctx, c, w)
+	case methodUnpin:
+		return d.handler.UnpinV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

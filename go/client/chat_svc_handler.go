@@ -44,6 +44,8 @@ type ChatServiceHandler interface {
 	AdvertiseCommandsV1(context.Context, advertiseCommandsOptionsV1) Reply
 	ClearCommandsV1(context.Context) Reply
 	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
+	PinV1(context.Context, pinOptionsV1) Reply
+	UnpinV1(context.Context, unpinOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -356,6 +358,49 @@ func (c *chatServiceHandler) ListCommandsV1(ctx context.Context, opts listComman
 		Commands: lres.Commands,
 	}
 	res.RateLimits = c.aggRateLimits(append(rl, lres.RateLimits...))
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) PinV1(ctx context.Context, opts pinOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	lres, err := client.PinMessage(ctx, chat1.PinMessageArg{
+		ConvID: convID,
+		MsgID:  opts.MessageID,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	allLimits := append(rl, lres.RateLimits...)
+	res := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(allLimits),
+	}
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) UnpinV1(ctx context.Context, opts unpinOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	lres, err := client.UnpinMessage(ctx, convID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	allLimits := append(rl, lres.RateLimits...)
+	res := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits(allLimits),
+	}
 	return Reply{Result: res}
 }
 

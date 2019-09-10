@@ -49,8 +49,8 @@ const SecurityImpersonation = 2
 type TokenType uint32
 
 const (
-	TokenPrimary       TokenType = 1
-	TokenImpersonation TokenType = 2
+	TokenPrimary TokenType = 1
+	_            TokenType = 2 // TokenImpersonation
 )
 
 func DuplicateTokenEx(hExistingToken windows.Token, dwDesiredAccess uint32, lpTokenAttributes *syscall.SecurityAttributes, impersonationLevel uint32, tokenType TokenType, phNewToken *windows.Token) (err error) {

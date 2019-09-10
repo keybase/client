@@ -38,7 +38,7 @@ func TestEncoding(t *testing.T) {
 	}
 }
 
-func TestGetParentAndGetChild(t *testing.T) {
+func TestGetAndUpdateParentAndGetChild(t *testing.T) {
 
 	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
@@ -66,6 +66,79 @@ func TestGetParentAndGetChild(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, test.c.getParent(&child).equals(&parent))
 			require.True(t, test.c.getChild(&parent, test.i).equals(&child))
+			parentInPlace := child.Clone()
+			test.c.updateToParent(parentInPlace)
+			require.True(t, parentInPlace.equals(&parent))
+		})
+	}
+}
+
+func TestUpdateToParentAtLevel(t *testing.T) {
+
+	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
+
+	tests := []struct {
+		c      Config
+		parent string
+		child  string
+		level  uint
+	}{
+		{config1bit, "1", "1", 0},
+		{config1bit, "1", "10", 0},
+		{config1bit, "1", "1100100", 0},
+		{config2bits, "1", "1100", 0},
+		{config3bits, "1", "1111101", 0},
+		{config1bit, "111", "111", 2},
+		{config1bit, "110", "11010", 2},
+		{config2bits, "110", "11001", 1},
+		{config3bits, "1111", "1111101", 1},
+		{config3bits, "1111001000", "1111001000001000", 3},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v bits: %s -(%v)-> %s", test.c.bitsPerIndex, test.child, test.level, test.parent), func(t *testing.T) {
+			childToUpdate, err := makePositionFromStringForTesting(test.child)
+			require.NoError(t, err)
+			parent, err := makePositionFromStringForTesting(test.parent)
+			require.NoError(t, err)
+			test.c.updateToParentAtLevel(&childToUpdate, test.level)
+			require.True(t, parent.equals(&childToUpdate), "expected: %x actual: %x", parent, childToUpdate)
+		})
+	}
+
+}
+
+func TestUpdateToParentAndAllSiblings(t *testing.T) {
+
+	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
+
+	tests := []struct {
+		c            Config
+		pStr         string
+		expParentStr string
+		expSiblings  []string
+	}{
+		{config1bit, "1001111", "100111", []string{"1001110"}},
+		{config1bit, "1001", "100", []string{"1000"}},
+		{config2bits, "1001111", "10011", []string{"1001100", "1001101", "1001110"}},
+		{config3bits, "1001111", "1001", []string{"1001000", "1001001", "1001010", "1001011", "1001100", "1001101", "1001110"}},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v bits: %v", test.c.bitsPerIndex, test.pStr), func(t *testing.T) {
+			p, err := makePositionFromStringForTesting(test.pStr)
+			require.NoError(t, err)
+			parent, err := makePositionFromStringForTesting(test.expParentStr)
+			require.NoError(t, err)
+			siblings := make([]Position, test.c.childrenPerNode-1)
+
+			test.c.updateToParentAndAllSiblings(&p, siblings)
+			require.True(t, p.equals(&parent))
+			for i, expPosStr := range test.expSiblings {
+				expPos, err := makePositionFromStringForTesting(expPosStr)
+				require.NoError(t, err)
+				require.True(t, expPos.equals(&siblings[i]), "Error at sibling %v, got %v", expPosStr, siblings[i])
+			}
 		})
 	}
 }
@@ -116,34 +189,39 @@ func TestPositionIsOnPathToKey(t *testing.T) {
 
 }
 
-func TestGetSiblingPositionsOnPathToKey(t *testing.T) {
+func TestGetDeepestPositionAtLevelAndSiblingsOnPathToKey(t *testing.T) {
 
 	config1bit, config2bits, _ := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 
 	tests := []struct {
 		c            Config
+		lastLevel    int
+		firstLevel   int
 		k            Key
 		expPosOnPath []string
 	}{
-		{config1bit, []byte{}, nil},
-		{config1bit, []byte{0xf0}, []string{"111110001", "11111001", "1111101", "111111", "11110", "1110", "110", "10"}},
-		{config2bits, []byte{0xf0}, []string{"111110001", "111110010", "111110011", "1111101", "1111110", "1111111", "11100", "11101", "11110", "100", "101", "110"}},
+		{config1bit, 8, 1, []byte{0xf0}, []string{"111110000", "111110001", "11111001", "1111101", "111111", "11110", "1110", "110", "10"}},
+		{config1bit, 2, 1, []byte{0xf0}, []string{"111", "110", "10"}},
+		{config1bit, 3, 1, []byte{0xf0}, []string{"1111", "1110", "110", "10"}},
+		{config1bit, 3, 2, []byte{0xf0}, []string{"1111", "1110", "110"}},
+		{config1bit, 4, 2, []byte{0xf0}, []string{"11111", "11110", "1110", "110"}},
+		{config1bit, 8, 1, []byte{0x00}, []string{"100000000", "100000001", "10000001", "1000001", "100001", "10001", "1001", "101", "11"}},
+		{config1bit, 2, 1, []byte{0x00}, []string{"100", "101", "11"}},
+		{config1bit, 3, 1, []byte{0x00}, []string{"1000", "1001", "101", "11"}},
+		{config1bit, 3, 2, []byte{0x00}, []string{"1000", "1001", "101"}},
+		{config1bit, 4, 2, []byte{0x00}, []string{"10000", "10001", "1001", "101"}},
+		{config1bit, 1, 1, []byte{0x00}, []string{"10", "11"}},
+		{config2bits, 4, 1, []byte{0xf1}, []string{"111110001", "111110000", "111110010", "111110011", "1111101", "1111110", "1111111", "11100", "11101", "11110", "100", "101", "110"}},
 	}
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits: %v", test.c.bitsPerIndex, test.k), func(t *testing.T) {
-			posOnPath, err := test.c.getSiblingPositionsOnPathToKey(test.k)
-			if test.expPosOnPath == nil {
-				require.Error(t, err)
-				require.IsType(t, InvalidKeyError{}, err)
-				return
-			}
-			require.NoError(t, err)
+			posOnPath := test.c.getDeepestPositionAtLevelAndSiblingsOnPathToKey(test.k, test.lastLevel, test.firstLevel)
 			require.Equal(t, len(test.expPosOnPath), len(posOnPath))
 			for i, expPosStr := range test.expPosOnPath {
 				expPos, err := makePositionFromStringForTesting(expPosStr)
 				require.NoError(t, err)
-				require.True(t, expPos.equals(&posOnPath[i]), "Error at position %v", expPosStr)
+				require.True(t, expPos.equals(&posOnPath[i]), "Error at position %v, got %v", expPosStr, posOnPath[i])
 			}
 		})
 	}

@@ -43,6 +43,9 @@ type Config struct {
 	// bitsPerIndex divides keyByteLength*8
 	keysByteLength int
 
+	// The maximum depth of the tree. Should always equal keysByteLength*8/bitsPerIndex
+	maxDepth int
+
 	// valueConstructor is an interface to construct empty values to be used for
 	// deserialization.
 	valueConstructor ValueConstructor
@@ -65,7 +68,8 @@ func NewConfig(h Encoder, useBlindedValueHashes bool, logChildrenPerNode uint8, 
 	if logChildrenPerNode < 1 {
 		return Config{}, NewInvalidConfigError(fmt.Sprintf("Need at least 2 children per node, but logChildrenPerNode = %v", logChildrenPerNode))
 	}
-	return Config{encoder: h, useBlindedValueHashes: useBlindedValueHashes, childrenPerNode: childrenPerNode, maxValuesPerLeaf: maxValuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, valueConstructor: nil}, nil
+	maxDepth := keysByteLength * 8 / int(logChildrenPerNode)
+	return Config{encoder: h, useBlindedValueHashes: useBlindedValueHashes, childrenPerNode: childrenPerNode, maxValuesPerLeaf: maxValuesPerLeaf, bitsPerIndex: logChildrenPerNode, keysByteLength: keysByteLength, maxDepth: maxDepth, valueConstructor: nil}, nil
 }
 
 // MasterSecret is a secret used to hide wether a leaf value has changed between

@@ -610,6 +610,7 @@ const (
 	EncryptionReasonTeambotEphemeralKey     EncryptionReason = "Keybase-Teambot-Ephemeral-Key-1"
 	EncryptionReasonTeambotKey              EncryptionReason = "Keybase-Teambot-Key-1"
 	EncryptionReasonContactsLocalStorage    EncryptionReason = "Keybase-Contacts-Local-Storage-1"
+	EncryptionReasonContactsResolvedServer  EncryptionReason = "Keybase-Contacts-Resolved-Server-1"
 	EncryptionReasonTeambotKeyLocalStorage  EncryptionReason = "Keybase-Teambot-Key-Local-Storage-1"
 	EncryptionReasonKBFSFavorites           EncryptionReason = "kbfs.favorites" // legacy const for kbfs favorites
 )
