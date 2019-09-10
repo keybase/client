@@ -21,10 +21,10 @@ type Tree struct {
 
 	// step is an optimization parameter for GetKeyValuePairWithProof that
 	// controls how many path positions at a time the tree requests from the
-	// storage engine. Lower values result in more storage engine request, but
+	// storage engine. Lower values result in more storage engine requests, but
 	// less of the (somewhat expensive) bit fiddling operations.  Values higher
 	// than 63 are not recommended as the bit operations (in the best case)
-	// cannot be done using a signle 64 bit word and become more expensive. This
+	// cannot be done using a single 64 bit word and become more expensive. This
 	// is unnecessary if the tree has random keys (as such a tree should be
 	// approximately balanced and have short-ish paths).
 	step int
@@ -352,7 +352,7 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 
 	var siblingPosHashPairs []PositionHashPair
 	needMore := true
-	for curr := 1; needMore && curr <= t.cfg.keysByteLength*8/int(t.cfg.bitsPerIndex); curr += t.step + 1 {
+	for curr := 1; needMore && curr <= t.cfg.maxDepth; curr += t.step + 1 {
 		// The first element is the position at level curr+step on the path from
 		// the root to k (on a complete tree). The next ones are all the
 		// necessary siblings at levels from curr+step to curr (both included)

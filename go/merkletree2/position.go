@@ -144,11 +144,9 @@ func (t *Config) getDeepestPositionAtLevelAndSiblingsOnPathToKey(k Key, lastLeve
 	}
 
 	// first, shrink the key for efficiency
-	var bytesNecessary int
-	if lastLevel*int(t.bitsPerIndex)%8 == 0 {
-		bytesNecessary = lastLevel * int(t.bitsPerIndex) / 8
-	} else {
-		bytesNecessary = lastLevel*int(t.bitsPerIndex)/8 + 1
+	bytesNecessary := lastLevel * int(t.bitsPerIndex) / 8
+	if lastLevel*int(t.bitsPerIndex)%8 != 0 {
+		bytesNecessary++
 	}
 	k = k[:bytesNecessary]
 
