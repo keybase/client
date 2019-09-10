@@ -45,6 +45,8 @@ const (
 	methodAdvertiseCommands = "advertisecommands"
 	methodClearCommands     = "clearcommands"
 	methodListCommands      = "listcommands"
+	methodPin               = "pin"
+	methodUnpin             = "unpin"
 )
 
 // ChatAPIHandler can handle all of the chat json api methods.
@@ -73,6 +75,8 @@ type ChatAPIHandler interface {
 	AdvertiseCommandsV1(context.Context, Call, io.Writer) error
 	ClearCommandsV1(context.Context, Call, io.Writer) error
 	ListCommandsV1(context.Context, Call, io.Writer) error
+	PinV1(context.Context, Call, io.Writer) error
+	UnpinV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -566,6 +570,31 @@ func (o listCommandsOptionsV1) Check() error {
 	return nil
 }
 
+type pinOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string          `json:"conversation_id"`
+	MessageID      chat1.MessageID `json:"message_id"`
+}
+
+func (o pinOptionsV1) Check() error {
+	if err := checkChannelConv(methodPin, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	return nil
+}
+
+type unpinOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string `json:"conversation_id"`
+}
+
+func (o unpinOptionsV1) Check() error {
+	if err := checkChannelConv(methodUnpin, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -920,6 +949,36 @@ func (a *ChatAPI) ListCommandsV1(ctx context.Context, c Call, w io.Writer) error
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.ListCommandsV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) PinV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodPin,
+			err: errors.New("empty options")}
+	}
+	var opts pinOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.PinV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) UnpinV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodUnpin,
+			err: errors.New("empty options")}
+	}
+	var opts unpinOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.UnpinV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

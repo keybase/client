@@ -2727,9 +2727,28 @@ func (h *Server) PinMessage(ctx context.Context, arg chat1.PinMessageArg) (res c
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PinMessage")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
+	}
+	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	if err != nil {
+		return res, err
+	}
+	if !msg.IsValid() {
+		return res, fmt.Errorf("unable to pin message, message invalid")
+	}
+	bod := msg.Valid().MessageBody
+	typ, err := bod.MessageType()
+	if err != nil {
+		return res, err
+	}
+	switch typ {
+	case chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT:
+	default:
+		return res, fmt.Errorf("Unable to pin messageof type %v, expected %v or %v",
+			typ, chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT)
 	}
 	if _, err := h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
 		ConversationID: arg.ConvID,
