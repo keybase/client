@@ -1205,6 +1205,26 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	return &header, nil
 }
 
+func (c *chatServiceHandler) getAllTeamConvs(ctx context.Context, name string, topicType *chat1.TopicType) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return nil, nil, err
+	}
+	res, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			Name: &chat1.NameQuery{
+				Name:        name,
+				MembersType: chat1.ConversationMembersType_TEAM,
+			},
+			TopicType: topicType,
+		},
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return res.Conversations, res.RateLimits, nil
+}
+
 func (c *chatServiceHandler) getExistingConvs(ctx context.Context, convID chat1.ConversationID,
 	channel ChatChannel) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
 	client, err := GetChatLocalClient(c.G())
