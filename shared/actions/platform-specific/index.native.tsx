@@ -16,6 +16,7 @@ import {
   Alert,
   Linking,
   NativeModules,
+  NativeEventEmitter,
   ActionSheetIOS,
   CameraRoll,
   PermissionsAndroid,
@@ -613,6 +614,24 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
+function* setupDarkMode() {
+  const NativeAppearance = NativeModules.Appearance
+  if (NativeAppearance) {
+    const channel = Saga.eventChannel(emitter => {
+      const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
+      nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
+        emitter(colorScheme)
+      })
+      return () => {}
+    }, Saga.buffers.sliding(1))
+
+    while (true) {
+      const mode = yield Saga.take(channel)
+      yield Saga.put(ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'}))
+    }
+  }
+}
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
@@ -646,4 +665,5 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
+  yield Saga.spawn(setupDarkMode)
 }
