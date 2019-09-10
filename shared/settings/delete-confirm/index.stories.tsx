@@ -8,8 +8,6 @@ const load = () => {
       onDeleteForever={Sb.action('onDeleteForever')}
       onCancel={Sb.action('onCancel')}
       username="chris"
-      allowDeleteForever={true}
-      setAllowDeleteAccount={Sb.action('setAllowDeleteAccount')}
     />
   ))
 }
