@@ -2,7 +2,7 @@
 import menubar from 'menubar'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
 
@@ -39,6 +39,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     webPreferences: {
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
+      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
     width: 360,
   })
