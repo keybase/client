@@ -49,11 +49,6 @@ type LoginWithPaperKeyArg struct {
 	Username  string `codec:"username" json:"username"`
 }
 
-type ClearStoredSecretArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Username  string `codec:"username" json:"username"`
-}
-
 type LogoutArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -121,9 +116,6 @@ type LoginInterface interface {
 	// - trying unlocked device keys if available
 	// - prompting for a paper key and using that
 	LoginWithPaperKey(context.Context, LoginWithPaperKeyArg) error
-	// Removes any existing stored secret for the given username.
-	// loginWithStoredSecret(_, username) will fail after this is called.
-	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
 	Logout(context.Context, int) error
 	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
@@ -211,21 +203,6 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					err = i.LoginWithPaperKey(ctx, typedArgs[0])
-					return
-				},
-			},
-			"clearStoredSecret": {
-				MakeArg: func() interface{} {
-					var ret [1]ClearStoredSecretArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ClearStoredSecretArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ClearStoredSecretArg)(nil), args)
-						return
-					}
-					err = i.ClearStoredSecret(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -427,13 +404,6 @@ func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProv
 // - prompting for a paper key and using that
 func (c LoginClient) LoginWithPaperKey(ctx context.Context, __arg LoginWithPaperKeyArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil)
-	return
-}
-
-// Removes any existing stored secret for the given username.
-// loginWithStoredSecret(_, username) will fail after this is called.
-func (c LoginClient) ClearStoredSecret(ctx context.Context, __arg ClearStoredSecretArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.clearStoredSecret", []interface{}{__arg}, nil)
 	return
 }
 
