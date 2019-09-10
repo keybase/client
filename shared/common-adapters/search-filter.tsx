@@ -224,13 +224,14 @@ class SearchFilter extends React.PureComponent<Props, State> {
     }
     if (Styles.isMobile) {
       return (
-        <Kb.Icon
-          type="iconfont-remove"
-          sizeType={this._iconSizeType()}
-          onClick={this.props.mobileCancelButton ? this._clear : this._cancel}
-          color={this._iconColor()}
-          style={styles.removeIconNonFullWidth}
-        />
+        <Kb.ClickableBox onClick={this.props.mobileCancelButton ? this._clear : this._cancel}>
+          <Kb.Icon
+            type="iconfont-remove"
+            sizeType={this._iconSizeType()}
+            color={this._iconColor()}
+            style={styles.removeIconNonFullWidth}
+          />
+        </Kb.ClickableBox>
       )
     } else {
       return (
@@ -381,7 +382,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.xsmall,
   },
   removeIconNonFullWidth: {
-    marginLeft: Styles.globalMargins.tiny,
+    margin: Styles.globalMargins.tiny,
   },
   spinnerFullWidth: {
     height: 16,
