@@ -13,29 +13,34 @@ import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 import {TypedState, isMobile} from '../../util/container'
 
-const editProfile = (state: TypedState, action: ProfileGen.EditProfilePayload) =>
-  RPCTypes.userProfileEditRpcPromise(
+const editProfile = async (state: TypedState, action: ProfileGen.EditProfilePayload) => {
+  await RPCTypes.userProfileEditRpcPromise(
     {
       bio: action.payload.bio,
       fullName: action.payload.fullname,
       location: action.payload.location,
     },
     TrackerConstants.waitingKey
-  ).then(() => Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}))
-
-const uploadAvatar = (_: TypedState, action: ProfileGen.UploadAvatarPayload) =>
-  RPCTypes.userUploadUserAvatarRpcPromise(
-    {
-      crop: action.payload.crop,
-      filename: action.payload.filename,
-    },
-    Constants.uploadAvatarWaitingKey
   )
-    .then(() => RouteTreeGen.createNavigateUp())
-    .catch(e => {
-      // error displayed in component
-      logger.warn(`Error uploading user avatar: ${e.message}`)
-    })
+  return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
+}
+
+const uploadAvatar = async (_: TypedState, action: ProfileGen.UploadAvatarPayload) => {
+  try {
+    await RPCTypes.userUploadUserAvatarRpcPromise(
+      {
+        crop: action.payload.crop,
+        filename: action.payload.filename,
+      },
+      Constants.uploadAvatarWaitingKey
+    )
+    return RouteTreeGen.createNavigateUp()
+  } catch (e) {
+    // error displayed in component
+    logger.warn(`Error uploading user avatar: ${e.message}`)
+    return false
+  }
+}
 
 const finishRevoking = (state: TypedState) => [
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
@@ -75,32 +80,40 @@ const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) =
   }
 }
 
-const submitRevokeProof = (state: TypedState, action: ProfileGen.SubmitRevokeProofPayload) => {
+const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRevokeProofPayload) => {
   const you = TrackerConstants.getDetails(state, state.config.username)
   if (!you || !you.assertions) return null
   const proof = you.assertions.find(a => a.sigID === action.payload.proofId)
   if (!proof) return null
 
   if (proof.type === 'pgp') {
-    return RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey).catch(e => {
+    try {
+      await RPCTypes.revokeRevokeKeyRpcPromise({keyID: proof.kid}, Constants.waitingKey)
+      return false
+    } catch (e) {
       logger.info('error in dropping pgp key', e)
       return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
-    })
+    }
   } else {
-    return RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
-      .then(() => ProfileGen.createFinishRevoking())
-      .catch((error: RPCError) => {
-        logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-        return ProfileGen.createRevokeFinishError({
-          error: 'There was an error revoking your proof. You can click the button to try again.',
-        })
+    try {
+      await RPCTypes.revokeRevokeSigsRpcPromise(
+        {sigIDQueries: [action.payload.proofId]},
+        Constants.waitingKey
+      )
+      return ProfileGen.createFinishRevoking()
+    } catch (error) {
+      logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+      return ProfileGen.createRevokeFinishError({
+        error: 'There was an error revoking your proof. You can click the button to try again.',
       })
+    }
   }
 }
 
-const submitBlockUser = (_: TypedState, action: ProfileGen.SubmitBlockUserPayload) => {
-  return RPCTypes.userBlockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
-    .then(() => [
+const submitBlockUser = async (_: TypedState, action: ProfileGen.SubmitBlockUserPayload) => {
+  try {
+    await RPCTypes.userBlockUserRpcPromise({username: action.payload.username}, Constants.blockUserWaitingKey)
+    return [
       ProfileGen.createFinishBlockUser(),
       Tracker2Gen.createLoad({
         assertion: action.payload.username,
@@ -108,36 +121,37 @@ const submitBlockUser = (_: TypedState, action: ProfileGen.SubmitBlockUserPayloa
         inTracker: false,
         reason: '',
       }),
-    ])
-    .catch((error: RPCError) => {
-      logger.warn(`Error blocking user ${action.payload.username}`, error)
-      return ProfileGen.createFinishBlockUserError({
-        error: error.desc || `There was an error blocking ${action.payload.username}.`,
-      })
+    ]
+  } catch (e) {
+    const error: RPCError = e
+    logger.warn(`Error blocking user ${action.payload.username}`, error)
+    return ProfileGen.createFinishBlockUserError({
+      error: error.desc || `There was an error blocking ${action.payload.username}.`,
     })
+  }
 }
 
-const submitUnblockUser = (_: TypedState, action: ProfileGen.SubmitUnblockUserPayload) => {
-  return RPCTypes.userUnblockUserRpcPromise(
-    {username: action.payload.username},
-    Constants.blockUserWaitingKey
-  )
-    .then(() =>
-      Tracker2Gen.createLoad({
-        assertion: action.payload.username,
-        guiID: TrackerConstants.generateGUIID(),
-        inTracker: false,
-        reason: '',
-      })
+const submitUnblockUser = async (_: TypedState, action: ProfileGen.SubmitUnblockUserPayload) => {
+  try {
+    await RPCTypes.userUnblockUserRpcPromise(
+      {username: action.payload.username},
+      Constants.blockUserWaitingKey
     )
-    .catch((error: RPCError) => {
-      logger.warn(`Error unblocking user ${action.payload.username}`, error)
-      return Tracker2Gen.createUpdateResult({
-        guiID: action.payload.guiID,
-        reason: `Failed to unblock ${action.payload.username}: ${error.desc}`,
-        result: 'error',
-      })
+    return Tracker2Gen.createLoad({
+      assertion: action.payload.username,
+      guiID: TrackerConstants.generateGUIID(),
+      inTracker: false,
+      reason: '',
     })
+  } catch (e) {
+    const error: RPCError = e
+    logger.warn(`Error unblocking user ${action.payload.username}`, error)
+    return Tracker2Gen.createUpdateResult({
+      guiID: action.payload.guiID,
+      reason: `Failed to unblock ${action.payload.username}: ${error.desc}`,
+      result: 'error',
+    })
+  }
 }
 
 const editAvatar = () =>

@@ -506,29 +506,31 @@ const showFinalErrorPage = (state: Container.TypedState, action: ProvisionGen.Sh
 
 const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
 
-const forgotUsername = (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
+const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {
-    return RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
-      {email: action.payload.email},
-      Constants.forgotUsernameWaitingKey
-    )
-      .then(() => ProvisionGen.createForgotUsernameResult({result: 'success'}))
-      .catch(error =>
-        ProvisionGen.createForgotUsernameResult({
-          result: Constants.decodeForgotUsernameError(error),
-        })
+    try {
+      await RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
+        {email: action.payload.email},
+        Constants.forgotUsernameWaitingKey
       )
+      return ProvisionGen.createForgotUsernameResult({result: 'success'})
+    } catch (error) {
+      return ProvisionGen.createForgotUsernameResult({
+        result: Constants.decodeForgotUsernameError(error),
+      })
+    }
   } else {
-    return RPCTypes.accountRecoverUsernameWithPhoneRpcPromise(
-      {phone: action.payload.phone},
-      Constants.forgotUsernameWaitingKey
-    )
-      .then(() => ProvisionGen.createForgotUsernameResult({result: 'success'}))
-      .catch(error =>
-        ProvisionGen.createForgotUsernameResult({
-          result: Constants.decodeForgotUsernameError(error),
-        })
+    try {
+      await RPCTypes.accountRecoverUsernameWithPhoneRpcPromise(
+        {phone: action.payload.phone},
+        Constants.forgotUsernameWaitingKey
       )
+      return ProvisionGen.createForgotUsernameResult({result: 'success'})
+    } catch (error) {
+      return ProvisionGen.createForgotUsernameResult({
+        result: Constants.decodeForgotUsernameError(error),
+      })
+    }
   }
 }
 

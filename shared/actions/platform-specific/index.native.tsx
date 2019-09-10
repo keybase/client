@@ -34,21 +34,21 @@ import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-n
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {pluralize} from '../../util/string'
 
-type NextURI = string
-
-const requestPermissionsToWrite = (): Promise<void> => {
+const requestPermissionsToWrite = async () => {
   if (isAndroid) {
-    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-      buttonNegative: 'Cancel',
-      buttonNeutral: 'Ask me later',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your storage so we can download a file.',
-      title: 'Keybase Storage Permission',
-    }).then(permissionStatus =>
-      permissionStatus !== 'granted'
-        ? Promise.reject(new Error('Unable to acquire storage permissions'))
-        : Promise.resolve()
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        buttonNegative: 'Cancel',
+        buttonNeutral: 'Ask me later',
+        buttonPositive: 'OK',
+        message: 'Keybase needs access to your storage so we can download a file.',
+        title: 'Keybase Storage Permission',
+      }
     )
+    return permissionStatus !== 'granted'
+      ? Promise.reject(new Error('Unable to acquire storage permissions'))
+      : Promise.resolve()
   }
   return Promise.resolve()
 }
@@ -89,10 +89,11 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
   }
 }
 
-export function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export const saveAttachmentDialog = async (filePath: string) => {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
+  await requestPermissionsToWrite()
+  return CameraRoll.saveToCameraRoll(goodPath)
 }
 
 export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
@@ -117,92 +118,97 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   }
 }
 
-export function showShareActionSheetFromURL(options: {
+export const showShareActionSheetFromURL = async (options: {
   url?: any | null
   message?: any | null
   mimeType?: string | null
-}) {
+}) => {
   if (isIOS) {
     return new Promise((resolve, reject) =>
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
     if (!options.url && options.message) {
-      return NativeModules.ShareFiles.shareText(options.message, options.mimeType).then(
-        () => ({completed: true, method: ''}),
-        () => ({completed: false, method: ''})
-      )
+      try {
+        await NativeModules.ShareFiles.shareText(options.message, options.mimeType)
+        return {completed: true, method: ''}
+      } catch (_) {
+        return {completed: false, method: ''}
+      }
     }
 
-    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
-      () => ({completed: true, method: ''}),
-      () => ({completed: false, method: ''})
-    )
+    try {
+      await NativeModules.ShareFiles.share(options.url, options.mimeType)
+      return {completed: true, method: ''}
+    } catch (_) {
+      return {completed: false, method: ''}
+    }
   }
 }
 
 // Shows the shareactionsheet for a file, and deletes the file afterwards
-export function showShareActionSheetFromFile(filePath: string): Promise<void> {
-  return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
+export const showShareActionSheetFromFile = async (filePath: string) => {
+  await showShareActionSheetFromURL({url: 'file://' + filePath})
+  return RNFetchBlob.fs.unlink(filePath)
 }
 
-const openAppSettings = () => {
+const openAppSettings = async () => {
   if (isAndroid) {
     NativeModules.NativeSettings.open()
   } else {
     const settingsURL = 'app-settings:'
-    Linking.canOpenURL(settingsURL).then(can => {
-      if (can) {
-        Linking.openURL(settingsURL)
-      } else {
-        logger.warn('Unable to open app settings')
-      }
-    })
+    const can = await Linking.canOpenURL(settingsURL)
+    if (can) {
+      Linking.openURL(settingsURL)
+    } else {
+      logger.warn('Unable to open app settings')
+    }
   }
 }
 
-export const getContentTypeFromURL = (
+export const getContentTypeFromURL = async (
   url: string,
   cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
-) =>
+) => {
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
-  isAndroid
-    ? fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
-        .then(response => {
-          let contentType = ''
-          let disposition = ''
-          let statusCode = response.status
-          if (
-            statusCode === 200 ||
-            statusCode === 206 ||
-            // 416 can happen if the file is empty.
-            statusCode === 416
-          ) {
-            contentType = response.headers.get('Content-Type') || ''
-            disposition = response.headers.get('Content-Disposition') || ''
-            statusCode = 200 // Treat 200, 206, and 416 as 200.
-          }
-          cb({contentType, disposition, statusCode})
-        })
-        .catch(error => {
-          console.log(error)
-          cb({error})
-        })
-    : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-        .then(response => {
-          let contentType = ''
-          let disposition = ''
-          if (response.status === 200) {
-            contentType = response.headers.get('Content-Type') || ''
-            disposition = response.headers.get('Content-Disposition') || ''
-          }
-          cb({contentType, disposition, statusCode: response.status})
-        })
-        .catch(error => {
-          console.log(error)
-          cb({error})
-        })
+  if (isAndroid) {
+    try {
+      const response = await fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
+      let contentType = ''
+      let disposition = ''
+      let statusCode = response.status
+      if (
+        statusCode === 200 ||
+        statusCode === 206 ||
+        // 416 can happen if the file is empty.
+        statusCode === 416
+      ) {
+        contentType = response.headers.get('Content-Type') || ''
+        disposition = response.headers.get('Content-Disposition') || ''
+        statusCode = 200 // Treat 200, 206, and 416 as 200.
+      }
+      cb({contentType, disposition, statusCode})
+    } catch (error) {
+      console.log(error)
+      cb({error})
+    }
+  } else {
+    try {
+      const response = await fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+      let contentType = ''
+      let disposition = ''
+      if (response.status === 200) {
+        contentType = response.headers.get('Content-Type') || ''
+        disposition = response.headers.get('Content-Disposition') || ''
+      }
+      cb({contentType, disposition, statusCode: response.status})
+    } catch (error) {
+      console.log(error)
+      cb({error})
+    }
+  }
+}
 
 const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused: boolean
@@ -268,16 +274,21 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   )
 }
 
-const updateMobileNetState = (_: Container.TypedState, action) => {
-  RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
+const updateMobileNetState = async (
+  _: Container.TypedState,
+  action: ConfigGen.OsNetworkStatusChangedPayload
+) => {
+  try {
+    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type})
+  } catch (err) {
     console.warn('Error sending mobileNetStateUpdate', err)
-  })
+  }
 }
 
-const initOsNetworkStatus = () =>
-  NetInfo.getConnectionInfo().then(({type}) =>
-    ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
-  )
+const initOsNetworkStatus = async () => {
+  const {type} = await NetInfo.getConnectionInfo()
+  return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
+}
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
@@ -300,23 +311,26 @@ function* loadStartupDetails() {
   let startupTab = undefined
   let startupSharePath = undefined
 
-  const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
-      .then(v => v.s || '')
-      .catch(() => {})
-  )
+  const routeStateTask = yield Saga._fork(async () => {
+    try {
+      const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
+      return v.s || ''
+    } catch (_) {
+      return undefined
+    }
+  })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
   const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Clear last value to be extra safe bad things don't hose us forever
-  yield Saga._fork(() => {
-    RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s: ''},
-    })
-      .then(() => {})
-      .catch(() => {})
+  yield Saga._fork(async () => {
+    try {
+      await RPCTypes.configGuiSetValueRpcPromise({
+        path: 'ui.routeState2',
+        value: {isNull: false, s: ''},
+      })
+    } catch (_) {}
   })
 
   // Top priority, push
@@ -384,16 +398,18 @@ const handleFilePickerError = (_: Container.TypedState, action: ConfigGen.FilePi
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = () =>
-  launchImageLibraryAsync('photo')
-    .then(result =>
-      result.cancelled === true
-        ? null
-        : RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
-          })
-    )
-    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
+const editAvatar = async () => {
+  try {
+    const result = await launchImageLibraryAsync('photo')
+    return result.cancelled === true
+      ? null
+      : RouteTreeGen.createNavigateAppend({
+          path: [{props: {image: result}, selected: 'profileEditAvatar'}],
+        })
+  } catch (error) {
+    return ConfigGen.createFilePickerError({error: new Error(error)})
+  }
+}
 
 const openAppStore = () =>
   Linking.openURL(
@@ -473,15 +489,14 @@ function* requestContactPermissions(
   ])
 }
 
-async function manageContactsCache(
+const manageContactsCache = async (
   state: Container.TypedState,
   _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
-) {
+) => {
   if (state.settings.contacts.importEnabled === false) {
-    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
-      SettingsGen.createSetContactImportedCount({count: null})
-    )
+    await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
+    return SettingsGen.createSetContactImportedCount({count: null})
   }
 
   // get permissions if we haven't loaded them for some reason
