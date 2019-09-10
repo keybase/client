@@ -35,7 +35,7 @@ type FilesPreviewProps = {
 }
 
 export const FileUpdate = (props: FileUpdateProps) => (
-  <Kb.ClickableBox onClick={props.onClick} style={styles.fullWidth}>
+  <Kb.ClickableBox className="hover-underline-container" onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
       <Kb.Icon type="icon-file-16" style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
       {props.uploading && (
@@ -127,7 +127,12 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
         <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
           in&nbsp;
         </Kb.Text>
-        <Kb.Text type="BodySmall" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+        <Kb.Text
+          className="hover-underline"
+          type="BodySmall"
+          style={styles.tlfParticipants}
+          onClick={props.onSelectPath}
+        >
           {props.tlfType === 'team' ? (
             props.teamname
           ) : props.tlfType === 'public' ? (
@@ -160,87 +165,90 @@ export const FilesPreview = (props: FilesPreviewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  buttonContainer: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  fileUpdateRow: {
-    marginTop: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.large,
-  },
-  fullWidth: {
-    // needed to avoid icon being pinched
-    width: '100%',
-  },
-  iconBadge: {
-    height: 12,
-    width: 12,
-  },
-  iconBadgeBox: {
-    marginLeft: -12,
-    marginRight: 12,
-    marginTop: 12,
-    width: 0,
-    zIndex: 100,
-  },
-  iconStyle: {
-    flexShrink: 0,
-    height: 16,
-    marginRight: Styles.globalMargins.xtiny,
-    position: 'relative',
-    top: 1,
-    width: 16,
-  },
-  tlfContainer: {
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  tlfParticipants: {
-    fontSize: 12,
-  },
-  tlfRowAvatar: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  tlfRowContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    color: Styles.globalColors.black_50,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
-  tlfSectionHeaderContainer: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  tlfTime: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  tlfTopLine: {
-    justifyContent: 'space-between',
-  },
-  toggleButton: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.black_05,
-      borderRadius: Styles.borderRadius,
-      marginTop: Styles.globalMargins.xtiny,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
-      marginRight: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  wordWrapFilename: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      buttonContainer: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      fileUpdateRow: {
+        marginTop: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.large,
+      },
+      fullWidth: {
+        // needed to avoid icon being pinched
+        width: '100%',
+      },
+      iconBadge: {
+        height: 12,
+        width: 12,
+      },
+      iconBadgeBox: {
+        marginLeft: -12,
+        marginRight: 12,
+        marginTop: 12,
+        width: 0,
+        zIndex: 100,
+      },
+      iconStyle: {
+        flexShrink: 0,
+        height: 16,
+        marginRight: Styles.globalMargins.xtiny,
+        position: 'relative',
+        top: 1,
+        width: 16,
+      },
+      tlfContainer: {
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.black,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      tlfParticipants: {
+        fontSize: 12,
+      },
+      tlfRowAvatar: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      tlfRowContainer: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      tlfSectionHeader: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        color: Styles.globalColors.black_50,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+      tlfSectionHeaderContainer: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      tlfTime: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      tlfTopLine: {
+        justifyContent: 'space-between',
+      },
+      toggleButton: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.black_05,
+          borderRadius: Styles.borderRadius,
+          marginTop: Styles.globalMargins.xtiny,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+        isElectron: {
+          marginRight: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+      wordWrapFilename: Styles.platformStyles({
+        isElectron: {
+          wordBreak: 'break-all',
+        },
+      }),
+    } as const)
+)

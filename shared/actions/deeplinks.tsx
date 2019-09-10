@@ -8,6 +8,7 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import URL from 'url-parse'
+import logger from '../logger'
 
 const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
@@ -27,12 +28,18 @@ const handleKeybaseLink = (_: Container.TypedState, action: DeeplinksGen.HandleK
     case 'private':
     case 'public':
     case 'team':
-      return [
-        RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {path: `/keybase/${action.payload.link}`}, selected: 'main'}],
-        }),
-      ]
+      try {
+        const decoded = decodeURIComponent(action.payload.link)
+        return [
+          RouteTreeGen.createSwitchTab({tab: Tabs.fsTab}),
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {path: `/keybase/${decoded}`}, selected: 'main'}],
+          }),
+        ]
+      } catch (e) {
+        logger.warn("Coudn't decode KBFS URI")
+        return []
+      }
     case 'chat':
       if (parts.length === 2) {
         if (parts[1].includes('#')) {

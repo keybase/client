@@ -58,7 +58,7 @@ func (e *ProveCheck) Run(m libkb.MetaContext) error {
 		return err
 	}
 	e.found = found
-	e.status = keybase1.ProofStatus(status)
+	e.status = status
 	e.state = state
 
 	m.Debug("looking for ChainLink for %s", e.sigID)

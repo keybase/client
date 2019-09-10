@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
+import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
@@ -92,8 +93,12 @@ export const Email = () => {
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
-          icon={
-            <Kb.Icon type={Styles.isMobile ? 'icon-email-add-96' : 'icon-email-add-64'} style={styles.icon} />
+          iconType={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-email-add-96'
+                : 'icon-email-add-64'
+              : 'icon-email-add-64'
           }
         />
       </Kb.Box2>
@@ -185,11 +190,12 @@ export const Phone = () => {
           onContinue={onContinue}
           searchable={searchable}
           onChangeSearchable={onChangeSearchable}
-          icon={
-            <Kb.Icon
-              type={Styles.isMobile ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
-              style={styles.icon}
-            />
+          iconType={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-phone-number-add-96'
+                : 'icon-phone-number-add-64'
+              : 'icon-phone-number-add-64'
           }
         />
       </Kb.Box2>
@@ -299,43 +305,36 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  blueBackground: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  body: {
-    ...Styles.padding(
-      Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
-      Styles.globalMargins.small,
-      0
-    ),
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-    position: 'relative',
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  footer: {
-    ...Styles.padding(Styles.globalMargins.small),
-  },
-  icon: Styles.platformStyles({
-    isElectron: {
-      height: 64,
-      width: 64,
-    },
-    isMobile: {
-      height: 96,
-      width: 96,
-    },
-  }),
-  verifyContainer: {
-    ...Styles.padding(0, Styles.globalMargins.small),
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      blueBackground: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      body: {
+        ...Styles.padding(
+          Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
+          Styles.globalMargins.small,
+          0
+        ),
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+        position: 'relative',
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      footer: {
+        ...Styles.padding(Styles.globalMargins.small),
+      },
+      verifyContainer: {
+        ...Styles.padding(0, Styles.globalMargins.small),
+      },
+    } as const)
+)

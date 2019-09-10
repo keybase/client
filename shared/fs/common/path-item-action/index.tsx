@@ -100,20 +100,20 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
   )
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   floatingContainer: Styles.platformStyles({
     common: {
       overflow: 'visible',
     },
     isElectron: {
       marginTop: 12,
-      width: 220,
+      width: 280,
     },
     isMobile: {
       marginTop: undefined,
       width: '100%',
     },
   }),
-})
+}))
 
 export default PathItemAction

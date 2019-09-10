@@ -169,7 +169,8 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	Logout(tc)
 
 	// Clear out the username stored in G.Env.
-	tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
+	err = tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
+	require.NoError(t, err)
 
 	mockGetUsername := &GetUsernameMock{
 		Username: fu.Username,
@@ -271,7 +272,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 	ili, _ = isLoggedIn(mctx)
 	require.False(t, ili, "cannot finagle a login")
 
-	fu = CreateAndSignupFakeUser(tc, "lwss")
+	_ = CreateAndSignupFakeUser(tc, "lwss")
 	Logout(tc)
 
 	ili, _ = isLoggedIn(mctx)

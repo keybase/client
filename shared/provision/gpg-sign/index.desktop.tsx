@@ -1,7 +1,7 @@
 // TODO remove Container
 import Container from '../../login/forms/container'
 import * as React from 'react'
-import Row, {RowCSS} from './row.desktop'
+import Row from './row.desktop'
 import {Text, Box2} from '../../common-adapters'
 
 import {Props} from '.'
@@ -10,7 +10,6 @@ class GPGSign extends React.Component<Props> {
   render() {
     return (
       <Container style={styles.container} onBack={() => this.props.onBack()}>
-        <RowCSS />
         {this.props.importError && (
           <Box2 direction="vertical" centerChildren={true}>
             <Text type="Header" style={styles.header}>

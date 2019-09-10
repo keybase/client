@@ -318,208 +318,211 @@ const Instructions = (p: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  backButton: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.medium,
-      marginTop: Styles.globalMargins.medium,
-      // else the background can go above things, annoyingly
-      zIndex: 1,
-    },
-    isMobile: {
-      marginBottom: 0,
-      marginLeft: 0,
-      marginTop: 0,
-    },
-  }),
-  backButtonText: {
-    color: Styles.globalColors.white,
-  },
-  backgroundOnLeft: {
-    marginLeft: -230,
-  },
-  backgroundOnRight: {
-    marginRight: -230,
-  },
-  codePageContainer: Styles.platformStyles({
-    common: {
-      overflow: 'hidden',
-      position: 'relative',
-    },
-    isElectron: {
-      minHeight: 400,
-      minWidth: 400,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      justifyContent: 'space-between',
-    },
-    isElectron: {
-      height: '100%',
-      padding: Styles.globalMargins.large,
-      // else the background can go above things, annoyingly
-      zIndex: 1,
-    },
-    isMobile: {
-      flexGrow: 1,
-      paddingBottom: Styles.globalMargins.small,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: 0, // increasing this makes it not visible all on one page in small iPhones, so let's leave it
-    },
-  }),
-  enterTextButton: {
-    maxWidth: Styles.isMobile ? undefined : 460,
-    width: '100%',
-  },
-  enterTextContainer: {
-    alignItems: Styles.isMobile ? 'stretch' : 'center',
-    alignSelf: 'stretch',
-  },
-  enterTextInput: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fontTerminalSemibold,
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: 4,
-      color: Styles.globalColors.greenDark,
-      paddingBottom: 15,
-      paddingLeft: 20,
-      paddingRight: 20,
-      paddingTop: 15,
-    },
-    isElectron: {
-      fontSize: 16,
-      maxWidth: 460,
-    },
-    isMobile: {
-      width: '100%',
-    },
-  }),
-  errorContainer: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.red,
-    marginTop: Styles.globalMargins.small,
-    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
-    width: '100%',
-  },
-  errorText: {color: Styles.globalColors.white},
-  hamburger: Styles.platformStyles({
-    isMobile: {
-      bottom: 1,
-      position: 'relative',
-      right: 1,
-    },
-  }),
-  imageContainerOnLeft: {
-    ...Styles.globalStyles.fillAbsolute,
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
-  },
-  imageContainerOnRight: {
-    ...Styles.globalStyles.fillAbsolute,
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  instructions: {color: Styles.globalColors.white},
-  instructionsContainer: {
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  instructionsItalic: {
-    ...Styles.globalStyles.italic,
-    color: Styles.globalColors.white,
-  },
-  instructionsUpper: {
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  qrContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
-      flexDirection: 'column',
-      padding: 4,
-    },
-    isElectron: {
-      width: 220,
-    },
-    isMobile: {
-      width: 160,
-    },
-  }),
-  qrContainerFlip: {
-    flexDirection: 'column-reverse',
-  },
-  qrImageContainer: {
-    paddingBottom: 10,
-    paddingTop: 10,
-  },
-  qrOnlyContainer: {
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: 8,
-    padding: 20,
-  },
-  safeArea: {
-    height: '100%',
-    width: '100%',
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    position: 'relative',
-  },
-  scrollContent: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      flexGrow: 1,
-      height: '100%',
-    },
-  }),
-  scrollView: {
-    // want the scroll contents to be the full height
-    ...Styles.globalStyles.fillAbsolute,
-    ...Styles.globalStyles.flexBoxColumn,
-  },
-  switchTab: {
-    color: Styles.globalColors.white,
-    marginBottom: 4,
-  },
-  switchTabContainer: {
-    alignItems: 'center',
-  },
-  viewTextCode: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fontTerminalSemibold,
-      color: Styles.globalColors.white,
-      fontSize: 16,
-    },
-    isElectron: {
-      maxWidth: 330,
-    },
-    isMobile: {},
-  }),
-  viewTextContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.green,
-      borderRadius: 4,
-    },
-    isElectron: {
-      alignItems: 'center',
-      maxWidth: 460,
-      paddingBottom: 20,
-      paddingLeft: 64,
-      paddingRight: 64,
-      paddingTop: 20,
-    },
-    isMobile: {
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      paddingBottom: 20,
-      paddingLeft: 20,
-      paddingRight: 20,
-      paddingTop: 20,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.medium,
+          // else the background can go above things, annoyingly
+          zIndex: 1,
+        },
+        isMobile: {
+          marginBottom: 0,
+          marginLeft: 0,
+          marginTop: 0,
+        },
+      }),
+      backButtonText: {
+        color: Styles.globalColors.white,
+      },
+      backgroundOnLeft: {
+        marginLeft: -230,
+      },
+      backgroundOnRight: {
+        marginRight: -230,
+      },
+      codePageContainer: Styles.platformStyles({
+        common: {
+          overflow: 'hidden',
+          position: 'relative',
+        },
+        isElectron: {
+          minHeight: 400,
+          minWidth: 400,
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          justifyContent: 'space-between',
+        },
+        isElectron: {
+          height: '100%',
+          padding: Styles.globalMargins.large,
+          // else the background can go above things, annoyingly
+          zIndex: 1,
+        },
+        isMobile: {
+          flexGrow: 1,
+          paddingBottom: Styles.globalMargins.small,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: 0, // increasing this makes it not visible all on one page in small iPhones, so let's leave it
+        },
+      }),
+      enterTextButton: {
+        maxWidth: Styles.isMobile ? undefined : 460,
+        width: '100%',
+      },
+      enterTextContainer: {
+        alignItems: Styles.isMobile ? 'stretch' : 'center',
+        alignSelf: 'stretch',
+      },
+      enterTextInput: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fontTerminalSemibold,
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: 4,
+          color: Styles.globalColors.greenDark,
+          paddingBottom: 15,
+          paddingLeft: 20,
+          paddingRight: 20,
+          paddingTop: 15,
+        },
+        isElectron: {
+          fontSize: 16,
+          maxWidth: 460,
+        },
+        isMobile: {
+          width: '100%',
+        },
+      }),
+      errorContainer: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.red,
+        marginTop: Styles.globalMargins.small,
+        padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
+        width: '100%',
+      },
+      errorText: {color: Styles.globalColors.white},
+      hamburger: Styles.platformStyles({
+        isMobile: {
+          bottom: 1,
+          position: 'relative',
+          right: 1,
+        },
+      }),
+      imageContainerOnLeft: {
+        ...Styles.globalStyles.fillAbsolute,
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+      },
+      imageContainerOnRight: {
+        ...Styles.globalStyles.fillAbsolute,
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+      },
+      instructions: {color: Styles.globalColors.white},
+      instructionsContainer: {
+        alignItems: 'center',
+        flexWrap: 'wrap',
+      },
+      instructionsItalic: {
+        ...Styles.globalStyles.italic,
+        color: Styles.globalColors.white,
+      },
+      instructionsUpper: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      qrContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: isAndroid ? 0 : 8, // If this is set to ANYTHING other than 0 android DOESN"T WORK!!!!!! The qr scanner totally breaks
+          flexDirection: 'column',
+          padding: 4,
+        },
+        isElectron: {
+          width: 220,
+        },
+        isMobile: {
+          width: 160,
+        },
+      }),
+      qrContainerFlip: {
+        flexDirection: 'column-reverse',
+      },
+      qrImageContainer: {
+        paddingBottom: 10,
+        paddingTop: 10,
+      },
+      qrOnlyContainer: {
+        backgroundColor: Styles.globalColors.white,
+        borderRadius: 8,
+        padding: 20,
+      },
+      safeArea: {
+        height: '100%',
+        width: '100%',
+      },
+      scrollContainer: {
+        flexGrow: 1,
+        position: 'relative',
+      },
+      scrollContent: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          flexGrow: 1,
+          height: '100%',
+        },
+      }),
+      scrollView: {
+        // want the scroll contents to be the full height
+        ...Styles.globalStyles.fillAbsolute,
+        ...Styles.globalStyles.flexBoxColumn,
+      },
+      switchTab: {
+        color: Styles.globalColors.white,
+        marginBottom: 4,
+      },
+      switchTabContainer: {
+        alignItems: 'center',
+      },
+      viewTextCode: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fontTerminalSemibold,
+          color: Styles.globalColors.white,
+          fontSize: 16,
+        },
+        isElectron: {
+          maxWidth: 330,
+        },
+        isMobile: {},
+      }),
+      viewTextContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.green,
+          borderRadius: 4,
+        },
+        isElectron: {
+          alignItems: 'center',
+          maxWidth: 460,
+          paddingBottom: 20,
+          paddingLeft: 64,
+          paddingRight: 64,
+          paddingTop: 20,
+        },
+        isMobile: {
+          alignItems: 'center',
+          alignSelf: 'stretch',
+          paddingBottom: 20,
+          paddingLeft: 20,
+          paddingRight: 20,
+          paddingTop: 20,
+        },
+      }),
+    } as const)
+)
 export default CodePage2

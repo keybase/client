@@ -34,13 +34,13 @@ const NoTeamsPlaceholder = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     paddingBottom: Styles.globalMargins.large,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.large,
   },
-})
+}))
 
 export default NoTeamsPlaceholder

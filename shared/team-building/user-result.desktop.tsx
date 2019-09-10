@@ -96,7 +96,7 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
@@ -241,82 +241,85 @@ const AlreadyAddedIconButton = () => (
 
 const ActionButtonSize = Styles.isMobile ? 40 : 32
 export const userResultHeight = 50
-const styles = Styles.styleSheetCreate(() => ({
-  actionButton: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.grey,
-      height: ActionButtonSize,
-      marginLeft: Styles.globalMargins.tiny,
-      width: ActionButtonSize,
-    },
-  }),
-  actionButtonHighlight: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  actionButtonHoverContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      height: ActionButtonSize,
-      justifyContent: 'center',
-      width: ActionButtonSize,
-    },
-  }),
-  addToTeamIcon: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
-  },
-  highlighted: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter2,
-      borderRadius: Styles.borderRadius,
-    },
-  }),
-  keybaseServiceIcon: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.xtiny,
-    },
-  }),
-  removeButton: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
-  },
-  removeButtonHighlight: {
-    backgroundColor: Styles.globalColors.red,
-  },
-  rowContainer: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: userResultHeight,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-  }),
-  serviceIcon: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: 18,
-      width: 18,
-    },
-  }),
-  services: {
-    justifyContent: 'flex-end',
-  },
-  username: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionButton: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.rounded,
+          backgroundColor: Styles.globalColors.grey,
+          height: ActionButtonSize,
+          marginLeft: Styles.globalMargins.tiny,
+          width: ActionButtonSize,
+        },
+      }),
+      actionButtonHighlight: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      actionButtonHoverContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.rounded,
+          height: ActionButtonSize,
+          justifyContent: 'center',
+          width: ActionButtonSize,
+        },
+      }),
+      addToTeamIcon: {
+        ...Styles.globalStyles.rounded,
+        height: ActionButtonSize,
+        width: ActionButtonSize,
+      },
+      highlighted: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueLighter2,
+          borderRadius: Styles.borderRadius,
+        },
+      }),
+      keybaseServiceIcon: Styles.platformStyles({
+        common: {
+          marginRight: Styles.globalMargins.xtiny,
+        },
+      }),
+      removeButton: {
+        ...Styles.globalStyles.rounded,
+        height: ActionButtonSize,
+        width: ActionButtonSize,
+      },
+      removeButtonHighlight: {
+        backgroundColor: Styles.globalColors.red,
+      },
+      rowContainer: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          height: userResultHeight,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+      }),
+      serviceIcon: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          height: 18,
+          width: 18,
+        },
+      }),
+      services: {
+        justifyContent: 'flex-end',
+      },
+      username: {
+        flex: 1,
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Row

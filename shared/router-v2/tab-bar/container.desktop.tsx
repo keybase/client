@@ -13,7 +13,6 @@ import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from './index.desktop'
 import * as Container from '../../util/container'
-import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
 import {quit} from '../../desktop/app/ctl.desktop'
@@ -27,9 +26,8 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
   _fullnames: state.users.infoMap,
-  _peopleJustSignedUpEmail: state.signup.justSignedUpEmail,
+  _justSignedUpEmail: state.signup.justSignedUpEmail,
   _settingsEmailBanner: state.settings.email.addedEmail,
-  configuredAccounts: state.config.configuredAccounts,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
   uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
@@ -38,7 +36,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
-  _onTabClick: (tab, peopleJustSignedUpEmail, settingsEmailBanner) => {
+  _onTabClick: (tab, justSignedUpEmail, settingsEmailBanner) => {
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
@@ -47,7 +45,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     }
 
     // Clear "just signed up email" when you leave the people tab after signup
-    if (peopleJustSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
+    if (justSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(SignupGen.createClearJustSignedUpEmail())
     }
     // Clear "check your inbox" in settings when you leave the settings tab
@@ -84,10 +82,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
-const getBadges = memoize(b => b.toObject())
-
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  badgeNumbers: getBadges(stateProps._badgeNumbers),
+  badgeNumbers: stateProps._badgeNumbers,
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,
   onAddAccount: dispatchProps.onAddAccount,
@@ -98,7 +94,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.AppTab) =>
-    dispatchProps._onTabClick(tab, stateProps._peopleJustSignedUpEmail, stateProps._settingsEmailBanner),
+    dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,

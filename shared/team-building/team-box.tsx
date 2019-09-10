@@ -7,6 +7,7 @@ import * as Container from '../util/container'
 import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
+import {formatPhoneNumber} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
 
 type Props = {
@@ -24,19 +25,20 @@ type Props = {
 }
 
 const formatNameForUserBubble = (u: SelectedUser) => {
-  let technicalName: string
+  let displayName: string
   switch (u.service) {
     case 'keybase':
-    case 'contact': // do not display "michal@keyba.se on email" or similar
-    case 'phone':
     case 'email':
-      technicalName = u.username
+      displayName = u.username
+      break
+    case 'phone':
+      displayName = formatPhoneNumber(u.username)
       break
     default:
-      technicalName = `${u.username} on ${u.service}`
+      displayName = `${u.username} on ${u.service}`
       break
   }
-  return `${technicalName} ${u.prettyName ? `(${u.prettyName})` : ''}`
+  return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
@@ -62,7 +64,7 @@ const TeamBox = (props: Props) => {
   const last = !!props.teamSoFar.length && props.teamSoFar[props.teamSoFar.length - 1].userId
   const prevLast = Container.usePrevious(last)
   React.useEffect(() => {
-    if (Styles.isMobile && prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
+    if (prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({animated: true})
     }
   }, [prevLast, last])
@@ -74,7 +76,12 @@ const TeamBox = (props: Props) => {
   )
   return Styles.isMobile ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-      <Kb.ScrollView horizontal={true} alwaysBounceHorizontal={false} ref={scrollViewRef}>
+      <Kb.ScrollView
+        horizontal={true}
+        alwaysBounceHorizontal={false}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+      >
         <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
         {addMorePrompt}
       </Kb.ScrollView>
@@ -82,8 +89,14 @@ const TeamBox = (props: Props) => {
   ) : (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" style={styles.bubbles}>
-        <Kb.ScrollView horizontal={true}>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
+        <Kb.ScrollView
+          horizontal={true}
+          ref={scrollViewRef}
+          showsHorizontalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Kb.Box2 direction="horizontal" fullHeight={true}>
             <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
             {addMorePrompt}
           </Kb.Box2>
@@ -119,63 +132,67 @@ const TeamBox = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
-  bubbles: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-    isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      minHeight: 90,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  floatingBubbles: Styles.platformStyles({
-    isElectron: {
-      justifyContent: 'flex-end',
-    },
-  }),
-  search: Styles.platformStyles({
-    common: {
-      flex: 1,
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      maxHeight: 170,
-      minHeight: 40,
-      overflowY: 'scroll',
-    },
-    isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      minHeight: 48,
-    },
-  }),
-  searchIcon: {
-    alignSelf: 'center',
-    marginLeft: 10,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
+      bubbles: Styles.platformStyles({
+        isElectron: {
+          overflow: 'hidden',
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          minHeight: 90,
+        },
+      }),
+      scrollContent: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      search: Styles.platformStyles({
+        common: {
+          flex: 1,
+          flexWrap: 'wrap',
+        },
+        isElectron: {
+          ...Styles.globalStyles.rounded,
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_20,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          maxHeight: 170,
+          minHeight: 40,
+          overflowY: 'scroll',
+        },
+        isMobile: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          minHeight: 48,
+        },
+      }),
+      searchIcon: {
+        alignSelf: 'center',
+        marginLeft: 10,
+      },
+    } as const)
+)
 
 export default TeamBox

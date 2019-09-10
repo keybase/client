@@ -77,7 +77,9 @@ class TopMessage extends React.PureComponent<Props> {
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
           <Kb.Box style={moreStyle}>
-            <Kb.Text type="BodyBig">🗿</Kb.Text>
+            <Kb.Text type="BodyBig">
+              <Kb.Emoji size={16} emojiName=":moyai:" />
+            </Kb.Text>
             <Kb.Text type="BodySmallSemibold">Digging ancient messages...</Kb.Text>
           </Kb.Box>
         )}
@@ -127,9 +129,10 @@ export default Container.namedConnect(
         pendingState = 'done'
         break
     }
-    const loadMoreType = state.chat2.moreToLoadMap.get(ownProps.conversationIDKey)
-      ? ('moreToLoad' as const)
-      : ('noMoreToLoad' as const)
+    const loadMoreType =
+      state.chat2.moreToLoadMap.get(ownProps.conversationIDKey) !== false
+        ? ('moreToLoad' as const)
+        : ('noMoreToLoad' as const)
     const showTeamOffer =
       hasLoadedEver &&
       loadMoreType === 'noMoreToLoad' &&

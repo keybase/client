@@ -69,7 +69,7 @@ const Download = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   download: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.green,
@@ -121,6 +121,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     top: 0,
   },
-})
+}))
 
 export default Download

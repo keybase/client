@@ -11,8 +11,7 @@ import {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/cont
 import {createPropProvider, action} from './storybook.shared'
 import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
-import {unescapePath} from '../constants/fs'
-import {OwnProps as KbfsPathProps} from '../common-adapters/markdown/kbfs-path-container.js'
+import * as FsConstants from '../constants/fs'
 import rootReducer from '../reducers'
 
 /*
@@ -106,12 +105,6 @@ const Channel = ({name, convID, key, style}) => ({
   style,
 })
 
-const KbfsPath = ({escapedPath, allowFontScaling}: KbfsPathProps) => ({
-  allowFontScaling,
-  onClick: action('onClickKbfsPath'),
-  path: unescapePath(escapedPath),
-})
-
 const usernameToTheme = {
   following: 'follow',
   myUsername: 'highlight',
@@ -165,7 +158,6 @@ export const Common = () => ({
   ...Usernames(),
   ...WaitingButton(),
   Channel,
-  KbfsPath,
   Mention,
 })
 
@@ -181,16 +173,28 @@ export const createStoreWithCommon = () => {
   const root = rootReducer(undefined, {type: 'ignore'})
   return {
     ...root,
-    config: root.config.merge({
-      followers: I.Set(['max', 'akalin', 'followers', 'both']),
-      following: I.Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
+    config: {
+      ...root.config,
+      followers: new Set(['max', 'akalin', 'followers', 'both']),
+      following: new Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
-    }),
-    fs: root.fs.update('sfmi', sfmi =>
-      sfmi.merge({
-        directMountDir: '/Volumes/Keybase (meatball)',
-        preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
-      })
-    ),
+    },
+    fs: root.fs
+      .update('sfmi', sfmi =>
+        sfmi.merge({
+          directMountDir: '/Volumes/Keybase (meatball)',
+          driverStatus: FsConstants.makeDriverStatusEnabled(),
+          preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
+        })
+      )
+      .update('pathInfos', pathInfos =>
+        pathInfos.set(
+          '/keybase/private/meatball/folder/treat',
+          FsConstants.makePathInfo({
+            deeplinkPath: 'keybase://private/meatball/folder/treat',
+            platformAfterMountPath: '/private/meatball/folder/treat',
+          })
+        )
+      ),
   }
 }

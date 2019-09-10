@@ -163,7 +163,7 @@ func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 	if err != nil {
 		return err
 	}
-	path = path + "/pgp"
+	path += "/pgp"
 	err = e.mkdir(m, fs, path)
 	if err != nil {
 		return err
@@ -179,7 +179,10 @@ func (e *PGPPushPrivate) push(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 		return err
 	}
 
-	e.remove(m, fs, linkpath)
+	err = e.remove(m, fs, linkpath)
+	if err != nil {
+		return err
+	}
 
 	err = e.link(m, fs, filename, linkpath)
 	return err

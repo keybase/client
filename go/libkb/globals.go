@@ -391,7 +391,9 @@ func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username 
 	return nil
 }
 
-func (g *GlobalContext) ConfigureLogging() error {
+// ConfigureLogging should be given non-nil Usage if called by the main
+// service.
+func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 
@@ -410,7 +412,18 @@ func (g *GlobalContext) ConfigureLogging() error {
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 
-	g.initGUILogFile()
+	shouldConfigureGUILog := true
+	if usage != nil && usage.AllowRoot {
+		isAdmin, _, err := IsSystemAdminUser()
+		if err == nil && isAdmin {
+			shouldConfigureGUILog = false
+		}
+	}
+
+	if shouldConfigureGUILog {
+		g.initGUILogFile()
+	}
+
 	return nil
 }
 
@@ -891,7 +904,8 @@ func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 
 func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
-	if err := g.ConfigureLogging(); err != nil {
+
+	if err := g.ConfigureLogging(&usage); err != nil {
 		return err
 	}
 	if g.Env.GetStandalone() {

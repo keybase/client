@@ -15,30 +15,24 @@ type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespac
 
 const apiSearch = async (
   query: string,
-  service: TeamBuildingTypes.ServiceIdWithContact,
+  service: TeamBuildingTypes.ServiceId,
   maxResults: number,
   includeServicesSummary: boolean,
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
-  switch (service) {
-    // These services should not be queried through the API.
-    // TODO: Y2K-552 change types in this function so it can't be called with
-    // invalid services.
-    case 'phone':
-    case 'contact':
-    case 'email':
-      return []
-  }
   try {
-    const results = await RPCTypes.userSearchUserSearchRpcPromise({
-      impTofuQuery,
-      includeContacts: service === 'keybase' && includeContacts,
-      includeServicesSummary,
-      maxResults,
-      query,
-      service,
-    })
+    const results = await RPCTypes.userSearchUserSearchRpcPromise(
+      {
+        impTofuQuery,
+        includeContacts: service === 'keybase' && includeContacts,
+        includeServicesSummary,
+        maxResults,
+        query,
+        service,
+      },
+      Constants.searchWaitingKey
+    )
     return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
       const u = Constants.parseRawResultToUser(r, service)
       u && arr.push(u)
@@ -47,76 +41,6 @@ const apiSearch = async (
   } catch (err) {
     logger.error(`Error in searching for ${query} on ${service}. ${err.message}`)
     return []
-  }
-}
-
-function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
-  const teamBuildingState = state[namespace].teamBuilding
-  const {teamBuildingSearchQuery, teamBuildingSelectedService} = teamBuildingState
-  const teamBuildingSearchLimit = 11 // Hard coded since this happens for background tabs
-
-  if (teamBuildingSearchQuery === '') {
-    return
-  }
-
-  // Filter on `services` so we only get what's searchable through API.
-  // Also filter out if we already have that result cached.
-  const servicesToSearch = Constants.services
-    .filter(s => s !== teamBuildingSelectedService && !['contact', 'phone', 'email'].includes(s))
-    .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
-
-  const isStillInSameQuery = (state: TypedState): boolean => {
-    const teamBuildingState = state[namespace].teamBuilding
-
-    return (
-      teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-      teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
-    )
-  }
-
-  // Defer so we aren't conflicting with the main search
-  yield Saga.callUntyped(Saga.delay, 100)
-
-  // Change this to control how many requests are in flight at a time
-  const parallelRequestsCount = 2
-
-  // Channel to interact with workers. Initial buffer size to handle all the messages we'll put
-  // + 1 because we'll put the END message at the end when we close
-  const serviceChannel = yield Saga.callUntyped(
-    Saga.channel,
-    Saga.buffers.expanding(servicesToSearch.length + 1)
-  )
-  servicesToSearch.forEach(service => serviceChannel.put(service))
-  // After the workers pull all the services they can stop
-  serviceChannel.close()
-
-  for (let i = 0; i < parallelRequestsCount; i++) {
-    yield Saga.spawn(function*() {
-      // The loop will exit when we run out of services
-      while (true) {
-        const service = yield Saga.take(serviceChannel)
-        // if we aren't in the same query, let's stop
-        if (!isStillInSameQuery(yield* Saga.selectState())) {
-          break
-        }
-        const action = yield apiSearch(
-          teamBuildingSearchQuery,
-          service,
-          teamBuildingSearchLimit,
-          true,
-          null,
-          false
-        ).then(users =>
-          TeamBuildingGen.createSearchResultsLoaded({
-            namespace,
-            query: teamBuildingSearchQuery,
-            service,
-            users,
-          })
-        )
-        yield Saga.put(action)
-      }
-    })
   }
 }
 
@@ -146,6 +70,7 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
     return false
   }
 
+  // search tab services include phone/email - 'keybase' is the ServiceId for these, and we transform the query into impTofuQuery
   const query = teamBuildingSearchQuery
   let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
   if (teamBuildingSelectedService === 'keybase') {
@@ -195,18 +120,6 @@ const fetchUserRecs = async (
   }
 }
 
-async function searchEmailAddress(state: TypedState, {payload: {namespace}}: SearchOrRecAction) {
-  const query = state[namespace].teamBuilding.teamBuildingEmailSearchQuery
-  const impTofuQuery = makeImpTofuQuery(query, null)
-
-  const users = await apiSearch(query, 'keybase', 1, true, impTofuQuery, false)
-  return TeamBuildingGen.createSearchEmailAddressResultLoaded({
-    namespace,
-    query,
-    user: users[0],
-  })
-}
-
 export function filterForNs<S, A, L, R>(
   namespace: TeamBuildingTypes.AllowedNamespace,
   fn: (s: S, a: A & NSAction, l: L) => R
@@ -219,25 +132,9 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-function filterGenForNs<S, A, L>(
-  namespace: TeamBuildingTypes.AllowedNamespace,
-  fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
-) {
-  return function*(s, a, l) {
-    if (a && a.payload && a.payload.namespace === namespace) {
-      yield* fn(s, a, l)
-    }
-  }
-}
-
 export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
-  yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(
-    TeamBuildingGen.search,
-    filterGenForNs(namespace, searchResultCounts)
-  )
-  yield* Saga.chainAction2(TeamBuildingGen.searchEmailAddress, filterForNs(namespace, searchEmailAddress))
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],

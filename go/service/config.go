@@ -499,6 +499,10 @@ func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 }
 
 func (h ConfigHandler) AppendGUILogs(ctx context.Context, content string) error {
-	_, err := io.WriteString(h.G().GetGUILogWriter(), content)
+	wr := h.G().GetGUILogWriter()
+	if wr == nil {
+		return nil
+	}
+	_, err := io.WriteString(wr, content)
 	return err
 }

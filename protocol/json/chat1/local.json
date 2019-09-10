@@ -3676,6 +3676,10 @@
     "postLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "conversationID",
           "type": "ConversationID"
         },
@@ -4920,15 +4924,6 @@
         {
           "name": "coord",
           "type": "Coordinate"
-        }
-      ],
-      "response": null
-    },
-    "locationDenied": {
-      "request": [
-        {
-          "name": "convID",
-          "type": "ConversationID"
         }
       ],
       "response": null

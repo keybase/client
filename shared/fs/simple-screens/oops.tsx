@@ -132,7 +132,7 @@ export default Container.withSafeNavigation(
   )(Oops)
 ) as any
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     marginTop: Styles.globalMargins.small,
   },
@@ -176,4 +176,4 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-})
+}))

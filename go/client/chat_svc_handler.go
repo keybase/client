@@ -37,6 +37,7 @@ type ChatServiceHandler interface {
 	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
 	JoinV1(context.Context, joinOptionsV1) Reply
 	LeaveV1(context.Context, leaveOptionsV1) Reply
+	AddToChannelV1(context.Context, addToChannelOptionsV1) Reply
 	LoadFlipV1(context.Context, loadFlipOptionsV1) Reply
 	GetUnfurlSettingsV1(context.Context) Reply
 	SetUnfurlSettingsV1(context.Context, setUnfurlSettingsOptionsV1) Reply
@@ -48,11 +49,13 @@ type ChatServiceHandler interface {
 // chatServiceHandler implements ChatServiceHandler.
 type chatServiceHandler struct {
 	libkb.Contextified
+	chatUI *DelegateChatUI
 }
 
 func newChatServiceHandler(g *libkb.GlobalContext) *chatServiceHandler {
 	return &chatServiceHandler{
 		Contextified: libkb.NewContextified(g),
+		chatUI:       newDelegateChatUI(),
 	}
 }
 
@@ -195,6 +198,25 @@ func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) R
 	return Reply{Result: cres}
 }
 
+func (c *chatServiceHandler) AddToChannelV1(ctx context.Context, opts addToChannelOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	err = client.BulkAddToConv(ctx, chat1.BulkAddToConvArg{
+		Usernames: opts.Usernames,
+		ConvID:    convID,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: true}
+}
+
 func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -264,7 +286,7 @@ func (c *chatServiceHandler) getAdvertTyp(typ string) (chat1.BotCommandsAdvertis
 	case "teammembers":
 		return chat1.BotCommandsAdvertisementTyp_TLFID_MEMBERS, nil
 	default:
-		return chat1.BotCommandsAdvertisementTyp_PUBLIC, errors.New("unknown advertisement type")
+		return chat1.BotCommandsAdvertisementTyp_PUBLIC, fmt.Errorf("unknown advertisement type %q", typ)
 	}
 }
 
@@ -536,7 +558,7 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 }
 
 // SendV1 implements ChatServiceHandler.SendV1.
-func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui chat1.ChatUiInterface) Reply {
+func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, chatUI chat1.ChatUiInterface) Reply {
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -551,7 +573,7 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, ui 
 		ephemeralLifetime: opts.EphemeralLifetime,
 		replyTo:           opts.ReplyTo,
 	}
-	return c.sendV1(ctx, arg, ui)
+	return c.sendV1(ctx, arg, chatUI)
 }
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
@@ -659,13 +681,15 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 		}
 	}
 
+	c.chatUI.RegisterChatUI(chatUI)
+	defer c.chatUI.DeregisterChatUI(chatUI)
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(chatUI),
+		chat1.ChatUiProtocol(c.chatUI),
 		chat1.NotifyChatProtocol(notifyUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -684,7 +708,8 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 
 	var pres chat1.PostLocalRes
 	pres, err = client.PostFileAttachmentLocal(ctx, chat1.PostFileAttachmentLocalArg{
-		Arg: arg,
+		SessionID: getSessionID(chatUI),
+		Arg:       arg,
 	})
 	rl = append(rl, pres.RateLimits...)
 	if err != nil {
@@ -715,13 +740,15 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	defer fsink.Close()
 	sink := c.G().XStreams.ExportWriter(fsink)
 
+	c.chatUI.RegisterChatUI(chatUI)
+	defer c.chatUI.DeregisterChatUI(chatUI)
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(chatUI),
+		chat1.ChatUiProtocol(c.chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -733,6 +760,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	}
 
 	arg := chat1.DownloadAttachmentLocalArg{
+		SessionID:        getSessionID(chatUI),
 		ConversationID:   convID,
 		MessageID:        opts.MessageID,
 		Sink:             sink,
@@ -763,13 +791,15 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 // downloadV1NoStream uses DownloadFileAttachmentLocal instead of DownloadAttachmentLocal.
 func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1,
 	chatUI chat1.ChatUiInterface) Reply {
+	c.chatUI.RegisterChatUI(chatUI)
+	defer c.chatUI.DeregisterChatUI(chatUI)
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
-		chat1.ChatUiProtocol(chatUI),
+		chat1.ChatUiProtocol(c.chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -781,6 +811,7 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	}
 
 	arg := chat1.DownloadFileAttachmentLocalArg{
+		SessionID:      getSessionID(chatUI),
 		ConversationID: convID,
 		MessageID:      opts.MessageID,
 		Preview:        opts.Preview,
@@ -1047,12 +1078,14 @@ type sendArgV1 struct {
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI chat1.ChatUiInterface) Reply {
+	c.chatUI.RegisterChatUI(chatUI)
+	defer c.chatUI.DeregisterChatUI(chatUI)
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
-		chat1.ChatUiProtocol(chatUI),
+		chat1.ChatUiProtocol(c.chatUI),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -1072,6 +1105,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 	rl = append(rl, header.rateLimits...)
 
 	postArg := chat1.PostLocalArg{
+		SessionID:      getSessionID(chatUI),
 		ConversationID: header.conversationID,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: header.clientHeader,

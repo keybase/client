@@ -36,7 +36,7 @@ func newMockChatUI() *mockChatUI {
 	}
 }
 
-func (m *mockChatUI) ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error) {
+func (m *mockChatUI) ChatWatchPosition(context.Context, chat1.ConversationID, chat1.UIWatchPositionPerm) (chat1.LocationWatchID, error) {
 	m.watchID++
 	m.watchCh <- m.watchID
 	return m.watchID, nil
@@ -194,24 +194,15 @@ func TestChatSrvLiveLocationCurrent(t *testing.T) {
 			Lat: 40.800348,
 			Lon: -73.968784,
 		},
-		{
-			Lat: 40.798688,
-			Lon: -73.973716,
-		},
-		{
-			Lat: 40.795234,
-			Lon: -73.976237,
-		},
 	}
 	updateCoords(t, livelocation, coords, nil, coordsCh)
-	// no new map yet
+	checkCoords(t, unfurler, []chat1.Coordinate{coords[0]}, timeout)
+	clock.Advance(10 * time.Second)
 	select {
 	case <-unfurler.unfurlCh:
 		require.Fail(t, "should not have updated yet")
 	default:
 	}
-	clock.Advance(10 * time.Second)
-	checkCoords(t, unfurler, []chat1.Coordinate{coords[2]}, timeout)
 	select {
 	case <-chatUI.clearCh:
 	case <-time.After(timeout):
@@ -359,9 +350,8 @@ func TestChatSrvLiveLocationMultiple(t *testing.T) {
 	default:
 	}
 	// trackers fire after time moves up
-	done1 := checkCoords(t, unfurler, coords, timeout)
-	done2 := checkCoords(t, unfurler, coords, timeout)
-	if !(done1 || done2) {
+	done := checkCoords(t, unfurler, coords, timeout)
+	if !done {
 		checkCoords(t, unfurler, coords, timeout) // tracker 1 expires and posts again
 	}
 	select {

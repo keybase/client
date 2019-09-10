@@ -69,7 +69,7 @@ export const getHeight = (path: Types.Path) =>
 
 const getHeightStyle = (height: number) => ({height, maxHeight: height, minHeight: height})
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: Styles.platformStyles({
     common: {
       opacity: 1,
@@ -111,6 +111,6 @@ const styles = Styles.styleSheetCreate({
   gap: {
     flex: 1,
   },
-})
+}))
 
 export default NavMobileHeader

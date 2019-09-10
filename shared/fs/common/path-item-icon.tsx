@@ -168,7 +168,7 @@ export default (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badgeContainer: {
     // 1) Make position 'relative' so it's "positioned",
     //    and that the badge inside can just use 'absolute' relative to this
@@ -178,10 +178,10 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     width: 0,
   },
-})
+}))
 
 const badgeStyles = {
-  '32': Styles.styleSheetCreate({
+  '32': Styles.styleSheetCreate(() => ({
     newBadge: {
       left: 16,
       position: 'absolute',
@@ -202,8 +202,8 @@ const badgeStyles = {
       position: 'absolute',
       top: -14,
     },
-  }),
-  '48': Styles.styleSheetCreate({
+  })),
+  '48': Styles.styleSheetCreate(() => ({
     newBadge: {
       left: 32,
       position: 'absolute',
@@ -224,5 +224,5 @@ const badgeStyles = {
       position: 'absolute',
       top: -18,
     },
-  }),
+  })),
 }

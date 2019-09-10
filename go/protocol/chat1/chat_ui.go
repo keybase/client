@@ -668,6 +668,7 @@ type UIMessageValid struct {
 	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	PinnedMessageID       *MessageID             `codec:"pinnedMessageID,omitempty" json:"pinnedMessageID,omitempty"`
 	BotUID                *gregor1.UID           `codec:"botUID,omitempty" json:"botUID,omitempty"`
 }
 
@@ -792,6 +793,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
+		PinnedMessageID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PinnedMessageID),
 		BotUID: (func(x *gregor1.UID) *gregor1.UID {
 			if x == nil {
 				return nil
@@ -1113,6 +1121,7 @@ const (
 	UITextDecorationTyp_MAYBEMENTION       UITextDecorationTyp = 3
 	UITextDecorationTyp_LINK               UITextDecorationTyp = 4
 	UITextDecorationTyp_MAILTO             UITextDecorationTyp = 5
+	UITextDecorationTyp_KBFSPATH           UITextDecorationTyp = 6
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -1124,6 +1133,7 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"MAYBEMENTION":       3,
 	"LINK":               4,
 	"MAILTO":             5,
+	"KBFSPATH":           6,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
@@ -1133,6 +1143,7 @@ var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	3: "MAYBEMENTION",
 	4: "LINK",
 	5: "MAILTO",
+	6: "KBFSPATH",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -1258,6 +1269,7 @@ type UITextDecoration struct {
 	Maybemention__       *MaybeMention         `codec:"maybemention,omitempty" json:"maybemention,omitempty"`
 	Link__               *UILinkDecoration     `codec:"link,omitempty" json:"link,omitempty"`
 	Mailto__             *UILinkDecoration     `codec:"mailto,omitempty" json:"mailto,omitempty"`
+	Kbfspath__           *KBFSPath             `codec:"kbfspath,omitempty" json:"kbfspath,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -1290,6 +1302,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_MAILTO:
 		if o.Mailto__ == nil {
 			err = errors.New("unexpected nil value for Mailto__")
+			return ret, err
+		}
+	case UITextDecorationTyp_KBFSPATH:
+		if o.Kbfspath__ == nil {
+			err = errors.New("unexpected nil value for Kbfspath__")
 			return ret, err
 		}
 	}
@@ -1356,6 +1373,16 @@ func (o UITextDecoration) Mailto() (res UILinkDecoration) {
 	return *o.Mailto__
 }
 
+func (o UITextDecoration) Kbfspath() (res KBFSPath) {
+	if o.Typ__ != UITextDecorationTyp_KBFSPATH {
+		panic("wrong case accessed")
+	}
+	if o.Kbfspath__ == nil {
+		return
+	}
+	return *o.Kbfspath__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
@@ -1395,6 +1422,13 @@ func NewUITextDecorationWithMailto(v UILinkDecoration) UITextDecoration {
 	return UITextDecoration{
 		Typ__:    UITextDecorationTyp_MAILTO,
 		Mailto__: &v,
+	}
+}
+
+func NewUITextDecorationWithKbfspath(v KBFSPath) UITextDecoration {
+	return UITextDecoration{
+		Typ__:      UITextDecorationTyp_KBFSPATH,
+		Kbfspath__: &v,
 	}
 }
 
@@ -1443,6 +1477,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Mailto__),
+		Kbfspath__: (func(x *KBFSPath) *KBFSPath {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Kbfspath__),
 	}
 }
 
@@ -2341,6 +2382,32 @@ func (o LocationWatchID) DeepCopy() LocationWatchID {
 	return o
 }
 
+type UIWatchPositionPerm int
+
+const (
+	UIWatchPositionPerm_BASE   UIWatchPositionPerm = 0
+	UIWatchPositionPerm_ALWAYS UIWatchPositionPerm = 1
+)
+
+func (o UIWatchPositionPerm) DeepCopy() UIWatchPositionPerm { return o }
+
+var UIWatchPositionPermMap = map[string]UIWatchPositionPerm{
+	"BASE":   0,
+	"ALWAYS": 1,
+}
+
+var UIWatchPositionPermRevMap = map[UIWatchPositionPerm]string{
+	0: "BASE",
+	1: "ALWAYS",
+}
+
+func (e UIWatchPositionPerm) String() string {
+	if v, ok := UIWatchPositionPermRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type UICommandStatusDisplayTyp int
 
 const (
@@ -2570,8 +2637,9 @@ type ChatLoadGalleryHitArg struct {
 }
 
 type ChatWatchPositionArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	ConvID    ConversationID      `codec:"convID" json:"convID"`
+	Perm      UIWatchPositionPerm `codec:"perm" json:"perm"`
 }
 
 type ChatClearWatchArg struct {
@@ -2591,6 +2659,10 @@ type ChatBotCommandsUpdateStatusArg struct {
 	SessionID int                       `codec:"sessionID" json:"sessionID"`
 	ConvID    string                    `codec:"convID" json:"convID"`
 	Status    UIBotCommandsUpdateStatus `codec:"status" json:"status"`
+}
+
+type TriggerContactSyncArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type ChatUiInterface interface {
@@ -2626,6 +2698,7 @@ type ChatUiInterface interface {
 	ChatClearWatch(context.Context, ChatClearWatchArg) error
 	ChatCommandStatus(context.Context, ChatCommandStatusArg) error
 	ChatBotCommandsUpdateStatus(context.Context, ChatBotCommandsUpdateStatusArg) error
+	TriggerContactSync(context.Context, int) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -3112,6 +3185,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"triggerContactSync": {
+				MakeArg: func() interface{} {
+					var ret [1]TriggerContactSyncArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TriggerContactSyncArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TriggerContactSyncArg)(nil), args)
+						return
+					}
+					err = i.TriggerContactSync(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3281,5 +3369,11 @@ func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandSt
 
 func (c ChatUiClient) ChatBotCommandsUpdateStatus(ctx context.Context, __arg ChatBotCommandsUpdateStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) TriggerContactSync(ctx context.Context, sessionID int) (err error) {
+	__arg := TriggerContactSyncArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "chat.1.chatUi.triggerContactSync", []interface{}{__arg}, nil)
 	return
 }

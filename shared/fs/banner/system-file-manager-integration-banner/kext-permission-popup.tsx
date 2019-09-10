@@ -95,7 +95,7 @@ const InstallSecurityPrefs = (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     maxWidth: 700,
     minWidth: 700,
@@ -151,6 +151,6 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 480,
     textAlign: 'center',
   },
-})
+}))
 
 export default Kb.HeaderOrPopup(InstallSecurityPrefs)

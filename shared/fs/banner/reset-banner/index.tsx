@@ -107,35 +107,38 @@ const fixedHeight = height => ({
   minHeight: height,
 })
 
-const styles = Styles.styleSheetCreate({
-  banner: {
-    backgroundColor: Styles.globalColors.red,
-    padding: Styles.globalMargins.medium,
-  },
-  button: Styles.platformStyles({
-    isElectron: {
-      width: Styles.globalMargins.xlarge * 4,
-    },
-    isMobile: {
-      width: Styles.globalMargins.xlarge * 5,
-    },
-  }),
-  listTextContainer: {
-    ...fixedHeight(isMobile ? Styles.globalMargins.large * 3 : Styles.globalMargins.large * 2),
-    justifyContent: 'center',
-    maxWidth: isMobile ? 280 : 400,
-  },
-  listTextContent: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  textDontLetThemIn: {
-    ...fixedHeight(Styles.globalMargins.mediumLarge),
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  textIntro: fixedHeight(Styles.globalMargins.xlarge + Styles.globalMargins.small),
-  textOrUntil: {
-    marginTop: Styles.globalMargins.small,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        backgroundColor: Styles.globalColors.red,
+        padding: Styles.globalMargins.medium,
+      },
+      button: Styles.platformStyles({
+        isElectron: {
+          width: Styles.globalMargins.xlarge * 4,
+        },
+        isMobile: {
+          width: Styles.globalMargins.xlarge * 5,
+        },
+      }),
+      listTextContainer: {
+        ...fixedHeight(isMobile ? Styles.globalMargins.large * 3 : Styles.globalMargins.large * 2),
+        justifyContent: 'center',
+        maxWidth: isMobile ? 280 : 400,
+      },
+      listTextContent: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      textDontLetThemIn: {
+        ...fixedHeight(Styles.globalMargins.mediumLarge),
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      textIntro: fixedHeight(Styles.globalMargins.xlarge + Styles.globalMargins.small),
+      textOrUntil: {
+        marginTop: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Banner

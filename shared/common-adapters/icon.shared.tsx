@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
 import {IconType, SizeType} from './icon'
-import {iconMeta} from './icon.constants'
+import {iconMeta} from './icon.constants-gen'
 import './icon.css'
 
 export function defaultColor(type: IconType): string | null {
@@ -77,7 +77,8 @@ export function fontSize(type: IconType): {fontSize: number} | null {
   }
 }
 
-export function isValidIconType(inputType: IconType): boolean {
+export function isValidIconType(inputType: string): inputType is IconType {
+  // @ts-ignore this type is what we're checking
   let iconType = typeToIconMapper(inputType)
   return !!iconType && !!iconMeta[iconType]
 }

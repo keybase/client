@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/libkb"
@@ -37,6 +38,7 @@ const (
 	methodListConvsOnName   = "listconvsonname"
 	methodJoin              = "join"
 	methodLeave             = "leave"
+	methodAddToChannel      = "addtochannel"
 	methodLoadFlip          = "loadflip"
 	methodGetUnfurlSettings = "getunfurlsettings"
 	methodSetUnfurlSettings = "setunfurlsettings"
@@ -64,6 +66,7 @@ type ChatAPIHandler interface {
 	ListConvsOnNameV1(context.Context, Call, io.Writer) error
 	JoinV1(context.Context, Call, io.Writer) error
 	LeaveV1(context.Context, Call, io.Writer) error
+	AddToChannelV1(context.Context, Call, io.Writer) error
 	LoadFlipV1(context.Context, Call, io.Writer) error
 	GetUnfurlSettingsV1(context.Context, Call, io.Writer) error
 	SetUnfurlSettingsV1(context.Context, Call, io.Writer) error
@@ -456,6 +459,26 @@ func (o leaveOptionsV1) Check() error {
 	return nil
 }
 
+type addToChannelOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string   `json:"conversation_id"`
+	Usernames      []string `json:"usernames"`
+}
+
+func (o addToChannelOptionsV1) Check() error {
+	if err := checkChannelConv(methodAddToChannel, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	if len(o.Usernames) == 0 {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  methodAddToChannel,
+			err:     errors.New("addtochannel needs at least one user"),
+		}
+	}
+	return nil
+}
+
 type loadFlipOptionsV1 struct {
 	ConversationID     string          `json:"conversation_id"`
 	FlipConversationID string          `json:"flip_conversation_id"`
@@ -514,15 +537,9 @@ func (o setUnfurlSettingsOptionsV1) Check() error {
 	return nil
 }
 
-type advertisementParam struct {
-	Typ      string `json:"type"`
-	Commands []chat1.UserBotCommandInput
-	TeamName string `json:"team_name,omitempty"`
-}
-
 type advertiseCommandsOptionsV1 struct {
 	Alias          string `json:"alias,omitempty"`
-	Advertisements []advertisementParam
+	Advertisements []chat1.AdvertiseCommandAPIParam
 }
 
 func (a advertiseCommandsOptionsV1) Check() error {
@@ -680,7 +697,7 @@ func (a *ChatAPI) AttachV1(ctx context.Context, c Call, w io.Writer) error {
 	}
 
 	// opts are valid for attach v1
-	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts, NewChatAPIUI(), NewChatAPINotifications()), w)
+	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts, NewChatAPIUI(), utils.DummyChatNotifications{}), w)
 }
 
 func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
@@ -822,6 +839,20 @@ func (a *ChatAPI) LeaveV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.LeaveV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) AddToChannelV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodAddToChannel, err: errors.New("empty options")}
+	}
+	var opts addToChannelOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.AddToChannelV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) LoadFlipV1(ctx context.Context, c Call, w io.Writer) error {

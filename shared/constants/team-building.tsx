@@ -3,29 +3,32 @@ import * as I from 'immutable'
 import * as Types from './types/team-building'
 import * as RPCTypes from './types/rpc-gen'
 
-const allServices: Array<Types.ServiceIdWithContact> = [
+const searchServices: Array<Types.ServiceId> = [
   'keybase',
-  'phone',
-  'contact',
-  'email',
   'twitter',
   'facebook',
   'github',
   'reddit',
   'hackernews',
-  'pgp',
+]
+// Order here determines order of tabs in team building
+export const allServices: Array<Types.ServiceIdWithContact> = [
+  ...searchServices.slice(0, 1),
+  'phone',
+  'email',
+  ...searchServices.slice(1),
+]
+const searchServicesWithEmail: Array<Types.ServiceIdWithContact> = [
+  ...searchServices.slice(0, 1),
+  'email',
+  ...searchServices.slice(1),
 ]
 
-// We don't search pgp explicitly, and contact isn't implemented yet
-const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
-
-const servicesWithoutPhone: Array<Types.ServiceIdWithContact> = services.filter(s => s !== 'phone')
-
-function servicesForNamespace(namespace: Types.AllowedNamespace): Array<Types.ServiceIdWithContact> {
+export function servicesForNamespace(namespace: Types.AllowedNamespace): Array<Types.ServiceIdWithContact> {
   if (namespace === 'teams') {
-    return servicesWithoutPhone
+    return searchServicesWithEmail
   }
-  return services
+  return allServices
 }
 
 function isKeybaseUserId(userId: string) {
@@ -33,9 +36,9 @@ function isKeybaseUserId(userId: string) {
   return userId.indexOf('@') < 0
 }
 
-function followStateHelperWithId(
+export function followStateHelperWithId(
   me: string,
-  followingState: I.Set<string>,
+  followingState: Set<string>,
   userId: string = ''
 ): Types.FollowingState {
   if (isKeybaseUserId(userId)) {
@@ -49,9 +52,6 @@ function followStateHelperWithId(
 }
 
 const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
-  teamBuildingEmailIsSearching: false,
-  teamBuildingEmailResult: null,
-  teamBuildingEmailSearchQuery: '',
   teamBuildingFinishedSelectedRole: 'writer',
   teamBuildingFinishedSendNotification: true,
   teamBuildingFinishedTeam: I.OrderedSet(),
@@ -66,9 +66,9 @@ const SubStateFactory = I.Record<Types._TeamBuildingSubState>({
   teamBuildingUserRecs: null,
 })
 
-const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
+export const makeSubState = (): Types.TeamBuildingSubState => SubStateFactory()
 
-const parseRawResultToUser = (
+export const parseRawResultToUser = (
   result: RPCTypes.APIUserSearchResult,
   service: Types.ServiceIdWithContact
 ): Types.User | null => {
@@ -94,20 +94,23 @@ const parseRawResultToUser = (
       username: result.keybase.username,
     }
   } else if (service === 'keybase' && result.contact) {
+    const serviceId = result.contact.component.phoneNumber ? 'phone' : 'email'
     return {
+      contact: true,
       id: result.contact.assertion,
       label: result.contact.displayLabel,
       prettyName: result.contact.displayName,
-      serviceId: 'contact' as const,
-      serviceMap: {...serviceMap, keybase: result.contact.username},
+      serviceId,
+      serviceMap: {...result.contact.serviceMap, keybase: result.contact.username},
       username: result.contact.component.email || result.contact.component.phoneNumber || '',
     }
   } else if (result.imptofu) {
+    const serviceId = result.imptofu.assertionKey === 'phone' ? 'phone' : 'email'
     return {
       id: result.imptofu.assertion,
       label: result.imptofu.label,
       prettyName: result.imptofu.prettyName,
-      serviceId: 'contact' as const,
+      serviceId,
       serviceMap: {...serviceMap, keybase: result.imptofu.keybaseUsername},
       username: result.imptofu.assertionValue,
     }
@@ -144,7 +147,7 @@ const parseRawResultToUser = (
   }
 }
 
-const selfToUser = (you: string): Types.User => ({
+export const selfToUser = (you: string): Types.User => ({
   id: you,
   prettyName: you,
   serviceId: 'keybase' as const,
@@ -152,17 +155,17 @@ const selfToUser = (you: string): Types.User => ({
   username: you,
 })
 
-const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
+export const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
   contact: true,
   id: contact.assertion,
   label: contact.displayLabel,
   prettyName: contact.displayName,
-  serviceId: 'contact' as const,
+  serviceId: contact.component.phoneNumber ? 'phone' : 'email',
   serviceMap: {keybase: contact.username},
   username: contact.component.email || contact.component.phoneNumber || '',
 })
 
-const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User => {
+export const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User => {
   const {username, fullname} = person
   return {
     id: username,
@@ -173,14 +176,4 @@ const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Types.User
   }
 }
 
-export {
-  followStateHelperWithId,
-  makeSubState,
-  allServices,
-  services,
-  servicesForNamespace,
-  parseRawResultToUser,
-  selfToUser,
-  contactToUser,
-  interestingPersonToUser,
-}
+export const searchWaitingKey = 'teamBuilding:search'

@@ -52,6 +52,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (!n) {
       return
     }
+
     n.style.height = '1px'
     n.style.height = `${n.scrollHeight}px`
   }
@@ -176,13 +177,19 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
     const textStyle: any = getTextStyle(this.props.textType)
     const heightStyles: any = {
-      minHeight: rows * (textStyle.fontSize || 20),
+      minHeight:
+        rows * (maybeParseInt(textStyle.lineHeight, 10) || 20) +
+        (this.props.padding ? Styles.globalMargins[this.props.padding] * 2 : 0),
     }
     if (this.props.rowsMax) {
       heightStyles.maxHeight = this.props.rowsMax * (maybeParseInt(textStyle.lineHeight, 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }
+
+    const paddingStyles: any = this.props.padding
+      ? Styles.padding(Styles.globalMargins[this.props.padding])
+      : {}
     return {
       ...this._getCommonProps(),
       rows,
@@ -191,6 +198,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         textStyle,
         styles.multiline,
         heightStyles,
+        paddingStyles,
         this.props.style,
       ]),
     }
@@ -287,7 +295,9 @@ const styles = Styles.styleSheetCreate(() => ({
   flexable: {
     flex: 1,
     minWidth: 0,
-    width: '100%',
+    // "width: 0" is needed for the input to shrink in flex
+    // https://stackoverflow.com/questions/42421361/input-button-elements-not-shrinking-in-a-flex-container
+    width: 0,
   },
   multiline: Styles.platformStyles({
     isElectron: {

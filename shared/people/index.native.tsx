@@ -29,16 +29,12 @@ export const Header = (props: Props) => (
 )
 
 const People = (props: Props) => (
-  <>
-    <Kb.ScrollView
-      style={styles.scrollView}
-      refreshControl={
-        <Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />
-      }
-    >
-      <PeoplePageList {...props} />
-    </Kb.ScrollView>
-  </>
+  <Kb.ScrollView
+    style={styles.scrollView}
+    refreshControl={<Kb.NativeRefreshControl refreshing={props.waiting} onRefresh={() => props.getData()} />}
+  >
+    <PeoplePageList {...props} />
+  </Kb.ScrollView>
 )
 
 const styles = styleSheetCreate(() => ({

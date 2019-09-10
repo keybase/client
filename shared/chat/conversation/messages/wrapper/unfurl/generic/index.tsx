@@ -98,7 +98,7 @@ class UnfurlGeneric extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bottomImage: Styles.platformStyles({
     common: {
       marginTop: Styles.globalMargins.xtiny,
@@ -172,6 +172,6 @@ const styles = Styles.styleSheetCreate({
   url: {
     ...Styles.globalStyles.fontSemibold,
   },
-})
+}))
 
 export default UnfurlGeneric

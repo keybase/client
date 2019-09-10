@@ -2,6 +2,7 @@ import * as React from 'react'
 import {noop} from 'lodash-es'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 
 type Props = {
   onChangeText: (newText: string) => void
@@ -13,6 +14,7 @@ type Props = {
   placeholder: string
   searchString: string
   focusOnMount: boolean
+  focusCounter: number
 }
 
 const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string, props: Props) => {
@@ -49,15 +51,29 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
 }
 
 const Input = (props: Props) => {
+  const ref = React.useRef<Kb.SearchFilter>(null)
+  const {focusCounter} = props
+  const prevFocusCounter = Container.usePrevious(focusCounter)
+  React.useEffect(() => {
+    if (
+      !Styles.isMobile &&
+      prevFocusCounter !== undefined &&
+      focusCounter > prevFocusCounter &&
+      ref.current
+    ) {
+      ref.current.focus()
+    }
+  }, [focusCounter, prevFocusCounter])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
       <Kb.SearchFilter
+        size="full-width"
         valueControlled={true}
         value={props.searchString}
         icon="iconfont-search"
         focusOnMount={props.focusOnMount}
-        fullWidth={true}
         onChange={props.onChangeText}
+        onCancel={props.onClear}
         placeholderText={props.placeholder}
         onKeyDown={e => {
           handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
@@ -66,6 +82,7 @@ const Input = (props: Props) => {
           handleKeyDown(noop, false, e.nativeEvent.key, props)
         }}
         onEnterKeyDown={props.onEnterKeyDown}
+        ref={ref}
       />
     </Kb.Box2>
   )

@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  label: string
+  label: string | React.ReactNode
   onSelect: (selected: boolean) => void
   selected: boolean
   style?: Object

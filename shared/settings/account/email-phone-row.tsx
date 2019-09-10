@@ -89,17 +89,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     })
   }
 
-  // TODO: Drop this `if` once Y2K-180 is done.
-  if (!props.primary) {
-    if (menuItems.length > 0) {
-      menuItems.push('Divider')
-    }
-    menuItems.push({
-      danger: true,
-      onClick: props.onDelete,
-      title: 'Delete',
-    })
+  if (menuItems.length > 0) {
+    menuItems.push('Divider')
   }
+  menuItems.push({
+    danger: true,
+    onClick: props.onDelete,
+    title: 'Delete',
+  })
 
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
@@ -164,36 +161,39 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 }
 const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
-const styles = Styles.styleSheetCreate(() => ({
-  badge: {
-    borderRadius: Styles.isMobile ? 5 : 4,
-    height: Styles.isMobile ? 10 : 8,
-    width: Styles.isMobile ? 10 : 8,
-  },
-  badgeGearIcon: {
-    position: 'absolute',
-    right: 1,
-    top: 3,
-  },
-  badgeMenuItem: {
-    alignSelf: 'center',
-    marginLeft: 'auto',
-  },
-  container: {
-    height: Styles.isMobile ? 48 : 40,
-  },
-  gearIcon: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.clickable},
-  }),
-  gearIconContainer: {
-    padding: Styles.globalMargins.xtiny,
-    position: 'relative',
-  },
-  menuHeader: {
-    height: 64,
-  },
-  menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        borderRadius: Styles.isMobile ? 5 : 4,
+        height: Styles.isMobile ? 10 : 8,
+        width: Styles.isMobile ? 10 : 8,
+      },
+      badgeGearIcon: {
+        position: 'absolute',
+        right: 1,
+        top: 3,
+      },
+      badgeMenuItem: {
+        alignSelf: 'center',
+        marginLeft: 'auto',
+      },
+      container: {
+        height: Styles.isMobile ? 48 : 40,
+      },
+      gearIcon: Styles.platformStyles({
+        isElectron: {...Styles.desktopStyles.clickable},
+      }),
+      gearIconContainer: {
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
+      },
+      menuHeader: {
+        height: 64,
+      },
+      menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
+    } as const)
+)
 
 // props exported for stories
 export type OwnProps = {

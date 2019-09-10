@@ -71,7 +71,7 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
 export default (props: Props) =>
   props.driverEnabled ? <OpenInSystemFileManager {...props} /> : <FinderPopup {...props} />
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBox: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
@@ -101,4 +101,4 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))

@@ -56,7 +56,7 @@ func checkNewTeamEKNotifications(tc *libkb.TestContext, notifications *teamNotif
 	case arg := <-notifications.newTeamEKCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on newTeamEK")
 	}
 }
@@ -97,7 +97,7 @@ func checkNewTeambotEKNotifications(tc *libkb.TestContext, notifications *teamNo
 	case arg := <-notifications.newTeambotEKCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on newTeambotEK")
 	}
 }
@@ -107,7 +107,7 @@ func checkTeambotEKNeededNotifications(tc *libkb.TestContext, notifications *tea
 	case arg := <-notifications.teambotEKNeededCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on teambotEKNeeded")
 	}
 }

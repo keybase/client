@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {IconType} from './icon.constants'
+import {IconType} from './icon.constants-gen'
 import {StylesCrossPlatform, StylesCrossPlatformWithSomeDisallowed, Color, globalMargins} from '../styles'
 
 export type SizeType = 'Huge' | 'Bigger' | 'Big' | 'Default' | 'Small' | 'Tiny'
@@ -53,4 +53,4 @@ export declare function castPlatformStyles(
   styles: StylesCrossPlatform
 ): StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
 
-export {IconType} from './icon.constants'
+export {IconType} from './icon.constants-gen'

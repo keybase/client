@@ -637,6 +637,20 @@ var ClientTypeRevMap = map[ClientType]string{
 	4: "GUI_HELPER",
 }
 
+type KBFSPathInfo struct {
+	StandardPath           string `codec:"standardPath" json:"standardPath"`
+	DeeplinkPath           string `codec:"deeplinkPath" json:"deeplinkPath"`
+	PlatformAfterMountPath string `codec:"platformAfterMountPath" json:"platformAfterMountPath"`
+}
+
+func (o KBFSPathInfo) DeepCopy() KBFSPathInfo {
+	return KBFSPathInfo{
+		StandardPath:           o.StandardPath,
+		DeeplinkPath:           o.DeeplinkPath,
+		PlatformAfterMountPath: o.PlatformAfterMountPath,
+	}
+}
+
 type UserVersionVector struct {
 	Id       int64 `codec:"id" json:"id"`
 	SigHints int   `codec:"sigHints" json:"sigHints"`

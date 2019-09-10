@@ -2,6 +2,7 @@ import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/push'
 import * as FsGen from '../fs-gen'
+import * as Types from '../../constants/types/push'
 import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
@@ -51,7 +52,7 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
-const listenForNativeAndroidIntentNotifications = emitter => {
+const listenForNativeAndroidIntentNotifications = (emitter: (action: Container.TypedActions) => void) => {
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
@@ -73,13 +74,13 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   })
 }
 
-const listenForPushNotificationsFromJS = emitter => {
-  const onRegister = token => {
+const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {
+  const onRegister = (token: {token: string}) => {
     logger.debug('[PushToken] received new token: ', token)
     emitter(PushGen.createUpdatePushToken({token: token.token}))
   }
 
-  const onNotification = n => {
+  const onNotification = (n: Object) => {
     logger.debug('[onNotification]: ', n)
     const notification = Constants.normalizePush(n)
     if (!notification) {
@@ -88,7 +89,7 @@ const listenForPushNotificationsFromJS = emitter => {
     emitter(PushGen.createNotification({notification}))
   }
 
-  const onError = error => {
+  const onError = (error: Error) => {
     logger.error('push error:', error)
   }
 
@@ -120,7 +121,10 @@ function* setupPushEventLoop() {
   }
 }
 
-function* handleLoudMessage(notification) {
+function* handleLoudMessage(notification: Types.PushNotification) {
+  if (notification.type !== 'chat.newmessage') {
+    return
+  }
   // We only care if the user clicked while in session
   if (!notification.userInteraction) {
     return
@@ -194,25 +198,32 @@ function* handlePush(_: Container.TypedState, action: PushGen.NotificationPayloa
   }
 }
 
-const uploadPushToken = (state: Container.TypedState) =>
-  !!state.config.username &&
-  !!state.push.token &&
-  !!state.config.deviceID &&
-  RPCTypes.apiserverPostRpcPromise({
-    args: [
-      {key: 'push_token', value: state.push.token},
-      {key: 'device_id', value: state.config.deviceID},
-      {key: 'token_type', value: Constants.tokenType},
-    ],
-    endpoint: 'device/push_token',
-  })
-    .then(() => {
-      logger.info('[PushToken] Uploaded to server')
-      return false as const
+const uploadPushToken = async (state: Container.TypedState) => {
+  const {config, push} = state
+  const {deviceID} = config
+  if (!config.username || !deviceID) {
+    return false as const
+  }
+  const {token} = push
+  if (!token) {
+    return false as const
+  }
+  try {
+    await RPCTypes.apiserverPostRpcPromise({
+      args: [
+        {key: 'push_token', value: token},
+        {key: 'device_id', value: deviceID},
+        {key: 'token_type', value: Constants.tokenType},
+      ],
+      endpoint: 'device/push_token',
     })
-    .catch(e => {
-      logger.error("[PushToken] Couldn't save a push token", e)
-    })
+
+    logger.info('[PushToken] Uploaded to server')
+  } catch (e) {
+    logger.error("[PushToken] Couldn't save a push token", e)
+  }
+  return false as const
+}
 
 function* deletePushToken(state: Container.TypedState, action: ConfigGen.LogoutHandshakePayload) {
   const waitKey = 'push:deleteToken'
@@ -252,11 +263,12 @@ const askNativeIfSystemPushPromptHasBeenShown = () =>
 const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
-function* neverShowMonsterAgain(state: Container.TypedState) {
+const neverShowMonsterAgain = async (state: Container.TypedState) => {
   if (!state.push.showPushPrompt) {
-    yield Saga.spawn(() =>
-      RPCTypes.configGuiSetValueRpcPromise({path: `ui.${monsterStorageKey}`, value: {b: true, isNull: false}})
-    )
+    await RPCTypes.configGuiSetValueRpcPromise({
+      path: `ui.${monsterStorageKey}`,
+      value: {b: true, isNull: false},
+    })
   }
 }
 
@@ -380,7 +392,7 @@ const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
   new Promise(resolve =>
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
-      if (notification !== null) {
+      if (notification) {
         resolve(PushGen.createNotification({notification}))
       }
       resolve(null)
@@ -393,10 +405,7 @@ function* pushSaga() {
     PushGen.requestPermissions,
     requestPermissions
   )
-  yield* Saga.chainGenerator<PushGen.ShowPermissionsPromptPayload | PushGen.RejectPermissionsPayload>(
-    [PushGen.showPermissionsPrompt, PushGen.rejectPermissions],
-    neverShowMonsterAgain
-  )
+  yield* Saga.chainAction2([PushGen.showPermissionsPrompt, PushGen.rejectPermissions], neverShowMonsterAgain)
   yield* Saga.chainGenerator<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, checkPermissions)
 
   // Token handling

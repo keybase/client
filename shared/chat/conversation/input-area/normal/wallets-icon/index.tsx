@@ -40,7 +40,7 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
 )
 
 const radius = 4
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   badge: Styles.platformStyles({
     common: {
       alignSelf: 'center',
@@ -82,6 +82,6 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.blueDark,
     },
   }),
-})
+}))
 
 export default Kb.OverlayParentHOC(WalletsIcon)

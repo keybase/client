@@ -48,6 +48,7 @@ const Devices = (p: any) => <DevicesReal {...p} />
 const provider = Sb.createPropProviderWithCommon({
   DeviceRow: ({deviceID}) => ({
     firstItem: deviceID === '1',
+    iconNumber: Number(deviceID),
     isCurrentDevice: deviceID === '1',
     isNew: ['6', '7'].includes(String(deviceID)),
     isRevoked: !['1', '2', '3', '6'].includes(String(deviceID)),
