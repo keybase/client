@@ -48,6 +48,9 @@ func getPerUserKeyFn(mctx libkb.MetaContext,
 	}
 	keyFn = func(ctx context.Context) (res [32]byte, err error) {
 		keypair, err := pukring.GetEncryptionKeyByGeneration(mctx, *pukGen)
+		if err != nil {
+			return res, err
+		}
 
 		// Derive symmetric key from PUK
 		skey, err := keypair.SecretSymmetricKey(libkb.EncryptionReasonContactsResolvedServer)
