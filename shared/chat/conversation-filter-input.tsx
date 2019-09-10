@@ -107,7 +107,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           <Kb.Box style={Flags.wonderland ? styles.wonderlandBorder : {}}>
             <Kb.WithTooltip
               position="top center"
-              text={
+              tooltip={
                 Flags.wonderland
                   ? `(${Platforms.shortcutSymbol}N)`
                   : `New chat (${Platforms.shortcutSymbol}N)`

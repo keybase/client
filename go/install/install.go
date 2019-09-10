@@ -196,18 +196,6 @@ func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	return kbfsVersion, nil
 }
 
-func createCommandLine(binPath string, linkPath string, log Log) error { //nolint
-	if _, err := os.Lstat(linkPath); err == nil {
-		err := os.Remove(linkPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	log.Info("Linking %s to %s", linkPath, binPath)
-	return os.Symlink(binPath, linkPath)
-}
-
 func defaultLinkPath() (string, error) { //nolint
 	if runtime.GOOS == "windows" {
 		return "", fmt.Errorf("Unsupported on Windows")
@@ -233,23 +221,6 @@ func uninstallLink(linkPath string, log Log) error { //nolint
 	}
 	log.Info("Removing %s", linkPath)
 	return os.Remove(linkPath)
-}
-
-func uninstallCommandLine(log Log) error { //nolint
-	linkPath, err := defaultLinkPath()
-	if err != nil {
-		return nil
-	}
-
-	err = uninstallLink(linkPath, log)
-	if err != nil {
-		return err
-	}
-
-	// Now the git binary.
-	gitBinFilename := "git-remote-keybase"
-	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
-	return uninstallLink(gitLinkPath, log)
 }
 
 func chooseBinPath(bp string) (string, error) {

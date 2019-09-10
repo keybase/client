@@ -1,13 +1,13 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isDarwin, isMobile, isLinux} from '../../constants/platform'
+import {isMobile, isLinux} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings} from '../proxy/container'
-import {DarkModePreference} from '../../styles/dark-mode'
+import {DarkModePreference, isDarkModeSystemSupported} from '../../styles/dark-mode'
 
 type Props = {
   openAtLogin: boolean
@@ -117,7 +117,7 @@ const Advanced = (props: Props) => {
             <Kb.Divider style={styles.proxyDivider} />
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Body">Dark mode</Kb.Text>
-              {isDarwin && (
+              {isDarkModeSystemSupported() && (
                 <Kb.RadioButton
                   label="Respect system settings"
                   selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}

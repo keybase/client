@@ -59,7 +59,7 @@ class WithTooltip extends React.Component<Props, State> {
               styles.container,
               this.props.multiline && styles.containerMultiline,
             ])}
-            visible={!!this.props.text && this.state.visible}
+            visible={!!this.props.tooltip && this.state.visible}
             attachTo={this._getAttachmentRef}
             position={this.props.position || 'top center'}
             className={this.props.toastClassName}
@@ -69,7 +69,7 @@ class WithTooltip extends React.Component<Props, State> {
               type="BodySmall"
               style={Styles.collapseStyles([styles.text, this.props.textStyle])}
             >
-              {this.props.text}
+              {this.props.tooltip}
             </Kb.Text>
           </Kb.Toast>
         )}

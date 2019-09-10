@@ -486,7 +486,7 @@ func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, dev
 	}
 
 	if upak == nil {
-		upak, err = s.getUPAK(m, upak)
+		upak, err = s.getUPAK(m, upak, false)
 		if err != nil {
 			return err
 		}
@@ -501,11 +501,13 @@ func (s *PerUserKeyring) sync(m MetaContext, upak *keybase1.UserPlusAllKeys, dev
 	return s.mergeLocked(newKeys, checker.seqgen)
 }
 
-func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys) (*keybase1.UserPlusAllKeys, error) {
+func (s *PerUserKeyring) getUPAK(m MetaContext, upak *keybase1.UserPlusAllKeys,
+	forceReload bool) (*keybase1.UserPlusAllKeys, error) {
 	if upak != nil {
 		return upak, nil
 	}
-	upakArg := NewLoadUserArgWithMetaContext(m).WithUID(s.uid)
+	upakArg := NewLoadUserArgWithMetaContext(m).WithUID(s.uid).WithForcePoll(
+		forceReload)
 	upak, _, err := m.G().GetUPAKLoader().Load(upakArg)
 	return upak, err
 }
@@ -647,6 +649,14 @@ func (s *PerUserKeyring) importLocked(m MetaContext,
 		return nil, errors.New("per-user-key import nil box")
 	}
 
+	if box.Generation > checker.latestGeneration {
+		// Let's get a new UPAK in case that's just out of date.
+		upak, err := s.getUPAK(m, nil, true)
+		if err != nil {
+			return nil, err
+		}
+		checker = newPerUserKeyChecker(upak)
+	}
 	if box.Generation != checker.latestGeneration {
 		return nil, fmt.Errorf("sync (%v) and checker (%v) disagree on generation", box.Generation, checker.latestGeneration)
 	}

@@ -92,7 +92,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
             {props.onManageChat ? (
               <ChatIcon />
             ) : (
-              <Kb.WithTooltip text="You need to join this team before you can chat.">
+              <Kb.WithTooltip tooltip="You need to join this team before you can chat.">
                 <ChatIcon />
               </Kb.WithTooltip>
             )}
