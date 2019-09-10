@@ -64,6 +64,10 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 	kbCtx.Log.CDebugf(ctx, "Marking as read from QuickReply: convID: %s", strConvID)
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	uid, err := utils.AssertLoggedInUID(ctx, gc)
+	if err != nil {
+		return err
+	}
+
 	msgID := chat1.MessageID(intMessageID)
 	if err = kbChatCtx.InboxSource.MarkAsRead(context.Background(), convID, uid, msgID); err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to mark as read from QuickReply: convID: %s. Err: %s", strConvID, err)
@@ -71,7 +75,7 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 		err = nil
 	}
 
-	return err
+	return nil
 }
 
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
