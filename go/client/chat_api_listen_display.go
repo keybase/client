@@ -37,7 +37,8 @@ func newMsgNotification(source string) *chat1.MsgNotification {
 
 func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilters []ChatChannel) error {
 	for _, v := range channelFilters {
-		if v.MembersType == "team" && len(v.TopicName) == 0 {
+		if MembersTypeFromStrDefault(v.MembersType, d.G().GetEnv()) == chat1.ConversationMembersType_TEAM &&
+			len(v.TopicName) == 0 {
 			// treat this formulation of a channel as listing all team convs the users is in
 			topicType, err := TopicTypeFromStrDefault(v.TopicType)
 			if err != nil {
