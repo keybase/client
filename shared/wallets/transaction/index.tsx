@@ -27,9 +27,7 @@ type CounterpartyIconProps = {
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   if (!props.counterparty && props.counterpartyType !== 'airdrop') {
-    return (
-      <Icon type="iconfont-identity-stellar" fontSize={size} />
-    )
+    return <Icon type="iconfont-identity-stellar" fontSize={size} />
   }
   switch (props.counterpartyType) {
     case 'airdrop':
@@ -43,9 +41,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
         />
       )
     case 'stellarPublicKey':
-      return (
-        <Icon type="icon-placeholder-secret-user-48" />
-      )
+      return <Icon type="icon-placeholder-secret-user-48" />
     case 'otherAccount':
       return (
         <Box2
