@@ -33,20 +33,22 @@ const LoginWrapper = (props: Props) => {
 
   const dispatch = Container.useDispatch()
 
+  const {onLogin, loggedInMap} = props
+
   const onSubmit = React.useCallback(() => {
-    props.onLogin(selectedUser, password)
-  }, [selectedUser, password, props])
+    onLogin(selectedUser, password)
+  }, [selectedUser, password, onLogin])
 
   const selectedUserChange = React.useCallback(
     user => {
       dispatch(LoginGen.createLoginError({error: null}))
       setPassword('')
       setSelectedUser(user)
-      if (props.loggedInMap.get(user)) {
-        props.onLogin(user, '')
+      if (loggedInMap.get(user)) {
+        onLogin(user, '')
       }
     },
-    [dispatch, setPassword, setSelectedUser, props]
+    [dispatch, setPassword, setSelectedUser, onLogin, loggedInMap]
   )
 
   // Effects
@@ -69,7 +71,7 @@ const LoginWrapper = (props: Props) => {
       error={props.error}
       onFeedback={props.onFeedback}
       onForgotPassword={props.onForgotPassword}
-      onLogin={props.onLogin}
+      onLogin={onLogin}
       onSignup={props.onSignup}
       onSomeoneElse={props.onSomeoneElse}
       onSubmit={onSubmit}
