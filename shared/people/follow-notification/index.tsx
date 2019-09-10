@@ -87,7 +87,7 @@ export const MultiFollowNotification = (props: Props) => {
         contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (
-          <Kb.WithTooltip key={username} text={username}>
+          <Kb.WithTooltip key={username} tooltip={username}>
             <Kb.Avatar
               onClick={() => props.onClickUser(username)}
               username={username}

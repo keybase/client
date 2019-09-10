@@ -131,7 +131,7 @@ const Asset = (props: Props) => {
           {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
           <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
             {props.thisDeviceIsLockedOut ? (
-              <Kb.WithTooltip text="You can only send from a mobile device more than 7 days old.">
+              <Kb.WithTooltip tooltip="You can only send from a mobile device more than 7 days old.">
                 {button}
               </Kb.WithTooltip>
             ) : (

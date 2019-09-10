@@ -109,7 +109,7 @@ const WithTooltip = (props: Props) => {
                   style={Styles.collapseStyles([styles.text, props.textStyle])}
                   lineClamp={props.multiline ? undefined : 1}
                 >
-                  {props.text}
+                  {props.tooltip}
                 </Kb.Text>
               </Kb.NativeView>
             </Kb.NativeView>

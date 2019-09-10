@@ -5,10 +5,10 @@ import {NativeTextInput} from './native-wrappers.native'
 import {
   collapseStyles,
   globalColors,
+  globalMargins,
+  padding,
   platformStyles,
   styleSheetCreate,
-  padding,
-  globalMargins,
 } from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
@@ -192,7 +192,9 @@ class PlainInput extends Component<InternalProps, State> {
   _getCommonStyle = () => {
     const textStyle = getTextStyle(this.props.textType)
     // RN TextInput plays better without this
-    delete textStyle.lineHeight
+    if (isIOS) {
+      delete textStyle.lineHeight
+    }
     return collapseStyles([styles.common, textStyle])
   }
 
