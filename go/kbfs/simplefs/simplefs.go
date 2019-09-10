@@ -2257,7 +2257,8 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 		syncingPaths = status.UnflushedPaths
 	} else {
 		for _, p := range status.UnflushedPaths {
-			if isFiltered(filter, p) {
+
+			if isFiltered(filter, stdpath.Base(p)) {
 				continue
 			}
 			syncingPaths = append(syncingPaths, p)
