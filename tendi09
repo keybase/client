@@ -1,0 +1,67 @@
+### Keybase proof
+
+I hereby claim:
+
+  * I am tendil09 on github.
+  * I am tendi09 (https://keybase.io/tendi09) on keybase.
+  * I have a public key ASDosdFG8g_Ag5WMHnxnedMnCHhjFlIRaNM2DrBmv-OlUQo
+
+To claim this, I am signing this object:
+
+```json
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120e8b1d146f20fc083958c1e7c6779d32708786316521168d3360eb066bfe3a5510a",
+      "host": "keybase.io",
+      "kid": "0120e8b1d146f20fc083958c1e7c6779d32708786316521168d3360eb066bfe3a5510a",
+      "uid": "c769dfca3b0bd17c8acbe8729a125219",
+      "username": "tendi09"
+    },
+    "merkle_root": {
+      "ctime": 1568111835,
+      "hash": "0c4f9ebbc4f2749b4eec94ae734975f703eb2dfb5f7fb15f6d8dd3d94850fc115508e3740216fe2612f168cbb2eb8cef9bd5289eab0bd0a5c791360fc3ab68c7",
+      "hash_meta": "9979b8473cbbdc70e11f73c98fdb728ade5c44cc9bdcae914f26c1be9d85da02",
+      "seqno": 6376522
+    },
+    "service": {
+      "entropy": "D7/Cnx1k9OE+88HA3s0tYcXy",
+      "name": "github",
+      "username": "tendil09"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "4.4.0"
+  },
+  "ctime": 1568111842,
+  "expire_in": 504576000,
+  "prev": "7a92ea090d2fe9f6130584e3b27d035905eb651b8257230e662f3d770e9d0b51",
+  "seqno": 13,
+  "tag": "signature"
+}
+```
+
+with the key [ASDosdFG8g_Ag5WMHnxnedMnCHhjFlIRaNM2DrBmv-OlUQo](https://keybase.io/tendi09), yielding the signature:
+
+```
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEg6LHRRvIPwIOVjB58Z3nTJwh4YxZSEWjTNg6wZr/jpVEKp3BheWxvYWTESpcCDcQgepLqCQ0v6fYTBYTjsn0DWQXrZRuCVyMOZi89dw6dC1HEIBdQVVKZWGyuisn6VXHn0ZPqBHTE4Y/TkgRHVFekK01CAgHCo3NpZ8RAIvciv9lBJe6vnDbULufdw6oPrW4P8IIpdGRDeI7Mc3DRavSsYuDqz29tJrUEqq0ArAbRdCcGzNC8AHVNgo9oDahzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEICDtf+3XgCPgCJBNrNOon4T+7MTMV1h5DL0nobw9lKXSo3RhZ80CAqd2ZXJzaW9uAQ==
+
+```
+
+And finally, I am proving ownership of the github account by posting this as a gist.
+
+### My publicly-auditable identity:
+
+https://keybase.io/tendi09
+
+### From the command line:
+
+Consider the [keybase command line program](https://keybase.io/download).
+
+```bash
+# look me up
+keybase id tendi09
+```
