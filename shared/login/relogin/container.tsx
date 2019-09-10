@@ -15,12 +15,10 @@ type State = {
   password: string
   showTyping: boolean
   selectedUser: string
-  inputKey: number
 }
 
 type Props = {
-  bannerError: string
-  inputError: string
+  error: string
   loggedInMap: Map<string, boolean>
   onFeedback: () => void
   onForgotPassword: () => void
@@ -35,7 +33,6 @@ class LoginWrapper extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      inputKey: 1,
       password: '',
       selectedUser: props.selectedUser,
       showTyping: false,
@@ -50,9 +47,9 @@ class LoginWrapper extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    // Clear the password when there's an input error.
-    if (this.props.inputError !== prevProps.inputError) {
-      this.setState(p => ({inputKey: p.inputKey + 1, password: ''}))
+    // Clear the password when there's an error.
+    if (this.props.error !== prevProps.error) {
+      this.setState(_ => ({password: ''}))
     }
     if (this.props.selectedUser !== prevProps.selectedUser) {
       this.setState({selectedUser: this.props.selectedUser})
@@ -62,9 +59,7 @@ class LoginWrapper extends React.Component<Props, State> {
   render() {
     return (
       <Login
-        bannerError={this.props.bannerError}
-        inputError={this.props.inputError}
-        inputKey={String(this.state.inputKey)}
+        error={this.props.error}
         onFeedback={this.props.onFeedback}
         onForgotPassword={this.props.onForgotPassword}
         onLogin={this.props.onLogin}
@@ -97,25 +92,17 @@ export default Container.connect(
     onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
     onSomeoneElse: () => dispatch(ProvisionGen.createStartProvision()),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => {
-    const users = sortBy(stateProps._users, 'username')
-    const error = (stateProps.error && stateProps.error.desc) || ''
-    const bannerError = Container.isNetworkErr(stateProps.error ? stateProps.error.code : -1) ? error : ''
-    const inputError = !bannerError ? error : ''
-
-    return {
-      bannerError,
-      inputError,
-      loggedInMap: new Map<string, boolean>(
-        stateProps._users.map(account => [account.username, account.hasStoredSecret])
-      ),
-      onFeedback: dispatchProps.onFeedback,
-      onForgotPassword: dispatchProps.onForgotPassword,
-      onLogin: dispatchProps.onLogin,
-      onSignup: dispatchProps.onSignup,
-      onSomeoneElse: dispatchProps.onSomeoneElse,
-      selectedUser: stateProps.selectedUser,
-      users,
-    }
-  }
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    error: (stateProps.error && stateProps.error.desc) || '',
+    loggedInMap: new Map<string, boolean>(
+      stateProps._users.map(account => [account.username, account.hasStoredSecret])
+    ),
+    onFeedback: dispatchProps.onFeedback,
+    onForgotPassword: dispatchProps.onForgotPassword,
+    onLogin: dispatchProps.onLogin,
+    onSignup: dispatchProps.onSignup,
+    onSomeoneElse: dispatchProps.onSomeoneElse,
+    selectedUser: stateProps.selectedUser,
+    users: sortBy(stateProps._users, 'username'),
+  })
 )(LoginWrapper)

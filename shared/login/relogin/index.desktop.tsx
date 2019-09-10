@@ -9,24 +9,18 @@ type State = {
   open: boolean
 }
 
-const ItemBox = Styles.styled(Kb.Box)({
-  ...Styles.globalStyles.flexBoxCenter,
-  minHeight: 40,
-  width: '100%',
-})
-
 const other = 'Someone else...'
 
 const UserRow = ({user}) => (
-  <ItemBox>
+  <Kb.Box2 fullWidth={true} style={styles.userRow}>
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
     </Kb.Text>
-  </ItemBox>
+  </Kb.Box2>
 )
 
 class Login extends React.Component<Props, State> {
-  _inputRef = React.createRef<Kb.Input>()
+  _inputRef = React.createRef<Kb.PlainInput>()
 
   state = {
     open: false,
@@ -50,22 +44,6 @@ class Login extends React.Component<Props, State> {
   }
 
   render() {
-    const inputProps = {
-      autoFocus: true,
-      errorText: this.props.inputError,
-      floatingHintTextOverride: '',
-      hideLabel: true,
-      hintText: 'Password',
-      inputStyle: styles.passwordInput,
-      key: this.props.inputKey,
-      onChangeText: password => this.props.passwordChange(password),
-      onEnterKeyDown: () => this.props.onSubmit(),
-      ref: this._inputRef,
-      style: styles.passwordInputContainer,
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
-      uncontrolled: true,
-    } as const
-
     const userRows = this.props.users
       .concat({hasStoredSecret: false, username: other})
       .map(u => <UserRow user={u.username} key={u.username} />)
@@ -74,7 +52,7 @@ class Login extends React.Component<Props, State> {
 
     return (
       <SignupScreen
-        banners={errorBanner(this.props.bannerError)}
+        banners={errorBanner(this.props.error)}
         headerStyle={styles.header}
         rightActionComponent={
           <Kb.Button
@@ -96,11 +74,20 @@ class Login extends React.Component<Props, State> {
               onChanged={this._onClickUser}
               selected={userRows[selectedIdx]}
               items={userRows}
+              overlayStyle={styles.userOverlayStyle}
               position="bottom center"
               style={styles.userDropdown}
             />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
-              <Kb.Input {...inputProps} />
+              <Kb.LabeledInput
+                autoFocus={true}
+                placeholder="Password"
+                style={styles.passwordInput}
+                onChangeText={password => this.props.passwordChange(password)}
+                onEnterKeyDown={this.props.onSubmit}
+                ref={this._inputRef}
+                type="password"
+              />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>
               <Kb.Text
@@ -158,6 +145,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   inputRow: {
     flex: 1,
+    marginBottom: 0,
+    marginTop: Styles.globalMargins.tiny,
+    width: '100%',
   },
   loginSubmitButton: {
     marginTop: 0,
@@ -182,11 +172,6 @@ const styles = Styles.styleSheetCreate(() => ({
     textAlign: 'left',
     width: '100%',
   },
-  passwordInputContainer: {
-    marginBottom: 0,
-    marginTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
   provisioned: {color: Styles.globalColors.orange},
   userContainer: {
     backgroundColor: Styles.globalColors.transparent,
@@ -194,6 +179,15 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   userDropdown: {
     backgroundColor: Styles.globalColors.white,
+    width: '100%',
+  },
+  userOverlayStyle: {
+    backgroundColor: Styles.globalColors.white,
+    width: 348,
+  },
+  userRow: {
+    ...Styles.globalStyles.flexBoxCenter,
+    minHeight: 40,
     width: '100%',
   },
 }))

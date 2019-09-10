@@ -8,9 +8,7 @@ const makeAccount = (username: string) => ({
 })
 
 const commonProps: Props = {
-  bannerError: '',
-  inputError: '',
-  inputKey: '0',
+  error: '',
   onFeedback: Sb.action('onFeedback'),
   onForgotPassword: Sb.action('onForgotPassword'),
   onLogin: Sb.action('onLogin'),
@@ -29,8 +27,8 @@ const commonProps: Props = {
 const load = () => {
   Sb.storiesOf('Login/Login', module)
     .add('Single previous user', () => <Login {...commonProps} />)
-    .add('Input Error', () => <Login {...commonProps} inputError="Oh, no! What a mess!" />)
-    .add('Banner Error', () => <Login {...commonProps} bannerError="Oh, no! What a mess!" />)
+    .add('Input Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
+    .add('Banner Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
     .add('3 previous users', () => (
       <Login {...commonProps} users={['awendland', 'mgood', 'no_secret'].map(makeAccount)} />
     ))
