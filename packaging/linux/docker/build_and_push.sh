@@ -18,19 +18,13 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 docker build \
   --build-arg SOURCE_COMMIT="$source_commit" \
   --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
-  -f $client_dir/packaging/linux/docker/service/Dockerfile \
-  -t "keybaseio/service:$tag" \
-  $client_dir
-
-docker build \
-  --build-arg SERVICE_IMAGE="keybaseio/service:$tag" \
-  -f $client_dir/packaging/linux/docker/client/Dockerfile \
+  -f $client_dir/packaging/linux/docker/standard/Dockerfile \
   -t "keybaseio/client:$tag" \
   $client_dir
 
 docker build \
-  --build-arg SERVICE_IMAGE="keybaseio/service:$tag" \
-  -f $client_dir/packaging/linux/docker/client-slim/Dockerfile \
+  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
+  -f $client_dir/packaging/linux/docker/slim/Dockerfile \
   -t "keybaseio/client:$tag-slim" \
   $client_dir
 
@@ -44,6 +38,3 @@ rm -r $client_dir/.docker || true
 #docker tag keybaseio/client:$tag-slim keybaseio/client:nightly-slim
 #docker push keybaseio/client:$tag-slim
 #docker push keybaseio/client:nightly-slim
-#docker tag keybaseio/service:$tag keybaseio/service:nightly
-#docker push keybaseio/service:$tag
-#docker push keybaseio/service:nightly
