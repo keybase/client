@@ -67,7 +67,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
             onChangeNumber={onChangeNumberCb}
             onEnterKeyDown={_onContinue}
           />
-          {!!user && canSubmit && user.serviceMap.keybase && (
+          {!!user && canSubmit && !!user.serviceMap.keybase && (
             <UserMatchMention username={user.serviceMap.keybase} />
           )}
           {waiting && <Kb.ProgressIndicator type="Small" style={styles.loading} />}

@@ -76,7 +76,7 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         )}
-        {!!user && canSubmit && user.serviceMap.keybase && (
+        {!!user && canSubmit && !!user.serviceMap.keybase && (
           <UserMatchMention username={user.serviceMap.keybase} />
         )}
         {/* TODO: add support for multiple emails  */}
