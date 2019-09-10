@@ -67,7 +67,7 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   setTimeout(() => {
     if (!eng.hasEverConnected()) {
-      SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
+      KB.__electronAppEmit('KBkeybase', '', {type: 'requestStartService'})
     }
   }, 0)
 
@@ -79,7 +79,7 @@ const setupApp = (store, runSagas) => {
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'appStartedUp'})
+  KB.__electronAppEmit('KBkeybase', '', {type: 'appStartedUp'})
 }
 
 const FontLoader = () => (

@@ -1,4 +1,4 @@
-import Electron from 'electron'
+import * as Electron from 'electron'
 import child_process from 'child_process'
 import fs from 'fs'
 import os from 'os'
@@ -26,6 +26,10 @@ target.KB = {
 }
 
 if (isRenderer) {
+  // target.KB = {
+  // ...target.KB,
+  // }
+
   // have to do this else electron blows away process
   setTimeout(() => {
     window.process = {

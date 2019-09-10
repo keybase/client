@@ -29,7 +29,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
+  KB.__electronAppEmit('KBkeybase', '', {type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
