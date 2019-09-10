@@ -1,7 +1,6 @@
 import URL from 'url-parse'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
-import * as fs from 'fs'
 import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
@@ -14,7 +13,7 @@ import {debounce} from 'lodash-es'
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
 const setupDefaultSession = () => {
-  const ds = Electron.session.defaultSession
+  const ds = KB.__electron.session.defaultSession
   if (!ds) {
     throw new Error('No default Session? Should be impossible')
   }
@@ -75,7 +74,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   win.on('close', hideInsteadOfClose)
 
   type IPCPayload = {type: 'showMainWindow'} | {type: 'closeWindows'}
-  Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
+  KB.__electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
     switch (payload.type) {
       case 'showMainWindow':
         win.show()
@@ -89,7 +88,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
 }
 
 const changeDock = (show: boolean) => {
-  const dock = Electron.app.dock
+  const dock = KB.__electron.app.dock
   if (!dock) return
 
   if (show === dock.isVisible()) {
@@ -120,7 +119,7 @@ const loadWindowState = () => {
 
   let openAtLogin = true
   try {
-    const s = fs.readFileSync(filename, {encoding: 'utf8'})
+    const s = KB.__fs.readFileSync(filename, {encoding: 'utf8'})
     const guiConfig = JSON.parse(s)
 
     if (guiConfig.openAtLogin !== undefined) {
@@ -141,7 +140,7 @@ const loadWindowState = () => {
     windowState.y = obj.y === undefined ? windowState.y : obj.y
 
     // sanity check it fits in the screen
-    const displayBounds = Electron.screen.getDisplayMatching({
+    const displayBounds = KB.__electron.screen.getDisplayMatching({
       height: windowState.height,
       width: windowState.width,
       x: windowState.x,
@@ -163,12 +162,12 @@ const loadWindowState = () => {
     logger.info(`Couldn't load`, filename, ' continuing...')
   }
 
-  if ((isDarwin || isWindows) && Electron.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
+  if ((isDarwin || isWindows) && KB.__electron.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
     logger.info('Setting login item state', openAtLogin)
     if (__DEV__) {
       logger.info('Setting login item state skipped due to dev')
     } else {
-      Electron.app.setLoginItemSettings({openAtLogin})
+      KB.__electron.app.setLoginItemSettings({openAtLogin})
     }
   }
 }
@@ -188,14 +187,16 @@ const fixWindowsScalingIssue = (win: Electron.BrowserWindow) => {
 }
 
 const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
-  const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
+  const openedAtLogin = KB.__electron.app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
-    !!process.env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
-  const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
-  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
-  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
+    !!KB.__process.env['KEYBASE_RESTORE_UI'] ||
+    KB.__electron.app.getLoginItemSettings().restoreState ||
+    isWindows
+  const hideWindowOnStart = KB.__process.env['KEYBASE_AUTOSTART'] === '1'
+  const openHidden = KB.__electron.app.getLoginItemSettings().wasOpenedAsHidden
+  logger.info('KEYBASE_AUTOSTART =', KB.__process.env['KEYBASE_AUTOSTART'])
+  logger.info('KEYBASE_START_UI =', KB.__process.env['KEYBASE_START_UI'])
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
   logger.info('Open hidden:', openHidden)
@@ -239,15 +240,15 @@ const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
 
 const registerForAppLinks = () => {
   // Register for SEP7 and Keybase links.
-  Electron.app.setAsDefaultProtocolClient('web+stellar')
-  Electron.app.setAsDefaultProtocolClient('keybase')
+  KB.__electron.app.setAsDefaultProtocolClient('web+stellar')
+  KB.__electron.app.setAsDefaultProtocolClient('keybase')
 }
 
 export default () => {
   setupDefaultSession()
   loadWindowState()
 
-  const win = new Electron.BrowserWindow({
+  const win = new KB.__electron.BrowserWindow({
     backgroundColor: '#fff',
     frame: useNativeFrame,
     height: windowState.height,
@@ -257,7 +258,7 @@ export default () => {
     webPreferences: {
       backgroundThrottling: false,
       devTools: showDevTools,
-      nodeIntegration: true,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },

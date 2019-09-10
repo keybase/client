@@ -1,6 +1,4 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import fs from 'fs'
-import path from 'path'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
@@ -8,11 +6,11 @@ import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 import zlib from 'zlib'
 
-const file = path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
+const file = KB.__path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
 
 const loadHasPrompted = () => {
   try {
-    const data = fs.readFileSync(file, 'utf8')
+    const data = KB.__fs.readFileSync(file, 'utf8')
     return JSON.parse(data).promptedForCLI
   } catch (err) {
     if (err && err.code === 'ENOENT') {
@@ -26,7 +24,7 @@ const loadHasPrompted = () => {
 
 const saveHasPrompted = () => {
   try {
-    fs.writeFileSync(file, JSON.stringify({promptedForCLI: true}))
+    KB.__fs.writeFileSync(file, JSON.stringify({promptedForCLI: true}))
   } catch (err) {
     console.warn('[Installer] saveHasPrompted: Error saving state:', err)
   }

@@ -1,12 +1,10 @@
 // Entry point for the node part of the electron app
 import './preload.desktop' // MUST be first
 import MainWindow, {showDockIcon} from './main-window.desktop'
-import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
 import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
-import os from 'os'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -23,7 +21,7 @@ let appStartedUp = false
 let startupURL: string | null = null
 
 const installCrashReporter = () => {
-  if (process.env.KEYBASE_CRASH_REPORT) {
+  if (KB.__process.env.KEYBASE_CRASH_REPORT) {
     console.log(
       `Adding crash reporting (local). Crash files located in ${SafeElectron.getApp().getPath('temp')}`
     )
@@ -51,11 +49,11 @@ const appShouldDieOnStartup = () => {
   }
 
   // Check supported OS version
-  if (os.platform() === 'darwin') {
+  if (KB.__os.platform() === 'darwin') {
     // Release numbers for OS versions can be looked up here: https://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
-    if (parseInt(os.release().split('.')[0], 10) < 14) {
+    if (parseInt(KB.__os.release().split('.')[0], 10) < 14) {
       SafeElectron.getDialog().showErrorBox(
         'Keybase Error',
         "This version of macOS isn't currently supported."
@@ -112,7 +110,7 @@ const isRelevantDeepLink = (x: string) => {
 }
 
 const handleCrashes = () => {
-  process.on('uncaughtException', e => {
+  KB.__process.on('uncaughtException', e => {
     console.log('Uncaught exception on main thread:', e)
   })
 
@@ -201,14 +199,14 @@ const remoteURL = (windowComponent: string, windowParam: string) =>
 
 const findRemoteComponent = (windowComponent: string, windowParam: string) => {
   const url = remoteURL(windowComponent, windowParam)
-  return Electron.BrowserWindow.getAllWindows().find(w => {
+  return KB.__electron.BrowserWindow.getAllWindows().find(w => {
     const wc = w.webContents
     return wc && wc.getURL() === url
   })
 }
 
 const plumbEvents = () => {
-  Electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
+  KB.__electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
     switch (action.type) {
       case 'appStartedUp':
         appStartedUp = true
@@ -223,10 +221,10 @@ const plumbEvents = () => {
         } else if (!isDarwin) {
           // Windows and Linux instead store a launch URL in argv.
           let link: string | undefined
-          if (process.argv.length > 1 && isRelevantDeepLink(process.argv[1])) {
-            link = process.argv[1]
-          } else if (process.argv.length > 2 && isRelevantDeepLink(process.argv[2])) {
-            link = process.argv[2]
+          if (KB.__process.argv.length > 1 && isRelevantDeepLink(KB.__process.argv[1])) {
+            link = KB.__process.argv[1]
+          } else if (KB.__process.argv.length > 2 && isRelevantDeepLink(KB.__process.argv[2])) {
+            link = KB.__process.argv[2]
           }
           if (link) {
             mainWindowDispatch(DeeplinksGen.createLink({link}))
@@ -263,7 +261,7 @@ const plumbEvents = () => {
           show: false, // Start hidden and show when we actually get props
           titleBarStyle: 'customButtonsOnHover' as const,
           webPreferences: {
-            nodeIntegration: true,
+            nodeIntegration: false,
             nodeIntegrationInWorker: false,
             preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
           },
@@ -276,7 +274,7 @@ const plumbEvents = () => {
         })
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
-          const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize
+          const {width, height} = KB.__electron.screen.getPrimaryDisplay().workAreaSize
           remoteWindow.setPosition(
             width - action.payload.windowOpts.width - 100,
             height - action.payload.windowOpts.height - 100,
@@ -340,16 +338,16 @@ const start = () => {
 
   plumbEvents()
 
-  Electron.app.once('will-finish-launching', willFinishLaunching)
-  Electron.app.once('ready', () => {
+  KB.__electron.app.once('will-finish-launching', willFinishLaunching)
+  KB.__electron.app.once('ready', () => {
     mainWindow = MainWindow()
   })
 
   // Called when the user clicks the dock icon
-  Electron.app.on('activate', handleActivate)
+  KB.__electron.app.on('activate', handleActivate)
 
   // quit through dock. only listen once
-  Electron.app.once('before-quit', handleQuitting)
+  KB.__electron.app.once('before-quit', handleQuitting)
 }
 
 start()

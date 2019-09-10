@@ -1,10 +1,10 @@
-import pathParse from 'path-parse'
+import {parse} from './path-parse' // TODO remove
 
 function findAvailableFilename(
   checkExists: (arg0: string) => Promise<boolean>,
   filepath: string
 ): Promise<string> {
-  const {name, ext, dir} = pathParse(filepath)
+  const {name, ext, dir} = parse(filepath)
 
   return new Promise((resolve, reject) => {
     let i = 1

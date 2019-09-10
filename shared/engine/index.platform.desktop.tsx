@@ -1,5 +1,5 @@
-import net from 'net'
 import logger from '../logger'
+import {Buffer} from 'buffer/'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
@@ -47,12 +47,12 @@ function windowsHack() {
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  if (!isWindows || process.type !== 'renderer') {
+  if (!isWindows || KB.__process.type !== 'renderer') {
     return
   }
 
   // @ts-ignore codemode issue
-  var fake = net.connect({})
+  var fake = KB.__net.connect({})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
   fake.on('error', function() {})

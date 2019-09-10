@@ -1,6 +1,6 @@
-import path from 'path'
+const path = KB.__path
 
-const platform = process.platform
+const platform = KB.__process.platform
 export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
@@ -19,8 +19,8 @@ export const defaultUseNativeFrame = isDarwin || isLinux
 // For storyshots, we only want to test macOS
 export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
-const runMode = process.env['KEYBASE_RUN_MODE'] || 'prod'
-const homeEnv = process.env['HOME'] || ''
+const runMode = KB.__process.env['KEYBASE_RUN_MODE'] || 'prod'
+const homeEnv = KB.__process.env['HOME'] || ''
 
 if (__DEV__ && !__STORYBOOK__) {
   console.log(`Run mode: ${runMode}`)
@@ -30,11 +30,12 @@ const socketName = 'keybased.sock'
 
 const getLinuxPaths = () => {
   const useXDG =
-    (runMode !== 'devel' || process.env['KEYBASE_DEVEL_USE_XDG']) && !process.env['KEYBASE_XDG_OVERRIDE']
+    (runMode !== 'devel' || KB.__process.env['KEYBASE_DEVEL_USE_XDG']) &&
+    !KB.__process.env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = (useXDG && process.env['XDG_CONFIG_HOME']) || path.join(homeEnv, '.config')
-  const runtimeDir = (useXDG && process.env['XDG_RUNTIME_DIR']) || ''
+  const homeConfigDir = (useXDG && KB.__process.env['XDG_CONFIG_HOME']) || path.join(homeEnv, '.config')
+  const runtimeDir = (useXDG && KB.__process.env['XDG_RUNTIME_DIR']) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
   const appName = `keybase${runMode === 'prod' ? '' : `.${runMode}`}`
@@ -45,11 +46,11 @@ const getLinuxPaths = () => {
     )
   }
 
-  const logDir = `${(useXDG && process.env['XDG_CACHE_HOME']) || `${homeEnv}/.cache`}/${appName}/`
+  const logDir = `${(useXDG && KB.__process.env['XDG_CACHE_HOME']) || `${homeEnv}/.cache`}/${appName}/`
 
   return {
     cacheRoot: logDir,
-    dataRoot: `${(useXDG && process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
+    dataRoot: `${(useXDG && KB.__process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
@@ -59,16 +60,16 @@ const getLinuxPaths = () => {
 
 const getWindowsPaths = () => {
   const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
-  let appdata = process.env['LOCALAPPDATA'] || ''
+  let appdata = KB.__process.env['LOCALAPPDATA'] || ''
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
   }
   let dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
-  const logDir = `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`
+  const logDir = `${KB.__process.env['LOCALAPPDATA'] || ''}\\${appName}\\`
   return {
-    cacheRoot: `${process.env['APPDATA'] || ''}\\${appName}\\`,
-    dataRoot: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`,
+    cacheRoot: `${KB.__process.env['APPDATA'] || ''}\\${appName}\\`,
+    dataRoot: `${KB.__process.env['LOCALAPPDATA'] || ''}\\${appName}\\`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,

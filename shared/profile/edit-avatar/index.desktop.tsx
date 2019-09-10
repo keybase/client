@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as fs from 'fs'
 import {clamp} from 'lodash-es'
 import HOCTimers, {PropsWithTimer} from '../../common-adapters/hoc-timers'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
@@ -118,7 +117,7 @@ class EditAvatar extends React.Component<_Props, State> {
           // We do this synchronously
           // in testing, this is instantaneous
           // even when dragging many files
-          const stat = fs.lstatSync(path)
+          const stat = KB.__fs.lstatSync(path)
           if (stat.isDirectory()) {
             // TODO: Show a red error banner on failure: https://zpl.io/2jlkMLm
             return

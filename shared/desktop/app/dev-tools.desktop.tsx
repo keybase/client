@@ -3,8 +3,8 @@ import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
 function setupDevToolsExtensions() {
-  if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
-    process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
+  if (KB.__process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
+    KB.__process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
       try {
         SafeElectron.BrowserWindow.addDevToolsExtension(p)
       } catch (e) {

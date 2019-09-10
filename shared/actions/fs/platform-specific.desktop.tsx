@@ -8,12 +8,9 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
-import fs from 'fs'
 import {TypedState, TypedActions} from '../../util/container'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
-import {spawn, execFile, exec} from 'child_process'
-import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
 
@@ -38,7 +35,7 @@ function openInDefaultDirectory(openPath: string): Promise<void> {
     // realpath.
     // For example /keybase/private/gabrielh,chris gets redirected to
     // /keybase/private/chris,gabrielh.
-    fs.realpath(openPath, (err, resolvedPath) => {
+    KB.__fs.realpath(openPath, (err, resolvedPath) => {
       if (err) {
         reject(new Error(`No realpath for ${openPath}: ${err}`))
         return
@@ -65,7 +62,7 @@ function openInDefaultDirectory(openPath: string): Promise<void> {
 
 function getPathType(openPath: string): Promise<pathType> {
   return new Promise((resolve, reject) => {
-    fs.stat(openPath, (err, stats) => {
+    KB.__fs.stat(openPath, (err, stats) => {
       if (err) {
         reject(new Error(`Unable to open/stat file: ${openPath}`))
         return
@@ -107,11 +104,11 @@ const openLocalPathInSystemFileManager = (
     .catch(makeUnretriableErrorHandler(action, null))
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
-  path.resolve(
+  KB.__path.resolve(
     mountLocation,
     Types.getPathElements(kbfsPath)
       .slice(1)
-      .join(path.sep)
+      .join(KB.__path.sep)
   )
 
 const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
@@ -140,7 +137,7 @@ function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
     // TODO: should handle current mount directory
-    fs.readdir(`${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}`, (err, files) => {
+    KB.__fs.readdir(`${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}`, (err, files) => {
       if (!err && files.length > 0) {
         resolve(true)
       } else if (attempt > 15) {
@@ -201,7 +198,7 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
 const windowsCheckMountFromOtherDokanInstall = status =>
   RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
     mountPoint
-      ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
+      ? new Promise(resolve => KB.__fs.access(mountPoint, KB.__fs.constants.F_OK, err => resolve(!err))).then(
           mountExists =>
             mountExists
               ? {
@@ -301,7 +298,7 @@ const uninstallDokan = (state: TypedState) => {
   logger.info('Invoking dokan uninstaller', execPath)
   return new Promise(resolve => {
     try {
-      exec(execPath, {windowsHide: true}, resolve)
+      KB.__child_process.exec(execPath, {windowsHide: true}, resolve)
     } catch (e) {
       logger.error('uninstallDokan caught', e)
       resolve()
@@ -324,15 +321,19 @@ const openSecurityPreferences = () => {
 const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
-    const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
-    execFile(dokanPath, [], err => {
+    const dokanPath = KB.__path.resolve(
+      String(KB.__process.env.LOCALAPPDATA),
+      'Keybase',
+      'DokanSetup_redist.exe'
+    )
+    KB.__child_process.execFile(dokanPath, [], err => {
       if (err) {
         reject(err)
         return
       }
       // restart the service, particularly kbfsdokan
       // based on desktop/app/start-win-service.js
-      const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+      const binPath = KB.__path.resolve(String(KB.__process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
       if (!binPath) {
         reject(new Error('resolve failed'))
         return
@@ -340,7 +341,7 @@ const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
       const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
       const args = [binPath, 'ctl', 'restart']
 
-      spawn(rqPath, args, {
+      KB.__child_process.spawn(rqPath, args, {
         detached: true,
         stdio: 'ignore',
       })

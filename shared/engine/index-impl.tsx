@@ -230,9 +230,9 @@ class Engine {
       waitingKey: p.waitingKey,
     })
     // Don't make outgoing calls immediately since components can do this when they mount
-    setImmediate(() => {
+    setTimeout(() => {
       session.start(p.method, p.params, p.callback)
-    })
+    }, 0)
     return session.getId()
   }
 
@@ -363,7 +363,7 @@ class FakeEngine {
 // don't overwrite this on HMR
 let engine: Engine
 if (__DEV__) {
-  engine = global.DEBUGEngine
+  engine = typeof window !== 'undefined' && window.DEBUGEngine
 }
 
 const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
@@ -373,11 +373,11 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
 
   if (!engine) {
     engine =
-      process.env.KEYBASE_NO_ENGINE || isTesting
+      KB.__process.env.KEYBASE_NO_ENGINE || isTesting
         ? ((new FakeEngine() as unknown) as Engine)
         : new Engine(dispatch, getState)
-    if (__DEV__) {
-      global.DEBUGEngine = engine
+    if (__DEV__ && typeof window !== 'undefined') {
+      window.DEBUGEngine = engine
     }
     initEngine(engine as any)
     initEngineSaga(engineSaga)

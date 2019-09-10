@@ -4,7 +4,7 @@ import PhoneInput from '../signup/phone-number/phone-input'
 import * as Styles from '../styles'
 import * as Constants from '../constants/team-building'
 import * as Container from '../util/container'
-import {ServiceIdWithContact, User} from 'constants/types/team-building'
+import {ServiceIdWithContact, User} from '../constants/types/team-building'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {

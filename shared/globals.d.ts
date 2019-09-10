@@ -42,6 +42,14 @@ interface Console {
 }
 
 declare var KB: {
+  __child_process: any
+  __dirname: any
+  __electron: any
+  __fs: any
+  __net: any
+  __os: any
+  __path: any
+  __process: any
   DEV?: any
   punycode: any
 }

@@ -1,35 +1,32 @@
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {Encoding} from './file'
 
 export const downloadFolder = __STORYBOOK__
   ? ''
-  : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
+  : KB.__process.env.XDG_DOWNLOAD_DIR || KB.__path.join(KB.__os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string) {
-  return path.join(downloadFolder, filename)
+  return KB.__path.join(downloadFolder, filename)
 }
 
 export function downloadFilePath(suffix: string) {
-  return findAvailableFilename(exists, path.join(downloadFolder, suffix))
+  return findAvailableFilename(exists, KB.__path.join(downloadFolder, suffix))
 }
 
 export function exists(filepath: string) {
   return new Promise<boolean>(resolve => {
-    fs.access(filepath, fs.constants.F_OK, err => {
+    KB.__fs.access(filepath, KB.__fs.constants.F_OK, err => {
       resolve(!err)
     })
   })
 }
 
 export function mkdirp(target: string) {
-  const initDir = path.isAbsolute(target) ? path.sep : ''
-  target.split(path.sep).reduce((parentDir, childDir) => {
-    const curDir = path.resolve(parentDir, childDir)
-    if (!fs.existsSync(curDir)) {
-      fs.mkdirSync(curDir)
+  const initDir = KB.__path.isAbsolute(target) ? KB.__path.sep : ''
+  target.split(KB.__path.sep).reduce((parentDir, childDir) => {
+    const curDir = KB.__path.resolve(parentDir, childDir)
+    if (!KB.__fs.existsSync(curDir)) {
+      KB.__fs.mkdirSync(curDir)
     }
 
     return curDir
@@ -38,12 +35,12 @@ export function mkdirp(target: string) {
 
 export function copy(from: string, to: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    mkdirp(path.dirname(to))
-    fs.readFile(from, (err, data) => {
+    mkdirp(KB.__path.dirname(to))
+    KB.__fs.readFile(from, (err, data) => {
       if (err) {
         reject(err)
       } else {
-        fs.writeFile(to, data, err => {
+        KB.__fs.writeFile(to, data, err => {
           if (err) {
             reject(err)
           } else {
@@ -56,11 +53,11 @@ export function copy(from: string, to: string): Promise<void> {
 }
 
 export function unlink(filepath: string): Promise<void> {
-  return new Promise(resolve => fs.unlink(filepath, () => resolve()))
+  return new Promise(resolve => KB.__fs.unlink(filepath, () => resolve()))
 }
 
 export function writeStream(filepath: string, encoding: string, append?: boolean) {
-  const ws = fs.createWriteStream(filepath, {encoding, flags: append ? 'a' : 'w'})
+  const ws = KB.__fs.createWriteStream(filepath, {encoding, flags: append ? 'a' : 'w'})
   return Promise.resolve({
     close: () => ws.end(),
     write: d => {
@@ -72,7 +69,7 @@ export function writeStream(filepath: string, encoding: string, append?: boolean
 
 export function readFile(filepath: string, encoding: Encoding) {
   return new Promise((resolve, reject) => {
-    fs.readFile(filepath, {encoding}, (err, data) => {
+    KB.__fs.readFile(filepath, {encoding}, (err, data) => {
       if (err) {
         reject(err)
       } else {

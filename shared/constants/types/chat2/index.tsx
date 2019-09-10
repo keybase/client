@@ -6,6 +6,7 @@ import * as Meta from './meta'
 import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
+import {Buffer} from 'buffer/'
 import HiddenString from '../../../util/hidden-string'
 
 export type _QuoteInfo = {

@@ -5,9 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
-import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
-import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
@@ -124,13 +122,13 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const localAppData = String(KB.__process.env.LOCALAPPDATA)
+    var binPath = localAppData ? KB.__path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
       () =>
         new Promise((resolve, reject) => {
-          execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+          __KB.child_process.execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
               // error will be logged in bootstrap check
@@ -213,7 +211,7 @@ const onConnected = () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({
     details: {
-      argv: process.argv,
+      argv: KB.__process.argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
       pid: SafeElectron.getRemote().process.pid,

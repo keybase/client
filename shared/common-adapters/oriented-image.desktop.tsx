@@ -1,5 +1,4 @@
 import * as React from 'react'
-import fs from 'fs'
 import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
@@ -180,7 +179,7 @@ class OrientedImage extends React.Component<Props, State> {
       // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.
       // EXIF.readFromBinaryFile takes an ArrayBuffer
       try {
-        const data = fs.readFileSync(src)
+        const data = KB.__fs.readFileSync(src)
         const tags = EXIF.readFromBinaryFile(data.buffer)
         if (tags) {
           resolve(tags['Orientation'])
