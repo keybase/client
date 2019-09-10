@@ -26,6 +26,7 @@ until keybase --no-auto-fork status &> /dev/null; do
     sleep 1
 done
 
+
 # Possibly run oneshot if it was requested by the user
 if [[ -z "${KEYBASE_USERNAME}" ]] -a [[ -z "${KEYBASE_PAPERKEY}" ]]; then
     keybase --no-auto-fork oneshot

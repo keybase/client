@@ -38,8 +38,8 @@ RUN gpg --import /tini_key.asc \
     && gpg --batch --verify /tini.asc /tini \
     && chmod +x /tini
 
-COPY packaging/linux/docker/standard/start.sh /usr/bin/start.sh
-RUN chmod +x /usr/bin/start.sh
+COPY packaging/linux/docker/standard/entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
 
 RUN useradd --create-home --shell /bin/bash keybase \
     && mkdir -p /var/log/keybase \
@@ -54,5 +54,4 @@ COPY --from=builder /binaries/amd64/usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
 COPY --from=builder /binaries/amd64/usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
 COPY --from=builder /binaries/amd64/usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
 
-ENTRYPOINT ["/tini", "--", "start.sh"]
-CMD ["keybase status"]
+ENTRYPOINT ["/tini", "--", "entrypoint.sh"]

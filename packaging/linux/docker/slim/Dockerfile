@@ -18,8 +18,8 @@ RUN gpg --import /tini_key.asc \
     && gpg --batch --verify /tini.asc /tini \
     && chmod +x /tini
 
-COPY packaging/linux/docker/slim/start.sh /usr/bin/start.sh
-RUN chmod +x /usr/bin/start.sh
+COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
 
 RUN useradd --create-home --shell /bin/bash keybase
 USER keybase
@@ -27,5 +27,4 @@ VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.local/share/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
 
-ENTRYPOINT ["/tini", "--"]
-CMD ["keybase status"]
+ENTRYPOINT ["/tini", "--", "entrypoint.sh"]
