@@ -36,12 +36,13 @@ export type _Todo = {
 export type Todo = I.RecordOf<_Todo>
 
 export type _FollowedNotification = {
+  contactDescription?: string
   username: string
 }
 export type FollowedNotification = I.RecordOf<_FollowedNotification>
 
 export type _FollowedNotificationItem = {
-  type: 'notification'
+  type: 'follow' | 'contact'
   newFollows: Array<FollowedNotification>
   notificationTime: Date
   badged: boolean
