@@ -157,7 +157,7 @@ class _StellarValue extends React.PureComponent<
       </Kb.Text>
     ) : (
       <Kb.Box ref={r => this._storeAttachmentRef(r)} style={styles.tooltip}>
-        <Kb.WithTooltip text={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}>
+        <Kb.WithTooltip tooltip={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}>
           <Kb.Text
             type="BodyPrimaryLink"
             onClick={this.props.toggleShowingMenu}

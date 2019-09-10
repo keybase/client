@@ -101,7 +101,7 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
           centerChildren={true}
           ref={props.setAttachmentRef}
         >
-          <Kb.WithTooltip text="More networks" containerStyle={styles.moreNetworks2}>
+          <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
             <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
               <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••

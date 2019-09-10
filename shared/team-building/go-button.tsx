@@ -18,7 +18,7 @@ const Go = (props: {label: Label}) => (
 const GoButton = (props: Props) => (
   <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
     <Kb.WithTooltip
-      text={
+      tooltip={
         <Kb.Box2 direction="horizontal">
           <Kb.Icon
             type="iconfont-return"

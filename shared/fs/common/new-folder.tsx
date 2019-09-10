@@ -12,7 +12,7 @@ type OwnProps = {
 
 const NewFolder = props =>
   props.canCreateNewFolder && (
-    <Kb.WithTooltip text="New Folder">
+    <Kb.WithTooltip tooltip="New Folder">
       <Kb.Icon
         type="iconfont-folder-new"
         color={Styles.globalColors.black_50}

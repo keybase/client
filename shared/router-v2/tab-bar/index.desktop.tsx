@@ -138,7 +138,7 @@ class TabBar extends React.PureComponent<Props, State> {
           {tabs.map((t, i) => (
             <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
               <Kb.WithTooltip
-                text={`${data[t].label} (${Platforms.shortcutSymbol}${i + 1})`}
+                tooltip={`${data[t].label} (${Platforms.shortcutSymbol}${i + 1})`}
                 toastClassName="tab-tooltip"
               >
                 <Kb.Box2

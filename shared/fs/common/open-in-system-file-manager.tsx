@@ -20,7 +20,7 @@ type Props = {
 }
 
 const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
-  <WithTooltip text={`Show in ${fileUIName}`}>
+  <WithTooltip tooltip={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
       padding="tiny"
@@ -33,7 +33,7 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <>
-    <WithTooltip text={`Show in ${fileUIName}`}>
+    <WithTooltip tooltip={`Show in ${fileUIName}`}>
       <Icon
         type="iconfont-finder"
         padding="tiny"

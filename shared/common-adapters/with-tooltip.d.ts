@@ -4,7 +4,7 @@ import {Position} from './relative-popup-hoc.types'
 
 export type Props = {
   disabled?: boolean
-  text: string | React.ReactNode
+  tooltip: string | React.ReactNode
   multiline?: boolean
   containerStyle?: StylesCrossPlatform
   children: React.ReactNode

@@ -46,7 +46,7 @@ const Desktop = (props: DownloadsProps) =>
           <Download downloadKey={key} key={key} isFirst={index === 0} />
         ))}
         {props.downloadKeys.length > 3 && (
-          <Kb.WithTooltip text="Open Downloads folder">
+          <Kb.WithTooltip tooltip="Open Downloads folder">
             <Kb.Icon
               style={styles.iconBoxEllipsis}
               type="iconfont-ellipsis"
@@ -58,7 +58,7 @@ const Desktop = (props: DownloadsProps) =>
           </Kb.WithTooltip>
         )}
         <Kb.Box style={styles.space} />
-        <Kb.WithTooltip text="Open Downloads folder">
+        <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
             type="iconfont-folder-downloads"
             hint="Open downloads folder"
