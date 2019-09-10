@@ -12,7 +12,7 @@ type State = {
 const other = 'Someone else...'
 
 const UserRow = ({user}) => (
-  <Kb.Box2 fullWidth={true} style={styles.userRow}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow}>
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
     </Kb.Text>
@@ -83,10 +83,11 @@ class Login extends React.Component<Props, State> {
                 autoFocus={true}
                 placeholder="Password"
                 style={styles.passwordInput}
-                onChangeText={password => this.props.passwordChange(password)}
+                onChangeText={this.props.passwordChange}
                 onEnterKeyDown={this.props.onSubmit}
                 ref={this._inputRef}
                 type="password"
+                value={this.props.password}
               />
             </Kb.Box2>
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>

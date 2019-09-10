@@ -11,12 +11,6 @@ import * as ConfigTypes from '../../constants/types/config'
 
 type OwnProps = {}
 
-type State = {
-  password: string
-  showTyping: boolean
-  selectedUser: string
-}
-
 type Props = {
   error: string
   loggedInMap: Map<string, boolean>
@@ -29,53 +23,59 @@ type Props = {
   users: Array<ConfigTypes.ConfiguredAccount>
 }
 
-class LoginWrapper extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      password: '',
-      selectedUser: props.selectedUser,
-      showTyping: false,
+const LoginWrapper = (props: Props) => {
+  const [password, setPassword] = React.useState('')
+  const prevPassword = Container.usePrevious(password)
+  const prevError = Container.usePrevious(props.error)
+  const [selectedUser, setSelectedUser] = React.useState(props.selectedUser)
+  const [showTyping, setShowTyping] = React.useState(false)
+  const dispatch = Container.useDispatch()
+  const onSubmit = React.useCallback(() => {
+    props.onLogin(selectedUser, password)
+  }, [selectedUser, password, props])
+  const selectedUserChange = React.useCallback(
+    user => {
+      dispatch(LoginGen.createLoginError({error: null}))
+      setPassword('')
+      setSelectedUser(user)
+      if (props.loggedInMap.get(user)) {
+        props.onLogin(user, '')
+      }
+    },
+    [dispatch, setPassword, setSelectedUser, props]
+  )
+  React.useEffect(() => {
+    if (!prevError && !!props.error) {
+      setPassword('')
     }
-  }
+  }, [prevError, props.error, setPassword])
+  React.useEffect(() => {
+    setSelectedUser(props.selectedUser)
+  }, [props.selectedUser, setSelectedUser])
+  React.useEffect(() => {
+    if (!prevPassword && !!password) {
+      dispatch(LoginGen.createLoginError({error: null}))
+    }
+  }, [password, prevPassword, dispatch])
 
-  _selectedUserChange = (selectedUser: string) => {
-    this.setState({selectedUser})
-    if (this.props.loggedInMap.get(selectedUser)) {
-      this.props.onLogin(selectedUser, '')
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    // Clear the password when there's an error.
-    if (this.props.error !== prevProps.error) {
-      this.setState(_ => ({password: ''}))
-    }
-    if (this.props.selectedUser !== prevProps.selectedUser) {
-      this.setState({selectedUser: this.props.selectedUser})
-    }
-  }
-
-  render() {
-    return (
-      <Login
-        error={this.props.error}
-        onFeedback={this.props.onFeedback}
-        onForgotPassword={this.props.onForgotPassword}
-        onLogin={this.props.onLogin}
-        onSignup={this.props.onSignup}
-        onSomeoneElse={this.props.onSomeoneElse}
-        onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.password)}
-        password={this.state.password}
-        passwordChange={password => this.setState({password})}
-        selectedUser={this.state.selectedUser}
-        selectedUserChange={this._selectedUserChange}
-        showTypingChange={showTyping => this.setState({showTyping})}
-        showTyping={this.state.showTyping}
-        users={this.props.users}
-      />
-    )
-  }
+  return (
+    <Login
+      error={props.error}
+      onFeedback={props.onFeedback}
+      onForgotPassword={props.onForgotPassword}
+      onLogin={props.onLogin}
+      onSignup={props.onSignup}
+      onSomeoneElse={props.onSomeoneElse}
+      onSubmit={onSubmit}
+      password={password}
+      passwordChange={setPassword}
+      selectedUser={selectedUser}
+      selectedUserChange={selectedUserChange}
+      showTypingChange={setShowTyping}
+      showTyping={showTyping}
+      users={props.users}
+    />
+  )
 }
 
 export default Container.connect(
