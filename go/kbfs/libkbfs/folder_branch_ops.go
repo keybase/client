@@ -3786,6 +3786,20 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		// Make sure the ops are in increasing order by path length,
 		// so e.g. file creates come before file modifies.
 		sort.Sort(ops)
+
+		for _, op := range ops {
+			// Temporary debugging for the case where an op has an
+			// invalid path (HOTPOT-803).  Just printing something
+			// here (before falling through to the more extension
+			// debug statement below) to make it clear that we did go
+			// through chain population.
+			if !op.getFinalPath().IsValid() {
+				fbo.log.CDebugf(
+					ctx, "HOTPOT-803: Op %s missing path after populating "+
+						"chain paths", op)
+				break
+			}
+		}
 	}
 
 	rev := rmd.Revision()
@@ -3796,6 +3810,17 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	}
 
 	for _, op := range ops {
+		// Temporary debugging for the case where an op has an invalid
+		// path (HOTPOT-803).
+		if !op.getFinalPath().IsValid() {
+			fbo.log.CDebugf(
+				ctx, "HOTPOT-803: Op %s has no valid path; "+
+					"rev=%d, all ops=%v", rmd.Revision(), op, ops)
+			if fbo.config.Mode().IsTestMode() {
+				panic("Op missing path")
+			}
+		}
+
 		edit := op.ToEditNotification(
 			rev, revTime, rmd.lastWriterVerifyingKey,
 			rmd.LastModifyingWriter(), fbo.id())
