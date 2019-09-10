@@ -25,14 +25,18 @@ type Props = {
 
 const LoginWrapper = (props: Props) => {
   const [password, setPassword] = React.useState('')
-  const prevPassword = Container.usePrevious(password)
-  const prevError = Container.usePrevious(props.error)
   const [selectedUser, setSelectedUser] = React.useState(props.selectedUser)
   const [showTyping, setShowTyping] = React.useState(false)
+
+  const prevPassword = Container.usePrevious(password)
+  const prevError = Container.usePrevious(props.error)
+
   const dispatch = Container.useDispatch()
+
   const onSubmit = React.useCallback(() => {
     props.onLogin(selectedUser, password)
   }, [selectedUser, password, props])
+
   const selectedUserChange = React.useCallback(
     user => {
       dispatch(LoginGen.createLoginError({error: null}))
@@ -44,6 +48,8 @@ const LoginWrapper = (props: Props) => {
     },
     [dispatch, setPassword, setSelectedUser, props]
   )
+
+  // Effects
   React.useEffect(() => {
     if (!prevError && !!props.error) {
       setPassword('')
