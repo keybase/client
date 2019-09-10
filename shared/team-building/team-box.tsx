@@ -35,7 +35,8 @@ const formatNameForUserBubble = (u: SelectedUser) => {
       // Username is the assertion username here (E164 without '+'), add '+' to
       // obtain a valid number for formatting. Do not append prettyName, because
       // it's likely just the same phone number but not formated.
-      return e164ToDisplay('+' + u.username)
+      displayName = e164ToDisplay('+' + u.username)
+      break
     default:
       displayName = `${u.username} on ${u.service}`
       break
