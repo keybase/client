@@ -32,6 +32,16 @@ as locally from a filesystem mounted by the Keybase client.
 
 ## How to use this image?
 
+### Environment variables
+
+- `KEYBASE_SERVICE` - if it's passed OR there are no commands started, a service
+  gets started up by the entrypoint,
+- `KEYBASE_USERNAME` and `KEYBASE_PAPERKEY` - if both of these env variables are
+  passed _and_ `KEYBASE_SERVICE` is passed / there is no command passed, the
+  service automatically logs in as the paper key in oneshot mode.
+- `KEYBASE_SERVICE_ARGS` - args passed during service startup, `-debug` by default.
+- `KEYBASE_KBFS_ARGS` - args passed during KBFS startup, `-debug -mount-type=none` by default.
+
 ### start a keybase service
 
 ```console
@@ -109,6 +119,7 @@ $ docker run --rm \
     -e KEYBASE_DEVICENAME="randomname123" \
     yournewimage
 ```
+
 
 ## Image variants
 
