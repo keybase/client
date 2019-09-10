@@ -45,7 +45,7 @@ const Intro = (props: Props) => {
         <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
           <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
           <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
-          {props.isOnline === false && (
+          {!props.isOnline && (
             <Kb.Button
               label="Configure a proxy"
               mode="Secondary"
