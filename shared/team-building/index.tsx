@@ -507,17 +507,24 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         rolePickerProps={props.rolePickerProps}
       />
     )
+
+    // Handle when team-buiding is making a new chat v.s. adding members to a team.
+    const ChatHeader = props.rolePickerProps ? (
+      <>
+        <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+        <Kb.Text type="Header">{props.title}</Kb.Text>
+        <Kb.Text type="BodyTiny">Add as many members as you would like</Kb.Text>
+      </>
+    ) : (
+      <Kb.Text type="Header" style={styles.newChatHeader}>
+        {props.title}
+      </Kb.Text>
+    )
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : (
           <Kb.Box2 direction="vertical" alignItems="center">
-            {props.rolePickerProps && (
-              <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
-            )}
-            <Kb.Text type="Header">{props.title}</Kb.Text>
-            {props.rolePickerProps && (
-              <Kb.Text type="BodyTiny">Add as many members as you would like</Kb.Text>
-            )}
+            {ChatHeader}
           </Kb.Box2>
         )}
         {teamBox &&
@@ -659,10 +666,16 @@ const styles = Styles.styleSheetCreate(
       mobileFlex: Styles.platformStyles({
         isMobile: {flex: 1},
       }),
+      newChatHeader: Styles.platformStyles({
+        isElectron: {
+          margin: Styles.globalMargins.xsmall,
+        },
+      }),
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
         isElectron: {
-          marginTop: -16,
+          position: 'relative',
+          top: -16,
         },
       }),
       waiting: {

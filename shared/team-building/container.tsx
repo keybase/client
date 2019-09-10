@@ -550,7 +550,6 @@ const mergeProps = (
     teamSoFar,
   })
 
-  // TODO @jacob PICNIC-369: Change the title from a string to handle when adding to a team
   const title = rolePickerProps ? `Add to ${ownProps.teamname}` : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
