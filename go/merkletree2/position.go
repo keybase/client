@@ -29,6 +29,18 @@ func (p *Position) getBytes() []byte {
 	return (*big.Int)(p).Bytes()
 }
 
+// Set updates p to the value of q
+func (p *Position) Set(q *Position) {
+	(*big.Int)(p).Set((*big.Int)(q))
+}
+
+// Clone returns a pointer to a deep copy of a position
+func (p *Position) Clone() *Position {
+	var q Position
+	q.Set(p)
+	return &q
+}
+
 func (p *Position) isOnPathToKey(k Key) bool {
 	// If the Key is shorter than current prefix
 	if len(k)*8 < (*big.Int)(p).BitLen()-1 {
@@ -51,44 +63,56 @@ func (t *Config) getParent(p *Position) *Position {
 		return nil
 	}
 
-	var f big.Int
-	f.Rsh((*big.Int)(p), uint(t.bitsPerIndex))
+	f := p.Clone()
+	t.updateToParent(f)
 
-	return (*Position)(&f)
+	return f
 }
 
-// getAllSiblings returns nil,nil if p is the root
-func (t *Config) getAllSiblings(p *Position) (siblings []Position, parent *Position) {
+func (t *Config) updateToParent(p *Position) {
+	((*big.Int)(p)).Rsh((*big.Int)(p), uint(t.bitsPerIndex))
+}
 
-	parent = t.getParent(p)
-	if parent == nil {
-		return nil, nil
+// Behavior if p has no parent at the requested level is undefined.
+func (t *Config) updateToParentAtLevel(p *Position, level uint) {
+	shift := (*big.Int)(p).BitLen() - 1 - int(t.bitsPerIndex)*int(level)
+	((*big.Int)(p)).Rsh((*big.Int)(p), uint(shift))
+}
+
+// updateToParentAndAllSiblings takes as input p and a slice of size
+// t.cfg.childrenPerNode - 1. It populates the slice with the siblings of p, and
+// updates p to be its parent.
+func (t *Config) updateToParentAndAllSiblings(p *Position, sibs []Position) {
+	if (*big.Int)(p).BitLen() < 2 {
+		return
 	}
 
 	// Optimization for binary trees
 	if t.childrenPerNode == 2 {
-		var sib big.Int
-		sib.Xor((*big.Int)(p), big.NewInt(1))
-		return []Position{Position(sib)}, parent
-	}
+		sibs[0].Set(p)
+		lsBits := &(((*big.Int)(&sibs[0]).Bits())[0])
+		*lsBits = (*lsBits ^ 1)
 
-	siblings = make([]Position, t.childrenPerNode-1)
+	} else {
 
-	var child0 big.Int
-	child0.Lsh((*big.Int)(parent), uint(t.bitsPerIndex))
+		pChildIndex := big.Word(t.getDeepestChildIndex(p))
 
-	var buff big.Int
-	pChildIndex := buff.Xor(&child0, (*big.Int)(p)).Int64()
+		mask := ^((big.Word)((1 << t.bitsPerIndex) - 1))
 
-	for i, j := int64(0), int64(0); j < int64(t.childrenPerNode); j++ {
-		if j == pChildIndex {
-			continue
+		for i, j := uint(0), big.Word(0); j < big.Word(t.childrenPerNode); j++ {
+			if j == pChildIndex {
+				continue
+			}
+
+			sibs[i].Set(p)
+			// Set least significant bits to the j-th children
+			lsBits := &(((*big.Int)(&sibs[i]).Bits())[0])
+			*lsBits = (*lsBits & mask) | j
+			i++
 		}
-		(*big.Int)(&siblings[i]).Or(&child0, big.NewInt(j))
-		i++
 	}
 
-	return siblings, parent
+	t.updateToParent(p)
 }
 
 // getDeepestPositionForKey converts the key into the position the key would be
@@ -103,25 +127,47 @@ func (t *Config) getDeepestPositionForKey(k Key) (*Position, error) {
 	return &p, nil
 }
 
-// getSiblingPositionsOnPathToKey returns a slice of positions, in descending
-// order by level (siblings farther from the root come first) and in
-// lexicographic order within each level.
-func (t *Config) getSiblingPositionsOnPathToKey(k Key) ([]Position, error) {
-	p, err := t.getDeepestPositionForKey(k)
-	if err != nil {
-		return nil, err
-	}
-	maxPathLength := t.keysByteLength * 8 / int(t.bitsPerIndex)
-	positions := make([]Position, 0, maxPathLength*(t.childrenPerNode-1))
-	root := t.getRootPosition()
-	var sibs []Position
-	for i := 0; !p.equals(root); {
-		sibs, p = t.getAllSiblings(p)
-		positions = append(positions, sibs...)
-		i++
+// getDeepestPositionAtLevelAndSiblingsOnPathToKey returns a slice of positions,
+// in descending order by level (siblings farther from the root come first) and
+// in lexicographic order within each level. The first position in the slice is
+// the position at level lastLevel on a path from the root to k (or the deepest
+// possible position for such key if latLevel is greater than that). The
+// following positions are all the siblings of the nodes on the longest possible
+// path from the root to the key k with are at levels from lastLevel (excluded)
+// to firstLevel (included).
+// See TestGetDeepestPositionAtLevelAndSiblingsOnPathToKey for sample outputs.
+func (t *Config) getDeepestPositionAtLevelAndSiblingsOnPathToKey(k Key, lastLevel int, firstLevel int) (sibs []Position) {
+
+	maxLevel := t.keysByteLength * 8 / int(t.bitsPerIndex)
+	if lastLevel > maxLevel {
+		lastLevel = maxLevel
 	}
 
-	return positions, nil
+	// first, shrink the key for efficiency
+	var bytesNecessary int
+	if lastLevel*int(t.bitsPerIndex)%8 == 0 {
+		bytesNecessary = lastLevel * int(t.bitsPerIndex) / 8
+	} else {
+		bytesNecessary = lastLevel*int(t.bitsPerIndex)/8 + 1
+	}
+	k = k[:bytesNecessary]
+
+	var buf Position
+	p := &buf
+	(*big.Int)(p).SetBytes(k)
+	(*big.Int)(p).SetBit((*big.Int)(p), len(k)*8, 1)
+
+	t.updateToParentAtLevel(p, uint(lastLevel))
+
+	sibs = make([]Position, (lastLevel-firstLevel+1)*(t.childrenPerNode-1)+1)
+	sibs[0].Set(p)
+	for i, j := lastLevel, 0; i >= firstLevel; i-- {
+		sibsToFill := sibs[1+(t.childrenPerNode-1)*j : 1+(t.childrenPerNode-1)*(j+1)]
+		t.updateToParentAndAllSiblings(p, sibsToFill)
+		j++
+	}
+
+	return sibs
 }
 
 // getLevel returns the level of p. The root is at level 0, and each node has
@@ -138,10 +184,9 @@ func (t *Config) getParentAtLevel(p *Position, level uint) *Position {
 		return nil
 	}
 
-	var f big.Int
-	f.Rsh((*big.Int)(p), uint(shift))
-
-	return (*Position)(&f)
+	f := p.Clone()
+	t.updateToParentAtLevel(f, level)
+	return f
 }
 
 // positionToChildIndexPath returns the list of childIndexes to navigate from the
@@ -149,14 +194,13 @@ func (t *Config) getParentAtLevel(p *Position, level uint) *Position {
 func (t *Config) positionToChildIndexPath(p *Position) (path []ChildIndex) {
 	path = make([]ChildIndex, t.getLevel(p))
 
-	bitMask := big.NewInt(int64(t.childrenPerNode - 1))
+	bitMask := big.Word(t.childrenPerNode - 1)
 
-	var buff, buff2 big.Int
-	buff2.Set((*big.Int)(p))
+	buff := p.Clone()
 
 	for i := range path {
-		path[i] = ChildIndex(buff.And(bitMask, &buff2).Int64())
-		buff2.Rsh(&buff2, uint(t.bitsPerIndex))
+		path[i] = ChildIndex(((*big.Int)(buff)).Bits()[0] & bitMask)
+		((*big.Int)(buff)).Rsh((*big.Int)(buff), uint(t.bitsPerIndex))
 	}
 
 	return path
@@ -168,7 +212,5 @@ func (t *Config) getDeepestChildIndex(p *Position) ChildIndex {
 	if (*big.Int)(p).BitLen() < 2 {
 		return ChildIndex(0)
 	}
-	bitMask := big.NewInt(int64(t.childrenPerNode - 1))
-	var buff big.Int
-	return ChildIndex(buff.And(bitMask, (*big.Int)(p)).Int64())
+	return ChildIndex(((*big.Int)(p).Bits())[0] & ((1 << t.bitsPerIndex) - 1))
 }

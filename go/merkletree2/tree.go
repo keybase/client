@@ -18,17 +18,31 @@ type Tree struct {
 
 	cfg Config
 	eng StorageEngine
+
+	// step is an optimization parameter for GetKeyValuePairWithProof that
+	// controls how many path positions at a time the tree requests from the
+	// storage engine. Lower values result in more storage engine request, but
+	// less of the (somewhat expensive) bit fiddling operations.  Values higher
+	// than 63 are not recommended as the bit operations (in the best case)
+	// cannot be done using a signle 64 bit word and become more expensive. This
+	// is unnecessary if the tree has random keys (as such a tree should be
+	// approximately balanced and have short-ish paths).
+	step int
 }
 
 // NewTree makes a new tree
-func NewTree(c Config, e StorageEngine, l logger.Logger) (*Tree, error) {
+func NewTree(c Config, step int, e StorageEngine, l logger.Logger) (*Tree, error) {
 	if c.useBlindedValueHashes {
 		_, ok := e.(StorageEngineWithBlinding)
 		if !ok {
 			return nil, fmt.Errorf("The config requires a StorageEngineWithBlinding implementation as a StorageEngine")
 		}
 	}
-	return &Tree{cfg: c, eng: e, Logger: l}, nil
+	if step < 1 {
+		return nil, fmt.Errorf("step must be a positive integer")
+	}
+
+	return &Tree{cfg: c, eng: e, Logger: l, step: step}, nil
 }
 
 // Hash is a byte-array, used to represent a full collision-resistant hash.
@@ -336,15 +350,31 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 	// clear up hash to make the proof smaller.
 	proof.RootMetadataNoHash.BareRootHash = nil
 
-	// Lookup hashes of siblings along the path.
-	siblingPositions, err := t.cfg.getSiblingPositionsOnPathToKey(k)
-	if err != nil {
-		return KeyValuePair{}, MerkleInclusionProof{}, err
-	}
-	// Assumes nodes are returned in the same order in which they are being requested
-	siblingPosHashPairs, err := t.eng.LookupNodes(ctx, tr, s, siblingPositions)
-	if err != nil {
-		return KeyValuePair{}, MerkleInclusionProof{}, err
+	var siblingPosHashPairs []PositionHashPair
+	needMore := true
+	for curr := 1; needMore && curr <= t.cfg.keysByteLength*8/int(t.cfg.bitsPerIndex); curr += t.step + 1 {
+		// The first element is the position at level curr+step on the path from
+		// the root to k (on a complete tree). The next ones are all the
+		// necessary siblings at levels from curr+step to curr (both included)
+		// on such path.
+		deepestAndCurrSiblingPositions := t.cfg.getDeepestPositionAtLevelAndSiblingsOnPathToKey(k, curr+t.step, curr)
+		deepestAndCurrSiblings, err := t.eng.LookupNodes(ctx, tr, s, deepestAndCurrSiblingPositions)
+		if err != nil {
+			return KeyValuePair{}, MerkleInclusionProof{}, err
+		}
+
+		var currSiblings []PositionHashPair
+		// if we found a PositionHashPair corrisponding to the first element in
+		// deepestAndCurrSiblingPositions, it means the path might be deeper and we
+		// need to fetch more siblings.
+		if len(deepestAndCurrSiblings) > 0 && deepestAndCurrSiblings[0].p.equals(&deepestAndCurrSiblingPositions[0]) {
+			currSiblings = deepestAndCurrSiblings[1:]
+			needMore = true
+		} else {
+			currSiblings = deepestAndCurrSiblings
+			needMore = false
+		}
+		siblingPosHashPairs = append(currSiblings, siblingPosHashPairs...)
 	}
 
 	var leafLevel int
