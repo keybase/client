@@ -40,8 +40,6 @@ const getIconSizeString = (size: Size): RealSizeString => {
   }
 }
 
-const UnknownIcon = (_: Props) => <Kb.Icon type="icon-folder-16" />
-
 const icons = {
   file: {
     '16': 'icon-file-16',
@@ -86,7 +84,7 @@ const IconOnly = (props: Props) => {
   const parsedPath = Constants.parsePath(props.path)
 
   if (parsedPath === Constants.parsedPathRoot) {
-    return <UnknownIcon {...props} />
+    return <Kb.Icon type={icons['file'][getIconSizeString(props.size)]} />
   }
 
   switch (parsedPath) {
@@ -127,7 +125,7 @@ const IconOnly = (props: Props) => {
     case Types.PathKind.InTeamTlf:
       return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
     default:
-      return <UnknownIcon {...props} />
+      return <Kb.Icon type={icons['file'][getIconSizeString(props.size)]} />
   }
 }
 

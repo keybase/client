@@ -70,7 +70,7 @@ const CopyText = (props: Props) => {
       </Toast>
       <Text
         lineClamp={lineClamp}
-        type="Body"
+        type="BodyTiny"
         selectable={true}
         center={true}
         style={styles.text}
@@ -91,11 +91,7 @@ const CopyText = (props: Props) => {
           onClick={copy}
           labelContainerStyle={styles.buttonLabelContainer}
         >
-          <Icon
-            type="iconfont-clipboard"
-            color={Styles.globalColors.white}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
+          <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
         </Button>
       )}
     </Box2>
@@ -112,17 +108,17 @@ const styles = Styles.styleSheetCreate(
           height: undefined,
           marginLeft: 'auto',
           minWidth: undefined,
-          paddingLeft: 17,
-          paddingRight: 17,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
         },
         isElectron: {
           display: 'flex',
-          paddingBottom: 6,
-          paddingTop: 6,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
         },
         isMobile: {
-          paddingBottom: 10,
-          paddingTop: 10,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
         },
       }),
       buttonLabelContainer: {
@@ -142,7 +138,7 @@ const styles = Styles.styleSheetCreate(
           overflow: 'hidden',
         },
         isMobile: {
-          minHeight: 40,
+          // minHeight: 40,
         },
       }),
       reveal: {
@@ -150,27 +146,26 @@ const styles = Styles.styleSheetCreate(
       },
       text: Styles.platformStyles({
         common: {
-          ...Styles.globalStyles.fontTerminalSemibold,
+          ...Styles.globalStyles.fontTerminal,
           color: Styles.globalColors.blueDark,
           flexShrink: 1,
-          fontSize: Styles.isMobile ? 15 : 13,
-          marginBottom: Styles.globalMargins.xsmall / 2,
-          marginLeft: Styles.globalMargins.xsmall,
-          marginRight: Styles.globalMargins.xsmall,
-          marginTop: Styles.globalMargins.xsmall / 2,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+          marginTop: Styles.globalMargins.xtiny,
           minWidth: 0,
           textAlign: 'left',
         },
         isAndroid: {
-          position: 'relative',
-          top: 3,
+          // position: 'relative',
+          // top: 3,
         },
         isElectron: {
           userSelect: 'all',
           wordBreak: 'break-all',
         },
         isMobile: {
-          minHeight: 15,
+          minHeight: 13,
         },
       }),
       toastText: Styles.platformStyles({

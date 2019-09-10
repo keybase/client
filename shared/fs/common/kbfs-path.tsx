@@ -33,7 +33,7 @@ const KbfsPathPopup = (props: PopupProps) => {
         <PathItemInfo
           path={props.standardPath}
           showTooltipOnName={false}
-          containerStyle={styles.sectionContainer}
+          containerStyle={Styles.collapseStyles([styles.sectionContainer, styles.noBottomPadding])}
         />
         <Kb.Divider />
         <PathInfo
@@ -104,18 +104,20 @@ const KbfsPath = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   headerContainer: Styles.platformStyles({
-    common: {},
     isElectron: {
       maxWidth: 280,
     },
+  }),
+  noBottomPadding: {paddingBottom: 0},
+  sectionContainer: Styles.platformStyles({
+    common: {
+      padding: Styles.globalMargins.small,
+    },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.large,
     },
   }),
-  sectionContainer: {
-    padding: Styles.globalMargins.small,
-  },
   textContainer: Styles.platformStyles({
     isElectron: {
       display: 'inline-block',
