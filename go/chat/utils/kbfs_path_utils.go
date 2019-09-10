@@ -127,7 +127,7 @@ func matchKBFSPathOuter(body string) (outerMatches []outerMatch) {
 }
 
 func ParseKBFSPaths(ctx context.Context, body string) (paths []chat1.KBFSPath) {
-	outerMatches := matchKBFSPathOuter(body)
+	outerMatches := matchKBFSPathOuter(ReplaceQuotedSubstrings(body, true))
 	for _, match := range outerMatches {
 		if match.isKBFSPath() {
 			kbfsPathInfo, err := libkb.GetKBFSPathInfo(match.standardPath())
