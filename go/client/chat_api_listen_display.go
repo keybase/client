@@ -37,11 +37,26 @@ func newMsgNotification(source string) *chat1.MsgNotification {
 
 func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilters []ChatChannel) error {
 	for _, v := range channelFilters {
-		conv, _, err := d.svc.findConversation(ctx, "", v)
-		if err != nil {
-			return err
+		if v.MembersType == "team" && len(v.TopicName) == 0 {
+			// treat this formulation of a channel as listing all team convs the users is in
+			topicType, err := TopicTypeFromStrDefault(v.TopicType)
+			if err != nil {
+				return err
+			}
+			convs, _, err := d.svc.getAllTeamConvs(ctx, v.Name, &topicType)
+			if err != nil {
+				return err
+			}
+			for _, conv := range convs {
+				d.filtersNormalized = append(d.filtersNormalized, conv.GetConvID())
+			}
+		} else {
+			conv, _, err := d.svc.findConversation(ctx, "", v)
+			if err != nil {
+				return err
+			}
+			d.filtersNormalized = append(d.filtersNormalized, conv.GetConvID())
 		}
-		d.filtersNormalized = append(d.filtersNormalized, conv.GetConvID())
 	}
 	return nil
 }
