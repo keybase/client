@@ -39,9 +39,9 @@ const ServiceIcon = (props: IconProps) => {
               />
             )}
             <Kb.Icon
+              color={color}
               fontSize={16}
               type={serviceIdToIconFont(props.service)}
-              style={Styles.collapseStyles([styles.serviceIcon, {color}])}
               boxStyle={styles.serviceIconBox}
             />
           </Kb.Box2>
@@ -101,7 +101,7 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
           centerChildren={true}
           ref={props.setAttachmentRef}
         >
-          <Kb.WithTooltip text="More networks" containerStyle={styles.moreNetworks2}>
+          <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
             <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
               <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••
@@ -250,9 +250,6 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
       },
       pendingIcon: {height: 10, width: 10},
-      serviceIcon: {
-        marginRight: Styles.globalMargins.xtiny,
-      },
       serviceIconBox: {
         marginTop: 14,
       },

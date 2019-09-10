@@ -358,6 +358,7 @@ const makeMessageSetDescription = I.Record<MessageTypes._MessageSetDescription>(
 
 const makeMessagePin = I.Record<MessageTypes._MessagePin>({
   ...makeMessageCommonNoDeleteNoEdit,
+  pinnedMessageID: 0,
   reactions: I.Map(),
   type: 'pin',
 })
@@ -880,6 +881,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.pin:
       return makeMessagePin({
         ...common,
+        pinnedMessageID: m.pinnedMessageID || m.messageID,
         reactions,
       })
     case RPCChatTypes.MessageType.metadata:

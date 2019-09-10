@@ -36,7 +36,7 @@ export type Props = {
 }
 
 const IconClickable = props => (
-  <Kb.WithTooltip text="More actions">
+  <Kb.WithTooltip tooltip="More actions">
     <Kb.Icon
       type="iconfont-ellipsis"
       color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}

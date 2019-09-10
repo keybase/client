@@ -394,6 +394,7 @@ export type _MessagePin = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
+  pinnedMessageID: MessageID
   reactions: Reactions
   timestamp: number
   type: 'pin'

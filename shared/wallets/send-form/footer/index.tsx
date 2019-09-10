@@ -85,7 +85,7 @@ const Footer = (props: Props) => {
           )}
           {!!props.onClickSend &&
             (props.thisDeviceIsLockedOut ? (
-              <Kb.WithTooltip text="This is a mobile-only wallet." containerStyle={styles.fullWidth}>
+              <Kb.WithTooltip tooltip="This is a mobile-only wallet." containerStyle={styles.fullWidth}>
                 {sendButton}
               </Kb.WithTooltip>
             ) : (

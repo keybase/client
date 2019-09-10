@@ -34,7 +34,7 @@ const LabelContainer = props =>
   // We put the tooltip on the whole thing on desktop.
   Styles.isMobile && props.labelTooltip ? (
     <Kb.WithTooltip
-      text={props.labelTooltip}
+      tooltip={props.labelTooltip}
       containerStyle={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.labelContainer])}
       showOnPressMobile={true}
     >
@@ -85,7 +85,7 @@ const Switch = React.forwardRef<ClickableBox, Props>((props: Props, ref) =>
   ) : (
     <Kb.WithTooltip
       containerStyle={getStyle(props)}
-      text={props.labelTooltip || ''}
+      tooltip={props.labelTooltip || ''}
       position={props.align !== 'right' ? 'top left' : 'top right'}
     >
       {getContent(props, ref)}
