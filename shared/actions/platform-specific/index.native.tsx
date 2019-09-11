@@ -59,7 +59,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
     const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
     switch (mode) {
       case RPCChatTypes.UIWatchPositionPerm.base:
-        if (status !== 'granted') {
+        if (status === Permissions.PermissionStatus.DENIED) {
           throw new Error('Please allow Keybase to access your location in the phone settings.')
         }
         break
