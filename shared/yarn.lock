@@ -1272,47 +1272,47 @@
     react-lifecycles-compat "^3.0.4"
     warning "^3.0.0"
 
-"@react-native-community/cli-platform-android@^2.0.1", "@react-native-community/cli-platform-android@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli-platform-android/-/cli-platform-android-2.7.0.tgz#511d1db12c52d29cb87b6e4e84d63030ffa2c38d"
-  integrity sha512-hO/gYqzLCeCFnLIgYiGlZhiQMAnMuTxNS6rCbC8leMnlGARzrarnWsepHhvottOKeSctVh0wzchLCLCBcw4zVA==
+"@react-native-community/cli-platform-android@^2.6.0", "@react-native-community/cli-platform-android@^2.9.0":
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cli-platform-android/-/cli-platform-android-2.9.0.tgz#28831e61ce565a2c7d1905852fce1eecfd33cb5e"
+  integrity sha512-VEQs4Q6R5tnlYFrQIFoPEWjLc43whRHC9HeH+idbFymwDqysLVUffQbb9D6PJUj+C/AvrDhBhU6S3tDjGbSsag==
   dependencies:
-    "@react-native-community/cli-tools" "^2.7.0"
+    "@react-native-community/cli-tools" "^2.8.3"
     chalk "^2.4.2"
     execa "^1.0.0"
     jetifier "^1.6.2"
-    logkitty "^0.5.0"
-    slash "^2.0.0"
-    xmldoc "^0.4.0"
+    logkitty "^0.6.0"
+    slash "^3.0.0"
+    xmldoc "^1.1.2"
 
-"@react-native-community/cli-platform-ios@^2.0.1", "@react-native-community/cli-platform-ios@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli-platform-ios/-/cli-platform-ios-2.7.0.tgz#a1e7af6141136da7a0b3f477426bea889a931a17"
-  integrity sha512-x3bJWyd1viszgZxTKa/L247WDHFnQCFv+X9Kdwiqu6S+smyuF9CnS3mEHQZ7BqZDa+VIDJI29iKQKdvqW83iEA==
+"@react-native-community/cli-platform-ios@^2.4.1", "@react-native-community/cli-platform-ios@^2.9.0":
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cli-platform-ios/-/cli-platform-ios-2.9.0.tgz#21adb8ee813d6ca6fd9d4d9be63f92024f7e2fe7"
+  integrity sha512-vg6EOamtFaaQ02FiWu+jzJTfeTJ0OVjJSAoR2rhJKNye6RgJLoQlfp0Hg3waF6XrO72a7afYZsPdKSlN3ewlHg==
   dependencies:
-    "@react-native-community/cli-tools" "^2.7.0"
+    "@react-native-community/cli-tools" "^2.8.3"
     chalk "^2.4.2"
     xcode "^2.0.0"
 
-"@react-native-community/cli-tools@^2.7.0":
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli-tools/-/cli-tools-2.7.0.tgz#b468ce74cb5ebf5789731d4d330740801679cf81"
-  integrity sha512-9rNoGiokyMkbQ97gAvQde4mpAw2M/GhPBtrQJb4WglgVoJhfj4kpe+qMCWNsOepCrID5JY2Y1nTDEq/v+ETyNA==
+"@react-native-community/cli-tools@^2.8.3":
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cli-tools/-/cli-tools-2.8.3.tgz#0e2249f48cf4603fb8d740a9f0715c31ac131ceb"
+  integrity sha512-N5Pz+pR+GFq3JApjd0SW4jp9KC7kbKsMH65QLRh30JNsxdPvNkYox6/ZZdkvdXaI5ev3EckR7eqlcwi5gpVTYQ==
   dependencies:
     chalk "^2.4.2"
     lodash "^4.17.5"
     mime "^2.4.1"
     node-fetch "^2.5.0"
 
-"@react-native-community/cli@^2.0.1":
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cli/-/cli-2.7.1.tgz#ae83ddc2f2af146654555a2627ce0d629ad6ab64"
-  integrity sha512-k/MQUqNt5FJFQ5J+syRWAmnR0Sdh+LnSsMqIq77GGj/B0sc7abNrZbycvlHzpaoOMXUbVg6Q/ePhpT2J031kUw==
+"@react-native-community/cli@^2.6.0":
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/@react-native-community/cli/-/cli-2.9.0.tgz#f0d18dc3e5a8f68e3d6ad353c444dc2f08d3fbdc"
+  integrity sha512-6TYkrR1pwIEPpiPZnOYscCGr5Xh8RijqBPVAOGTaEdpQQpc/J7GDPrePwbyTzwmCPtiK6XT+T5+1AiAK5bz/sw==
   dependencies:
     "@hapi/joi" "^15.0.3"
-    "@react-native-community/cli-platform-android" "^2.7.0"
-    "@react-native-community/cli-platform-ios" "^2.7.0"
-    "@react-native-community/cli-tools" "^2.7.0"
+    "@react-native-community/cli-platform-android" "^2.9.0"
+    "@react-native-community/cli-platform-ios" "^2.9.0"
+    "@react-native-community/cli-tools" "^2.8.3"
     chalk "^2.4.2"
     commander "^2.19.0"
     compression "^1.7.1"
@@ -4825,6 +4825,11 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
   integrity sha1-6vQ5/U1ISK105cx9vvIAZyueNFs=
+
+dayjs@^1.8.15:
+  version "1.8.16"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.8.16.tgz#2a3771de537255191b947957af2fd90012e71e64"
+  integrity sha512-XPmqzWz/EJiaRHjBqSJ2s6hE/BUoCIHKgdS2QPtTQtKcS9E4/Qn0WomoH1lXanWCzri+g7zPcuNV4aTZ8PMORQ==
 
 debounce@^1.2.0:
   version "1.2.0"
@@ -8690,12 +8695,13 @@ log-symbols@^2.2.0:
   dependencies:
     chalk "^2.0.1"
 
-logkitty@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/logkitty/-/logkitty-0.5.0.tgz#5a348c2049551aa02da69543c3b5c44e28c7c24f"
-  integrity sha512-UA06TmPaSPiHxMBlo5uxL3ZvjJ2Gx/rEECrqowHsIsNoAoSB8aBSP553Fr2FJhOp3it2ulLsd520DZWS1IaYOw==
+logkitty@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/logkitty/-/logkitty-0.6.0.tgz#e327d4b144dd5c11d912d002cf57ac9fbae20e15"
+  integrity sha512-+F1ROENmfG3b4N9WGlRz5QGTBw/xgjZe2JzZLADYeCmzdId5c+QI7WTGRofs/10hwP84aAmjK2WStx+/oQVnwA==
   dependencies:
     ansi-fragments "^0.2.1"
+    dayjs "^1.8.15"
     yargs "^12.0.5"
 
 loglevel@^1.6.3:
@@ -9081,10 +9087,10 @@ metro-react-native-babel-preset@0.54.1:
     metro-babel7-plugin-react-transform "0.54.1"
     react-transform-hmr "^1.0.4"
 
-metro-react-native-babel-preset@0.55.0:
-  version "0.55.0"
-  resolved "https://registry.yarnpkg.com/metro-react-native-babel-preset/-/metro-react-native-babel-preset-0.55.0.tgz#d5d4a6cbe9ccbcedd72fcbb71c0c311e3d56876e"
-  integrity sha512-HUI+dEiVym8f1NYIF1grY9PdoY0d3SSS/HED2dDDvTORwndsAEWuXiUgKFOGWX18+RUAQog8obVQuBMgrr8ZBQ==
+metro-react-native-babel-preset@0.56.0:
+  version "0.56.0"
+  resolved "https://registry.yarnpkg.com/metro-react-native-babel-preset/-/metro-react-native-babel-preset-0.56.0.tgz#fa47dfd5f7678e89cffd1249020b8add6938fc48"
+  integrity sha512-MAo1fm0dNn6MVZmylaz6k2HC1MINHLTLfE7O3a9Xz3fAtbGbApisp06rBUfK5uUqIJDmAaKgbiT34lHJSIiE6Q==
   dependencies:
     "@babel/plugin-proposal-class-properties" "^7.0.0"
     "@babel/plugin-proposal-export-default-from" "^7.0.0"
@@ -9120,7 +9126,7 @@ metro-react-native-babel-preset@0.55.0:
     "@babel/plugin-transform-typescript" "^7.0.0"
     "@babel/plugin-transform-unicode-regex" "^7.0.0"
     "@babel/template" "^7.0.0"
-    react-refresh "^0.2.0"
+    react-refresh "^0.4.0"
 
 metro-react-native-babel-transformer@0.54.1, metro-react-native-babel-transformer@^0.54.1:
   version "0.54.1"
@@ -11280,15 +11286,15 @@ react-native-webview@5.12.1:
     escape-string-regexp "1.0.5"
     invariant "2.2.4"
 
-react-native@0.60.4:
-  version "0.60.4"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.60.4.tgz#4378171e63dd5310497e15e54ec9185cb470752d"
-  integrity sha512-WE41lbGQjnzM9srIFtMDtMJkQAvk95iZwuFvAxl68s80bkYa7Ou9sGFHpeYIV6cY8yHtheCSo5q6YMxhdfkdOw==
+react-native@0.60.5:
+  version "0.60.5"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.60.5.tgz#3c1d9c06a0fbab9807220b6acac09488d39186ee"
+  integrity sha512-cZwI0XzzihACN+7an1Dy46A83FRaAe2Xyd7laCalFFAppZIYeMVphZQWrVljJk5kIZBNtYG35TY1VsghQ0Oc2Q==
   dependencies:
     "@babel/runtime" "^7.0.0"
-    "@react-native-community/cli" "^2.0.1"
-    "@react-native-community/cli-platform-android" "^2.0.1"
-    "@react-native-community/cli-platform-ios" "^2.0.1"
+    "@react-native-community/cli" "^2.6.0"
+    "@react-native-community/cli-platform-android" "^2.6.0"
+    "@react-native-community/cli-platform-ios" "^2.4.1"
     abort-controller "^3.0.0"
     art "^0.10.0"
     base64-js "^1.1.2"
@@ -11368,10 +11374,10 @@ react-redux@7.1.0:
     prop-types "^15.7.2"
     react-is "^16.8.6"
 
-react-refresh@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.2.0.tgz#f0cff375e8f75dea7133a847a1b40cf5c073dd0d"
-  integrity sha512-ITw8t/HOFNose2yf1y9pPFSSeB9ISOq2JdHpuZvj/Qb+iSsLml8GkkHdDlURzieO7B3dFDtMrrneZLl3N5z/hg==
+react-refresh@^0.4.0:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/react-refresh/-/react-refresh-0.4.2.tgz#54a277a6caaac2803d88f1d6f13c1dcfbd81e334"
+  integrity sha512-kv5QlFFSZWo7OlJFNYbxRtY66JImuP2LcrFgyJfQaf85gSP+byzG21UbDQEYjU7f//ny8rwiEkO6py2Y+fEgAQ==
 
 react-resize-detector@^4.0.5:
   version "4.2.0"
@@ -12099,15 +12105,10 @@ sanitize-filename@^1.6.0:
   dependencies:
     truncate-utf8-bytes "^1.0.0"
 
-sax@^1.1.5, sax@^1.2.4, sax@~1.2.4:
+sax@^1.1.5, sax@^1.2.1, sax@^1.2.4, sax@~1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
-
-sax@~1.1.1:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/sax/-/sax-1.1.6.tgz#5d616be8a5e607d54e114afae55b7eaf2fcc3240"
-  integrity sha1-XWFr6KXmB9VOEUr65Vt+ry/MMkA=
 
 scheduler@0.14.0:
   version "0.14.0"
@@ -12401,6 +12402,11 @@ slash@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/slash/-/slash-2.0.0.tgz#de552851a1759df3a8f206535442f5ec4ddeab44"
   integrity sha512-ZYKh3Wh2z1PpEXWr0MpSBZ0V6mZHAQfYevttO11c51CaWjGTaadiKZ+wVt1PbMlDV5qhMFslpZCemhwOK7C89A==
+
+slash@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
+  integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
 slice-ansi@^2.0.0, slice-ansi@^2.1.0:
   version "2.1.0"
@@ -14168,12 +14174,12 @@ xmlbuilder@^9.0.7:
   resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-9.0.7.tgz#132ee63d2ec5565c557e20f4c22df9aca686b10d"
   integrity sha1-Ey7mPS7FVlxVfiD0wi35rKaGsQ0=
 
-xmldoc@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/xmldoc/-/xmldoc-0.4.0.tgz#d257224be8393eaacbf837ef227fd8ec25b36888"
-  integrity sha1-0lciS+g5PqrL+DfvIn/Y7CWzaIg=
+xmldoc@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/xmldoc/-/xmldoc-1.1.2.tgz#6666e029fe25470d599cd30e23ff0d1ed50466d7"
+  integrity sha512-ruPC/fyPNck2BD1dpz0AZZyrEwMOrWTO5lDdIXS91rs3wtm4j+T8Rp2o+zoOYkkAxJTZRPOSnOGei1egoRmKMQ==
   dependencies:
-    sax "~1.1.1"
+    sax "^1.2.1"
 
 xmldom@0.1.x, xmldom@~0.1.22:
   version "0.1.27"
