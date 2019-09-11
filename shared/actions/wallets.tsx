@@ -1672,6 +1672,7 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
       })
     )
   }
+  return false
 }
 
 function* walletsSaga() {
