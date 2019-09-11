@@ -211,7 +211,8 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teambotEK2, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Equal(t, teambotEK, teambotEK2)
+	require.Equal(t, teambotEK.Generation(), teambotEK2.Generation())
+	require.Equal(t, teambotEK.Material(), teambotEK2.Material())
 	noTeambotEKNeeded(user1.tc, user1.notifications)
 	noTeambotEKNeeded(user2.tc, user2.notifications)
 	noNewTeambotEKNotification(botua.tc, botua.notifications)
@@ -298,7 +299,8 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teambotEK4, created, err := ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Equal(t, teambotEK3, teambotEK4)
+	require.Equal(t, teambotEK3.Generation(), teambotEK4.Generation())
+	require.Equal(t, teambotEK3.Material(), teambotEK4.Material())
 	ekNeededArg = keybase1.TeambotEkNeededArg{
 		Id:         teamID,
 		Uid:        botua.uid,
@@ -321,7 +323,8 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	teambotEK2, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.NoError(t, err)
 	require.False(t, created)
-	require.Equal(t, teambotEK, teambotEK2)
+	require.Equal(t, teambotEK.Generation(), teambotEK2.Generation())
+	require.Equal(t, teambotEK.Material(), teambotEK2.Material())
 	noTeambotEKNeeded(user1.tc, user1.notifications)
 	noTeambotEKNeeded(user2.tc, user2.notifications)
 	noNewTeambotEKNotification(botua.tc, botua.notifications)
