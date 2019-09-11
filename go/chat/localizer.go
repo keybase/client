@@ -832,9 +832,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		if err == nil {
 			summaries = append(summaries, pinSummary)
 		}
-		tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
-		if err == nil {
-			summaries = append(summaries, tlfSummary)
+		if len(summaries) == 0 ||
+			conversationRemote.GetMembersType() == chat1.ConversationMembersType_IMPTEAMUPGRADE ||
+			conversationRemote.GetMembersType() == chat1.ConversationMembersType_KBFS {
+			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
+			if err == nil {
+				summaries = append(summaries, tlfSummary)
+			}
 		}
 		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote,
 			uid, utils.PluckMessageIDs(summaries), nil)
