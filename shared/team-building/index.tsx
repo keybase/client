@@ -511,6 +511,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     // Handle when team-buiding is making a new chat v.s. adding members to a team.
     const chatHeader = !!props.rolePickerProps ? (
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+        <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
         <Kb.Text type="Header">{props.title}</Kb.Text>
         <Kb.Text type="BodyTiny">Add as many members as you would like</Kb.Text>
       </Kb.Box2>
@@ -523,46 +524,41 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     )
 
     return (
-      <>
-        {!!props.rolePickerProps && !Styles.isMobile ? (
-          <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
-        ) : null}
-        <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-          {Styles.isMobile ? null : chatHeader}
-          {teamBox &&
-            (Styles.isMobile ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true}>
-                {teamBox}
-              </Kb.Box2>
-            ) : (
-              teamBox
-            ))}
-          {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
-            <Kb.Text type="BodySmall">
-              Add up to 14 more people. Need more?
-              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-                {' '}
-                Make it a team.
-              </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+        {Styles.isMobile ? null : chatHeader}
+        {teamBox &&
+          (Styles.isMobile ? (
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              {teamBox}
+            </Kb.Box2>
+          ) : (
+            teamBox
+          ))}
+        {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
+          <Kb.Text type="BodySmall">
+            Add up to 14 more people. Need more?
+            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
+              {' '}
+              Make it a team.
             </Kb.Text>
-          )}
-          <ServiceTabBar
-            services={Constants.servicesForNamespace(props.namespace)}
-            selectedService={props.selectedService}
-            onChangeService={props.onChangeService}
-            serviceResultCount={props.serviceResultCount}
-            showServiceResultCount={props.showServiceResultCount}
+          </Kb.Text>
+        )}
+        <ServiceTabBar
+          services={Constants.servicesForNamespace(props.namespace)}
+          selectedService={props.selectedService}
+          onChangeService={props.onChangeService}
+          serviceResultCount={props.serviceResultCount}
+          showServiceResultCount={props.showServiceResultCount}
+        />
+        {Styles.isMobile && (
+          <ContactsBanner
+            {...props}
+            onRedoSearch={() => props.onChangeText(props.searchString)}
+            onRedoRecs={props.fetchUserRecs}
           />
-          {Styles.isMobile && (
-            <ContactsBanner
-              {...props}
-              onRedoSearch={() => props.onChangeText(props.searchString)}
-              onRedoRecs={props.fetchUserRecs}
-            />
-          )}
-          {content}
-        </Kb.Box2>
-      </>
+        )}
+        {content}
+      </Kb.Box2>
     )
   }
 }
@@ -622,7 +618,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderRadius: 4,
           height: 560,
-          overflow: 'hidden',
+          overflow: 'visible',
           width: 400,
         },
       }),
