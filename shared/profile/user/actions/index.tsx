@@ -144,8 +144,8 @@ const Actions = (p: Props) => {
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items = [
     {onClick: p.onAddToTeam, title: 'Add to team...'},
-    {newTag: true, onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    {newTag: true, onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
+    {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'},
@@ -176,9 +176,9 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
   )
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
   dropdownButton: {minWidth: undefined},
-})
+}))
 
 export default Actions

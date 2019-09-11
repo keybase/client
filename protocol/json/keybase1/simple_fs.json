@@ -82,6 +82,30 @@
         {
           "type": "KBFSArchivedParam",
           "name": "archivedParam"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ],
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -114,7 +138,7 @@
             "name": "KBFS",
             "def": false
           },
-          "body": "string"
+          "body": "KBFSPath"
         },
         {
           "label": {
@@ -724,6 +748,10 @@
       "name": "SimpleFSStats",
       "fields": [
         {
+          "type": "ProcessRuntimeStats",
+          "name": "processStats"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
@@ -744,6 +772,23 @@
           },
           "name": "runtimeDbStats"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SubscriptionTopic",
+      "symbols": [
+        "FAVORITES_0",
+        "JOURNAL_STATUS_1",
+        "ONLINE_STATUS_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PathSubscriptionTopic",
+      "symbols": [
+        "CHILDREN_0",
+        "STAT_1"
       ]
     }
   ],
@@ -1003,13 +1048,6 @@
           "type": "Path"
         },
         {
-          "name": "identifyBehavior",
-          "type": [
-            null,
-            "TLFIdentifyBehavior"
-          ]
-        },
-        {
           "name": "refreshSubscription",
           "type": "boolean"
         }
@@ -1190,6 +1228,10 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "tlfID",
+          "type": "string"
         }
       ],
       "response": null,
@@ -1218,7 +1260,15 @@
       "response": null
     },
     "simpleFSSyncConfigAndStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        }
+      ],
       "response": "SyncConfigAndStatusRes"
     },
     "simpleFSAreWeConnectedToMDServer": {
@@ -1275,6 +1325,74 @@
     "simpleFSGetStats": {
       "request": [],
       "response": "SimpleFSStats"
+    },
+    "simpleFSSubscribePath": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "kbfsPath",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "PathSubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSSubscribeNonPath": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        },
+        {
+          "name": "topic",
+          "type": "SubscriptionTopic"
+        },
+        {
+          "name": "deduplicateIntervalSecond",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSUnsubscribe": {
+      "request": [
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
+        },
+        {
+          "name": "subscriptionID",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

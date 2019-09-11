@@ -4,6 +4,12 @@ import Reloadable from './reload'
 import Text from './text'
 import {Box2} from './box'
 
+const Kb = {
+  Box2,
+  Reloadable,
+  Text,
+}
+
 const provider = Sb.createPropProviderWithCommon({
   Reloadable: p => ({
     children: p.children,
@@ -16,7 +22,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
 })
 
-const Child = p => <Text type="Body">I dont need reload</Text>
+const Child = () => <Kb.Text type="Body">I dont need reload</Kb.Text>
 
 const props = {
   onReload: Sb.action('onReload'),
@@ -29,31 +35,31 @@ const load = () => {
   Sb.storiesOf('Common/Reload', module)
     .addDecorator(provider)
     .addDecorator(story => (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {story()}
-      </Box2>
+      </Kb.Box2>
     ))
     .add('No reload', () => (
       // @ts-ignore need that helper thats not merged yet
-      <Reloadable {...props} needsReload={false} reason="">
+      <Kb.Reloadable {...props} needsReload={false} reason="">
         <Child />
-      </Reloadable>
+      </Kb.Reloadable>
     ))
     .add('Reload', () => (
       // @ts-ignore need that helper thats not merged yet
-      <Reloadable {...props} needsReload={true} reason="reason field">
+      <Kb.Reloadable {...props} needsReload={true} reason="reason field">
         <Child />
-      </Reloadable>
+      </Kb.Reloadable>
     ))
     .add('Reload long', () => (
       // @ts-ignore need that helper thats not merged yet
-      <Reloadable {...props} needsReload={true} reason={longReason}>
+      <Kb.Reloadable {...props} needsReload={true} reason={longReason}>
         <Child />
-      </Reloadable>
+      </Kb.Reloadable>
     ))
     .add('Reload with back', () => (
       // @ts-ignore need that helper thats not merged yet
-      <Reloadable
+      <Kb.Reloadable
         {...props}
         onBack={Sb.action('onBack')}
         needsReload={true}
@@ -61,7 +67,7 @@ const load = () => {
         title="Title"
       >
         <Child />
-      </Reloadable>
+      </Kb.Reloadable>
     ))
 }
 

@@ -13,10 +13,6 @@ const Kb = {
   NativeImage,
 }
 
-type State = {
-  loaded: boolean
-}
-
 const sizeToTeamBorderRadius = {
   '12': 2,
   '128': 12,
@@ -27,125 +23,53 @@ const sizeToTeamBorderRadius = {
   '96': 10,
 }
 
-// Android doesn't handle background colors border radius setting
 const backgroundOffset = 1
-
-const background = props => (
-  <Kb.Box
-    loadingColor={props.loadingColor}
-    borderRadius={props.borderRadius}
-    style={[
-      styles.background,
-      {
-        backgroundColor: props.loaded
-          ? Styles.globalColors.white
-          : props.loadingColor || Styles.globalColors.greyLight,
-        borderRadius: props.borderRadius,
-      },
-    ]}
-  />
-)
-
-const userImage = ({onLoadEnd, url, size, borderRadius, opacity = 1}) => (
-  <Kb.NativeImage
-    source={url}
-    onLoadEnd={onLoadEnd}
-    style={[styles[`image:${size}`], {borderRadius, opacity}]}
-  />
-)
-
 const borderOffset = -1
 const borderSize = 1
 // Layer on top to extend outside of the image
-const border = ({borderColor, borderRadius}) => (
-  <Kb.Box style={[styles.borderBase, {borderColor, borderRadius}]} />
-)
 
-class AvatarRender extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {loaded: !!this.props.load}
-  }
+const Avatar = (props: Props) => {
+  const {size} = props
+  const borderRadius: number = props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
+  const containerStyle = Styles.collapseStyles([styles[`box:${size}`], props.style])
 
-  _mounted = false
-
-  _onLoadOrError = () => {
-    if (this._mounted && !this.state.loaded) {
-      this.setState({loaded: true})
-    }
-  }
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.load && this.props.name !== prevProps.name) {
-      this.props.load()
-    }
-    if (this.props.url !== prevProps.url) {
-      this.setState({loaded: false})
-    }
-  }
-
-  componentDidMount() {
-    this._mounted = true
-    this.props.load && this.props.load()
-  }
-
-  componentWillUnmount() {
-    this._mounted = false
-  }
-
-  render() {
-    const {size} = this.props
-    const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
-    const containerStyle = Styles.collapseStyles([styles[`box:${size}`], this.props.style])
-
-    return (
-      <Kb.ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
-        <Kb.Box style={containerStyle}>
-          {!this.props.skipBackground &&
-            (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) &&
-            background({
-              borderRadius: borderRadius,
-              loaded: this.state.loaded,
-              loadingColor: this.props.loadingColor,
-            })}
-          {!!this.props.url &&
-            userImage({
-              borderRadius: borderRadius,
-              onLoadEnd: this._onLoadOrError,
-              opacity: this.props.opacity,
-              size: size,
-              url: this.props.url,
-            })}
-          {(!!this.props.borderColor || this.props.isTeam) &&
-            border({
-              borderColor: this.props.borderColor || Styles.globalColors.black_10,
-              borderRadius: borderRadius,
-            })}
-          {this.props.followIconType && (
-            <Kb.Icon
-              type={this.props.followIconType}
-              style={Styles.collapseStyles([
-                styles[`icon:${this.props.followIconSize}`],
-                this.props.followIconStyle,
-              ])}
-            />
-          )}
-          {this.props.editable && (
-            <Kb.Icon
-              type="iconfont-edit"
-              onClick={this.props.onEditAvatarClick}
-              style={{
-                bottom: this.props.isTeam ? -2 : 0,
-                position: 'absolute',
-                right: this.props.isTeam ? -28 : 0,
-              }}
-            />
-          )}
-          {this.props.children}
-        </Kb.Box>
-      </Kb.ClickableBox>
-    )
-  }
+  return (
+    <Kb.ClickableBox onClick={props.onClick} feedback={false} style={containerStyle}>
+      <Kb.Box style={containerStyle}>
+        {!props.skipBackground && (
+          <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
+        )}
+        {!!props.url && (
+          <Kb.NativeImage
+            source={props.url}
+            style={[styles[`image:${props.size}`], {borderRadius, opacity: props.opacity}]}
+          />
+        )}
+        {(!!props.borderColor || props.isTeam) && (
+          <Kb.Box
+            style={[
+              styles.borderBase,
+              {borderColor: props.borderColor || Styles.globalColors.black_10, borderRadius},
+            ]}
+          />
+        )}
+        {props.followIconType && (
+          <Kb.Icon
+            type={props.followIconType}
+            style={Styles.collapseStyles([styles[`icon:${props.followIconSize}`], props.followIconStyle])}
+          />
+        )}
+        {props.editable && (
+          <Kb.Icon
+            type="iconfont-edit"
+            onClick={props.onEditAvatarClick}
+            style={props.isTeam ? styles.editTeam : styles.edit}
+          />
+        )}
+        {props.children}
+      </Kb.Box>
+    </Kb.ClickableBox>
+  )
 }
 
 const sizes = [128, 96, 64, 48, 32, 16, 12]
@@ -174,26 +98,39 @@ const imageStyles = sizes.reduce((map, size) => {
   return map
 }, {})
 
-const styles = Styles.styleSheetCreate({
-  ...boxStyles,
-  ...iconStyles,
-  ...imageStyles,
-  background: {
-    bottom: backgroundOffset,
-    left: backgroundOffset,
-    position: 'absolute',
-    right: backgroundOffset,
-    top: backgroundOffset,
-  },
-  borderBase: {
-    borderWidth: borderSize,
-    bottom: borderOffset,
-    left: borderOffset,
-    margin: borderSize / 2,
-    position: 'absolute',
-    right: borderOffset,
-    top: borderOffset,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      ...boxStyles,
+      ...iconStyles,
+      ...imageStyles,
+      background: {
+        bottom: backgroundOffset,
+        left: backgroundOffset,
+        position: 'absolute',
+        right: backgroundOffset,
+        top: backgroundOffset,
+      },
+      borderBase: {
+        borderWidth: borderSize,
+        bottom: borderOffset,
+        left: borderOffset,
+        margin: borderSize / 2,
+        position: 'absolute',
+        right: borderOffset,
+        top: borderOffset,
+      },
+      edit: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
+      },
+      editTeam: {
+        bottom: -2,
+        position: 'absolute',
+        right: -28,
+      },
+    } as const)
+)
 
-export default AvatarRender
+export default Avatar

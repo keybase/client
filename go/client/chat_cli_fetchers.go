@@ -53,7 +53,7 @@ func (f chatCLIConvFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (
 	}
 
 	if gcfclres.Offline {
-		g.UI.GetTerminalUI().PrintfUnescaped(ColorString(g, "yellow", "WARNING: conversation results obtained in OFFLINE mode\n"))
+		_, _ = g.UI.GetTerminalUI().PrintfUnescaped(ColorString(g, "yellow", "WARNING: conversation results obtained in OFFLINE mode\n"))
 	}
 
 	return gcfclres.Conversation, gcfclres.Messages, nil
@@ -74,7 +74,7 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 		return nil, err
 	}
 	if res.Offline {
-		g.UI.GetTerminalUI().PrintfUnescaped(ColorString(g, "yellow", "WARNING: inbox results obtained in OFFLINE mode\n"))
+		_, _ = g.UI.GetTerminalUI().PrintfUnescaped(ColorString(g, "yellow", "WARNING: inbox results obtained in OFFLINE mode\n"))
 	}
 
 	return res.Conversations, nil

@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import Joined from '.'
 import {connect, isMobile} from '../../../../util/container'
-import {chatTab} from '../../../../constants/tabs'
 
 type OwnProps = {
   message: Types.MessageSystemJoined
@@ -13,6 +12,8 @@ const mapStateToProps = (state, {message}) => ({
   _meta: Constants.getMeta(state, message.conversationIDKey),
   author: message.author,
   authorIsYou: state.config.username === message.author,
+  joiners: !message.joiners.length && !message.leavers.length ? [message.author] : message.joiners,
+  leavers: message.leavers,
   timestamp: message.timestamp,
 })
 
@@ -35,13 +36,15 @@ const mapDispatchToProps = dispatch => ({
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   const {_meta} = stateProps
   return {
     author: stateProps.author,
     authorIsYou: stateProps.authorIsYou,
     channelname: _meta.channelname,
     isBigTeam: _meta.teamType === 'big',
+    joiners: stateProps.joiners,
+    leavers: stateProps.leavers,
     onManageChannels: () => dispatchProps._onManageChannels(_meta.teamname),
     onManageNotifications: () => dispatchProps._onManageNotifications(_meta.conversationIDKey),
     teamname: _meta.teamname,

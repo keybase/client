@@ -23,10 +23,12 @@ const mapStateToProps = (state, {conversationIDKey}) => {
     Constants.waitingKeyThreadLoad(conversationIDKey),
     Constants.waitingKeyInboxSyncStarted
   )
+  const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     conversationIDKey,
     showLoader,
+    showThreadSearch,
     threadLoadedOffline: meta.offline,
   }
 }
@@ -59,7 +61,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
 
 const hotkeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     hotkeys,
@@ -70,6 +72,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     showLoader: stateProps.showLoader,
+    showThreadSearch: stateProps.showThreadSearch,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }
 }

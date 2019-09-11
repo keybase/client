@@ -73,6 +73,13 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
+			"checksumSHA1": "N0cYOUZseP4+SzSPD1W1v+4mjsE=",
+			"path": "github.com/Keybase/keybase-test-vectors/teamchains",
+			"revision": "15cfed668cd808354bab958b7c3b7f6ba51c4ee9",
+			"revisionTime": "2019-09-07T01:14:40Z",
+			"tree": true
+		},
+		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
@@ -513,110 +520,110 @@
 		{
 			"checksumSHA1": "VJk3rOWfxEV9Ilig5lgzH1qg8Ss=",
 			"path": "github.com/keybase/go-crypto/brainpool",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "XYywPER9kpyLEjaLzDFS43CKGEM=",
 			"path": "github.com/keybase/go-crypto/cast5",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "6ZY7OPH1dlleun/jMHixi1M3SaY=",
 			"path": "github.com/keybase/go-crypto/curve25519",
-			"revision": "c84d7cbef16bcd1cd873e1d5793b18865f443ba0",
-			"revisionTime": "2018-08-07T16:30:25Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "idJx0ckgd1LwSffToTmxF+bvCk8=",
 			"path": "github.com/keybase/go-crypto/ed25519",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "oFj+c+T9/0PTmvpz1Vlx1L6aI98=",
 			"path": "github.com/keybase/go-crypto/ed25519/internal/edwards25519",
-			"revision": "9e6372b80561bdcd1a72e5b480c6e7d922b86169",
-			"revisionTime": "2017-01-27T01:24:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "Yg+fF0sf26WCOZO3xwkWAqMbrz8=",
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "OaxYRgIReJPa1+DSBEFemGzt/Iw=",
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "cTboJNAg/so2wzlf6HscarfPlDE=",
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "LhCQJCoB7yqxN6hSaPP7qXW2y5s=",
 			"path": "github.com/keybase/go-crypto/openpgp/ecdh",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "uxXG9IC/XF8jwwvZUbW65+x8/+M=",
 			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "ofZhU2758YZAAGSEJ8UjFMQLc+k=",
 			"path": "github.com/keybase/go-crypto/openpgp/errors",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
-			"checksumSHA1": "Ak84t7WVMcDlWl+q3KPn46SALrE=",
+			"checksumSHA1": "XyMpvrI9OTlV8PXkjJPji0ayV6w=",
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "BGDxg1Xtsz0DSPzdQGJLLQqfYc8=",
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "d65b6b94177fc86b352de754be0aa306de59a759",
-			"revisionTime": "2019-04-03T13:23:59Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "rE3pp7b3gfcmBregzpIvN5IdFhY=",
 			"path": "github.com/keybase/go-crypto/rsa",
-			"revision": "f919bfda4fc10acaf5347685a9f22ea48d8db04c",
-			"revisionTime": "2018-10-31T13:54:47Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
 			"checksumSHA1": "i26gImRP+UQnxz5sxUupcrh+KNY=",
 			"path": "github.com/keybase/go-crypto/sha3",
-			"revision": "255a5089e85a475b944ad3c159af0de73fbe66b1",
-			"revisionTime": "2018-11-27T16:02:27Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
-			"checksumSHA1": "orAH0wZ270S0Xef2B3DMnQFC+MI=",
+			"checksumSHA1": "7TFmXSNOmlbxepJ+wNjGXznUZlw=",
 			"path": "github.com/keybase/go-crypto/ssh/terminal",
-			"revision": "13107bbcdf2f5e2862f7b1b005335f8afca30a24",
-			"revisionTime": "2017-05-08T13:19:45Z"
+			"revision": "a054578053044161085030449d77f6ceee2cc31a",
+			"revisionTime": "2019-08-28T18:24:35Z"
 		},
 		{
-			"checksumSHA1": "DRiE8R9PcafVgnFzdVQUkrx5nms=",
+			"checksumSHA1": "VQQgmxdf2WsS88F+ekXY2Kv4ZwA=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "569e5205ea298535ffe8aedb31ca96d8a6c98c3b",
-			"revisionTime": "2019-06-24T20:14:47Z"
+			"revision": "0589cb25877b52249841f86f0a8adf0eb3d36343",
+			"revisionTime": "2019-09-05T15:14:47Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "569e5205ea298535ffe8aedb31ca96d8a6c98c3b",
-			"revisionTime": "2019-06-24T20:14:47Z"
+			"revision": "c0c75d9fee37c191ce0b606ecd7d538ab8f20272",
+			"revisionTime": "2019-08-28T02:07:23Z"
 		},
 		{
 			"checksumSHA1": "Ji3qqxyGVXi6nsQwM1EdlL0lO8A=",
@@ -625,22 +632,22 @@
 			"revisionTime": "2018-09-24T21:12:44Z"
 		},
 		{
-			"checksumSHA1": "YDOP8L/RaZBoisV6L8y71h82J9c=",
+			"checksumSHA1": "fDuhxt6a+8Kj6yAqoZ3AxaMPEB8=",
 			"path": "github.com/keybase/go-kext",
-			"revision": "d97c78dc121c752ff92e38130d9617b3ef907b5b",
-			"revisionTime": "2019-06-10T14:05:28Z"
+			"revision": "284cc5cce0396b605139563534ecb411e400a05e",
+			"revisionTime": "2019-08-28T02:14:36Z"
 		},
 		{
-			"checksumSHA1": "g0PJMcZdWKAs1cwRwracYXf2omQ=",
+			"checksumSHA1": "0yVOlB87RO2Vs9/nr4iurwsSFOE=",
 			"path": "github.com/keybase/go-keychain",
-			"revision": "48d3d31d256d9922a90b14c518c4b685f321fab2",
-			"revisionTime": "2019-07-12T20:53:09Z"
+			"revision": "aa639f275ae10d8ca90c49393c586d676e720098",
+			"revisionTime": "2019-08-28T02:09:56Z"
 		},
 		{
 			"checksumSHA1": "ILa8RyF3Ec4O6e7LyjslLcNhWNk=",
 			"path": "github.com/keybase/go-keychain/secretservice",
-			"revision": "48d3d31d256d9922a90b14c518c4b685f321fab2",
-			"revisionTime": "2019-07-12T20:53:09Z"
+			"revision": "aa639f275ae10d8ca90c49393c586d676e720098",
+			"revisionTime": "2019-08-28T02:09:56Z"
 		},
 		{
 			"checksumSHA1": "w0V3FTmunObVwElsp+UUASB06+c=",
@@ -649,10 +656,10 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
-			"checksumSHA1": "OgoahEm1klTnBu8VUttmyqhsi6M=",
+			"checksumSHA1": "+UKzYctKtvP2/xOYFx51Q0XTCG4=",
 			"path": "github.com/keybase/go-merkle-tree",
-			"revision": "90288bcf8366442e1d29ad22356fae3f2e8254a5",
-			"revisionTime": "2018-02-26T14:35:15Z"
+			"revision": "e5a1d5d70a43ba4d1115d82438bef7d9d4c2c996",
+			"revisionTime": "2019-08-28T15:48:48Z"
 		},
 		{
 			"checksumSHA1": "v+BpTxHFNO9rsGBINRqtWiZoTJI=",
@@ -661,10 +668,10 @@
 			"revisionTime": "2018-10-16T18:57:45Z"
 		},
 		{
-			"checksumSHA1": "07FctQiwHCBvhiXp2mTLc8e0ll8=",
+			"checksumSHA1": "iC6oxp3NRhZJW5+OmHWH56j1dv0=",
 			"path": "github.com/keybase/go-ps",
-			"revision": "9c11ca40a47944f49e0784b77a66636cb098445a",
-			"revisionTime": "2016-08-09T20:56:21Z"
+			"revision": "91aafc93ba19d1988cff338c1929d35b6c6f5b50",
+			"revisionTime": "2019-08-27T17:51:25Z"
 		},
 		{
 			"checksumSHA1": "KNf4CdZexyFjpEugzBv3b7YJs4U=",
@@ -673,16 +680,16 @@
 			"revisionTime": "2016-08-09T20:56:21Z"
 		},
 		{
-			"checksumSHA1": "2cS/Nmv8BvSSu13WFiDKPXnFLNA=",
+			"checksumSHA1": "TA7uBxl6+rLcLVwMN64qDbtyGMs=",
 			"path": "github.com/keybase/go-triplesec",
-			"revision": "bfcc0cb8e1502bdac1328d9d7f9fd9d6d33e5367",
-			"revisionTime": "2019-05-29T15:46:34Z"
+			"revision": "64e2936e9594e6c13102b9c92e48fd5d4243f785",
+			"revisionTime": "2019-08-28T01:40:55Z"
 		},
 		{
-			"checksumSHA1": "GkXuNWiiqrdEI7RVOqEzplQK+fk=",
+			"checksumSHA1": "ZNwCf/BIvSW3vseuKiJfEP1gQFI=",
 			"path": "github.com/keybase/go-triplesec-insecure",
-			"revision": "78112cdab09d1fb2a9ce5092b7c668f412d8fa11",
-			"revisionTime": "2019-05-29T15:55:26Z"
+			"revision": "01d229502763ae008ce4631e3ef689b00d7e789f",
+			"revisionTime": "2019-08-28T01:53:43Z"
 		},
 		{
 			"checksumSHA1": "1ooVUlwDXhGISJAxGqpL3JCCW3o=",
@@ -693,14 +700,14 @@
 		{
 			"checksumSHA1": "9rRK1pLxOcjjNNUP/6H9EthW360=",
 			"path": "github.com/keybase/go-updater/process",
-			"revision": "6341be0862a47dbfe302c263035265551d647847",
-			"revisionTime": "2019-06-04T18:44:09Z"
+			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
+			"revisionTime": "2019-08-27T21:47:57Z"
 		},
 		{
 			"checksumSHA1": "ffC5qvAmfgvFbIYgKbE2E7fwQg8=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "6341be0862a47dbfe302c263035265551d647847",
-			"revisionTime": "2019-06-04T18:44:09Z"
+			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
+			"revisionTime": "2019-08-27T21:47:57Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
@@ -729,56 +736,56 @@
 		{
 			"checksumSHA1": "0g+4y2vw5URLtwp0YZLoRYDymkg=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "2c0e49515a824ed934819cf909a62e806631ce8e",
-			"revisionTime": "2019-06-26T18:24:48Z"
+			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
+			"revisionTime": "2019-07-23T20:28:32Z"
 		},
 		{
-			"checksumSHA1": "xDsG+8HQS+FFcgVn3uyTX+1HuJ0=",
+			"checksumSHA1": "K2RHbS6KvZvxN0YnMflLBMdF4T8=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "2c0e49515a824ed934819cf909a62e806631ce8e",
-			"revisionTime": "2019-06-26T18:24:48Z"
+			"revision": "71c4d8fbb90f46b0001f605dcec24e45c93dba97",
+			"revisionTime": "2019-07-23T20:28:32Z"
 		},
 		{
-			"checksumSHA1": "KLtP59e4Bqmy3A/8kQ++bJ5XAKs=",
+			"checksumSHA1": "ZdePViRYZkdmfd90nl7tUu2JzsU=",
 			"path": "github.com/keybase/msgpackzip",
-			"revision": "8dea1c08771a9ac421cef183a97c93495a370de7",
-			"revisionTime": "2019-05-29T15:55:09Z"
+			"revision": "de96f0e9b79ae5c4dd09442199361b5367603642",
+			"revisionTime": "2019-08-28T01:53:35Z"
 		},
 		{
-			"checksumSHA1": "xdFD5+PG3qFLMVbFyGFSl26pwHM=",
+			"checksumSHA1": "3JiGxAzxQaXu9JVYe+ZCQ9iuAtU=",
 			"path": "github.com/keybase/pipeliner",
-			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
-			"revisionTime": "2018-08-24T13:24:23Z"
+			"revision": "31ef4ee63659c27b0492126515e11543382e2685",
+			"revisionTime": "2019-08-28T02:21:49Z"
 		},
 		{
-			"checksumSHA1": "1/YSDkbMqXyqNzNVUI+0Vt+lqtA=",
+			"checksumSHA1": "oaEGy2fWwKmkVh84Qh9TFKEBv5E=",
 			"path": "github.com/keybase/saltpack",
-			"revision": "462a2685bf7c067c19169605745c7d538cd3d8a8",
-			"revisionTime": "2019-05-28T18:13:59Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
 			"checksumSHA1": "hqQxqs30aFMN/MLPcg8O1OiqmMA=",
 			"path": "github.com/keybase/saltpack/basic",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "W4AtPFFZNotMGDQpwJI59jkMLL8=",
+			"checksumSHA1": "Gyq+7rG0IbvOt/mI9iviT6O7WLs=",
 			"path": "github.com/keybase/saltpack/encoding/basex",
-			"revision": "4f6adfa39469a276a90a537ec95807901c72a0be",
-			"revisionTime": "2018-08-09T16:02:10Z"
+			"revision": "3f47e8e2e6ec1bad76723b24247e7c323dd843ab",
+			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "SDqf+Pb30vIqtrLc7oueEGB/pio=",
+			"checksumSHA1": "O2pMKCLN0cVTYoSQumA11Xh6rEQ=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "d9ab3e95d4f06841d6b1e37c57402c504ad630a6",
-			"revisionTime": "2019-06-27T20:26:01Z"
+			"revision": "a10a61194d3cba1622c1061f1a214ed6b6504d84",
+			"revisionTime": "2019-08-12T19:14:27Z"
 		},
 		{
-			"checksumSHA1": "wq6QbjIa6d8w/NPNh/m4umdjAT0=",
+			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",
 			"path": "github.com/keybase/xurls",
-			"revision": "22e24f0bd3f875eae95c21a68d5d16c44ae7c3b6",
-			"revisionTime": "2019-06-11T00:55:34Z"
+			"revision": "1e015cacd06c9bfb72ad7bdd5f782e7788ab8149",
+			"revisionTime": "2019-07-25T18:00:13Z"
 		},
 		{
 			"checksumSHA1": "38ZTud4EfZYfY/4YZxwzesb3mIs=",
@@ -1655,22 +1662,22 @@
 			"revisionTime": "2017-05-17T20:25:26Z"
 		},
 		{
-			"checksumSHA1": "yHMd/g8ueIs7upo4jAadM4DkBwE=",
+			"checksumSHA1": "CQfE0XDYpqkQ/o+Hr3yEEIGRwTo=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771",
-			"revisionTime": "2019-03-18T07:51:36Z"
+			"revision": "f460065e899abee61eb86816fd1fd684ea5a0f26",
+			"revisionTime": "2019-09-08T12:33:06Z"
 		},
 		{
-			"checksumSHA1": "6aa7Y4gpUDxYNt48cOT95zMjp9E=",
+			"checksumSHA1": "mgIlv/iEy/GZxRt6ZM4QS9BrkA4=",
 			"path": "golang.org/x/sys/windows",
-			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
-			"revisionTime": "2016-04-14T16:31:22+03:00"
+			"revision": "c7b8b68b14567162c6602a7c5659ee0f26417c18",
+			"revisionTime": "2019-08-26T02:57:52Z"
 		},
 		{
-			"checksumSHA1": "b0qA11fMUwmCLwo/6Xx003iJe2Y=",
+			"checksumSHA1": "FCBHX83YaM1LmNHtSM30BKmbJQY=",
 			"path": "golang.org/x/sys/windows/registry",
-			"revision": "354f231ae1a9ca2d3a6a1a7c5d40b1213d761675",
-			"revisionTime": "2015-10-08T13:13:40-07:00"
+			"revision": "c7b8b68b14567162c6602a7c5659ee0f26417c18",
+			"revisionTime": "2019-08-26T02:57:52Z"
 		},
 		{
 			"checksumSHA1": "oaglBTpGgEUgk7m92i6nuZbpicE=",

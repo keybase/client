@@ -3,9 +3,9 @@ import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
 import * as Styles from '../styles'
 import {AllowedColors} from '../common-adapters/text'
+import {assertionToDisplay} from '../common-adapters/usernames'
 import * as Tabs from './tabs'
 import * as Flow from '../util/flow'
-import * as Router2Constants from './router2'
 import * as SettingsConstants from './settings'
 import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
@@ -35,29 +35,69 @@ export const makeAirdropQualification = I.Record<Types._AirdropQualification>({
   valid: false,
 })
 
-export const makeAirdropDetailsLine = I.Record<Types._AirdropDetailsLine>({
+export const makeStellarDetailsLine = I.Record<Types._StellarDetailsLine>({
   bullet: false,
   text: '',
 })
 
-export const makeAirdropDetailsHeader = I.Record<Types._AirdropDetailsHeader>({
+export const makeStellarDetailsHeader = I.Record<Types._StellarDetailsHeader>({
   body: '',
   title: '',
 })
 
-export const makeAirdropDetailsSection = I.Record<Types._AirdropDetailsSection>({
+export const makeStellarDetailsSection = I.Record<Types._StellarDetailsSection>({
   icon: '',
   lines: I.List(),
   section: '',
 })
 
-export const makeAirdropDetailsResponse = I.Record<Types._AirdropDetailsResponse>({
-  header: makeAirdropDetailsHeader({}),
+export const makeStellarDetailsResponse = I.Record<Types._StellarDetailsResponse>({
+  header: makeStellarDetailsHeader({}),
   sections: I.List(),
 })
 
-export const makeAirdropDetails = I.Record<Types._AirdropDetails>({
-  details: makeAirdropDetailsResponse(),
+export type StellarDetailsJSONType = {
+  header?: {
+    body?: string | null
+    title?: string | null
+  } | null
+  sections?: Array<{
+    icon?: string | null
+    section?: string | null
+    lines?: Array<{
+      bullet?: boolean | null
+      text?: string | null
+    } | null> | null
+  } | null> | null
+} | null
+
+export const makeStellarDetailsFromJSON = (json: StellarDetailsJSONType) =>
+  makeStellarDetailsResponse({
+    header: makeStellarDetailsHeader({
+      body: (json && json.header && json.header.body) || '',
+      title: (json && json.header && json.header.title) || '',
+    }),
+    sections: I.List(
+      ((json && json.sections) || []).map(section =>
+        makeStellarDetailsSection({
+          icon: (section && section.icon) || '',
+          lines: I.List(
+            ((section && section.lines) || []).map(l =>
+              makeStellarDetailsLine({
+                bullet: (l && l.bullet) || false,
+                text: (l && l.text) || '',
+              })
+            )
+          ),
+          section: (section && section.section) || '',
+        })
+      )
+    ),
+  })
+
+export const makeStellarDetails = I.Record<Types._StellarDetails>({
+  details: makeStellarDetailsResponse(),
+  disclaimer: makeStellarDetailsResponse(),
   isPromoted: false,
 })
 
@@ -81,11 +121,15 @@ export const makeReserve = I.Record<Types._Reserve>({
 
 export const makeAssetDescription = I.Record<Types._AssetDescription>({
   code: '',
+  depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: Types.noAccountID,
   issuerName: '',
   issuerVerifiedDomain: '',
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
 })
 export const emptyAssetDescription = makeAssetDescription()
 
@@ -180,6 +224,7 @@ export const makeSEP7ConfirmInfo = I.Record<Types._SEP7ConfirmInfo>({
   operation: '',
   originDomain: '',
   recipient: '',
+  signed: false,
   summary: makeSEP7Summary(),
   xdr: '',
 })
@@ -218,7 +263,7 @@ export const makeState = I.Record<Types._State>({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
-  airdropDetails: makeAirdropDetails(),
+  airdropDetails: makeStellarDetails(),
   airdropQualifications: I.List(),
   airdropShowBanner: false,
   airdropState: 'loading',
@@ -253,6 +298,8 @@ export const makeState = I.Record<Types._State>({
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
   sentPaymentError: '',
+  sep6Error: false,
+  sep6Message: '',
   sep7ConfirmError: '',
   sep7ConfirmInfo: null,
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
@@ -314,6 +361,7 @@ export const makeAssets = I.Record<Types._Assets>({
   balanceAvailableToSend: '',
   balanceTotal: '',
   canAddTrustline: false,
+  depositButtonText: '',
   infoUrl: '',
   infoUrlText: '',
   issuerAccountID: '',
@@ -321,6 +369,9 @@ export const makeAssets = I.Record<Types._Assets>({
   issuerVerifiedDomain: '',
   name: '',
   reserves: I.List(),
+  showDepositButton: false,
+  showWithdrawButton: false,
+  withdrawButtonText: '',
   worth: '',
   worthCurrency: '',
 })
@@ -331,6 +382,7 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     availableToSendWorth: w.availableToSendWorth,
     balanceAvailableToSend: w.balanceAvailableToSend,
     balanceTotal: w.balanceTotal,
+    depositButtonText: w.depositButtonText,
     infoUrl: w.infoUrl,
     infoUrlText: w.infoUrlText,
     issuerAccountID: w.issuerAccountID,
@@ -338,6 +390,9 @@ export const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     issuerVerifiedDomain: w.issuerVerifiedDomain,
     name: w.name,
     reserves: I.List((w.reserves || []).map(makeReserve)),
+    showDepositButton: w.showDepositButton,
+    showWithdrawButton: w.showWithdrawButton,
+    withdrawButtonText: w.withdrawButtonText,
     worth: w.worth,
   })
 
@@ -432,7 +487,14 @@ export const makeAccount = I.Record<Types._Account>({
 })
 export const unknownAccount = makeAccount()
 
-const partyToDescription = (type, username, assertion, name, id): string => {
+const partyToDescription = (
+  // TODO Fix type
+  type: any,
+  username: string,
+  assertion: string,
+  name: string,
+  id: string
+): string => {
   switch (type) {
     case 'keybase':
       return username
@@ -654,6 +716,10 @@ export const inflationDestResultToAccountInflationDest = (res: RPCTypes.Inflatio
 }
 
 export const airdropWaitingKey = 'wallets:airdrop'
+export const assetDepositWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
+  `wallets:assetDeposit:${Types.makeAssetID(issuerAccountID, assetCode)}`
+export const assetWithdrawWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
+  `wallets:assetWithdraw:${Types.makeAssetID(issuerAccountID, assetCode)}`
 export const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 export const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 export const createNewAccountWaitingKey = 'wallets:createNewAccount'
@@ -693,10 +759,8 @@ export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.key
 
 export const getAccounts = (state: TypedState) => state.wallets.accountMap.valueSeq().toList()
 
-export const getAirdropSelected = () => {
-  const path = Router2Constants.getVisibleScreen().routeName
-  return path === 'airdrop' || path === 'airdropQualify'
-}
+export const getAirdropSelected = (state: TypedState) =>
+  state.wallets.selectedAccount === Types.airdropAccountID
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
@@ -734,6 +798,11 @@ export const getDefaultDisplayCurrency = (state: TypedState) => getDefaultDispla
 export const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
+}
+
+export const getDefaultAccount = (state: TypedState) => {
+  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
+  return defaultAccount || unknownAccount
 }
 
 export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
@@ -807,6 +876,10 @@ export const rootWalletTab = Styles.isMobile ? Tabs.settingsTab : Tabs.walletsTa
 export const rootWalletPath = [rootWalletTab, ...(Styles.isMobile ? [SettingsConstants.walletsTab] : [])] // path to wallets
 export const walletPath = Styles.isMobile ? rootWalletPath : [...rootWalletPath, 'wallet'] // path to wallet
 export const trustlineHoldingBalance = 0.5
+
+// Info text for cancelable payments
+export const makeCancelButtonInfo = (username: string) =>
+  `${assertionToDisplay(username)} can claim this when they set up their wallet.`
 
 export const getShowAirdropBanner = (state: TypedState) =>
   flags.airdrop &&

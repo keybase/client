@@ -62,7 +62,7 @@ class Search extends React.Component<SearchProps, SearchState> {
 
   render() {
     return (
-      <React.Fragment>
+      <>
         <ParticipantsRow
           ref={this._setRef}
           heading={this.props.heading}
@@ -116,64 +116,67 @@ class Search extends React.Component<SearchProps, SearchState> {
             </Kb.Box>
           </Kb.FloatingBox>
         )}
-      </React.Fragment>
+      </>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
-  input: {
-    alignSelf: 'center',
-    borderBottomWidth: 0,
-    borderWidth: 0,
-    flexGrow: 1,
-    paddingLeft: 0,
-  },
-  list: {
-    height: '100%',
-    width: '100%',
-  },
-  qrCode: {
-    alignSelf: 'center',
-    marginRight: Styles.globalMargins.tiny,
-  },
-  resultsContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      height: '100%',
-      width: '100%',
-    },
-    isElectron: {
-      marginLeft: 1,
-      overflowY: 'auto',
-    },
-  }),
-  resultsFloatingContainer: Styles.platformStyles({
-    isMobile: {marginTop: 96},
-  }),
-  resultsFloatingInnerContainer: Styles.platformStyles({
-    isElectron: {
-      borderBottomLeftRadius: 4,
-      borderBottomRightRadius: 4,
-      height: 560 - 96,
-      overflow: 'hidden',
-      width: 400,
-    },
-    isMobile: {
-      flexGrow: 1,
-      width: '100%',
-    },
-  }),
-  row: {
-    minHeight: 48,
-    paddingBottom: 0,
-    paddingTop: 0,
-  },
-  rowHeading: {
-    marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
+      input: {
+        alignSelf: 'center',
+        borderBottomWidth: 0,
+        borderWidth: 0,
+        flexGrow: 1,
+        paddingLeft: 0,
+      },
+      list: {
+        height: '100%',
+        width: '100%',
+      },
+      qrCode: {
+        alignSelf: 'center',
+        marginRight: Styles.globalMargins.tiny,
+      },
+      resultsContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          height: '100%',
+          width: '100%',
+        },
+        isElectron: {
+          marginLeft: 1,
+          overflowY: 'auto',
+        },
+      }),
+      resultsFloatingContainer: Styles.platformStyles({
+        isMobile: {marginTop: 96},
+      }),
+      resultsFloatingInnerContainer: Styles.platformStyles({
+        isElectron: {
+          borderBottomLeftRadius: 4,
+          borderBottomRightRadius: 4,
+          height: 560 - 96,
+          overflow: 'hidden',
+          width: 400,
+        },
+        isMobile: {
+          flexGrow: 1,
+          width: '100%',
+        },
+      }),
+      row: {
+        minHeight: 48,
+        paddingBottom: 0,
+        paddingTop: 0,
+      },
+      rowHeading: {
+        marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
+      },
+    } as const)
+)
 
 const SendFormParticipantsSearch = Search
 export default SendFormParticipantsSearch

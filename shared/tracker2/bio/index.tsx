@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
-type Props = {
+export type Props = {
   airdropIsLive: boolean | null
   bio: string | null
   followThem: boolean | null
@@ -17,6 +17,7 @@ type Props = {
   onLearnMore?: () => void
   registeredForAirdrop: boolean | null
   youAreInAirdrop: boolean | null
+  sbsDescription: string | null
 }
 
 // Here we're using FloatingMenu, but we want to customize the button to match
@@ -34,10 +35,10 @@ const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
     onMouseEnter={p.toggleShowingMenu}
     onMouseLeave={p.toggleShowingMenu}
   >
-    <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
+    <Kb.Icon color={Styles.globalColors.yellowDark} type="iconfont-identity-stellar" style={styles.star} />
     <Kb.FloatingMenu
       attachTo={p.getAttachmentRef}
-      closeOnSelect={false}
+      closeOnSelect={true}
       containerStyle={styles.floatingContainer}
       listStyle={styles.floatingContainer}
       backgroundColor={Styles.globalColors.purple}
@@ -55,7 +56,7 @@ const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
             gap="tiny"
             style={{backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.small}}
           >
-            <Kb.Icon type="icon-airdrop-star-64" style={styles.star} />
+            <Kb.Icon type="icon-airdrop-logo-64" style={styles.star} />
             <Kb.Text style={styles.airdropText} type="BodySemibold">
               Join the airdrop
             </Kb.Text>
@@ -113,8 +114,12 @@ const Bio = (p: Props) => (
         p.airdropIsLive &&
         p.registeredForAirdrop &&
         (p.youAreInAirdrop ? (
-          <Kb.WithTooltip text="Lucky airdropee">
-            <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
+          <Kb.WithTooltip tooltip="Lucky airdropee">
+            <Kb.Icon
+              color={Styles.globalColors.yellowDark}
+              type="iconfont-identity-stellar"
+              style={styles.star}
+            />
           </Kb.WithTooltip>
         ) : (
           <AirdropPopup onBack={p.onBack} onLearnMore={p.onLearnMore} />
@@ -161,45 +166,59 @@ const Bio = (p: Props) => (
         {p.location}
       </Kb.Text>
     )}
+    {!!p.sbsDescription && (
+      <Kb.Text
+        type="BodySmall"
+        center={true}
+        lineClamp={p.inTracker ? 1 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
+        {p.sbsDescription}
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  airdropText: Styles.platformStyles({
-    common: {color: Styles.globalColors.white},
-    isElectron: {textAlign: 'center'},
-  }),
-  bold: {...Styles.globalStyles.fontBold},
-  container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
-  floatingContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.purple,
-    },
-    isElectron: {
-      maxWidth: 200,
-    },
-  }),
-  fullName: Styles.platformStyles({
-    isElectron: {wordBreak: 'break-any'},
-  }),
-  fullNameContainer: {
-    paddingLeft: Styles.globalMargins.mediumLarge,
-    paddingRight: Styles.globalMargins.mediumLarge,
-  },
-  learnButton: {alignSelf: 'center', marginTop: Styles.globalMargins.tiny},
-  star: {alignSelf: 'center', marginBottom: Styles.globalMargins.tiny},
-  text: Styles.platformStyles({
-    common: {
-      paddingLeft: Styles.globalMargins.mediumLarge,
-      paddingRight: Styles.globalMargins.mediumLarge,
-    },
-    isElectron: {
-      wordBreak: 'break-word',
-    },
-    isMobile: {
-      lineHeight: 21,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      airdropText: Styles.platformStyles({
+        common: {color: Styles.globalColors.white},
+        isElectron: {textAlign: 'center'},
+      }),
+      bold: {...Styles.globalStyles.fontBold},
+      container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+      floatingContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.purple,
+        },
+        isElectron: {
+          maxWidth: 200,
+        },
+      }),
+      fullName: Styles.platformStyles({
+        isElectron: {wordBreak: 'break-all'} as const,
+      }),
+      fullNameContainer: {
+        paddingLeft: Styles.globalMargins.mediumLarge,
+        paddingRight: Styles.globalMargins.mediumLarge,
+      },
+      learnButton: {alignSelf: 'center', marginTop: Styles.globalMargins.tiny},
+      star: {alignSelf: 'center', marginBottom: Styles.globalMargins.tiny},
+      text: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.mediumLarge,
+          paddingRight: Styles.globalMargins.mediumLarge,
+        },
+        isElectron: {
+          wordBreak: 'break-word',
+        } as const,
+        isMobile: {
+          lineHeight: 21,
+        },
+      }),
+    } as const)
+)
 
 export default Bio

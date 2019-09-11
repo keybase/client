@@ -26,7 +26,7 @@ const WalletBackButton = (props: Props) =>
     />
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backButton: Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {
@@ -41,6 +41,6 @@ const styles = Styles.styleSheetCreate({
   whiteText: {
     color: Styles.globalColors.white,
   },
-})
+}))
 
 export default WalletBackButton

@@ -117,6 +117,7 @@ export type _MessageText = {
   // eslint-disable-next-line no-use-before-define
   replyTo: Message | null
   text: HiddenString
+  paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
   timestamp: number
   unfurls: UnfurlMap
   type: 'text'
@@ -131,6 +132,13 @@ export type PreviewSpec = {
   width: number
   showPlayButton: boolean
 }
+
+export type MessageAttachmentTransferState =
+  | 'uploading'
+  | 'downloading'
+  | 'remoteUploading'
+  | 'mobileSaving'
+  | null
 
 export type _MessageAttachment = {
   attachmentType: AttachmentType
@@ -168,7 +176,7 @@ export type _MessageAttachment = {
   timestamp: number
   title: string
   transferProgress: number // 0-1 // only for the file,
-  transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null
+  transferState: MessageAttachmentTransferState
   transferErrMsg: string | null
   type: 'attachment'
   videoDuration: string | null
@@ -328,7 +336,8 @@ export type _MessageSystemJoined = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  reactions: Reactions
+  joiners: Array<string>
+  leavers: Array<string>
   timestamp: number
   type: 'systemJoined'
 } & _MessageCommon
@@ -342,7 +351,6 @@ export type _MessageSystemLeft = {
   deviceType: DeviceType
   isDeleteable: boolean
   isEditable: boolean
-  reactions: Reactions
   timestamp: number
   type: 'systemLeft'
 } & _MessageCommon
@@ -377,6 +385,21 @@ export type _MessageSetDescription = {
   type: 'setDescription'
 } & _MessageCommon
 export type MessageSetDescription = I.RecordOf<_MessageSetDescription>
+
+export type _MessagePin = {
+  bodySummary: HiddenString
+  conversationIDKey: Common.ConversationIDKey
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+  isDeleteable: boolean
+  isEditable: boolean
+  pinnedMessageID: MessageID
+  reactions: Reactions
+  timestamp: number
+  type: 'pin'
+} & _MessageCommon
+export type MessagePin = I.RecordOf<_MessagePin>
 
 export type _MessageSetChannelname = {
   bodySummary: HiddenString
@@ -432,12 +455,11 @@ export type MessageWithReactionPopup =
   | MessageText
   | MessageSetChannelname
   | MessageSetDescription
+  | MessagePin
   | MessageSystemAddedToTeam
   | MessageSystemChangeRetention
   | MessageSystemGitPush
   | MessageSystemInviteAccepted
-  | MessageSystemJoined
-  | MessageSystemLeft
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageSystemUsersAddedToConversation
@@ -468,6 +490,7 @@ export type Message =
   | MessageSystemUsersAddedToConversation
   | MessageText
   | MessagePlaceholder
+  | MessagePin
 export type MessageType =
   | 'attachment'
   | 'deleted'
@@ -486,3 +509,4 @@ export type MessageType =
   | 'systemUsersAddedToConversation'
   | 'text'
   | 'placeholder'
+  | 'pin'

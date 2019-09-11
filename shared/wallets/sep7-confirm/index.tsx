@@ -35,6 +35,7 @@ type Props = {
   path: Types._BuiltPaymentAdvanced
   readyToSend: boolean
   recipient: string | null
+  signed: boolean | null
   summary: Summary
   userAmount: string | null
   waitingKey: string
@@ -93,13 +94,26 @@ const InfoRow = (props: InfoRowProps) => (
 )
 
 type HeaderProps = {
-  originDomain: string
+  requester: string | null
   isPayment: boolean
+  signed: boolean | null
 }
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContent}>
-      {!!props.isPayment && <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" />}
+      {!props.signed && (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph
+              bannerColor="red"
+              content="This link does not have an attached signature! Ensure that you trust the source of this link."
+            />
+          </Kb.Banner>
+        </Kb.Box2>
+      )}
+      {!!props.isPayment && (
+        <Kb.Icon sizeType="Tiny" type="icon-stellar-coins-sending-48" style={styles.sendIcon} />
+      )}
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
@@ -107,21 +121,23 @@ const Header = (props: HeaderProps) => (
         style={{marginTop: Styles.globalMargins.xlarge}}
       >
         <Kb.Text selectable={true} type="BodyBig" negative={true}>
-          {props.originDomain}
+          {props.requester}
         </Kb.Text>
-        <Kb.Box2
-          direction="horizontal"
-          style={{backgroundColor: Styles.globalColors.transparent, marginLeft: Styles.globalMargins.xtiny}}
-        >
-          <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
-        </Kb.Box2>
+        {props.signed && (
+          <Kb.Box2 direction="horizontal" style={styles.verifiedIconBox}>
+            <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
       <Kb.Text negative={true} type="BodyBig">
-        is requesting {props.isPayment ? 'a payment' : 'you to sign a transaction'}.
+        {!props.requester && 'This link'} is requesting{' '}
+        {props.isPayment ? 'a payment' : 'you to sign a transaction'}.
       </Kb.Text>
-      <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
-        Keybase verified the request's signature.
-      </Kb.Text>
+      {props.signed && (
+        <Kb.Text style={styles.subHeaderText} negative={true} type="Body">
+          Keybase verified the request's signature.
+        </Kb.Text>
+      )}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -206,6 +222,19 @@ const TxInfo = (props: TxInfoProps) => (
   </Kb.Box2>
 )
 
+// Trim the given string to the first 20 characters if necessary. Note that we are doing it this way rather than
+// using shortenAccountID since it doesn't feel right to chop out the middle of `reallylongnameonanotherservice@example.com`
+const TrimString = (s: string | null) => {
+  if (s === null) {
+    return s
+  }
+  if (s.length < 20) {
+    return s
+  } else {
+    return s.substring(0, 20) + '...'
+  }
+}
+
 const SEP7Confirm = (props: Props) => (
   <Kb.MaybePopup onClose={props.onBack}>
     <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
@@ -219,7 +248,11 @@ const SEP7Confirm = (props: Props) => (
         contentContainerStyle={styles.scrollViewContents}
         alwaysBounceVertical={false}
       >
-        <Header isPayment={props.operation === 'pay'} originDomain={props.originDomain} />
+        <Header
+          isPayment={props.operation === 'pay'}
+          requester={props.signed ? props.originDomain : TrimString(props.recipient)}
+          signed={props.signed}
+        />
         {!!props.callbackURL && <CallbackURLBanner callbackURL={props.callbackURL} />}
         {props.operation === 'pay' ? (
           <PaymentInfo
@@ -279,135 +312,149 @@ const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' 
   return props.loading ? (
     <Loading onBack={props.onBack} />
   ) : (
-    <SEP7Confirm {...props} onChangeAmount={onChangeAmount} userAmount={userAmount} readyToSend={props.assetCode ? !!props.path.exchangeRate : (!!props.amount || !!userAmount)} />
+    <SEP7Confirm
+      {...props}
+      onChangeAmount={onChangeAmount}
+      userAmount={userAmount}
+      readyToSend={props.assetCode ? !!props.path.exchangeRate : !!props.amount || !!userAmount}
+    />
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  backButtonBox: {
-    backgroundColor: Styles.globalColors.purpleDark,
-    minHeight: 46,
-  },
-  bodyText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black,
-    },
-    isElectron: {wordBreak: 'break-word'},
-  }),
-  bodyTextWithIcon: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  button: {
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-  },
-  buttonContainer: Styles.platformStyles({
-    common: {
-      ...Styles.padding(0, Styles.globalMargins.small),
-      alignSelf: 'flex-end',
-      flexShrink: 0,
-      justifyContent: 'space-between',
-    },
-    isElectron: {
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      borderTopColor: Styles.globalColors.black_10,
-      borderTopStyle: 'solid',
-      borderTopWidth: 1,
-    },
-  }),
-  callbackURLBanner: {
-    backgroundColor: Styles.globalColors.blue,
-    padding: Styles.globalMargins.tiny,
-  },
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-    },
-    isElectron: {
-      borderTopLeftRadius: Styles.borderRadius,
-      borderTopRightRadius: Styles.borderRadius,
-      height: 560,
-      width: 400,
-    },
-    isMobile: {
-      flexGrow: 1,
-      flexShrink: 1,
-      maxHeight: '100%',
-      width: '100%',
-    },
-  }),
-  dialog: {
-    padding: Styles.globalMargins.large,
-  },
-  header: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.purpleDark,
-    },
-    isElectron: {
-      borderTopLeftRadius: Styles.borderRadius,
-      borderTopRightRadius: Styles.borderRadius,
-      flex: 1,
-      minHeight: 160,
-    },
-    isMobile: {
-      flexBasis: 'auto',
-      flexGrow: 1,
-      flexShrink: 1,
-      minHeight: 250,
-    },
-  }),
-  headerContent: {
-    alignItems: 'center',
-    marginTop: Styles.globalMargins.tiny,
-  },
-  headingText: {
-    color: Styles.globalColors.black_50,
-    marginBottom: Styles.globalMargins.xtiny,
-  },
-  memoContainer: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  purpleText: Styles.platformStyles({
-    common: {color: Styles.globalColors.purple},
-  }),
-  scrollView: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.purpleDark,
-      flexBasis: 'auto',
-      flexGrow: 1,
-      flexShrink: 1,
-    },
-    isElectron: {
-      borderTopLeftRadius: Styles.borderRadius,
-      borderTopRightRadius: Styles.borderRadius,
-      display: 'flex',
-    },
-  }),
-  scrollViewContents: {
-    backgroundColor: Styles.globalColors.white,
-    display: 'flex',
-    flexDirection: 'column',
-    flexGrow: 1,
-  },
-  stellarIcon: {
-    alignSelf: 'flex-start',
-    color: Styles.globalColors.black,
-    marginRight: Styles.globalMargins.xxtiny,
-  },
-  subHeaderText: {
-    color: Styles.globalColors.white_75,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  verifiedIcon: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.green,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButtonBox: {
+        backgroundColor: Styles.globalColors.purpleDark,
+        minHeight: 46,
+      },
+      bodyText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isElectron: {wordBreak: 'break-word'} as const,
+      }),
+      bodyTextWithIcon: {
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+      },
+      button: {
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
+      buttonContainer: Styles.platformStyles({
+        common: {
+          ...Styles.padding(0, Styles.globalMargins.small),
+          alignSelf: 'flex-end',
+          flexShrink: 0,
+          justifyContent: 'space-between',
+        },
+        isElectron: {
+          borderBottomLeftRadius: Styles.borderRadius,
+          borderBottomRightRadius: Styles.borderRadius,
+          borderTopColor: Styles.globalColors.black_10,
+          borderTopStyle: 'solid',
+          borderTopWidth: 1,
+        },
+      }),
+      callbackURLBanner: {
+        backgroundColor: Styles.globalColors.blue,
+        padding: Styles.globalMargins.tiny,
+      },
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        isElectron: {
+          borderTopLeftRadius: Styles.borderRadius,
+          borderTopRightRadius: Styles.borderRadius,
+          height: 560,
+          width: 400,
+        },
+        isMobile: {
+          flexGrow: 1,
+          flexShrink: 1,
+          maxHeight: '100%',
+          width: '100%',
+        },
+      }),
+      dialog: {
+        padding: Styles.globalMargins.large,
+      },
+      header: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.purpleDark,
+        },
+        isElectron: {
+          borderTopLeftRadius: Styles.borderRadius,
+          borderTopRightRadius: Styles.borderRadius,
+          flex: 1,
+          minHeight: 160,
+        },
+        isMobile: {
+          flexBasis: 'auto',
+          flexGrow: 1,
+          flexShrink: 1,
+          minHeight: 250,
+        },
+      }),
+      headerContent: {
+        alignItems: 'center',
+      },
+      headingText: {
+        color: Styles.globalColors.black_50,
+        marginBottom: Styles.globalMargins.xtiny,
+      },
+      memoContainer: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      purpleText: Styles.platformStyles({
+        common: {color: Styles.globalColors.purple},
+      }),
+      scrollView: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.purpleDark,
+          flexBasis: 'auto',
+          flexGrow: 1,
+          flexShrink: 1,
+        },
+        isElectron: {
+          borderTopLeftRadius: Styles.borderRadius,
+          borderTopRightRadius: Styles.borderRadius,
+          display: 'flex',
+        },
+      }),
+      scrollViewContents: {
+        backgroundColor: Styles.globalColors.white,
+        display: 'flex',
+        flexDirection: 'column',
+        flexGrow: 1,
+      },
+      sendIcon: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      stellarIcon: {
+        alignSelf: 'flex-start',
+        color: Styles.globalColors.black,
+        marginRight: Styles.globalMargins.xxtiny,
+      },
+      subHeaderText: {
+        color: Styles.globalColors.white_75,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      verifiedIcon: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.green,
+        },
+      }),
+      verifiedIconBox: {
+        backgroundColor: Styles.globalColors.transparent,
+        marginLeft: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default SEP7ConfirmWrapper

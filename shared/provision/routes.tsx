@@ -9,23 +9,17 @@ import SetPublicName from './set-public-name/container'
 import Username from './username-or-email/container'
 
 export const newRoutes = {
-  codePage: {getScreen: (): typeof CodePage => require('./code-page/container').default, upgraded: true},
-  error: {getScreen: (): typeof ErrorView => require('./error/container').default, upgraded: true},
+  // TODO broken connect
+  codePage: {getScreen: (): typeof CodePage => require('./code-page/container').default},
+  error: {getScreen: (): typeof ErrorView => require('./error/container').default},
   forgotUsername: {getScreen: (): typeof ForgotUsername => require('./forgot-username/container').default},
-  gpgSign: {getScreen: (): typeof GpgSign => require('./gpg-sign/container').default, upgraded: true},
-  paperkey: {getScreen: (): typeof Paperkey => require('./paper-key/container').default, upgraded: true},
-  password: {getScreen: (): typeof Password => require('./password/container').default, upgraded: true},
+  gpgSign: {getScreen: (): typeof GpgSign => require('./gpg-sign/container').default},
+  paperkey: {getScreen: (): typeof Paperkey => require('./paper-key/container').default},
+  password: {getScreen: (): typeof Password => require('./password/container').default},
   selectOtherDevice: {
     getScreen: (): typeof SelectOtherDevice => require('./select-other-device/container').default,
-    upgraded: true,
   },
-  setPublicName: {
-    getScreen: (): typeof SetPublicName => require('./set-public-name/container').default,
-    upgraded: true,
-  },
-  username: {
-    getScreen: (): typeof Username => require('./username-or-email/container').default,
-    upgraded: true,
-  },
+  setPublicName: {getScreen: (): typeof SetPublicName => require('./set-public-name/container').default},
+  username: {getScreen: (): typeof Username => require('./username-or-email/container').default},
 }
 export const newModalRoutes = {}

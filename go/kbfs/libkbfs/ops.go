@@ -437,8 +437,7 @@ func (co *createOp) StringWithRefs(indent string) string {
 func (co *createOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
-	switch realMergedOp := mergedOp.(type) {
-	case *createOp:
+	if realMergedOp, ok := mergedOp.(*createOp); ok {
 		// Conflicts if this creates the same name and one of them
 		// isn't creating a directory.
 		sameName := (realMergedOp.NewName == co.NewName)
@@ -1000,8 +999,8 @@ func (so *syncOp) checkConflict(
 		}
 
 		return &renameUnmergedAction{
-			fromName: so.getFinalPath().TailName(),
-			toName:   so.obfuscatedName(toName),
+			fromName:                 so.getFinalPath().TailName(),
+			toName:                   so.obfuscatedName(toName),
 			unmergedParentMostRecent: so.getFinalPath().ParentPath().TailPointer(),
 			mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
 				TailPointer(),
@@ -1101,10 +1100,11 @@ func addToCollapsedWriteRange(writes []WriteRange,
 		// end is empty, since a truncate affects a suffix of writes.
 		mid := writes[headEnd:]
 
-		if len(mid) == 0 {
+		switch {
+		case len(mid) == 0:
 			// Truncate past the last write.
 			return append(head, wNew)
-		} else if mid[0].isTruncate() {
+		case mid[0].isTruncate():
 			if mid[0].Off < wNew.Off {
 				// A larger new truncate causes zero-fill.
 				zeroLen := wNew.Off - mid[0].Off
@@ -1120,7 +1120,7 @@ func addToCollapsedWriteRange(writes []WriteRange,
 					WriteRange{Off: mid[0].Off, Len: zeroLen}, wNew)
 			}
 			return append(head, wNew)
-		} else if mid[0].Off < wNew.Off {
+		case mid[0].Off < wNew.Off:
 			return append(head, WriteRange{
 				Off: mid[0].Off,
 				Len: wNew.Off - mid[0].Off,
@@ -1281,44 +1281,42 @@ func (sao *setAttrOp) StringWithRefs(indent string) string {
 func (sao *setAttrOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
-	switch realMergedOp := mergedOp.(type) {
-	case *setAttrOp:
-		if realMergedOp.Attr == sao.Attr {
-			var symPath string
-			var causedByAttr attrChange
-			if !isFile {
-				// A directory has a conflict on an mtime attribute.
-				// Create a symlink entry with the unmerged mtime
-				// pointing to the merged entry.
-				symPath = mergedOp.getFinalPath().TailName().Plaintext()
-				causedByAttr = sao.Attr
-			}
-
-			// A set attr for the same attribute on the same file is a
-			// conflict.
-			fromName := sao.getFinalPath().TailName()
-			toName, err := renamer.ConflictRename(
-				ctx, sao, fromName.Plaintext())
-			if err != nil {
-				return nil, err
-			}
-
-			if sao.keepUnmergedTailName {
-				toName = sao.getFinalPath().TailName().Plaintext()
-			}
-
-			toNamePPS := data.NewPathPartString(
-				toName, sao.finalPath.ParentPath().Obfuscator())
-			return &renameUnmergedAction{
-				fromName:                 fromName,
-				toName:                   toNamePPS,
-				symPath:                  sao.obfuscatedName(symPath),
-				causedByAttr:             causedByAttr,
-				unmergedParentMostRecent: sao.getFinalPath().ParentPath().TailPointer(),
-				mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
-					TailPointer(),
-			}, nil
+	if realMergedOp, ok := mergedOp.(*setAttrOp); ok &&
+		realMergedOp.Attr == sao.Attr {
+		var symPath string
+		var causedByAttr attrChange
+		if !isFile {
+			// A directory has a conflict on an mtime attribute.
+			// Create a symlink entry with the unmerged mtime
+			// pointing to the merged entry.
+			symPath = mergedOp.getFinalPath().TailName().Plaintext()
+			causedByAttr = sao.Attr
 		}
+
+		// A set attr for the same attribute on the same file is a
+		// conflict.
+		fromName := sao.getFinalPath().TailName()
+		toName, err := renamer.ConflictRename(
+			ctx, sao, fromName.Plaintext())
+		if err != nil {
+			return nil, err
+		}
+
+		if sao.keepUnmergedTailName {
+			toName = sao.getFinalPath().TailName().Plaintext()
+		}
+
+		toNamePPS := data.NewPathPartString(
+			toName, sao.finalPath.ParentPath().Obfuscator())
+		return &renameUnmergedAction{
+			fromName:                 fromName,
+			toName:                   toNamePPS,
+			symPath:                  sao.obfuscatedName(symPath),
+			causedByAttr:             causedByAttr,
+			unmergedParentMostRecent: sao.getFinalPath().ParentPath().TailPointer(),
+			mergedParentMostRecent: mergedOp.getFinalPath().ParentPath().
+				TailPointer(),
+		}, nil
 	}
 	return nil, nil
 }

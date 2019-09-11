@@ -106,7 +106,7 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 		return err
 	}
 	usernamesMap := map[libkb.NormalizedUsername]struct{}{
-		currentUsername: struct{}{},
+		currentUsername: {},
 	}
 	for _, username := range otherUsernames {
 		usernamesMap[username] = struct{}{}
@@ -128,6 +128,10 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 
 // TODO CORE-10851: Remove
 func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
+	if loggedIn, _ := isLoggedIn(mctx); loggedIn {
+		return e.changePassword(mctx)
+	}
+
 	return e.loginWithPaperKey(mctx)
 }
 

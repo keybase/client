@@ -10,7 +10,7 @@ import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
-import {debounce} from 'lodash-es'
+import {debounce, throttle} from 'lodash-es'
 import * as T from './index.types.d'
 import UnreadShortcut from './unread-shortcut'
 import {virtualListMarks} from '../../local-debug'
@@ -108,6 +108,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _calculateShowUnreadShortcut = () => {
+    if (!this._mounted) {
+      return
+    }
     if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
@@ -123,6 +126,8 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
+  _calculateShowUnreadShortcutThrottled = throttle(this._calculateShowUnreadShortcut, 100)
+
   _calculateShowFloating = () => {
     if (this._lastVisibleIdx < 0) {
       return
@@ -136,9 +141,16 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
   }
 
-  _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
+  _onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
     this._lastVisibleIdx = visibleStopIndex
-    this._calculateShowUnreadShortcut()
+    this._calculateShowUnreadShortcutThrottled()
+    this._onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+  }
+
+  _onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    if (!this._mounted) {
+      return
+    }
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
       .reduce<Array<Types.ConversationIDKey>>((arr, r) => {
@@ -213,7 +225,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -229,11 +241,9 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: 'purple',
     overflow: 'hidden',
   },
-  hover: {
-    backgroundColor: Styles.globalColors.blueGreyDark,
-  },
+  hover: {backgroundColor: Styles.globalColors.blueGreyDark},
   list: {flex: 1},
-})
+}))
 
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall

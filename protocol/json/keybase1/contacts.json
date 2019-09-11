@@ -85,6 +85,14 @@
           "name": "following"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "serviceMap"
+        },
+        {
           "type": "string",
           "name": "assertion"
         },
@@ -95,10 +103,6 @@
         {
           "type": "string",
           "name": "displayLabel"
-        },
-        {
-          "type": "double",
-          "name": "rawScore"
         }
       ]
     }
@@ -141,9 +145,24 @@
           }
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
     },
     "lookupSavedContactsList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
+    },
+    "getContactsForUserRecommendations": {
       "request": [
         {
           "name": "sessionID",

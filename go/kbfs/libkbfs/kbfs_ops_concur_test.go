@@ -1362,7 +1362,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// Make sure the error'd file didn't make it to the actual cache
 	// -- it's still in the permanent cache because the file might
 	// still be read or sync'd later.
-	config.BlockCache().DeletePermanent(errPtr.ID)
+	err = config.BlockCache().DeletePermanent(errPtr.ID)
+	require.NoError(t, err)
 	if _, err := config.BlockCache().Get(errPtr); err == nil {
 		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}
@@ -1738,7 +1739,10 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	}
 	require.NoError(t, err, "Create returned error: %v", err)
 	ctx2 := libcontext.BackgroundContextWithCancellationDelayer()
-	defer libcontext.CleanupCancellationDelayer(ctx2)
+	defer func() {
+		err := libcontext.CleanupCancellationDelayer(ctx2)
+		require.NoError(t, err)
+	}()
 	if _, _, err = kbfsOps.Lookup(
 		ctx2, rootNode, testPPS("a")); err != nil {
 		t.Fatalf("Lookup returned error: %v", err)
@@ -1812,7 +1816,10 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	}
 
 	ctx2 := libcontext.BackgroundContextWithCancellationDelayer()
-	defer libcontext.CleanupCancellationDelayer(ctx2)
+	defer func() {
+		err := libcontext.CleanupCancellationDelayer(ctx2)
+		require.NoError(t, err)
+	}()
 	// do another Op, which generates a new revision, to make sure
 	// CheckConfigAndShutdown doesn't get stuck
 	if _, _, err = kbfsOps.CreateFile(ctx2,
@@ -1884,7 +1891,8 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 
 	unpauseDeleting <- struct{}{}
 
-	ops.fbm.waitForDeletingBlocks(ctx)
+	err = ops.fbm.waitForDeletingBlocks(ctx)
+	require.NoError(t, err)
 	if len(ops.fbm.blocksToDeleteChan) > 0 {
 		t.Fatalf("Blocks left to delete after sync")
 	}
@@ -1987,7 +1995,8 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 
 	// Wait for all the deletes to go through.
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
-	ops.fbm.waitForDeletingBlocks(ctx)
+	err = ops.fbm.waitForDeletingBlocks(ctx)
+	require.NoError(t, err)
 	if len(ops.fbm.blocksToDeleteChan) > 0 {
 		t.Fatalf("Blocks left to delete after sync")
 	}

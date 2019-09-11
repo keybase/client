@@ -5,7 +5,6 @@ import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '
 import {compose, connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
-import {teamsTab} from '../../../constants/tabs'
 
 type Props = {
   isAdmin: boolean
@@ -36,7 +35,7 @@ const _AddPeople = (props: Props) => {
     )
   } else {
     directAction = props.onAddPeople
-    directLabel = 'Add members to team'
+    directLabel = 'Add people to team'
   }
   if (!props.isAdmin) {
     directAction = props.onAddToChannel
@@ -49,7 +48,7 @@ const _AddPeople = (props: Props) => {
         mode="Primary"
         type="Default"
         onClick={directAction || props.toggleShowingMenu}
-        label={directLabel || 'Add someone...'}
+        label={directLabel || 'Add people...'}
         ref={props.setAttachmentRef}
         style={styles.addButtonContainer}
       />
@@ -82,7 +81,7 @@ const AddPeople = compose(
   connect(
     () => ({}),
     mapDispatchToProps,
-    (_, d, o: any) => ({
+    (_, d, o: OwnProps) => ({
       isAdmin: o.isAdmin,
       isGeneralChannel: o.isGeneralChannel,
       onAddPeople: () => d._onAddPeople(o.teamname),
@@ -92,8 +91,12 @@ const AddPeople = compose(
   OverlayParentHOC
 )(_AddPeople) as any
 
-const styles = Styles.styleSheetCreate({
-  addButtonContainer: {marginLeft: Styles.globalMargins.small, marginRight: Styles.globalMargins.small},
-})
+const styles = Styles.styleSheetCreate(() => ({
+  addButtonContainer: {
+    marginBottom: Styles.globalMargins.small,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
+}))
 
 export default AddPeople

@@ -4,14 +4,12 @@ import {
   Box2,
   ConnectedUsernames,
   FloatingMenu,
-  HOCTimers,
   Icon,
   MenuItems,
   ProgressIndicator,
   Text,
-  PropsWithTimer,
   PopupHeaderText,
-} from '../../../../../common-adapters/'
+} from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, TickerID} from '../../../../../util/second-timer'
@@ -42,7 +40,7 @@ type State = {
   secondsLeft: number
 }
 
-class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
+class ExplodingPopupHeader extends React.Component<Props, State> {
   timer?: TickerID
   state = {
     secondsLeft: this.secondsLeft(),
@@ -88,7 +86,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Box2 direction="horizontal">
             <Text type="BodySmall">by</Text>
             <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.user}>
-              <Avatar username={author} size={16} clickToProfile="tracker" />
+              <Avatar username={author} size={16} onClick="profile" />
               <ConnectedUsernames
                 onUsernameClicked="profile"
                 colorFollowing={true}
@@ -158,7 +156,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   }
 }
 
-const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
+const ExplodingPopupMenu = (props: Props) => {
   const header = {
     style: {
       paddingBottom: 0,
@@ -185,46 +183,49 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
 
 const oneMinuteInS = 60
 
-const styles = Styles.styleSheetCreate({
-  headerIcon: {
-    height: headerIconHeight,
-    marginBottom: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-  },
-  messageInfoContainer: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  popupContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-    },
-    isElectron: {
-      maxWidth: 240,
-      minWidth: 200,
-    },
-  }),
-  revokedAt: {
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-    marginBottom: -Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
-    minHeight: 40,
-    width: '100%',
-  },
-  timerBox: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginTop: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      height: 46,
-    },
-  }),
-  user: {
-    alignItems: 'center',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerIcon: {
+        height: headerIconHeight,
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
+      messageInfoContainer: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      popupContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+        },
+        isElectron: {
+          maxWidth: 240,
+          minWidth: 200,
+        },
+      }),
+      revokedAt: {
+        borderBottomLeftRadius: 3,
+        borderBottomRightRadius: 3,
+        marginBottom: -Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+        minHeight: 40,
+        width: '100%',
+      },
+      timerBox: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          height: 46,
+        },
+      }),
+      user: {
+        alignItems: 'center',
+      },
+    } as const)
+)
 
-export default HOCTimers(ExplodingPopupMenu)
+export default ExplodingPopupMenu

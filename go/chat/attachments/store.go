@@ -48,7 +48,7 @@ type UploadTask struct {
 func (u *UploadTask) computeHash() {
 	hasher := sha256.New()
 	seed := fmt.Sprintf("%s:%v", u.OutboxID, u.Preview)
-	io.Copy(hasher, bytes.NewReader([]byte(seed)))
+	_, _ = io.Copy(hasher, bytes.NewReader([]byte(seed)))
 	u.taskHash = hasher.Sum(nil)
 }
 
@@ -88,9 +88,8 @@ type S3Store struct {
 	utils.DebugLabeler
 	libkb.Contextified
 
-	s3signer s3.Signer
-	s3c      s3.Root
-	stash    AttachmentStash
+	s3c   s3.Root
+	stash AttachmentStash
 
 	scMutex     sync.Mutex
 	streamCache *streamCache
@@ -157,8 +156,10 @@ func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOu
 	if err == ErrAbortOnPartMismatch && previous != nil {
 		a.Debug(ctx, "UploadAsset: resume call aborted, resetting stream and starting from scratch")
 		a.aborts++
-		previous = nil
-		task.Plaintext.Reset()
+		err := task.Plaintext.Reset()
+		if err != nil {
+			a.Debug(ctx, "UploadAsset: reset failed: %+v", err)
+		}
 		task.computeHash()
 		return a.uploadAsset(ctx, task, enc, nil, resumable, encryptedOut)
 	}
@@ -197,7 +198,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 	tee := io.TeeReader(io.TeeReader(encReader, hash), encryptedOut)
 
 	// post to s3
-	length := int64(enc.EncryptedLen(task.FileSize))
+	length := enc.EncryptedLen(task.FileSize)
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
 		if err == ErrAbortOnPartMismatch && previous != nil {

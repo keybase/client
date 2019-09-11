@@ -32,15 +32,15 @@ const _cacheNoTransforms: {[K in string]: string} = {}
 // 8: rotate 270 deg left
 const transformMap: {[K in string]: TransformFn} = {
   '1': noop,
-  '2': (canvas, ctx, width, height) => {
+  '2': (_, ctx, width) => {
     ctx.translate(width, 0)
     ctx.scale(-1, 1)
   },
-  '3': (canvas, ctx, width, height) => {
+  '3': (_, ctx, width, height) => {
     ctx.translate(width, height)
     ctx.rotate((180 * Math.PI) / 180)
   },
-  '4': (canvas, ctx, width, height) => {
+  '4': (_, ctx, __, height) => {
     ctx.translate(0, height)
     ctx.scale(1, -1)
   },
@@ -139,6 +139,7 @@ class OrientedImage extends React.Component<Props, State> {
       if (p.srcTransformed === imageData) return undefined
       return {srcTransformed: imageData}
     })
+    return undefined
   }
 
   _canvasImageTransform = (orientation: number) => {
@@ -248,7 +249,7 @@ class OrientedImage extends React.Component<Props, State> {
     this._context = null
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props) {
     // New src requires changing EXIF transform
     if (prevProps.src !== this.props.src) {
       this._setTranformForExifOrientation()
@@ -260,7 +261,7 @@ class OrientedImage extends React.Component<Props, State> {
    */
   render() {
     return (
-      <React.Fragment>
+      <>
         {this.state.srcTransformed && (
           // @ts-ignore codemod issue
           <ImageRef
@@ -272,7 +273,7 @@ class OrientedImage extends React.Component<Props, State> {
           />
         )}
         <canvas ref={el => (this._canvasRef = el)} style={styleCanvas} />
-      </React.Fragment>
+      </>
     )
   }
 }

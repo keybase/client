@@ -2,8 +2,11 @@ package chat
 
 import (
 	"encoding/hex"
+	"sort"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -23,30 +26,34 @@ type Syncer struct {
 	isConnected bool
 	offlinables []types.Offlinable
 
-	notificationLock  sync.Mutex
-	lastLoadedLock    sync.Mutex
-	clock             clockwork.Clock
-	sendDelay         time.Duration
-	shutdownCh        chan struct{}
-	fullReloadCh      chan gregor1.UID
-	flushCh           chan struct{}
-	notificationQueue map[string][]chat1.ConversationStaleUpdate
-	fullReload        map[string]bool
-	lastLoadedConv    chat1.ConversationID
+	notificationLock    sync.Mutex
+	lastLoadedLock      sync.Mutex
+	clock               clockwork.Clock
+	sendDelay           time.Duration
+	shutdownCh          chan struct{}
+	fullReloadCh        chan gregor1.UID
+	flushCh             chan struct{}
+	notificationQueue   map[string][]chat1.ConversationStaleUpdate
+	fullReload          map[string]bool
+	lastLoadedConv      chat1.ConversationID
+	maxLimitedConvLoads int
+	maxConvLoads        int
 }
 
 func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
-		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "Syncer", false),
-		isConnected:       false,
-		clock:             clockwork.NewRealClock(),
-		shutdownCh:        make(chan struct{}),
-		fullReloadCh:      make(chan gregor1.UID),
-		flushCh:           make(chan struct{}),
-		notificationQueue: make(map[string][]chat1.ConversationStaleUpdate),
-		fullReload:        make(map[string]bool),
-		sendDelay:         time.Millisecond * 1000,
+		Contextified:        globals.NewContextified(g),
+		DebugLabeler:        utils.NewDebugLabeler(g.GetLog(), "Syncer", false),
+		isConnected:         false,
+		clock:               clockwork.NewRealClock(),
+		shutdownCh:          make(chan struct{}),
+		fullReloadCh:        make(chan gregor1.UID),
+		flushCh:             make(chan struct{}),
+		notificationQueue:   make(map[string][]chat1.ConversationStaleUpdate),
+		fullReload:          make(map[string]bool),
+		sendDelay:           time.Millisecond * 1000,
+		maxLimitedConvLoads: 3,
+		maxConvLoads:        10,
 	}
 	go s.sendNotificationLoop()
 	return s
@@ -126,16 +133,6 @@ func (s *Syncer) sendNotificationLoop() {
 	}
 }
 
-func (s *Syncer) getUpdates(convs []chat1.Conversation) (res []chat1.ConversationStaleUpdate) {
-	for _, conv := range convs {
-		res = append(res, chat1.ConversationStaleUpdate{
-			ConvID:     conv.GetConvID(),
-			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
-		})
-	}
-	return res
-}
-
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 	updates []chat1.ConversationStaleUpdate, immediate bool) {
 	if len(updates) == 0 {
@@ -188,9 +185,7 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	}
 
 	// Run sync against the server
-	s.sync(ctx, cli, uid, syncRes)
-
-	return nil
+	return s.sync(ctx, cli, uid, syncRes)
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
@@ -243,7 +238,10 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	// Clear caches from members type changed convos
 	for _, convID := range convIDs {
 		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
-		s.G().ConvSource.Clear(ctx, convID, uid)
+		err := s.G().ConvSource.Clear(ctx, convID, uid)
+		if err != nil {
+			s.Debug(ctx, "handleMembersTypeChanged: erroring clearing conv: %+v", err)
+		}
 	}
 }
 
@@ -258,7 +256,10 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 		if !fmap[sconv.GetConvID().String()] {
 			s.Debug(ctx, "handleFilteredConvs: conv filtered from inbox, removing cache: convID: %s memberStatus: %v existence: %v",
 				sconv.GetConvID(), sconv.ReaderInfo.Status, sconv.Metadata.Existence)
-			s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			err := s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			if err != nil {
+				s.Debug(ctx, "handleFilteredCovs: erroring clearing conv: %+v", err)
+			}
 		}
 	}
 }
@@ -281,6 +282,10 @@ func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Co
 }
 
 func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
+	// only chat on mobile
+	if s.G().IsMobileAppType() && conv.GetTopicType() != chat1.TopicType_CHAT {
+		return false
+	}
 	// Skips convs we don't care for.
 	switch conv.Metadata.Status {
 	case chat1.ConversationStatus_BLOCKED,
@@ -301,7 +306,7 @@ func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
 	case chat1.ConversationMembersType_TEAM:
 		// include if this is a simple team or we are currently viewing the
 		// conv.
-		return conv.GetTopicType() != chat1.TopicType_CHAT ||
+		return conv.GetTopicType() == chat1.TopicType_KBFSFILEEDIT ||
 			conv.Metadata.TeamType != chat1.TeamType_COMPLEX ||
 			conv.GetConvID().Eq(s.GetSelectedConversation())
 	default:
@@ -458,11 +463,34 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			}
 		}
 
+		// The idea here is to limit the amount of work we do with the background conversation loader
+		// on mobile. If we are on a cell connection, or if we just came into the foreground, then limit
+		// the number of conversations we queue up for background loading.
 		var queuedConvs, maxConvs int
-		state := s.G().MobileNetState.State()
-		if state.IsLimited() {
-			maxConvs = 3
+		pageBack := 3
+		num := 50
+		netState := s.G().MobileNetState.State()
+		state := s.G().MobileAppState.State()
+		if s.G().IsMobileAppType() {
+			maxConvs = s.maxConvLoads
+			num = 30
+			pageBack = 0
+			if netState.IsLimited() || state == keybase1.MobileAppState_FOREGROUND {
+				maxConvs = s.maxLimitedConvLoads
+			}
 		}
+		// Sort big teams convs lower (and by time to tie break)
+		sort.Slice(iboxSyncRes.FilteredConvs, func(i, j int) bool {
+			itype := iboxSyncRes.FilteredConvs[i].GetTeamType()
+			jtype := iboxSyncRes.FilteredConvs[j].GetTeamType()
+			if itype == chat1.TeamType_COMPLEX && jtype != chat1.TeamType_COMPLEX {
+				return false
+			}
+			if jtype == chat1.TeamType_COMPLEX && itype != chat1.TeamType_COMPLEX {
+				return true
+			}
+			return iboxSyncRes.FilteredConvs[i].GetMtime().After(iboxSyncRes.FilteredConvs[j].GetMtime())
+		})
 
 		// Dispatch background jobs
 		for _, rc := range iboxSyncRes.FilteredConvs {
@@ -477,8 +505,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			if expunge, ok := expunges[conv.GetConvID().String()]; ok {
 				// Run expunges on the background loader
 				s.Debug(ctx, "Sync: queueing expunge background loader job: convID: %s", conv.GetConvID())
-				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
-					types.ConvLoaderPriorityHighest,
+				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: num},
+					types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
 					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
 						err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, expunge)
@@ -491,14 +519,15 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				}
 				queuedConvs++
 			} else {
-				// If we are a limited data connection only queue selected
-				// convs up to maxConvs
-				if state.IsLimited() && (queuedConvs >= maxConvs || !s.shouldUnboxSyncConv(conv)) {
+				// If we set maxConvs, then check it now
+				if maxConvs > 0 && (queuedConvs >= maxConvs || !s.shouldUnboxSyncConv(conv)) {
 					continue
 				}
+				s.Debug(ctx, "Sync: queueing background loader job: convID: %s", conv.GetConvID())
 				// Everything else just queue up here
-				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
-					types.ConvLoaderPriorityHigh, newConvLoaderPagebackHook(s.G(), 0, 5))
+				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: num},
+					types.ConvLoaderPriorityHigh, types.ConvLoaderGeneric,
+					newConvLoaderPagebackHook(s.G(), 0, pageBack))
 				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 				}

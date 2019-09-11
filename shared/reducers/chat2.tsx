@@ -132,7 +132,7 @@ const metaMapReducer = (
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
             if (old) {
-              return action.payload.fromExpunge ? meta : Constants.updateMeta(old, meta)
+              return Constants.updateMeta(old, meta)
             } else {
               return neverCreate ? old : meta
             }
@@ -140,12 +140,8 @@ const metaMapReducer = (
         })
       })
     case Chat2Gen.updateConvRetentionPolicy: {
-      const {conv} = action.payload
-      const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
-      if (!newMeta) {
-        logger.warn('Invalid inboxUIItem received in conv retention policy update')
-        return metaMap
-      }
+      const {meta} = action.payload
+      const newMeta = meta
       if (metaMap.has(newMeta.conversationIDKey)) {
         // only insert if the convo is already in the inbox
         return metaMap.set(newMeta.conversationIDKey, newMeta)
@@ -153,9 +149,9 @@ const metaMapReducer = (
       return metaMap
     }
     case Chat2Gen.updateTeamRetentionPolicy: {
-      const {convs} = action.payload
-      const newMetas = convs.reduce((updated, conv) => {
-        const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
+      const {metas} = action.payload
+      const newMetas = metas.reduce<{[key: string]: Types.ConversationMeta}>((updated, meta) => {
+        const newMeta = meta
         if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
           // only insert if the convo is already in the inbox
           updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
@@ -225,7 +221,7 @@ const messageMapReducer = (
       return messageMap.updateIn([conversationIDKey, ordinal], message =>
         !message || message.type !== 'text'
           ? message
-          : message.withMutations(m => {
+          : message.withMutations((m: any) => {
               m.set('text', text)
               m.set('hasBeenEdited', true)
               m.set('submitState', null)
@@ -366,9 +362,9 @@ const messageMapReducer = (
         return messageMap
       }
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
-        return messages.withMutations(msgs => {
+        return messages.withMutations((msgs: any) => {
           ordinals.forEach(ordinal =>
-            msgs.updateIn([ordinal], msg =>
+            msgs.updateIn([ordinal], (msg: any) =>
               msg
                 .set('exploded', true)
                 .set('explodedBy', action.payload.explodedBy || '')
@@ -411,7 +407,9 @@ const rootReducer = (
 ): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
-      return initialState
+      return initialState.merge({
+        staticConfig: state.staticConfig,
+      })
     case Chat2Gen.setInboxShowIsNew:
       return state.merge({inboxShowNew: action.payload.isNew})
     case Chat2Gen.toggleSmallTeamsExpanded:
@@ -457,9 +455,25 @@ const rootReducer = (
             s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
+        const prevConvIDKey = s.get('selectedConversation')
+        // blank out draft so we don't flash old data when switching convs
+        s.updateIn(['metaMap', prevConvIDKey], (m: Types.ConversationMeta) => {
+          return m ? m.merge({draft: ''}) : m
+        })
         s.deleteIn(['messageCenterOrdinals', conversationIDKey])
+        s.deleteIn(['threadLoadStatus', conversationIDKey])
         s.setIn(['containsLatestMessageMap', conversationIDKey], true)
+        s.set('previousSelectedConversation', prevConvIDKey)
         s.set('selectedConversation', conversationIDKey)
+        if (Constants.isValidConversationIDKey(conversationIDKey)) {
+          // If navigating away from error conversation to a valid conv - clear
+          // error msg.
+          s.set('createConversationError', null)
+        }
+      })
+    case Chat2Gen.conversationErrored:
+      return state.withMutations(s => {
+        s.set('createConversationError', action.payload.message)
       })
     case Chat2Gen.updateUnreadline:
       if (action.payload.messageID > 0) {
@@ -493,6 +507,8 @@ const rootReducer = (
         ? state.setIn(['commandMarkdownMap', conversationIDKey], md)
         : state.deleteIn(['commandMarkdownMap', conversationIDKey])
     }
+    case Chat2Gen.setThreadLoadStatus:
+      return state.setIn(['threadLoadStatus', action.payload.conversationIDKey], action.payload.status)
     case Chat2Gen.setCommandStatusInfo:
       return state.setIn(['commandStatusMap', action.payload.conversationIDKey], action.payload.info)
     case Chat2Gen.clearCommandStatusInfo:
@@ -508,6 +524,8 @@ const rootReducer = (
       }
       return nextState
     }
+    case Chat2Gen.updateLastCoord:
+      return state.set('lastCoord', action.payload.coord)
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setPaymentConfirmInfo:
@@ -597,18 +615,23 @@ const rootReducer = (
       const previousMessageMap = state.messageMap
 
       // first group into convoid
-      const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map, m) => {
+      const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map: any, m) => {
         const key = String(m.conversationIDKey)
         map[key] = map[key] || []
         map[key].push(m)
         return map
       }, {})
-      const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce((map, m) => {
-        const key = String(m.conversationIDKey)
-        map[key] = map[key] || new Set()
-        map[key].add(m.ordinal)
-        return map
-      }, {})
+      const convoToDeletedOrdinals: {[K in string]: Set<Types.Ordinal>} = deletedMessages.reduce(
+        (map: any, m) => {
+          const key = String(m.conversationIDKey)
+          // @ts-ignore
+          map[key] = map[key] || new Set()
+          // @ts-ignore
+          map[key].add(m.ordinal)
+          return map
+        },
+        {}
+      )
 
       if (shouldClearOthers) {
         oldMessageOrdinals = oldMessageOrdinals.withMutations(map => {
@@ -888,7 +911,7 @@ const rootReducer = (
       return state.update('messageMap', messageMap =>
         messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
           return map.update(targetOrdinal, message => {
-            if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+            if (!Constants.isDecoratedMessage(message)) {
               return message
             }
             const reactions = message.reactions
@@ -1026,6 +1049,7 @@ const rootReducer = (
     case Chat2Gen.updateConvExplodingModes: {
       const {modes} = action.payload
       const explodingMap = modes.reduce((map, mode) => {
+        // @ts-ignore
         map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
         return map
       }, {})
@@ -1052,10 +1076,24 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
-    case Chat2Gen.toggleReplyToMessage:
-      return action.payload.ordinal
-        ? state.setIn(['replyToMap', action.payload.conversationIDKey], action.payload.ordinal)
-        : state.deleteIn(['replyToMap', action.payload.conversationIDKey])
+    case Chat2Gen.setPrependText:
+      return state.update('prependTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], action.payload.text)
+      )
+    case Chat2Gen.toggleReplyToMessage: {
+      const {conversationIDKey, ordinal} = action.payload
+      if (ordinal) {
+        let nextState = state.setIn(['replyToMap', conversationIDKey], ordinal)
+        nextState = nextState.setIn(
+          ['prependTextMap', conversationIDKey],
+          // we always put something in prepend to trigger the focus regain on the input bar
+          new HiddenString('')
+        )
+        return nextState
+      } else {
+        return state.deleteIn(['replyToMap', conversationIDKey])
+      }
+    }
     case Chat2Gen.replyJump:
       return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
     case Chat2Gen.threadSearchResults:
@@ -1217,8 +1255,8 @@ const rootReducer = (
         (info = Constants.initialAttachmentViewInfo) => {
           return info.merge({
             messages:
-              info.messages.findIndex(item => item.id === action.payload.message.id) < 0
-                ? info.messages.push(action.payload.message).sort((l, r) => {
+              info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
+                ? info.messages.push(action.payload.message).sort((l: any, r: any) => {
                     return r.id - l.id
                   })
                 : info.messages,
@@ -1289,8 +1327,8 @@ const rootReducer = (
         (info = Constants.initialAttachmentViewInfo) =>
           info.merge({
             messages: info.messages.update(
-              info.messages.findIndex(item => item.id === action.payload.message.id),
-              item =>
+              info.messages.findIndex((item: any) => item.id === action.payload.message.id),
+              (item: any) =>
                 item
                   ? item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
                   : item
@@ -1322,16 +1360,18 @@ const rootReducer = (
         ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
         (info = Constants.initialAttachmentViewInfo) =>
           info.merge({
-            messages: info.messages.update(info.messages.findIndex(item => item.id === message.id), item =>
-              item
-                ? item.merge({
-                    // @ts-ignore we aren't checking for the errors!
-                    downloadPath: action.payload.path,
-                    fileURLCached: true,
-                    transferProgress: 0,
-                    transferState: null,
-                  })
-                : item
+            messages: info.messages.update(
+              info.messages.findIndex((item: any) => item.id === message.id),
+              (item: any) =>
+                item
+                  ? item.merge({
+                      // @ts-ignore we aren't checking for the errors!
+                      downloadPath: action.payload.path,
+                      fileURLCached: true,
+                      transferProgress: 0,
+                      transferState: null,
+                    })
+                  : item
             ),
           })
       )
@@ -1347,6 +1387,9 @@ const rootReducer = (
         topReacjis = Constants.defaultTopReacjis
       }
       return state.merge({userReacjis: {skinTone, topReacjis}})
+    }
+    case Chat2Gen.dismissBottomBanner: {
+      return state.setIn(['dismissedInviteBannersMap', action.payload.conversationIDKey], true)
     }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
@@ -1385,6 +1428,7 @@ const rootReducer = (
     case TeamBuildingGen.fetchUserRecs:
     case TeamBuildingGen.search:
     case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.labelsSeen:
     case TeamBuildingGen.changeSendNotification:
       return state.update('teamBuilding', teamBuilding => teamBuildingReducer('chat2', teamBuilding, action))
 
@@ -1437,6 +1481,9 @@ const rootReducer = (
     case Chat2Gen.loadMessagesCentered:
     case Chat2Gen.tabSelected:
     case Chat2Gen.resolveMaybeMention:
+    case Chat2Gen.pinMessage:
+    case Chat2Gen.unpinMessage:
+    case Chat2Gen.ignorePinnedMessage:
       return state
     default:
       ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

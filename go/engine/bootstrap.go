@@ -14,7 +14,6 @@ import (
 type Bootstrap struct {
 	libkb.Contextified
 	status keybase1.BootstrapStatus
-	usums  keybase1.UserSummary2Set
 }
 
 // NewBootstrap creates a Bootstrap engine.

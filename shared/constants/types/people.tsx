@@ -1,6 +1,6 @@
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
-import {IconType} from '../../common-adapters/icon.constants'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
 export type ItemType = keyof typeof RPCTypes.HomeScreenItemType
@@ -12,7 +12,11 @@ export const stringToItemID: (id: string) => ItemID = id => id
 export type TodoTypeEnum = RPCTypes.HomeScreenTodoType
 export type TodoType = keyof typeof RPCTypes.HomeScreenTodoType
 
-export type _TodoMetaEmail = {type: 'email'; email: string}
+export type _TodoMetaEmail = {
+  type: 'email'
+  email: string
+  lastVerifyEmailDate: number // unix time in seconds
+}
 export type _TodoMetaPhone = {type: 'phone'; phone: string}
 
 export type TodoMetaEmail = I.RecordOf<_TodoMetaEmail>
@@ -32,12 +36,13 @@ export type _Todo = {
 export type Todo = I.RecordOf<_Todo>
 
 export type _FollowedNotification = {
+  contactDescription?: string
   username: string
 }
 export type FollowedNotification = I.RecordOf<_FollowedNotification>
 
 export type _FollowedNotificationItem = {
-  type: 'notification'
+  type: 'follow' | 'contact'
   newFollows: Array<FollowedNotification>
   notificationTime: Date
   badged: boolean
@@ -75,6 +80,7 @@ export type _State = {
   newItems: I.List<PeopleScreenItem>
   oldItems: I.List<PeopleScreenItem>
   followSuggestions: I.List<FollowSuggestion>
+  resentEmail: string
 }
 
 export type State = I.RecordOf<_State>

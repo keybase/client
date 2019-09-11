@@ -98,6 +98,7 @@ func BatchMulti(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.B
 	}
 	post.SignedTransaction = sr.Signed
 	post.FromDeviceID = mctx.ActiveDevice().DeviceID()
+	post.BatchID = arg.BatchID
 
 	// submit it
 	submitRes, err := walletState.SubmitMultiPayment(mctx.Ctx(), post)

@@ -93,7 +93,7 @@ func TestPrevRevisions(t *testing.T) {
 	}
 
 	t.Log("A lower revision number wipes everything out")
-	rev = kbfsmd.Revision(rev - 1)
+	rev--
 	pr = pr.AddRevision(rev, gcRev)
 	require.Len(t, pr, 1)
 }

@@ -56,7 +56,10 @@ func hash(rpcName string, uid keybase1.UID, arg interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	h.Write(raw)
+	_, err = h.Write(raw)
+	if err != nil {
+		return nil, err
+	}
 	return h.Sum(nil), nil
 }
 

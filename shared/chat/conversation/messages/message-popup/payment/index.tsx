@@ -116,7 +116,7 @@ const Header = (props: HeaderProps) =>
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
           <Kb.Text type="BodySmall">{upperFirst(props.txVerb)} by</Kb.Text>
-          <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
+          <Kb.Avatar size={16} username={props.sender} onClick="profile" />
           <Kb.ConnectedUsernames
             onUsernameClicked="profile"
             colorFollowing={true}
@@ -191,10 +191,10 @@ const PaymentPopup = (props: Props) => {
   const header = {
     title: 'header',
     view: (
-      <React.Fragment>
+      <>
         <Header {...headerProps} />
         {!!items.length && <Kb.Divider />}
-      </React.Fragment>
+      </>
     ),
   }
   return (
@@ -212,7 +212,7 @@ const PaymentPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   errorDetails: {
     maxWidth: 200,
     paddingLeft: Styles.globalMargins.tiny,
@@ -287,7 +287,7 @@ const styles = Styles.styleSheetCreate({
   popupContainer: Styles.platformStyles({
     isElectron: {maxWidth: 240, minWidth: 200},
   }),
-})
+}))
 
 const headerTop = (props: HeaderProps) => {
   return props.status === 'pending' ? styles.pendingHeaderTop : styles.headerTop

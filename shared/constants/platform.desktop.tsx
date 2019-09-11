@@ -29,7 +29,8 @@ if (__DEV__ && !__STORYBOOK__) {
 const socketName = 'keybased.sock'
 
 const getLinuxPaths = () => {
-  const useXDG = runMode !== 'devel' && !process.env['KEYBASE_XDG_OVERRIDE']
+  const useXDG =
+    (runMode !== 'devel' || process.env['KEYBASE_DEVEL_USE_XDG']) && !process.env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
   const homeConfigDir = (useXDG && process.env['XDG_CONFIG_HOME']) || path.join(homeEnv, '.config')
@@ -51,7 +52,6 @@ const getLinuxPaths = () => {
     dataRoot: `${(useXDG && process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
-    logFileName: `${logDir}Keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
     socketPath: path.join(socketDir, appName, socketName),
   }
@@ -71,7 +71,6 @@ const getWindowsPaths = () => {
     dataRoot: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
-    logFileName: `${logDir}keybase.app.log`,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
     socketPath: path.join(dir, socketName),
   }
@@ -87,7 +86,6 @@ const getDarwinPaths = () => {
     dataRoot: `${libraryDir}Application Support/${appName}/`,
     jsonDebugFileName: `${logDir}${appName}.app.debug`,
     logDir,
-    logFileName: `${logDir}${appName}.app.log`,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
     socketPath: path.join(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
   }
@@ -99,7 +97,7 @@ if (!paths) {
   throw new Error('Unknown OS')
 }
 
-export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName, logFileName} = paths
+export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName} = paths
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''

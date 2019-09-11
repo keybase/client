@@ -9,7 +9,7 @@ import {Filename, PathItemIcon} from '../../common'
 type UploadingProps = {
   path: Types.Path
   type: Types.PathType
-  errorRetry?: (() => void)| null
+  errorRetry?: (() => void) | null
   writingToJournal: boolean
   syncing: boolean
 }
@@ -63,13 +63,13 @@ const Uploading = (props: UploadingProps) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   opacity30: {
     opacity: 0.3,
   },
   textFailed: {
     color: Styles.globalColors.redDark,
   },
-})
+}))
 
 export default Uploading

@@ -26,7 +26,7 @@ type Props = {
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (obj, _, key) => {
+    return !shallowEqual(this.props, nextProps, (_, __, key) => {
       if (key === 'participants') {
         return shallowEqual(this.props.participants, nextProps.participants)
       }
@@ -114,48 +114,51 @@ class _SimpleTopLine extends React.Component<Props> {
 }
 const SimpleTopLine = Kb.OverlayParentHOC(_SimpleTopLine)
 
-const styles = Styles.styleSheetCreate({
-  bold: {...Styles.globalStyles.fontBold},
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  icon: {
-    position: 'relative',
-    right: Styles.globalMargins.xtiny,
-  },
-  insideContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    flexGrow: 1,
-    height: Styles.isMobile ? 21 : 17,
-    position: 'relative',
-  },
-  name: {
-    paddingRight: 7,
-  },
-  nameContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    ...Styles.globalStyles.fillAbsolute,
-    alignItems: 'center',
-  },
-  teamTextStyle: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-  timestamp: {
-    backgroundColor: Styles.globalColors.fastBlank,
-    color: Styles.globalColors.blueDark,
-  },
-  unreadDotStyle: {
-    backgroundColor: Styles.globalColors.orange,
-    borderRadius: 6,
-    height: 8,
-    marginLeft: 4,
-    width: 8,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bold: {...Styles.globalStyles.fontBold},
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+      },
+      icon: {
+        position: 'relative',
+        right: Styles.globalMargins.xtiny,
+      },
+      insideContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        flexGrow: 1,
+        height: Styles.isMobile ? 21 : 17,
+        position: 'relative',
+      },
+      name: {
+        paddingRight: 7,
+      },
+      nameContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        ...Styles.globalStyles.fillAbsolute,
+        alignItems: 'center',
+      },
+      teamTextStyle: Styles.platformStyles({
+        isElectron: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      timestamp: {
+        backgroundColor: Styles.globalColors.fastBlank,
+        color: Styles.globalColors.blueDark,
+      },
+      unreadDotStyle: {
+        backgroundColor: Styles.globalColors.orange,
+        borderRadius: 6,
+        height: 8,
+        marginLeft: 4,
+        width: 8,
+      },
+    } as const)
+)
 
 export {SimpleTopLine}

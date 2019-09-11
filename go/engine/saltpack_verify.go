@@ -14,7 +14,6 @@ import (
 type SaltpackVerify struct {
 	libkb.Contextified
 	arg *SaltpackVerifyArg
-	key libkb.NaclSigningKeyPair
 }
 
 // SaltpackVerifyArg are engine args.

@@ -1,5 +1,3 @@
-import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as Container from '../../util/container'
@@ -14,14 +12,17 @@ const mapStateToProps = state => ({
   _pathItems: state.fs.pathItems,
 })
 
-const mapDispatchToProps = (dispatch, {path, destinationPickerIndex, navigateAppend}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch,
+  {path, destinationPickerIndex, safeNavigateAppendPayload}: OwnProps
+) => ({
   _destinationPickerGoTo: () =>
     Constants.makeActionsForDestinationPickerOpen(
       (destinationPickerIndex || 0) + 1,
       path,
-      navigateAppend
+      safeNavigateAppendPayload
     ).forEach(action => dispatch(action)),
-  _open: () => dispatch(navigateAppend({path: [{props: {path}, selected: 'main'}]})),
+  _open: () => dispatch(safeNavigateAppendPayload({path: [{props: {path}, selected: 'main'}]})),
 })
 
 const isFolder = (stateProps, ownProps: OwnProps) =>

@@ -3,11 +3,11 @@ import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
-import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 import {TeamHeader} from '.'
+import {selfToUser} from '../../../constants/team-building'
 import * as ImagePicker from 'expo-image-picker'
 
 export type OwnProps = {
@@ -36,9 +36,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamname}: OwnPr
       return
     }
     dispatch(appendNewTeamBuilder(teamname))
-    dispatch(
-      createAddUsersToTeamSoFar({namespace: 'teams', users: [{id: you, prettyName: you, serviceMap: {}}]})
-    )
+    dispatch(createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(you)]}))
   },
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onEditDescription: () =>

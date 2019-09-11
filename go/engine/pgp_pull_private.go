@@ -5,6 +5,7 @@ package engine
 
 import (
 	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -40,7 +41,7 @@ func (e *PGPPullPrivate) read(m libkb.MetaContext, fs *keybase1.SimpleFSClient, 
 	}
 	err = fs.SimpleFSOpen(m.Ctx(), keybase1.SimpleFSOpenArg{
 		OpID:  opid,
-		Dest:  keybase1.NewPathWithKbfs(filepath),
+		Dest:  keybase1.NewPathWithKbfsPath(filepath),
 		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
 	})
 	if err != nil {
@@ -87,7 +88,7 @@ func (e *PGPPullPrivate) pull(m libkb.MetaContext, fp libkb.PGPFingerprint, tty 
 		return err
 	}
 
-	err = m.G().GetGpgClient().ExportKeyArmored(armored)
+	err = m.G().GetGpgClient().ExportKeyArmored(m, armored)
 	if err != nil {
 		return err
 	}

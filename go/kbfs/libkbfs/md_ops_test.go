@@ -431,15 +431,6 @@ func testMDOpsGetIDForHandlePublicFailFindKey(
 	}
 }
 
-type failVerifyCrypto struct {
-	Crypto
-	err error
-}
-
-func (c failVerifyCrypto) Verify(msg []byte, sigInfo kbfscrypto.SignatureInfo) error {
-	return c.err
-}
-
 func testMDOpsGetIDForHandlePublicFailVerify(
 	t *testing.T, ver kbfsmd.MetadataVer) {
 	mockCtrl, config, ctx := mdOpsInit(t, ver)
@@ -857,8 +848,8 @@ func testMDOpsPutPublicSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
-	_, err = config.MDOps().Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal)
+	_, err = config.MDOps().Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal, nil)
 	require.NoError(t, err)
 
 	rmds := mdServer.getLastRmds()
@@ -880,8 +871,8 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	putMDForPrivate(config, rmd)
 
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
-	if _, err := config.MDOps().Put(ctx, rmd, key,
-		nil, keybase1.MDPriorityNormal); err != nil {
+	if _, err := config.MDOps().Put(
+		ctx, rmd, key, nil, keybase1.MDPriorityNormal, nil); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -916,8 +907,9 @@ func testMDOpsPutFailEncode(t *testing.T, ver kbfsmd.MetadataVer) {
 	err = errors.New("Fake fail")
 	config.SetCodec(failEncodeCodec{config.Codec(), err})
 
-	if _, err2 := config.MDOps().Put(ctx, rmd, session.VerifyingKey,
-		nil, keybase1.MDPriorityNormal); err2 != err {
+	if _, err2 := config.MDOps().Put(
+		ctx, rmd, session.VerifyingKey, nil, keybase1.MDPriorityNormal,
+		nil); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
@@ -1156,7 +1148,7 @@ func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 	privKey := rmd.data.TLFPrivateKey
 	rmd.data.TLFPrivateKey = privKeyWrong
-	mLeaf2, err = mdOps.decryptMerkleLeaf(ctx, rmd.ReadOnly(), root, leafBytes)
+	_, err = mdOps.decryptMerkleLeaf(ctx, rmd.ReadOnly(), root, leafBytes)
 	require.Error(t, err)
 
 	t.Log("Make some successors, every once in a while bumping the keygen")
@@ -1243,7 +1235,7 @@ func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	config2 := ConfigAsUser(config, u1)
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	AddDeviceForLocalUserOrBust(t, config, session.UID)
 	extraDevice := AddDeviceForLocalUserOrBust(t, config2, session.UID)
 	SwitchDeviceForLocalUserOrBust(t, config2, extraDevice)
@@ -1344,7 +1336,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	require.NoError(t, err)
 
 	config2 := ConfigAsUser(config, u2)
-	defer config2.Shutdown(ctx)
+	defer CheckConfigAndShutdown(ctx, t, config2)
 	session2, err := config2.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
@@ -1369,11 +1361,9 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 	RemoveTeamWriterForTestOrBust(t, config2, tid, session.UID)
 
 	t.Log("A few writes by a user that won't be removed")
-	allRMDs := []*RootMetadata{rmd}
 	allRMDSs := []*RootMetadataSigned{rmds}
 	for i := 2; i < 5; i++ {
 		rmd, rmds = makeSuccessorRMDForTesting(ctx, t, config2, rmd, -1)
-		allRMDs = append(allRMDs, rmd)
 		allRMDSs = append(allRMDSs, rmds)
 	}
 
@@ -1394,8 +1384,6 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	t.Log("Try another write by the removed user and make sure it fails")
 	rmd, rmds = makeSuccessorRMDForTesting(ctx, t, config, rmd, -1)
-	allRMDs = append(allRMDs, rmd)
-	allRMDSs = append(allRMDSs, rmds)
 	mdServer.processRMDSes(rmds, rmd.extra)
 	mdServer.nextHead = rmds
 	mdServer.nextGetRange = nil

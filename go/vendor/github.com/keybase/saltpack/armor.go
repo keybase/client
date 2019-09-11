@@ -42,8 +42,10 @@ func (s *armorEncoderStream) Write(b []byte) (n int, err error) {
 	if err != nil {
 		return n, err
 	}
-	s.spaceAndOutputBuffer()
-	return n, err
+	if err := s.spaceAndOutputBuffer(); err != nil {
+		return n, err
+	}
+	return n, nil
 }
 
 func (s *armorEncoderStream) spaceAndOutputBuffer() error {

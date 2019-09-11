@@ -3,7 +3,9 @@ export type FeatureFlags = {
   airdrop: boolean
   chatIndexProfilingEnabled: boolean
   conflictResolution: boolean
+  darkMode: boolean
   dbCleanEnabled: boolean
+  fastAccountSwitch: boolean
   foldersInProfileTab: boolean
   kbfsOfflineMode: boolean
   moveOrCopy: boolean
@@ -11,8 +13,9 @@ export type FeatureFlags = {
   outOfDateBanner: boolean
   plansEnabled: boolean
   proofProviders: boolean
-  sbsContacts: boolean
   stellarExternalPartners: boolean
+  lagRadar: boolean
+  wonderland: boolean
 }
 
 declare const ff: FeatureFlags

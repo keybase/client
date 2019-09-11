@@ -46,6 +46,11 @@ protocol local {
     string desc;
     string infoUrl;                 // 'https://...' or empty
     string infoUrlText;             // the text to use in the infoUrl link
+
+    boolean showDepositButton; // if true, show a deposit button
+    string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
+    boolean showWithdrawButton; // if true, show a withdraw button
+    string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
@@ -197,8 +202,8 @@ protocol local {
   // If there is an error getting account names, the error is suppressed.
   void validateAccountNameLocal(int sessionID, string name);
 
-  void changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
-  void setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
+  WalletAccountLocal changeWalletAccountNameLocal(int sessionID, AccountID accountID, string newName);
+  array<WalletAccountLocal> setWalletAccountAsDefaultLocal(int sessionID, AccountID accountID);
 
   // Deleting an account is irreversible, even with Keybase, Inc. help.
   // Consumer of this API should always prompt the user and warn that if
@@ -212,7 +217,7 @@ protocol local {
 
   // OutsideCurrencyCode examples: "USD", "EUR". Has to be one of
   // supported currencies, returned from getDisplayCurrenciesLocal.
-  void changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
+  CurrencyLocal changeDisplayCurrencyLocal(int sessionID, AccountID accountID, OutsideCurrencyCode currency);
   // Gets display currency for primary account if no accountID is given.
   CurrencyLocal getDisplayCurrencyLocal(int sessionID, union { null, AccountID } accountID);
 
@@ -499,11 +504,12 @@ protocol local {
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // airdropDetailsLocal returns a json blob of details about the current
-  // airdrop.  If the current airdrop has expired, it will return an
-  // expired error.
+  // airdrop and a json blob of content of the wallet disclaimer.  If the
+  // current airdrop has expired, it will return an expired error.
   record AirdropDetails {
     boolean isPromoted;
     string details;
+    string disclaimer;
   }
   AirdropDetails airdropDetailsLocal(int sessionID);
 
@@ -555,6 +561,13 @@ protocol local {
 
   PaymentPathLocal findPaymentPathLocal(AccountID from, string to, Asset sourceAsset, Asset destinationAsset, string amount);
 
+  record AssetActionResultLocal {
+    union { null, string } externalUrl;
+    union { null, string } messageFromAnchor;
+  }
+  AssetActionResultLocal assetDepositLocal(AccountID accountID, Asset asset);
+  AssetActionResultLocal assetWithdrawLocal(AccountID accountID, Asset asset);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
@@ -573,6 +586,7 @@ protocol local {
                                   string publicNote, AccountID fromAccountID);
 
   SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+  TransactionID accountMergeCLILocal(AccountID fromAccountID, union { null, SecretKey } fromSecretKey, string to);
 
   // Claim a relay payment
   // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.
@@ -748,6 +762,9 @@ protocol local {
     string displayAmountFiat; // "$1.23 USD" (the worth of amount in user's display currency if asset being sent is XLM)
     string availableToSendNative;
     string availableToSendFiat;
+
+    // Whether or not the URI was signed (used for displaying a warning banner in app)
+    boolean signed;
   }
 
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);

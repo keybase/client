@@ -369,7 +369,7 @@ func (a *FakeAccount) Check() bool {
 		return false
 	case b < 0:
 		require.Fail(a.T, "account has negative balance", "%v", a.accountID)
-	case b < int64(minimumReserve):
+	case b < minimumReserve:
 		require.Fail(a.T, "account has less than the minimum balance", "%v < %v %v",
 			stellarnet.StringFromStellarAmount(b), stellarnet.StringFromStellarAmount(minimumReserve), a.accountID)
 	default:
@@ -1110,7 +1110,7 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount
 			continue
 		}
 		acc := r.addAccountByID(account.AccountID, false /* funded */)
-		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
+		acc.secretKey = bundle.AccountBundles[account.AccountID].Signers[0]
 		res = append(res, acc)
 	}
 	r.Unlock()

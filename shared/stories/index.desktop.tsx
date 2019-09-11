@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 import * as React from 'react'
 import * as Sb from './storybook'
+import * as Kb from '../common-adapters'
 import {addDecorator} from '@storybook/react'
 import sharedStories from './shared-stories'
 import desktopStories from './platform-stories.desktop'
@@ -8,6 +9,7 @@ import desktopStories from './platform-stories.desktop'
 import '../desktop/renderer/style.css'
 import '../chat/conversation/conversation.css'
 import {initDesktopStyles} from '../styles/index.desktop'
+import {_setSystemIsDarkMode} from '../styles/dark-mode'
 
 const stories = {...sharedStories, ...desktopStories}
 
@@ -23,19 +25,81 @@ const filteredStories = Object.keys(stories).reduce(
   filter ? {} : stories
 )
 
-const rootDecorator = story => (
-  <div style={{height: '100%', width: '100%'}}>
-    {story()}
-    <div id="modal-root" />
-  </div>
-)
+// keep modes in the module so its kept between stories
+let _darkMode = false
+let _autoSwap = false
+const RootWrapper = ({children}) => {
+  const [darkMode, setDarkMode] = React.useState(_darkMode)
+  const [autoSwap, setAutoSwap] = React.useState(_autoSwap)
+
+  // stash change
+  React.useEffect(() => {
+    _darkMode = darkMode
+    _autoSwap = autoSwap
+  }, [darkMode, autoSwap])
+
+  Kb.useInterval(
+    () => {
+      const next = !darkMode
+      _setSystemIsDarkMode(next)
+      setDarkMode(next)
+    },
+    autoSwap ? 1000 : undefined
+  )
+
+  if (__STORYSHOT__) {
+    return (
+      <div style={{height: '100%', width: '100%'}}>
+        {children}
+        <div id="modal-root" />
+      </div>
+    )
+  } else {
+    return (
+      <>
+        <div
+          key={darkMode ? 'dark' : 'light'}
+          style={{height: '100%', width: '100%'}}
+          className={darkMode ? 'darkMode' : ''}
+        >
+          {children}
+          <div id="modal-root" />
+        </div>
+        <div
+          style={{
+            border: 'red 1px solid',
+            color: darkMode ? 'white' : 'black',
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            zIndex: 9999,
+          }}
+          title="Shift+Click to turn on auto"
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            if (e.shiftKey) {
+              setAutoSwap(!autoSwap)
+            } else {
+              const next = !darkMode
+              _setSystemIsDarkMode(next)
+              setDarkMode(next)
+              setAutoSwap(false)
+            }
+          }}
+        >
+          {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
+        </div>
+      </>
+    )
+  }
+}
 
 const store = Sb.createStoreWithCommon()
 
 const load = () => {
   initDesktopStyles()
-  addDecorator(rootDecorator)
-  addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+  addDecorator((story: any) => <RootWrapper>{story()}</RootWrapper>)
+  addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
   Object.keys(filteredStories).forEach(s => filteredStories[s]())
 }
 

@@ -51,7 +51,7 @@ const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
   </Box>
 )
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   containerBanner: platformStyles({
     common: {
       alignItems: 'center',
@@ -102,6 +102,6 @@ const styles = styleSheetCreate({
     common: {marginBottom: globalMargins.small},
     isMobile: {textAlign: 'center'},
   }),
-})
+}))
 
 export default Banner

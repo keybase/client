@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 
 type Props = {
   containerStyle?: Styles.StylesCrossPlatform
+  hoverContainerStyle?: Styles.StylesCrossPlatform
 }
 
 // HoverHoc for swapping components out on hover
@@ -27,7 +28,7 @@ export default (
         <DefaultComponent />
       </Box2>
       {!Styles.isMobile && (
-        <Box2 direction="horizontal" className="hoverComponent">
+        <Box2 direction="horizontal" className="hoverComponent" style={props.hoverContainerStyle}>
           <HoverComponent />
         </Box2>
       )}

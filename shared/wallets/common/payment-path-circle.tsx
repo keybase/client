@@ -13,7 +13,7 @@ export default PaymentPathCircle
 
 export const pathCircleDiameter = 10
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   paymentPathCircle: {
     backgroundColor: Styles.globalColors.purple,
     borderColor: Styles.globalColors.purpleLighter,
@@ -23,4 +23,4 @@ const styles = Styles.styleSheetCreate({
     height: pathCircleDiameter,
     width: pathCircleDiameter,
   },
-})
+}))

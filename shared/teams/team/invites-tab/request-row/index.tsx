@@ -72,7 +72,7 @@ export const TeamRequestRow = (props: Props) => {
           footerComponent={props.footerComponent}
           onConfirm={props.onConfirmRolePicker}
           onCancel={props.onCancelRolePicker}
-          position={'bottom left'}
+          position="bottom left"
           open={props.isRolePickerOpen}
           disabledRoles={props.disabledReasonsForRolePicker}
         >
@@ -107,11 +107,11 @@ const styleCharm = {
   marginRight: Styles.globalMargins.xtiny,
 } as const
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -32,
     },
   }),
-})
+}))

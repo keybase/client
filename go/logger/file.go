@@ -100,7 +100,7 @@ func (lfw *LogFileWriter) Open(at time.Time) error {
 	}
 	lfw.currentSize = fi.Size()
 	if !lfw.config.SkipRedirectStdErr {
-		tryRedirectStderrTo(lfw.file)
+		_ = tryRedirectStderrTo(lfw.file)
 	}
 	return nil
 }
@@ -114,7 +114,9 @@ func (lfw *LogFileWriter) Close() error {
 	if lfw.file == nil {
 		return nil
 	}
-	lfw.stopFlushing <- struct{}{}
+	if lfw.stopFlushing != nil {
+		lfw.stopFlushing <- struct{}{}
+	}
 
 	return lfw.file.Close()
 }

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {NameWithIcon} from '../../../../common-adapters'
 import {Props} from '.'
-import {parseUri, launchImageLibraryAsync} from '../../../../util/expo-image-picker'
+import {launchImageLibraryAsync} from '../../../../util/expo-image-picker'
 
 const NameWithIconWrapper = (props: Props) => {
   const _onEditIcon = () =>
@@ -9,7 +9,7 @@ const NameWithIconWrapper = (props: Props) => {
       ? launchImageLibraryAsync('mixed')
           .then(result => {
             if (result.cancelled === false) {
-              props.onEditIcon(parseUri(result))
+              props.onEditIcon(result)
             }
           })
           .catch(error => props.onFilePickerError(new Error(error)))

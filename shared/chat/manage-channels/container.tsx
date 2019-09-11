@@ -15,7 +15,7 @@ import {isEqual} from 'lodash-es'
 type OwnProps = Container.RouteProps<{teamname: string}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   const waitingKey = getChannelsWaitingKey(teamname)
   const waitingForGet = anyWaiting(state, waitingKey)
   const channelInfos = getTeamChannelInfos(state, teamname)
@@ -60,7 +60,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
-  const teamname = Container.getRouteProps<string>(ownProps, 'teamname')
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   return {
     _loadChannels: () => dispatch(TeamsGen.createGetChannels({teamname})),
     _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),

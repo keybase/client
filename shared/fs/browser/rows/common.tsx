@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/fs'
 import * as React from 'react'
@@ -11,8 +10,7 @@ export type StillCommonProps = {
   path: Types.Path
   inDestinationPicker?: boolean
   onOpen: () => void
-  routePath: I.List<string>
-  showActionsWithGrow?: boolean | null
+  showTlfTypeIcon?: boolean
 }
 
 export const StillCommon = (
@@ -26,11 +24,19 @@ export const StillCommon = (
     statusIcon={
       flags.kbfsOfflineMode && Types.getPathLevel(props.path) > 2 && <SyncStatus path={props.path} />
     }
-    icon={<PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />}
+    icon={
+      <PathItemIcon
+        path={props.path}
+        size={32}
+        style={rowStyles.pathItemIcon}
+        badge={props.badge}
+        showTlfTypeIcon={props.showTlfTypeIcon}
+      />
+    }
     firstItem={true /* we add divider in Rows */}
     onClick={props.onOpen}
     body={props.children}
-    onlyShowActionOnHover={props.showActionsWithGrow ? 'grow' : 'fade'}
+    onlyShowActionOnHover="fade"
     action={
       !props.inDestinationPicker &&
       Types.getPathLevel(props.path) > 2 && (
@@ -39,7 +45,6 @@ export const StillCommon = (
           <PathItemAction
             path={props.path}
             clickable={{type: 'icon'}}
-            routePath={props.routePath}
             initView={Types.PathItemActionMenuView.Root}
             mode="row"
           />
@@ -49,7 +54,7 @@ export const StillCommon = (
   />
 )
 
-export const rowStyles = Styles.styleSheetCreate({
+export const rowStyles = Styles.styleSheetCreate(() => ({
   itemBox: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -69,6 +74,6 @@ export const rowStyles = Styles.styleSheetCreate({
   rowText_30: {
     opacity: 0.3,
   },
-})
+}))
 
 export const normalRowHeight = Kb.smallListItem2Height

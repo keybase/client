@@ -69,10 +69,10 @@ const createPropProvider = (...maps: SelectorMap[]) => {
       merged={merged}
     >
       <GatewayProvider>
-        <React.Fragment>
+        <>
           <StorybookErrorBoundary children={story()} />
           <GatewayDest component={DestBox} name="popup-root" />
-        </React.Fragment>
+        </>
       </GatewayProvider>
     </Provider>
   )
@@ -93,10 +93,10 @@ export const MockStore = ({store, children}): any => (
     merged={store}
   >
     <GatewayProvider>
-      <React.Fragment>
+      <>
         <StorybookErrorBoundary children={children} />
         <GatewayDest component={DestBox} name="popup-root" />
-      </React.Fragment>
+      </>
     </GatewayProvider>
   </Provider>
 )
@@ -228,7 +228,15 @@ class PerfBox extends React.Component<
     console.log('PerfTiming: ', diff)
   }
 
-  _getTime = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now() // eslint-disable-line
+  _getTime = () => {
+    // @ts-ignore
+    const perf: any = window ? window.performance : undefined
+    if (typeof perf !== 'undefined') {
+      return perf.now()
+    } else {
+      return Date.now()
+    }
+  }
 
   render() {
     this._startTime = this._getTime()

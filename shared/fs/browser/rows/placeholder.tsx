@@ -26,8 +26,8 @@ export default ({type}: PlaceholderProps) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   placeholder: {
     marginTop: 4,
   },
-})
+}))

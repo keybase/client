@@ -177,10 +177,16 @@ type tcpKeepAliveListener struct {
 func (tkal tcpKeepAliveListener) Accept() (c net.Conn, err error) {
 	tc, err := tkal.AcceptTCP()
 	if err != nil {
-		return
+		return nil, err
 	}
-	tc.SetKeepAlive(true)
-	tc.SetKeepAlivePeriod(3 * time.Minute)
+	err = tc.SetKeepAlive(true)
+	if err != nil {
+		return nil, err
+	}
+	err = tc.SetKeepAlivePeriod(3 * time.Minute)
+	if err != nil {
+		return nil, err
+	}
 	return tc, nil
 }
 
@@ -551,7 +557,7 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
-		fuse.Dirent{
+		{
 			Type: fuse.DT_Dir,
 			Name: TeamName,
 		},
@@ -564,6 +570,22 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 		res = append(res, fuse.Dirent{Type: fuse.DT_File, Name: name})
 	}
 	return res, nil
+}
+
+var _ fs.NodeSymlinker = (*Root)(nil)
+
+// Symlink implements the fs.NodeSymlinker interface for Root.
+func (r *Root) Symlink(
+	_ context.Context, _ *fuse.SymlinkRequest) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
+var _ fs.NodeLinker = (*Root)(nil)
+
+// Link implements the fs.NodeLinker interface for Root.
+func (r *Root) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
 }
 
 func (r *Root) log() logger.Logger {

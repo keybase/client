@@ -83,9 +83,10 @@ func TestDirDataGetChildren(t *testing.T) {
 	dd, cleanBcache, _ := setupDirDataTest(t, 2, 2)
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 
 	t.Log("No entries, direct block")
 	children, err := dd.GetChildren(ctx)
@@ -130,13 +131,16 @@ func TestDirDataGetChildren(t *testing.T) {
 	block2 := NewDirBlock().(*DirBlock)
 	addFakeDirDataEntryToBlock(block2, "z1", 3)
 	addFakeDirDataEntryToBlock(block2, "z2", 4)
-	cleanBcache.Put(
+	err = cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry,
 		SkipCacheHash)
-	cleanBcache.Put(
+	require.NoError(t, err)
+	err = cleanBcache.Put(
 		ptr1, dd.tree.file.Tlf, topBlock, TransientEntry, SkipCacheHash)
-	cleanBcache.Put(
+	require.NoError(t, err)
+	err = cleanBcache.Put(
 		ptr2, dd.tree.file.Tlf, block2, TransientEntry, SkipCacheHash)
+	require.NoError(t, err)
 	children, err = dd.GetChildren(ctx)
 	require.NoError(t, err)
 	require.Len(t, children, 4)
@@ -158,12 +162,13 @@ func TestDirDataLookup(t *testing.T) {
 	dd, cleanBcache, _ := setupDirDataTest(t, 2, 2)
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 
 	t.Log("No entries, direct block")
-	_, err := dd.Lookup(ctx, NewPathPartString("a", nil))
+	_, err = dd.Lookup(ctx, NewPathPartString("a", nil))
 	require.Equal(t, idutil.NoSuchNameError{Name: "a"}, err)
 
 	t.Log("Single entry, direct block")
@@ -196,13 +201,16 @@ func TestDirDataLookup(t *testing.T) {
 	block2 := NewDirBlock().(*DirBlock)
 	addFakeDirDataEntryToBlock(block2, "z1", 3)
 	addFakeDirDataEntryToBlock(block2, "z2", 4)
-	cleanBcache.Put(
+	err = cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, newTopBlock, TransientEntry,
 		SkipCacheHash)
-	cleanBcache.Put(
+	require.NoError(t, err)
+	err = cleanBcache.Put(
 		ptr1, dd.tree.file.Tlf, topBlock, TransientEntry, SkipCacheHash)
-	cleanBcache.Put(
+	require.NoError(t, err)
+	err = cleanBcache.Put(
 		ptr2, dd.tree.file.Tlf, block2, TransientEntry, SkipCacheHash)
+	require.NoError(t, err)
 
 	testDirDataCheckLookup(ctx, t, dd, "a", 1)
 	testDirDataCheckLookup(ctx, t, dd, "b", 2)
@@ -301,12 +309,14 @@ func testDirDataCheckLeafs(
 }
 
 func testDirDataCleanCache(
-	dd *DirData, cleanBCache BlockCache, dirtyBCache DirtyBlockCache) {
+	t *testing.T, dd *DirData, cleanBCache BlockCache,
+	dirtyBCache DirtyBlockCache) {
 	dbc := dirtyBCache.(*DirtyBlockCacheStandard)
 	for id, block := range dbc.cache {
 		ptr := BlockPointer{ID: id.id}
-		cleanBCache.Put(
+		err := cleanBCache.Put(
 			ptr, dd.tree.file.Tlf, block, TransientEntry, SkipCacheHash)
+		require.NoError(t, err)
 	}
 	dbc.cache = make(map[dirtyBlockID]Block)
 }
@@ -315,9 +325,10 @@ func TestDirDataAddEntry(t *testing.T) {
 	dd, cleanBcache, dirtyBcache := setupDirDataTest(t, 2, 2)
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 
 	t.Log("Add first entry")
 	addFakeDirDataEntry(ctx, t, dd, "a", 1)
@@ -352,7 +363,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 
 	t.Log("Clean up the cache and dirty just one leaf")
-	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
+	testDirDataCleanCache(t, dd, cleanBcache, dirtyBcache)
 	addFakeDirDataEntry(ctx, t, dd, "a0", 6)
 	expectedLeafs = []testDirDataLeaf{
 		{"", 2, true},
@@ -400,7 +411,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLookup(ctx, t, dd, " 1", 14)
 
 	t.Log("Adding an existing name should error")
-	_, err := dd.AddEntry(ctx, NewPathPartString("a", nil), DirEntry{
+	_, err = dd.AddEntry(ctx, NewPathPartString("a", nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -412,14 +423,15 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	dd, cleanBcache, dirtyBcache := setupDirDataTest(t, 2, 2)
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 
 	t.Log("Make a simple dir and remove one entry")
 	addFakeDirDataEntry(ctx, t, dd, "a", 1)
 	addFakeDirDataEntry(ctx, t, dd, "z", 2)
-	_, err := dd.RemoveEntry(ctx, NewPathPartString("z", nil))
+	_, err = dd.RemoveEntry(ctx, NewPathPartString("z", nil))
 	require.NoError(t, err)
 	require.Len(t, topBlock.Children, 1)
 	testDirDataCheckLookup(ctx, t, dd, "a", 1)
@@ -440,7 +452,7 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	addFakeDirDataEntry(ctx, t, dd, "q", 12)
 	addFakeDirDataEntry(ctx, t, dd, "b2", 13)
 	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
-	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
+	testDirDataCleanCache(t, dd, cleanBcache, dirtyBcache)
 
 	_, err = dd.RemoveEntry(ctx, NewPathPartString("c", nil))
 	require.NoError(t, err)
@@ -462,13 +474,14 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	dd, cleanBcache, dirtyBcache := setupDirDataTest(t, 2, 2)
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 
 	t.Log("Make a simple dir and update one entry")
 	addFakeDirDataEntry(ctx, t, dd, "a", 1)
-	_, err := dd.UpdateEntry(ctx, NewPathPartString("a", nil), DirEntry{
+	_, err = dd.UpdateEntry(ctx, NewPathPartString("a", nil), DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -490,7 +503,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	addFakeDirDataEntry(ctx, t, dd, "q", 12)
 	addFakeDirDataEntry(ctx, t, dd, "b2", 13)
 	addFakeDirDataEntry(ctx, t, dd, " 1", 14)
-	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
+	testDirDataCleanCache(t, dd, cleanBcache, dirtyBcache)
 
 	_, err = dd.UpdateEntry(ctx, NewPathPartString("c", nil), DirEntry{
 		EntryInfo: EntryInfo{
@@ -525,9 +538,10 @@ func TestDirDataShifting(t *testing.T) {
 	dd, cleanBcache, dirtyBcache := setupDirDataTest(t, 2, 1)
 	ctx := context.Background()
 	topBlock := NewDirBlock().(*DirBlock)
-	cleanBcache.Put(
+	err := cleanBcache.Put(
 		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry,
 		SkipCacheHash)
+	require.NoError(t, err)
 
 	for i := 0; i <= 10; i++ {
 		addFakeDirDataEntry(ctx, t, dd, strconv.Itoa(i), uint64(i+1))

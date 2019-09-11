@@ -976,8 +976,7 @@ func (md *RootMetadataV3) IsValidAndSigned(
 
 	writer := md.LastModifyingWriter()
 	user := md.LastModifyingUser
-	isWriter := false
-	isReader := false
+	var isWriter, isReader bool
 	if md.TypeForKeying() == tlf.TeamKeying {
 		tid, err := md.WriterMetadata.Writers[0].AsTeam()
 		if err != nil {

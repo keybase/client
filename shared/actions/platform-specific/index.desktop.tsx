@@ -1,5 +1,4 @@
 import * as ConfigGen from '../config-gen'
-import * as SettingsGen from '../settings-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -10,15 +9,13 @@ import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
-import {getMainWindow} from '../../desktop/remote/util.desktop'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../util/quit-helper'
-import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
+import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
-import AppState from '../../app/app-state.desktop'
+import * as Container from '../../util/container'
 
 export function showShareActionSheetFromURL() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -34,9 +31,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  const mw = getMainWindow()
-  mw && mw.show()
-  showDockIcon()
+  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
@@ -67,14 +62,6 @@ export const getContentTypeFromURL = (
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_, action: ConfigGen.SetOpenAtLoginPayload) =>
-  action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
-
-const writeElectronSettingsNotifySound = (_, action: ConfigGen.SetNotifySoundPayload) =>
-  action.payload.writeFile &&
-  SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
-
 function* handleWindowFocusEvents(): Iterable<any> {
   const channel = Saga.eventChannel(emitter => {
     window.addEventListener('focus', () => emitter('focus'))
@@ -99,9 +86,9 @@ function* handleWindowFocusEvents(): Iterable<any> {
 }
 
 function* initializeInputMonitor(): Iterable<any> {
+  const inputMonitor = new InputMonitor()
   const channel = Saga.eventChannel(emitter => {
-    // eslint-disable-next-line no-new
-    new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
+    inputMonitor.notifyActive = isActive => emitter(isActive ? 'active' : 'inactive')
     return () => {}
   }, Saga.buffers.expanding(1))
 
@@ -115,36 +102,18 @@ function* initializeInputMonitor(): Iterable<any> {
   }
 }
 
-// get this value from electron and update our store version
-function* initializeAppSettingsState(): Iterable<any> {
-  const getAppState = () =>
-    new Promise(resolve => {
-      SafeElectron.getIpcRenderer().once('getAppStateReply', (_, data) => resolve(data))
-      SafeElectron.getIpcRenderer().send('getAppState')
-    })
-
-  const state = yield* Saga.callPromise(getAppState)
-  if (state) {
-    yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
-    yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
+export const dumpLogs = async (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) => {
+  const fromRender = await logger.dump()
+  const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+  const fromMain = await globalLogger.dump()
+  await writeLogLinesToFile([...fromRender, ...fromMain])
+  // quit as soon as possible
+  if (action && action.payload.reason === 'quitting through menu') {
+    quit()
   }
 }
 
-export const dumpLogs = (_?: any, action?: ConfigGen.DumpLogsPayload) =>
-  logger
-    .dump()
-    .then(fromRender => {
-      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
-      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
-    })
-    .then(() => {
-      // quit as soon as possible
-      if (action && action.payload.reason === 'quitting through menu') {
-        quit('quitButton')
-      }
-    })
-
-function* checkRPCOwnership(_, action: ConfigGen.DaemonHandshakePayload) {
+function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(
     ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
@@ -219,7 +188,7 @@ const onExit = () => {
   SafeElectron.getApp().exit(0)
 }
 
-const onFSActivity = (state, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
+const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
   kbfsNotification(action.payload.params.notification, NotifyPopup, state)
 }
 
@@ -228,7 +197,7 @@ const onPgpgKeySecret = () =>
     console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
   })
 
-const onShutdown = (_, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
+const onShutdown = (_: Container.TypedState, action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   const {code} = action.payload.params
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
@@ -250,7 +219,10 @@ const onConnected = () => {
   }).catch(_ => {})
 }
 
-const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
+const onOutOfDate = (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload
+) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
@@ -259,24 +231,29 @@ const onOutOfDate = (_, action: EngineGen.Keybase1NotifySessionClientOutOfDatePa
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = (_, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
+const prepareLogSend = async (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1LogsendPrepareLogsendPayload
+) => {
   const response = action.payload.response
-  dumpLogs().then(() => {
+  try {
+    await dumpLogs()
+  } finally {
     response && response.result()
-  })
+  }
 }
 
-const copyToClipboard = (_, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
-const sendKBServiceCheck = (state, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getIpcRenderer().send('kb-service-check')
+    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
   }
 }
 
@@ -293,29 +270,29 @@ function* startOutOfDateCheckLoop() {
   }
 }
 
-const checkForUpdate = () =>
-  RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
-    ConfigGen.createUpdateInfo({
-      critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
-      isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
-      message,
-    })
-  )
+const checkForUpdate = async () => {
+  const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
+  return ConfigGen.createUpdateInfo({
+    critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+    isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
+    message,
+  })
+}
 
-const updateNow = () =>
-  RPCTypes.configStartUpdateIfNeededRpcPromise().then(() =>
-    // * If user choose to update:
-    //   We'd get killed and it doesn't matter what happens here.
-    // * If user hits "Ignore":
-    //   Note that we ignore the snooze here, so the state shouldn't change,
-    //   and we'd back to where we think we still need an update. So we could
-    //   have just unset the "updating" flag.However, in case server has
-    //   decided to pull out the update between last time we asked the updater
-    //   and now, we'd be in a wrong state if we didn't check with the service.
-    //   Since user has interacted with it, we still ask the service to make
-    //   sure.
-    ConfigGen.createCheckForUpdate()
-  )
+const updateNow = async () => {
+  await RPCTypes.configStartUpdateIfNeededRpcPromise()
+  // * If user choose to update:
+  //   We'd get killed and it doesn't matter what happens here.
+  // * If user hits "Ignore":
+  //   Note that we ignore the snooze here, so the state shouldn't change,
+  //   and we'd back to where we think we still need an update. So we could
+  //   have just unset the "updating" flag.However, in case server has
+  //   decided to pull out the update between last time we asked the updater
+  //   and now, we'd be in a wrong state if we didn't check with the service.
+  //   Since user has interacted with it, we still ask the service to make
+  //   sure.
+  return ConfigGen.createCheckForUpdate()
+}
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
@@ -336,74 +313,135 @@ function* startPowerMonitor() {
   }
 }
 
-const setUseNativeFrame = state =>
-  SafeElectron.getIpcRenderer().send('setAppState', {useNativeFrame: state.settings.useNativeFrame})
+const nativeFrameKey = 'useNativeFrame'
 
-function* initializeUseNativeFrame() {
-  const useNativeFrame = new AppState().state.useNativeFrame
-  yield Saga.put(
-    SettingsGen.createOnChangeUseNativeFrame({
-      enabled:
-        useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : defaultUseNativeFrame,
-    })
-  )
+const saveUseNativeFrame = async (state: Container.TypedState) => {
+  const {useNativeFrame} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: nativeFrameKey,
+    value: {
+      b: useNativeFrame,
+      isNull: false,
+    },
+  })
 }
 
+function* initializeUseNativeFrame() {
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: nativeFrameKey,
+    })
+    const useNativeFrame = val.b === undefined || val.b === null ? defaultUseNativeFrame : val.b
+    yield Saga.put(ConfigGen.createSetUseNativeFrame({useNativeFrame}))
+  } catch (_) {}
+}
+
+const windowStateKey = 'windowState'
+const saveWindowState = async (state: Container.TypedState) => {
+  const {windowState} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: windowStateKey,
+    value: {
+      isNull: false,
+      s: JSON.stringify(windowState),
+    },
+  })
+}
+
+const notifySoundKey = 'notifySound'
+function* initializeNotifySound() {
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: notifySoundKey,
+    })
+    const notifySound: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (notifySound !== undefined && notifySound !== state.config.notifySound) {
+      yield Saga.put(ConfigGen.createSetNotifySound({notifySound}))
+    }
+  } catch (_) {}
+}
+
+const setNotifySound = async (state: Container.TypedState) => {
+  const {notifySound} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: notifySoundKey,
+    value: {
+      b: notifySound,
+      isNull: false,
+    },
+  })
+}
+
+const openAtLoginKey = 'openAtLogin'
+function* initializeOpenAtLogin() {
+  try {
+    const val: Saga.RPCPromiseType<
+      typeof RPCTypes.configGuiGetValueRpcPromise
+    > = yield RPCTypes.configGuiGetValueRpcPromise({
+      path: openAtLoginKey,
+    })
+
+    const openAtLogin: boolean | undefined = val.b || undefined
+    const state: Container.TypedState = yield Saga.selectState()
+    if (openAtLogin !== undefined && openAtLogin !== state.config.openAtLogin) {
+      yield Saga.put(ConfigGen.createSetOpenAtLogin({openAtLogin}))
+    }
+  } catch (_) {}
+}
+
+const setOpenAtLogin = async (state: Container.TypedState) => {
+  const {openAtLogin} = state.config
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: openAtLoginKey,
+    value: {
+      b: openAtLogin,
+      isNull: false,
+    },
+  })
+
+  if (!__DEV__ && SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+    logger.info(`Login item settings changed! now ${openAtLogin}`)
+    SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+  }
+}
+
+export const requestLocationPermission = () => Promise.resolve()
+
 export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
-    ConfigGen.setOpenAtLogin,
-    writeElectronSettingsOpenAtLogin
-  )
-  yield* Saga.chainAction<ConfigGen.SetNotifySoundPayload>(
-    ConfigGen.setNotifySound,
-    writeElectronSettingsNotifySound
-  )
-  yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
-  yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
+  yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
+  yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
+  yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
+  yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
-  yield* Saga.chainAction<EngineGen.Keybase1LogsendPrepareLogsendPayload>(
-    EngineGen.keybase1LogsendPrepareLogsend,
-    prepareLogSend
-  )
-  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnected)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
-    EngineGen.keybase1NotifyFSFSActivity,
-    onFSActivity
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
-    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
-    onPgpgKeySecret
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
-    EngineGen.keybase1NotifyServiceShutdown,
-    onShutdown
-  )
-  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
-    EngineGen.keybase1NotifySessionClientOutOfDate,
-    onOutOfDate
-  )
-  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
-  yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
-  yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakeWaitPayload>(
-    ConfigGen.daemonHandshakeWait,
-    sendKBServiceCheck
-  )
-  yield* Saga.chainAction<SettingsGen.OnChangeUseNativeFramePayload>(
-    SettingsGen.onChangeUseNativeFrame,
-    setUseNativeFrame
-  )
-  yield* Saga.chainAction<ConfigGen.LoggedInPayload>(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
+  yield* Saga.chainAction2(EngineGen.connected, onConnected)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyAppExit, onExit)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
+  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
+  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
+  yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
+  yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
+  yield* Saga.chainAction2(ConfigGen.updateWindowState, saveWindowState)
 
   if (isWindows) {
     yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
   }
 
   yield Saga.spawn(initializeUseNativeFrame)
+  yield Saga.spawn(initializeNotifySound)
+  yield Saga.spawn(initializeOpenAtLogin)
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
-  yield Saga.spawn(initializeAppSettingsState)
   yield Saga.spawn(setupReachabilityWatcher)
   yield Saga.spawn(startOutOfDateCheckLoop)
   yield Saga.spawn(startPowerMonitor)

@@ -1,6 +1,6 @@
 import * as Styles from '../../../styles'
 
-export const sharedStyles = Styles.styleSheetCreate({
+export const sharedStyles = Styles.styleSheetCreate(() => ({
   container: {
     flexGrow: 1,
     flexShrink: 1,
@@ -11,4 +11,4 @@ export const sharedStyles = Styles.styleSheetCreate({
     width: '100%',
   },
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
-})
+}))

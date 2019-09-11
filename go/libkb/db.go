@@ -21,6 +21,10 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBUidToServiceMap                = 0xb2
+	DBChatPinIgnore                  = 0xb3
+	DBTeambotKey                     = 0xb4
+	DBTeambotKeyWrongKID             = 0xb5
 	DBChatBotCommands                = 0xb6
 	DBSavedContacts                  = 0xb7
 	DBChatLocation                   = 0xb8
@@ -102,7 +106,7 @@ func DbKeyNotificationDismiss(prefix string, username NormalizedUsername) DbKey 
 }
 
 // IsPermDbKey returns true for keys ignored by the leveldb cleaner and always
-// persisted to disk.  Ideally these keys handling some cleanup/size bounding
+// persisted to disk. Ideally these keys handling some cleanup/size bounding
 // themselves.
 func IsPermDbKey(typ ObjType) bool {
 	switch typ {
@@ -116,7 +120,8 @@ func IsPermDbKey(typ ObjType) bool {
 		DBChatIndex,
 		DBBoxAuditorPermanent,
 		DBSavedContacts,
-		DBContactResolution:
+		DBContactResolution,
+		DBTeambotKeyWrongKID:
 		return true
 	default:
 		return false

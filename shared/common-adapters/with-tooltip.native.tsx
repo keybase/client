@@ -1,7 +1,8 @@
 import * as React from 'react'
-import {Dimensions, View} from 'react-native'
+import {NativeDimensions, NativeView} from './native-wrappers.native'
 import FloatingBox from './floating-box'
-import hOCTimers, {PropsWithTimer} from './hoc-timers'
+import {useTimeout} from './use-timers'
+import useMounted from './use-mounted'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import Animated from './animated'
@@ -18,13 +19,9 @@ const Kb = {
   Animated,
   ClickableBox,
   FloatingBox,
+  NativeDimensions,
+  NativeView,
   Text,
-}
-
-type State = {
-  left: number
-  top: number
-  visible: boolean
 }
 
 type Dims = {
@@ -34,112 +31,98 @@ type Dims = {
   width: number
 }
 const measureCb = (resolve: (dims: Dims) => void) => (
-  _1: never,
-  _2: never,
+  _x: number,
+  _y: number,
   width: number,
   height: number,
-  left: number,
-  top: number
-) => resolve({height, left, top, width})
+  pageX: number,
+  pageY: number
+) => resolve({height, left: pageX, top: pageY, width})
 
-class WithTooltip extends React.PureComponent<PropsWithTimer<Props>, State> {
-  state = {
-    left: 0,
-    top: 0,
-    visible: false,
-  }
-  _clickableRef = React.createRef<View>()
-  _tooltipRef = React.createRef<View>()
-  _onClick = () => {
-    if (!this._clickableRef.current || !this._tooltipRef.current || this.state.visible) {
+const WithTooltip = (props: Props) => {
+  const {position} = props
+  const [left, setLeft] = React.useState(0)
+  const [top, setTop] = React.useState(0)
+  const [visible, setVisible] = React.useState(false)
+  const clickableRef = React.useRef<NativeView>(null)
+  const tooltipRef = React.useRef<NativeView>(null)
+  const setVisibleFalseLater = useTimeout(() => {
+    setVisible(false)
+  }, 3000)
+  const getIsMounted = useMounted()
+  const _onClick = () => {
+    if (!clickableRef.current || !tooltipRef.current || visible) {
       return
     }
 
-    const screenWidth = Dimensions.get('window').width
-    const screenHeight = Dimensions.get('window').height
+    const screenWidth = Kb.NativeDimensions.get('window').width
+    const screenHeight = Kb.NativeDimensions.get('window').height
 
     Promise.all([
-      new Promise(
-        resolve => this._clickableRef.current && this._clickableRef.current.measure(measureCb(resolve))
-      ),
-      new Promise(
-        resolve => this._tooltipRef.current && this._tooltipRef.current.measure(measureCb(resolve))
-      ),
+      new Promise(resolve => clickableRef.current && clickableRef.current.measure(measureCb(resolve))),
+      new Promise(resolve => tooltipRef.current && tooltipRef.current.measure(measureCb(resolve))),
       // @ts-ignore this stucture makes this very hard to type
     ]).then(([c, t]: [Dims, Dims]) => {
-      if (!this._mounted) {
+      if (!getIsMounted()) {
         return
       }
 
-      const constrainLeft = ideal => Math.max(0, Math.min(ideal, screenWidth - t.width))
-      const constrainTop = ideal => Math.max(0, Math.min(ideal, screenHeight - t.height))
-      this.props.position === 'bottom center'
-        ? this.setState({
-            left: constrainLeft(c.left + c.width / 2 - t.width / 2),
-            top: constrainTop(c.top + c.height),
-            visible: true,
-          })
-        : this.setState({
-            left: constrainLeft(c.left + c.width / 2 - t.width / 2),
-            top: constrainTop(c.top - t.height),
-            visible: true,
-          }) // default to top center
+      const constrainLeft = (ideal: number) => Math.max(0, Math.min(ideal, screenWidth - t.width))
+      const constrainTop = (ideal: number) => Math.max(0, Math.min(ideal, screenHeight - t.height))
+      if (position === 'bottom center') {
+        setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
+        setTop(constrainTop(c.top + c.height))
+      } else {
+        // default to top center
+        setLeft(constrainLeft(c.left + c.width / 2 - t.width / 2))
+        setTop(constrainTop(c.top - t.height))
+      }
 
-      this.props.setTimeout(() => {
-        this._mounted && this.setState({visible: false})
-      }, 3000)
+      setVisible(true)
+      setVisibleFalseLater()
     })
   }
 
-  _mounted = false
-  componentDidMount() {
-    this._mounted = true
-  }
-  componentWillUnmount() {
-    this._mounted = false
+  if (!props.showOnPressMobile || props.disabled) {
+    return <Kb.NativeView style={props.containerStyle as any}>{props.children}</Kb.NativeView>
   }
 
-  render() {
-    if (!this.props.showOnPressMobile || this.props.disabled) {
-      return <View style={this.props.containerStyle}>{this.props.children}</View>
-    }
-
-    return (
-      <>
-        <View style={this.props.containerStyle} ref={this._clickableRef} className={this.props.className}>
-          <Kb.ClickableBox onClick={this._onClick}>{this.props.children}</Kb.ClickableBox>
-        </View>
-        <Kb.Animated from={{}} to={{opacity: this.state.visible ? 1 : 0}}>
-          {animatedStyle => (
-            <Kb.FloatingBox>
-              <View
-                pointerEvents="none"
-                style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top: this.state.top}])}
+  return (
+    <>
+      <Kb.NativeView style={props.containerStyle as any} ref={clickableRef}>
+        <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
+      </Kb.NativeView>
+      <Kb.Animated from={{}} to={{opacity: visible ? 1 : 0}}>
+        {animatedStyle => (
+          <Kb.FloatingBox>
+            <Kb.NativeView
+              pointerEvents="none"
+              style={Styles.collapseStyles([Styles.globalStyles.flexBoxRow, {top}])}
+            >
+              <Kb.NativeView
+                style={Styles.collapseStyles([animatedStyle, styles.container, {left}])}
+                ref={tooltipRef}
               >
-                <View
-                  style={Styles.collapseStyles([animatedStyle, styles.container, {left: this.state.left}])}
-                  ref={this._tooltipRef}
+                <Kb.Text
+                  center={!props.multiline}
+                  type="BodySmall"
+                  style={Styles.collapseStyles([styles.text, props.textStyle])}
+                  lineClamp={props.multiline ? undefined : 1}
                 >
-                  <Kb.Text
-                    center={!this.props.multiline}
-                    type="BodySmall"
-                    style={Styles.collapseStyles([styles.text, this.props.textStyle])}
-                    lineClamp={this.props.multiline ? undefined : 1}
-                  >
-                    {this.props.text}
-                  </Kb.Text>
-                </View>
-              </View>
-            </Kb.FloatingBox>
-          )}
-        </Kb.Animated>
-      </>
-    )
-  }
+                  {props.tooltip}
+                </Kb.Text>
+              </Kb.NativeView>
+            </Kb.NativeView>
+          </Kb.FloatingBox>
+        )}
+      </Kb.Animated>
+    </>
+  )
 }
-export default hOCTimers(WithTooltip)
 
-const styles = Styles.styleSheetCreate({
+export default WithTooltip
+
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.black_60,
     borderRadius: Styles.borderRadius,
@@ -149,4 +132,4 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.white,
   },
-})
+}))

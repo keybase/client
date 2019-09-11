@@ -247,8 +247,8 @@ func makeKey(f keybase1.Folder) string {
 
 func defaultFaves(un string) []keybase1.Folder {
 	return []keybase1.Folder{
-		keybase1.Folder{Name: un, FolderType: keybase1.FolderType_PRIVATE},
-		keybase1.Folder{Name: un, FolderType: keybase1.FolderType_PUBLIC},
+		{Name: un, FolderType: keybase1.FolderType_PRIVATE},
+		{Name: un, FolderType: keybase1.FolderType_PUBLIC},
 	}
 }
 

@@ -87,7 +87,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   })
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   container: platformStyles({
     isElectron: {
       maxWidth: 520,
@@ -96,7 +96,7 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-})
+}))
 
 const load = () => {
   const stories = Sb.storiesOf('Wallets/Transaction', module)
@@ -116,7 +116,7 @@ const load = () => {
         fromAirdrop={true}
         isAdvanced={false}
         issuerDescription=""
-        memo=""
+        memo="1 XLM (Stellar Lumens) divided across 2 Keybase users."
         onCancelPayment={undefined}
         onCancelPaymentWaitingKey=""
         onSelectTransaction={Sb.action('onSelectTransaction')}

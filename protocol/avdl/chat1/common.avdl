@@ -1,7 +1,7 @@
 @namespace("chat.1") protocol common {
 
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../keybase1" as keybase1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint") @lint("ignore") record MessageID {}
@@ -61,7 +61,8 @@
     SENDPAYMENT_14,
     REQUESTPAYMENT_15,
     UNFURL_16,
-    FLIP_17
+    FLIP_17,
+    PIN_18 // sent when pinning a message
   }
 
   @go("nostring")
@@ -144,6 +145,14 @@
     string topicName;
   }
 
+  @lint("ignore")
+  record KBFSPath {
+    int startIndex;
+    string rawPath;
+    string standardPath;
+    keybase1.KBFSPathInfo pathInfo;
+  }
+
   enum ConversationMemberStatus {
     ACTIVE_0,      // in the channel
     REMOVED_1,     // removed from channel forcibly
@@ -154,10 +163,14 @@
   }
 
   record Pagination {
+    @optional(true)
     bytes next;
+    @optional(true)
     bytes previous;
     int num; // Number of items requested when argument, and number returned when result
+    @optional(true)
     boolean last; // Will be true if the number of results is less than requested
+    @optional(true)
     boolean forceFirstPage; // Let downstream consumers of this Pagination know this is an initial request
   }
 
@@ -296,6 +309,9 @@
 
     // creator info for the conversation
     union { null, ConversationCreatorInfo } creatorInfo;
+
+    // Latest pinned message
+    union { null, MessageID } pinnedMsg;
 
     // The latest history deletion. Defaults to zeroes.
     // The client keeps this synced for retention but not for delete-history messages.
@@ -680,5 +696,11 @@
     PUBLIC_0,
     TLFID_MEMBERS_1,
     TLFID_CONVS_2
+  }
+
+  record TeamMember {
+    gregor1.UID uid;
+    keybase1.TeamRole role;
+    keybase1.TeamMemberStatus status;
   }
 }

@@ -2,11 +2,20 @@ import * as RPCGen from './types/rpc-gen'
 import * as Types from './types/profile'
 import * as I from 'immutable'
 import {TypedState} from '../util/container'
-import {peopleTab} from '../constants/tabs'
+import {peopleTab} from './tabs'
 import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
-import {searchResultSelector} from './selectors'
 
+const searchResultSelector = (
+  {
+    entities: {
+      search: {searchResults},
+    },
+  }: TypedState,
+  username: string
+) => {
+  return searchResults.get(username)
+}
 export const makeInitialState = I.Record<Types._State>({
   blockUserModal: null,
   errorCode: null,

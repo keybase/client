@@ -1,9 +1,9 @@
-import {StackActions, NavigationActions} from '@react-navigation/core'
+import {NavigationParams, StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, tabRoots} from './routes'
+import {modalRoutes, tabRoots} from './routes'
 import logger from '../logger'
 import {getActiveKey} from './util'
 
@@ -47,7 +47,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         return
       }
       let routeName: string | null = null
-      let params: unknown
+      let params: NavigationParams | undefined
 
       if (typeof p === 'string') {
         routeName = p
@@ -103,7 +103,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         if (r.routeName === action.payload.routeName) {
           return true
         }
-        popActions.push(StackActions.pop())
+        popActions.push(StackActions.pop({}))
         return false
       })
       return isInStack ? popActions : []
@@ -122,5 +122,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
         }),
       ]
     }
+    default:
+      return undefined
   }
 }

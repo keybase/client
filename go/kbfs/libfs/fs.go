@@ -66,7 +66,7 @@ type fsInner struct {
 	// this is a naive append without and path clean.
 	lockNamespace []byte
 
-	eventsLock sync.RWMutex
+	eventsLock sync.RWMutex // nolint
 	events     map[chan<- FSEvent]bool
 }
 
@@ -100,6 +100,38 @@ func followSymlink(parentPath, link string) (newPath string, err error) {
 	}
 
 	return newPath, nil
+}
+
+func pathForLogging(
+	ctx context.Context, config libkbfs.Config, root libkbfs.Node,
+	filename string) string {
+	if root == nil || root.Obfuscator() == nil {
+		return filename
+	}
+
+	if filename == "." {
+		return ""
+	}
+
+	parts := strings.Split(filename, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	n := root
+	ret := ""
+	for i := 0; i < len(parts)-1; i++ {
+		p := parts[i]
+		childName := n.ChildName(p)
+		ret = path.Join(ret, childName.String())
+		nextNode, _, err := config.KBFSOps().Lookup(ctx, n, childName)
+		if err != nil {
+			// Just keep using the parent node to obfuscate.
+			continue
+		}
+		n = nextNode
+	}
+	ret = path.Join(ret, n.ChildName(parts[len(parts)-1]).String())
+	return ret
 }
 
 // ErrNotADirectory is returned when a non-final path element exists but is not
@@ -139,8 +171,7 @@ func newFS(ctx context.Context, config libkbfs.Config,
 	log := config.MakeLogger("")
 	if rootNode == nil {
 		if len(subdir) > 0 {
-			return nil, errors.Errorf(
-				"Subdir %s doesn't exist in empty TLF", subdir)
+			return nil, errors.New("Subdir doesn't exist in empty TLF")
 		}
 		log.CDebugf(ctx,
 			"Returning empty FS for empty TLF=%s", tlfHandle.GetCanonicalName())
@@ -198,7 +229,8 @@ outer:
 				oldSubdir := subdir
 				subdir = path.Join(newParts...)
 				config.MakeLogger("").CDebugf(ctx, "Expanding symlink: %s->%s",
-					oldSubdir, subdir)
+					pathForLogging(ctx, config, rootNode, oldSubdir),
+					pathForLogging(ctx, config, rootNode, subdir))
 				parts = newParts
 				n = rootNode
 				continue outer
@@ -211,7 +243,8 @@ outer:
 	}
 
 	log.CDebugf(ctx, "Made new FS for TLF=%s, subdir=%s",
-		tlfHandle.GetCanonicalName(), subdir)
+		tlfHandle.GetCanonicalName(),
+		pathForLogging(ctx, config, rootNode, subdir))
 
 	// Use the canonical unix path for default locking namespace, as this needs
 	// to be the same across all platforms.
@@ -303,33 +336,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 
 // PathForLogging returns the obfuscated path for the given filename.
 func (fs *FS) PathForLogging(filename string) string {
-	if fs.root == nil || fs.root.Obfuscator() == nil {
-		return filename
-	}
-
-	if filename == "." {
-		return ""
-	}
-
-	parts := strings.Split(filename, "/")
-	if len(parts) == 0 {
-		return ""
-	}
-	n := fs.root
-	ret := ""
-	for i := 0; i < len(parts)-1; i++ {
-		p := parts[i]
-		childName := n.ChildName(p)
-		ret = path.Join(ret, childName.String())
-		nextNode, _, err := fs.config.KBFSOps().Lookup(fs.ctx, n, childName)
-		if err != nil {
-			// Just keep using the parent node to obfuscate.
-			continue
-		}
-		n = nextNode
-	}
-	ret = path.Join(ret, n.ChildName(parts[len(parts)-1]).String())
-	return ret
+	return pathForLogging(fs.ctx, fs.config, fs.root, filename)
 }
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a

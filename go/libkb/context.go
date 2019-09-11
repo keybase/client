@@ -268,7 +268,10 @@ func (m MetaContext) WithNewProvisionalLoginContextForUser(u *User) MetaContext 
 
 func (m MetaContext) WithNewProvisionalLoginContextForUserVersionAndUsername(uv keybase1.UserVersion, un NormalizedUsername) MetaContext {
 	plc := newProvisionalLoginContextWithUserVersionAndUsername(m, uv, un)
-	m.ActiveDevice().CopyCacheToLoginContextIfForUserVersion(m, plc, uv)
+	err := m.ActiveDevice().CopyCacheToLoginContextIfForUserVersion(m, plc, uv)
+	if err != nil {
+		m.Debug("WithNewProvisionalLoginContextForUserVersionAndUsername: error %+v", err)
+	}
 	return m.WithLoginContext(plc)
 }
 
@@ -367,8 +370,7 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	if err := cw.SetUserConfig(NewUserConfig(u, n, salt, d), true /* overwrite */); err != nil {
 		return err
 	}
-	g.ActiveDevice.SetOrClear(m, ad)
-	return nil
+	return g.ActiveDevice.SetOrClear(m, ad)
 }
 
 // SwitchUserNewConfigActiveDevice creates a new config file stanza and an
@@ -398,7 +400,10 @@ func (m MetaContext) SwitchUserNukeConfig(n NormalizedUsername) error {
 		return err
 	}
 	if g.ActiveDevice.UID().Equal(uid) {
-		g.ActiveDevice.Clear()
+		err := g.ActiveDevice.Clear()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -492,7 +497,10 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	if cw == nil {
 		return NoConfigWriterError{}
 	}
-	g.ActiveDevice.Clear()
+	err = g.ActiveDevice.Clear()
+	if err != nil {
+		return err
+	}
 	err = cw.SetUserConfig(nil, false)
 	if err != nil {
 		return err

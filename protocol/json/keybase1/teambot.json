@@ -1,0 +1,72 @@
+{
+  "protocol": "teambot",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "TeambotKeyGeneration",
+      "fields": [],
+      "lint": "ignore",
+      "typedef": "int64"
+    },
+    {
+      "type": "record",
+      "name": "TeambotKeyMetadata",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "kid",
+          "jsonkey": "teambot_dh_public"
+        },
+        {
+          "type": "TeambotKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "PerUserKeyGeneration",
+          "name": "pukGeneration",
+          "jsonkey": "puk_generation"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeambotKeyBoxed",
+      "fields": [
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "TeambotKeyMetadata",
+          "name": "metadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeambotKey",
+      "fields": [
+        {
+          "type": "Bytes32",
+          "name": "seed"
+        },
+        {
+          "type": "TeambotKeyMetadata",
+          "name": "metadata"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

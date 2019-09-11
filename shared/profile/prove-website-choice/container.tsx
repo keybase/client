@@ -12,8 +12,8 @@ export default connect(
       dispatch(ProfileGen.createCancelAddProof())
       dispatch(RouteTreeGen.createClearModals())
     },
-    onDNS: () => dispatch(ProfileGen.createAddProof({platform: 'dns'})),
-    onFile: () => dispatch(ProfileGen.createAddProof({platform: 'web'})),
+    onDNS: () => dispatch(ProfileGen.createAddProof({platform: 'dns', reason: 'profile'})),
+    onFile: () => dispatch(ProfileGen.createAddProof({platform: 'web', reason: 'profile'})),
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(ProveWebsiteChoice)

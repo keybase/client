@@ -5,9 +5,9 @@ import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import {Props} from './popup-dialog'
 
-export function PopupDialog({children, onClose, fill, styleCover, styleContainer}: Props) {
+export function PopupDialog({children, onClose, styleCover, styleContainer}: Props) {
   return (
-    <NativeTouchableWithoutFeedback onPress={onClose}>
+    <NativeTouchableWithoutFeedback onPress={onClose || undefined}>
       <Box style={{...coverStyle, ...styleCover}}>
         <NativeTouchableWithoutFeedback>
           <Box style={{...containerStyle, ...styleContainer}}>{children}</Box>

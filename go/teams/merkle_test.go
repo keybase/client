@@ -16,7 +16,8 @@ func TestMerkle(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	kbtest.CreateAndSignupFakeUser("team", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	name := createTeam(tc)
 

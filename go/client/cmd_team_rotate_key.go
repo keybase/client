@@ -29,7 +29,7 @@ func newCmdTeamRotateKey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "h, hidden",
+				Name:  "hidden",
 				Usage: "hidden rotation (dev-only)",
 			},
 		},

@@ -20,6 +20,8 @@ type CmdTeamAddMember struct {
 	Username             string
 	Role                 keybase1.TeamRole
 	SkipChatNotification bool
+	// TODO HOTPOT-227 expose in CLI flags
+	BotSettings *keybase1.TeamBotSettings
 }
 
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -98,6 +100,7 @@ func (c *CmdTeamAddMember) Run() error {
 		Email:                c.Email,
 		Username:             c.Username,
 		Role:                 c.Role,
+		BotSettings:          c.BotSettings,
 		SendChatNotification: !c.SkipChatNotification,
 	}
 

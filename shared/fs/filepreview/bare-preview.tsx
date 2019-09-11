@@ -1,15 +1,14 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import Footer from '../footer/footer'
 import View from './view-container'
 import {PathItemAction} from '../common'
 
 type Props = {
   onBack: () => void
   path: Types.Path
-  routePath: I.List<string>
 }
 
 type State = {
@@ -33,28 +32,24 @@ export default class extends React.PureComponent<Props, State> {
           </Kb.ClickableBox>
         </Kb.Box>
         <Kb.Box style={styles.contentContainer}>
-          <View
-            path={this.props.path}
-            routePath={this.props.routePath}
-            onLoadingStateChange={this._onLoadingStateChange}
-          />
+          <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
         </Kb.Box>
         <Kb.Box style={styles.footer}>
           <PathItemAction
             path={this.props.path}
             clickable={{actionIconWhite: true, type: 'icon'}}
-            routePath={this.props.routePath}
             initView={Types.PathItemActionMenuView.Root}
             mode="screen"
           />
         </Kb.Box>
+        <Footer path={this.props.path} onlyShowProofBroken={true} />
         {this.state.loading && <Kb.ProgressIndicator style={styles.loading} white={true} />}
       </Kb.Box>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   closeBox: {
     height: 48,
     paddingLeft: Styles.globalMargins.tiny,
@@ -96,4 +91,4 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
     lineHeight: 48,
   },
-})
+}))

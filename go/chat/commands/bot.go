@@ -30,7 +30,10 @@ func (b *Bot) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 
 func (b *Bot) clearExtendedDisplayLocked(ctx context.Context, convID chat1.ConversationID) {
 	if b.extendedDisplay {
-		b.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+		err := b.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+		if err != nil {
+			b.Debug(ctx, "clearExtendedDisplayLocked: error on markdown: %+v", err)
+		}
 		b.extendedDisplay = false
 	}
 }
@@ -84,10 +87,13 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 				title = new(string)
 				*title = cmd.ExtendedDescription.Title
 			}
-			b.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
+			err := b.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
 				Body:  body,
 				Title: title,
 			})
+			if err != nil {
+				b.Debug(ctx, "Preview: markdown error: %+v", err)
+			}
 			b.extendedDisplay = true
 			return
 		}

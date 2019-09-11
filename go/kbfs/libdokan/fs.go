@@ -223,11 +223,7 @@ func (oc *openContext) isCreation() bool {
 	return false
 }
 func (oc *openContext) isExistingError() bool {
-	switch oc.CreateDisposition {
-	case dokan.FileCreate:
-		return true
-	}
-	return false
+	return oc.CreateDisposition == dokan.FileCreate
 }
 
 // isTruncate checks the flags whether a file truncation is wanted.
@@ -262,10 +258,6 @@ func (oc *openContext) returnFileNoCleanup(f dokan.File) (
 		return nil, 0, err
 	}
 	return f, dokan.ExistingFile, nil
-}
-
-func (oc *openContext) mayNotBeDirectory() bool {
-	return oc.CreateOptions&dokan.FileNonDirectoryFile != 0
 }
 
 func newSyntheticOpenContext() *openContext {

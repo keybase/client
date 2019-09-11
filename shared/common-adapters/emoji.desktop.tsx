@@ -7,7 +7,7 @@ import emojiSet from 'emoji-datasource-apple/img/apple/sheets/64.png'
 
 import {Props} from './emoji'
 
-const backgroundImageFn = (set: string, sheetSize: number) => emojiSet
+const backgroundImageFn = (_: string, __: number) => emojiSet
 
 // Size 0 is cause we want the native emoji for copy/paste and not for rendering
 const EmojiWrapper = (props: Props) => {

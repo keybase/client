@@ -83,7 +83,7 @@ func TestTeamOracleRepolling(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 	t.Logf("Created team %s", teamName)
 
-	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	// Issue a team load as user 1 to get this version of the team to cache.

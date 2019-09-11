@@ -43,6 +43,10 @@
         "'teamMention'" // from team mention
       ]
     },
+    // Got an error while creating a conversation.
+    "conversationErrored": {
+      "message": "string"
+    },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
     // fromAReset means you were in a reset kbfs convo and you want to make a new one
     // Chatting from external places in the app should usually call this
@@ -70,7 +74,8 @@
         "'transaction'",
         "'sentPayment'",
         "'requestedPayment'",
-        "'teamMention'"
+        "'teamMention'",
+        "'appLink'"
       ]
     },
     "createConversation": {
@@ -95,7 +100,8 @@
         "'inboxSyncedUnknown'",
         "'joinedAConversation'",
         "'leftAConversation'",
-        "'teamTypeChanged'"
+        "'teamTypeChanged'",
+        "'maybeKickedFromTeam'"
       ]
     },
     // We want to unbox an inbox row
@@ -112,6 +118,7 @@
     // Actually unboxing
     "metaRequestTrusted": {
       "force?": "boolean",
+      "noWaiting?": "boolean",
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     // Got some new inbox rows
@@ -121,7 +128,6 @@
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
-      "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
       "fromInboxRefresh?": "boolean", // If true from an inbox refresh
       "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
     },
@@ -426,11 +432,11 @@
     },
     "updateConvRetentionPolicy": {
       "_description": "Consume a service notification that a conversation's retention policy has been updated",
-      "conv": "RPCChatTypes.InboxUIItem"
+      "meta": "Types.ConversationMeta"
     },
     "updateTeamRetentionPolicy": {
       "_description": "Consume a service notification that a team retention policy was updated",
-      "convs": "Array<RPCChatTypes.InboxUIItem>"
+      "metas": "Array<Types.ConversationMeta>"
     },
     "setConvExplodingMode": {
       "_description": "Set the remote exploding mode for a conversation.",
@@ -548,6 +554,11 @@
     },
     "setUnsentText": {
       "_description": "Set unsent text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString | null"
+    },
+    "setPrependText": {
+      "_description": "Set prepend text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString | null"
     },
@@ -710,6 +721,32 @@
     "clearCommandStatusInfo": {
       "_description": "Clear command status info",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setThreadLoadStatus": {
+      "_description": "Set thread load status",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "status": "RPCChatTypes.UIChatThreadStatus"
+    },
+    "pinMessage": {
+      "_description": "Pin a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "unpinMessage": {
+      "_description": "Unpin a message",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "ignorePinnedMessage": {
+      "_description": "Ignore pinned message",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "dismissBottomBanner": {
+      "_description": "Set the bottom banner on a new conversation as dismissed",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "updateLastCoord": {
+      "_description": "Update last known coordinate",
+      "coord": "Types.Coordinate"
     }
   }
 }

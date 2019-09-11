@@ -1,5 +1,5 @@
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as Constants from '../../../../constants/chat2/'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import {getRole, isAdmin} from '../../../../constants/teams'
 import SystemAddedToTeam from '.'
@@ -18,7 +18,7 @@ const mapStateToProps = (state, ownProps) => {
     isAdmin: isAdmin(getRole(state, teamname)),
     teamname,
     timestamp: ownProps.message.timestamp,
-    you: state.config.username || '',
+    you: state.config.username,
   }
 }
 
@@ -38,7 +38,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   addee: stateProps.addee,
   adder: stateProps.adder,
   isAdmin: stateProps.isAdmin,

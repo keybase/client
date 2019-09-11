@@ -133,7 +133,8 @@ func ComponentNameFromString(s string) ComponentName {
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string, log Log) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
-	if version != "" && bundleVersion != "" {
+	switch {
+	case version != "" && bundleVersion != "":
 		sv, err := semver.Make(version)
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
@@ -149,21 +150,22 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 			status = keybase1.StatusFromCode(keybase1.StatusCode_SCInvalidVersionError, err.Error())
 			return
 		}
-		if bsv.GT(sv) {
+		switch {
+		case bsv.GT(sv):
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_UPGRADE
-		} else if bsv.EQ(sv) {
+		case bsv.EQ(sv):
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
-		} else if bsv.LT(sv) {
+		case bsv.LT(sv):
 			// It's ok if we have a bundled version less than what was installed
 			log.Warning("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
 		}
-	} else if version != "" && bundleVersion == "" {
+	case version != "" && bundleVersion == "":
 		installStatus = keybase1.InstallStatus_INSTALLED
-	} else if version == "" && bundleVersion != "" {
+	case version == "" && bundleVersion != "":
 		installStatus = keybase1.InstallStatus_NOT_INSTALLED
 		installAction = keybase1.InstallAction_INSTALL
 	}
@@ -194,19 +196,7 @@ func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	return kbfsVersion, nil
 }
 
-func createCommandLine(binPath string, linkPath string, log Log) error {
-	if _, err := os.Lstat(linkPath); err == nil {
-		err := os.Remove(linkPath)
-		if err != nil {
-			return err
-		}
-	}
-
-	log.Info("Linking %s to %s", linkPath, binPath)
-	return os.Symlink(binPath, linkPath)
-}
-
-func defaultLinkPath() (string, error) {
+func defaultLinkPath() (string, error) { //nolint
 	if runtime.GOOS == "windows" {
 		return "", fmt.Errorf("Unsupported on Windows")
 	}
@@ -218,7 +208,7 @@ func defaultLinkPath() (string, error) {
 	return linkPath, nil
 }
 
-func uninstallLink(linkPath string, log Log) error {
+func uninstallLink(linkPath string, log Log) error { //nolint
 	log.Debug("Link path: %s", linkPath)
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
@@ -231,23 +221,6 @@ func uninstallLink(linkPath string, log Log) error {
 	}
 	log.Info("Removing %s", linkPath)
 	return os.Remove(linkPath)
-}
-
-func uninstallCommandLine(log Log) error {
-	linkPath, err := defaultLinkPath()
-	if err != nil {
-		return nil
-	}
-
-	err = uninstallLink(linkPath, log)
-	if err != nil {
-		return err
-	}
-
-	// Now the git binary.
-	gitBinFilename := "git-remote-keybase"
-	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
-	return uninstallLink(gitLinkPath, log)
 }
 
 func chooseBinPath(bp string) (string, error) {
@@ -263,7 +236,7 @@ func BinPath() (string, error) {
 	return utils.BinPath()
 }
 
-func binName() (string, error) {
+func binName() (string, error) { //nolint
 	path, err := BinPath()
 	if err != nil {
 		return "", err

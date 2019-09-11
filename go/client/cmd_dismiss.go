@@ -63,7 +63,7 @@ func (c *CmdDismiss) Run() error {
 			return err
 		}
 		return cli.PGPStorageDismiss(context.TODO(), 0)
+	default:
+		return fmt.Errorf("unhandled notification name %q", c.name)
 	}
-
-	return fmt.Errorf("unhandled notification name %q", c.name)
 }

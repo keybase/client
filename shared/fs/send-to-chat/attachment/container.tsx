@@ -1,38 +1,24 @@
 import * as ChatGen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
+import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/fs'
-import {RouteProps} from '../../../route-tree/render-route'
-import {namedConnect} from '../../../util/container'
+import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendAttachmentToChat from '.'
 
-type OwnProps = RouteProps
+type OwnProps = {}
 
-const mapStateToProps = state => ({
-  _sendAttachmentToChat: state.fs.sendAttachmentToChat,
-})
-
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  _send: (conversationIDKey, path, title) => {
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _send: (conversationIDKey: ChatTypes.ConversationIDKey, path: Types.Path, title: string) => {
     dispatch(
       ChatGen.createAttachmentsUpload({
         conversationIDKey,
-        paths: [
-          {
-            outboxID: null,
-            path: Types.pathToString(path),
-          },
-        ],
+        paths: [{outboxID: null, path: Types.pathToString(path)}],
         titles: [title],
       })
     )
     dispatch(RouteTreeGen.createClearModals())
-    dispatch(
-      ChatGen.createSelectConversation({
-        conversationIDKey,
-        reason: 'files',
-      })
-    )
+    dispatch(ChatGen.createSelectConversation({conversationIDKey, reason: 'files'}))
     dispatch(ChatGen.createNavigateToThread())
     dispatch(FsGen.createSentAttachmentToChat())
   },
@@ -40,20 +26,21 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onSetTitle: (title: string) => dispatch(FsGen.createSetSendAttachmentToChatTitle({title})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownPropps) => ({
-  onCancel: dispatchProps.onCancel,
-  onSetTitle: dispatchProps.onSetTitle,
-  path: stateProps._sendAttachmentToChat.path,
-  send: () =>
-    dispatchProps._send(
-      stateProps._sendAttachmentToChat.convID,
-      stateProps._sendAttachmentToChat.path,
-      stateProps._sendAttachmentToChat.title
-    ),
-  sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
-  title: stateProps._sendAttachmentToChat.title,
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SendAttachmentToChat')(
-  SendAttachmentToChat
-)
+export default Container.namedConnect(
+  (state: Container.TypedState) => ({_sendAttachmentToChat: state.fs.sendAttachmentToChat}),
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    onCancel: dispatchProps.onCancel,
+    onSetTitle: dispatchProps.onSetTitle,
+    path: stateProps._sendAttachmentToChat.path,
+    send: () =>
+      dispatchProps._send(
+        stateProps._sendAttachmentToChat.convID,
+        stateProps._sendAttachmentToChat.path,
+        stateProps._sendAttachmentToChat.title
+      ),
+    sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
+    title: stateProps._sendAttachmentToChat.title,
+  }),
+  'SendAttachmentToChat'
+)(SendAttachmentToChat)

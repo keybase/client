@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {maxUsernameLength} from '../../constants/signup'
-import {SignupScreen, errorBanner} from '../common'
+import {InfoIcon, SignupScreen, errorBanner} from '../common'
 
 type Props = {
   error: string
@@ -59,7 +60,7 @@ const EnterUsername = (props: Props) => {
         style={styles.body}
         fullWidth={true}
       >
-        <Kb.Avatar size={96} />
+        <Kb.Avatar size={Platform.isLargeScreen ? 96 : 64} />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
           <Kb.NewInput
             autoFocus={true}
@@ -79,7 +80,21 @@ const EnterUsername = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+EnterUsername.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
+}
+
+const styles = Styles.styleSheetCreate(() => ({
   body: {
     flex: 1,
   },
@@ -104,6 +119,6 @@ const styles = Styles.styleSheetCreate({
   inputSub: {
     marginLeft: 2,
   },
-})
+}))
 
 export default EnterUsername

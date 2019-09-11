@@ -16,6 +16,10 @@
           "name": "username"
         },
         {
+          "type": "FullName",
+          "name": "fullname"
+        },
+        {
           "type": "boolean",
           "name": "hasStoredSecret"
         },
@@ -244,6 +248,11 @@
       ],
       "response": null,
       "doc": "loginOneshot allows a service to have a \"onetime login\", without\n   provisioning a device. It bootstraps credentials with the given\n   paperkey"
+    },
+    "isOnline": {
+      "request": [],
+      "response": "bool",
+      "doc": "isOnline returns whether the device is able to open a connection to keybase.io.\n   Used for determining whether to offer proxy settings on the login screen."
     }
   },
   "namespace": "keybase.1"

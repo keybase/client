@@ -61,7 +61,8 @@ func (pr PrevRevisions) AddRevision(
 	//
 	// Then the next block of code will trim it appropriately.
 	for i, prc := range ret {
-		if prc.Count == 255 {
+		switch {
+		case prc.Count == 255:
 			// This count on this revision is too large, so remove it
 			// before it overflows.  This may happen when revisions
 			// are repeatedly overwritten when on an unmerged branch,
@@ -72,7 +73,7 @@ func (pr PrevRevisions) AddRevision(
 			}
 			numDropped++
 			continue
-		} else if prc.Revision >= r {
+		case prc.Revision >= r:
 			if numDropped > 0 {
 				panic("Revision too large after dropping one")
 			}
@@ -84,7 +85,7 @@ func (pr PrevRevisions) AddRevision(
 			}
 			earliestGoodSlot = i + 1
 			continue
-		} else if prc.Revision <= minRev {
+		case prc.Revision <= minRev:
 			// This revision is too old (or is empty), so remove it.
 			ret[i] = PrevRevisionAndCount{
 				Revision: kbfsmd.RevisionUninitialized,
@@ -92,7 +93,7 @@ func (pr PrevRevisions) AddRevision(
 			}
 			numDropped++
 			continue
-		} else if numDropped > 0 {
+		case numDropped > 0:
 			panic("Once we've dropped one, we should drop all the rest")
 		}
 		// `minRev` < `prc.Revision` < `r`, so we keep it in the new

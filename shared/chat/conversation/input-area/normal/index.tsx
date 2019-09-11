@@ -92,7 +92,7 @@ const suggestorToMarker = {
 }
 
 const suggestorKeyExtractors = {
-  commands: (c: RPCChatTypes.ConversationCommand) => c.name,
+  commands: (c: RPCChatTypes.ConversationCommand) => c.name + c.username,
   emoji: (item: {id: string}) => item.id,
   users: ({username, teamname, channelname}: {username: string; teamname?: string; channelname?: string}) => {
     if (teamname) {
@@ -300,8 +300,12 @@ class Input extends React.Component<InputProps, InputState> {
         return
       }
 
-      if (this.props.unsentTextRefresh) {
+      if (
+        this.props.unsentText !== prevProps.unsentText ||
+        this.props.prependText !== prevProps.prependText
+      ) {
         this._setText(this.props.getUnsentText(), true)
+        this._inputFocus()
         return
       }
     }
@@ -526,7 +530,7 @@ class Input extends React.Component<InputProps, InputState> {
     return standardTransformer(`${prefix}${command.name}`, tData, preview)
   }
 
-  render = () => {
+  render() {
     const {
       suggestTeams,
       suggestUsers,
@@ -554,9 +558,7 @@ class Input extends React.Component<InputProps, InputState> {
             !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
           ])}
           suggestionOverlayStyle={styles.suggestionOverlay}
-          suggestBotCommandsUpdateStatus={
-            this.state.showBotCommandUpdateStatus ? this.props.suggestBotCommandsUpdateStatus : undefined
-          }
+          suggestBotCommandsUpdateStatus={this.props.suggestBotCommandsUpdateStatus}
           keyExtractors={suggestorKeyExtractors}
           transformers={this._suggestorTransformer}
           onKeyDown={this._onKeyDown}
@@ -570,43 +572,46 @@ class Input extends React.Component<InputProps, InputState> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  boldStyle: {
-    fontWeight: '700',
-  },
-  container: Styles.platformStyles({
-    isMobile: {
-      justifyContent: 'flex-end',
-      maxHeight: '70%',
-    },
-  }),
-  fixSuggestionHeight: Styles.platformStyles({
-    isMobile: {height: 48},
-  }),
-  paddingXTiny: {
-    padding: Styles.globalMargins.xtiny,
-  },
-  suggestionBase: {
-    alignItems: 'center',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
-  suggestionList: Styles.platformStyles({
-    isMobile: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderStyle: 'solid',
-      borderTopWidth: 3,
-      maxHeight: '50%',
-      overflow: 'hidden',
-    },
-  }),
-  suggestionOverlay: Styles.platformStyles({
-    isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      boldStyle: {
+        fontWeight: '700',
+      },
+      container: Styles.platformStyles({
+        isMobile: {
+          justifyContent: 'flex-end',
+          maxHeight: '70%',
+        },
+      }),
+      fixSuggestionHeight: Styles.platformStyles({
+        isMobile: {height: 48},
+      }),
+      paddingXTiny: {
+        padding: Styles.globalMargins.xtiny,
+      },
+      suggestionBase: {
+        alignItems: 'center',
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+      suggestionList: Styles.platformStyles({
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+          borderTopWidth: 3,
+          maxHeight: '50%',
+          overflow: 'hidden',
+        },
+      }),
+      suggestionOverlay: Styles.platformStyles({
+        isElectron: {marginLeft: 15, marginRight: 15, marginTop: 'auto'},
+      }),
+    } as const)
+)
 
 export type Props = InputProps
 export default Input

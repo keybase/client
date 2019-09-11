@@ -1,6 +1,4 @@
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
@@ -66,11 +64,6 @@ const SyncNotificationSetting = (props: Props) => (
   </Kb.Box2>
 )
 
-const isPending = (props: Props) =>
-  props.driverStatus.type === Types.DriverStatusType.Unknown ||
-  (props.driverStatus.type === Types.DriverStatusType.Enabled && props.driverStatus.isDisabling) ||
-  (props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling)
-
 const Files = (props: Props) => (
   <>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -98,17 +91,20 @@ const Files = (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate({
-  contentHeader: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  syncContent: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.medium,
-  },
-  syncNotificationCheckbox: {
-    alignItems: 'center',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      contentHeader: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      syncContent: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.medium,
+      },
+      syncNotificationCheckbox: {
+        alignItems: 'center',
+      },
+    } as const)
+)
 
 export default Kb.HeaderHoc(Files)

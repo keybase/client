@@ -28,7 +28,6 @@ type ListOptions struct {
 	sortReverse bool
 	sortTime    bool
 	sortSize    bool
-	help        bool
 	dirsFirst   bool
 }
 
@@ -122,7 +121,7 @@ func (c *CmdSimpleFSList) HandleTopLevelKeybaseList(path keybase1.Path) (bool, e
 	if pathType != keybase1.PathType_KBFS {
 		return false, nil
 	}
-	acc := filepath.Clean(strings.ToLower(path.Kbfs()))
+	acc := filepath.Clean(strings.ToLower(path.Kbfs().Path))
 	acc = filepath.ToSlash(acc)
 	c.G().Log.Debug("fs ls HandleTopLevelKeybaseList: %s -> %s", path.Kbfs(), acc)
 	if acc == "/private" {
@@ -182,7 +181,10 @@ func (c *CmdSimpleFSList) Run() error {
 			e.Name = path.String()
 			listResult.Entries = append(listResult.Entries, e)
 		}
-		c.output(listResult)
+		err := c.output(listResult)
+		if err != nil {
+			return err
+		}
 	} else if len(paths) == 1 {
 		path := paths[0]
 		c.G().Log.Debug("SimpleFSList %s", path)
@@ -224,7 +226,7 @@ func (c *CmdSimpleFSList) Run() error {
 			// are complete. TODO: should KBFS return non-error here
 			// until the opid is closed?
 			if err != nil || len(listResult.Entries) == 0 {
-				if gotList == true {
+				if gotList {
 					err = nil
 				}
 				return err
@@ -251,9 +253,9 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 	if c.winStyle {
 		for _, e := range listResult.Entries {
 			if e.DirentType == keybase1.DirentType_DIR || e.DirentType == keybase1.DirentType_SYM {
-				ui.Printf("%s\t<%s>\t\t%s\n", formatListTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
+				_, _ = ui.Printf("%s\t<%s>\t\t%s\n", formatListTime(e.Time), keybase1.DirentTypeRevMap[e.DirentType], e.Name)
 			} else {
-				ui.Printf("%s\t%9d\t%s\n", formatListTime(e.Time), e.Size, e.Name)
+				_, _ = ui.Printf("%s\t%9d\t%s\n", formatListTime(e.Time), e.Size, e.Name)
 			}
 		}
 	} else {
@@ -268,7 +270,7 @@ func (c *CmdSimpleFSList) output(listResult keybase1.SimpleFSListResult) error {
 		}
 
 		if outputBuffer.String() != "" {
-			ui.PrintfUnescaped("%s", outputBuffer.String())
+			_, _ = ui.PrintfUnescaped("%s", outputBuffer.String())
 		}
 	}
 	return nil

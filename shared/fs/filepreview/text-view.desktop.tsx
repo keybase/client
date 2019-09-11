@@ -31,27 +31,34 @@ const TextView = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-    overflow: 'scroll',
-    padding: Styles.globalMargins.medium,
-  },
-  innerContainer: {
-    ...Styles.globalStyles.flexGrow,
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black,
-    maxWidth: '100%',
-    paddingBottom: Styles.globalMargins.large,
-    paddingLeft: Styles.globalMargins.xlarge,
-    paddingRight: Styles.globalMargins.xlarge,
-    paddingTop: Styles.globalMargins.large,
-    width: 680,
-  },
-  text: {
-    color: Styles.globalColors.black_on_white,
-    whiteSpace: 'pre',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueLighter3,
+          padding: Styles.globalMargins.medium,
+        },
+        isElectron: {overflow: 'scroll'} as const,
+      }),
+      innerContainer: {
+        ...Styles.globalStyles.flexGrow,
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.black,
+        maxWidth: '100%',
+        paddingBottom: Styles.globalMargins.large,
+        paddingLeft: Styles.globalMargins.xlarge,
+        paddingRight: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.large,
+        width: 680,
+      },
+      text: Styles.platformStyles({
+        isElectron: {
+          color: Styles.globalColors.black_on_white,
+          whiteSpace: 'pre-wrap',
+        },
+      }),
+    } as const)
+)
 
 export default TextView

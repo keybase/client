@@ -120,7 +120,6 @@ func (c memoryFavoriteClient) Shutdown() {}
 // and session store, and a given favorite store.
 type KeybaseDaemonLocal struct {
 	*idutil.DaemonLocal
-	codec kbfscodec.Codec
 
 	// lock protects everything below.
 	lock          sync.Mutex
@@ -245,7 +244,10 @@ func (k *KeybaseDaemonLocal) addTeamWriterForTest(
 			Name:       string(teamName),
 			FolderType: keybase1.FolderType_TEAM,
 		}
-		k.favoriteStore.FavoriteAdd(uid, f)
+		err := k.favoriteStore.FavoriteAdd(uid, f)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -262,8 +264,7 @@ func (k *KeybaseDaemonLocal) removeTeamWriterForTest(
 		Name:       string(teamName),
 		FolderType: keybase1.FolderType_TEAM,
 	}
-	k.favoriteStore.FavoriteDelete(uid, f)
-	return nil
+	return k.favoriteStore.FavoriteDelete(uid, f)
 }
 
 func (k *KeybaseDaemonLocal) addTeamReaderForTest(
@@ -278,8 +279,7 @@ func (k *KeybaseDaemonLocal) addTeamReaderForTest(
 		Name:       string(teamName),
 		FolderType: keybase1.FolderType_TEAM,
 	}
-	k.favoriteStore.FavoriteAdd(uid, f)
-	return nil
+	return k.favoriteStore.FavoriteAdd(uid, f)
 }
 
 func (k *KeybaseDaemonLocal) addTeamsForTestLocked(teams []idutil.TeamInfo) {
@@ -290,10 +290,10 @@ func (k *KeybaseDaemonLocal) addTeamsForTestLocked(teams []idutil.TeamInfo) {
 			FolderType: keybase1.FolderType_TEAM,
 		}
 		for u := range t.Writers {
-			k.favoriteStore.FavoriteAdd(u, f)
+			_ = k.favoriteStore.FavoriteAdd(u, f)
 		}
 		for u := range t.Readers {
-			k.favoriteStore.FavoriteAdd(u, f)
+			_ = k.favoriteStore.FavoriteAdd(u, f)
 		}
 	}
 }
@@ -432,6 +432,15 @@ func (k *KeybaseDaemonLocal) PutGitMetadata(
 	ctx context.Context, folder keybase1.FolderHandle, repoID keybase1.RepoID,
 	metadata keybase1.GitLocalMetadata) error {
 	return nil
+}
+
+// OnPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseDaemonLocal) OnPathChange(subscriptionID SubscriptionID, path string, topic keybase1.PathSubscriptionTopic) {
+}
+
+// OnNonPathChange implements the SubscriptionNotifier interface.
+func (k *KeybaseDaemonLocal) OnNonPathChange(
+	subscriptionID SubscriptionID, topic keybase1.SubscriptionTopic) {
 }
 
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.

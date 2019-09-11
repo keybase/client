@@ -49,7 +49,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   dropdown: Styles.platformStyles({
     isMobile: {height: 32},
   }),
@@ -66,6 +66,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: 4,
     },
   }),
-})
+}))
 
 export default FromField

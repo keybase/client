@@ -17,7 +17,7 @@ const _debug = debugEnabled ? s => logger.debug('_scroll: ' + s) : () => {}
 const targetHitArea = 1
 
 class ConversationList extends React.PureComponent<Props> {
-  _listRef = React.createRef<NativeVirtualizedList>()
+  _listRef = React.createRef<NativeVirtualizedList<Types.Ordinal | 'specialTop' | 'specialBottom'>>()
   _scrollCenterTarget?: number
 
   _renderItem = ({item}) => {
@@ -198,11 +198,12 @@ class ConversationList extends React.PureComponent<Props> {
             renderItem={this._renderItem}
             maintainVisibleContentPosition={this._maintainVisibleContentPosition}
             onViewableItemsChanged={this._onViewableItemsChanged}
+            keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}
-            forwardedRef={this._listRef}
+            ref={this._listRef}
             onScrollToIndexFailed={this._onScrollToIndexFailed}
             removeClippedSubviews={Styles.isAndroid}
           />
@@ -215,18 +216,21 @@ class ConversationList extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    flex: 1,
-    position: 'relative',
-  },
-  contentContainer: {
-    bottom: -mobileTypingContainerHeight,
-  },
-  jumpToRecent: {
-    bottom: 0,
-    position: 'absolute',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        flex: 1,
+        position: 'relative',
+      },
+      contentContainer: {
+        bottom: -mobileTypingContainerHeight,
+      },
+      jumpToRecent: {
+        bottom: 0,
+        position: 'absolute',
+      },
+    } as const)
+)
 
 export default ConversationList

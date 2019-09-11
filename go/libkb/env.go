@@ -27,6 +27,7 @@ func (n NullConfiguration) GetMobileSharedHome() string                         
 func (n NullConfiguration) GetServerURI() (string, error)                                  { return "", nil }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetGUIConfigFilename() string                                   { return "" }
 func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
@@ -82,6 +83,7 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                    { re
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
 func (n NullConfiguration) GetEKLogFile() string                            { return "" }
+func (n NullConfiguration) GetGUILogFile() string                           { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
@@ -123,6 +125,7 @@ func (n NullConfiguration) GetDisableMerkleAuditor() (bool, bool)           { re
 func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetDisableTeamBoxAuditor() (bool, bool)          { return false, false }
+func (n NullConfiguration) GetDisableEKBackgroundKeygen() (bool, bool)      { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetExtraNetLogging() (bool, bool)                { return false, false }
 func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)              { return false, false }
@@ -267,6 +270,7 @@ type Env struct {
 	writer        ConfigWriter
 	Test          *TestParameters
 	updaterConfig UpdaterConfigReader
+	guiConfig     *JSONFile
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -298,6 +302,18 @@ func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	defer e.Unlock()
 	e.config = r
 	e.writer = w
+}
+
+func (e *Env) SetGUIConfig(j *JSONFile) {
+	e.Lock()
+	defer e.Unlock()
+	e.guiConfig = j
+}
+
+func (e *Env) GetGUIConfig() *JSONFile {
+	e.RLock()
+	defer e.RUnlock()
+	return e.guiConfig
 }
 
 func (e *Env) SetUpdaterConfig(r UpdaterConfigReader) {
@@ -357,7 +373,7 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
-		func() string { return e.GetMountDirDefault() },
+		e.GetMountDirDefault,
 	), nil
 }
 
@@ -375,11 +391,11 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
 	e.HomeFinder = NewHomeFinder("keybase",
-		func() string { return e.getHomeFromTestOrCmd() },
+		e.getHomeFromTestOrCmd,
 		func() string { return e.GetConfig().GetHome() },
-		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
+		e.getMobileSharedHomeFromCmdOrConfig,
 		osname,
-		func() RunMode { return e.GetRunMode() },
+		e.GetRunMode,
 		getLog,
 		os.Getenv)
 	return &e
@@ -388,7 +404,17 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 func (e *Env) getHomeFromTestOrCmd() string {
 	return e.GetString(
 		func() string { return e.Test.Home },
-		func() string { return e.cmd.GetHome() },
+		func() string {
+			home := e.cmd.GetHome()
+			if home == "" {
+				return ""
+			}
+			absHome, err := filepath.Abs(home)
+			if err != nil {
+				return home
+			}
+			return absHome
+		},
 	)
 }
 
@@ -485,15 +511,6 @@ func (e *Env) GetString(flist ...(func() string)) string {
 		}
 	}
 	return ret
-}
-
-func (e *Env) getPGPFingerprint(flist ...(func() *PGPFingerprint)) *PGPFingerprint {
-	for _, f := range flist {
-		if ret := f(); ret != nil {
-			return ret
-		}
-	}
-	return nil
 }
 
 func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
@@ -667,10 +684,39 @@ func (e *Env) GetConfigFilename() string {
 
 func (e *Env) GetUpdaterConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				dir, err := e.GetRootConfigDirectory()
+				if err != nil {
+					return ""
+				}
+				return filepath.Join(dir, UpdaterConfigFile)
+			}
+			return ""
+		},
 		func() string { return e.cmd.GetUpdaterConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
+func (e *Env) GetGUIConfigFilename() string {
+	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				dir, err := e.GetRootConfigDirectory()
+				if err != nil {
+					return ""
+				}
+				return filepath.Join(dir, GUIConfigFile)
+			}
+			return ""
+		},
+		func() string { return e.cmd.GetGUIConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
+		func() string { return e.GetConfig().GetGUIConfigFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), GUIConfigFile) },
 	)
 }
 
@@ -852,8 +898,8 @@ func (e *Env) GetUsername() NormalizedUsername {
 
 func (e *Env) GetSocketBindFile() (string, error) {
 	return e.GetString(
-		func() string { return e.sandboxSocketFile() },
-		func() string { return e.defaultSocketFile() },
+		e.sandboxSocketFile,
+		e.defaultSocketFile,
 	), nil
 }
 
@@ -987,6 +1033,14 @@ func (e *Env) GetDisableTeamBoxAuditor() bool {
 		e.GetConfig().GetDisableTeamBoxAuditor,
 		// If unset, use the BotLite setting
 		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
+	)
+}
+
+func (e *Env) GetDisableEKBackgroundKeygen() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableEKBackgroundKeygen,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_EK_BACKGROUND_KEYGEN") },
+		e.GetConfig().GetDisableEKBackgroundKeygen,
 	)
 }
 
@@ -1546,7 +1600,7 @@ func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
 
 	filePrefix := e.GetLogPrefix()
 	if filePrefix != "" {
-		filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+		filePrefix += time.Now().Format("20060102T150405.999999999Z0700")
 		logFile = filePrefix + ".log"
 		return logFile, true
 	}
@@ -1566,6 +1620,14 @@ func (e *Env) GetEKLogFile() string {
 		func() string { return e.cmd.GetEKLogFile() },
 		func() string { return os.Getenv("KEYBASE_EK_LOG_FILE") },
 		func() string { return filepath.Join(e.GetLogDir(), EKLogFileName) },
+	)
+}
+
+func (e *Env) GetGUILogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGUILogFile() },
+		func() string { return os.Getenv("KEYBASE_GUI_LOG_FILE") },
+		func() string { return filepath.Join(e.GetLogDir(), GUILogFileName) },
 	)
 }
 
@@ -1656,6 +1718,7 @@ type AppConfig struct {
 	MobileSharedHomeDir            string
 	LogFile                        string
 	EKLogFile                      string
+	GUILogFile                     string
 	UseDefaultLogFile              bool
 	RunMode                        RunMode
 	Debug                          bool
@@ -1675,6 +1738,7 @@ type AppConfig struct {
 	DisableTeamAuditor             bool
 	DisableMerkleAuditor           bool
 	DisableTeamBoxAuditor          bool
+	DisableEKBackgroundKeygen      bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1685,6 +1749,10 @@ func (c AppConfig) GetLogFile() string {
 
 func (c AppConfig) GetEKLogFile() string {
 	return c.EKLogFile
+}
+
+func (c AppConfig) GetGUILogFile() string {
+	return c.GUILogFile
 }
 
 func (c AppConfig) GetUseDefaultLogFile() (bool, bool) {
@@ -1801,6 +1869,10 @@ func (c AppConfig) GetDisableMerkleAuditor() (bool, bool) {
 
 func (c AppConfig) GetDisableTeamBoxAuditor() (bool, bool) {
 	return c.DisableTeamBoxAuditor, true
+}
+
+func (c AppConfig) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return c.DisableEKBackgroundKeygen, true
 }
 
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {

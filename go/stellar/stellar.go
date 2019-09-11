@@ -50,8 +50,7 @@ func CreateWallet(mctx libkb.MetaContext) (created bool, err error) {
 	case nil:
 		// ok
 	case libkb.AppStatusError:
-		switch keybase1.StatusCode(e.Code) {
-		case keybase1.StatusCode_SCStellarWrongRevision:
+		if keybase1.StatusCode(e.Code) == keybase1.StatusCode_SCStellarWrongRevision {
 			// Assume this happened because a bundle already existed.
 			// And suppress the error.
 			mctx.Debug("suppressing error: %v", err)
@@ -285,6 +284,10 @@ func OwnAccount(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPr
 		}
 	}
 	return false, false, nil
+}
+
+func OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.AccountID) (own, isPrimary bool, err error) {
+	return getGlobal(mctx.G()).OwnAccountCached(mctx, accountID)
 }
 
 func lookupSenderEntry(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar1.BundleEntry, stellar1.AccountBundle, error) {
@@ -732,7 +735,7 @@ func PathPaymentTx(mctx libkb.MetaContext, walletState *WalletState, sendArg Sen
 		return nil, nil, nil, err
 	}
 
-	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(sendArg.To), false)
+	recipient, err := LookupRecipient(mctx, sendArg.To, false)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1678,9 +1681,8 @@ func chatRecipientStr(mctx libkb.MetaContext, recipient stellarcommon.Recipient)
 		return recipient.User.Username.String()
 	} else if recipient.Assertion != nil {
 		return recipient.Assertion.String()
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func chatSendPaymentMessageSoft(mctx libkb.MetaContext, to string, txID stellar1.TransactionID, logLabel string) {
@@ -1784,12 +1786,13 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		Currency: arg.Currency,
 	}
 
-	if recipient.User != nil {
+	switch {
+	case recipient.User != nil:
 		post.ToAssertion = recipient.User.Username.String()
 		post.ToUser = &recipient.User.UV
-	} else if recipient.Assertion != nil {
+	case recipient.Assertion != nil:
 		post.ToAssertion = recipient.Assertion.String()
-	} else {
+	default:
 		return ret, fmt.Errorf("expected username or user assertion as recipient")
 	}
 

@@ -14,9 +14,9 @@ const mapStateToProps = (state, ownProps) => ({
   _uploads: state.fs.uploads.syncingPaths,
 })
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = () => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, _, ownProps: OwnProps) => {
   const status = Constants.getSyncStatusInMergeProps(
     stateProps._kbfsDaemonStatus,
     stateProps._tlf,

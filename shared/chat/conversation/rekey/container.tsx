@@ -22,7 +22,7 @@ type Props = {
 }
 
 const mapStateToProps = (state, {conversationIDKey}) => ({
-  _you: state.config.username || '',
+  _you: state.config.username,
   rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
 })
 
@@ -33,7 +33,7 @@ const mapDispatchToProps = dispatch => ({
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onBack: dispatchProps.onBack,
   onEnterPaperkey: dispatchProps.onEnterPaperkey,
   onRekey: dispatchProps.onRekey,

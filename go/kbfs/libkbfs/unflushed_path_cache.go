@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -61,8 +60,6 @@ type unflushedPathCache struct {
 	chainsPopulator chainsPathPopulator
 	queue           []upcQueuedOp
 }
-
-var errUPCNotInitialized = errors.New("The unflushed path cache is not yet initialized")
 
 // getUnflushedPaths returns a copy of the unflushed path cache if it
 // has been initialized, otherwise nil.  It must be called under the

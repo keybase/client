@@ -121,66 +121,69 @@ const ShowcaseTeamOffer = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 600,
-      maxWidth: 600,
-    },
-  }),
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.mediumLarge,
-    },
-  }),
-  headerText: {
-    marginBottom: Styles.globalMargins.xsmall,
-  },
-  membershipText: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_50},
-    isElectron: {textAlign: 'right'},
-    isMobile: {textAlign: 'center'},
-  }),
-  membershipTextContainer: {
-    flexShrink: 1,
-  },
-  meta: {
-    alignSelf: 'center',
-    marginLeft: Styles.globalMargins.xtiny,
-    marginTop: 2,
-  },
-  noteContainer: Styles.platformStyles({
-    isMobile: {
-      paddingTop: Styles.globalMargins.small,
-    },
-  }),
-  noteText: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  teamNameContainer: {
-    flexShrink: 1,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-  teamRowContainer: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      minHeight: Styles.isMobile ? 64 : 48,
-    },
-  }),
-  teamText: {
-    alignSelf: 'flex-start',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          maxHeight: 600,
+          maxWidth: 600,
+        },
+      }),
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.mediumLarge,
+        },
+      }),
+      headerText: {
+        marginBottom: Styles.globalMargins.xsmall,
+      },
+      membershipText: Styles.platformStyles({
+        common: {color: Styles.globalColors.black_50},
+        isElectron: {textAlign: 'right'},
+        isMobile: {textAlign: 'center'},
+      }),
+      membershipTextContainer: {
+        flexShrink: 1,
+      },
+      meta: {
+        alignSelf: 'center',
+        marginLeft: Styles.globalMargins.xtiny,
+        marginTop: 2,
+      },
+      noteContainer: Styles.platformStyles({
+        isMobile: {
+          paddingTop: Styles.globalMargins.small,
+        },
+      }),
+      noteText: {
+        paddingBottom: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.large,
+        paddingRight: Styles.globalMargins.large,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      teamNameContainer: {
+        flexShrink: 1,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
+      teamRowContainer: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          minHeight: Styles.isMobile ? 64 : 48,
+        },
+      }),
+      teamText: {
+        alignSelf: 'flex-start',
+      },
+    } as const)
+)
 
 export default ShowcaseTeamOffer

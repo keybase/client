@@ -7,6 +7,7 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import {Action, Props, LeftActionProps} from './types'
+import {hoistNonReactStatic} from '../../util/container'
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -184,7 +185,7 @@ const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActio
       <Icon fontSize={22} onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
       <FloatingMenu
         visible={floatingMenuVisible}
-        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map((action, item) => ({
+        items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
           onClick: action.onPress,
           title: action.label || 'You need to specify a label', // TODO: remove this after updates are fully integrated
         }))}
@@ -210,7 +211,12 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
       type={action.icon}
     />
   ) : (
-    <Text key={action.label} type="BodyBigLink" style={styles.action} onClick={action.onPress}>
+    <Text
+      key={action.label}
+      type="BodyBigLink"
+      style={Styles.collapseStyles([styles.action, action.color && {color: action.color}])}
+      onClick={action.onPress}
+    >
       {action.label}
     </Text>
   )
@@ -229,13 +235,14 @@ function HeaderHoc<P extends {}>(WrappedComponent: React.ComponentType<P>) {
     </Box>
   )
 
+  hoistNonReactStatic(HeaderHocWrapper, WrappedComponent)
   return HeaderHocWrapper
 }
 
 // If layout is changed here, please make sure the Files header is updated as
 // well to match this. fs/nav-header/mobile-header.js
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   action: Styles.platformStyles({
     common: {
       opacity: 1,
@@ -270,6 +277,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
+      borderStyle: 'solid',
       justifyContent: 'flex-start',
       width: '100%',
     },
@@ -317,6 +325,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
       flexGrow: 1,
+      flexShrink: 2,
       justifyContent: 'center',
     },
     isAndroid: {
@@ -340,6 +349,6 @@ const styles = Styles.styleSheetCreate({
   titleTextContainer: {
     ...Styles.globalStyles.fillAbsolute,
   },
-})
+}))
 
 export default HeaderHoc

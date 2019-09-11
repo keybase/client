@@ -12,7 +12,7 @@ const BadLines = () => null
 const GoodLines = ({color}: {color: Styles.Color}) => {
   const s = [styles.common, {backgroundColor: color}]
   return (
-    <React.Fragment>
+    <>
       <Box style={Styles.collapseStyles([...s, {height: long, left: padding, top: padding, width: small}])} />
       <Box style={Styles.collapseStyles([...s, {height: small, left: padding, top: padding, width: long}])} />
       <Box
@@ -33,15 +33,15 @@ const GoodLines = ({color}: {color: Styles.Color}) => {
       <Box
         style={Styles.collapseStyles([...s, {bottom: padding, height: small, right: padding, width: long}])}
       />
-    </React.Fragment>
+    </>
   )
 }
 
 const QRScanLines = ({canScan, color}: {canScan: boolean; color?: Styles.Color}) =>
   canScan ? <GoodLines color={color || Styles.globalColors.blue} /> : <BadLines />
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   common: {position: 'absolute'},
-})
+}))
 
 export default QRScanLines

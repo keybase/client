@@ -6,23 +6,38 @@ import Intro from './intro'
 type OnboardingProps = {
   acceptDisclaimerError: string
   acceptingDisclaimerDelay: boolean
+  headerBody: string
+  headerTitle: string
+  nextScreen: Types.NextScreenAfterAcceptance
   onAcceptDisclaimer: () => void
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void
+  onLoadDetails: () => void
   onClose: () => void
+  sections: Types.StellarDetailsSections
 }
 
 type OnboardingState = {
-  nextScreen: '' | 'openWallet' | 'linkExisting'
+  seenIntro: boolean
 }
 
 class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
-  state = {nextScreen: '' as const}
-  _setNextScreen = (nextScreen: Types.NextScreenAfterAcceptance) => {
-    this.setState({nextScreen})
+  state = {seenIntro: false}
+  _seenIntro = () => {
+    this.setState({seenIntro: true})
+  }
+  componentDidMount() {
+    this.props.onLoadDetails()
   }
   render() {
-    if (!this.state.nextScreen) {
-      return <Intro onClose={this.props.onClose} setNextScreen={this._setNextScreen} />
+    if (!this.state.seenIntro) {
+      return (
+        <Intro
+          headerBody={this.props.headerBody}
+          headerTitle={this.props.headerTitle}
+          onClose={this.props.onClose}
+          onSeenIntro={this._seenIntro}
+        />
+      )
     } else {
       return (
         <Disclaimer
@@ -30,9 +45,10 @@ class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
           acceptingDisclaimerDelay={this.props.acceptingDisclaimerDelay}
           onAcceptDisclaimer={this.props.onAcceptDisclaimer}
           onCheckDisclaimer={() => {
-            this.props.onCheckDisclaimer(this.state.nextScreen)
+            this.props.onCheckDisclaimer(this.props.nextScreen)
           }}
           onNotNow={this.props.onClose}
+          sections={this.props.sections}
         />
       )
     }

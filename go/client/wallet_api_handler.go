@@ -583,7 +583,7 @@ type batchPayment struct {
 
 // batchOptions are the options for the batch payment method.
 type batchOptions struct {
-	BatchID  string         `json:"batchID"`
+	BatchID  string         `json:"batch-id"`
 	Timeout  int            `json:"timeout"`
 	Payments []batchPayment `json:"payments"`
 }
@@ -610,7 +610,7 @@ func (c *batchOptions) Check() error {
 	}
 
 	if c.Timeout <= 0 {
-		c.Timeout = 15 * len(c.Payments)
+		c.Timeout = 2 * len(c.Payments)
 	}
 
 	return nil

@@ -20,20 +20,23 @@ const Modal = ({children, onCancel, skipButton}: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  buttonBar: {
-    flexShrink: 0,
-    padding: Styles.isMobile ? undefined : Styles.globalMargins.medium,
-  },
-  container: {
-    minHeight: Styles.isMobile ? undefined : 450,
-    padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
-    width: Styles.isMobile ? undefined : 560,
-  },
-  content: {
-    flexGrow: 1,
-    justifyContent: 'space-around',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      buttonBar: {
+        flexShrink: 0,
+        padding: Styles.isMobile ? undefined : Styles.globalMargins.medium,
+      },
+      container: {
+        minHeight: Styles.isMobile ? undefined : 450,
+        padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
+        width: Styles.isMobile ? undefined : 560,
+      },
+      content: {
+        flexGrow: 1,
+        justifyContent: 'space-around',
+      },
+    } as const)
+)
 
 export default Kb.HeaderOrPopup(Modal)

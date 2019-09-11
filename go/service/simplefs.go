@@ -388,14 +388,14 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 
 // SimpleFSReset implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSReset(
-	ctx context.Context, path keybase1.Path) (err error) {
+	ctx context.Context, arg keybase1.SimpleFSResetArg) (err error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return err
 	}
-	return cli.SimpleFSReset(ctx, path)
+	return cli.SimpleFSReset(ctx, arg)
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
@@ -450,14 +450,14 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
-	ctx context.Context) (keybase1.SyncConfigAndStatusRes, error) {
+	ctx context.Context, identifyBehavior *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.SyncConfigAndStatusRes{}, err
 	}
-	return cli.SimpleFSSyncConfigAndStatus(ctx)
+	return cli.SimpleFSSyncConfigAndStatus(ctx, identifyBehavior)
 }
 
 // SimpleFSClearConflictState implements the SimpleFSInterface.
@@ -589,4 +589,34 @@ func (s *SimpleFSHandler) SimpleFSGetStats(ctx context.Context) (
 		return keybase1.SimpleFSStats{}, err
 	}
 	return cli.SimpleFSGetStats(ctx)
+}
+
+func (s *SimpleFSHandler) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSubscribeNonPath(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSubscribePath(ctx, arg)
+}
+
+func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSUnsubscribe(ctx, arg)
 }

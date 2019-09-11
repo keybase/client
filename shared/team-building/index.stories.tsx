@@ -1,13 +1,16 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
+import emailInput from './email-input/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
 import TeamBox from './team-box'
 import GoButton from './go-button'
-import ServiceTabBar from './service-tab-bar'
+import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './user-result'
+import PhoneSearch from './phone-search'
+import * as Constants from '../constants/team-building'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -31,26 +34,55 @@ const generateTeamSofar = (count: number) => {
   })
 }
 
+const commonProps = {
+  focusInputCounter: 0,
+  showRecs: false,
+  showResults: false,
+  showServiceResultCount: false,
+}
+
+const contactProps = {
+  contactsImported: false,
+  contactsPermissionStatus: 'granted',
+  isImportPromptDismissed: false,
+  numContactsImported: 0,
+  onAskForContactsLater: Sb.action('onAskForContactsLater'),
+  onImportContacts: Sb.action('onImportContacts'),
+  onLoadContactsSetting: Sb.action('onLoadContactsSetting'),
+}
+
+const eventHandlers = {
+  incFocusInputCounter: Sb.action('incFocusInputCounter'),
+  onBackspace: Sb.action('onBackspace'),
+  onChangeService: Sb.action('onChangeService'),
+  onChangeText: Sb.action('onChangeText'),
+  onClear: Sb.action('onClear'),
+  onDownArrowKeyDown: Sb.action('onDownArrowKeyDown'),
+  onEnterKeyDown: Sb.action('onEnterKeyDown'),
+  onFinishTeamBuilding: Sb.action('onFinishTeamBuilding'),
+  onMakeItATeam: Sb.action('onMakeItATeam'),
+  onRemove: Sb.action('onRemove'),
+  onTabBarScroll: Sb.action('onTabBarScroll'),
+  onTabBarSleepy: Sb.action('onTabBarSleepy'),
+  onUpArrowKeyDown: Sb.action('onUpArrowKeyDown'),
+}
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        fetchUserRecs={() => {}}
+        includeContacts={true}
+        recommendations={[]}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
-        recommendations={[]}
-        fetchUserRecs={() => {}}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
@@ -75,12 +107,14 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -96,7 +130,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -111,7 +146,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -126,25 +162,22 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        includeContacts={true}
+        title="The Title"
+        fetchUserRecs={() => {}}
+        recommendations={[]}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
-        recommendations={[]}
-        fetchUserRecs={() => {}}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
@@ -169,12 +202,14 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -190,7 +225,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -205,7 +241,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -220,10 +257,17 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Show role picker', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        includeContacts={true}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
           changeShowRolePicker: Sb.action('changeShowRolePicker'),
@@ -236,16 +280,6 @@ const load = () => {
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -260,55 +294,51 @@ const load = () => {
           },
         ]}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - No search string or results', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        includeContacts={true}
         searchString=""
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
           Sb.action('onSearchForMore')
         }}
         teamSoFar={[]}
+        search={Sb.action('search')}
         searchResults={[]}
+        teamBuildingSearchResults={{}}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
       />
     ))
     .add('Team Building - One line of users', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -316,12 +346,14 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(9)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -337,7 +369,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -352,7 +385,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -367,23 +401,20 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - One line of users + 1', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -391,12 +422,14 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(10)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -412,7 +445,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -427,7 +461,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -442,23 +477,20 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
     .add('Team Building - Lotsa users', () => (
       <TeamBuilding
+        {...commonProps}
+        {...contactProps}
+        {...eventHandlers}
+        namespace="chat2"
+        title="The Title"
+        includeContacts={true}
         searchString="chris"
         selectedService="keybase"
         waitingForCreate={false}
-        onChangeService={Sb.action('onChangeService')}
-        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspace={Sb.action('onBackspace')}
-        onRemove={Sb.action('onRemove')}
-        onMakeItATeam={Sb.action('onMakeItATeam')}
-        showRecs={false}
         recommendations={[]}
         fetchUserRecs={() => {}}
         onSearchForMore={() => {
@@ -466,12 +498,14 @@ const load = () => {
         }}
         teamSoFar={generateTeamSofar(100)}
         serviceResultCount={{}}
-        showServiceResultCount={false}
         onAdd={Sb.action('onAdd')}
+        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
+        search={Sb.action('search')}
         searchResults={[
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Coyne',
+            followingState: 'Following' as const,
             inTeam: true,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
@@ -487,7 +521,8 @@ const load = () => {
             username: 'chris',
           },
           {
-            followingState: 'NotFollowing',
+            displayLabel: 'Chris Mikacle',
+            followingState: 'NotFollowing' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
@@ -502,7 +537,8 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
-            followingState: 'Following',
+            displayLabel: 'Chris Nojima',
+            followingState: 'Following' as const,
             inTeam: false,
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
@@ -517,23 +553,27 @@ const load = () => {
             username: 'chrisnojima',
           },
         ]}
+        teamBuildingSearchResults={{}}
       />
     ))
 
     .add('Input', () => (
       <Input
-        hasMembers={false}
         placeholder="Type in some input inside"
         searchString=""
-        onChangeText={Sb.action('onChangeText')}
-        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
-        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
-        onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onBackspace={Sb.action('onBackspace')}
+        onChangeText={Sb.action('onChangeText')}
+        onClear={Sb.action('onClear')}
+        onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+        onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+        focusOnMount={true}
+        focusCounter={0}
       />
     ))
     .add('TeamBox', () => (
       <TeamBox
+        allowPhoneEmail={false}
         searchString=""
         onChangeText={Sb.action('onChangeText')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
@@ -558,14 +598,14 @@ const load = () => {
         ]}
       />
     ))
-    .add('Go Button', () => <GoButton label="Go!" onClick={Sb.action('onClick')} />)
+    .add('Go Button', () => <GoButton label="Start" onClick={Sb.action('onClick')} />)
 
   Sb.storiesOf('Team-Building/User Bubble', module)
     .addDecorator(provider)
     .add('Plain', () => (
       <UserBubble
         username="max"
-        prettyName="max (Max Krohn)"
+        tooltip="max (Max Krohn)"
         service="keybase"
         onRemove={Sb.action('onRemove')}
       />
@@ -573,7 +613,7 @@ const load = () => {
     .add('GitHub', () => (
       <UserBubble
         username="marcopolo"
-        prettyName="marcopolo (GitHub)"
+        tooltip="marcopolo (GitHub)"
         service="github"
         onRemove={Sb.action('onRemove')}
       />
@@ -582,6 +622,7 @@ const load = () => {
   Sb.storiesOf('Team-Building/Service Tab Bar', module)
     .add('With Service Results counts', () => (
       <ServiceTabBar
+        services={Constants.allServices}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{
@@ -594,6 +635,7 @@ const load = () => {
     ))
     .add('Pending results', () => (
       <ServiceTabBar
+        services={Constants.allServices}
         selectedService="keybase"
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{}}
@@ -609,10 +651,12 @@ const load = () => {
     'github',
     'reddit',
     'hackernews',
+    'phone',
   ]
   servicesToDisplay.forEach(service => {
     Sb.storiesOf('Team-Building/Service Tab Bar', module).add(`${service} selected`, () => (
       <ServiceTabBar
+        services={Constants.allServices}
         selectedService={service}
         onChangeService={Sb.action('onChangeService')}
         serviceResultCount={{}}
@@ -627,8 +671,9 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         highlight={false}
-        resultForService={'keybase'}
+        resultForService="keybase"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -638,7 +683,7 @@ const load = () => {
         }}
         inTeam={false}
         isPreExistingTeamMember={false}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
@@ -647,8 +692,9 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         highlight={false}
-        resultForService={'keybase'}
+        resultForService="keybase"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -658,34 +704,36 @@ const load = () => {
         }}
         inTeam={true}
         isPreExistingTeamMember={false}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
     ))
     .add('marcopolo (github) - keybase user. following', () => (
       <UserResult
-        resultForService={'github'}
+        resultForService="github"
         username="marcopolo"
         prettyName=""
+        displayLabel=""
         highlight={false}
         services={{github: 'marcopolo', keybase: 'marcopolo'}}
         inTeam={true}
         isPreExistingTeamMember={false}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
       />
     ))
     .add('marcopolo2 (github) - no keybase user', () => (
       <UserResult
-        resultForService={'github'}
+        resultForService="github"
         username="marcopolo"
         prettyName=""
+        displayLabel=""
         highlight={false}
         services={{github: 'marcopolo'}}
         inTeam={true}
-        followingState={'NoState'}
+        followingState={'NoState' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         isPreExistingTeamMember={false}
@@ -696,6 +744,7 @@ const load = () => {
         isPreExistingTeamMember={false}
         username="chris"
         prettyName="Chris Coyne"
+        displayLabel="Chris Coyne"
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -704,13 +753,23 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={'Following'}
+        followingState={'Following' as const}
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
-        resultForService={'keybase'}
+        resultForService="keybase"
       />
     ))
+
+  Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
+    <PhoneSearch
+      onContinue={Sb.action('onContinue')}
+      search={Sb.action('search')}
+      teamBuildingSearchResults={{}}
+    />
+  ))
+
+  emailInput()
 }
 
 export default load

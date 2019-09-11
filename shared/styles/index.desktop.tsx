@@ -1,9 +1,15 @@
-import globalColors from './colors'
+import {colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
-import * as T from './index.types'
 import * as Shared from './shared'
 import {isEmpty} from 'lodash-es'
+import styleSheeCreateProxy from './style-sheet-proxy'
+import * as CSS from './css'
+
+type _Elem = Object | null | false | void
+// CollapsibleStyle is a generic version of ?StylesMobile and family,
+// slightly extended to support "isFoo && myStyle".
+type CollapsibleStyle = _Elem | ReadonlyArray<_Elem>
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -49,7 +55,8 @@ const font = {
 const util = {
   ...Shared.util({flexCommon: {display: 'flex'}}),
   loadingTextStyle: {
-    backgroundColor: globalColors.greyLight,
+    // this won't really work with dark mode
+    backgroundColor: colors.greyLight,
     height: 16,
     marginBottom: Shared.globalMargins.tiny,
     marginTop: Shared.globalMargins.tiny,
@@ -63,7 +70,7 @@ export const globalStyles = {
 
 export const mobileStyles = {}
 export const desktopStyles = {
-  boxShadow: {boxShadow: `0 2px 5px 0 ${globalColors.black_20}`},
+  boxShadow: {boxShadow: `0 2px 5px 0 ${colors.black_20OrBlack}`},
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
@@ -113,15 +120,22 @@ export const initDesktopStyles = () => {
   }
   const style = document.createElement('style')
   style.type = 'text/css'
-  const css = Object.keys(globalColors).reduce((s, name) => {
-    const color = globalColors[name]
+  const css = Object.keys(colors).reduce((s, name) => {
+    const color = colors[name]
+    const darkColor = darkColors[name]
     if (color) {
       return (
         s +
         `.color_${name} {color: ${color};}\n` +
+        `.darkMode .color_${name} {color: ${darkColor};}\n` +
         `.hover_color_${name}:hover {color: ${color};}\n` +
+        `.darkMode .hover_color_${name}:hover {color: ${darkColor};}\n` +
+        `.hover_container:hover .hover_contained_color_${name} {color: ${color};}\n` +
+        `.darkMode .hover_container:hover .hover_contained_color_${name} {color: ${darkColor};}\n` +
         `.background_color_${name} {background-color: ${color};}\n` +
-        `.hover_background_color_${name}:hover {background-color: ${color};}\n`
+        `.darkMode .background_color_${name} {background-color: ${darkColor};}\n` +
+        `.hover_background_color_${name}:hover {background-color: ${color};}\n` +
+        `.darkMode .hover_background_color_${name}:hover {background-color: ${darkColor};}\n`
       )
     } else {
       return s
@@ -132,8 +146,8 @@ export const initDesktopStyles = () => {
 }
 
 export const hairlineWidth = 1
-export const styleSheetCreate = (obj: Object) => obj
-export const collapseStyles = (styles: ReadonlyArray<T.CollapsibleStyle>): Object | undefined => {
+export const styleSheetCreate = (obj: Object) => styleSheeCreateProxy(obj, o => o)
+export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object | undefined => {
   // fast path for a single style that passes. Often we do stuff like
   // collapseStyle([styles.myStyle, this.props.something && {backgroundColor: 'red'}]), so in the false
   // case we can just take styles.myStyle and not render thrash
@@ -146,10 +160,10 @@ export const collapseStyles = (styles: ReadonlyArray<T.CollapsibleStyle>): Objec
   }
 
   const flattenedStyles = styles.reduce(
-    (a: Array<T.CollapsibleStyle>, e: T.CollapsibleStyle) => a.concat(e),
+    (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
     []
   ) as Array<Object | null | false>
-  const style = flattenedStyles.reduce<Object>((o, e) => (e ? {...o, ...e} : o), {})
+  const style = flattenedStyles.reduce<Object>((o, e) => Object.assign(o, e), {})
   return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
@@ -160,12 +174,14 @@ export {
   platformStyles,
   padding,
 } from './shared'
+
 export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
 export {default as styled} from '@emotion/styled'
-export {default as globalColors} from './colors'
+export {themed as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4
 export {default as classNames} from 'classnames'
-export type StylesCrossPlatform = T.StylesCrossPlatform
+export type StylesCrossPlatform = CSS.StylesCrossPlatform
 export const dimensionWidth = 0
 export const dimensionHeight = 0
+export {isDarkMode} from './dark-mode'

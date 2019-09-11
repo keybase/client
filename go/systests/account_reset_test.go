@@ -16,8 +16,8 @@ func assertResetBadgeState(t *testing.T, user *userPlusDevice, expectedDaysLeft 
 		badges := getBadgeState(t, user)
 		g.Log.Debug("Iter loop %d badge state: %+v", i, badges)
 		if expectedDaysLeft > 0 {
-			daysLeft := int(badges.ResetState.EndTime.Time().Sub(time.Now()) / (time.Hour * 24))
-			return expectedDaysLeft == int(daysLeft)
+			daysLeft := int(time.Until(badges.ResetState.EndTime.Time()) / (time.Hour * 24))
+			return expectedDaysLeft == daysLeft
 		}
 		return badges.ResetState.EndTime == 0
 	})

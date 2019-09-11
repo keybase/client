@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {isEqual} from 'lodash-es'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
@@ -21,13 +22,14 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     buildingAdvanced.recipientAsset === Constants.emptyAssetDescription ||
     buildingAdvanced.senderAsset === Constants.emptyAssetDescription
   const builtPaymentAdvanced = Container.useSelector(state => state.wallets.builtPaymentAdvanced)
+  const hasTrivialPath = isEqual(buildingAdvanced.senderAsset, buildingAdvanced.recipientAsset)
   return !isLoading ? (
     props.isIcon ? (
       builtPaymentAdvanced.findPathError ? (
         <Kb.Icon type="iconfont-remove" sizeType="Big" color={Styles.globalColors.red} />
       ) : (
         <Kb.WithTooltip
-          text="Calculate the amount you will send"
+          tooltip="Calculate the amount you will send"
           position="bottom left"
           disabled={isDisabled}
         >
@@ -42,7 +44,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
     ) : (
       <Kb.Button
         type="Wallet"
-        label="Calculate"
+        label={hasTrivialPath ? 'Confirm details' : 'Calculate'}
         children={
           <Kb.Icon type="iconfont-calculator" color={Styles.globalColors.white} style={styles.icon} />
         }
@@ -59,7 +61,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
 
 export default CalculateAdvancedButton
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   calculating: Styles.platformStyles({
     isElectron: {
       height: Styles.globalMargins.medium,
@@ -73,4 +75,4 @@ const styles = Styles.styleSheetCreate({
   icon: {
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))

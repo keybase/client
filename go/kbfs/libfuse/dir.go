@@ -143,7 +143,12 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
 		ctx := libcontext.BackgroundContextWithCancellationDelayer()
-		defer libcontext.CleanupCancellationDelayer(ctx)
+		defer func() {
+			err := libcontext.CleanupCancellationDelayer(ctx)
+			if err != nil {
+				f.fs.log.CDebugf(ctx, "Coudn't cleanup ctx: %+v", err)
+			}
+		}()
 		f.unsetFolderBranch(ctx)
 		f.list.forgetFolder(string(f.name()))
 	}
@@ -722,6 +727,14 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 		inode:  d.folder.fs.assignInode(),
 	}
 	return child, nil
+}
+
+var _ fs.NodeLinker = (*Dir)(nil)
+
+// Link implements the fs.NodeLinker interface for Dir.
+func (d *Dir) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
 }
 
 // Rename implements the fs.NodeRenamer interface for Dir.

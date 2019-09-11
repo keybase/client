@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen, errorBanner} from '../common'
+import * as Platform from '../../constants/platform'
+import {SignupScreen, errorBanner, InfoIcon} from '../common'
 
 type Props = {
   error: string
@@ -29,7 +30,15 @@ const EnterDevicename = (props: Props) => {
         fullWidth={true}
         style={Styles.globalStyles.flexOne}
       >
-        <Kb.Icon type={Styles.isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Icon
+          type={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-phone-background-1-96'
+                : 'icon-phone-background-1-64'
+              : 'icon-computer-background-1-96'
+          }
+        />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
           <Kb.NewInput
             autoFocus={true}
@@ -47,8 +56,21 @@ const EnterDevicename = (props: Props) => {
     </SignupScreen>
   )
 }
+EnterDevicename.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
+}
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   input: Styles.platformStyles({
     common: {},
     isElectron: {
@@ -70,6 +92,6 @@ const styles = Styles.styleSheetCreate({
   inputSub: {
     marginLeft: 2,
   },
-})
+}))
 
 export default EnterDevicename

@@ -26,7 +26,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
         {props.prompt}
         <Picker
           selectedValue={props.selectedValue}
-          onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
+          onValueChange={itemValue => props.onSelect(itemValue)}
           prompt={props.promptString}
           style={styles.picker}
           itemStyle={Styles.globalStyles.fontRegular}
@@ -41,47 +41,50 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  actionButtons: {
-    alignItems: 'stretch',
-    height: 56,
-    justifyContent: 'flex-end',
-  },
-  flexOne: {
-    flex: 1,
-  },
-  link: {
-    color: Styles.globalColors.blueDark,
-    fontSize: 17,
-    padding: Styles.globalMargins.small,
-  },
-  menu: {
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'flex-end',
-  },
-  overlay: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.black_50,
-    justifyContent: 'flex-end',
-  },
-  overlayContainer: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  picker: Styles.platformStyles({
-    isAndroid: {
-      marginBottom: Styles.globalMargins.large,
-      marginTop: Styles.globalMargins.medium,
-    },
-  }),
-  safeArea: {
-    backgroundColor: Styles.globalColors.white,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionButtons: {
+        alignItems: 'stretch',
+        height: 56,
+        justifyContent: 'flex-end',
+      },
+      flexOne: {
+        flex: 1,
+      },
+      link: {
+        color: Styles.globalColors.blueDark,
+        fontSize: 17,
+        padding: Styles.globalMargins.small,
+      },
+      menu: {
+        alignItems: 'stretch',
+        backgroundColor: Styles.globalColors.white,
+        justifyContent: 'flex-end',
+      },
+      overlay: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+        backgroundColor: Styles.globalColors.black_50,
+        justifyContent: 'flex-end',
+      },
+      overlayContainer: {
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      picker: Styles.platformStyles({
+        isAndroid: {
+          marginBottom: Styles.globalMargins.large,
+          marginTop: Styles.globalMargins.medium,
+        },
+      }),
+      safeArea: {
+        backgroundColor: Styles.globalColors.white,
+      },
+    } as const)
+)
 
 export default FloatingPicker

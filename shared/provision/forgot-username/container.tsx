@@ -1,22 +1,20 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Constants from '../../constants/provision'
 import ForgotUsername from '.'
 import {connect} from '../../util/container'
-import {RouteProps} from '../../route-tree/render-route'
+import * as Container from '../../util/container'
 
-type OwnProps = RouteProps
-
-const mapStateToProps = state => ({
-  forgotUsernameResult: state.provision.forgotUsernameResult,
-})
-
-const dispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSubmit: (email: string) => dispatch(ProvisionGen.createForgotUsername({email})),
-})
+type OwnProps = {}
 
 export default connect(
-  mapStateToProps,
-  dispatchToProps,
-  (s, d, _) => ({...s, ...d})
+  state => ({
+    forgotUsernameResult: state.provision.forgotUsernameResult,
+    waiting: Container.anyWaiting(state, Constants.forgotUsernameWaitingKey),
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onSubmit: (email: string, phone: string) => dispatch(ProvisionGen.createForgotUsername({email, phone})),
+  }),
+  (s, d, _: OwnProps) => ({...s, ...d})
 )(ForgotUsername)

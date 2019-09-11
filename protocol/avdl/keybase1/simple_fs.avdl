@@ -50,6 +50,12 @@ protocol SimpleFS {
   record KBFSArchivedPath {
     string path;
     KBFSArchivedParam archivedParam;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
+  }
+
+  record KBFSPath {
+    string path;
+    union{ null, TLFIdentifyBehavior } identifyBehavior;
   }
 
   enum PathType {
@@ -60,7 +66,7 @@ protocol SimpleFS {
 
   variant Path switch (PathType PathType) {
     case LOCAL: string;
-    case KBFS: string;
+    case KBFS: KBFSPath;
     case KBFS_ARCHIVED: KBFSArchivedPath;
   }
 
@@ -321,7 +327,7 @@ protocol SimpleFS {
   /**
    Get info about file
    */
-  Dirent simpleFSStat(Path path, union{ null, TLFIdentifyBehavior } identifyBehavior, boolean refreshSubscription);
+  Dirent simpleFSStat(Path path, boolean refreshSubscription);
 
   /**
    Get revision info for a directory entry
@@ -467,7 +473,7 @@ protocol SimpleFS {
    simpleFSReset completely resets the KBFS folder referenced in `path`.
    It should only be called after explicit user confirmation.
    */
-  void simpleFSReset(Path path);
+  void simpleFSReset(Path path, string tlfID);
 
   enum FolderSyncMode {
     DISABLED_0,
@@ -509,7 +515,7 @@ protocol SimpleFS {
   // simpleFSSyncConfigAndStatus returns the sync config and status
   // for all syncing folders, as well as an overall status for the whole
   // device.
-  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus();
+  SyncConfigAndStatusRes simpleFSSyncConfigAndStatus(union{ null, TLFIdentifyBehavior } identifyBehavior);
 
   boolean simpleFSAreWeConnectedToMDServer();
 
@@ -541,10 +547,28 @@ protocol SimpleFS {
   array<string> simpleFSDeobfuscatePath(Path path);
 
   record SimpleFSStats {
+    ProcessRuntimeStats processStats;
     array<string> blockCacheDbStats;
     array<string> syncCacheDbStats;
     array<DbStats> runtimeDbStats;
   }
 
   SimpleFSStats simpleFSGetStats();
+
+  enum SubscriptionTopic {
+    FAVORITES_0,
+    JOURNAL_STATUS_1,
+    ONLINE_STATUS_2
+  }
+  enum PathSubscriptionTopic {
+    CHILDREN_0,
+    STAT_1
+  }
+
+  // Caller needs to make sure subscriptionID is unique. Notifications are
+  // delivered through notify_fs.
+  void simpleFSSubscribePath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, string kbfsPath, PathSubscriptionTopic topic, int deduplicateIntervalSecond);
+  void simpleFSSubscribeNonPath(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID, SubscriptionTopic topic, int deduplicateIntervalSecond);
+
+  void simpleFSUnsubscribe(union{ null, TLFIdentifyBehavior } identifyBehavior, string subscriptionID);
 }

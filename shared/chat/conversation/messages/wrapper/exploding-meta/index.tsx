@@ -202,7 +202,7 @@ export const getLoopInterval = (diff: number) => {
   return deltaMS + halfNearestUnit
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -244,6 +244,6 @@ const styles = Styles.styleSheetCreate({
       width: 32,
     },
   }),
-})
+}))
 
 export default Kb.HOCTimers(ExplodingMeta)

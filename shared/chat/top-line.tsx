@@ -39,9 +39,10 @@ class FilteredTopLine extends PureComponent<Props> {
             title={this.props.participants.join(', ')}
           />
           {!!this.props.numSearchHits && (
-            <Kb.Text type="BodySmall" style={Styles.collapseStyles([
-              this.props.isSelected && styles.selectedText,
-            ])}>
+            <Kb.Text
+              type="BodySmall"
+              style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
+            >
               {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
             </Kb.Text>
           )}
@@ -51,7 +52,7 @@ class FilteredTopLine extends PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   boldOverride: {
     ...Styles.globalStyles.fontBold,
   },
@@ -61,6 +62,6 @@ const styles = Styles.styleSheetCreate({
   usernames: {
     paddingRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export {FilteredTopLine}

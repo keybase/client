@@ -13,6 +13,7 @@ const renderItem = ({item}) => {
 }
 
 function SettingsNav(props: Props) {
+  const {badgeNumbers} = props
   return (
     <NativeSectionList
       keyExtractor={(item, index) => item.text + index}
@@ -29,19 +30,19 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
-              badgeNumber: props.badgeNumbers[TabConstants.gitTab],
+              badgeNumber: badgeNumbers.get(TabConstants.gitTab),
               icon: 'iconfont-nav-git',
               onClick: () => props.onTabChange(Constants.gitTab),
               text: 'Git',
             },
             {
-              badgeNumber: props.badgeNumbers[TabConstants.devicesTab],
+              badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
               icon: 'iconfont-nav-devices',
               onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
             {
-              badgeNumber: props.badgeNumbers[TabConstants.walletsTab],
+              badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
               icon: 'iconfont-nav-wallets',
               onClick: () => props.onTabChange(Constants.walletsTab),
               text: 'Wallet',
@@ -52,13 +53,17 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
-              badgeNumber: props.badgeNumbers[TabConstants.settingsTab],
+              badgeNumber: badgeNumbers.get(TabConstants.settingsTab),
               onClick: () => props.onTabChange(Constants.accountTab),
-              text: 'Account',
+              text: 'Your account',
             },
             {
               onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',
+            },
+            {
+              onClick: () => props.onTabChange(Constants.contactsTab),
+              text: props.contactsLabel,
             },
             ...(flags.kbfsOfflineMode
               ? [
@@ -77,7 +82,7 @@ function SettingsNav(props: Props) {
               ? [
                   {
                     onClick: () => props.onTabChange(Constants.screenprotectorTab),
-                    text: 'Screen Protector',
+                    text: 'Screen protector',
                   },
                 ]
               : []),
@@ -102,7 +107,7 @@ function SettingsNav(props: Props) {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   sectionTitle: {
     backgroundColor: globalColors.blueLighter3,
     color: globalColors.black_50,
@@ -111,6 +116,6 @@ const styles = styleSheetCreate({
     paddingRight: globalMargins.small,
     paddingTop: 7,
   },
-})
+}))
 
 export default SettingsNav

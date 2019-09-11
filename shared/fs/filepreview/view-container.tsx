@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import {namedConnect} from '../../util/container'
 import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
@@ -6,7 +5,6 @@ import View from './view'
 
 type OwnProps = {
   path: Types.Path
-  routePath: I.List<string>
   onLoadingStateChange: (isLoading: boolean) => void
 }
 
@@ -19,12 +17,11 @@ const mapStateToProps = (state, {path}: OwnProps) => {
 
 const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
-const mergeProps = (s, d, {path, routePath, onLoadingStateChange}: OwnProps) => ({
+const mergeProps = (s, _, {path, onLoadingStateChange}: OwnProps) => ({
   lastModifiedTimestamp: s._pathItem.lastModifiedTimestamp,
   mime: s._pathItem.type === Types.PathType.File ? s._pathItem.mimeType : null,
   onLoadingStateChange,
   path,
-  routePath,
   tooLargeForText: s._pathItem.type === Types.PathType.File && s._pathItem.size > textViewUpperLimit,
   type: s._pathItem.type,
   url: Constants.generateFileURL(path, s._serverInfo),

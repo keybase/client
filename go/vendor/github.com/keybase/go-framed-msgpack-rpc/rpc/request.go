@@ -77,7 +77,9 @@ func (r *callRequest) Serve(transmitter *framedMsgpackEncoder, handler *ServeHan
 	prof.Stop()
 	r.LogCompletion(res, err)
 
-	r.Reply(transmitter, res, wrapError(wrapErrorFunc, err))
+	if err := r.Reply(transmitter, res, wrapError(wrapErrorFunc, err)); err != nil {
+		r.log.Info("Unable to reply: %v", err)
+	}
 }
 
 type callCompressedRequest struct {
@@ -138,7 +140,9 @@ func (r *callCompressedRequest) Serve(transmitter *framedMsgpackEncoder, handler
 	prof.Stop()
 	r.LogCompletion(res, err)
 
-	r.Reply(transmitter, res, wrapError(wrapErrorFunc, err))
+	if err := r.Reply(transmitter, res, wrapError(wrapErrorFunc, err)); err != nil {
+		r.log.Info("Unable to reply: %v", err)
+	}
 }
 
 type notifyRequest struct {

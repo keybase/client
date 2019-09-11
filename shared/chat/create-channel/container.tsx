@@ -45,7 +45,7 @@ const Wrapped = (p: Props) => {
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     errorText: upperFirst(state.teams.channelCreationError),
-    teamname: Container.getRouteProps(ownProps, 'teamname'),
+    teamname: Container.getRouteProps(ownProps, 'teamname', ''),
   }),
   dispatch => ({
     _onCreateChannel: ({

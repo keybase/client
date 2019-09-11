@@ -1,11 +1,21 @@
 import React, {Component} from 'react'
+import {TextInput} from 'react-native'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  padding,
+  platformStyles,
+  styleSheetCreate,
+} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
 import logger from '../logger'
+import ClickableBox from './clickable-box'
+import {Box2} from './box'
 
 import {InternalProps, TextInfo, Selection} from './plain-input'
 
@@ -19,7 +29,6 @@ type ContentSizeChangeEvent = {
 }
 
 type State = {
-  focused: boolean
   height: number | null
 }
 
@@ -32,10 +41,9 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   state: State = {
-    focused: false,
     height: null,
   }
-  _input: typeof NativeTextInput | null = null
+  _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
 
@@ -43,10 +51,6 @@ class PlainInput extends Component<InternalProps, State> {
   // use HOCTimers with this component.
   // https://github.com/reduxjs/react-redux/pull/1000
   _timeoutIDs: Array<NodeJS.Timeout> = []
-
-  _setInputRef = (ref: typeof NativeTextInput | null) => {
-    this._input = ref
-  }
 
   _setTimeout = (fn: () => void, timeoutMS: number) => {
     this._timeoutIDs.push(setTimeout(fn, timeoutMS))
@@ -62,7 +66,7 @@ class PlainInput extends Component<InternalProps, State> {
   // Needed to support wrapping with e.g. a ClickableBox. See
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
-    this._input && this._input.setNativeProps(nativeProps)
+    this._input.current && this._input.current.setNativeProps(nativeProps)
   }
 
   transformText = (fn: (textInfo: TextInfo) => TextInfo, reflectChange: boolean) => {
@@ -164,35 +168,40 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   focus = () => {
-    this._input && this._input.focus()
+    if (this.props.dummyInput) {
+      this.props.onFocus && this.props.onFocus()
+    } else {
+      this._input.current && this._input.current.focus()
+    }
   }
 
   blur = () => {
-    this._input && this._input.blur()
+    this._input.current && this._input.current.blur()
   }
 
-  isFocused = () => !!this._input && this._input.isFocused()
+  isFocused = () => !!this._input.current && this._input.current.isFocused()
 
   _onFocus = () => {
-    this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
   }
 
   _onBlur = () => {
-    this.setState({focused: false})
     this.props.onBlur && this.props.onBlur()
   }
 
   _getCommonStyle = () => {
     const textStyle = getTextStyle(this.props.textType)
     // RN TextInput plays better without this
-    delete textStyle.lineHeight
+    if (isIOS) {
+      delete textStyle.lineHeight
+    }
     return collapseStyles([styles.common, textStyle])
   }
 
   _getMultilineStyle = () => {
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const lineHeight = this._lineHeight()
+    const paddingStyles: any = this.props.padding ? padding(globalMargins[this.props.padding]) : {}
     return collapseStyles([
       styles.multiline,
       {
@@ -200,6 +209,7 @@ class PlainInput extends Component<InternalProps, State> {
       },
       !!this.props.rowsMax && {maxHeight: this.props.rowsMax * lineHeight},
       isIOS && !!this.state.height && {height: this.state.height},
+      paddingStyles,
     ])
   }
 
@@ -235,7 +245,7 @@ class PlainInput extends Component<InternalProps, State> {
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
       placeholderTextColor: this.props.placeholderColor || globalColors.black_50,
-      ref: this._setInputRef,
+      ref: this._input,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
       style: this._getStyle(),
@@ -253,27 +263,39 @@ class PlainInput extends Component<InternalProps, State> {
     return common
   }
 
-  render = () => {
+  render() {
     const props = this._getProps()
     if (props.value) {
       this._lastNativeText = props.value
+    }
+    if (this.props.dummyInput) {
+      // There are three things we want from a dummy input.
+      // 1. Tapping the input does not fire the native handler. Because the native handler opens the keyboard which we don't want.
+      // 2. Calls to ref.focus() on the input do not fire the native handler.
+      // 3. Visual feedback is seen when tapping the input.
+      // editable=false yields 1 and 2
+      // pointerEvents=none yields 1 and 3
+      return (
+        <ClickableBox onClick={props.onFocus}>
+          <Box2 direction="horizontal" pointerEvents="none">
+            <NativeTextInput {...props} editable={false} />
+          </Box2>
+        </ClickableBox>
+      )
     }
     return <NativeTextInput {...props} />
   }
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
   multiline: platformStyles({
     isMobile: {
       height: undefined,
-      // TODO: Maybe remove these paddings?
-      paddingBottom: 0,
-      paddingTop: 0,
       textAlignVertical: 'top', // android centers by default
     },
   }),
   singleline: {padding: 0},
-})
+}))
 
 export default PlainInput

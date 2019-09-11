@@ -21,14 +21,14 @@ import LogOutTab from './logout/container'
 import DisableCertPinningModal from './disable-cert-pinning-modal/container'
 import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
-import SettingsManageContacts from './account/manage-contacts.native'
+import ManageContactsTab from './manage-contacts.native'
+import PushPrompt from './notifications/push-prompt.native'
 
 export const newRoutes = {
-  // TODO connect broken
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
+  // TODO connect broken
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  // TODO connect broken
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.walletsTab]: {
     getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,
@@ -49,20 +49,20 @@ export const newRoutes = {
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
-  // TODO connect broken
   deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
+  [Constants.contactsTab]: {
+    getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
+  },
   // TODO connect broken
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
-  settingsRoot: {getScreen: (): typeof SettingsRoot => require('./').default},
+  settingsRoot: {getScreen: (): typeof SettingsRoot => require('.').default},
   // TODO connect broken
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }
 export const newModalRoutes = {
-  // TODO connect broken
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
-  // TODO connect broken
   [Constants.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
@@ -73,10 +73,8 @@ export const newModalRoutes = {
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
   },
-  settingsManageContacts: {
-    getScreen: (): typeof SettingsManageContacts => require('./account/manage-contacts.native').default,
+  settingsPushPrompt: {
+    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
   },
-  settingsVerifyPhone: {
-    getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
-  },
+  settingsVerifyPhone: {getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone},
 }

@@ -2,16 +2,19 @@ import * as React from 'react'
 import {noop} from 'lodash-es'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 
 type Props = {
-  hasMembers: boolean
   onChangeText: (newText: string) => void
+  onClear: () => void
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
   onBackspace: () => void
   placeholder: string
   searchString: string
+  focusOnMount: boolean
+  focusCounter: number
 }
 
 const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string, props: Props) => {
@@ -47,46 +50,53 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
   }
 }
 
-const Input = (props: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container}>
-    <Kb.PlainInput
-      autoFocus={true}
-      globalCaptureKeypress={true}
-      style={styles.input}
-      placeholder={props.placeholder}
-      onChangeText={props.onChangeText}
-      value={props.searchString}
-      maxLength={50}
-      onEnterKeyDown={props.onEnterKeyDown}
-      onKeyDown={e => {
-        handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
-      }}
-      onKeyPress={e => {
-        handleKeyDown(noop, false, e.nativeEvent.key, props)
-      }}
-    />
-  </Kb.Box2>
-)
+const Input = (props: Props) => {
+  const ref = React.useRef<Kb.SearchFilter>(null)
+  const {focusCounter} = props
+  const prevFocusCounter = Container.usePrevious(focusCounter)
+  React.useEffect(() => {
+    if (
+      !Styles.isMobile &&
+      prevFocusCounter !== undefined &&
+      focusCounter > prevFocusCounter &&
+      ref.current
+    ) {
+      ref.current.focus()
+    }
+  }, [focusCounter, prevFocusCounter])
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.SearchFilter
+        size="full-width"
+        valueControlled={true}
+        value={props.searchString}
+        icon="iconfont-search"
+        focusOnMount={props.focusOnMount}
+        onChange={props.onChangeText}
+        onCancel={props.onClear}
+        placeholderText={props.placeholder}
+        onKeyDown={e => {
+          handleKeyDown(() => e.preventDefault(), e.ctrlKey, e.key, props)
+        }}
+        onKeyPress={e => {
+          handleKeyDown(noop, false, e.nativeEvent.key, props)
+        }}
+        onEnterKeyDown={props.onEnterKeyDown}
+        ref={ref}
+      />
+    </Kb.Box2>
+  )
+}
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
-    common: {
-      flex: 1,
-      marginLeft: Styles.globalMargins.xsmall,
-    },
     isElectron: {
-      minHeight: 32,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
     isMobile: {
-      height: '100%',
-      minWidth: 50,
+      zIndex: -1, // behind ServiceTabBar
     },
   }),
-  input: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-  }),
-})
+}))
 
 export default Input

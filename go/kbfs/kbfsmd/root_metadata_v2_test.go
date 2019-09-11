@@ -331,7 +331,7 @@ type rootMetadataV2Future struct {
 
 func (brmf *rootMetadataV2Future) toCurrent() RootMetadata {
 	rm := brmf.rootMetadataWrapper.RootMetadataV2
-	rm.WriterMetadataV2 = WriterMetadataV2(brmf.writerMetadataV2Future.toCurrent())
+	rm.WriterMetadataV2 = brmf.writerMetadataV2Future.toCurrent()
 	rm.RKeys = brmf.RKeys.toCurrent()
 	return &rm
 }
@@ -702,35 +702,6 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 		},
 	}
 	require.Equal(t, expectedRKeys, brmd.RKeys)
-}
-
-type userDeviceSet UserDevicePublicKeys
-
-// union returns the union of the user's keys in uds and other. For a
-// particular user, it's assumed that that user's keys in uds and
-// other are disjoint.
-func (uds userDeviceSet) union(other userDeviceSet) userDeviceSet {
-	u := make(userDeviceSet)
-	for uid, keys := range uds {
-		u[uid] = make(DevicePublicKeys)
-		for key := range keys {
-			u[uid][key] = true
-		}
-	}
-	for uid, keys := range other {
-		if u[uid] == nil {
-			u[uid] = make(DevicePublicKeys)
-		}
-		for key := range keys {
-			if u[uid][key] {
-				panic(fmt.Sprintf(
-					"uid=%s key=%s exists in both",
-					uid, key))
-			}
-			u[uid][key] = true
-		}
-	}
-	return u
 }
 
 // userDevicePrivateKeys is a map from users to that user's set of

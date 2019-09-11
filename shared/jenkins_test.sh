@@ -60,8 +60,8 @@ js_tests() {
     git diff --exit-code actions
     check_rc $? 'unexpected generated actions changes, did you forget to run yarn build-actions?' 1
 
-    echo 'yarn tsc'
-    yarn tsc
+    echo 'yarn tsc-slow'
+    yarn tsc-slow
     check_rc $? 'tsc failed!' 1
 
     echo 'yarn lint'
@@ -71,6 +71,10 @@ js_tests() {
     echo 'yarn test'
     yarn test
     check_rc $? 'yarn test fail' 1
+
+    echo 'yarn prettier-check'
+    yarn prettier-check
+    check_rc $? 'yarn prettier-check fail' 1
 }
 
 js_tests

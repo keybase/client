@@ -14,7 +14,7 @@ const ImageView = (props: ImageViewProps) => (
     <img src={props.url} draggable={false} style={styles.image} />
   </Box2>
 )
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.medium,
   },
@@ -22,6 +22,6 @@ const styles = Styles.styleSheetCreate({
     maxHeight: '100%',
     maxWidth: '100%',
   },
-})
+}))
 
 export default ImageView

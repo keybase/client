@@ -13,7 +13,7 @@ type OwnProps = {
 
 const OpenChat = props =>
   props.onChat && (
-    <Kb.WithTooltip text={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
+    <Kb.WithTooltip tooltip={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
       <Kb.Icon
         type="iconfont-chat"
         color={Styles.globalColors.black_50}
@@ -24,11 +24,11 @@ const OpenChat = props =>
     </Kb.WithTooltip>
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerIcon: {
     padding: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   isTeam: Constants.isTeamPath(path),
@@ -45,6 +45,6 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
     : null,
 })
 
-const mergeProps = (s, d, o) => d
+const mergeProps = (_, d) => d
 
 export default namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'OpenChat')(OpenChat)

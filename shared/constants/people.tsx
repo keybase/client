@@ -2,8 +2,9 @@ import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import {invert} from 'lodash-es'
-import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
-import {isMobile} from '../constants/platform'
+import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
+import {isMobile} from './platform'
+import {e164ToDisplay} from '../util/phone-numbers'
 
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
@@ -110,11 +111,13 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
-      return `Allow friends to find you using *${todo.legacyEmailVisibility}*`
+      return `Allow friends to find you using *${todo.legacyEmailVisibility}*?`
     case T.verifyAllEmail:
       return `Your email address *${todo.verifyAllEmail}* is unverified.`
-    case T.verifyAllPhoneNumber:
-      return `Your number *${todo.verifyAllPhoneNumber}* is unverified.`
+    case T.verifyAllPhoneNumber: {
+      const p = todo.verifyAllPhoneNumber
+      return `Your number *${p ? e164ToDisplay(p) : ''}* is unverified.`
+    }
     default: {
       // @ts-ignore this variant compilation seems wrong. ts todo.t can only be
       // of 3 types but that's not what we do in avdl.
@@ -124,13 +127,22 @@ export function makeDescriptionForTodoItem(todo: RPCTypes.HomeScreenTodo) {
   }
 }
 
-export function extractMetaFromTodoItem(todo: RPCTypes.HomeScreenTodo) {
+export function extractMetaFromTodoItem(
+  todo: RPCTypes.HomeScreenTodo,
+  todoExt: RPCTypes.HomeScreenTodoExt | null
+) {
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
       return makeTodoMetaEmail({email: todo.legacyEmailVisibility || ''})
     case T.verifyAllEmail:
-      return makeTodoMetaEmail({email: todo.verifyAllEmail || ''})
+      return makeTodoMetaEmail({
+        email: todo.verifyAllEmail || '',
+        lastVerifyEmailDate:
+          todoExt && todoExt.t === T.verifyAllEmail && todoExt.verifyAllEmail
+            ? todoExt.verifyAllEmail.lastVerifyEmailDate
+            : 0,
+      })
     case T.verifyAllPhoneNumber:
       return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber || ''})
     default:
@@ -148,8 +160,11 @@ export const reduceRPCItemToPeopleItem = (
     if (!todo) {
       return list
     }
+    const todoExt: RPCTypes.HomeScreenTodoExt | null =
+      item.dataExt.t === RPCTypes.HomeScreenItemType.todo ? item.dataExt.todo : null
+
     const todoType = todoTypeEnumToType[todo.t || 0]
-    const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo)
+    const metadata: Types.TodoMeta = extractMetaFromTodoItem(todo, todoExt)
     return list.push(
       makeTodo({
         badged: badged,
@@ -162,7 +177,7 @@ export const reduceRPCItemToPeopleItem = (
       })
     )
   } else if (item.data.t === RPCTypes.HomeScreenItemType.people) {
-    // Follow notification
+    // Follow notification or contact resolution
     const notification = item.data.people
     if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followed) {
       // Single follow notification
@@ -175,7 +190,7 @@ export const reduceRPCItemToPeopleItem = (
           badged,
           newFollows: [makeFollowedNotification({username: follow.user.username})],
           notificationTime: new Date(follow.followTime),
-          type: 'notification',
+          type: 'follow',
         })
       )
     } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
@@ -201,7 +216,50 @@ export const reduceRPCItemToPeopleItem = (
           ),
           notificationTime,
           numAdditional: multiFollow.numOthers,
-          type: 'notification',
+          type: 'follow',
+        })
+      )
+    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contact) {
+      // Single contact notification
+      const follow = notification.contact
+      if (!follow) {
+        return list
+      }
+      return list.push(
+        makeFollowedNotificationItem({
+          badged,
+          newFollows: [
+            makeFollowedNotification({contactDescription: follow.description, username: follow.username}),
+          ],
+          notificationTime: new Date(follow.resolveTime),
+          type: 'contact',
+        })
+      )
+    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contactMulti) {
+      // Multiple follows notification
+      const multiContact = notification.contactMulti
+      if (!multiContact) {
+        return list
+      }
+      const contacts = multiContact.contacts
+      if (!contacts) {
+        return list
+      }
+      const notificationTimes = contacts.map(contact => contact.resolveTime)
+      const maxNotificationTime = Math.max(...notificationTimes)
+      const notificationTime = new Date(maxNotificationTime)
+      return list.push(
+        makeFollowedNotificationItem({
+          badged,
+          newFollows: contacts.map(follow =>
+            makeFollowedNotification({
+              contactDescription: follow.description,
+              username: follow.username,
+            })
+          ),
+          notificationTime,
+          numAdditional: multiContact.numOthers,
+          type: 'contact',
         })
       )
     }
@@ -250,6 +308,7 @@ export const makeTodo = I.Record<Types._Todo>({
 })
 
 export const makeFollowedNotification = I.Record<Types._FollowedNotification>({
+  contactDescription: '',
   username: '',
 })
 
@@ -258,7 +317,7 @@ export const makeFollowedNotificationItem = I.Record<Types._FollowedNotification
   newFollows: [],
   notificationTime: new Date(),
   numAdditional: 0,
-  type: 'notification',
+  type: 'follow',
 })
 
 export const makeFollowSuggestion = I.Record<Types._FollowSuggestion>({
@@ -273,8 +332,13 @@ export const makeState = I.Record<Types._State>({
   lastViewed: new Date(),
   newItems: I.List(),
   oldItems: I.List(),
+  resentEmail: '',
   version: -1,
 })
 
-export const makeTodoMetaEmail = I.Record<Types._TodoMetaEmail>({email: '', type: 'email'})
+export const makeTodoMetaEmail = I.Record<Types._TodoMetaEmail>({
+  email: '',
+  lastVerifyEmailDate: 0,
+  type: 'email',
+})
 export const makeTodoMetaPhone = I.Record<Types._TodoMetaPhone>({phone: '', type: 'phone'})

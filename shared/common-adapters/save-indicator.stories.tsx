@@ -1,16 +1,21 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import SaveIndicator from './save-indicator'
 import {storiesOf, action} from '../stories/storybook'
-import {globalStyles} from '../styles'
 import Box from './box'
 import Button from './button'
+
+const Kb = {
+  Box,
+  Button,
+}
 
 type State = {
   saving: boolean
 }
 
 const containerStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
 }
 
@@ -28,8 +33,8 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
 
   render() {
     return (
-      <Box style={containerStyle}>
-        <Button
+      <Kb.Box style={containerStyle}>
+        <Kb.Button
           label={this.state.saving ? 'Stop save' : 'Start save'}
           onClick={this._toggleSave}
           style={{alignSelf: 'flex-start'}}
@@ -40,7 +45,7 @@ class SaveIndicatorContainer extends React.Component<{}, State> {
           savedTimeoutMs={3000}
           debugLog={action('debugLog')}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }

@@ -90,6 +90,25 @@ const stateToValueTextStyle = state => {
   }
 }
 
+const assertionColorToTextColor = (c: Types.AssertionColor) => {
+  switch (c) {
+    case 'blue':
+      return Styles.globalColors.blueDark
+    case 'red':
+      return Styles.globalColors.redDark
+    case 'black':
+      return Styles.globalColors.black
+    case 'green':
+      return Styles.globalColors.greenDark
+    case 'gray':
+      return Styles.globalColors.black_50
+    case 'yellow': // fallthrough
+    case 'orange':
+    default:
+      return Styles.globalColors.redDark
+  }
+}
+
 const assertionColorToColor = (c: Types.AssertionColor) => {
   switch (c) {
     case 'blue':
@@ -132,17 +151,22 @@ class _StellarValue extends React.PureComponent<
     return Styles.isMobile ? (
       <Kb.Text
         type="BodyPrimaryLink"
-        style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+        style={Styles.collapseStyles([styles.username, {color: assertionColorToTextColor(this.props.color)}])}
       >
         {this.props.value}
       </Kb.Text>
     ) : (
       <Kb.Box ref={r => this._storeAttachmentRef(r)} style={styles.tooltip}>
-        <Kb.WithTooltip text={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}>
+        <Kb.WithTooltip
+          tooltip={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}
+        >
           <Kb.Text
             type="BodyPrimaryLink"
             onClick={this.props.toggleShowingMenu}
-            style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+            style={Styles.collapseStyles([
+              styles.username,
+              {color: assertionColorToTextColor(this.props.color)},
+            ])}
           >
             {this.props.value}
           </Kb.Text>
@@ -191,7 +215,7 @@ const Value = (p: Props) => {
         style={Styles.collapseStyles([
           style,
           stateToValueTextStyle(p.state),
-          {color: assertionColorToColor(p.color)},
+          {color: assertionColorToTextColor(p.color)},
         ])}
       >
         {str}
@@ -303,7 +327,6 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    if (this.props.notAUser) return null
     const set = full ? this.props.siteIconFull : this.props.siteIcon
     if (!set) return null
     let child = <SiteIcon full={full} set={set} />
@@ -391,38 +414,41 @@ class Assertion extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
-  crypto: Styles.platformStyles({
-    isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
-  }),
-  floatingMenu: {
-    maxWidth: 240,
-    minWidth: 196,
-  },
-  halfOpacity: Styles.platformStyles({
-    isMobile: {opacity: 0.5}, // desktop is handled by emotion
-  }),
-  menuHeader: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    padding: Styles.globalMargins.small,
-  },
-  metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
-  positionRelative: {position: 'relative'},
-  site: {color: Styles.globalColors.black_20},
-  siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
-  statusContainer: Styles.platformStyles({
-    isMobile: {position: 'relative', top: -2},
-  }),
-  strikeThrough: {textDecorationLine: 'line-through'},
-  textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
-  tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
-  username: Styles.platformStyles({
-    common: {letterSpacing: 0.2},
-    isElectron: {wordBreak: 'break-all'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+      crypto: Styles.platformStyles({
+        isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
+      }),
+      floatingMenu: {
+        maxWidth: 240,
+        minWidth: 196,
+      },
+      halfOpacity: Styles.platformStyles({
+        isMobile: {opacity: 0.5}, // desktop is handled by emotion
+      }),
+      menuHeader: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        padding: Styles.globalMargins.small,
+      },
+      metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+      positionRelative: {position: 'relative'},
+      site: {color: Styles.globalColors.black_20},
+      siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
+      statusContainer: Styles.platformStyles({
+        isMobile: {position: 'relative', top: -2},
+      }),
+      strikeThrough: {textDecorationLine: 'line-through'},
+      textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
+      tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
+      username: Styles.platformStyles({
+        common: {letterSpacing: 0.2},
+        isElectron: {wordBreak: 'break-all'},
+      }),
+    } as const)
+)
 
 export default Assertion

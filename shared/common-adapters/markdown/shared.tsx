@@ -7,21 +7,6 @@ import {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 
-function createKbfsPathRegex(): RegExp | null {
-  const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
-  const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
-  const user = `(?:(?:${username})|(?:${socialAssertion}))`
-  const usernames = `${user}(?:,${user})*`
-  const teamName = `${username}(?:\\.${username})*`
-  const tlfType = `/(?:private|public|team)`
-  const tlf = `/(?:(?:private|public)/${usernames}(#${usernames})?|team/${teamName})`
-  const inTlf = `/(?:\\\\\\\\|\\\\ |\\S)+`
-  const specialFiles = `/(?:.kbfs_.+)`
-  return new RegExp(`^(/keybase(?:(?:${tlf}(${inTlf})?)|(?:${tlfType})|(?:${specialFiles}))?/?)(?=\\s|$)`)
-}
-
-const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
-
 const serviceBeginDecorationTag = '\\$\\>kb\\$'
 const serviceEndDecorationTag = '\\$\\<kb\\$'
 function createServiceDecorationRegex(): RegExp | null {
@@ -120,7 +105,7 @@ const rules = {
   emoji: {
     match: SimpleMarkdown.inlineRegex(emojiRegex),
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
-    parse: function(capture, parse, state) {
+    parse: function(capture, _, __) {
       // If it's a unicode emoji, let's get it's shortname
       const shortName = emojiIndexByChar[capture[0]]
       return {content: shortName || capture[0]}
@@ -137,7 +122,7 @@ const rules = {
   // it won't match.
   fallbackParagraph: {
     // $FlowIssue - tricky to get this to type properly
-    match: (source, state, lookBehind) => (Styles.isMobile && !state.inParagraph ? [source] : null),
+    match: (source, state, _) => (Styles.isMobile && !state.inParagraph ? [source] : null),
     order: 10000,
     parse: (capture, parse, state) => wrapInParagraph(parse, capture[0], state),
   },
@@ -149,7 +134,7 @@ const rules = {
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front and one in back
     order: 0,
-    parse: function(capture, parse, state) {
+    parse: function(capture, _, __) {
       return {
         content: capture[1],
         lang: undefined,
@@ -163,21 +148,6 @@ const rules = {
     // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
     // ours: only allow a single backtick
     match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
-  },
-  kbfsPath: {
-    match: (source, state, lookBehind) => {
-      const matches = kbfsPathMatcher(source, state, lookBehind)
-      // Also check that the lookBehind is not text
-      if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
-        return matches
-      }
-      return null
-    }, // lower than mention
-    order: SimpleMarkdown.defaultRules.autolink.order - 0.1,
-    parse: capture => ({
-      content: capture[1],
-      type: 'kbfsPath',
-    }),
   },
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
@@ -317,7 +287,7 @@ class SimpleMarkdownComponent extends PureComponent<
         ? serviceOnlyOutput(parseTree, state)
         : this.props.preview
         ? previewOutput(parseTree)
-        : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
+        : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
         ? bigEmojiOutput(parseTree, state)
         : reactOutput(parseTree, state)
     } catch (e) {
@@ -330,7 +300,7 @@ class SimpleMarkdownComponent extends PureComponent<
       )
     }
     const inner = this.props.serviceOnly ? (
-      <Text type="Body" style={this.props.style}>
+      <Text type="Body" style={this.props.style} lineClamp={this.props.lineClamp}>
         {output}
       </Text>
     ) : this.props.preview ? (
@@ -365,12 +335,12 @@ class SimpleMarkdownComponent extends PureComponent<
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({
     isElectron: {
       whiteSpace: 'pre',
     },
   }),
-})
+}))
 
 export {SimpleMarkdownComponent, simpleMarkdownParser}

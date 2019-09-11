@@ -5,7 +5,7 @@ import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
 import {rowStyles, StillCommon, StillCommonProps} from './common'
 import * as Kb from '../../../common-adapters'
-import {PathItemInfo, Filename} from '../../common'
+import {LastModifiedLine, Filename} from '../../common'
 
 type StillProps = StillCommonProps & {
   intentIfDownloading?: Types.DownloadIntent | null
@@ -34,7 +34,6 @@ const Still = (props: StillProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.intentIfDownloading ? Types.PathItemBadgeType.Download : null}
-    routePath={props.routePath}
   >
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -54,7 +53,7 @@ const Still = (props: StillProps) => (
       {props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
       ) : (
-        props.type !== Types.PathType.Folder && <PathItemInfo path={props.path} mode="row" />
+        props.type !== Types.PathType.Folder && <LastModifiedLine path={props.path} mode="row" />
       )}
     </Kb.Box>
   </StillCommon>

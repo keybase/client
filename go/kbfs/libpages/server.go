@@ -545,8 +545,8 @@ func ListenAndServe(ctx context.Context,
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(), gracefulShutdownTimeout)
 		defer cancel()
-		httpsServer.Shutdown(shutdownCtx)
-		httpServer.Shutdown(shutdownCtx)
+		_ = httpsServer.Shutdown(shutdownCtx)
+		_ = httpServer.Shutdown(shutdownCtx)
 	}()
 
 	go func() {

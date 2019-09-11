@@ -112,8 +112,14 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	// transaction.
 	defer func() {
 		if tx != nil {
-			tx.Rollback()
-			tx.Abort()
+			err := tx.Rollback()
+			if err != nil {
+				m.Debug("SetDeviceCloneState: rollback error: %+v", err)
+			}
+			err = tx.Abort()
+			if err != nil {
+				m.Debug("SetDeviceCloneState: abort error: %+v", err)
+			}
 		}
 	}()
 

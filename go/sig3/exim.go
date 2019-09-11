@@ -109,7 +109,7 @@ func ImportUID(u keybase1.UID) (ret UID) {
 }
 
 func ImportKID(k keybase1.KID) (ret KID) {
-	return KID(k.ToBinaryKID())
+	return k.ToBinaryKID()
 }
 
 func ImportTeamID(t keybase1.TeamID) (*TeamID, error) {

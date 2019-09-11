@@ -56,10 +56,12 @@ const packagerOpts: any = {
   icon: null,
   ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
   name: appName,
-  protocols: [{
-    name: 'Keybase',
-    schemes: ['web+stellar'],
-  }],
+  protocols: [
+    {
+      name: 'Keybase',
+      schemes: ['keybase', 'web+stellar'],
+    },
+  ],
 }
 
 function main() {

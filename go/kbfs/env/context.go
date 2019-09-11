@@ -89,10 +89,22 @@ func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 // main functions.
 func NewContext() *KBFSContext {
 	g := libkb.NewGlobalContextInit()
-	g.ConfigureConfig()
-	g.ConfigureLogging()
-	g.ConfigureCaches()
-	g.ConfigureMerkleClient()
+	err := g.ConfigureConfig()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureLogging(nil)
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureCaches()
+	if err != nil {
+		panic(err)
+	}
+	err = g.ConfigureMerkleClient()
+	if err != nil {
+		panic(err)
+	}
 	return NewContextFromGlobalContext(g)
 }
 
@@ -180,7 +192,7 @@ func (c *KBFSContext) getSandboxSocketFile() string {
 func (c *KBFSContext) getKBFSSocketFile() string {
 	e := c.g.Env
 	return e.GetString(
-		func() string { return c.getSandboxSocketFile() },
+		c.getSandboxSocketFile,
 		// TODO: maybe add command-line option here
 		func() string { return os.Getenv("KBFS_SOCKET_FILE") },
 		func() string { return filepath.Join(e.GetRuntimeDir(), kbfsSocketFile) },

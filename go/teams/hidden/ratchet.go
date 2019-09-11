@@ -86,6 +86,14 @@ type RatchetBlindingKeySet struct {
 	m map[SCTeamRatchet]RatchetObj
 }
 
+func (r *RatchetBlindingKeySet) Add(ratchet Ratchet) {
+	if r.m == nil {
+		r.m = make(map[SCTeamRatchet]RatchetObj)
+	}
+	o := ratchet.decoded
+	r.m[o.RatchetBlind.Hash] = o
+}
+
 func (r SCTeamRatchet) String() string {
 	return hex.EncodeToString(r[:])
 }
@@ -104,7 +112,7 @@ func (r *SCTeamRatchet) UnmarshalJSON(b []byte) error {
 	if len(b) != len(*r) {
 		return newRatchetError("cannot decode team ratchet; wrong size")
 	}
-	copy((*r)[:], b[:])
+	copy((*r)[:], b)
 	return nil
 }
 
@@ -152,7 +160,7 @@ func (r *RatchetBlindingKeySet) UnmarshalJSON(b []byte) error {
 }
 
 func (r *SCTeamRatchet) MarshalJSON() ([]byte, error) {
-	s := hex.EncodeToString([]byte((*r)[:]))
+	s := hex.EncodeToString((*r)[:])
 	b := keybase1.Quote(s)
 	return b, nil
 }
@@ -177,7 +185,7 @@ func generateBlindingKey() (BlindingKey, error) {
 	if err != nil {
 		return ret, err
 	}
-	copy(ret[:], tmp[:])
+	copy(ret[:], tmp)
 	return ret, nil
 }
 
@@ -202,7 +210,7 @@ func (r *RatchetBlind) check(tail sig3.Tail) (err error) {
 		return err
 	}
 	if !hmac.Equal(computed[:], r.Hash[:]) {
-		return newRatchetError("blinding check failed")
+		return newRatchetError("blinding check failed %x v %x", computed[:], r.Hash[:])
 	}
 	return nil
 }
@@ -216,7 +224,10 @@ func (r *RatchetBlind) compute(tail sig3.Tail) (ret SCTeamRatchet, err error) {
 		return ret, err
 	}
 	h := hmac.New(sha512.New, r.Key[:])
-	h.Write(b)
+	_, err = h.Write(b)
+	if err != nil {
+		return ret, err
+	}
 	d := h.Sum(nil)[0:32]
 	copy(ret[:], d)
 	return ret, nil
@@ -235,13 +246,25 @@ func (r *RatchetObj) generate(mctx libkb.MetaContext) (err error) {
 }
 
 func (r *Ratchet) encode(mctx libkb.MetaContext) (err error) {
-	arr := []RatchetObj{r.decoded}
-	b, err := msgpack.Encode(arr)
+	var rbk RatchetBlindingKeySet
+	rbk.Add(*r)
+	r.encoded, err = rbk.encode()
 	if err != nil {
 		return err
 	}
-	r.encoded = EncodedRatchetBlindingKeySet(base64.StdEncoding.EncodeToString(b))
 	return nil
+}
+
+func (r RatchetBlindingKeySet) encode() (ret EncodedRatchetBlindingKeySet, err error) {
+	var arr []RatchetObj
+	for _, v := range r.m {
+		arr = append(arr, v)
+	}
+	b, err := msgpack.Encode(arr)
+	if err != nil {
+		return ret, err
+	}
+	return EncodedRatchetBlindingKeySet(base64.StdEncoding.EncodeToString(b)), nil
 }
 
 // generateRatchet, cooking up a new blinding key, and computing the encoding and blinding of
@@ -264,24 +287,24 @@ func generateRatchet(mctx libkb.MetaContext, b sig3.Tail) (ret *Ratchet, err err
 	return ret, nil
 }
 
-// MakeRatchet constructs a new Ratachet object for the given team's hidden tail, blinds
+// MakeRatchet constructs a new Ratchet object for the given team's hidden tail, blinds
 // it with a randomly-generated blinding key, and then packages all relevant info up into
 // and encoding that can be easily posted to the API server.
-func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (ret *Ratchet, err error) {
+func MakeRatchet(mctx libkb.MetaContext, state *keybase1.HiddenTeamChain) (ret *Ratchet, err error) {
+	if state == nil {
+		mctx.Debug("hidden.MakeRatchet: returning a nil ratchet since hidden team is nil")
+		return nil, nil
+	}
+	id := state.Id
 
-	defer mctx.Trace(fmt.Sprintf("MakeRatchet(%s)", id), func() error { return err })()
-
+	defer mctx.Trace(fmt.Sprintf("hidden.MakeRatchet(%s)", id), func() error { return err })()
 
 	err = CheckFeatureGateForSupport(mctx, id, true /* isWrite */)
 	if err != nil {
 		mctx.VLogf(libkb.VLog0, "skipping ratchet for team id %s due to feature-flag", id)
 		return nil, nil
 	}
-
-	tail, err := mctx.G().GetHiddenTeamChainManager().Tail(mctx, id)
-	if err != nil {
-		return nil, err
-	}
+	tail := state.TailTriple()
 	if tail == nil || tail.Seqno == keybase1.Seqno(0) {
 		mctx.Debug("no tail found")
 		return nil, nil
@@ -290,7 +313,7 @@ func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (ret *Ratchet, err 
 	if err != nil {
 		return nil, err
 	}
-	mctx.Debug("ratcheting at tail %+v", *itail)
+	mctx.Debug("ratcheting at tail (%s,%d)", itail.Hash, itail.Seqno)
 	ret, err = generateRatchet(mctx, *itail)
 	if err != nil {
 		return nil, err
@@ -298,12 +321,26 @@ func MakeRatchet(mctx libkb.MetaContext, id keybase1.TeamID) (ret *Ratchet, err 
 	return ret, nil
 }
 
+const jsonPayloadKey = "ratchet_blinding_keys"
+
 // AddToJSONPayload is used to add the ratching blinding information to an API POST
 func (e EncodedRatchetBlindingKeySet) AddToJSONPayload(p libkb.JSONPayload) {
 	if e.IsNil() {
 		return
 	}
-	p["ratchet_blinding_keys"] = e.String()
+	p[jsonPayloadKey] = e.String()
+}
+
+func (r RatchetBlindingKeySet) AddToJSONPayload(p libkb.JSONPayload) error {
+	if len(r.m) == 0 {
+		return nil
+	}
+	encoded, err := r.encode()
+	if err != nil {
+		return err
+	}
+	encoded.AddToJSONPayload(p)
+	return nil
 }
 
 // AddToJSONPayload is used to add the ratching blinding information to an API POST

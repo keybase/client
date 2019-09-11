@@ -3,7 +3,6 @@ import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import HiddenString from '../util/hidden-string'
-import {RPCError} from '../util/errors'
 import {actionHasError} from '../util/container'
 import {trim} from 'lodash-es'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
@@ -46,17 +45,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case SignupGen.checkedUsername: {
       const {username, usernameTaken = '', error: usernameError} = action.payload
       return username === state.username ? state.merge({usernameError, usernameTaken}) : state
-    }
-    case SignupGen.checkEmail: {
-      const {email, allowSearch} = action.payload
-      const emailVisible = allowSearch
-      const emailError = isValidEmail(email)
-      return state.merge({
-        email,
-        emailError,
-        emailVisible,
-        justSignedUpEmail: email,
-      })
     }
     case SignupGen.requestInvite: {
       const {email, name} = action.payload
@@ -103,12 +91,16 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
         : state
     case SignupGen.signedup:
-      return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
+      return state.merge({
+        signupError: actionHasError(action) ? action.payload.error : null,
+      })
+    case SignupGen.setJustSignedUpEmail:
+      return state.merge({
+        justSignedUpEmail: action.payload.email,
+      })
     case SignupGen.clearJustSignedUpEmail:
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      return state.merge({
-        justSignedUpEmail: '',
-      })
+      return state.merge({justSignedUpEmail: ''})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state

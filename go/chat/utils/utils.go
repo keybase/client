@@ -160,7 +160,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 		if !ok {
 			continue
 		}
-		if allowed, _ := allowedWriters[p.Username]; allowed {
+		if allowed := allowedWriters[p.Username]; allowed {
 			writerNames = append(writerNames, p)
 			// Allow only one occurrence.
 			allowedWriters[p.Username] = false
@@ -169,7 +169,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 
 	// Include participants even if they weren't in the active list, in stable order.
 	for _, user := range srcWriterNames {
-		if allowed, _ := allowedWriters[user]; allowed {
+		if allowed := allowedWriters[user]; allowed {
 			writerNames = append(writerNames, UsernamePackageToParticipant(libkb.UsernamePackage{
 				NormalizedUsername: libkb.NewNormalizedUsername(user),
 				FullName:           nil,
@@ -190,49 +190,36 @@ func splitAndNormalizeTLFNameCanonicalize(mctx libkb.MetaContext, name string, p
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-// AttachContactNames retrieves display names for SBS phones/emails that are in the phonebook.
-func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) (withContacts []chat1.ConversationLocalParticipant) {
-	var contacts []keybase1.ProcessedContact
+// AttachContactNames retrieves display names for SBS phones/emails that are in
+// the phonebook. ConversationLocalParticipant structures are modified in place
+// in `participants` passed in argument.
+func AttachContactNames(mctx libkb.MetaContext, participants []chat1.ConversationLocalParticipant) {
+	syncedContacts := mctx.G().SyncedContactList
+	if syncedContacts == nil {
+		mctx.Debug("AttachContactNames: SyncedContactList is nil")
+		return
+	}
+	var assertionToContactName map[string]string
 	var err error
 	contactsFetched := false
-	for _, participant := range participants {
+	for i, participant := range participants {
 		if isPhoneOrEmail(participant.Username) {
 			if !contactsFetched {
-				contacts, err = mctx.G().SyncedContactList.RetrieveContacts(mctx)
+				assertionToContactName, err = syncedContacts.RetrieveAssertionToName(mctx)
 				if err != nil {
-					mctx.Debug("Error fetching contacts: %s", err)
-					return participants
+					mctx.Debug("AttachContactNames: error fetching contacts: %s", err)
+					return
 				}
+				contactsFetched = true
 			}
-			// todo separate phone / email from assertion
-			assertion, err := libkb.ParseAssertionURL(mctx.G().MakeAssertionContext(mctx), participant.Username, true)
-			if err == nil {
-				phoneOrEmail := assertion.GetValue()
-				isPhone := assertion.GetKey() == "phone"
-				contactName := findContactName(contacts, phoneOrEmail, isPhone)
-				participant.ContactName = contactName
+			if contactName, ok := assertionToContactName[participant.Username]; ok {
+				participant.ContactName = &contactName
 			} else {
-				mctx.Debug("Error parsing assertion: %s", err)
+				participant.ContactName = nil
 			}
-		}
-		withContacts = append(withContacts, participant)
-	}
-	return withContacts
-}
-
-var nonDigits = regexp.MustCompile("[^\\d]")
-
-func findContactName(contacts []keybase1.ProcessedContact, phoneOrEmail string, isPhone bool) *string {
-	for _, contact := range contacts {
-		cPhoneOrEmail := contact.Component.ValueString()
-		if isPhone {
-			cPhoneOrEmail = nonDigits.ReplaceAllString(cPhoneOrEmail, "")
-		}
-		if cPhoneOrEmail == phoneOrEmail {
-			return &contact.ContactName
+			participants[i] = participant
 		}
 	}
-	return nil
 }
 
 func isPhoneOrEmail(username string) bool {
@@ -364,7 +351,7 @@ func GetConversationStatusBehavior(s chat1.ConversationStatus) ConversationStatu
 			ActivityRemovesStatus: true,
 			DesktopNotifications:  true,
 			PushNotifications:     true,
-			ShowBadges:            true,
+			ShowBadges:            false,
 		}
 	case chat1.ConversationStatus_REPORTED:
 		fallthrough
@@ -674,11 +661,18 @@ func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res 
 	return res
 }
 
-func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, msg chat1.MessageText,
+func GetTextAtMentionedItems(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessageText,
 	getConvMembs func() ([]chat1.ConversationLocalParticipant, error),
 	debug *DebugLabeler) (atRes []chat1.KnownUserMention, maybeRes []chat1.MaybeMention, chanRes chat1.ChannelMention) {
 	atRes, maybeRes, chanRes = ParseAtMentionedItems(ctx, g, msg.Body, msg.UserMentions, getConvMembs)
 	atRes = append(atRes, GetPaymentAtMentions(ctx, g.GetUPAKLoader(), msg.Payments, debug)...)
+	if msg.ReplyToUID != nil {
+		atRes = append(atRes, chat1.KnownUserMention{
+			Text: "",
+			Uid:  *msg.ReplyToUID,
+		})
+	}
 	return atRes, maybeRes, chanRes
 }
 
@@ -1004,6 +998,8 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 		return msg.Valid().MessageBody.Edit().Body
 	case chat1.MessageType_FLIP:
 		return msg.Valid().MessageBody.Flip().Text
+	case chat1.MessageType_PIN:
+		return "📌 new pinned message"
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title
@@ -1148,6 +1144,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	}
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
+	res.Draft = rc.LocalDraft
 	return res
 }
 
@@ -1196,29 +1193,40 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	return res
 }
 
-func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLocal, currentUsername string) (res chat1.InboxUIItem) {
-	var writerNames []chat1.UIParticipant
-	for _, p := range rawConv.Info.Participants {
-		participantType := chat1.UIParticipantType_USER
-		if isPhoneOrEmail(p.Username) {
-			participantType = chat1.UIParticipantType_CONTACT
-		}
-		writerNames = append(writerNames, chat1.UIParticipant{
+func getParticipantType(username string) chat1.UIParticipantType {
+	if strings.HasSuffix(username, "@phone") {
+		return chat1.UIParticipantType_PHONENO
+	}
+	if strings.HasSuffix(username, "@email") {
+		return chat1.UIParticipantType_EMAIL
+	}
+	return chat1.UIParticipantType_USER
+}
+
+func presentConversationParticipantsLocal(ctx context.Context, rawParticipants []chat1.ConversationLocalParticipant) (participants []chat1.UIParticipant) {
+	for _, p := range rawParticipants {
+		participantType := getParticipantType(p.Username)
+		participants = append(participants, chat1.UIParticipant{
 			Assertion:   p.Username,
 			ContactName: p.ContactName,
 			FullName:    p.Fullname,
 			Type:        participantType,
 		})
 	}
+	return participants
+}
+
+func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
-	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
+	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
 	res.Headline = rawConv.Info.Headline
 	res.HeadlineDecorated = DecorateWithLinks(ctx, EscapeForDecorate(ctx, rawConv.Info.Headline))
-	res.Participants = writerNames
+	res.Participants = presentConversationParticipantsLocal(ctx, rawConv.Info.Participants)
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -1242,12 +1250,20 @@ func PresentConversationLocal(ctx context.Context, rawConv chat1.ConversationLoc
 	res.ConvSettings = rawConv.ConvSettings
 	res.Commands = rawConv.Commands
 	res.BotCommands = rawConv.BotCommands
+	res.Draft = rawConv.Info.Draft
+	if rawConv.Info.PinnedMsg != nil {
+		res.PinnedMsg = new(chat1.UIPinnedMessage)
+		res.PinnedMsg.Message = PresentMessageUnboxed(ctx, g, rawConv.Info.PinnedMsg.Message, uid,
+			rawConv.GetConvID())
+		res.PinnedMsg.PinnerUsername = rawConv.Info.PinnedMsg.PinnerUsername
+	}
 	return res
 }
 
-func PresentConversationLocals(ctx context.Context, convs []chat1.ConversationLocal, currentUsername string) (res []chat1.InboxUIItem) {
+func PresentConversationLocals(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
 	for _, conv := range convs {
-		res = append(res, PresentConversationLocal(ctx, conv, currentUsername))
+		res = append(res, PresentConversationLocal(ctx, g, uid, conv))
 	}
 	return res
 }
@@ -1302,16 +1318,16 @@ func PresentBytes(bytes int64) string {
 	switch {
 	case bytes >= TERABYTE:
 		unit = "TB"
-		value = value / TERABYTE
+		value /= TERABYTE
 	case bytes >= GIGABYTE:
 		unit = "GB"
-		value = value / GIGABYTE
+		value /= GIGABYTE
 	case bytes >= MEGABYTE:
 		unit = "MB"
-		value = value / MEGABYTE
+		value /= MEGABYTE
 	case bytes >= KILOBYTE:
 		unit = "KB"
-		value = value / KILOBYTE
+		value /= KILOBYTE
 	case bytes >= BYTE:
 		unit = "B"
 	case bytes == 0:
@@ -1410,6 +1426,8 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 				if info != nil {
 					infos = append(infos, *info)
 				}
+			default:
+				// Nothing to do for other payment result types.
 			}
 		}
 	}
@@ -1428,6 +1446,8 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	case chat1.MessageType_REQUESTPAYMENT:
 		body := msg.MessageBody.Requestpayment()
 		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+	default:
+		// Nothing to do for other message types.
 	}
 	return nil
 }
@@ -1481,6 +1501,10 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	body = EscapeForDecorate(ctx, body)
 	body = EscapeShrugs(ctx, body)
 
+	// This needs to happen before (deep) links.
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
+
 	// Links
 	body = DecorateWithLinks(ctx, body)
 	// Payment decorations
@@ -1507,7 +1531,10 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		knownTeamMentions = valid.MessageBody.Edit().TeamMentions
 	}
 	for _, tm := range valid.MaybeMentions {
-		g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
+		err := g.TeamMentionLoader.LoadTeamMention(ctx, uid, tm, knownTeamMentions, false)
+		if err != nil {
+			g.GetLog().CDebugf(ctx, "loadTeamMentions: error loading team mentions: %+v", err)
+		}
 	}
 }
 
@@ -1586,6 +1613,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			replyTo = new(chat1.UIMessage)
 			*replyTo = PresentMessageUnboxed(ctx, g, *valid.ReplyTo, uid, convID)
 		}
+		var pinnedMessageID *chat1.MessageID
+		if valid.MessageBody.IsType(chat1.MessageType_PIN) {
+			pinnedMessageID = new(chat1.MessageID)
+			*pinnedMessageID = valid.MessageBody.Pin().MsgID
+		}
 		loadTeamMentions(ctx, g, uid, valid)
 		res = chat1.NewUIMessageWithValid(chat1.UIMessageValid{
 			MessageID:             rawMsg.GetMessageID(),
@@ -1618,6 +1650,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			ReplyTo:               replyTo,
+			PinnedMessageID:       pinnedMessageID,
+			BotUID:                valid.ClientHeader.BotUID,
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})
@@ -1995,7 +2029,8 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 	if uri.UseTLS() {
 		rawCA := g.Env.GetBundledCA(uri.Host)
 		if len(rawCA) == 0 {
-			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
+			err := errors.New("len(rawCA) == 0")
+			log.Debug(ctx, "GetGregorConn: failed to parse CAs", err.Error())
 			return conn, token, err
 		}
 		conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
@@ -2348,6 +2383,12 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
+			chat1.ConversationMemberStatus_NEVER_JOINED,
+		},
 	}, nil)
 	if err != nil {
 		return res, err
@@ -2362,15 +2403,45 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return inbox.ConvsUnverified[0], nil
 }
 
+func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string) string {
+	switch info.TeamType {
+	case chat1.TeamType_COMPLEX:
+		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
+	case chat1.TeamType_SIMPLE:
+		return info.TlfName
+	case chat1.TeamType_NONE:
+		users := info.Participants
+		if len(users) > 1 {
+			var usersWithoutYou []string
+			for _, user := range users {
+				if user.Username != myUsername {
+					usersWithoutYou = append(usersWithoutYou, user.Username)
+				}
+			}
+			return strings.Join(usersWithoutYou, ",")
+		}
+		return ""
+	}
+	return info.TlfName
+}
+
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
-
+	// in case we are being called from within some cancelable context, remove it for the purposes
+	// of this call, since whatever this is is likely a side effect we don't want to get stuck
+	ctx = globals.CtxRemoveLocalizerCancelable(ctx)
 	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
+			MemberStatus: []chat1.ConversationMemberStatus{
+				chat1.ConversationMemberStatus_ACTIVE,
+				chat1.ConversationMemberStatus_PREVIEW,
+				chat1.ConversationMemberStatus_RESET,
+				chat1.ConversationMemberStatus_NEVER_JOINED,
+			},
 		}, nil)
 	if err != nil {
-		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+		return res, err
 	}
 	if len(inbox.Convs) == 0 {
 		return res, ErrGetVerifiedConvNotFound
@@ -2380,6 +2451,25 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			inbox.Convs[0].GetConvID(), convID)
 	}
 	return inbox.Convs[0], nil
+}
+
+func IsMapUnfurl(msg chat1.MessageUnboxed) bool {
+	if !msg.IsValid() {
+		return false
+	}
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_UNFURL) {
+		return false
+	}
+	unfurl := body.Unfurl()
+	typ, err := unfurl.Unfurl.Unfurl.UnfurlType()
+	if err != nil {
+		return false
+	}
+	if typ != chat1.UnfurlType_GENERIC {
+		return false
+	}
+	return body.Unfurl().Unfurl.Unfurl.Generic().MapInfo != nil
 }
 
 func DedupStringLists(lists ...[]string) (res []string) {

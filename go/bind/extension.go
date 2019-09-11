@@ -189,6 +189,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		DisableTeamAuditor:             true,
 		DisableMerkleAuditor:           true,
 		DisableTeamBoxAuditor:          true,
+		DisableEKBackgroundKeygen:      true,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -210,7 +211,10 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	svc.SetupCriticalSubServices()
+	err = svc.SetupCriticalSubServices()
+	if err != nil {
+		return err
+	}
 
 	var uid gregor1.UID
 	extensionRi = chat1.RemoteClient{Cli: chat.OfflineClient{}}
@@ -226,6 +230,8 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	extensionListener = newExtensionNotifyListener(gc)
 	kbCtx.NotifyRouter.AddListener(extensionListener)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
+	// sub in a bogus purger just to satisfy downstream
+	kbChatCtx.EphemeralPurger = types.DummyEphemeralPurger{}
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
 	kbChatCtx.MessageDeliverer.Connected(context.Background())
@@ -738,11 +744,11 @@ func ExtensionForceGC() {
 	kbCtx.FlushCaches()
 	if _, ok := kbCtx.LocalChatDb.GetEngine().(*libkb.MemDb); ok {
 		fmt.Printf("Nuking in memory chat db\n")
-		kbCtx.LocalChatDb.Nuke()
+		_, _ = kbCtx.LocalChatDb.Nuke()
 	}
 	if _, ok := kbCtx.LocalDb.GetEngine().(*libkb.MemDb); ok {
 		fmt.Printf("Nuking in memory local db\n")
-		kbCtx.LocalDb.Nuke()
+		_, _ = kbCtx.LocalDb.Nuke()
 	}
 	debug.FreeOSMemory()
 	fmt.Printf("Done flushing global caches\n")

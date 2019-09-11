@@ -56,8 +56,8 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	return res
 }
 
-func (b *baseLocalizer) getConvs(inbox types.Inbox, maxLocalize *int) []chat1.Conversation {
-	convs := utils.PluckConvs(inbox.ConvsUnverified)
+func (b *baseLocalizer) getConvs(inbox types.Inbox, maxLocalize *int) []types.RemoteConversation {
+	convs := inbox.ConvsUnverified
 	if maxLocalize == nil || *maxLocalize >= len(convs) {
 		return convs
 	}
@@ -125,11 +125,16 @@ func newNonblockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	}
 }
 
-func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) types.Inbox {
+func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) (types.Inbox, error) {
 	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 	// Loop through and look for empty convs or known errors and skip them
 	var res []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
+		select {
+		case <-ctx.Done():
+			return types.Inbox{}, ctx.Err()
+		default:
+		}
 		if utils.IsConvEmpty(conv.Conv) {
 			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.Conv.GetConvID())
 			continue
@@ -141,7 +146,7 @@ func (b *nonBlockingLocalizer) filterInboxRes(ctx context.Context, inbox types.I
 		ConvsUnverified: res,
 		Convs:           inbox.Convs,
 		Pagination:      inbox.Pagination,
-	}
+	}, nil
 }
 
 func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox,
@@ -149,10 +154,17 @@ func (b *nonBlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
 	inbox = b.filterSelfFinalized(ctx, inbox)
-	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
+	filteredInbox, err := b.filterInboxRes(ctx, inbox, uid)
+	if err != nil {
+		return res, err
+	}
 	// Send inbox over localize channel
-	b.localizeCb <- types.AsyncInboxResult{
+	select {
+	case <-ctx.Done():
+		return res, ctx.Err()
+	case b.localizeCb <- types.AsyncInboxResult{
 		InboxRes: &filteredInbox,
+	}:
 	}
 	// Spawn off localization into its own goroutine and use cb to communicate with outside world
 	go func(ctx context.Context) {
@@ -177,7 +189,7 @@ type localizerPipelineJob struct {
 	retCh     chan types.AsyncInboxResult
 	uid       gregor1.UID
 	completed int
-	pending   []chat1.Conversation
+	pending   []types.RemoteConversation
 
 	// testing
 	gateCh chan struct{}
@@ -191,7 +203,7 @@ func (l *localizerPipelineJob) retry(g *globals.Context) (res *localizerPipeline
 	res.retCh = l.retCh
 	res.uid = l.uid
 	res.completed = l.completed
-	res.pending = make([]chat1.Conversation, len(l.pending))
+	res.pending = make([]types.RemoteConversation, len(l.pending))
 	res.gateCh = make(chan struct{})
 	copy(res.pending, l.pending)
 	return res
@@ -207,10 +219,10 @@ func (l *localizerPipelineJob) closeIfDone() bool {
 	return false
 }
 
-func (l *localizerPipelineJob) getPending() (res []chat1.Conversation) {
+func (l *localizerPipelineJob) getPending() (res []types.RemoteConversation) {
 	l.Lock()
 	defer l.Unlock()
-	res = make([]chat1.Conversation, len(l.pending))
+	res = make([]types.RemoteConversation, len(l.pending))
 	copy(res, l.pending)
 	return res
 }
@@ -240,7 +252,7 @@ func (l *localizerPipelineJob) complete(convID chat1.ConversationID) {
 }
 
 func newLocalizerPipelineJob(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convs []chat1.Conversation, retCh chan types.AsyncInboxResult) *localizerPipelineJob {
+	convs []types.RemoteConversation, retCh chan types.AsyncInboxResult) *localizerPipelineJob {
 	return &localizerPipelineJob{
 		ctx:     globals.BackgroundChatCtx(ctx, g),
 		retCh:   retCh,
@@ -290,7 +302,7 @@ func (s *localizerPipeline) Disconnected() {
 	s.offline = true
 }
 
-func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []chat1.Conversation,
+func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []types.RemoteConversation,
 	retCh chan types.AsyncInboxResult) error {
 	defer s.Trace(ctx, func() error { return nil }, "queue")()
 	s.Lock()
@@ -496,7 +508,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 	if len(pending) == 0 {
 		return nil
 	}
-	convCh := make(chan chat1.Conversation, len(pending))
+	convCh := make(chan types.RemoteConversation, len(pending))
 	retCh := make(chan chat1.ConversationID, len(pending))
 	eg.Go(func() error {
 		defer close(convCh)
@@ -539,7 +551,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 		})
 	}
 	go func() {
-		eg.Wait()
+		_ = eg.Wait()
 		close(retCh)
 	}()
 	for convID := range retCh {
@@ -712,8 +724,43 @@ func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMa
 	return res, nil
 }
 
+func (s *localizerPipeline) getPinnedMsg(ctx context.Context, uid gregor1.UID, conv chat1.Conversation,
+	pinMessage chat1.MessageUnboxed) (pinnedMsg chat1.MessageUnboxed, pinnerUsername string, valid bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "getPinnedMsg: %v", pinMessage.GetMessageID())()
+	if !pinMessage.IsValidFull() {
+		s.Debug(ctx, "getPinnedMsg: not a valid pin message")
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	if storage.NewPinIgnore(s.G(), uid).IsIgnored(ctx, conv.GetConvID(), pinMessage.GetMessageID()) {
+		s.Debug(ctx, "getPinnedMsg: ignored pinned message")
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	body := pinMessage.Valid().MessageBody
+	pinnedMsgID := body.Pin().MsgID
+	messages, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{pinnedMsgID}, nil)
+	if err != nil {
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	xformRes, err := s.G().ConvSource.TransformSupersedes(ctx, conv, uid, messages, &chat1.GetThreadQuery{
+		EnableDeletePlaceholders: true,
+	}, nil, nil)
+	if err != nil {
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	if len(xformRes) == 0 {
+		s.Debug(ctx, "getPinnedMsg: no pin message after xform supersedes")
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	pinnedMsg = xformRes[0]
+	if !pinnedMsg.IsValidFull() {
+		s.Debug(ctx, "getPinnedMsg: not a valid pinned message")
+		return pinnedMsg, pinnerUsername, false, nil
+	}
+	return pinnedMsg, pinMessage.Valid().SenderUsername, true, nil
+}
+
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
-	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
+	rc types.RemoteConversation) (conversationLocal chat1.ConversationLocal) {
 	var err error
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
@@ -724,6 +771,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		umapper = s.G().UIDMapper
 	}
 
+	conversationRemote := rc.Conv
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v vis: %v", unverifiedTLFName,
 		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)
@@ -738,14 +786,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		TeamType:     conversationRemote.Metadata.TeamType,
 		Version:      conversationRemote.Metadata.Version,
 		LocalVersion: conversationRemote.Metadata.LocalVersion,
+		Draft:        rc.LocalDraft,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
-	for _, super := range conversationRemote.Metadata.Supersedes {
-		conversationLocal.Supersedes = append(conversationLocal.Supersedes, super)
-	}
-	for _, super := range conversationRemote.Metadata.SupersededBy {
-		conversationLocal.SupersededBy = append(conversationLocal.SupersededBy, super)
-	}
+
+	conversationLocal.Supersedes = append(
+		conversationLocal.Supersedes, conversationRemote.Metadata.Supersedes...)
+	conversationLocal.SupersededBy = append(
+		conversationLocal.SupersededBy, conversationRemote.Metadata.SupersededBy...)
 	if conversationRemote.ReaderInfo == nil {
 		errMsg := "empty ReaderInfo from server?"
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
@@ -804,6 +852,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		headlineSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_HEADLINE)
 		if err == nil {
 			summaries = append(summaries, headlineSummary)
+		}
+		pinSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_PIN)
+		if err == nil {
+			summaries = append(summaries, pinSummary)
 		}
 		if len(summaries) == 0 {
 			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
@@ -876,6 +928,20 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
 			case chat1.MessageType_HEADLINE:
 				conversationLocal.Info.Headline = body.Headline().Headline
+			case chat1.MessageType_PIN:
+				pinnedMsg, pinnerUsername, valid, err := s.getPinnedMsg(ctx, uid, conversationRemote, mm)
+				if err != nil {
+					conversationLocal.Error = chat1.NewConversationErrorLocal(
+						fmt.Sprintf("unable to get pinned message: %s", err),
+						conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+					return conversationLocal
+				}
+				if valid {
+					conversationLocal.Info.PinnedMsg = &chat1.ConversationPinnedMessage{
+						Message:        pinnedMsg,
+						PinnerUsername: pinnerUsername,
+					}
+				}
 			}
 			if mm.GetMessageID() >= maxValidID {
 				conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
@@ -985,7 +1051,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 			return conversationLocal
 		}
-		conversationLocal.Info.Participants = utils.AttachContactNames(s.G().MetaContext(ctx), conversationLocal.Info.Participants)
+		utils.AttachContactNames(s.G().MetaContext(ctx), conversationLocal.Info.Participants)
 	default:
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
 			"unknown members type", conversationRemote, unverifiedTLFName,
@@ -1002,12 +1068,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.GetConvID())
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list bot commands: %s", err)
+	} else if len(botCommands) > 0 {
+		conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
 	} else {
-		if len(botCommands) > 0 {
-			conversationLocal.BotCommands = bots.MakeConversationCommandGroups(botCommands)
-		} else {
-			conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
-		}
+		conversationLocal.BotCommands = chat1.NewConversationCommandGroupsWithNone()
 	}
 	return conversationLocal
 }
@@ -1037,11 +1101,11 @@ func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, 
 // Returns (nil, nil) if it is a different kind of error
 // Returns (nil, err) if there is an error building the ConversationErrorRekey
 func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr error, conversationRemote chat1.Conversation, unverifiedTLFName string) (*chat1.ConversationErrorLocal, error) {
-	convErrTyp := chat1.ConversationErrorType_TRANSIENT
 	var rekeyInfo *chat1.ConversationErrorRekey
 	var ok bool
 
 	// check for rekey error type
+	var convErrTyp chat1.ConversationErrorType
 	if convErrTyp, ok = IsRekeyError(fromErr); !ok {
 		return nil, nil
 	}

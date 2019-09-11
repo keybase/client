@@ -1,9 +1,11 @@
 package stellarnet
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/stellar/go/xdr"
 )
@@ -319,10 +321,18 @@ func XDRToAssetMinimal(x xdr.Asset) (AssetMinimal, error) {
 		return AssetMinimal{}, nil
 	case xdr.AssetTypeAssetTypeCreditAlphanum4:
 		a := x.MustAlphaNum4()
-		return AssetMinimal{AssetCode: string(a.AssetCode[:]), AssetIssuer: a.Issuer.Address()}, nil
+		n := bytes.IndexByte(a.AssetCode[:], 0)
+		if n == -1 {
+			n = 4
+		}
+		return AssetMinimal{AssetCode: string(a.AssetCode[:n]), AssetIssuer: a.Issuer.Address()}, nil
 	case xdr.AssetTypeAssetTypeCreditAlphanum12:
 		a := x.MustAlphaNum12()
-		return AssetMinimal{AssetCode: string(a.AssetCode[:]), AssetIssuer: a.Issuer.Address()}, nil
+		n := bytes.IndexByte(a.AssetCode[:], 0)
+		if n == -1 {
+			n = 12
+		}
+		return AssetMinimal{AssetCode: string(a.AssetCode[:n]), AssetIssuer: a.Issuer.Address()}, nil
 	default:
 		return AssetMinimal{}, errors.New("invalid xdr asset type")
 	}
@@ -336,7 +346,7 @@ func AssetBaseSummary(a AssetBase) string {
 	if a.CodeString() == "" && a.IssuerString() == "" {
 		return "XLM"
 	}
-	return a.CodeString() + "/" + a.IssuerString()
+	return strings.TrimSpace(a.CodeString()) + "/" + strings.TrimSpace(a.IssuerString())
 }
 
 // XDRAssetSummary returns a string summary of an xdr.Asset.

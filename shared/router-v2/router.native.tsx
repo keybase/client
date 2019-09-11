@@ -1,31 +1,35 @@
-import * as Kb from '../common-adapters/mobile.native'
-import * as Styles from '../styles'
-import * as React from 'react'
-import GlobalError from '../app/global-errors/container'
-import {connect} from '../util/container'
-import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import {createBottomTabNavigator} from 'react-navigation-tabs'
-import * as Stack from 'react-navigation-stack'
-import * as Tabs from '../constants/tabs'
-import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
-import {LeftAction} from '../common-adapters/header-hoc'
 import * as Constants from '../constants/router2'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters/mobile.native'
+import * as React from 'react'
 import * as Shared from './router.shared'
-import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
-import {debounce} from 'lodash-es'
-import logger from '../logger'
+import * as Stack from 'react-navigation-stack'
+import * as Styles from '../styles'
+import * as Tabs from '../constants/tabs'
+import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
+import logger from '../logger'
+import {IconType} from '../common-adapters/icon.constants-gen'
+import {LeftAction} from '../common-adapters/header-hoc'
 import {Props} from './router'
+import {connect} from '../util/container'
+import {createAppContainer} from '@react-navigation/native'
+import {createBottomTabNavigator} from 'react-navigation-tabs'
+import {debounce} from 'lodash-es'
+import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
+import {useScreens} from 'react-native-screens'
 
-// turn on screens
+const {createStackNavigator} = Stack
+
+// turn on screens. lint thinks this is a hook, but its not
+// eslint-disable-next-line
 useScreens()
 
 // Options used by default on all navigators
 // For info on what is passed to what see here: https://github.com/react-navigation/stack/blob/478c354248f2aedfc304a1c4b479c3df359d3868/src/views/Header/Header.js
-const defaultNavigationOptions = {
+const defaultNavigationOptions: any = {
   backBehavior: 'none',
   header: null,
   headerLeft: hp =>
@@ -38,6 +42,14 @@ const defaultNavigationOptions = {
       />
     ),
   headerStyle: {
+    get backgroundColor() {
+      return Styles.globalColors.white
+    },
+    get borderBottomColor() {
+      return Styles.globalColors.black_10
+    },
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
     elevation: undefined, // since we use screen on android turn off drop shadow
   },
   headerTitle: hp => (
@@ -50,7 +62,7 @@ const defaultNavigationOptions = {
 const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
 const tabs = Shared.mobileTabs
-const icons = {
+const icons: {[key: string]: IconType} = {
   [Tabs.chatTab]: 'iconfont-nav-2-chat',
   [Tabs.fsTab]: 'iconfont-nav-2-files',
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
@@ -71,7 +83,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   </Kb.NativeView>
 )
 
-const settingsTabChildren = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
+const settingsTabChildren: Array<Tabs.Tab> = [Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab, Tabs.settingsTab]
 
 type OwnProps = {focused: boolean; routeName: Tabs.Tab}
 const ConnectedTabBarIcon = connect(
@@ -100,9 +112,9 @@ const TabBarIconContainer = props => (
   </Kb.NativeTouchableWithoutFeedback>
 )
 
-const TabNavigator = createBottomTabNavigator(
+const VanillaTabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
-    map[tab] = Stack.createStackNavigator(Shim.shim(routes), {
+    map[tab] = createStackNavigator(Shim.shim(routes), {
       defaultNavigationOptions,
       headerMode,
       initialRouteName: tabRoots[tab],
@@ -122,39 +134,61 @@ const TabNavigator = createBottomTabNavigator(
     defaultNavigationOptions: ({navigation}) => ({
       tabBarButtonComponent: TabBarIconContainer,
       tabBarIcon: ({focused}) => (
-        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName} />
+        <ConnectedTabBarIcon focused={focused} routeName={navigation.state.routeName as Tabs.Tab} />
       ),
     }),
     order: tabs,
     tabBarOptions: {
-      activeBackgroundColor: Styles.globalColors.blueDark,
-      inactiveBackgroundColor: Styles.globalColors.blueDark,
+      get activeBackgroundColor() {
+        return Styles.globalColors.blueDark
+      },
+      get inactiveBackgroundColor() {
+        return Styles.globalColors.blueDark
+      },
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
-      style: {backgroundColor: Styles.globalColors.blueDark},
+      get style() {
+        return {backgroundColor: Styles.globalColors.blueDark}
+      },
     },
   }
 )
 
-const tabStyles = Styles.styleSheetCreate({
-  badge: {
-    position: 'absolute',
-    right: 8,
-    top: 3,
-  },
-  container: {
-    justifyContent: 'center',
-  },
-  tab: {
-    paddingBottom: 6,
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingTop: 6,
-  },
-})
+class UnconnectedTabNavigator extends React.PureComponent<any> {
+  static router = VanillaTabNavigator.router
+  render() {
+    const {navigation, isDarkMode} = this.props
+    return <VanillaTabNavigator navigation={navigation} key={isDarkMode ? 'dark' : 'light'} />
+  }
+}
 
-const LoggedInStackNavigator = Stack.createStackNavigator(
+const TabNavigator = Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o) => ({
+  ...s,
+  ...o,
+}))(UnconnectedTabNavigator)
+
+const tabStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        position: 'absolute',
+        right: 8,
+        top: 3,
+      },
+      container: {
+        justifyContent: 'center',
+      },
+      tab: {
+        paddingBottom: 6,
+        paddingLeft: 16,
+        paddingRight: 16,
+        paddingTop: 6,
+      },
+    } as const)
+)
+
+const LoggedInStackNavigator = createStackNavigator(
   {
     Main: TabNavigator,
     ...Shim.shim(modalRoutes),
@@ -165,7 +199,7 @@ const LoggedInStackNavigator = Stack.createStackNavigator(
   }
 )
 
-const LoggedOutStackNavigator = Stack.createStackNavigator(
+const LoggedOutStackNavigator = createStackNavigator(
   {...Shim.shim(loggedOutRoutes)},
   {
     defaultNavigationOptions: {
@@ -173,7 +207,6 @@ const LoggedOutStackNavigator = Stack.createStackNavigator(
       // show the header
       header: undefined,
     },
-
     headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,
@@ -239,7 +272,7 @@ class RNApp extends React.PureComponent<Props> {
         return false
       }
     }
-    nav.dispatch(StackActions.pop())
+    nav.dispatch(StackActions.pop({}))
     return true
   }
 
@@ -272,12 +305,12 @@ class RNApp extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {color: Styles.globalColors.black},
   keyboard: {
     flexGrow: 1,
     position: 'relative',
   },
-})
+}))
 
 export default RNApp

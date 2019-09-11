@@ -27,7 +27,9 @@ const SectionDivider = (props: Props) => {
     <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
       {typeof props.label === 'string' ? (
         <Kb.Text type="BodySmallSemibold">{props.label}</Kb.Text>
-      ) : (props.label)}
+      ) : (
+        props.label
+      )}
       {collapsible && (
         <Kb.Icon sizeType="Tiny" type={props.collapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'} />
       )}
@@ -42,20 +44,15 @@ const SectionDivider = (props: Props) => {
     children
   )
 }
+const height = Styles.isMobile ? 40 : 32
+SectionDivider.height = height
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-      backgroundColor: Styles.globalColors.blueLighter3,
-    },
-    isElectron: {
-      height: 32,
-    },
-    isMobile: {
-      height: 40,
-    },
-  }),
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+    backgroundColor: Styles.globalColors.blueLighter3,
+    height,
+  },
   fullWidth: {
     width: '100%',
   },
@@ -63,6 +60,6 @@ const styles = Styles.styleSheetCreate({
     height: 20,
     width: 20,
   },
-})
+}))
 
 export default SectionDivider

@@ -1,28 +1,5 @@
 import {PlatformsExpandedType} from '../constants/types/more'
-import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
-
-const ProveMessages = {
-  btc: 'Set a Bitcoin address',
-  dns: 'Prove your website',
-  dnsOrGenericWebSite: 'Prove your website',
-  facebook: 'Prove your Facebook',
-  github: 'Prove your GitHub',
-  hackernews: 'Prove your Hacker News',
-  http: 'Prove your HTTP website',
-  https: 'Prove your HTTPS website',
-  keybase: '',
-  none: '',
-  pgp: 'Add a PGP key',
-  reddit: 'Prove your Reddit',
-  rooter: 'Prove your Rooter',
-  twitter: 'Prove your Twitter',
-  web: 'Prove your website',
-  zcash: 'Set a Zcash address',
-}
-
-export function proveMessage(platform: PlatformsExpandedType) {
-  return ProveMessages[platform]
-}
+import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
 export function subtitle(platform: PlatformsExpandedType): string | null {
   switch (platform) {
@@ -39,7 +16,7 @@ export function subtitle(platform: PlatformsExpandedType): string | null {
   }
 }
 
-export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'pgp' | 'reddit' | 'twitter'
+export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'reddit' | 'twitter'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
   return ({
@@ -47,7 +24,6 @@ export function serviceIdToIcon(service: ServiceId): IconType {
     github: 'iconfont-identity-github',
     hackernews: 'iconfont-identity-hn',
     keybase: 'iconfont-identity-devices',
-    pgp: 'iconfont-identity-pgp',
     reddit: 'iconfont-identity-reddit',
     twitter: 'iconfont-identity-twitter',
   } as const)[service]
@@ -59,7 +35,6 @@ export function serviceIdToLogo24(service: ServiceId): IconType {
     github: 'icon-github-logo-24',
     hackernews: 'icon-hacker-news-logo-24',
     keybase: 'icon-keybase-logo-24',
-    pgp: 'icon-pgp-key-24',
     reddit: 'icon-reddit-logo-24',
     twitter: 'icon-twitter-logo-24',
   } as const)[service]
@@ -75,7 +50,6 @@ export function serviceIdFromString(val: string): ServiceId {
     case 'github':
     case 'hackernews':
     case 'keybase':
-    case 'pgp':
     case 'reddit':
     case 'twitter':
       return val
@@ -90,6 +64,14 @@ export function parseUserId(
   username: string
   serviceId: ServiceId
 } {
+  // This regex matches [THING1]@THING2 where THING1 cannot contain [] and THING2 cannot contain []@
+  const matches = /^\[([^[\]]+)\]@([^@[\]]+)$/.exec(id)
+  if (matches) {
+    return {
+      serviceId: serviceIdFromString(matches[2]),
+      username: matches[1],
+    }
+  }
   const [username, maybeServiceId] = id.split('@')
   const serviceId = serviceIdFromString(maybeServiceId)
   return {

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teambot"
 	"github.com/keybase/clockwork"
 )
 
@@ -17,7 +18,7 @@ const SkipKeygenNilMerkleRoot = "Skipping key generation, unable to fetch merkle
 
 // Maximum number of retries for key generation
 const maxRetries = 5
-const cacheEntryLifetime = time.Minute * 5
+const LibCacheEntryLifetime = time.Minute * 5
 const lruSize = 200
 
 type EKLib struct {
@@ -57,7 +58,9 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		clock:                  clockwork.NewRealClock(),
 		stopCh:                 make(chan struct{}),
 	}
-	go ekLib.backgroundKeygen(mctx)
+	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
+		go ekLib.backgroundKeygen(mctx)
+	}
 	return ekLib
 }
 
@@ -116,7 +119,7 @@ func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext) {
 	}
 }
 
-func (e *EKLib) setClock(clock clockwork.Clock) {
+func (e *EKLib) SetClock(clock clockwork.Clock) {
 	e.clock = clock
 }
 
@@ -278,8 +281,7 @@ func (e *EKLib) NewDeviceEKNeeded(mctx libkb.MetaContext) (needed bool, err erro
 func (e *EKLib) newDeviceEKNeeded(mctx libkb.MetaContext, merkleRoot libkb.MerkleRoot) (needed bool, err error) {
 	defer mctx.TraceTimed("newDeviceEKNeeded", func() error { return err })()
 	defer func() {
-		switch err.(type) {
-		case libkb.UnboxError:
+		if _, ok := err.(libkb.UnboxError); ok {
 			mctx.Debug("newDeviceEKNeeded: unable to fetch latest: %v, creating new deviceEK", err)
 			needed = true
 			err = nil
@@ -426,7 +428,7 @@ func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
 	if !ok || cacheEntry == nil {
 		return nil, false
 	}
-	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= cacheEntryLifetime
+	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= LibCacheEntryLifetime
 }
 
 func (e *EKLib) getStorageForType(mctx libkb.MetaContext, typ keybase1.TeamEphemeralKeyType) (libkb.TeamEKBoxStorage, error) {
@@ -467,6 +469,20 @@ func (e *EKLib) PurgeTeamEKCachesForTeamIDAndGeneration(mctx libkb.MetaContext, 
 
 func (e *EKLib) PurgeTeambotEKCachesForTeamIDAndGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
 	e.purgeCachesForTeamIDAndTypeByGeneration(mctx, teamID, generation, keybase1.TeamEphemeralKeyType_TEAMBOT)
+
+}
+
+func (e *EKLib) PurgeAllTeambotMetadataCaches(mctx libkb.MetaContext) {
+	mctx.Debug("PurgeAllTeambotMetadataCaches")
+	e.teambotEKMetadataCache.Purge()
+}
+
+func (e *EKLib) PurgeTeambotMetadataCache(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	botUID keybase1.UID, generation keybase1.EkGeneration) {
+	mctx.Debug("PurgeTeambotMetadataCache: teamID: %v, botUID: %v generation: %v",
+		teamID, botUID, generation)
+	cacheKey := e.teambotCacheKey(teamID, botUID, generation)
+	e.teambotEKMetadataCache.Remove(cacheKey)
 }
 
 func (e *EKLib) purgeCachesForTeamIDAndTypeByGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
@@ -543,7 +559,11 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 	}
 	merkleRoot := *merkleRootPtr
 	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(mctx, merkleRoot) }()
-	defer teamEKBoxStorage.DeleteExpired(mctx, teamID, merkleRoot)
+	defer func() {
+		if _, err := teamEKBoxStorage.DeleteExpired(mctx, teamID, merkleRoot); err != nil {
+			mctx.Debug("Unable to DeleteExpired: %v", err)
+		}
+	}()
 
 	// First publish new device or userEKs if we need to. We pass shouldCleanup
 	// = false so we can run deletion in the background ourselves and not block
@@ -558,9 +578,10 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 	// used since we don't want to use a key signed by an old PTK for
 	// encryption.
 	teamEKNeeded, backgroundGenPossible, latestGeneration, err := e.newTeamEKNeeded(mctx, teamID, merkleRoot)
-	if err != nil {
+	switch {
+	case err != nil:
 		return ek, false, err
-	} else if backgroundGenPossible {
+	case backgroundGenPossible:
 		// Our current teamEK is *almost* expired but otherwise valid, so let's
 		// create the new teamEK in the background. For large teams and an
 		// empty UPAK cache it can be expensive to do this calculation and it's
@@ -568,9 +589,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 		// to a working teamEK.
 		go func() {
 			if e.backgroundCreationTestCh != nil {
-				select {
-				case <-e.backgroundCreationTestCh:
-				}
+				<-e.backgroundCreationTestCh
 			}
 
 			publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
@@ -592,7 +611,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 				e.backgroundCreationTestCh <- created
 			}
 		}()
-	} else if teamEKNeeded {
+	case teamEKNeeded:
 		publishedMetadata, err := publishNewTeamEK(mctx, teamID, merkleRoot)
 		if err != nil {
 			return ek, false, err
@@ -614,7 +633,7 @@ func (e *EKLib) getOrCreateLatestTeamEKLocked(mctx libkb.MetaContext, teamID key
 // `generation` is also the current maxGeneration, create a new teamEK.
 func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration,
 	contentCtime *gregor1.Time) (ek keybase1.TeamEphemeralKey, err error) {
-	mctx = mctx.WithLogTag("GOCLTEK")
+	mctx = mctx.WithLogTag("GLTEK")
 	defer mctx.TraceTimed("GetTeamEK", func() error { return err })()
 
 	if err = e.checkLogin(mctx); err != nil {
@@ -624,8 +643,7 @@ func (e *EKLib) GetTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, genera
 	teamEKBoxStorage := mctx.G().GetTeamEKBoxStorage()
 	ek, err = teamEKBoxStorage.Get(mctx, teamID, generation, contentCtime)
 	if err != nil {
-		switch err.(type) {
-		case EphemeralKeyError:
+		if _, ok := err.(EphemeralKeyError); ok {
 			mctx.Debug(err.Error())
 			// If we are unable to get the current max generation, try to kick
 			// off creation of a new key.
@@ -676,10 +694,24 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	}
 
 	// We are the bot, try to access our latest key
-	if mctx.G().Env.GetUID().Equal(botUID) {
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		created = false
 		ek, err = e.getLatestTeambotEK(mctx, teamID, botUID)
 		if err != nil {
+			if _, ok := err.(EphemeralKeyError); ok {
+				// Ping team members to generate the latest key for us
+				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+				}
+				// See if we should downgrade this to a transient error. Since
+				// bot members get a key when added to the team this should
+				// only happen in a tight race before the key is created or if
+				// the TeamEK has been purged and we don't have a new one.
+				ekErr := err.(EphemeralKeyError)
+				if ekErr.AllowTransient() {
+					err = newTransientEphemeralKeyError(ekErr)
+				}
+			}
 			return ek, false, err
 		}
 	} else { // we are a team member who needs the latest bot key, get or create that puppy.
@@ -745,10 +777,7 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		return ek, false, NewIncorrectTeamEphemeralKeyTypeError(typ, keybase1.TeamEphemeralKeyType_TEAM)
 	}
 
-	seed, err := deriveTeambotEKFromTeamEK(mctx, teamEK.Team(), botUID)
-	if err != nil {
-		return ek, false, err
-	}
+	seed := deriveTeambotEKFromTeamEK(mctx, teamEK.Team(), botUID)
 
 	// Check our teambotEK cache and see if we should attempt to publish the
 	// our derived key or not.
@@ -807,13 +836,39 @@ func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamI
 		return ek, err
 	}
 	merkleRoot := *merkleRootPtr
-	defer storage.DeleteExpired(mctx, teamID, merkleRoot)
+	defer func() {
+		if _, err := storage.DeleteExpired(mctx, teamID, merkleRoot); err != nil {
+			mctx.Debug("Unable to DeleteExpired: %v", err)
+		}
+	}()
 
-	metadata, err := fetchLatestTeambotEK(mctx, teamID)
-	if err != nil {
+	// Let's see what the latest teambot ek is. This verifies that the metadata
+	// was signed by the latest PTK and otherwise fails with wrongKID set.
+	metadata, wrongKID, err := fetchLatestTeambotEK(mctx, teamID)
+	switch {
+	case metadata == nil:
+		err = newEKMissingBoxErr(mctx, TeambotEKKind, -1)
 		return ek, err
-	} else if metadata == nil {
-		err = newEKMissingBoxErr(mctx, TeambotEKStr, -1)
+	case wrongKID:
+		now := keybase1.ToTime(e.clock.Now())
+		permitted, ctime, err := teambot.TeambotEKWrongKIDPermitted(mctx, teamID, botUID,
+			metadata.Generation, now)
+		if err != nil {
+			return ek, err
+		}
+		mctx.Debug("getLatestTeambotEK: wrongKID set, permitted: %v, ctime: %v",
+			permitted, ctime)
+		if !permitted {
+			return ek, newTeambotEKWrongKIDErr(mctx, ctime, now)
+		}
+
+		// Ping other team members to create the new key for us.
+		if err = teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err != nil {
+			// Charge forward here, we'll try again next time we fetch this
+			// key.
+			mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err)
+		}
+	case err != nil:
 		return ek, err
 	}
 
@@ -841,9 +896,19 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 		return ek, err
 	}
 	// We are the bot, try to access the key
-	if mctx.G().Env.GetUID().Equal(botUID) {
+	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
+			if _, ok := err.(EphemeralKeyError); ok {
+				// Ping team members to generate this key for us
+				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, generation); err2 != nil {
+					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+				}
+				// NOTE we don't downgrade this errors to transient since a bot
+				// should have access to keys for decryption unless there is a
+				// bug, members check that the key is created before encrypting
+				// content.
+			}
 			return ek, err
 		}
 	} else {
@@ -1033,9 +1098,11 @@ func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 }
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	if err := e.KeygenIfNeeded(mctx); err != nil {
-		mctx.Debug("OnLogin error: %v", err)
-	}
+	go func() {
+		if err := e.KeygenIfNeeded(mctx); err != nil {
+			mctx.Debug("OnLogin error: %v", err)
+		}
+	}()
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}

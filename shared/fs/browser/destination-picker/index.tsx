@@ -1,11 +1,12 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {withProps} from 'recompose'
 import Rows from '../rows/rows-container'
+import Root from '../root'
 import * as FsCommon from '../../common'
 import * as RowCommon from '../rows/common'
 import NavHeaderTitle from '../../nav-header/title-container'
@@ -13,7 +14,6 @@ import NavHeaderTitle from '../../nav-header/title-container'
 type Props = {
   index: number
   parentPath: Types.Path
-  routePath: I.List<string>
   targetName: string
   onCancel?: () => void
   onCopyHere?: () => void
@@ -51,11 +51,9 @@ const DesktopHeaders = (props: Props) => (
 )
 
 const DestinationPicker = (props: Props) => {
-  FsCommon.useFsLoadEffect({
-    path: props.parentPath,
-    refreshTag: Types.RefreshTag.DestinationPicker,
-    wantPathMetadata: true,
-  })
+  FsCommon.useFsPathMetadata(props.parentPath)
+  FsCommon.useFsTlfs()
+  FsCommon.useFsOnlineStatus()
   return (
     <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
       {!Styles.isMobile && <DesktopHeaders {...props} />}
@@ -95,9 +93,11 @@ const DestinationPicker = (props: Props) => {
           </Kb.Text>
         </Kb.ClickableBox>
       )}
-      <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
-        <Rows path={props.parentPath} destinationPickerIndex={props.index} routePath={props.routePath} />
-      </Kb.Box2>
+      {props.parentPath === Constants.defaultPath ? (
+        <Root destinationPickerIndex={props.index} />
+      ) : (
+        <Rows path={props.parentPath} destinationPickerIndex={props.index} />
+      )}
       {Styles.isMobile && <Kb.Divider key="dfooter" />}
       <Kb.Box2
         key="footer"
@@ -142,12 +142,12 @@ const HighOrderDestinationPickerMobile = withProps(
 
 export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionRowContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     backgroundColor: Styles.globalColors.blueLighter3,
-    flexShrink: 1,
+    flexShrink: 0,
     height: RowCommon.normalRowHeight,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
@@ -203,4 +203,4 @@ const styles = Styles.styleSheetCreate({
   rowsContainer: {
     flex: 1,
   },
-})
+}))

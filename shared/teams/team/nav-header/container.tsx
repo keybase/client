@@ -3,7 +3,6 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
-import * as SearchGen from '../../../actions/search-gen'
 import {
   HeaderRightActions as _HeaderRightActions,
   HeaderTitle as _HeaderTitle,
@@ -11,6 +10,7 @@ import {
 } from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
+import {selfToUser} from '../../../constants/team-building'
 
 type OwnProps = {
   teamname: string
@@ -29,7 +29,7 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   canAddPeople: stateProps.canAddPeople,
   canChat: stateProps.canChat,
   loading: stateProps.loading,
@@ -100,9 +100,7 @@ const mapStateToPropsSub = (state, {teamname}) => ({
 const mapDispatchToPropsSub = dispatch => ({
   onAddSelf: (you: string, teamname: string) => {
     dispatch(appendNewTeamBuilder(teamname))
-    dispatch(
-      createAddUsersToTeamSoFar({namespace: 'teams', users: [{id: you, prettyName: you, serviceMap: {}}]})
-    )
+    dispatch(createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(you)]}))
   },
 })
 

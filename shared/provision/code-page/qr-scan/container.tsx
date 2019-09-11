@@ -19,7 +19,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   error: stateProps.error,
   onOpenSettings: dispatchProps.onOpenSettings,
   onSubmitTextCode: dispatchProps.onSubmitTextCode,

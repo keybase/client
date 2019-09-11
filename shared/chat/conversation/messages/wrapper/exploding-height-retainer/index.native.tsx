@@ -224,13 +224,13 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     )
   }
   return (
-    <React.Fragment>
+    <>
       {children}
       <Kb.Box style={styles.tagBox}>{exploded}</Kb.Box>
-    </React.Fragment>
+    </>
   )
 }
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   ashes: {
     height: 80,
     width: 400,
@@ -270,5 +270,5 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
   },
-})
+}))
 export default ExplodingHeightRetainer

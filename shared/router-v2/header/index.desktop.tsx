@@ -9,7 +9,6 @@ import {BrowserWindow} from '../../util/safe-electron.desktop'
 import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
-import AppState from '../../app/app-state.desktop'
 import * as ReactIs from 'react-is'
 
 // A mobile-like header for desktop
@@ -22,11 +21,8 @@ type Props = {
   onPop: () => void
   options: any
   style?: any
+  useNativeFrame: boolean
 }
-
-const useNativeFrame = new AppState().state.useNativeFrame
-const initialUseNativeFrame =
-  useNativeFrame !== null && useNativeFrame !== undefined ? useNativeFrame : Platform.defaultUseNativeFrame
 
 const PlainTitle = ({title}) => (
   <Kb.Box2 direction="horizontal" style={styles.plainContainer}>
@@ -146,7 +142,7 @@ class Header extends React.PureComponent<Props> {
 
     // Normally this component is responsible for rendering the system buttons,
     // but if we're showing a banner then that banner component needs to do it.
-    const windowDecorationsAreNeeded = !Platform.isMac && !initialUseNativeFrame
+    const windowDecorationsAreNeeded = !Platform.isMac && !this.props.useNativeFrame
     const windowDecorationsDrawnByBanner =
       windowDecorationsAreNeeded && flags.airdrop && this.props.loggedIn && this.props.airdropWillShowBanner
 
@@ -168,9 +164,6 @@ class Header extends React.PureComponent<Props> {
 
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-        {flags.airdrop && this.props.loggedIn && (
-          <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
-        )}
         <Kb.Box2
           noShrink={true}
           direction="vertical"
@@ -182,6 +175,9 @@ class Header extends React.PureComponent<Props> {
             opt.headerStyle,
           ])}
         >
+          {flags.airdrop && this.props.loggedIn && (
+            <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
+          )}
           <Kb.Box2
             key="topBar"
             direction="horizontal"
@@ -234,75 +230,79 @@ class Header extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  appIcon: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      padding: Styles.globalMargins.xtiny,
-      position: 'relative',
-      top: Styles.globalMargins.xxtiny,
-    },
-  }),
-  appIconBox: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      padding: Styles.globalMargins.tiny,
-      position: 'relative',
-      right: -Styles.globalMargins.tiny,
-      top: -Styles.globalMargins.xtiny,
-    },
-  }),
-  bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
-  bottomExpandable: {minHeight: 40 - 1},
-  bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-  disabledIcon: Styles.platformStyles({
-    isElectron: {
-      cursor: 'default',
-      marginRight: 6,
-      padding: Styles.globalMargins.xtiny,
-    },
-  }),
-  flexOne: {
-    flex: 1,
-  },
-  headerBack: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      height: 40,
-      justifyContent: 'space-between',
-      padding: Styles.globalMargins.tiny,
-    },
-  }),
-  headerBorder: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-  },
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-      alignItems: 'center',
-    },
-  }),
-  icon: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-      marginRight: 6,
-      padding: Styles.globalMargins.xtiny,
-    },
-  }),
-  plainContainer: {
-    ...Styles.globalStyles.flexGrow,
-    marginLeft: Styles.globalMargins.xsmall,
-  },
-  plainText: {
-    ...Styles.globalStyles.flexGrow,
-  },
-  topRightContainer: {flex: 1, justifyContent: 'flex-end'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      appIcon: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          padding: Styles.globalMargins.xtiny,
+          position: 'relative',
+          top: Styles.globalMargins.xxtiny,
+        },
+      }),
+      appIconBox: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          padding: Styles.globalMargins.tiny,
+          position: 'relative',
+          right: -Styles.globalMargins.tiny,
+          top: -Styles.globalMargins.xtiny,
+        },
+      }),
+      bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
+      bottomExpandable: {minHeight: 40 - 1},
+      bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
+      disabledIcon: Styles.platformStyles({
+        isElectron: {
+          cursor: 'default',
+          marginRight: 6,
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      flexOne: {
+        flex: 1,
+      },
+      headerBack: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'center',
+          height: 40,
+          justifyContent: 'space-between',
+          padding: Styles.globalMargins.tiny,
+        },
+      }),
+      headerBorder: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+      },
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDragging,
+          alignItems: 'center',
+        },
+      }),
+      icon: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+          marginRight: 6,
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      plainContainer: {
+        ...Styles.globalStyles.flexGrow,
+        marginLeft: Styles.globalMargins.xsmall,
+      },
+      plainText: {
+        ...Styles.globalStyles.flexGrow,
+      },
+      topRightContainer: {flex: 1, justifyContent: 'flex-end'},
+    } as const)
+)
 
 const mapStateToProps = (state: Container.TypedState) => ({
   airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
+  useNativeFrame: state.config.useNativeFrame,
 })
 
 const mapDispatchToProps = () => ({})

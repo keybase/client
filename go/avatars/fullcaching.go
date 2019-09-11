@@ -87,7 +87,7 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
-	go lru.CleanAfterDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
+	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
@@ -114,8 +114,7 @@ func (c *FullCachingSource) monitorAppState(m libkb.MetaContext) {
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		state = <-m.G().MobileAppState.NextUpdate(&state)
-		switch state {
-		case keybase1.MobileAppState_BACKGROUND:
+		if state == keybase1.MobileAppState_BACKGROUND {
 			c.debug(m, "monitorAppState: backgrounded")
 			if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
 				c.debug(m, "monitorAppState: unable to flush diskLRU %v", err)
@@ -251,7 +250,10 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
-			libkb.DiscardAndCloseBody(resp)
+			err := libkb.DiscardAndCloseBody(resp)
+			if err != nil {
+				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
+			}
 			continue
 		}
 		if found {
@@ -260,7 +262,10 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 
 		// Save to disk
 		path, err := c.commitAvatarToDisk(m, resp.Body, previousPath)
-		libkb.DiscardAndCloseBody(resp)
+		discardErr := libkb.DiscardAndCloseBody(resp)
+		if discardErr != nil {
+			c.debug(m, "populateCacheWorker: error closing body: %+v", discardErr)
+		}
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to write to disk: %s", err)
 			continue
@@ -394,7 +399,7 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 
 func (c *FullCachingSource) OnDbNuke(m libkb.MetaContext) error {
 	if c.diskLRU != nil {
-		if err := c.diskLRU.Clean(m, c.getCacheDir(m)); err != nil {
+		if err := c.diskLRU.CleanOutOfSync(m, c.getCacheDir(m)); err != nil {
 			c.debug(m, "unable to run clean: %v", err)
 		}
 	}

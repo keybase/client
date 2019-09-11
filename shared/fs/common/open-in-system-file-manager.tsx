@@ -20,7 +20,7 @@ type Props = {
 }
 
 const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
-  <WithTooltip text={`Show in ${fileUIName}`}>
+  <WithTooltip tooltip={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
       padding="tiny"
@@ -33,7 +33,7 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <>
-    <WithTooltip text={`Show in ${fileUIName}`}>
+    <WithTooltip tooltip={`Show in ${fileUIName}`}>
       <Icon
         type="iconfont-finder"
         padding="tiny"
@@ -71,7 +71,7 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
 export default (props: Props) =>
   props.driverEnabled ? <OpenInSystemFileManager {...props} /> : <FinderPopup {...props} />
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBox: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
@@ -101,4 +101,4 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))

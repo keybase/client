@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"bytes"
-	"crypto/hmac"
 	"io"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -123,20 +122,4 @@ func (e echoKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKe
 	var k kbcrypto.NaclSigningKeyPublic
 	copy(k[:], kid)
 	return saltSignerPublic{key: k}
-}
-
-type sigKeyring struct {
-	saltSigner
-}
-
-func (s sigKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKey {
-	if s.GetPublicKey() == nil {
-		return nil
-	}
-
-	if hmac.Equal(s.GetPublicKey().ToKID(), kid) {
-		return s.GetPublicKey()
-	}
-
-	return nil
 }

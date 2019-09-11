@@ -1,26 +1,15 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {getActiveKey} from '../router-v2/util'
-import {withNavigation} from '@react-navigation/core'
+import {NavigationInjectedProps, withNavigation} from '@react-navigation/core'
+import {hoistNonReactStatic} from './container'
+import {useNavigationState} from './navigation-hooks'
 
-type Path = Array<
-  | string
-  | {
-      props?: any
-      selected?: string
-    }
->
-
-type NavProps = {
-  getParam: (key: string) => any
-  navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload | void
-  navigateUp: () => RouteTreeGen.NavigateUpPayload | void
-}
+type Path = Array<string | {props?: any; selected?: string}>
 
 export type PropsWithSafeNavigation<P> = {
-  getParam: (key: string) => any
-  navigateAppend: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
-  navigateUp: () => RouteTreeGen.NavigateUpPayload
+  safeNavigateAppendPayload: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
+  safeNavigateUpPayload: () => RouteTreeGen.NavigateUpPayload
 } & P
 
 function withSafeNavigation<P extends {}>(
@@ -28,36 +17,44 @@ function withSafeNavigation<P extends {}>(
 ): React.ComponentType<P> {
   type WithSafeNavigationProps = {
     forwardedRef: React.Ref<React.ComponentType<P>>
-    navigation: any
-  } & P
+  } & NavigationInjectedProps &
+    P
 
   class WithSafeNavigation extends React.Component<WithSafeNavigationProps> {
     static displayName = `WithSafeNavigation(${Component.displayName || Component.name || 'Component'})`
 
-    _navigateAppend = ({path, replace}) =>
+    _navigateAppend = ({path, replace}: {path: Path; replace?: boolean}) =>
       RouteTreeGen.createNavigateAppend({fromKey: getActiveKey(this.props.navigation.state), path, replace})
 
     _navigateUp = () => RouteTreeGen.createNavigateUp({fromKey: getActiveKey(this.props.navigation.state)})
 
     render() {
-      const {navigation, forwardedRef, ...rest} = this.props
+      const {forwardedRef, ...rest} = this.props
       return (
         // @ts-ignore
         <Component
           ref={forwardedRef}
           {...rest}
-          getParam={navigation.getParam}
-          navigateAppend={this._navigateAppend}
-          navigateUp={this._navigateUp}
+          safeNavigateAppendPayload={this._navigateAppend}
+          safeNavigateUpPayload={this._navigateUp}
         />
       )
     }
   }
+
+  hoistNonReactStatic(WithSafeNavigation, Component)
+
   const WithForwardRef = React.forwardRef((props: WithSafeNavigationProps, ref) => (
     <WithSafeNavigation {...props} forwardedRef={ref} />
   ))
+
+  hoistNonReactStatic(WithForwardRef, WithSafeNavigation)
   WithForwardRef.displayName = `ForwardRef(WithSafeNavigation)`
-  return withNavigation(WithForwardRef)
+
+  const WithNav = withNavigation(WithForwardRef)
+  hoistNonReactStatic(WithNav, WithForwardRef)
+  // @ts-ignore not exactly sure
+  return WithNav
 }
 
 function withSafeNavigationStorybook<P extends {}>(
@@ -66,6 +63,19 @@ function withSafeNavigationStorybook<P extends {}>(
   return props => (
     // @ts-ignore
     <Component getParam={(key: string) => ''} navigateAppend={() => {}} navigateUp={() => {}} {...props} />
+  )
+}
+
+export const useSafeNavigation: () => PropsWithSafeNavigation<{}> = () => {
+  const state = useNavigationState()
+  const fromKey = getActiveKey(state)
+  return React.useMemo(
+    () => ({
+      safeNavigateAppendPayload: ({path, replace}) =>
+        RouteTreeGen.createNavigateAppend({fromKey, path, replace}),
+      safeNavigateUpPayload: () => RouteTreeGen.createNavigateUp({fromKey}),
+    }),
+    [fromKey]
   )
 }
 

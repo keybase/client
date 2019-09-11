@@ -128,7 +128,10 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 		if err == nil {
 			// if the remote track succeeded, remove local tracks
 			// (this also removes any snoozes)
-			e.removeLocalTracks(m)
+			err := e.removeLocalTracks(m)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if err != nil {

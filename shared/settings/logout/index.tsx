@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/settings'
-import UpdatePassword from '../../settings/password'
+import UpdatePassword from '../password'
 
 export type Props = {
   checkPasswordIsCorrect: boolean | null
@@ -16,6 +16,7 @@ export type Props = {
 }
 
 type State = {
+  loggingOut: boolean
   password: string
   showTyping: boolean
 }
@@ -28,8 +29,17 @@ const HoverBox = Styles.isMobile
 
 class LogOut extends React.Component<Props, State> {
   state = {
+    loggingOut: false,
     password: '',
     showTyping: false,
+  }
+
+  logOut = () => {
+    if (this.state.loggingOut) {
+      return
+    }
+    this.props.onLogout()
+    this.setState({loggingOut: true})
   }
 
   componentDidMount() {
@@ -67,29 +77,34 @@ class LogOut extends React.Component<Props, State> {
               <Kb.WaitingButton
                 fullWidth={true}
                 waitingKey={Constants.checkPasswordWaitingKey}
-                disabled={!!this.props.checkPasswordIsCorrect || !this.state.password}
+                disabled={
+                  !!this.props.checkPasswordIsCorrect || !this.state.password || this.state.loggingOut
+                }
                 label="Test password"
                 onClick={() => {
                   this.props.onCheckPassword(this.state.password)
                 }}
               />
               <Kb.Box2 direction="horizontal">
-                <HoverBox onClick={this.props.onLogout} style={styles.logoutContainer}>
-                  <Kb.Icon type="iconfont-leave" />
-                  <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
-                    Just sign out
-                  </Kb.Text>
-                </HoverBox>
+                {this.state.loggingOut ? (
+                  <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+                ) : (
+                  <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
+                    <Kb.Icon type="iconfont-leave" />
+                    <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
+                      Just sign out
+                    </Kb.Text>
+                  </HoverBox>
+                )}
               </Kb.Box2>
             </Kb.ButtonBar>
           ) : (
             <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-              <Kb.Button
-                label="Safely sign out"
-                fullWidth={true}
-                onClick={this.props.onLogout}
-                type="Success"
-              />
+              {this.state.loggingOut ? (
+                <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
+              ) : (
+                <Kb.Button label="Safely sign out" fullWidth={true} onClick={this.logOut} type="Success" />
+              )}
             </Kb.ButtonBar>
           ),
         }}
@@ -137,49 +152,55 @@ class LogOut extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  bodyText: {
-    paddingBottom: Styles.globalMargins.tiny,
-    textAlign: 'center',
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  checkbox: {
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  container: {
-    ...Styles.padding(
-      Styles.globalMargins.medium,
-      Styles.globalMargins.small,
-      Styles.globalMargins.medium,
-      Styles.globalMargins.small
-    ),
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-  },
-  headerText: {
-    marginBottom: Styles.globalMargins.small,
-    textAlign: 'center',
-  },
-  logout: {
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  logoutContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      justifyContent: 'center',
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-  }),
-  progress: {
-    alignSelf: 'center',
-    marginBottom: Styles.globalMargins.xlarge,
-    marginTop: Styles.globalMargins.xlarge,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyText: {
+        paddingBottom: Styles.globalMargins.tiny,
+        textAlign: 'center',
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      checkbox: {
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      container: {
+        ...Styles.padding(
+          Styles.globalMargins.medium,
+          Styles.globalMargins.small,
+          Styles.globalMargins.medium,
+          Styles.globalMargins.small
+        ),
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+      },
+      headerText: {
+        marginBottom: Styles.globalMargins.small,
+        textAlign: 'center',
+      },
+      logout: {
+        paddingLeft: Styles.globalMargins.xtiny,
+      },
+      logoutContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          justifyContent: 'center',
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      progress: {
+        alignSelf: 'center',
+        marginBottom: Styles.globalMargins.xlarge,
+        marginTop: Styles.globalMargins.xlarge,
+      },
+      smallProgress: {
+        alignSelf: 'center',
+      },
+    } as const)
+)
 
 export default LogOut

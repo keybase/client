@@ -15,6 +15,7 @@ export const addedPhoneNumber = 'settings:addedPhoneNumber'
 export const certificatePinningToggled = 'settings:certificatePinningToggled'
 export const checkPassword = 'settings:checkPassword'
 export const clearAddedEmail = 'settings:clearAddedEmail'
+export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
 export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
@@ -24,6 +25,7 @@ export const editContactImportEnabled = 'settings:editContactImportEnabled'
 export const editEmail = 'settings:editEmail'
 export const editPhone = 'settings:editPhone'
 export const feedbackSent = 'settings:feedbackSent'
+export const importContactsLater = 'settings:importContactsLater'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
 export const invitesReclaimed = 'settings:invitesReclaimed'
@@ -45,6 +47,7 @@ export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedProxyData = 'settings:loadedProxyData'
 export const loadedRememberPassword = 'settings:loadedRememberPassword'
 export const loadedSettings = 'settings:loadedSettings'
+export const loadedUserCountryCode = 'settings:loadedUserCountryCode'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
@@ -55,7 +58,6 @@ export const onChangeNewPassword = 'settings:onChangeNewPassword'
 export const onChangeNewPasswordConfirm = 'settings:onChangeNewPasswordConfirm'
 export const onChangeRememberPassword = 'settings:onChangeRememberPassword'
 export const onChangeShowPassword = 'settings:onChangeShowPassword'
-export const onChangeUseNativeFrame = 'settings:onChangeUseNativeFrame'
 export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
 export const onSubmitNewPassword = 'settings:onSubmitNewPassword'
 export const onUpdateEmailError = 'settings:onUpdateEmailError'
@@ -79,20 +81,20 @@ export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
-export const waitingForResponse = 'settings:waitingForResponse'
 
 // Payload Types
 type _AddEmailPayload = {readonly email: string; readonly searchable: boolean}
-type _AddPhoneNumberPayload = {readonly allowSearch: boolean; readonly phoneNumber: string}
-type _AddedEmailPayload = {readonly email: string; readonly error?: Error}
+type _AddPhoneNumberPayload = {readonly searchable: boolean; readonly phoneNumber: string}
+type _AddedEmailPayload = {readonly email: string; readonly error?: string}
 type _AddedPhoneNumberPayload = {
-  readonly allowSearch: boolean
+  readonly searchable: boolean
   readonly error?: string
   readonly phoneNumber: string
 }
 type _CertificatePinningToggledPayload = {readonly toggled: boolean | null}
 type _CheckPasswordPayload = {readonly password: HiddenString}
 type _ClearAddedEmailPayload = void
+type _ClearAddedPhonePayload = void
 type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
@@ -106,13 +108,9 @@ type _EditEmailPayload = {
   readonly makeSearchable?: boolean | null
   readonly verify?: boolean
 }
-type _EditPhonePayload = {
-  readonly phone: string
-  readonly delete?: boolean
-  readonly toggleSearchable?: boolean
-  readonly verify?: boolean
-}
+type _EditPhonePayload = {readonly phone: string; readonly delete?: boolean; readonly setSearchable?: boolean}
 type _FeedbackSentPayload = {readonly error: Error | null}
+type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
 type _InvitesReclaimedPayload = void
@@ -139,6 +137,7 @@ type _LoadedSettingsPayload = {
   readonly emails: I.Map<string, Types.EmailRow> | null
   readonly phones: I.Map<string, Types.PhoneRow> | null
 }
+type _LoadedUserCountryCodePayload = {readonly code: string | null}
 type _NotificationsRefreshPayload = void
 type _NotificationsRefreshedPayload = {readonly notifications: I.Map<string, Types.NotificationsGroupState>}
 type _NotificationsSavedPayload = void
@@ -149,7 +148,6 @@ type _OnChangeNewPasswordConfirmPayload = {readonly password: HiddenString}
 type _OnChangeNewPasswordPayload = {readonly password: HiddenString}
 type _OnChangeRememberPasswordPayload = {readonly remember: boolean}
 type _OnChangeShowPasswordPayload = void
-type _OnChangeUseNativeFramePayload = {readonly enabled: boolean}
 type _OnSubmitNewEmailPayload = void
 type _OnSubmitNewPasswordPayload = {readonly thenSignOut: boolean}
 type _OnUpdateEmailErrorPayload = {readonly error: Error}
@@ -167,7 +165,7 @@ type _SendFeedbackPayload = {
 }
 type _SentVerificationEmailPayload = {readonly email: string}
 type _SetAllowDeleteAccountPayload = {readonly allow: boolean}
-type _SetContactImportedCountPayload = {readonly count: number | null}
+type _SetContactImportedCountPayload = {readonly count: number | null; readonly error?: string}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
 type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
@@ -183,7 +181,6 @@ type _UnfurlSettingsSavedPayload = {
 }
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
-type _WaitingForResponsePayload = {readonly waiting: boolean}
 
 // Action Creators
 /**
@@ -250,6 +247,13 @@ export const createClearAddingEmail = (payload: _ClearAddingEmailPayload): Clear
   type: clearAddingEmail,
 })
 /**
+ * Reset state used for showing we just added a phone number.
+ */
+export const createClearAddedPhone = (payload: _ClearAddedPhonePayload): ClearAddedPhonePayload => ({
+  payload,
+  type: clearAddedPhone,
+})
+/**
  * Reset state used for showing we just added an email.
  */
 export const createClearAddedEmail = (payload: _ClearAddedEmailPayload): ClearAddedEmailPayload => ({
@@ -303,6 +307,9 @@ export const createEditContactImportEnabled = (
 ): EditContactImportEnabledPayload => ({payload, type: editContactImportEnabled})
 export const createEditEmail = (payload: _EditEmailPayload): EditEmailPayload => ({payload, type: editEmail})
 export const createEditPhone = (payload: _EditPhonePayload): EditPhonePayload => ({payload, type: editPhone})
+export const createImportContactsLater = (
+  payload: _ImportContactsLaterPayload
+): ImportContactsLaterPayload => ({payload, type: importContactsLater})
 export const createInvitesClearError = (payload: _InvitesClearErrorPayload): InvitesClearErrorPayload => ({
   payload,
   type: invitesClearError,
@@ -386,6 +393,9 @@ export const createLoadedSettings = (payload: _LoadedSettingsPayload): LoadedSet
   payload,
   type: loadedSettings,
 })
+export const createLoadedUserCountryCode = (
+  payload: _LoadedUserCountryCodePayload
+): LoadedUserCountryCodePayload => ({payload, type: loadedUserCountryCode})
 export const createNotificationsRefresh = (
   payload: _NotificationsRefreshPayload
 ): NotificationsRefreshPayload => ({payload, type: notificationsRefresh})
@@ -418,9 +428,6 @@ export const createOnChangeRememberPassword = (
 export const createOnChangeShowPassword = (
   payload: _OnChangeShowPasswordPayload
 ): OnChangeShowPasswordPayload => ({payload, type: onChangeShowPassword})
-export const createOnChangeUseNativeFrame = (
-  payload: _OnChangeUseNativeFramePayload
-): OnChangeUseNativeFramePayload => ({payload, type: onChangeUseNativeFrame})
 export const createOnSubmitNewEmail = (payload: _OnSubmitNewEmailPayload): OnSubmitNewEmailPayload => ({
   payload,
   type: onSubmitNewEmail,
@@ -471,10 +478,6 @@ export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): T
   type: toggleRuntimeStats,
 })
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
-export const createWaitingForResponse = (payload: _WaitingForResponsePayload): WaitingForResponsePayload => ({
-  payload,
-  type: waitingForResponse,
-})
 
 // Action Payloads
 export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
@@ -498,6 +501,10 @@ export type CheckPasswordPayload = {
 export type ClearAddedEmailPayload = {
   readonly payload: _ClearAddedEmailPayload
   readonly type: typeof clearAddedEmail
+}
+export type ClearAddedPhonePayload = {
+  readonly payload: _ClearAddedPhonePayload
+  readonly type: typeof clearAddedPhone
 }
 export type ClearAddingEmailPayload = {
   readonly payload: _ClearAddingEmailPayload
@@ -523,6 +530,10 @@ export type EditContactImportEnabledPayload = {
 export type EditEmailPayload = {readonly payload: _EditEmailPayload; readonly type: typeof editEmail}
 export type EditPhonePayload = {readonly payload: _EditPhonePayload; readonly type: typeof editPhone}
 export type FeedbackSentPayload = {readonly payload: _FeedbackSentPayload; readonly type: typeof feedbackSent}
+export type ImportContactsLaterPayload = {
+  readonly payload: _ImportContactsLaterPayload
+  readonly type: typeof importContactsLater
+}
 export type InvitesClearErrorPayload = {
   readonly payload: _InvitesClearErrorPayload
   readonly type: typeof invitesClearError
@@ -608,6 +619,10 @@ export type LoadedSettingsPayload = {
   readonly payload: _LoadedSettingsPayload
   readonly type: typeof loadedSettings
 }
+export type LoadedUserCountryCodePayload = {
+  readonly payload: _LoadedUserCountryCodePayload
+  readonly type: typeof loadedUserCountryCode
+}
 export type NotificationsRefreshPayload = {
   readonly payload: _NotificationsRefreshPayload
   readonly type: typeof notificationsRefresh
@@ -647,10 +662,6 @@ export type OnChangeRememberPasswordPayload = {
 export type OnChangeShowPasswordPayload = {
   readonly payload: _OnChangeShowPasswordPayload
   readonly type: typeof onChangeShowPassword
-}
-export type OnChangeUseNativeFramePayload = {
-  readonly payload: _OnChangeUseNativeFramePayload
-  readonly type: typeof onChangeUseNativeFrame
 }
 export type OnSubmitNewEmailPayload = {
   readonly payload: _OnSubmitNewEmailPayload
@@ -735,10 +746,6 @@ export type VerifyPhoneNumberPayload = {
   readonly payload: _VerifyPhoneNumberPayload
   readonly type: typeof verifyPhoneNumber
 }
-export type WaitingForResponsePayload = {
-  readonly payload: _WaitingForResponsePayload
-  readonly type: typeof waitingForResponse
-}
 
 // All Actions
 // prettier-ignore
@@ -750,6 +757,7 @@ export type Actions =
   | CertificatePinningToggledPayload
   | CheckPasswordPayload
   | ClearAddedEmailPayload
+  | ClearAddedPhonePayload
   | ClearAddingEmailPayload
   | ClearPhoneNumberAddPayload
   | ClearPhoneNumberErrorsPayload
@@ -759,6 +767,7 @@ export type Actions =
   | EditEmailPayload
   | EditPhonePayload
   | FeedbackSentPayload
+  | ImportContactsLaterPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
@@ -782,6 +791,7 @@ export type Actions =
   | LoadedProxyDataPayload
   | LoadedRememberPasswordPayload
   | LoadedSettingsPayload
+  | LoadedUserCountryCodePayload
   | NotificationsRefreshPayload
   | NotificationsRefreshedPayload
   | NotificationsSavedPayload
@@ -792,7 +802,6 @@ export type Actions =
   | OnChangeNewPasswordPayload
   | OnChangeRememberPasswordPayload
   | OnChangeShowPasswordPayload
-  | OnChangeUseNativeFramePayload
   | OnSubmitNewEmailPayload
   | OnSubmitNewPasswordPayload
   | OnUpdateEmailErrorPayload
@@ -816,5 +825,4 @@ export type Actions =
   | UnfurlSettingsSavedPayload
   | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
-  | WaitingForResponsePayload
   | {type: 'common:resetStore', payload: {}}

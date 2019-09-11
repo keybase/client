@@ -85,6 +85,9 @@ Join a team conversation:
 Leave a team conversation:
     {"method": "leave", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 
+Add one or more users to a team conversation:
+    {"method": "addtochannel", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "usernames": ["alice", "bob", "charlie"]}}}
+
 Load a flip's result:
     {"method": "loadflip", "params": {"options": {"conversation_id": "...", "flip_conversation_id": "...", "msg_id": 72, "game_id": "..."}}}
 
@@ -93,4 +96,19 @@ Get unfurl settings:
 
 Set unfurl setings (thumbnails for sent links):
     {"method": "setunfurlsettings", "params": {"options":{"mode": "always/never/whitelisted", "whitelist":["example.com"]}}}
+
+Advertise availabe bot commands in the UI:
+    {"method": "advertisecommands", "params": {"options":{"alias": "helpbot", "advertisements":[{"type": "public", "commands": [{"name": "help", "description": "Get help using this bot"}]}]}}}
+
+Clear bot commands:
+    {"method": "clearcommands"}
+
+List bot commands for a conversation:
+    {"method": "listcommands", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Pin a message to a chat:
+   {"method": "pin", "params": {"options": {"message_id": 5, "channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Unpin the message of chat:
+   {"method": "unpin", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 `

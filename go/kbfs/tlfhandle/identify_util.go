@@ -290,15 +290,6 @@ func identifyUser(ctx context.Context, nug idutil.NormalizedUsernameGetter,
 	return nil
 }
 
-// identifyUserToChan calls identifyUser and plugs the result into the error channnel.
-func identifyUserToChan(
-	ctx context.Context, nug idutil.NormalizedUsernameGetter,
-	identifier idutil.Identifier, name kbname.NormalizedUsername,
-	id keybase1.UserOrTeamID, t tlf.Type, offline keybase1.OfflineAvailability,
-	errChan chan error) {
-	errChan <- identifyUser(ctx, nug, identifier, name, id, t, offline)
-}
-
 // identifyUsers identifies the users in the given maps.
 func identifyUsers(
 	ctx context.Context, nug idutil.NormalizedUsernameGetter,

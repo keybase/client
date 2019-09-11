@@ -11,7 +11,6 @@ import {memoize} from '../../../util/memoize'
 
 type OwnProps = {
   path: Types.Path // path to the parent folder containering the rows,
-  routePath: I.List<string>
   destinationPickerIndex?: number
   headerRows?: Array<RowTypes.HeaderRowItem> | null
 }
@@ -115,28 +114,6 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path): I.List<RowTy
   )
 }
 
-const getRootRows = (stateProps): I.List<RowTypes.TlfTypeRowItem> =>
-  I.List([
-    {
-      key: 'tlfType:private',
-      name: Types.TlfType.Private,
-      rowType: RowTypes.RowType.TlfType,
-      type: Types.PathType.Folder,
-    },
-    {
-      key: 'tlfType:public',
-      name: Types.TlfType.Public,
-      rowType: RowTypes.RowType.TlfType,
-      type: Types.PathType.Folder,
-    },
-    {
-      key: 'tlfType:team',
-      name: Types.TlfType.Team,
-      rowType: RowTypes.RowType.TlfType,
-      type: Types.PathType.Folder,
-    },
-  ])
-
 const getTlfRowsFromTlfs = memoize(
   (tlfs: I.Map<string, Types.Tlf>, tlfType: Types.TlfType): I.List<SortableRowItem> =>
     I.List().withMutations(list =>
@@ -177,9 +154,8 @@ const getNormalRowItemsFromStateProps = (stateProps, path): I.List<RowTypes.Name
   const level = Types.getPathLevel(path)
   switch (level) {
     case 0:
-      return I.List() // should never happen
     case 1:
-      return getRootRows(stateProps)
+      return I.List() // should never happen
     case 2:
       return getTlfItemsFromStateProps(stateProps, path)
     default:
@@ -234,7 +210,6 @@ export default namedConnect(
             : []
         ),
       path: o.path,
-      routePath: o.routePath,
     }
   },
   'ConnectedRows'

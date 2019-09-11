@@ -8,35 +8,25 @@ import SignupSendFeedback from './feedback/container'
 export const newRoutes = {
   signupEnterDevicename: {
     getScreen: (): typeof SignupEnterDevicename => require('./device-name/container').default,
-    upgraded: true,
   },
-  signupEnterEmail: {
-    getScreen: (): typeof SignupEnterEmail => require('./email/container').default,
-    upgraded: true,
-  },
-  signupEnterUsername: {
-    getScreen: (): typeof SignupEnterUsername => require('./username/container').default,
-    upgraded: true,
-  },
+  signupEnterUsername: {getScreen: (): typeof SignupEnterUsername => require('./username/container').default},
   signupSendFeedbackLoggedOut: {
     getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
-    upgraded: true,
   },
 }
 
 // Some screens in signup show up after we've actually signed up
 export const newModalRoutes = {
+  signupEnterEmail: {
+    getScreen: (): typeof SignupEnterEmail => require('./email/container').default,
+  },
   signupEnterPhoneNumber: {
     getScreen: (): typeof SignupEnterPhoneNumber => require('./phone-number/container').default,
-    upgraded: true,
   },
   signupSendFeedbackLoggedIn: {
     getScreen: (): typeof SignupSendFeedback => require('./feedback/container').default,
-    upgraded: true,
   },
   signupVerifyPhoneNumber: {
-    // @ts-ignore TODO fix me
     getScreen: (): typeof SignupVerifyPhoneNumber => require('./phone-number/verify-container').default,
-    upgraded: true,
   },
 }

@@ -43,4 +43,6 @@ NodeCache,\
 NodeID,\
 Notifier,\
 RekeyQueue,\
-Reporter
+Reporter,\
+SubscriptionNotifier,\
+SubscriptionManagerPublisher

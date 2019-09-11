@@ -128,9 +128,20 @@ func testPrefetcherCheckGet(
 		return
 	}
 	if dbcw, ok := dcache.(*diskBlockCacheWrapped); ok {
-		dbcw.waitForDeletes(context.Background())
+		err := dbcw.waitForDeletes(context.Background())
+		require.NoError(t, err)
 	}
-	require.Equal(t, expectedBlock, block)
+	if expectedFB, ok := expectedBlock.(*data.FileBlock); ok &&
+		!expectedFB.IsIndirect() {
+		fb, ok := block.(*data.FileBlock)
+		require.True(t, ok)
+		// For direct file blocks, the unexported hash pointer might
+		// differ between two instances of the same block, so just
+		// check the contents explicitly.
+		require.Equal(t, expectedFB.Contents, fb.Contents)
+	} else {
+		require.Equal(t, expectedBlock, block)
+	}
 	prefetchStatus, err := dcache.GetPrefetchStatus(
 		context.Background(), tlfID, ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
@@ -169,15 +180,6 @@ func notifySyncCh(t *testing.T, ch chan<- struct{}) {
 		t.Log("Notified sync channel.")
 	case <-time.After(time.Second):
 		t.Fatal("Error notifying sync channel. Stack:\n" + getStack())
-	}
-}
-
-func notifyContinueChOrBust(t *testing.T, ch chan<- error, err error) {
-	t.Helper()
-	select {
-	case ch <- err:
-	case <-time.After(time.Second):
-		t.Fatal("Error notifying continue channel. Stack:\n" + getStack())
 	}
 }
 
@@ -426,13 +428,13 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 		kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Ensure that the largest block isn't in the cache.")
-	block, err = config.BlockCache().Get(rootDir.Children["a"].BlockPointer)
+	_, err = config.BlockCache().Get(rootDir.Children["a"].BlockPointer)
 	require.EqualError(t, err,
 		data.NoSuchBlockError{
 			ID: rootDir.Children["a"].BlockPointer.ID,
 		}.Error())
 	t.Log("Ensure that the second-level directory didn't cause a prefetch.")
-	block, err = config.BlockCache().Get(dirB.Children["d"].BlockPointer)
+	_, err = config.BlockCache().Get(dirB.Children["d"].BlockPointer)
 	require.EqualError(t, err,
 		data.NoSuchBlockError{ID: dirB.Children["d"].BlockPointer.ID}.Error())
 }
@@ -484,7 +486,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dirA, block)
 	t.Log("Ensure that the second-level directory didn't cause a prefetch.")
-	block, err = cache.Get(dirA.Children["b"].BlockPointer)
+	_, err = cache.Get(dirA.Children["b"].BlockPointer)
 	require.EqualError(t, err,
 		data.NoSuchBlockError{ID: dirA.Children["b"].BlockPointer.ID}.Error())
 
@@ -514,7 +516,8 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Remove the prefetched file block from the cache.")
-	cache.DeleteTransient(dirA.Children["b"].BlockPointer.ID, kmd.TlfID())
+	err = cache.DeleteTransient(dirA.Children["b"].BlockPointer.ID, kmd.TlfID())
+	require.NoError(t, err)
 	_, err = cache.Get(dirA.Children["b"].BlockPointer)
 	require.EqualError(t, err,
 		data.NoSuchBlockError{ID: dirA.Children["b"].BlockPointer.ID}.Error())
@@ -576,7 +579,8 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 		t, config.BlockCache(), ptrA, fileA, FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Remove the prefetched block from the cache.")
-	cache.DeleteTransient(ptrA.ID, kmd.TlfID())
+	err = cache.DeleteTransient(ptrA.ID, kmd.TlfID())
+	require.NoError(t, err)
 	_, err = cache.Get(ptrA)
 	require.EqualError(t, err, data.NoSuchBlockError{ID: ptrA.ID}.Error())
 
@@ -824,9 +828,11 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
-	config.SetTlfSyncState(context.Background(), kmd.TlfID(), FolderSyncConfig{
-		Mode: keybase1.FolderSyncMode_ENABLED,
-	})
+	_, err := config.SetTlfSyncState(
+		context.Background(), kmd.TlfID(), FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
+	require.NoError(t, err)
 	testPrefetcherForSyncedTLF(t, q, bg, config, prefetchSyncCh, kmd, false)
 }
 
@@ -1209,9 +1215,10 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Now set the folder to sync.")
-	config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
+	_, err = config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
+	require.NoError(t, err)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1360,9 +1367,10 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Now set the folder to sync.")
-	config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
+	_, err = config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
+	require.NoError(t, err)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -1849,6 +1857,13 @@ func TestPrefetcherReschedules(t *testing.T) {
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
+
+	// Declare and defer the close of this channel before the defer of
+	// the prefetcher shutdown, to avoid data races where the
+	// prefetcher could send to the channel after it's closed.
+	prefetchDoneCh := make(chan struct{})
+	defer close(prefetchDoneCh)
+
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
@@ -1905,16 +1920,16 @@ func TestPrefetcherReschedules(t *testing.T) {
 		ctx, kmd.TlfID(), bPtr.ID, encB, serverHalfB, DiskBlockAnyCache)
 	require.NoError(t, err)
 
-	config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
+	_, err = config.SetTlfSyncState(ctx, kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
+	require.NoError(t, err)
 	// We must use a special channel here to learn when each
 	// prefetcher operation has finished.  That's because we shouldn't
 	// adjust the disk limiter limits during the processing of a
 	// prefetcher operation.  If we do, we introduce racy behavior
 	// where sometimes the prefetcher will be able to write stuff to
 	// the cache, and sometimes not.
-	prefetchDoneCh := make(chan struct{})
 	q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
 		return &backoff.ZeroBackOff{}
@@ -1991,8 +2006,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// We can't close the done channel right away since the prefetcher
 	// still needs to send on it for every remaining operation it
 	// processes, so just spawn a goroutine to drain it, and close the
-	// channel when the test is over.
-	defer close(prefetchDoneCh)
+	// channel when the test is over. (The defered close is at the top
+	// of this function.)
 	go func() {
 		for range prefetchDoneCh {
 		}

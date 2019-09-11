@@ -165,6 +165,9 @@ type Node interface {
 	// GetBasename returns the current basename of the node, or ""
 	// if the node has been unlinked.
 	GetBasename() data.PathPartString
+	// GetPathPlaintextSansTlf returns the cleaned path of the node in
+	// plaintext.
+	GetPathPlaintextSansTlf() (string, bool)
 	// Readonly returns true if KBFS should outright reject any write
 	// attempts on data or directory structures of this node.  Though
 	// note that even if it returns false, KBFS can reject writes to
@@ -533,6 +536,9 @@ type KBFSOps interface {
 	// TeamAbandoned indicates that a team has been abandoned, and
 	// shouldn't be referred to by its previous name anymore.
 	TeamAbandoned(ctx context.Context, tid keybase1.TeamID)
+	// CheckMigrationPerms returns an error if this device cannot
+	// perform implicit team migration for the given TLF.
+	CheckMigrationPerms(ctx context.Context, id tlf.ID) (err error)
 	// MigrateToImplicitTeam migrates the given folder from a private-
 	// or public-keyed folder, to a team-keyed folder.  If it's
 	// already a private/public team-keyed folder, nil is returned.
@@ -558,8 +564,12 @@ type KBFSOps interface {
 	ForceStuckConflictForTesting(ctx context.Context, tlfID tlf.ID) error
 	// Reset completely resets the given folder.  Should only be
 	// called after explicit user confirmation.  After the call,
-	// `handle` has the new TLF ID.
-	Reset(ctx context.Context, handle *tlfhandle.Handle) error
+	// `handle` has the new TLF ID.  If `*newTlfID` is non-nil, that
+	// will be the new TLF ID of the reset TLF, if it already points
+	// to a MD object that matches the same handle as the original TLF
+	// (see HOTPOT-685 for an example of how this can happen -- it
+	// should be very rare).
+	Reset(ctx context.Context, handle *tlfhandle.Handle, newTlfID *tlf.ID) error
 
 	// GetSyncConfig returns the sync state configuration for the
 	// given TLF.
@@ -580,6 +590,10 @@ type KBFSOps interface {
 	// existing TLF.  Any Nodes that have already been returned by
 	// `KBFSOps` won't use these wrappers.
 	AddRootNodeWrapper(func(Node) Node)
+
+	// StatusOfServices returns the current status of various connected
+	// services.
+	StatusOfServices() (map[string]error, chan StatusUpdate)
 }
 
 type gitMetadataPutter interface {
@@ -592,6 +606,7 @@ type gitMetadataPutter interface {
 type KeybaseService interface {
 	idutil.KeybaseService
 	gitMetadataPutter
+	SubscriptionNotifier
 
 	// FavoriteAdd adds the given folder to the list of favorites.
 	FavoriteAdd(ctx context.Context, folder keybase1.FolderHandle) error
@@ -1320,9 +1335,10 @@ type MDOps interface {
 	// that journalMDOps doesn't support any priority other than
 	// MDPriorityNormal for now. If journaling is enabled, use FinishSinbleOp
 	// to override priority.
-	Put(ctx context.Context, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey,
-		lockContext *keybase1.LockContext, priority keybase1.MDPriority) (
+	Put(
+		ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
+		priority keybase1.MDPriority, bps data.BlockPutState) (
 		ImmutableRootMetadata, error)
 
 	// PutUnmerged is the same as the above but for unmerged metadata
@@ -1332,8 +1348,10 @@ type MDOps interface {
 	// the verifying key, which might not be the same as the local
 	// user's verifying key if the MD has been copied from a previous
 	// update.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
+	PutUnmerged(
+		ctx context.Context, rmd *RootMetadata,
+		verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+		ImmutableRootMetadata, error)
 
 	// PruneBranch prunes all unmerged history for the given TLF
 	// branch.
@@ -1348,9 +1366,11 @@ type MDOps interface {
 	// ImmutableRootMetadata requires knowing the verifying key, which
 	// might not be the same as the local user's verifying key if the
 	// MD has been copied from a previous update.
-	ResolveBranch(ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
+	ResolveBranch(
+		ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 		blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
-		verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error)
+		verifyingKey kbfscrypto.VerifyingKey, bps data.BlockPutState) (
+		ImmutableRootMetadata, error)
 
 	// GetLatestHandleForTLF returns the server's idea of the latest
 	// handle for the TLF, which may not yet be reflected in the MD if
@@ -1935,6 +1955,10 @@ type InitMode interface {
 	// DoLogObfuscation indicates whether senstive data like filenames
 	// should be obfuscated in log messages.
 	DoLogObfuscation() bool
+	// BlockTLFEditHistoryIntialization indicates where we should
+	// delay initializing the edit histories of the most recent TLFs
+	// until the first request that uses them is made.
+	BlockTLFEditHistoryIntialization() bool
 	// InitialDelayForBackgroundWork indicates how long non-critical
 	// work that happens in the background on startup should wait
 	// before it begins.
@@ -1960,6 +1984,64 @@ type blockCryptVersioner interface {
 	// BlockCryptVersion returns the block encryption version to be used for
 	// new blocks.
 	BlockCryptVersion() kbfscrypto.EncryptionVer
+}
+
+// SubscriptionID identifies a subscription.
+type SubscriptionID string
+
+// SubscriptionNotifier defines a group of methods for notifying about changes
+// on subscribed topics.
+type SubscriptionNotifier interface {
+	// OnPathChange notifies about a change that's related to a specific path.
+	OnPathChange(subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic)
+	// OnNonPathChange notifies about a change that's not related to a specific path.
+	OnNonPathChange(subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic)
+}
+
+// Subscriber defines a type that can be used to subscribe to different topic.
+//
+// The two Subscribe methods are for path and non-path subscriptions
+// respectively. Notes on some common arguments:
+// 1) subscriptionID needs to be unique among all subscriptions that happens
+//    with this process. A UUID or even just a timestamp might work. If
+//    duplicate subscriptionIDs are used, an error is returned.
+// 2) Optionally a deduplicateInterval can be used. When this arg is set, we
+//    debounce the events so it doesn't send more frequently than the interval.
+//    If deduplicateInterval is not set, i.e. nil, no deduplication is done and
+//    all events will be delivered.
+type Subscriber interface {
+	// SubscribePath subscribes to changes about path, when topic happens.
+	SubscribePath(
+		ctx context.Context, subscriptionID SubscriptionID,
+		path string, topic keybase1.PathSubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// SubscribeNonPath subscribes to changes when topic happens.
+	SubscribeNonPath(ctx context.Context, subscriptionID SubscriptionID,
+		topic keybase1.SubscriptionTopic,
+		deduplicateInterval *time.Duration) error
+	// Unsubscribe unsubscribes a previsous subscription. The subscriptionID
+	// should be the same as when caller subscribed. Otherwise, it's a no-op.
+	Unsubscribe(context.Context, SubscriptionID)
+}
+
+// SubscriptionManager manages subscriptions. Use the Subscriber interface to
+// subscribe and unsubscribe. Multiple subscribers can be used with the same
+// SubscriptionManager.
+type SubscriptionManager interface {
+	// Subscriber returns a new subscriber. All subscriptions made on this
+	// subscriber causes notifications sent through the give notifier here.
+	Subscriber(SubscriptionNotifier) Subscriber
+	// Shutdown shuts the subscription manager down.
+	Shutdown(ctx context.Context)
+}
+
+// SubscriptionManagerPublisher associates with one SubscriptionManager, and is
+// used to publish changes to subscribers mangaged by it.
+type SubscriptionManagerPublisher interface {
+	FavoritesChanged()
+	JournalStatusChanged()
 }
 
 // Config collects all the singleton instance instantiations needed to
@@ -2143,6 +2225,13 @@ type Config interface {
 	// strings are hard-coded in go/libkb/vdebug.go, but include
 	// "mobile", "vlog1", "vlog2", etc.
 	VLogLevel() string
+
+	// SubscriptionManager returns a subscription manager that can be used to
+	// subscribe to events.
+	SubscriptionManager() SubscriptionManager
+	// SubscriptionManagerPublisher retursn a publisher that can be used to
+	// publish events to the subscription manager.
+	SubscriptionManagerPublisher() SubscriptionManagerPublisher
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when
@@ -2379,8 +2468,6 @@ type Chat interface {
 type blockPutState interface {
 	data.BlockPutState
 	oldPtr(ctx context.Context, blockPtr data.BlockPointer) (data.BlockPointer, error)
-	ptrs() []data.BlockPointer
-	getBlock(ctx context.Context, blockPtr data.BlockPointer) (data.Block, error)
 	getReadyBlockData(
 		ctx context.Context, blockPtr data.BlockPointer) (data.ReadyBlockData, error)
 	synced(blockPtr data.BlockPointer) error

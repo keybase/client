@@ -6,6 +6,12 @@ import ScrollView from './scroll-view'
 import {Props} from './section-list'
 import {debounce, throttle, once} from 'lodash-es'
 import {memoize} from '../util/memoize'
+import {renderElementOrComponentOrNot} from '../util/util'
+
+const Kb = {
+  Box2,
+  ScrollView,
+}
 
 /*
  * How this works: We take in the same data structure as RN does Array<Section> and flatten it into an array (this._flat)
@@ -29,6 +35,17 @@ class SectionList extends React.Component<Props, State> {
       // sections changed so let's also reset the onEndReached call
       this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
     }
+    if (
+      this.props.selectedIndex !== -1 &&
+      this.props.selectedIndex !== prevProps.selectedIndex &&
+      this.props.selectedIndex !== undefined &&
+      this._listRef &&
+      this._listRef.current
+    ) {
+      const index = this._itemIndexToFlatIndex(this.props.selectedIndex)
+      // If index is 1, scroll to 0 instead to show the first section header as well.
+      this._listRef.current.scrollAround(index === 1 ? 0 : index)
+    }
   }
 
   componentWillUnmount() {
@@ -36,7 +53,7 @@ class SectionList extends React.Component<Props, State> {
   }
 
   /* Methods from native SectionList */
-  scrollToLocation(params: any) {
+  scrollToLocation() {
     console.warn('TODO desktop SectionList')
   }
   recordInteraction() {
@@ -47,7 +64,7 @@ class SectionList extends React.Component<Props, State> {
   }
   /* =============================== */
 
-  _itemRenderer = (index, key, renderingSticky) => {
+  _itemRenderer = (index, _, renderingSticky) => {
     const item = this._flat[index]
     if (!item) {
       // data is switching out from under us. let things settle
@@ -67,10 +84,10 @@ class SectionList extends React.Component<Props, State> {
         item.flatSectionIndex === 0
       ) {
         // don't render the first one since its always there
-        return <Box2 direction="vertical" key="stickyPlaceholder" />
+        return <Kb.Box2 direction="vertical" key="stickyPlaceholder" />
       }
       return (
-        <Box2
+        <Kb.Box2
           direction="vertical"
           key={`${renderingSticky ? 'sticky:' : ''}${item.key}:`}
           style={
@@ -83,11 +100,11 @@ class SectionList extends React.Component<Props, State> {
           fullWidth={true}
         >
           {this.props.renderSectionHeader({section: section.section})}
-        </Box2>
+        </Kb.Box2>
       )
     } else if (item.type === 'placeholder') {
       return (
-        <Box2
+        <Kb.Box2
           direction="vertical"
           key={`blankPlaceholder${item.flatSectionIndex}`}
           style={{height: 1}}
@@ -96,13 +113,13 @@ class SectionList extends React.Component<Props, State> {
       )
     } else {
       return (
-        <Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
+        <Kb.Box2 direction="vertical" key={`${section.key}:${item.key}`} style={styles.box}>
           {(section.section.renderItem || this.props.renderItem)({
             index: item.indexWithinSection,
             item: item.item,
             section: section.section,
           })}
-        </Box2>
+        </Kb.Box2>
       )
     }
   }
@@ -188,6 +205,23 @@ class SectionList extends React.Component<Props, State> {
     }, [])
   })
 
+  _itemIndexToFlatIndex = (index: number) => {
+    if (index < 0) {
+      return 0
+    }
+    for (let i = 0; i < this._flat.length; i++) {
+      const item = this._flat[i]
+      if (item.type === 'body') {
+        // are we there yet?
+        if (index === 0) {
+          return i // yes
+        }
+        --index // no
+      }
+    }
+    return this._flat.length - 1
+  }
+
   render() {
     this._flatten(this.props.sections)
     const stickyHeader =
@@ -195,12 +229,13 @@ class SectionList extends React.Component<Props, State> {
       this._itemRenderer(this.state.currentSectionFlatIndex, this.state.currentSectionFlatIndex, true)
 
     return (
-      <Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         {this.props.disableAbsoluteStickyHeader && stickyHeader}
-        <ScrollView
+        <Kb.ScrollView
           style={Styles.collapseStyles([styles.scroll, this.props.style])}
           onScroll={this._onScroll}
         >
+          {renderElementOrComponentOrNot(this.props.ListHeaderComponent)}
           {/*
           // @ts-ignore */}
           <ReactList
@@ -211,30 +246,33 @@ class SectionList extends React.Component<Props, State> {
             ref={this._listRef}
             type="variable"
           />
-        </ScrollView>
+        </Kb.ScrollView>
         {!this.props.disableAbsoluteStickyHeader && stickyHeader}
-      </Box2>
+      </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  box: {
-    alignSelf: 'stretch',
-    flexShrink: 0,
-  },
-  container: {
-    alignSelf: 'flex-start',
-    position: 'relative',
-  },
-  scroll: {
-    flexGrow: 1,
-  },
-  stickyBox: {
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {
+        alignSelf: 'stretch',
+        flexShrink: 0,
+      },
+      container: {
+        alignSelf: 'flex-start',
+        position: 'relative',
+      },
+      scroll: {
+        flexGrow: 1,
+      },
+      stickyBox: {
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+    } as const)
+)
 
 export default SectionList

@@ -33,6 +33,7 @@ target 'Keybase' do
   # 3rd party / special
   # Really should use lean core version but react-native-push-notification uses the react-native version
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
+
   use_unimodules!(modules_paths: ['../node_modules'])
   use_native_modules!
 end

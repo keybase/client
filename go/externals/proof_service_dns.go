@@ -66,8 +66,8 @@ func (t *DNSServiceType) GetPrompt() string {
 
 func (t *DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("protocol", jsonw.NewString("dns"))
-	ret.SetKey("domain", jsonw.NewString(un))
+	_ = ret.SetKey("protocol", jsonw.NewString("dns"))
+	_ = ret.SetKey("domain", jsonw.NewString(un))
 	return ret
 }
 

@@ -5,6 +5,7 @@
 package kbfsedits
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
@@ -56,8 +57,9 @@ func NewUserHistory(log logger.Logger, vlog *libkb.VDebugLog) *UserHistory {
 func (uh *UserHistory) UpdateHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory,
 	loggedInUser string) {
-	uh.vlog.CLogf(nil, libkb.VLog1, "Updating user history for TLF %s, "+
-		"user %s", tlfName, loggedInUser)
+	uh.vlog.CLogf(
+		context.TODO(), libkb.VLog1, "Updating user history for TLF %s, "+
+			"user %s", tlfName, loggedInUser)
 	history := tlfHistory.getHistory(loggedInUser)
 	key := tlfKey{tlfName, tlfType}
 
@@ -166,7 +168,8 @@ func (uh *UserHistory) Get(loggedInUser string) (
 	history []keybase1.FSFolderEditHistory) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
-	uh.vlog.CLogf(nil, libkb.VLog1, "User history requested: %s", loggedInUser)
+	uh.vlog.CLogf(
+		context.TODO(), libkb.VLog1, "User history requested: %s", loggedInUser)
 	var clusters historyClusters
 	for key := range uh.histories {
 		history := uh.getTlfHistoryLocked(key.tlfName, key.tlfType)

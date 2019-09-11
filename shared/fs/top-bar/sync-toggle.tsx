@@ -68,7 +68,7 @@ const SyncToggle = (props: Props) =>
         }
         on={props.syncConfig.mode === Types.TlfSyncMode.Enabled}
         color="green"
-        label={'Sync on this device'}
+        label="Sync on this device"
         ref={props.setAttachmentRef}
         disabled={props.waiting}
       />
@@ -102,7 +102,7 @@ const SyncToggle = (props: Props) =>
     </>
   ) : null
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   explainText: Styles.platformStyles({
     isElectron: {
       marginTop: Styles.globalMargins.xxtiny,
@@ -133,6 +133,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.large,
     },
   }),
-})
+}))
 
 export default Kb.OverlayParentHOC(SyncToggle)

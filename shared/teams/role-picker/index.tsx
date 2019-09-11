@@ -32,11 +32,11 @@ type RoleRowProps = {
 }
 
 const RoleRow = (p: RoleRowProps) => (
-  <Kb.Box2 direction={'vertical'} fullWidth={true} alignItems={'flex-start'} style={styles.row}>
-    <Kb.Box2 direction={'vertical'} fullWidth={true} style={styles.rowChild}>
+  <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.row}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowChild}>
       <Kb.Box2
-        direction={'horizontal'}
-        alignItems={'center'}
+        direction="horizontal"
+        alignItems="center"
         fullWidth={true}
         style={p.disabledReason ? styles.disabledRow : undefined}
       >
@@ -77,8 +77,8 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
           <Kb.Icon
             boxStyle={{paddingBottom: 0}}
             style={styles.roleIcon}
-            type={'iconfont-crown-admin'}
-            sizeType={'Small'}
+            type="iconfont-crown-admin"
+            sizeType="Small"
           />
         ),
       }
@@ -96,8 +96,8 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
           <Kb.Icon
             style={styles.roleIcon}
             boxStyle={{paddingBottom: 0}}
-            type={'iconfont-crown-owner'}
-            sizeType={'Small'}
+            type="iconfont-crown-owner"
+            sizeType="Small"
           />
         ),
       }
@@ -215,7 +215,7 @@ const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null):
 const RolePicker = (props: Props) => {
   let selectedRole = props.selectedRole || props.presetRole
   return (
-    <Kb.Box2 direction="vertical" alignItems={'stretch'} style={styles.container}>
+    <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container}>
       {headerTextHelper(props.headerText)}
       {map(
         roleElementHelper(selectedRole || null),
@@ -252,95 +252,98 @@ const RolePicker = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  abilityCheck: Styles.platformStyles({
-    common: {
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      paddingTop: 6,
-    },
-    isMobile: {paddingTop: 4},
-  }),
-  checkIcon: {
-    left: -24,
-    paddingTop: 2,
-    position: 'absolute',
-  },
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-    },
-    isElectron: {
-      borderColor: Styles.globalColors.blue,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20_on_white}`,
-      minHeight: 350,
-      width: 310,
-    },
-    isMobile: {
-      flex: 1,
-    },
-  }),
-  disabledRow: {
-    opacity: 0.4,
-  },
-  footer: {
-    flexGrow: 2,
-    justifyContent: 'flex-end',
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  footerButtonBar: {
-    minHeight: undefined,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  headerText: {
-    alignSelf: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  radioButton: Styles.platformStyles({
-    isMobile: {paddingRight: Styles.globalMargins.tiny},
-  }),
-  roleIcon: {
-    paddingRight: Styles.globalMargins.xtiny,
-  },
-  row: {
-    position: 'relative',
-  },
-  rowBody: Styles.platformStyles({
-    // Width of the radio button. Used to align text with title
-    isElectron: {
-      paddingLeft: 22,
-    },
-    isMobile: {
-      paddingLeft: 38,
-    },
-  }),
-  rowChild: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    },
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      abilityCheck: Styles.platformStyles({
+        common: {
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          paddingTop: 6,
+        },
+        isMobile: {paddingTop: 4},
+      }),
+      checkIcon: {
+        left: -24,
+        paddingTop: 2,
+        position: 'absolute',
+      },
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        isElectron: {
+          borderColor: Styles.globalColors.blue,
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          boxShadow: `0 0 3px 0 rgba(0, 0, 0, 0.15), 0 0 5px 0 ${Styles.globalColors.black_20_on_white}`,
+          minHeight: 350,
+          width: 310,
+        },
+        isMobile: {
+          flex: 1,
+        },
+      }),
+      disabledRow: {
+        opacity: 0.4,
+      },
+      footer: {
+        flexGrow: 2,
+        justifyContent: 'flex-end',
+        paddingBottom: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      footerButtonBar: {
+        minHeight: undefined,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      headerText: {
+        alignSelf: 'center',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      radioButton: Styles.platformStyles({
+        isMobile: {paddingRight: Styles.globalMargins.tiny},
+      }),
+      roleIcon: {
+        paddingRight: Styles.globalMargins.xtiny,
+      },
+      row: {
+        position: 'relative',
+      },
+      rowBody: Styles.platformStyles({
+        // Width of the radio button. Used to align text with title
+        isElectron: {
+          paddingLeft: 22,
+        },
+        isMobile: {
+          paddingLeft: 38,
+        },
+      }),
+      rowChild: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.tiny,
+        },
 
-    isMobile: {
-      paddingBottom: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
-    },
-  }),
-  scroll: {
-    backgroundColor: Styles.globalColors.white,
-  },
-  text: {
-    textAlign: 'left',
-  },
-})
+        isMobile: {
+          paddingBottom: Styles.globalMargins.small,
+          paddingTop: Styles.globalMargins.small,
+        },
+      }),
+      scroll: {
+        backgroundColor: Styles.globalColors.white,
+      },
+      text: {
+        textAlign: 'left',
+      },
+    } as const)
+)
 
 // Helper to use this as a floating box
 export type FloatingProps = {
@@ -364,7 +367,8 @@ export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.
     )
     return (
       <>
-        <Kb.Box ref={this._setRef}>{children}</Kb.Box>
+        {children}
+        <Kb.Box ref={this._setRef} />
         {open && (
           <Kb.FloatingBox
             attachTo={this._returnRef}
@@ -372,9 +376,9 @@ export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.
             onHidden={onCancel}
             hideKeyboard={true}
           >
-            <Kb.Box2 direction={'vertical'} fullHeight={Styles.isMobile} style={floatingContainerStyle}>
+            <Kb.Box2 direction="vertical" fullHeight={Styles.isMobile} style={floatingContainerStyle}>
               {Styles.isMobile && (
-                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction={'cancel'} title="Pick a role" />
+                <Kb.HeaderHocHeader onLeftAction={onCancel} leftAction="cancel" title="Pick a role" />
               )}
               {wrappedPicker}
             </Kb.Box2>

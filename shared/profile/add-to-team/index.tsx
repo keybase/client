@@ -158,7 +158,7 @@ class AddToTeam extends React.Component<Props> {
             )}
           </Kb.Box2>
         </Kb.ScrollView>
-        <Kb.Box2 direction={'horizontal'} style={styles.addToTeam}>
+        <Kb.Box2 direction="horizontal" style={styles.addToTeam}>
           <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
             {this.props.them} will be added as a
           </Kb.Text>
@@ -169,7 +169,7 @@ class AddToTeam extends React.Component<Props> {
             footerComponent={this.props.footerComponent}
             onConfirm={this.props.onConfirmRolePicker}
             onCancel={this.props.onCancelRolePicker}
-            position={'top center'}
+            position="top center"
             open={this.props.isRolePickerOpen}
             disabledRoles={this.props.disabledReasonsForRolePicker}
           >
@@ -196,97 +196,102 @@ class AddToTeam extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  addButton: Styles.platformStyles({
-    isMobile: {
-      width: '100%',
-    },
-  }),
-  addToTeam: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      flexShrink: 0,
-      flexWrap: 'wrap',
-      marginBottom: Styles.globalMargins.small,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-    },
-    isElectron: {
-      marginTop: Styles.globalMargins.small,
-    },
-  }),
-  addToTeamTitle: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.tiny,
-      marginTop: Styles.globalMargins.tiny,
-    },
-  }),
-  addUserToTeamsResultsBox: {
-    backgroundColor: Styles.globalColors.red,
-    marginBottom: Styles.globalMargins.small,
-  },
-  addUserToTeamsResultsText: {
-    margin: Styles.globalMargins.tiny,
-    textAlign: 'center',
-    width: '100%',
-  },
-  buttonBar: Styles.platformStyles({
-    isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      flex: 1,
-      marginTop: 35,
-    },
-    isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
-      width: 500,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: 0,
-      width: '100%',
-    },
-  }),
-  divider: {
-    marginLeft: 69,
-  },
-  floatingRolePicker: Styles.platformStyles({
-    isElectron: {
-      bottom: -32,
-      position: 'relative',
-    },
-  }),
-  meta: {
-    alignSelf: 'center',
-    marginLeft: Styles.globalMargins.xtiny,
-    marginTop: 2,
-  },
-  teamRow: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-      width: '100%',
-    },
-    isElectron: {
-      minHeight: 48,
-      paddingLeft: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      minHeight: 64,
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addButton: Styles.platformStyles({
+        isMobile: {
+          width: '100%',
+        },
+      }),
+      addToTeam: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          flexShrink: 0,
+          flexWrap: 'wrap',
+          marginBottom: Styles.globalMargins.small,
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
+        },
+        isElectron: {
+          marginTop: Styles.globalMargins.small,
+        },
+      }),
+      addToTeamTitle: Styles.platformStyles({
+        common: {
+          marginRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          marginBottom: Styles.globalMargins.tiny,
+          marginTop: Styles.globalMargins.tiny,
+        },
+      }),
+      addUserToTeamsResultsBox: {
+        backgroundColor: Styles.globalColors.red,
+        marginBottom: Styles.globalMargins.small,
+      },
+      addUserToTeamsResultsText: {
+        margin: Styles.globalMargins.tiny,
+        textAlign: 'center',
+        width: '100%',
+      },
+      buttonBar: Styles.platformStyles({
+        isMobile: {
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          flex: 1,
+          height: '100%',
+          marginTop: 35,
+        },
+        isElectron: {
+          marginBottom: Styles.globalMargins.tiny,
+          paddingBottom: Styles.globalMargins.xsmall,
+          width: 500,
+        },
+        isMobile: {
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: 0,
+          width: '100%',
+        },
+      }),
+      divider: {
+        marginLeft: 69,
+      },
+      floatingRolePicker: Styles.platformStyles({
+        isElectron: {
+          bottom: -32,
+          position: 'relative',
+        },
+      }),
+      meta: {
+        alignSelf: 'center',
+        marginLeft: Styles.globalMargins.xtiny,
+        marginTop: 2,
+      },
+      teamRow: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+          width: '100%',
+        },
+        isElectron: {
+          minHeight: 48,
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          minHeight: 64,
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 const PopupWrapped = (props: Props) => (
   <Kb.PopupDialog onClose={props.onBack}>

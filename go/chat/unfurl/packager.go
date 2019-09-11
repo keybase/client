@@ -230,7 +230,7 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 		if err == nil && (imgLength == 0 || vidLength < imgLength) && vidLength < p.maxAssetSize {
 			p.Debug(ctx, "Package: found video: len: %d", vidLength)
 			defer vidBody.Close()
-			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, int64(vidLength),
+			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, vidLength,
 				*raw.Giphy().Video)
 			if err != nil {
 				p.Debug(ctx, "Package: failed to get video asset URL: %s", err)
@@ -302,6 +302,12 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 		return res, errors.New("image not available for maps unfurl")
 	}
 	g.Image = &asset
+	g.MapInfo = &chat1.UnfurlGenericMapInfo{
+		Coord:               mapsRaw.Coord,
+		LiveLocationEndTime: mapsRaw.LiveLocationEndTime,
+		IsLiveLocationDone:  mapsRaw.LiveLocationDone,
+		Time:                mapsRaw.Time,
+	}
 	return chat1.NewUnfurlWithGeneric(g), nil
 }
 

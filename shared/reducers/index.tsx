@@ -1,11 +1,10 @@
 import chat2 from './chat2'
 import config from './config'
-import dev from './dev'
+import deeplinks from './deeplinks'
 import devices from './devices'
 import entities from './entities'
 import fs from './fs'
 import git from './git'
-import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
 import people from './people'
@@ -26,12 +25,11 @@ import {combineReducers} from 'redux'
 const reducers = {
   chat2,
   config,
-  dev,
+  deeplinks,
   devices,
   entities,
   fs,
   git,
-  gregor,
   login,
   notifications,
   people,

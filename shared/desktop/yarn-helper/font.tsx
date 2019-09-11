@@ -16,7 +16,7 @@ const commands = {
   },
   'update-icon-constants': {
     code: updateIconConstants,
-    help: 'Update icon.constants.js and icon.css with new/removed files',
+    help: 'Update icon.constants-gen.tsx and icon.css with new/removed files',
   },
   'unused-assets': {
     code: unusedAssetes,
@@ -30,7 +30,7 @@ const paths = {
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
   webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
-  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.tsx'),
+  iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants-gen.tsx'),
   iconCss: path.resolve(__dirname, '../../common-adapters/icon.css'),
 }
 
@@ -40,6 +40,7 @@ const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
+const computeCounter = counter => baseCharCode + counter - 1
 const mapPaths = skipUnmatchedFile => path => {
   const match = path.match(iconfontRegex)
   if (!match || match.length !== 4) {
@@ -104,6 +105,25 @@ function updateIconFont(web) {
     throw e
   }
   const svgFilePaths = getSvgPaths(true /* print skipped */)
+  const svgFilenames = getSvgNames(false /* print skipped */)
+  /*
+   * NOTE: Since icon counters can be non-sequential, we need to tell our font generator which codepoint to use for each icon.
+   * This is done by setting `codepoints` object where the keys are character codes (hexidecimal) and the values are icon names
+   *
+   * { [name of svg file]: charCode }
+   *
+   * Example
+   * { "127-kb-iconfont-nav-2-files-24": "0xe97e" }
+   */
+  const codepointsMap = svgFilenames.reduce((pointsMap, {counter, filePath}) => {
+    // Character code value converted from decimal to hexidecimal
+    const charCodeHex = computeCounter(counter).toString(16)
+    const {name} = path.parse(filePath)
+    return {
+      ...pointsMap,
+      [name]: `0x${charCodeHex}`,
+    }
+  }, {})
 
   if (web) {
     try {
@@ -114,7 +134,7 @@ function updateIconFont(web) {
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
-      types: web ? ['ttf', 'woff', 'svg'] : ['ttf'],
+      types: web ? ['svg', 'ttf', 'woff'] : ['ttf'],
       files: svgFilePaths,
       dest: paths.fonts,
       startCodepoint: baseCharCode,
@@ -123,6 +143,7 @@ function updateIconFont(web) {
       css: false,
       html: false,
       writeFiles: false,
+      codepoints: codepointsMap,
       formatOptions: {
         ttf: {ts: 0, version: `${Date.now()}.0`}, // MUST use a unique version else windows installer does the WRONG THING
         // Setting descent to zero on font generation will prevent the final
@@ -153,7 +174,7 @@ const fontsGeneratedSuccess = (web, result) => {
 const generateWebCSS = result => {
   const svgFilenames = getSvgNames(false /* print skipped */)
   const rules = svgFilenames.reduce((map, {counter, name}) => {
-    map[`kb-iconfont-${name}`] = baseCharCode + counter - 1
+    map[`kb-iconfont-${name}`] = computeCounter(counter)
     return map
   }, {})
 
@@ -258,7 +279,7 @@ function updateIconConstants() {
     return (icons[`iconfont-${name}`] = {
       isFont: true,
       gridSize: size,
-      charCode: baseCharCode + counter - 1,
+      charCode: computeCounter(counter),
     })
   }, {})
 
@@ -439,7 +460,7 @@ function unusedAssetes() {
   })
 
   Object.keys(images).forEach(image => {
-    const command = `ag --ignore "./common-adapters/icon.constants.js" "${image}"`
+    const command = `ag --ignore "./common-adapters/icon.constants-gen.tsx" "${image}"`
     try {
       execSync(command, {encoding: 'utf8', env: process.env})
     } catch (e) {

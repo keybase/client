@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/provision'
-import {ListItem2, Box2, List, Text, Icon} from '../../common-adapters'
-import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import {SignupScreen} from '../../signup/common'
 
 type Props = {
   devices: Array<Types.Device>
@@ -11,6 +12,12 @@ type Props = {
 }
 
 class SelectOtherDevice extends React.Component<Props> {
+  static navigationOptions = {
+    header: null,
+    headerBottomStyle: {height: undefined},
+    headerLeft: null, // no back button
+  }
+
   _renderItem = (index, item) => {
     if (item.name === 'troubleshooting') {
       return <Troubleshooting key="trouble" onResetAccount={this.props.onResetAccount} />
@@ -35,20 +42,20 @@ class SelectOtherDevice extends React.Component<Props> {
     const isBackup = type === 'backup'
 
     return (
-      <ListItem2
+      <Kb.ListItem2
         type="Small"
         firstItem={index === 0}
         key={name}
         onClick={() => this.props.onSelect(name)}
-        icon={<Icon type={iconType} />}
+        icon={<Kb.Icon type={iconType} />}
         body={
-          <Box2 direction="vertical" fullWidth={true}>
-            <Text type="BodySemibold">
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodySemibold">
               {name}
               {isBackup ? '...' : ''}
-            </Text>
-            {isBackup && <Text type="BodySmall">Paper key</Text>}
-          </Box2>
+            </Kb.Text>
+            {isBackup && <Kb.Text type="BodySmall">Paper key</Kb.Text>}
+          </Kb.Box2>
         }
       />
     )
@@ -57,79 +64,84 @@ class SelectOtherDevice extends React.Component<Props> {
   render() {
     const items = [...this.props.devices, {name: 'troubleshooting'}]
     return (
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        gap={isMobile ? undefined : 'medium'}
-        gapEnd={true}
-      >
-        <Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
-          <List
+      <SignupScreen noBackground={true} onBack={this.props.onBack} title="Authorize this computer">
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          fullWidth={true}
+          style={styles.contentBox}
+          gap="medium"
+        >
+          <Kb.List
             style={styles.list}
             items={items}
             renderItem={this._renderItem}
             keyProperty="name"
             ListHeaderComponent={
-              <Text center={true} type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+              <Kb.Text center={true} type="Body" style={styles.headerText}>
                 For security reasons, you need to authorize with an existing device. Which of your existing
                 devices would you like to use?
-              </Text>
+              </Kb.Text>
             }
-            fixedHeight={isMobile ? 48 : 40}
+            fixedHeight={Styles.isMobile ? 48 : 40}
           />
-        </Box2>
-      </Box2>
+        </Kb.Box2>
+      </SignupScreen>
     )
   }
 }
 
 const Troubleshooting = ({onResetAccount}) => (
-  <Box2 direction="vertical" gap="small" style={styles.troubleShooting}>
-    <Box2 direction="horizontal" fullWidth={true} gap="tiny">
-      <Icon type="iconfont-wrenches" />
-      <Text type="BodySmallSemibold">Troubleshooting</Text>
-    </Box2>
-    <Text type="BodySemibold">
+  <Kb.Box2 direction="vertical" gap="small" style={styles.troubleShooting}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+      <Kb.Icon type="iconfont-wrenches" />
+      <Kb.Text type="BodySmallSemibold">Troubleshooting</Kb.Text>
+    </Kb.Box2>
+    <Kb.Text type="BodySemibold">
       If you have lost all of your devices, or if you uninstalled Keybase from all of them, you can{' '}
-      <Text type="BodySemiboldLink" onClick={onResetAccount}>
+      <Kb.Text type="BodySemiboldLink" onClick={onResetAccount}>
         reset your account.
-      </Text>
-    </Text>
-  </Box2>
+      </Kb.Text>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
-  backButton: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
       marginTop: 0,
     },
   }),
-  contentBox: platformStyles({
+  contentBox: Styles.platformStyles({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
-      padding: globalMargins.small,
+      padding: Styles.globalMargins.small,
     },
   }),
-  headerText: platformStyles({
+  headerText: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.small,
+    },
     isMobile: {
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
-      paddingTop: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
     },
   }),
   list: {
     flexGrow: 1,
   },
   troubleShooting: {
-    paddingTop: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
-})
+}))
 
 export default SelectOtherDevice

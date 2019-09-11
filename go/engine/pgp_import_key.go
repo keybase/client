@@ -173,9 +173,10 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 	if err = e.loadMe(m); err != nil {
 		switch err.(type) {
 		case libkb.SelfNotFoundError:
-			err = libkb.LoginRequiredError{}
+			return libkb.LoginRequiredError{}
+		default:
+			return err
 		}
-		return err
 	}
 
 	if e.arg.PushSecret {
@@ -196,9 +197,10 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 		if err = e.loadDelegator(m); err != nil {
 			switch err.(type) {
 			case libkb.NoUsernameError:
-				err = libkb.LoginRequiredError{}
+				return libkb.LoginRequiredError{}
+			default:
+				return err
 			}
-			return err
 		}
 	}
 
@@ -268,7 +270,7 @@ func (e *PGPKeyImportEngine) exportToGPG(m libkb.MetaContext) (err error) {
 	}
 	gpg := e.G().GetGpgClient()
 
-	ok, err := gpg.CanExec()
+	ok, err := gpg.CanExec(m)
 	if err != nil {
 		m.Debug("Not saving new key to GPG. Error in gpg.CanExec(): %s", err)
 		// libkb/util_*.go:canExec() can return generic errors, just ignore them
@@ -301,7 +303,7 @@ func (e *PGPKeyImportEngine) exportToGPG(m libkb.MetaContext) (err error) {
 
 	// If key is encrypted, use batch mode in gpg so it does not ask
 	// for passphrase to re-encrypt to its internal representation.
-	err = gpg.ExportKey(*exportedBundle, true /* private */, e.arg.ExportEncrypted /* batch */)
+	err = gpg.ExportKey(m, *exportedBundle, true /* private */, e.arg.ExportEncrypted /* batch */)
 	if err == nil {
 		m.UIs().LogUI.Info("Exported new key to the local GPG keychain")
 	}

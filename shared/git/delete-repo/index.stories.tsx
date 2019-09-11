@@ -11,7 +11,6 @@ const load = () => {
           name="docs"
           onClose={Sb.action('onClose')}
           onDelete={Sb.action('onDelete')}
-          error={null}
           waitingKey="test"
         />
       </Box>
@@ -23,7 +22,6 @@ const load = () => {
           name="media"
           onClose={Sb.action('onClose')}
           onDelete={Sb.action('onDelete')}
-          error={null}
           waitingKey="test"
         />
       </Box>

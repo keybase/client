@@ -7,7 +7,7 @@ import {StylesCrossPlatformWithSomeDisallowed} from '../styles'
 export type VariableItemHeight<Item> = {
   getItemLayout: (
     index: number,
-    item: Item
+    item?: Item
   ) => {
     index: number
     length: number
@@ -38,7 +38,7 @@ export type Props<Item> = {
   indexAsKey?: boolean
   keyProperty?: string // if passed uses item[keyProperty] for the item keys,
   items: Array<Item>
-  renderItem: (index: number, item: Item) => React.ReactNode
+  renderItem: (index: number, item: Item) => React.ReactElement | null
   itemHeight: VariableItemHeight<Item> | FixedHeight | FixedListItem2Auto
   estimatedItemHeight?: number
   selectedIndex?: number // TODO,

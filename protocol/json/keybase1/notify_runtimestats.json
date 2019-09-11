@@ -35,9 +35,21 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ProcessType",
+      "symbols": [
+        "MAIN_0",
+        "KBFS_1"
+      ]
+    },
+    {
       "type": "record",
-      "name": "RuntimeStats",
+      "name": "ProcessRuntimeStats",
       "fields": [
+        {
+          "type": "ProcessType",
+          "name": "type"
+        },
         {
           "type": "string",
           "name": "cpu"
@@ -73,6 +85,19 @@
         {
           "type": "StatsSeverityLevel",
           "name": "residentSeverity"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RuntimeStats",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ProcessRuntimeStats"
+          },
+          "name": "processStats"
         },
         {
           "type": {

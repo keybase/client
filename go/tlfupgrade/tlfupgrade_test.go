@@ -70,5 +70,6 @@ func TestBackgroundTLFUpdater(t *testing.T) {
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_BACKGROUND)
 	tc.G.MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	attempt(2)
-	u.Shutdown()
+	err = u.Shutdown()
+	require.NoError(t, err)
 }

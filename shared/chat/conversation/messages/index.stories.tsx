@@ -12,9 +12,13 @@ import text from './text/index.stories'
 import accountPayment from './account-payment/index.stories'
 import UserNotice from './user-notice'
 import coinflip from './coinflip/index.stories'
+import gitPush from './system-git-push/index.stories'
+import cards from './cards/index.stories'
+import systemText from './system-text/index.stories'
 
 const load = () => {
   ;[
+    cards,
     chooseEmoji,
     coinflip,
     emojiRow,
@@ -24,6 +28,8 @@ const load = () => {
     text,
     accountPayment,
     wrapper,
+    gitPush,
+    systemText,
   ].forEach(load => load())
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (

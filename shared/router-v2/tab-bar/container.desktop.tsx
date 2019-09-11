@@ -1,21 +1,22 @@
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as PeopleGen from '../../actions/people-gen'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as ProvisionGen from '../../actions/provision-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as SettingsGen from '../../actions/settings-gen'
+import * as SignupGen from '../../actions/signup-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as TrackerConstants from '../../constants/tracker2'
 import TabBar from './index.desktop'
 import * as Container from '../../util/container'
-import {memoize} from '../../util/memoize'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
-import {quit, hideWindow} from '../../util/quit-helper'
+import {quit} from '../../desktop/app/ctl.desktop'
 import {tabRoots} from '../routes'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SettingsGen from '../../actions/settings-gen'
-import * as SignupGen from '../../actions/signup-gen'
 
 type OwnProps = {
   navigation: any
@@ -24,7 +25,8 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeNumbers: state.notifications.navBadges,
-  _peopleJustSignedUpEmail: state.signup.justSignedUpEmail,
+  _fullnames: state.users.infoMap,
+  _justSignedUpEmail: state.signup.justSignedUpEmail,
   _settingsEmailBanner: state.settings.email.addedEmail,
   fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
   isWalletsNew: state.chat2.isWalletsNew,
@@ -34,7 +36,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
-  _onTabClick: (tab, peopleJustSignedUpEmail, settingsEmailBanner) => {
+  _onTabClick: (tab, justSignedUpEmail, settingsEmailBanner) => {
     if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(PeopleGen.createMarkViewed())
     }
@@ -43,7 +45,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     }
 
     // Clear "just signed up email" when you leave the people tab after signup
-    if (peopleJustSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
+    if (justSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
       dispatch(SignupGen.createClearJustSignedUpEmail())
     }
     // Clear "check your inbox" in settings when you leave the settings tab
@@ -57,6 +59,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ownProps.navigation.navigate(tab)
     }
   },
+  onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
+  onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()), // TODO make this route
   onHelp: () => openURL('https://keybase.io/docs'),
   onQuit: () => {
     if (!__DEV__) {
@@ -67,28 +71,30 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       }
     }
     // In case dump log doesn't exit for us
-    hideWindow()
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .hide()
     setTimeout(() => {
-      quit('quitButton')
+      quit()
     }, 2000)
   },
   onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),
 })
 
-const getBadges = memoize(b => b.toObject())
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  badgeNumbers: getBadges(stateProps._badgeNumbers),
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  badgeNumbers: stateProps._badgeNumbers,
   fullname: stateProps.fullname,
   isWalletsNew: stateProps.isWalletsNew,
+  onAddAccount: dispatchProps.onAddAccount,
+  onCreateAccount: dispatchProps.onCreateAccount,
   onHelp: dispatchProps.onHelp,
   onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
   onQuit: dispatchProps.onQuit,
   onSettings: dispatchProps.onSettings,
   onSignOut: dispatchProps.onSignOut,
   onTabClick: (tab: Tabs.AppTab) =>
-    dispatchProps._onTabClick(tab, stateProps._peopleJustSignedUpEmail, stateProps._settingsEmailBanner),
+    dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
   selectedTab: ownProps.selectedTab,
   uploading: stateProps.uploading,
   username: stateProps.username,

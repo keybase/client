@@ -14,7 +14,6 @@ import (
 type LoginHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	identifyUI libkb.IdentifyUI
 }
 
 func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
@@ -180,6 +179,13 @@ func (h *LoginHandler) LoginOneshot(ctx context.Context, arg keybase1.LoginOnesh
 	eng := engine.NewLoginOneshot(h.G(), arg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
+}
+
+func (h *LoginHandler) IsOnline(ctx context.Context) (bool, error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	_, err := h.G().API.Post(mctx, libkb.APIArg{Endpoint: "ping"})
+	return err == nil, nil
 }
 
 func (h *LoginHandler) RecoverPassphrase(ctx context.Context, arg keybase1.RecoverPassphraseArg) error {

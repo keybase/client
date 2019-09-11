@@ -44,12 +44,11 @@ class MessageAction extends React.PureComponent<Props> {
         )
       case 'setChannelname':
       case 'setDescription':
+      case 'pin':
       case 'systemAddedToTeam':
       case 'systemChangeRetention':
       case 'systemGitPush':
       case 'systemInviteAccepted':
-      case 'systemJoined':
-      case 'systemLeft':
       case 'systemSimpleToComplex':
       case 'systemText':
       case 'systemUsersAddedToConversation':

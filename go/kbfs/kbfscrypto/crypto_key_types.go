@@ -42,7 +42,7 @@ func (k kidContainer) MarshalBinary() (data []byte, err error) {
 	// TODO: Use the more stringent checks from
 	// KIDFromStringChecked instead.
 	if !k.kid.IsValid() {
-		return nil, errors.WithStack(InvalidKIDError{k.kid})
+		return nil, errors.WithStack(InvalidKIDError(k))
 	}
 
 	return k.kid.ToBytes(), nil
@@ -700,7 +700,7 @@ type BlockHashKey struct {
 func MakeBlockHashKey(
 	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
 	mac := hmac.New(sha512.New, key.Bytes())
-	mac.Write(serverHalf.Bytes())
+	_, _ = mac.Write(serverHalf.Bytes())
 	hash := mac.Sum(nil)
 	var hash64 [64]byte
 	copy(hash64[:], hash)

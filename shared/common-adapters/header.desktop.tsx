@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import Text from './text'
-import {Props, DefaultProps} from './header'
+import {Props} from './header'
 import Icon from './icon'
 import * as Styles from '../styles'
 
@@ -10,7 +10,7 @@ const Kb = {
 }
 
 class Header extends Component<Props> {
-  defaultProps = {type: 'Default', windowDragging: true}
+  static defaultProps = {type: 'Default', windowDragging: true}
 
   renderDefault() {
     const maybeWindowDraggingStyle = this.props.windowDragging ? Styles.desktopStyles.windowDragging : {}

@@ -23,13 +23,13 @@ var _ libkb.Engine2 = (*SaltpackUserKeyfinder)(nil)
 var _ libkb.SaltpackRecipientKeyfinderEngineInterface = (*SaltpackUserKeyfinder)(nil)
 
 // NewSaltpackUserKeyfinderAsInterface creates a SaltpackUserKeyfinder engine.
-func NewSaltpackUserKeyfinderAsInterface(Arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
-	return NewSaltpackUserKeyfinder(Arg)
+func NewSaltpackUserKeyfinderAsInterface(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
+	return NewSaltpackUserKeyfinder(arg)
 }
 
-func NewSaltpackUserKeyfinder(Arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
+func NewSaltpackUserKeyfinder(arg libkb.SaltpackRecipientKeyfinderArg) *SaltpackUserKeyfinder {
 	return &SaltpackUserKeyfinder{
-		Arg:                           Arg,
+		Arg:                           arg,
 		RecipientEntityKeyMap:         make(map[keybase1.UserOrTeamID]([]keybase1.KID)),
 		RecipientDeviceAndPaperKeyMap: make(map[keybase1.UID]([]keybase1.KID)),
 	}

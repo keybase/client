@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {TypedActions} from '../actions/typed-actions-gen'
 import {trim} from 'lodash-es'
 
 export default function(
@@ -27,7 +26,7 @@ export default function(
     case TeamBuildingGen.changeSendNotification:
       return state.set('teamBuildingSendNotification', action.payload.sendNotification)
     case TeamBuildingGen.addUsersToTeamSoFar:
-      return state.mergeIn(['teamBuildingTeamSoFar'], I.Set(action.payload.users))
+      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
     case TeamBuildingGen.removeUsersFromTeamSoFar: {
       const setToRemove = I.Set(action.payload.users)
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
@@ -61,7 +60,6 @@ export default function(
         teamBuildingSelectedService: service,
       })
     }
-
     case TeamBuildingGen.fetchUserRecs:
       return state
 

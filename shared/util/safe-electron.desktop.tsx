@@ -27,14 +27,6 @@ export const getApp = () => {
   return app
 }
 
-export const getIpcMain = () => {
-  const ipcMain = Electron.ipcMain || getRemote().ipcMain
-  if (!ipcMain) {
-    throw new Error('Should be impossible')
-  }
-  return ipcMain
-}
-
 export const getSystemPreferences = () => {
   const systemPreferences = Electron.systemPreferences || getRemote().systemPreferences
   if (!systemPreferences) {

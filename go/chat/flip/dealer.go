@@ -580,7 +580,12 @@ func (g *Game) sendOutgoingChat(ctx context.Context, body GameMessageBody) {
 	// so we're ok to send when we can. If use the game in the context of
 	// replay, the dealer will be nil, so no need to send.
 	if g.dealer != nil {
-		go g.dealer.sendOutgoingChat(ctx, g.GameMetadata(), nil, body)
+		go func() {
+			err := g.dealer.sendOutgoingChat(ctx, g.GameMetadata(), nil, body)
+			if err != nil {
+				g.clogf(ctx, "Error sending outgoing chat %+v", err)
+			}
+		}()
 	}
 }
 
@@ -744,7 +749,12 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	// with our commitment. We are now in the inner loop of the Dealer, so we
 	// have to do this send in a Go-routine, so as not to deadlock the Dealer.
 	if !isLeader && !optedOutOfCommit {
-		go d.sendCommitment(ctx, md, me)
+		go func() {
+			err := d.sendCommitment(ctx, md, me)
+			if err != nil {
+				game.clogf(ctx, "Error sending commitment: %+v", err)
+			}
+		}()
 	}
 	return nil
 }

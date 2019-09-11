@@ -3,18 +3,16 @@ import * as Styles from '../styles'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {iconMeta} from './icon.constants'
+import {iconMeta} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import {invert} from 'lodash-es'
 import {Props, IconType} from './icon'
-
-const invertedColors = invert(Styles.globalColors)
 
 class Icon extends Component<Props, void> {
   static defaultProps = {
     sizeType: 'Default',
   }
-  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
+  shouldComponentUpdate(nextProps: Props): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
         return shallowEqual(obj, oth)
@@ -26,14 +24,14 @@ class Icon extends Component<Props, void> {
   render() {
     let color = Shared.defaultColor(this.props.type)
     let hoverColor = Shared.defaultHoverColor(this.props.type)
-    let iconType = Shared.typeToIconMapper(this.props.type)
+    const iconType = Shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
       logger.warn('Null iconType passed')
       return null
     }
 
-    if (!iconMeta[iconType]) {
+    if (!Shared.isValidIconType(iconType)) {
       logger.warn('Unknown icontype passed', iconType)
       throw new Error('Unknown icontype passed ' + iconType)
     }
@@ -99,7 +97,7 @@ class Icon extends Component<Props, void> {
     }
 
     if (hasContainer) {
-      let colorStyleName
+      let colorStyleName: null | string = null // Populated if using CSS
       let hoverStyleName
       let inheritStyle
 
@@ -110,13 +108,14 @@ class Icon extends Component<Props, void> {
           hoverColor: 'inherit',
         }
       } else {
+        // invert the colors here so it reflects the colors in current theme
+        const invertedColors = invert(Styles.globalColors)
         const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
-        if (!colorName) {
-          throw new Error('Invalid color for icon, needs to be in stylesheet')
+        if (colorName) {
+          colorStyleName = `color_${colorName}`
         }
-        colorStyleName = `color_${colorName}`
       }
 
       const style = Styles.collapseStyles([
@@ -141,6 +140,7 @@ class Icon extends Component<Props, void> {
             style={Styles.collapseStyles([
               style,
               this.props.padding && Shared.paddingStyles[this.props.padding],
+              colorStyleName === null ? {color} : null, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
               'icon',
@@ -205,10 +205,10 @@ export function castPlatformStyles(styles: any) {
   return Shared.castPlatformStyles(styles)
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   // Needed because otherwise the containing box doesn't calculate the size of
   // the inner span (incl padding) properly
   flex: {display: 'flex'},
-})
+}))
 
 export default Icon

@@ -110,7 +110,7 @@ func (e *LoginOneshot) finish(m libkb.MetaContext) (err error) {
 	if err == nil {
 		err = e.commitLoginChanges(m)
 	} else {
-		e.rollbackLoginChanges(m)
+		err = e.rollbackLoginChanges(m)
 	}
 	return err
 }

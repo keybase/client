@@ -11,6 +11,7 @@ type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {
+  avatarImageOverride?: string
   avatarSize?: AvatarSize
   avatarStyle?: Styles.StylesCrossPlatform
   colorBroken?: boolean
@@ -26,11 +27,11 @@ export type NameWithIconProps = {
   metaOne?: string | React.ReactNode
   metaStyle?: Styles.StylesCrossPlatform
   metaTwo?: string | React.ReactElement // If components such as metaOne or
-  // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,,
+  // metaTwo are passed in to NameWithIcon with click handlers and NameWithIcon has its own onClick handler,
   // both will fire unless the inner clicks call `event.preventDefault()`
-  onClick?: () => void
-  clickType?: 'tracker' | 'profile'
-  onEditIcon?: (e?: React.SyntheticEvent) => void
+  onClick?: (username: string) => void
+  clickType?: 'profile' | 'onClick'
+  onEditIcon?: (e?: React.BaseSyntheticEvent) => void
   selectable?: boolean
   size?: Size
   teamname?: string
@@ -46,7 +47,7 @@ export type NameWithIconProps = {
 class NameWithIcon extends React.Component<NameWithIconProps> {
   _onClickWrapper = (event: React.SyntheticEvent) => {
     if (!event.defaultPrevented && this.props.onClick) {
-      this.props.onClick()
+      this.props.username && this.props.onClick(this.props.username)
     }
   }
 
@@ -64,6 +65,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     if (isAvatar) {
       avatarOrIcon = (
         <Avatar
+          imageOverrideUrl={this.props.avatarImageOverride}
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
           size={
@@ -93,11 +95,16 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       )
     }
     const username = this.props.username || ''
-    const usernameOrTitle = username ? (
+    const title = this.props.title || ''
+    const usernameOrTitle = title ? (
+      <TextOrComponent
+        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+        style={this.props.horizontal ? undefined : this.props.titleStyle}
+        val={this.props.title || ''}
+      />
+    ) : (
       <ConnectedUsernames
-        onUsernameClicked={
-          this.props.clickType === 'tracker' || this.props.clickType === 'profile' ? undefined : 'profile'
-        }
+        onUsernameClicked={this.props.clickType === 'onClick' ? this.props.onClick : 'profile'}
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
         containerStyle={Styles.collapseStyles([
           !this.props.horizontal && !Styles.isMobile && styles.vUsernameContainerStyle,
@@ -109,15 +116,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         usernames={[username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
-        colorYou={this.props.notFollowingColorOverride}
+        colorYou={this.props.notFollowingColorOverride || true}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
         style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
-      />
-    ) : (
-      <TextOrComponent
-        textType={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-        style={this.props.horizontal ? undefined : this.props.titleStyle}
-        val={this.props.title || ''}
       />
     )
 
@@ -142,10 +143,10 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         {metaTwo}
       </Box>
     ) : (
-      <React.Fragment>
+      <>
         {metaOne}
         {metaTwo}
-      </React.Fragment>
+      </>
     )
 
     return (
@@ -198,7 +199,7 @@ const TextOrComponent = (props: {
   return props.val
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   fullWidthText: Styles.platformStyles({
     isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
   }),
@@ -243,7 +244,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-})
+}))
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (

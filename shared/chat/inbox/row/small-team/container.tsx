@@ -22,7 +22,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
   return {
     _meta,
-    _username: state.config.username || '',
+    _username: state.config.username,
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
     isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
@@ -34,6 +34,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
+  onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
+  onMuteConversation: (isMuted: boolean) =>
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
 })
@@ -55,6 +58,10 @@ export default Container.namedConnect(
       backgroundColor: styles.backgroundColor,
       channelname: undefined,
       conversationIDKey: stateProps._meta.conversationIDKey,
+      draft:
+        stateProps._meta.draft && !stateProps.isSelected && !stateProps.hasUnread
+          ? stateProps._meta.draft
+          : undefined,
       hasBadge: stateProps.hasBadge,
       hasBottomLine:
         stateProps.youAreReset ||
@@ -72,6 +79,8 @@ export default Container.namedConnect(
       isMuted: stateProps._meta.isMuted,
       isSelected,
       isTypingSnippet: stateProps.isTypingSnippet,
+      onHideConversation: dispatchProps.onHideConversation,
+      onMuteConversation: () => dispatchProps.onMuteConversation(stateProps._meta.isMuted),
       // Don't allow you to select yourself
       onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
       participantNeedToRekey,

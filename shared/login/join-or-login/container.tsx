@@ -1,13 +1,13 @@
 import * as ProvisionGen from '../../actions/provision-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as SignupGen from '../../actions/signup-gen'
+import * as LoginGen from '../../actions/login-gen'
 import Intro from '.'
-import {connect, isMobile} from '../../util/container'
+import * as Container from '../../util/container'
 
-type OwnProps = {
-  navigateAppend: (...args: Array<any>) => any
-}
+type OwnProps = {}
 
-export default connect(
+export default Container.connect(
   state => {
     let bannerMessage: string | null = null
 
@@ -17,17 +17,25 @@ export default connect(
       bannerMessage = `${state.devices.justRevokedSelf} was revoked successfully`
     }
 
-    return {bannerMessage}
+    return {
+      bannerMessage,
+      isOnline: state.login.isOnline,
+    }
   },
-  (dispatch, {navigateAppend}: OwnProps) => ({
-    _onFeedback: () => dispatch(navigateAppend(['feedback'])),
+  dispatch => ({
+    _onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
+    checkIsOnline: () => dispatch(LoginGen.createLoadIsOnline()),
     onLogin: () => dispatch(ProvisionGen.createStartProvision()),
     onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
+    showProxySettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['proxySettingsModal']})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     bannerMessage: stateProps.bannerMessage,
-    onFeedback: isMobile ? dispatchProps._onFeedback : null,
+    checkIsOnline: dispatchProps.checkIsOnline,
+    isOnline: stateProps.isOnline,
+    onFeedback: Container.isMobile ? dispatchProps._onFeedback : null,
     onLogin: dispatchProps.onLogin,
     onSignup: dispatchProps.onSignup,
+    showProxySettings: dispatchProps.showProxySettings,
   })
 )(Intro)

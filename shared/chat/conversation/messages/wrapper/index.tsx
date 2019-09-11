@@ -13,6 +13,7 @@ import SystemSimpleToComplex from '../system-simple-to-complex/container'
 import SystemText from '../system-text/container'
 import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
 import SetDescription from '../set-description/container'
+import Pin from '../pin'
 import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
 import AttachmentMessage from '../attachment/container'
@@ -47,6 +48,7 @@ export type Props = {
   failureDescription: string
   forceAsh: boolean
   hasUnfurlPrompts: boolean
+  isJoinLeave: boolean
   isLastInThread: boolean
   isPendingPayment: boolean
   isRevoked: boolean
@@ -58,6 +60,7 @@ export type Props = {
   onCancel?: () => void
   onEdit?: () => void
   onRetry?: () => void
+  onSwipeLeft: () => void
   orangeLineAbove: boolean
   previous?: Types.Message
   shouldShowPopup: boolean
@@ -153,7 +156,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 onUsernameClicked={this._onAuthorClick}
               />
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-                <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
+                <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
                     color={
                       this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
@@ -241,6 +244,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         key="UnfurlList"
         conversationIDKey={this.props.conversationIDKey}
         ordinal={this.props.message.ordinal}
+        toggleMessagePopup={this.props.toggleShowingMenu}
       />
     )
 
@@ -282,12 +286,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'requestPayment' ||
       this.props.message.type === 'setChannelname' ||
       this.props.message.type === 'setDescription' ||
+      this.props.message.type === 'pin' ||
       this.props.message.type === 'systemAddedToTeam' ||
       this.props.message.type === 'systemChangeRetention' ||
       this.props.message.type === 'systemGitPush' ||
       this.props.message.type === 'systemInviteAccepted' ||
-      this.props.message.type === 'systemJoined' ||
-      this.props.message.type === 'systemLeft' ||
       this.props.message.type === 'systemSimpleToComplex' ||
       this.props.message.type === 'systemText' ||
       this.props.message.type === 'systemUsersAddedToConversation') &&
@@ -311,6 +314,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
           !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
+          this.props.isJoinLeave && styles.containerJoinLeave,
           this._showCenteredHighlight() && styles.centeredOrdinal,
         ]),
       }
@@ -319,6 +323,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ...props,
             onLongPress: this.props.toggleShowingMenu,
             onPress: this._dismissKeyboard,
+            onSwipeLeft: this.props.onSwipeLeft,
             underlayColor: Styles.globalColors.blueLighter3,
           }
         : props
@@ -331,13 +336,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
             'WrapperMessage-noOverflow': this.props.isPendingPayment,
+            'WrapperMessage-systemMessage': this.props.message.type.startsWith('system'),
             active: this.props.showingMenu || this.state.showingPicker,
           },
           'WrapperMessage-hoverBox'
         ),
+        onContextMenu: this.props.toggleShowingMenu,
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
+        style: Styles.collapseStyles([this.props.isJoinLeave && styles.containerJoinLeave]),
       }
     }
   }
@@ -448,6 +456,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'setDescription':
         child = <SetDescription key="setDescription" message={message} />
         break
+      case 'pin':
+        child = (
+          <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
+        )
+        break
       case 'setChannelname':
         child = <SetChannelname key="setChannelname" message={message} />
         break
@@ -502,20 +515,23 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
-                {!this._shouldShowReactionsRow() && !this.props.showingMenu && (
-                  <EmojiRow
-                    className={Styles.classNames({
-                      'WrapperMessage-emojiRow': !this.props.isLastInThread,
-                    })}
-                    conversationIDKey={this.props.conversationIDKey}
-                    onShowingEmojiPicker={this._setShowingPicker}
-                    ordinal={message.ordinal}
-                    style={Styles.collapseStyles([
-                      styles.emojiRow,
-                      this.props.isLastInThread && styles.emojiRowLast,
-                    ])}
-                  />
-                )}
+                {!this._shouldShowReactionsRow() &&
+                  Constants.isDecoratedMessage(this.props.message) &&
+                  !this.props.showingMenu && (
+                    <EmojiRow
+                      className={Styles.classNames({
+                        'WrapperMessage-emojiRow': !this.props.isLastInThread,
+                      })}
+                      conversationIDKey={this.props.conversationIDKey}
+                      onShowingEmojiPicker={this._setShowingPicker}
+                      ordinal={message.ordinal}
+                      style={Styles.collapseStyles([
+                        styles.emojiRow,
+                        !Styles.isDarkMode && styles.emojiRowBorder,
+                        this.props.isLastInThread && styles.emojiRowLast,
+                      ])}
+                    />
+                  )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
@@ -556,9 +572,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     }
     return (
       <>
-        {LongPressable({
-          ...this._containerProps(),
-          children: [
+        <LongPressable
+          {...this._containerProps()}
+          children={[
             this._authorAndContent([
               this._messageAndButtons(),
               this._isEdited(),
@@ -570,8 +586,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             ]),
             this._sendIndicator(),
             this._orangeLine(),
-          ],
-        })}
+          ]}
+        />
         {this._popup()}
       </>
     )
@@ -581,136 +597,149 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 const WrapperMessage = Kb.OverlayParentHOC(_WrapperMessage)
 
 const fast = {backgroundColor: Styles.globalColors.fastBlank}
-const styles = Styles.styleSheetCreate({
-  authorContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'flex-start',
-      alignSelf: 'flex-start',
-      height: Styles.globalMargins.mediumLarge,
-    },
-    isMobile: {marginTop: 8},
-  }),
-  avatar: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.small,
-    },
-    isMobile: {marginLeft: Styles.globalMargins.tiny},
-  }),
-  centeredOrdinal: {
-    backgroundColor: Styles.globalColors.yellow,
-  },
-  container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-  containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
-  containerNoUsername: Styles.platformStyles({
-    isMobile: {
-      paddingBottom: 3,
-      paddingLeft:
-        // Space for below the avatar
-        Styles.globalMargins.tiny + // right margin
-        Styles.globalMargins.tiny + // left margin
-        Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: 3,
-    },
-  }),
-  contentUnderAuthorContainer: Styles.platformStyles({
-    isElectron: {
-      marginTop: -16,
-      paddingLeft:
-        // Space for below the avatar
-        Styles.globalMargins.tiny + // right margin
-        Styles.globalMargins.small + // left margin
-        Styles.globalMargins.mediumLarge, // avatar
-    },
-    isMobile: {
-      marginTop: -12,
-      paddingBottom: 3,
-      paddingLeft:
-        // Space for below the avatar
-        Styles.globalMargins.tiny + // right margin
-        Styles.globalMargins.tiny + // left margin
-        Styles.globalMargins.mediumLarge, // avatar
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-  edited: {color: Styles.globalColors.black_20},
-  ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: Styles.platformStyles({
-    isElectron: {
-      borderBottom: `1px solid ${Styles.globalColors.black_10}`,
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
-      borderLeft: `1px solid ${Styles.globalColors.black_10}`,
-      borderRight: `1px solid ${Styles.globalColors.black_10}`,
-      bottom: -Styles.globalMargins.mediumLarge,
-      height: Styles.globalMargins.mediumLarge,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.xtiny,
-      position: 'absolute',
-      right: 96,
-      zIndex: 2,
-    },
-  }),
-  emojiRowLast: Styles.platformStyles({
-    isElectron: {
-      border: 'none',
-      borderBottomLeftRadius: 0,
-      borderBottomRightRadius: 0,
-      borderTopLeftRadius: Styles.borderRadius,
-      borderTopRightRadius: Styles.borderRadius,
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.tiny,
-      top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
-    },
-  }),
-  fail: {color: Styles.globalColors.redDark},
-  failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
-  fast,
-  marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
-  menuButtons: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      flexShrink: 0,
-      justifyContent: 'flex-end',
-      overflow: 'hidden',
-    },
-    isElectron: {height: 16},
-    isMobile: {height: 21},
-  }),
-  menuButtonsWithAuthor: {marginTop: -16},
-  messagePopupContainer: {
-    marginRight: Styles.globalMargins.small,
-  },
-  orangeLine: {
-    // don't push down content due to orange line
-    backgroundColor: Styles.globalColors.orange,
-    flexShrink: 0,
-    height: 1,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
-  },
-  send: Styles.platformStyles({
-    common: {position: 'absolute'},
-    isElectron: {
-      pointerEvents: 'none',
-      right: 12,
-    },
-    isMobile: {right: 0},
-  }),
-  timestamp: Styles.platformStyles({
-    common: {paddingLeft: Styles.globalMargins.xtiny},
-    isElectron: {lineHeight: 19},
-  }),
-  usernameCrown: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'baseline',
-      position: 'relative',
-      top: -2,
-    },
-    isMobile: {alignItems: 'center'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      authorContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+          alignSelf: 'flex-start',
+          height: Styles.globalMargins.mediumLarge,
+        },
+        isMobile: {marginTop: 8},
+      }),
+      avatar: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.small,
+        },
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
+      }),
+      centeredOrdinal: {
+        backgroundColor: Styles.globalColors.yellow,
+      },
+      container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
+      containerJoinLeave: Styles.platformStyles({
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
+      containerNoUsername: Styles.platformStyles({
+        isMobile: {
+          paddingBottom: 3,
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: 3,
+        },
+      }),
+      contentUnderAuthorContainer: Styles.platformStyles({
+        isElectron: {
+          marginTop: -16,
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.small + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+        },
+        isMobile: {
+          marginTop: -12,
+          paddingBottom: 3,
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+      edited: {color: Styles.globalColors.black_20},
+      ellipsis: {marginLeft: Styles.globalMargins.tiny},
+      emojiRow: Styles.platformStyles({
+        isElectron: {
+          borderBottomLeftRadius: Styles.borderRadius,
+          borderBottomRightRadius: Styles.borderRadius,
+          bottom: -Styles.globalMargins.mediumLarge,
+          height: Styles.globalMargins.mediumLarge,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+          position: 'absolute',
+          right: 96,
+          zIndex: 2,
+        },
+      }),
+      emojiRowBorder: Styles.platformStyles({
+        isElectron: {
+          borderBottom: `1px solid ${Styles.globalColors.black_10}`,
+          borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          borderRight: `1px solid ${Styles.globalColors.black_10}`,
+        },
+      }),
+      emojiRowLast: Styles.platformStyles({
+        isElectron: {
+          border: 'none',
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+          borderTopLeftRadius: Styles.borderRadius,
+          borderTopRightRadius: Styles.borderRadius,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.tiny,
+          top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
+        },
+      }),
+      fail: {color: Styles.globalColors.redDark},
+      failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
+      fast,
+      marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
+      menuButtons: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          flexShrink: 0,
+          justifyContent: 'flex-end',
+          overflow: 'hidden',
+        },
+        isElectron: {height: 16},
+        isMobile: {height: 21},
+      }),
+      menuButtonsWithAuthor: {marginTop: -16},
+      messagePopupContainer: {
+        marginRight: Styles.globalMargins.small,
+      },
+      orangeLine: {
+        // don't push down content due to orange line
+        backgroundColor: Styles.globalColors.orange,
+        flexShrink: 0,
+        height: 1,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
+      },
+      send: Styles.platformStyles({
+        common: {position: 'absolute'},
+        isElectron: {
+          pointerEvents: 'none',
+          right: 12,
+        },
+        isMobile: {right: 0},
+      }),
+      timestamp: Styles.platformStyles({
+        common: {paddingLeft: Styles.globalMargins.xtiny},
+        isElectron: {lineHeight: 19},
+      }),
+      usernameCrown: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'baseline',
+          position: 'relative',
+          top: -2,
+        },
+        isMobile: {alignItems: 'center'},
+      }),
+    } as const)
+)
 
 export default WrapperMessage

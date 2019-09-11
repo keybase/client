@@ -4,12 +4,22 @@
     "import * as ChatTypes from '../constants/types/chat2'"
   ],
   "actions": {
-    "clearRefreshTag": {
-      "refreshTag": "Types.RefreshTag"
-    },
-    "folderListLoad": {
+    "subscribePath": {
+      "subscriptionID": "string",
       "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag"
+      "topic": "RPCTypes.PathSubscriptionTopic"
+    },
+    "subscribeNonPath": {
+      "subscriptionID": "string",
+      "topic": "RPCTypes.SubscriptionTopic"
+    },
+    "unsubscribe": {
+      "subscriptionID": "string"
+    },
+    "pollJournalStatus": {},
+    "getOnlineStatus": {},
+    "folderListLoad": {
+      "path": "Types.Path"
     },
     "folderListLoaded": {
       "path": "Types.Path",
@@ -41,8 +51,7 @@
       "pathItem": "Types.PathItem"
     },
     "loadPathMetadata": {
-      "path": "Types.Path",
-      "refreshTag?": "Types.RefreshTag | null"
+      "path": "Types.Path"
     },
     "sortSetting": {
       "path": "Types.Path",
@@ -127,9 +136,6 @@
       "localViewTlfPath": "Types.Path"
     },
 
-    "notifyTlfUpdate": {
-      "tlfPath": "Types.Path"
-    },
     "openSecurityPreferences": {},
     "refreshLocalHTTPServerInfo": {},
     "localHTTPServerInfo": {
@@ -223,19 +229,6 @@
       "title": "string"
     },
     "sentAttachmentToChat": {},
-    "initSendLinkToChat": {
-      "path": "Types.Path"
-    },
-    "setSendLinkToChatConvID": {
-      "convID": "ChatTypes.ConversationIDKey"
-    },
-    "setSendLinkToChatChannels": {
-      "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
-    },
-    "triggerSendLinkToChat": {},
-    "sentLinkToChat": {
-      "convID": "ChatTypes.ConversationIDKey"
-    },
 
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
@@ -274,6 +267,11 @@
     },
     "setTlfsAsUnloaded": {},
     "placeholderAction": {},
+    "refreshMountDirsAfter10s": {},
+    "setDirectMountDir": {"directMountDir": "string"},
+    "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
+    "loadPathInfo": {"path": "Types.Path"},
+    "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "setDebugLevel": {
       "level": "string"
     }

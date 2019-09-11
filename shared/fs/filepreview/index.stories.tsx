@@ -1,9 +1,8 @@
-import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Sb from '../../stories/storybook'
-import {NormalPreview} from '../filepreview'
+import {NormalPreview} from '.'
 import * as Kb from '../../common-adapters'
 import {commonProvider} from '../common/index.stories'
 import {footerProvider} from '../footer/index.stories'
@@ -99,7 +98,7 @@ export default () => {
   filenames.forEach(fn =>
     s.add(fn, () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-        <NormalPreview routePath={I.List([])} path={Types.stringToPath(`/keybase/private/foo/${fn}`)} />
+        <NormalPreview path={Types.stringToPath(`/keybase/private/foo/${fn}`)} />
       </Kb.Box2>
     ))
   )

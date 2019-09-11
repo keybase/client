@@ -1,9 +1,3 @@
-# -----------------------------------------------------------------------------
-#
-#   REMINDER: If you edit this file, you'll most likely also want to edit
-#   .circleci/config.yml in the kbfs repository!
-#
-# -----------------------------------------------------------------------------
 version: 2
 jobs:
   build:
@@ -12,7 +6,6 @@ jobs:
 
     docker:
     - image: keybaseprivate/circleci-client@sha256:70d727f7de73d35a172d7dbd81628b3db62fbe252e91327f15d9adfabb58b4d5
-      command: /sbin/init
 
     steps:
     ##

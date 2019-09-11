@@ -15,7 +15,7 @@ const Kb = {
   Text,
 }
 
-type Status = 'error' | 'pending' | 'completed'
+type Status = 'error' | 'pending' | 'completed' | 'claimable'
 
 type State = {
   showPopup: boolean
@@ -36,6 +36,8 @@ const getIcon = status => {
   switch (status) {
     case 'completed':
       return 'iconfont-success'
+    case 'claimable':
+      return 'iconfont-time'
     case 'pending':
       return 'iconfont-time'
     case 'error':
@@ -94,16 +96,16 @@ class PaymentStatus extends React.Component<Props, State> {
         attachTo={this._getAttachmentRef}
         visible={this.state.showPopup}
         paymentID={this.props.paymentID}
-        position={'top center'}
+        position="top center"
         message={this.props.message}
         onHidden={this._hidePopup}
       />
     )
     return Styles.isMobile ? (
-      <React.Fragment>
+      <>
         {text}
         {popups}
-      </React.Fragment>
+      </>
     ) : (
       <Kb.Box2
         style={styles.container}
@@ -118,14 +120,20 @@ class PaymentStatus extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  completed: {
-    backgroundColor: Styles.globalColors.purple_10,
+const styles = Styles.styleSheetCreate(() => ({
+  claimable: {
+    backgroundColor: Styles.globalColors.black_05OrBlack_60,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.purpleDark,
+    color: Styles.globalColors.black_50OrWhite,
+  },
+  claimableIcon: {},
+  completed: {
+    backgroundColor: Styles.globalColors.purple_10OrPurple,
+    borderRadius: Styles.globalMargins.xxtiny,
+    color: Styles.globalColors.purpleDarkOrWhite,
   },
   completedIcon: {
-    color: Styles.globalColors.purpleDark,
+    color: Styles.globalColors.purpleDarkOrWhite,
   },
   container: Styles.platformStyles({
     isElectron: {
@@ -133,12 +141,12 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   error: {
-    backgroundColor: Styles.globalColors.red_10,
+    backgroundColor: Styles.globalColors.red_10OrRed,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.redDark,
+    color: Styles.globalColors.redDarkOrWhite,
   },
   errorIcon: {
-    color: Styles.globalColors.redDark,
+    color: Styles.globalColors.redDarkOrWhite,
   },
   iconBoxStyle: Styles.platformStyles({
     isElectron: {
@@ -146,11 +154,13 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   pending: {
-    backgroundColor: Styles.globalColors.black_05,
+    backgroundColor: Styles.globalColors.black_05OrBlack_60,
     borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.black_50,
+    color: Styles.globalColors.black_50OrWhite,
   },
-  pendingIcon: {},
-})
+  pendingIcon: {
+    color: Styles.globalColors.black_50OrWhite,
+  },
+}))
 
 export default PaymentStatus

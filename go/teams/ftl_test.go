@@ -40,21 +40,24 @@ func TestFastLoaderBasic(t *testing.T) {
 
 // Test fast loading a team that does several key rotations.
 func TestFastLoaderKeyGen(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 3)
+	fus, tcs, cleanup := setupNTests(t, 4)
 	defer cleanup()
 
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
-	m := make([]libkb.MetaContext, 3)
+	m := make([]libkb.MetaContext, 4)
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
 
 	t.Logf("add B to the team so they can load it")
-	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	t.Logf("add C to the team so they can load it")
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT, nil)
+	require.NoError(t, err)
+	t.Logf("add D to the team so they can load it")
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
 	t.Logf("B's first load at gen 1")
@@ -71,11 +74,23 @@ func TestFastLoaderKeyGen(t *testing.T) {
 
 	t.Logf("C's first load at gen 1")
 	arg = keybase1.FastTeamLoadArg{
-		ID: teamID,
+		ID:            teamID,
+		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		NeedLatestKey: true,
 	}
 	team, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
 	require.NoError(t, err)
-	// since C is a bot, they should not have access to any keys
+	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
+	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("D's first load at gen 1")
+	arg = keybase1.FastTeamLoadArg{
+		ID: teamID,
+	}
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
+	require.NoError(t, err)
+	// since D is a restricted bot, they should not have access to any keys
 	require.Zero(t, len(team.ApplicationKeys))
 	require.True(t, teamName.Eq(team.Name))
 	arg = keybase1.FastTeamLoadArg{
@@ -83,7 +98,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		NeedLatestKey: true,
 	}
-	_, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
+	_, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.IsType(t, FTLMissingSeedError{}, err)
 	require.Zero(t, len(team.ApplicationKeys))
 
@@ -93,7 +108,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 
-		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 
@@ -151,11 +166,11 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
-	t.Logf("make sure C still doesn't have access")
+	t.Logf("make sure D still doesn't have access")
 	arg = keybase1.FastTeamLoadArg{
 		ID: teamID,
 	}
-	team, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.NoError(t, err)
 	require.Zero(t, len(team.ApplicationKeys))
 	require.True(t, teamName.Eq(team.Name))
@@ -165,19 +180,19 @@ func TestFastLoaderKeyGen(t *testing.T) {
 		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
 	}
-	team, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.IsType(t, FTLMissingSeedError{}, err)
 	require.Zero(t, len(team.ApplicationKeys))
 
-	t.Logf("upgrade C to a reader and check they have access")
-	err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username)
+	t.Logf("upgrade D to a bot and check they have access")
+	err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username)
 	require.NoError(t, err)
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_READER)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 
 	arg.NeedLatestKey = false
 	arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(4)}
-	team, err = tcs[2].G.GetFastTeamLoader().Load(m[2], arg)
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.NoError(t, err)
 	require.Equal(t, len(team.ApplicationKeys), 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
@@ -211,7 +226,7 @@ func TestFastLoaderMultilevel(t *testing.T) {
 	t.Logf("subsubteam is: %s (%s)", expectedSubsubTeamName.String(), *subsubteamID)
 
 	t.Logf("add the other user to the subsubteam")
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
@@ -239,7 +254,7 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
-	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, "abc", teamName, keybase1.TeamRole_WRITER /* addSelfAs */)
 	require.NoError(t, err)
@@ -253,7 +268,7 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
-		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 	t.Logf("load the team")
@@ -303,7 +318,7 @@ func TestLoadSubteamThenParent(t *testing.T) {
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
-	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, "abc", teamName, keybase1.TeamRole_WRITER /* addSelfAs */)
 	require.NoError(t, err)
@@ -317,7 +332,7 @@ func TestLoadSubteamThenParent(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
-		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 
@@ -363,7 +378,7 @@ func TestLoadSubteamThenAllowedInThenParent(t *testing.T) {
 	}
 
 	rotateKey := func(name keybase1.TeamName) {
-		_, err := AddMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err := AddMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, name.String(), fus[1].Username)
 		require.NoError(t, err)
@@ -377,7 +392,7 @@ func TestLoadSubteamThenAllowedInThenParent(t *testing.T) {
 	require.NoError(t, err)
 	expectedSubTeamName, err := teamName.Append("abc")
 	require.NoError(t, err)
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, expectedSubTeamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, expectedSubTeamName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	loadTeam := func(teamID keybase1.TeamID, g keybase1.PerTeamKeyGeneration) {
@@ -392,7 +407,7 @@ func TestLoadSubteamThenAllowedInThenParent(t *testing.T) {
 	}
 
 	loadTeam(*subteamID, 1)
-	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 	loadTeam(teamID, 1)
 }
@@ -412,7 +427,7 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
 	}
-	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, "abc", teamName, keybase1.TeamRole_WRITER /* addSelfAs */)
 	require.NoError(t, err)
@@ -439,7 +454,7 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
-		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 	err = RotateKeyVisible(m[0].Ctx(), tcs[0].G, teamID)

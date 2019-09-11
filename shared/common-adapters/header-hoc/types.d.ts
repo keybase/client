@@ -1,9 +1,10 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../../styles'
-import {IconType} from '../icon.constants'
+import {IconType} from '../icon.constants-gen'
 export type Action = {
   custom?: React.ReactNode
   label?: string // TODO: make this required after updates are fully integrated,
+  color?: string // TODO: narrow this type
   icon?: IconType
   iconColor?: string
   onPress?: (() => void) | null

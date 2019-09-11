@@ -1,6 +1,7 @@
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../../styles'
+import * as React from 'react'
+import * as Styles from '../../styles'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
+import './autosize-input.css'
 
 type Props = {
   autoFocus?: boolean
@@ -17,7 +18,7 @@ type State = {
   measuredWidth: number | undefined
 }
 
-class AutosizeInput extends Component<Props, State> {
+class AutosizeInput extends React.Component<Props, State> {
   _inputEl: HTMLElement | null = null
   _measureEl: HTMLElement | null = null
   _raf: number | undefined
@@ -70,15 +71,7 @@ class AutosizeInput extends Component<Props, State> {
 
   render() {
     return (
-      <div
-        style={
-          {
-            ...globalStyles.flexBoxColumn,
-            alignItems: 'stretch',
-            width: this.state.measuredWidth,
-          } as const
-        }
-      >
+      <div style={Styles.collapseStyles([styles.container, {width: this.state.measuredWidth}])}>
         <input
           autoFocus={this.props.autoFocus}
           className="lighterPlaceholder"
@@ -87,28 +80,17 @@ class AutosizeInput extends Component<Props, State> {
           }}
           value={this.props.value}
           placeholder={this.props.placeholder}
-          style={{
-            ...resetStyle,
-            ...this.props.inputStyle,
-          }}
+          style={Styles.collapseStyles([styles.reset, this.props.inputStyle])}
           onChange={this._onChange}
           onKeyDown={this.props.onKeyDown}
           onFocus={this.props.onFocus}
           onBlur={this.props.onBlur}
         />
-        <style>{placeholderColorCSS}</style>
         <div
           ref={el => {
             this._measureEl = el
           }}
-          style={{
-            ...resetStyle,
-            left: -9999,
-            ...this.props.inputStyle,
-            position: 'absolute' as 'absolute',
-            top: -9999,
-            whiteSpace: 'pre',
-          }}
+          style={Styles.collapseStyles([styles.reset, styles.div, this.props.inputStyle])}
         >
           {this.props.value || this.props.placeholder}
         </div>
@@ -117,16 +99,22 @@ class AutosizeInput extends Component<Props, State> {
   }
 }
 
-const resetStyle = {
-  ...getTextStyle('Body'),
-  border: 'none',
-  padding: 0,
-}
-
-const placeholderColorCSS = `
-input.lighterPlaceholder::placeholder {
-  color: ${globalColors.black_20};
-}
-`
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+  },
+  div: {
+    left: -9999,
+    position: 'absolute' as const,
+    top: -9999,
+    whiteSpace: 'pre',
+  },
+  reset: {
+    ...getTextStyle('Body'),
+    border: 'none',
+    padding: 0,
+  },
+}))
 
 export default AutosizeInput

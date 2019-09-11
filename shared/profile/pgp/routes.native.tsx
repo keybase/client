@@ -6,7 +6,7 @@ import Modal from '../modal'
 
 type OwnProps = {}
 
-const NoPGPView = props => (
+const NoPGPView = (props: {onCancel: () => void}) => (
   <Modal onCancel={props.onCancel}>
     <Kb.Box2 direction="vertical" gap="small" gapEnd={true}>
       <Kb.Text center={true} type="Header">
@@ -20,9 +20,9 @@ const NoPGPView = props => (
 const NoPGP = connect(
   () => ({}),
   dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),
-  (s, d, o) => ({...o, ...s, ...d})
+  (_, d, __: OwnProps) => ({...d})
 )(NoPGPView)
 
 export const newRoutes = {
-  profilePgp: {getScreen: () => NoPGP, upgraded: true},
+  profilePgp: {getScreen: () => NoPGP},
 }

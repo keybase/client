@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {autoResize} from '../desktop/remote/util.desktop'
-import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
@@ -77,21 +77,14 @@ class Pinentry extends React.Component<Props, State> {
     }[this.props.type]
 
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          backgroundColor: globalColors.white,
-          paddingBottom: globalMargins.medium,
-          paddingTop: globalMargins.medium,
-        }}
-      >
-        <Header icon={true} title="" onClose={this.props.onCancel} />
-        <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Text type="Body" center={true}>
+      <Kb.Box style={styles.container}>
+        <Kb.Header icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
+        <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
+          <Kb.Text type="Body" center={true}>
             {this.props.prompt}
-          </Text>
-          {isPaperKey && <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
-          <FormWithCheckbox
+          </Kb.Text>
+          {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
+          <Kb.FormWithCheckbox
             inputProps={{
               autoFocus: true,
               errorText: this.props.retryLabel,
@@ -110,20 +103,20 @@ class Pinentry extends React.Component<Props, State> {
                       key: 'showTyping',
                       label: this.props.showTyping.label,
                       onCheck: this._onCheck,
-                      style: checkboxStyle,
+                      style: styles.checkbox,
                     },
                   ]
                 : []
             }
           />
-          <Button
+          <Kb.Button
             style={{alignSelf: 'center'}}
             label={this.props.submitLabel}
             onClick={this._onSubmit}
             disabled={!this.state.password}
           />
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 }
@@ -133,10 +126,17 @@ Pinentry.defaultProps = {
   submitLabel: 'Continue',
 }
 
-const checkboxStyle = {
-  color: globalColors.black,
-  marginLeft: 10,
-  zIndex: 9999,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  checkbox: {
+    color: Styles.globalColors.black,
+    marginLeft: 10,
+    zIndex: 9999,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    backgroundColor: Styles.globalColors.white,
+    paddingBottom: Styles.globalMargins.medium,
+  },
+}))
 
 export default Pinentry

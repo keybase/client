@@ -37,6 +37,8 @@ protocol contacts {
         string username; // Keybase username
         string fullName; // Keybase full name
         boolean following; // whether resolved user is followed by current user
+        map<string,string> serviceMap; // serviceId -> username of user's socials
+        // -------------
 
         string assertion; // for use in team / chat building
 
@@ -47,9 +49,6 @@ protocol contacts {
         // Keybase full name, and contact name, depending what's available.
         string displayName;
         string displayLabel;
-
-        // If ProcessedContact comes from people search, raw match score goes here.
-        double rawScore;
     }
 
     // lookupContactList transforms contact list (where every contact may have
@@ -65,6 +64,12 @@ protocol contacts {
     // separate because each one can be used in the UI to allow for SBS chat.
     array<ProcessedContact> lookupContactList(int sessionID, array<Contact> contacts, RegionCode userRegionCode);
 
-    void saveContactList(int sessionID, array<Contact> contacts);
+    // Returns newly resolved contacts
+    array<ProcessedContact> saveContactList(int sessionID, array<Contact> contacts);
     array<ProcessedContact> lookupSavedContactsList(int sessionID);
+
+    // Process saved contact list for user recommendations in "new chat" screen.
+    // Remove duplicates, do not display unresolved components for already
+    // resolved contact, etc.
+    array<ProcessedContact> getContactsForUserRecommendations(int sessionID);
 }

@@ -56,67 +56,70 @@ class UnfurlGiphy extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  collapse: Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: Styles.globalMargins.xxtiny,
-    },
-    isMobile: {
-      alignSelf: 'center',
-    },
-  }),
-  collapseBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  container: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-    },
-    isElectron: {
-      maxWidth: 500,
-    },
-  }),
-  favicon: {
-    borderRadius: Styles.borderRadius,
-    height: 16,
-    width: 16,
-  },
-  imageContainer: Styles.platformStyles({
-    isMobile: {
-      alignSelf: 'flex-start',
-      padding: Styles.globalMargins.xxtiny,
-    },
-  }),
-  innerContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      minWidth: 150,
-    },
-    isMobile: {
-      borderColor: Styles.globalColors.greyLight,
-      borderRadius: Styles.borderRadius,
-      borderWidth: 1,
-      padding: Styles.globalMargins.xtiny,
-    },
-  }),
-  quoteContainer: {
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.greyLight,
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  siteNameContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      justifyContent: 'space-between',
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.xxtiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      collapse: Styles.platformStyles({
+        isElectron: {
+          position: 'relative',
+          top: Styles.globalMargins.xxtiny,
+        },
+        isMobile: {
+          alignSelf: 'center',
+        },
+      }),
+      collapseBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+      },
+      container: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          maxWidth: 500,
+        },
+      }),
+      favicon: {
+        borderRadius: Styles.borderRadius,
+        height: 16,
+        width: 16,
+      },
+      imageContainer: Styles.platformStyles({
+        isMobile: {
+          alignSelf: 'flex-start',
+          padding: Styles.globalMargins.xxtiny,
+        },
+      }),
+      innerContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          minWidth: 150,
+        },
+        isMobile: {
+          borderColor: Styles.globalColors.grey,
+          borderRadius: Styles.borderRadius,
+          borderWidth: 1,
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      quoteContainer: {
+        alignSelf: 'stretch',
+        backgroundColor: Styles.globalColors.grey,
+        paddingLeft: Styles.globalMargins.xtiny,
+      },
+      siteNameContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          justifyContent: 'space-between',
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xxtiny,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 export default UnfurlGiphy

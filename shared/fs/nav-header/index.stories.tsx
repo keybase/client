@@ -33,7 +33,7 @@ const provider = Sb.createPropProviderWithCommon({
   ...headerProvider,
 })
 
-const TestWrapper = ({path, offline}: {path: Types.Path; offline?: boolean | null}) =>
+const TestWrapper = ({path}: {path: Types.Path}) =>
   isMobile ? (
     <MobileHeader path={path} onBack={Sb.action('onBack')} />
   ) : (
@@ -41,12 +41,9 @@ const TestWrapper = ({path, offline}: {path: Types.Path; offline?: boolean | nul
       allowBack={true}
       loggedIn={true}
       onPop={Sb.action('onPop')}
-      options={
-        // @ts-ignore
-        FilesContainer.navigationOptions({
-          navigation: {getParam: key => (key === 'path' ? path : null)},
-        })
-      }
+      options={FilesContainer.navigationOptions({
+        navigation: {getParam: key => (key === 'path' ? path : null)},
+      } as any)}
     />
   )
 

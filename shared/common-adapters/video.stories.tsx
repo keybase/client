@@ -25,7 +25,7 @@ const load = () => {
     ))
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bigBox: {
     backgroundColor: Styles.globalColors.red,
   },
@@ -34,6 +34,6 @@ const styles = Styles.styleSheetCreate({
     height: 300,
     width: 300,
   },
-})
+}))
 
 export default load

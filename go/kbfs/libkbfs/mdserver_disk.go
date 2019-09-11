@@ -28,7 +28,7 @@ type mdServerDiskShared struct {
 	// Protects handleDb, branchDb, tlfStorage, and
 	// truncateLockManager. After Shutdown() is called, handleDb,
 	// branchDb, tlfStorage, and truncateLockManager are nil.
-	lock sync.RWMutex
+	lock sync.RWMutex // nolint
 	// Bare TLF handle -> TLF ID
 	handleDb *leveldb.DB
 	// (TLF ID, device crypt public key) -> branch ID
@@ -37,7 +37,7 @@ type mdServerDiskShared struct {
 	// Always use memory for the lock storage, so it gets wiped
 	// after a restart.
 	truncateLockManager  *mdServerLocalTruncateLockManager
-	implicitTeamsEnabled bool
+	implicitTeamsEnabled bool // nolint
 	// In-memory only, for now.
 	merkleRoots map[keybase1.MerkleTreeID]*kbfsmd.MerkleRoot
 

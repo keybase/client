@@ -1,27 +1,14 @@
 import * as ConfigGen from '../../actions/config-gen'
-import {
-  createTrace,
-  createProcessorProfile,
-  createLoadLockdownMode,
-  createLoadHasRandomPw,
-  createOnChangeLockdownMode,
-  createOnChangeUseNativeFrame,
-  createOnChangeRememberPassword,
-  createLoadProxyData,
-  createLoadRememberPassword,
-  createSaveProxyData,
-  createCertificatePinningToggled,
-  createToggleRuntimeStats,
-} from '../../actions/settings-gen'
+import * as SettingsGen from '../../actions/settings-gen'
 import * as FSGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
-import Advanced from './index'
+import Advanced from '.'
 import {connect, lifecycle, TypedState} from '../../util/container'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import {DarkModePreference} from '../../styles/dark-mode'
 
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => {
@@ -29,57 +16,55 @@ const mapStateToProps = (state: TypedState) => {
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
     allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
+    darkModePreference: state.config.darkModePreference,
     hasRandomPW: !!state.settings.password.randomPW,
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
     processorProfileInProgress: Constants.processorProfileInProgress(state),
-    proxyData: state.settings.proxyData,
     rememberPassword: state.settings.password.rememberPassword,
     setLockdownModeError: (setLockdownModeError && setLockdownModeError.message) || '',
     settingLockdownMode,
     traceInProgress: Constants.traceInProgress(state),
-    useNativeFrame: state.settings.useNativeFrame,
+    useNativeFrame: state.config.useNativeFrame,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
-  _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
-  _loadLockdownMode: () => dispatch(createLoadLockdownMode()),
-  _loadProxyData: () => dispatch(createLoadProxyData()),
-  _loadRememberPassword: () => dispatch(createLoadRememberPassword()),
-  _resetCertPinningToggle: () => dispatch(createCertificatePinningToggled({toggled: null})),
+  _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
+  _loadLockdownMode: () => dispatch(SettingsGen.createLoadLockdownMode()),
+  _loadRememberPassword: () => dispatch(SettingsGen.createLoadRememberPassword()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onChangeLockdownMode: (checked: boolean) => dispatch(createOnChangeLockdownMode({enabled: checked})),
+  onChangeLockdownMode: (checked: boolean) =>
+    dispatch(SettingsGen.createOnChangeLockdownMode({enabled: checked})),
   onChangeRememberPassword: (checked: boolean) =>
-    dispatch(createOnChangeRememberPassword({remember: checked})),
-  onChangeUseNativeFrame: (checked: boolean) => dispatch(createOnChangeUseNativeFrame({enabled: checked})),
+    dispatch(SettingsGen.createOnChangeRememberPassword({remember: checked})),
+  onChangeUseNativeFrame: (useNativeFrame: boolean) =>
+    dispatch(ConfigGen.createSetUseNativeFrame({useNativeFrame})),
   onDBNuke: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['dbNukeConfirm']})),
   onDisableCertPinning: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: ['disableCertPinningModal']})),
-  onEnableCertPinning: () => dispatch(createCertificatePinningToggled({toggled: false})),
+  onEnableCertPinning: () => dispatch(SettingsGen.createCertificatePinningToggled({toggled: false})),
   onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
-  onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
-  onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
-  onToggleRuntimeStats: () => dispatch(createToggleRuntimeStats()),
-  onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
-  saveProxyData: (proxyData: RPCTypes.ProxyData) => dispatch(createSaveProxyData({proxyData})),
+  onProcessorProfile: (durationSeconds: number) =>
+    dispatch(SettingsGen.createProcessorProfile({durationSeconds})),
+  onSetDarkModePreference: (preference: DarkModePreference) =>
+    dispatch(ConfigGen.createSetDarkModePreference({preference})),
+  onSetOpenAtLogin: (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin})),
+  onToggleRuntimeStats: () => dispatch(SettingsGen.createToggleRuntimeStats()),
+  onTrace: (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds})),
 })
 
 export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d})
   ),
   lifecycle({
     componentDidMount() {
       this.props._loadLockdownMode()
       this.props._loadHasRandomPW()
-      this.props._loadProxyData()
       this.props._loadRememberPassword()
-    },
-    componentWillUnmount() {
-      this.props._resetCertPinningToggle()
     },
   } as any),
   HeaderHoc

@@ -1,30 +1,18 @@
-import * as I from 'immutable'
-import * as Types from './types/waiting'
 import {RPCError} from '../util/errors'
+import * as Container from '../util/container'
 
-export const anyWaiting = (
-  state: {
-    readonly waiting: Types.State
-  },
-  ...keys: Array<string>
-) => {
-  return keys.reduce((acc, k) => acc + state.waiting.counts.get(k, 0), 0) > 0
+export const anyWaiting = (state: Container.TypedState, ...keys: Array<string>) => {
+  return !!keys.some(k => (state.waiting.counts.get(k) || 0) > 0)
 }
 
 export const anyErrors = (
-  state: {
-    readonly waiting: Types.State
-  },
+  state: Container.TypedState,
   keys: string | Array<string>
-): RPCError | null => {
+): RPCError | undefined => {
   if (!Array.isArray(keys)) {
-    return state.waiting.errors.get(keys, null)
+    return state.waiting.errors.get(keys) || undefined
   }
 
-  return keys.reduce<RPCError | null>((acc, k) => acc || state.waiting.errors.get(k, null), null)
+  const errorKey = keys.find(k => state.waiting.errors.get(k))
+  return (errorKey && state.waiting.errors.get(errorKey)) || undefined
 }
-
-export const makeState = I.Record<Types._State>({
-  counts: I.Map(),
-  errors: I.Map(),
-})

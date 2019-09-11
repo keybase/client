@@ -15,7 +15,6 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.shell.MainPackageConfig;
 import com.facebook.soloader.SoLoader;
-import com.airbnb.android.react.lottie.LottiePackage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,7 +91,6 @@ public class MainApplication extends Application implements ReactApplication {
                 }
             });
 
-            packages.add(new LottiePackage());
             packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
 
             return packages;

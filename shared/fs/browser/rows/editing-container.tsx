@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Constants from '../../../constants/fs'
@@ -7,7 +6,6 @@ import Editing from './editing'
 
 type OwnProps = {
   editID: Types.EditID
-  routePath: I.List<string>
 }
 
 export default namedConnect(

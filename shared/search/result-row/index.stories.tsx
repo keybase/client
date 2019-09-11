@@ -84,7 +84,7 @@ const load = () => {
     .addDecorator(story => <Box style={isMobile ? {} : {width: 480}}>{story()}</Box>)
 
     .add('Result row', () => (
-      <React.Fragment>
+      <>
         <ResultRow {...defaultProps} />
         <ResultRow {...defaultProps} selected={true} />
         <ResultRow {...defaultProps} leftFollowingState="Following" />
@@ -140,7 +140,7 @@ const load = () => {
         <ResultRow {...defaultProps} leftIcon="icon-github-logo-24" leftService="GitHub" />
         <ResultRow {...defaultProps} leftIcon="icon-reddit-logo-24" leftService="Reddit" />
         <ResultRow {...defaultProps} leftIcon="icon-hacker-news-logo-24" leftService="Hacker News" />
-      </React.Fragment>
+      </>
     ))
     .add('Result row (connected)', () => (
       <ConnectedResultRow {...defaultOwnProps} onShowTracker={onShowTracker} />

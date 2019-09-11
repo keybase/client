@@ -13,8 +13,6 @@ type Session struct {
 	Contextified
 	token    string
 	csrf     string
-	inFile   bool
-	loaded   bool
 	deviceID keybase1.DeviceID
 	valid    bool
 	uid      keybase1.UID
@@ -94,11 +92,6 @@ func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) error {
 	s.G().Log.Debug("Local Session: setting provisioned device id: %s", devid)
 	s.deviceID = devid
 	return nil
-}
-
-func (s *Session) isConfigLoggedIn() bool {
-	reader := s.G().Env.GetConfig()
-	return reader.GetUsername() != "" && reader.GetDeviceID().Exists() && reader.GetUID().Exists()
 }
 
 func (s *Session) IsRecent() bool {

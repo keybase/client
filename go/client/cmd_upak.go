@@ -62,7 +62,7 @@ func (c *cmdUPAK) Run() error {
 		if err != nil {
 			return err
 		}
-		c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+		_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 		return nil
 	}
 
@@ -88,7 +88,7 @@ func (c *cmdUPAK) Run() error {
 		}
 	}
 
-	c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
+	_ = c.G().UI.GetTerminalUI().Output(string(jsonOut) + "\n")
 	return nil
 }
 

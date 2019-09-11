@@ -50,6 +50,13 @@ js/rpc.js: build-stamp | config
 	cp ./js/rpc*.tsx ../shared/constants/types
 	cp ./js/engine-gen.json ../shared/actions/json
 
+build-go-bot-types: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDLC) | config
+	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/keybase1 avdl/keybase1/*.avdl
+	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/gregor1 avdl/gregor1/*.avdl
+	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/chat1 avdl/chat1/*.avdl
+	$(AVDLC) -b -l go -t -o ../../go-keybase-chat-bot/kbchat/types/stellar1 avdl/stellar1/*.avdl
+	(cd ../../go-keybase-chat-bot/kbchat/types && goimports -w .)
+
 clean:
 	rm -rf json/*.json json/*/*.json js/* *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl

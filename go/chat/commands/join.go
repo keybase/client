@@ -41,6 +41,9 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if len(ib.Convs) == 0 {
 		return errors.New("conv not found")
 	}
-	ui.ChatShowManageChannels(ctx, ib.Convs[0].Info.TlfName)
+	err = ui.ChatShowManageChannels(ctx, ib.Convs[0].Info.TlfName)
+	if err != nil {
+		h.Debug(ctx, "Execute: error with managing channels: %+v", err)
+	}
 	return nil
 }

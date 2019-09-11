@@ -19,10 +19,10 @@ const mapStateToProps = (
 ) => {
   const account = getAccount(state, ownProps.accountID)
   const name = account.name
-  const me = state.config.username || ''
+  const me = state.config.username
   const keybaseUser = account.isDefault ? me : ''
   const selectedAccount = getSelectedAccount(state)
-  const airdropSelected = getAirdropSelected()
+  const airdropSelected = getAirdropSelected(state)
   return {
     airdropSelected,
     contents: account.balanceDescription,
@@ -43,7 +43,7 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   airdropSelected: stateProps.airdropSelected,
   contents: stateProps.contents,
   isSelected: !isMobile && stateProps.isSelected,

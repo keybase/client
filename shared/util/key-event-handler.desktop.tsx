@@ -43,7 +43,7 @@ class KeyEventHandler extends React.Component<Props & HandlerProps> {
     this.props.onKeyPress && this.props.onKeyPress(ev)
   }
 
-  render = () => {
+  render() {
     return this.props.children
   }
 }
@@ -97,11 +97,13 @@ class GlobalKeyEventHandler extends React.Component<GlobalProps> {
     }
   }
 
-  render = () => (
-    <KeyEventContext.Provider value={{add: this.add, remove: this.remove}}>
-      {this.props.children}
-    </KeyEventContext.Provider>
-  )
+  render() {
+    return (
+      <KeyEventContext.Provider value={{add: this.add, remove: this.remove}}>
+        {this.props.children}
+      </KeyEventContext.Provider>
+    )
+  }
 }
 
 type EscapeHandlerProps = {

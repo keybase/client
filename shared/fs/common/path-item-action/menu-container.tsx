@@ -1,7 +1,5 @@
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
-import * as ConfigGen from '../../../actions/config-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Container from '../../../util/container'
@@ -12,14 +10,12 @@ import Menu from './menu'
 import {FloatingMenuProps} from './types'
 import {getRootLayout, getShareLayout} from './layout'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {fsTab} from '../../../constants/tabs'
 import * as Util from '../../../util/kbfs'
 
 type OwnProps = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
   mode: 'row' | 'screen'
-  routePath: I.List<string>
 }
 
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
@@ -31,15 +27,14 @@ const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _view: state.fs.pathItemActionMenu.view,
 })
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: OwnProps) => ({
   _cancel: (key: string) => dispatch(FsGen.createCancelDownload({key})),
-  _confirmSaveMedia: (toCancel: string | null) =>
+  _confirmSaveMedia: () =>
     dispatch(FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSaveMedia})),
   _confirmSendToOtherApp: () =>
     dispatch(
       FsGen.createSetPathItemActionMenuView({view: Types.PathItemActionMenuView.ConfirmSendToOtherApp})
     ),
-  _copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   _delete: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -78,9 +73,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path, rout
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
   },
   _sendAttachmentToChat: () =>
-    Constants.makeActionsForShowSendAttachmentToChat(path, routePath).forEach(action => dispatch(action)),
-  _sendLinkToChat: () =>
-    Constants.makeActionsForShowSendLinkToChat(path, routePath).forEach(action => dispatch(action)),
+    Constants.makeActionsForShowSendAttachmentToChat(path).forEach(action => dispatch(action)),
   _sendToOtherApp: () => {
     const key = Constants.makeDownloadKey(path)
     dispatch(FsGen.createShareNative({key, path}))
@@ -162,7 +155,6 @@ const mergeProps = (
     shouldHideMenu: shouldHideMenu(stateProps),
     // menu items
     // eslint-disable-next-line sort-keys
-    copyPath: layout.copyPath ? c(dispatchProps._copyPath) : null,
     delete: layout.delete ? c(dispatchProps._delete) : null,
     download: layout.download ? c(dispatchProps._download) : null,
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
@@ -180,7 +172,6 @@ const mergeProps = (
     // share items
     // eslint-disable-next-line sort-keys
     sendAttachmentToChat: layout.sendAttachmentToChat ? c(dispatchProps._sendAttachmentToChat) : null, // TODO
-    sendLinkToChat: layout.sendLinkToChat ? c(dispatchProps._sendLinkToChat) : null,
     sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
     share: layout.share ? dispatchProps._share : null,
   }

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Avatar, Box, ClickableBox} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile, desktopStyles, platformStyles} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 export type Props = {
   bgColor: string
@@ -14,14 +14,29 @@ export type Props = {
 const AVATAR_SIZE = 32
 
 const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
-  <Box style={{...styleOuterBox, ...style}}>
+  <Kb.Box2
+    alignItems="center"
+    direction="vertical"
+    style={Styles.collapseStyles([styles.outerContainer, style])}
+  >
     {!!(username || teamname) && (
-      <ClickableBox style={stylesAvatarWrapper(AVATAR_SIZE)} onClick={onClickAvatar}>
-        <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
-      </ClickableBox>
+      <Kb.ClickableBox style={styles.avatarContainer} onClick={onClickAvatar}>
+        <Kb.Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={styles.avatar} />
+      </Kb.ClickableBox>
     )}
-    <Box style={{...styleBox, backgroundColor: bgColor}}>{children}</Box>
-  </Box>
+    <Kb.Box2
+      alignItems="center"
+      alignSelf="stretch"
+      direction="vertical"
+      style={Styles.collapseStyles([
+        styles.innerContainer,
+        {backgroundColor: bgColor},
+        !!(username || teamname) && {paddingTop: Styles.globalMargins.small},
+      ])}
+    >
+      {children}
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 export type SmallProps = {
@@ -33,69 +48,65 @@ export type SmallProps = {
 }
 
 const SmallUserNotice = (props: SmallProps) => (
-  <Box style={styleSmallNotice} title={props.title}>
-    <Avatar
+  <Kb.Box2 alignItems="flex-start" direction="horizontal" style={styles.smallNotice}>
+    <Kb.Avatar
       onClick={props.onAvatarClicked}
-      size={32}
+      size={AVATAR_SIZE}
       username={props.avatarUsername}
-      style={{marginRight: globalMargins.tiny}}
+      style={styles.smallNoticeAvatar}
     />
-    <Box style={globalStyles.flexBoxColumn}>
+    <Kb.Box2 direction="vertical">
       {props.topLine}
       {props.bottomLine}
-    </Box>
-  </Box>
+    </Kb.Box2>
+  </Kb.Box2>
 )
-const styleSmallNotice = platformStyles({
-  common: {
-    alignItems: 'flex-start',
-    flex: 1,
-    justifyContent: 'flex-start',
-    marginBottom: globalMargins.xtiny,
-    ...globalStyles.flexBoxRow,
-    marginRight: globalMargins.medium,
-    marginTop: globalMargins.xtiny,
-  },
-  isElectron: {
-    marginLeft: globalMargins.small,
-  },
-  isMobile: {
-    marginLeft: globalMargins.tiny,
-  },
-})
 
-const styleOuterBox = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  marginBottom: globalMargins.tiny,
-}
-
-const stylesAvatarWrapper = (avatarSize: number) =>
-  ({
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    height: avatarSize,
-    position: 'relative',
-    top: AVATAR_SIZE / 2,
-    zIndex: 10,
-  } as const)
-const stylesAvatar = platformStyles({
-  isElectron: {
-    ...desktopStyles.clickable,
-  },
-})
-
-const styleBox = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  borderRadius: globalMargins.xtiny,
-  marginLeft: isMobile ? globalMargins.medium : globalMargins.xlarge,
-  marginRight: isMobile ? globalMargins.medium : globalMargins.xlarge,
-  padding: globalMargins.small,
-  paddingBottom: globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      avatarContainer: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        height: AVATAR_SIZE,
+        position: 'relative',
+        top: AVATAR_SIZE / 2,
+        zIndex: 10,
+      },
+      innerContainer: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        borderRadius: Styles.globalMargins.xtiny,
+        marginLeft: Styles.isMobile ? Styles.globalMargins.medium : Styles.globalMargins.xlarge,
+        marginRight: Styles.isMobile ? Styles.globalMargins.medium : Styles.globalMargins.xlarge,
+      },
+      outerContainer: {
+        flex: 1,
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      smallNotice: Styles.platformStyles({
+        common: {
+          justifyContent: 'flex-start',
+          marginBottom: Styles.globalMargins.xtiny,
+          marginRight: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.xtiny,
+        },
+        isElectron: {
+          marginLeft: Styles.globalMargins.small,
+        },
+        isMobile: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      smallNoticeAvatar: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export {SmallUserNotice}
 export default UserNotice

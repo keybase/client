@@ -17,6 +17,8 @@ export const acceptSEP7Tx = 'wallets:acceptSEP7Tx'
 export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addTrustline = 'wallets:addTrustline'
+export const assetDeposit = 'wallets:assetDeposit'
+export const assetWithdraw = 'wallets:assetWithdraw'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
@@ -111,6 +113,7 @@ export const setBuiltPaymentAdvanced = 'wallets:setBuiltPaymentAdvanced'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const setSEP6Message = 'wallets:setSEP6Message'
 export const setSEP7Tx = 'wallets:setSEP7Tx'
 export const setTrustlineAcceptedAssets = 'wallets:setTrustlineAcceptedAssets'
 export const setTrustlineAcceptedAssetsByUsername = 'wallets:setTrustlineAcceptedAssetsByUsername'
@@ -142,6 +145,16 @@ type _AcceptSEP7TxPayload = {readonly inputURI: string}
 type _AccountUpdateReceivedPayload = {readonly account: Types.Account}
 type _AccountsReceivedPayload = {readonly accounts: Array<Types.Account>}
 type _AddTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
+type _AssetDepositPayload = {
+  readonly accountID: Types.AccountID
+  readonly code: Types.CurrencyCode
+  readonly issuerAccountID: Types.AccountID
+}
+type _AssetWithdrawPayload = {
+  readonly accountID: Types.AccountID
+  readonly code: Types.CurrencyCode
+  readonly issuerAccountID: Types.AccountID
+}
 type _AssetsReceivedPayload = {readonly accountID: Types.AccountID; readonly assets: Array<Types.Assets>}
 type _BadgesUpdatedPayload = {readonly accounts: Array<RPCTypes.WalletAccountInfo>}
 type _BuildPaymentPayload = void
@@ -159,8 +172,12 @@ type _ChangeAccountNamePayload = {readonly accountID: Types.AccountID; readonly 
 type _ChangeAirdropPayload = {readonly accept: boolean}
 type _ChangeDisplayCurrencyPayload = {readonly accountID: Types.AccountID; readonly code: Types.CurrencyCode}
 type _ChangeMobileOnlyModePayload = {readonly accountID: Types.AccountID; readonly enabled: boolean}
-type _ChangedAccountNamePayload = {readonly accountID: Types.AccountID}
-type _ChangedAccountNamePayloadError = {readonly name: string; readonly error: string}
+type _ChangedAccountNamePayload = {readonly account: Types.Account}
+type _ChangedAccountNamePayloadError = {
+  readonly name: string
+  readonly account: Types.Account
+  readonly error: string
+}
 type _ChangedTrustlinePayload = void
 type _ChangedTrustlinePayloadError = {readonly error: string}
 type _CheckDisclaimerPayload = {readonly nextScreen: Types.NextScreenAfterAcceptance}
@@ -184,7 +201,7 @@ type _CreatedNewAccountPayloadError = {readonly name: string; readonly error: st
 type _DeleteAccountPayload = {readonly accountID: Types.AccountID}
 type _DeleteTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _DeletedAccountPayload = void
-type _DidSetAccountAsDefaultPayload = {readonly accountID: Types.AccountID}
+type _DidSetAccountAsDefaultPayload = {readonly accounts: Array<Types.Account>}
 type _DisplayCurrenciesReceivedPayload = {readonly currencies: Array<Types.Currency>}
 type _DisplayCurrencyReceivedPayload = {
   readonly accountID: Types.AccountID | null
@@ -331,6 +348,7 @@ type _SetInflationDestinationPayload = {
 }
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
+type _SetSEP6MessagePayload = {readonly error: boolean; readonly message: string}
 type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7ConfirmInfo}
 type _SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly username: string
@@ -355,7 +373,8 @@ type _UpdateAirdropBannerStatePayload = {readonly show: boolean}
 type _UpdateAirdropDetailsPayload = void
 type _UpdateAirdropStatePayload = void
 type _UpdatedAirdropDetailsPayload = {
-  readonly details: Types.AirdropDetailsResponse
+  readonly details: Types.StellarDetailsResponse
+  readonly disclaimer: Types.StellarDetailsResponse
   readonly isPromoted: boolean
 }
 type _UpdatedAirdropStatePayload = {
@@ -569,6 +588,20 @@ export const createInflationDestinationReceived = (
 export const createInflationDestinationReceivedError = (
   payload: _InflationDestinationReceivedPayloadError
 ): InflationDestinationReceivedPayloadError => ({error: true, payload, type: inflationDestinationReceived})
+/**
+ * Handle a SEP6 Deposit link
+ */
+export const createAssetDeposit = (payload: _AssetDepositPayload): AssetDepositPayload => ({
+  payload,
+  type: assetDeposit,
+})
+/**
+ * Handle a SEP6 Withdraw link
+ */
+export const createAssetWithdraw = (payload: _AssetWithdrawPayload): AssetWithdrawPayload => ({
+  payload,
+  type: assetWithdraw,
+})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
@@ -812,6 +845,13 @@ export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload): SetLastSe
 export const createSetReadyToReview = (payload: _SetReadyToReviewPayload): SetReadyToReviewPayload => ({
   payload,
   type: setReadyToReview,
+})
+/**
+ * Show the user an external message from a SEP6 action
+ */
+export const createSetSEP6Message = (payload: _SetSEP6MessagePayload): SetSEP6MessagePayload => ({
+  payload,
+  type: setSEP6Message,
 })
 /**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
@@ -1132,6 +1172,11 @@ export type AccountsReceivedPayload = {
   readonly type: typeof accountsReceived
 }
 export type AddTrustlinePayload = {readonly payload: _AddTrustlinePayload; readonly type: typeof addTrustline}
+export type AssetDepositPayload = {readonly payload: _AssetDepositPayload; readonly type: typeof assetDeposit}
+export type AssetWithdrawPayload = {
+  readonly payload: _AssetWithdrawPayload
+  readonly type: typeof assetWithdraw
+}
 export type AssetsReceivedPayload = {
   readonly payload: _AssetsReceivedPayload
   readonly type: typeof assetsReceived
@@ -1509,6 +1554,10 @@ export type SetReadyToReviewPayload = {
   readonly payload: _SetReadyToReviewPayload
   readonly type: typeof setReadyToReview
 }
+export type SetSEP6MessagePayload = {
+  readonly payload: _SetSEP6MessagePayload
+  readonly type: typeof setSEP6Message
+}
 export type SetSEP7TxPayload = {readonly payload: _SetSEP7TxPayload; readonly type: typeof setSEP7Tx}
 export type SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly payload: _SetTrustlineAcceptedAssetsByUsernamePayload
@@ -1612,6 +1661,8 @@ export type Actions =
   | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddTrustlinePayload
+  | AssetDepositPayload
+  | AssetWithdrawPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload
@@ -1711,6 +1762,7 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | SetSEP6MessagePayload
   | SetSEP7TxPayload
   | SetTrustlineAcceptedAssetsByUsernamePayload
   | SetTrustlineAcceptedAssetsPayload

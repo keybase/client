@@ -29,10 +29,13 @@ const AccountReloader = (props: Props) => (
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
-  onReload: () => dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'})),
+  onReload: () => {
+    dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'}))
+    dispatch(WalletsGen.createUpdateAirdropDetails())
+  },
 })
 
-const mergeProps = (_, dispatchProps, ownProps) => ({
+const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({
   children: ownProps.children,
   onBack: ownProps.onBack,
   onReload: dispatchProps.onReload,

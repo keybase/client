@@ -6,9 +6,9 @@ import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
 import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../util/user-timings'
-import {SendArg, createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {SendArg, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
-const nativeBridge: {
+const nativeBridge: NativeEventEmitter & {
   runWithData: (arg0: string) => void
   eventName: string
   metaEventName: string
@@ -16,9 +16,8 @@ const nativeBridge: {
   start: () => void
   reset: () => void
 } = NativeModules.KeybaseEngine
-const RNEmitter: {
-  addListener: (arg0: string, arg1: (arg0: string) => void) => void
-} = new NativeEventEmitter(nativeBridge)
+// @ts-ignore
+const RNEmitter = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -98,7 +97,7 @@ function createClient(
   return client
 }
 
-function resetClient(client: createClientType) {
+function resetClient() {
   // Tell the RN bridge to reset itself
   nativeBridge.reset()
 }

@@ -7,7 +7,7 @@ import * as Constants from '../../constants/teams'
 type OwnProps = Container.RouteProps<{teamname: string}>
 
 const mapStateToProps = (state, ownProps) => {
-  const teamname = Container.getRouteProps(ownProps, 'teamname')
+  const teamname = Container.getRouteProps(ownProps, 'teamname', '')
   if (!teamname) {
     throw new Error('There was a problem loading the description page, please report this error.')
   }
@@ -23,7 +23,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(
       TeamsGen.createEditTeamDescription({
         description,
-        teamname: Container.getRouteProps(ownProps, 'teamname'),
+        teamname: Container.getRouteProps(ownProps, 'teamname', ''),
       })
     )
     dispatch(RouteTreeGen.createNavigateUp())
@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, _) => ({
+const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   ...stateProps,
   ...dispatchProps,
 })

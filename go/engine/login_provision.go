@@ -37,8 +37,8 @@ type loginProvision struct {
 // gpgInterface defines the portions of gpg client that provision
 // needs.  This allows tests to stub out gpg client calls.
 type gpgInterface interface {
-	ImportKey(secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error)
-	Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
+	ImportKey(mctx libkb.MetaContext, secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error)
+	Index(mctx libkb.MetaContext, secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
 }
 
 type loginProvisionArg struct {
@@ -118,9 +118,9 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		case libkb.APINetError:
 			m.Debug("provision failed with an APINetError: %s, returning ProvisionFailedOfflineError", err)
 			return libkb.ProvisionFailedOfflineError{}
+		default:
+			return err
 		}
-
-		return err
 	}
 	if e.skippedLogin || e.resetComplete {
 		return nil
@@ -130,7 +130,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	// config has already been written and there is no way to roll
 	// back.
 
-	e.displaySuccess(m)
+	_ = e.displaySuccess(m)
 
 	m.G().KeyfamilyChanged(m.Ctx(), e.arg.User.GetUID())
 
@@ -144,15 +144,16 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 	return nil
 }
 
-func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) error {
-	return e.saveToSecretStoreWithLKS(m, e.lks)
+func (e *loginProvision) saveToSecretStore(m libkb.MetaContext) {
+	e.saveToSecretStoreWithLKS(m, e.lks)
 }
 
-func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) (err error) {
+func (e *loginProvision) saveToSecretStoreWithLKS(m libkb.MetaContext, lks *libkb.LKSec) {
 	nun := e.arg.User.GetNormalizedName()
+	var err error
 	defer m.Trace(fmt.Sprintf("loginProvision.saveToSecretStoreWithLKS(%s)", nun), func() error { return err })()
 	options := libkb.LoadAdvisorySecretStoreOptionsFromRemote(m)
-	return libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
+	err = libkb.StoreSecretAfterLoginWithLKSWithOptions(m, nun, lks, &options)
 }
 
 // deviceWithType provisions this device with an existing device using the
@@ -317,7 +318,9 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device, keys *
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
 	m = m.WithProvisioningKeyActiveDevice(keys, uv)
-	m.LoginContext().SetUsernameUserVersion(nn, uv)
+	if err := m.LoginContext().SetUsernameUserVersion(nn, uv); err != nil {
+		return err
+	}
 
 	// need lksec to store device keys locally
 	if err := e.fetchLKS(m, keys.EncryptionKey()); err != nil {
@@ -589,7 +592,7 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 			if devname != dupname {
 				dupnameErrMsg = fmt.Sprintf(" as %q", dupname)
 			}
-			arg.ErrorMessage = fmt.Sprintf("The device name %q is already taken%s. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.", devname, dupnameErrMsg)
+			arg.ErrorMessage = fmt.Sprintf("You've already used this device name%s. For security reasons, pick another name.", dupnameErrMsg)
 			continue
 		}
 
@@ -668,7 +671,7 @@ func (e *loginProvision) gpgPrivateIndex(m libkb.MetaContext) (*libkb.GpgKeyInde
 	}
 
 	// get an index of all the secret keys
-	index, _, err := cli.Index(true, "")
+	index, _, err := cli.Index(m, true, "")
 	if err != nil {
 		return nil, err
 	}
@@ -686,7 +689,7 @@ func (e *loginProvision) gpgClient(m libkb.MetaContext) (gpgInterface, error) {
 	}
 
 	gpg := m.G().GetGpgClient()
-	ok, err := gpg.CanExec()
+	ok, err := gpg.CanExec(m)
 	if err != nil {
 		return nil, err
 	}
@@ -983,11 +986,9 @@ func (e *loginProvision) chooseGPGKeyAndMethod(m libkb.MetaContext) (*libkb.GpgP
 	// find any local private gpg keys that are in user's key family
 	matches, err := e.matchingGPGKeys(m)
 	if err != nil {
-		if _, ok := err.(libkb.NoSecretKeyError); ok {
-			// no match found
-			// tell the user they need to get a gpg
-			// key onto this device.
-		}
+		// If this is a libkb.NoSecretKeyError, then no match found.
+		// Tell the user they need to get a gpg
+		// key onto this device.
 		return nil, nilMethod, err
 	}
 
@@ -1132,10 +1133,9 @@ func (e *loginProvision) gpgImportKey(m libkb.MetaContext, fp *libkb.PGPFingerpr
 	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
 	if err != nil {
 		m.Warning("error getting TTY for GPG: %s", err)
-		err = nil
 	}
 
-	bundle, err := cli.ImportKey(true, *fp, tty)
+	bundle, err := cli.ImportKey(m, true, *fp, tty)
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isMobile} from '../util/container'
+import {isMobile, hoistNonReactStatic} from '../util/container'
 import HeaderHoc, {HeaderHocHeader} from './header-hoc'
 import PopupDialog from './popup-dialog'
 import * as Styles from '../styles'
@@ -26,6 +26,7 @@ function Popup<P>(Wrapped: React.ComponentType<P>) {
       <Wrapped {...props as P} />
     </PopupDialog>
   )
+  hoistNonReactStatic(PopupWrapper, Wrapped)
   return PopupWrapper
 }
 
@@ -36,6 +37,7 @@ function PopupWithHeader<P>(Wrapped: React.ComponentType<P>) {
       <Wrapped {...props as P} />
     </PopupDialog>
   )
+  hoistNonReactStatic(PopupWrapper, Wrapped)
   return PopupWrapper
 }
 

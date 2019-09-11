@@ -18,11 +18,11 @@ func TestParseConfigV1(t *testing.T) {
 			Version: Version1Str,
 		},
 		Users: map[string]string{
-			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
-			"bob":   string(generateSHA256PasswordHashForTestOrBust(t, "54321")),
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
+			"bob":   generateSHA256PasswordHashForTestOrBust(t, "54321"),
 		},
 		ACLs: map[string]AccessControlV1{
-			"/alice-and-bob": AccessControlV1{
+			"/alice-and-bob": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 					"bob":   PermRead,

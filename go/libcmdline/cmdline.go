@@ -78,6 +78,9 @@ func (p CommandLine) GetServerURI() (string, error) {
 func (p CommandLine) GetConfigFilename() string {
 	return p.GetGString("config-file")
 }
+func (p CommandLine) GetGUIConfigFilename() string {
+	return p.GetGString("gui-config-file")
+}
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
 }
@@ -134,6 +137,9 @@ func (p CommandLine) GetLogFile() string {
 }
 func (p CommandLine) GetEKLogFile() string {
 	return p.GetGString("ek-log-file")
+}
+func (p CommandLine) GetGUILogFile() string {
+	return p.GetGString("gui-log-file")
 }
 func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
 	return p.GetBool("use-default-log-file", true)
@@ -412,6 +418,10 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 
 func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
 	return p.GetBool("disable-team-box-auditor", true)
+}
+
+func (p CommandLine) GetDisableEKBackgroundKeygen() (bool, bool) {
+	return p.GetBool("disable-ek-backgorund-keygen", true)
 }
 
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
@@ -721,6 +731,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "updater-config-file",
 			Usage: "Specify a path to the updater config file",
+		},
+		cli.StringFlag{
+			Name:  "gui-config-file",
+			Usage: "Specify a path to the GUI config file",
 		},
 		cli.BoolFlag{
 			Name:  "upgrade-per-user-key",

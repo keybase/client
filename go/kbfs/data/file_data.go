@@ -116,7 +116,6 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 
 	// Find all the indirect pointers to leaf blocks in the offset range.
 	var iptrs []IndirectFilePtr
-	firstBlockOff := Int64Offset(-1)
 	endBlockOff := Int64Offset(-1)
 	nextBlockOff := Int64Offset(-1)
 	var blockMap map[BlockPointer]Block
@@ -136,9 +135,6 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 			lowestAncestor := p[len(p)-1]
 			iptr := childFileIptr(lowestAncestor)
 			iptrs = append(iptrs, iptr)
-			if firstBlockOff < 0 {
-				firstBlockOff = iptr.Off
-			}
 			if i == len(pfr)-1 {
 				leafBlock := blockMap[iptr.BlockPointer].(*FileBlock)
 				endBlockOff = iptr.Off + Int64Offset(len(leafBlock.Contents))
@@ -149,7 +145,6 @@ func (fd *FileData) getByteSlicesInOffsetRange(ctx context.Context,
 			BlockInfo: BlockInfo{BlockPointer: fd.rootBlockPointer()},
 			Off:       0,
 		}}
-		firstBlockOff = 0
 		endBlockOff = Int64Offset(len(topBlock.Contents))
 		blockMap = map[BlockPointer]Block{fd.rootBlockPointer(): topBlock}
 	}
@@ -981,8 +976,9 @@ func (fd *FileData) Split(ctx context.Context, id tlf.ID,
 				// TODO: If we're down to just one leaf block at this
 				// level, remove the layer of indirection (KBFS-1824).
 				iptrs := pblock.IPtrs
-				pblock.IPtrs =
-					append(iptrs[:pb.childIndex], iptrs[pb.childIndex+1:]...)
+				pblock.IPtrs = make([]IndirectFilePtr, len(iptrs)-1)
+				copy(pblock.IPtrs, iptrs[:pb.childIndex])
+				copy(pblock.IPtrs[pb.childIndex:], iptrs[pb.childIndex+1:])
 			}
 
 			// Mark all parents as dirty.
@@ -1117,9 +1113,6 @@ func (fd *FileData) DeepCopy(ctx context.Context, dataVer Ver) (
 	// Handle the single-level case first.
 	if !topBlock.IsInd {
 		newTopBlock := topBlock.DeepCopy()
-		if err != nil {
-			return ZeroPtr, nil, err
-		}
 
 		newTopPtr = fd.rootBlockPointer()
 		newTopPtr.RefNonce, err = kbfsblock.MakeRefNonce()

@@ -32,7 +32,7 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
+			"/": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermRead,
 				},
@@ -47,10 +47,10 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
+			"/": {
 				AnonymousPermissions: "",
 			},
-			"": AccessControlV1{
+			"": {
 				AnonymousPermissions: PermRead,
 			},
 		},
@@ -63,10 +63,10 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		ACLs: map[string]AccessControlV1{
-			"/foo": AccessControlV1{
+			"/foo": {
 				AnonymousPermissions: "",
 			},
-			"/foo/../foo": AccessControlV1{
+			"/foo/../foo": {
 				AnonymousPermissions: PermRead,
 			},
 		},
@@ -79,7 +79,7 @@ func TestConfigV1Invalid(t *testing.T) {
 			Version: Version1Str,
 		},
 		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
+			"/": {
 				AnonymousPermissions: "huh?",
 			},
 		},
@@ -94,35 +94,35 @@ func TestConfigV1Full(t *testing.T) {
 			Version: Version1Str,
 		},
 		Users: map[string]string{
-			"alice": string(generateBcryptPasswordHashForTestOrBust(t, "12345")),
-			"bob":   string(generateSHA256PasswordHashForTestOrBust(t, "54321")),
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
+			"bob":   generateSHA256PasswordHashForTestOrBust(t, "54321"),
 		},
 		ACLs: map[string]AccessControlV1{
-			"/": AccessControlV1{
+			"/": {
 				AnonymousPermissions: "read,list",
 			},
-			"/alice-and-bob": AccessControlV1{
+			"/alice-and-bob": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 					"bob":   PermRead,
 				},
 			},
-			"/bob": AccessControlV1{
+			"/bob": {
 				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
 					"bob": PermReadAndList,
 				},
 			},
-			"/public": AccessControlV1{
+			"/public": {
 				AnonymousPermissions: PermReadAndList,
 			},
-			"/public/not-really": AccessControlV1{
+			"/public/not-really": {
 				AnonymousPermissions: "",
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermReadAndList,
 				},
 			},
-			"/bob/dir/deep-dir/deep-deep-dir": AccessControlV1{},
+			"/bob/dir/deep-dir/deep-deep-dir": {},
 		},
 	}
 

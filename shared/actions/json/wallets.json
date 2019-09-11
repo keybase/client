@@ -36,6 +36,18 @@
       "_description": "We received an updated account record",
       "account": "Types.Account"
     },
+    "assetDeposit": {
+      "_description": "Handle a SEP6 Deposit link",
+      "accountID": "Types.AccountID",
+      "code": "Types.CurrencyCode",
+      "issuerAccountID": "Types.AccountID"
+    },
+    "assetWithdraw": {
+      "_description": "Handle a SEP6 Withdraw link",
+      "accountID": "Types.AccountID",
+      "code": "Types.CurrencyCode",
+      "issuerAccountID": "Types.AccountID"
+    },
     "assetsReceived": {
       "_description": "Update our store of assets data",
       "accountID": "Types.AccountID",
@@ -189,9 +201,10 @@
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
-      "accountID": "Types.AccountID",
+      "account": "Types.Account",
       "canError": {
         "name": "string",
+        "account": "Types.Account",
         "error": "string"
       }
     },
@@ -201,7 +214,7 @@
     },
     "didSetAccountAsDefault": {
       "_description": "A response from the service after an account is set as the default",
-      "accountID": "Types.AccountID"
+      "accounts": "Array<Types.Account>"
     },
     "deleteAccount": {
       "_description": "Delete an account",
@@ -463,7 +476,8 @@
     },
     "updateAirdropDetails": {},
     "updatedAirdropDetails": {
-      "details": "Types.AirdropDetailsResponse",
+      "details": "Types.StellarDetailsResponse",
+      "disclaimer": "Types.StellarDetailsResponse",
       "isPromoted": "boolean"
     },
     "refreshTrustlineAcceptedAssets": {
@@ -514,6 +528,11 @@
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
+    },
+    "setSEP6Message": {
+      "_description": "Show the user an external message from a SEP6 action",
+      "error": "boolean",
+      "message": "string"
     }
   }
 }

@@ -1,7 +1,7 @@
 import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import NewTeamDialog from './'
+import NewTeamDialog from '.'
 import {upperFirst} from 'lodash-es'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
@@ -22,9 +22,9 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam') || false
-  const baseTeam = Container.getRouteProps(ownProps, 'name') || ''
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const isSubteam = Container.getRouteProps(ownProps, 'makeSubteam', false)
+  const baseTeam = Container.getRouteProps(ownProps, 'name', '')
   return {
     ...stateProps,
     ...dispatchProps,

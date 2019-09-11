@@ -53,7 +53,7 @@ func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
 	verifyingKey := kbfscrypto.MakeVerifyingKey(deviceSibkey.GetKID())
 	return SessionInfo{
 		Name:           kbname.NewNormalizedUsername(session.Username),
-		UID:            keybase1.UID(session.Uid),
+		UID:            session.Uid,
 		CryptPublicKey: cryptPublicKey,
 		VerifyingKey:   verifyingKey,
 	}, nil

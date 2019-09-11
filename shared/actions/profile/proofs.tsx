@@ -1,6 +1,7 @@
 import logger from '../../logger'
 import * as Constants from '../../constants/profile'
 import {RPCError} from '../../util/errors'
+import * as DeeplinksGen from '../deeplinks-gen'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -8,55 +9,53 @@ import * as More from '../../constants/types/more'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tracker2Gen from '../tracker2-gen'
 import * as Tracker2Constants from '../../constants/tracker2'
-import {peopleTab} from '../../constants/tabs'
 import openURL from '../../util/open-url'
-import {TypedState, TypedActions} from '../../util/container'
+import {TypedState} from '../../util/container'
 
-const checkProof = (state: TypedState, _: ProfileGen.CheckProofPayload) => {
+const checkProof = async (state: TypedState, _: ProfileGen.CheckProofPayload) => {
   const sigID = state.profile.sigID
   const isGeneric = !!state.profile.platformGeneric
   if (!sigID) {
     return
   }
 
-  return RPCTypes.proveCheckProofRpcPromise({sigID}, Constants.waitingKey)
-    .then(({found, status}) => {
-      // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
-      if (!found && status >= RPCTypes.ProofStatus.baseHardError) {
-        return ProfileGen.createUpdateErrorText({
-          errorCode: null,
-          errorText: "We couldn't find your proof. Please retry!",
-        })
-      } else {
-        return [
-          ProfileGen.createUpdateErrorText({
-            errorCode: null,
-            errorText: '',
-          }),
-          ProfileGen.createUpdateProofStatus({found, status}),
-          ...(isGeneric
-            ? []
-            : [
-                RouteTreeGen.createNavigateAppend({
-                  path: ['profileConfirmOrPending'],
-                }),
-              ]),
-        ]
-      }
-    })
-    .catch((_: RPCError) => {
-      logger.warn('Error getting proof update')
+  try {
+    const {found, status} = await RPCTypes.proveCheckProofRpcPromise({sigID}, Constants.waitingKey)
+    // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
+    if (!found && status >= RPCTypes.ProofStatus.baseHardError) {
       return ProfileGen.createUpdateErrorText({
         errorCode: null,
-        errorText: "We couldn't verify your proof. Please retry!",
+        errorText: "We couldn't find your proof. Please retry!",
       })
+    } else {
+      return [
+        ProfileGen.createUpdateErrorText({
+          errorCode: null,
+          errorText: '',
+        }),
+        ProfileGen.createUpdateProofStatus({found, status}),
+        ...(isGeneric
+          ? []
+          : [
+              RouteTreeGen.createNavigateAppend({
+                path: ['profileConfirmOrPending'],
+              }),
+            ]),
+      ]
+    }
+  } catch (_) {
+    logger.warn('Error getting proof update')
+    return ProfileGen.createUpdateErrorText({
+      errorCode: null,
+      errorText: "We couldn't verify your proof. Please retry!",
     })
+  }
 }
 
-const recheckProof = (state: TypedState, action: ProfileGen.RecheckProofPayload) =>
-  RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey).then(() =>
-    Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
-  )
+const recheckProof = async (state: TypedState, action: ProfileGen.RecheckProofPayload) => {
+  await RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey)
+  return Tracker2Gen.createShowUser({asTracker: false, username: state.config.username})
+}
 
 // only let one of these happen at a time
 let addProofInProgress = false
@@ -258,6 +257,19 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
     logger.warn('Error making proof')
     yield Saga.put(loadAfter)
     yield Saga.put(ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc}))
+    if (error.code === RPCTypes.StatusCode.scgeneric && action.payload.reason === 'appLink') {
+      yield Saga.put(
+        DeeplinksGen.createSetKeybaseLinkError({
+          error:
+            "We couldn't find a valid service for proofs in this link. The link might be bad, or your Keybase app might be out of date and need to be updated.",
+        })
+      )
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {errorSource: 'app'}, selected: 'keybaseLinkError'}],
+        })
+      )
+    }
     if (genericService) {
       yield Saga.put(ProfileGen.createUpdatePlatformGenericChecking({checking: false}))
     }
@@ -270,8 +282,8 @@ function* addProof(state: TypedState, action: ProfileGen.AddProofPayload) {
   addProofInProgress = false
 }
 
-const submitCryptoAddress = (
-  state,
+const submitCryptoAddress = async (
+  state: TypedState,
   action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
 ) => {
   if (!state.profile.usernameValid) {
@@ -280,7 +292,7 @@ const submitCryptoAddress = (
 
   const address = state.profile.username
 
-  let wantedFamily
+  let wantedFamily: 'bitcoin' | 'zcash' | undefined
   switch (action.type) {
     case ProfileGen.submitBTCAddress:
       wantedFamily = 'bitcoin'
@@ -292,28 +304,27 @@ const submitCryptoAddress = (
       throw new Error('Unknown wantedfamily')
   }
 
-  return RPCTypes.cryptocurrencyRegisterAddressRpcPromise(
-    {address, force: true, wantedFamily},
-    Constants.waitingKey
-  )
-    .then(() => [
+  try {
+    await RPCTypes.cryptocurrencyRegisterAddressRpcPromise(
+      {address, force: true, wantedFamily},
+      Constants.waitingKey
+    )
+    return [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.ProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({path: ['profileConfirmOrPending']}),
-    ])
-    .catch((error: RPCError) => {
-      logger.warn('Error making proof')
-      return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
-    })
+    ]
+  } catch (e) {
+    const error: RPCError = e
+    logger.warn('Error making proof')
+    return ProfileGen.createUpdateErrorText({errorCode: error.code, errorText: error.desc})
+  }
 }
 
 function* proofsSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload>(
-    [ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress],
-    submitCryptoAddress
-  )
+  yield* Saga.chainAction2([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], submitCryptoAddress)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
-  yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
-  yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
+  yield* Saga.chainAction2(ProfileGen.checkProof, checkProof)
+  yield* Saga.chainAction2(ProfileGen.recheckProof, recheckProof)
 }
 
 export {proofsSaga}

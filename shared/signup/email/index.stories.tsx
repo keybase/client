@@ -4,11 +4,11 @@ import {storyDecorator} from '../common-stories'
 import EnterEmail from '.'
 
 const props = {
-  allowSearch: false,
   error: '',
-  onChangeAllowSearch: Sb.action('onChangeAllowSearch'),
-  onFinish: Sb.action('onFinish'),
+  initialEmail: '',
+  onCreate: Sb.action('onCreate'),
   onSkip: Sb.action('onSkip'),
+  waiting: false,
 }
 
 const load = () => {

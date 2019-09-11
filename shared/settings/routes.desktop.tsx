@@ -1,7 +1,7 @@
 import * as Constants from '../constants/settings'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
-import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import FsTab from './files/container'
 import AdvancedTab from './advanced/container'
@@ -22,11 +22,9 @@ import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
-  // TODO connect broken
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  // TODO connect broken
   [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   // TODO connect broken
   [Constants.invitationsTab]: {
@@ -37,16 +35,13 @@ const settingsSubRoutes = {
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
-  // TODO connect broken
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
-  // TODO connect broken
   deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
-  // TODO connect broken
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
-
-class SettingsSubNav extends React.PureComponent<any> {
+const noScreenProps = {}
+class SettingsSubNav extends React.PureComponent<NavigationViewProps<any>> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -61,7 +56,7 @@ class SettingsSubNav extends React.PureComponent<any> {
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
+            screenProps={this.props.screenProps || noScreenProps}
           />
         </Settings>
       </Kb.Box2>
@@ -79,14 +74,12 @@ SettingsSubNavigator.navigationOptions = {
 }
 
 export const newRoutes = {
-  settingsRoot: {getScreen: () => SettingsSubNavigator, upgraded: true},
+  settingsRoot: {getScreen: () => SettingsSubNavigator},
 }
 export const newModalRoutes = {
-  // TODO connect broken
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   // TODO connect broken
   changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
-  // TODO connect broken
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
@@ -96,7 +89,5 @@ export const newModalRoutes = {
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
   },
-  settingsVerifyPhone: {
-    getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone,
-  },
+  settingsVerifyPhone: {getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone},
 }

@@ -78,7 +78,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     }
   }
 
-  _onDragLeave = e => {
+  _onDragLeave = () => {
     this.setState({showDropOverlay: false})
   }
 
@@ -98,26 +98,29 @@ class DragAndDrop extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  containerStyle: {
-    position: 'relative',
-  },
-  dropOverlay: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.fillAbsolute,
-      backgroundImage: `linear-gradient(${Styles.globalColors.white_75}, ${Styles.globalColors.white})`,
-    },
-  }),
-  icon: {
-    position: 'relative',
-    top: 2,
-  },
-  iconContainer: {
-    backgroundColor: Styles.globalColors.blue,
-    borderRadius: 100,
-    height: 48,
-    width: 48,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      containerStyle: {
+        position: 'relative',
+      },
+      dropOverlay: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fillAbsolute,
+          backgroundImage: `linear-gradient(${Styles.globalColors.white_75}, ${Styles.globalColors.white})`,
+        },
+      }),
+      icon: {
+        position: 'relative',
+        top: 2,
+      },
+      iconContainer: {
+        backgroundColor: Styles.globalColors.blue,
+        borderRadius: 100,
+        height: 48,
+        width: 48,
+      },
+    } as const)
+)
 
 export default DragAndDrop

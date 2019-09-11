@@ -184,11 +184,20 @@ func (d *notificationDisplay) BoxAuditError(_ context.Context, msg string) (err 
 
 func (d *notificationDisplay) RuntimeStatsUpdate(
 	_ context.Context, stats *keybase1.RuntimeStats) (err error) {
-	err = d.printf(
-		"Runtime stats: Goheap=%s, Goheapsys=%s, Goreleased=%s",
-		stats.Goheap, stats.Goheapsys, stats.Goreleased)
+	err = d.printf("Runtime stats:")
 	if err != nil {
 		return err
+	}
+
+	comma := ""
+	for _, s := range stats.ProcessStats {
+		err = d.printf(
+			"%s [%s: Goheap=%s, Goheapsys=%s, Goreleased=%s]",
+			comma, s.Type, s.Goheap, s.Goheapsys, s.Goreleased)
+		if err != nil {
+			return err
+		}
+		comma = ","
 	}
 
 	for _, s := range stats.DbStats {
@@ -218,4 +227,14 @@ func (d *notificationDisplay) RuntimeStatsUpdate(
 		}
 	}
 	return d.printf("\n")
+}
+
+func (d *notificationDisplay) FSSubscriptionNotify(_ context.Context, arg keybase1.FSSubscriptionNotifyArg) error {
+	return d.printf("FS subscription notify: %s %s\n", arg.SubscriptionID, arg.Topic.String())
+}
+func (d *notificationDisplay) FSSubscriptionNotifyPath(_ context.Context, arg keybase1.FSSubscriptionNotifyPathArg) error {
+	return d.printf("FS subscription notify path: %s %q %s\n", arg.SubscriptionID, arg.Path, arg.Topic.String())
+}
+func (d *notificationDisplay) IdentifyUpdate(_ context.Context, arg keybase1.IdentifyUpdateArg) error {
+	return d.printf("identify update: ok:%v broken:%v\n", arg.OkUsernames, arg.BrokenUsernames)
 }

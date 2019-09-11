@@ -11,7 +11,7 @@ protocol appState {
   enum MobileNetworkState {
     NONE_0,
     WIFI_1,
-    CELLUAR_2,
+    CELLULAR_2,
     UNKNOWN_3,
     // Default for desktop, not treated as a 'limited' connection
     NOTAVAILABLE_4
