@@ -112,16 +112,19 @@ export default class FilePreviewView extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  banner: {
-    opacity: 0.85,
-    position: 'absolute',
-    top: 0,
-    width: '100%',
-  },
-  bannerContainer: {
-    position: 'relative',
-    width: '100%',
-    zIndex: 200, // needed for mobile
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        opacity: 0.85,
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+      },
+      bannerContainer: {
+        position: 'relative',
+        width: '100%',
+        zIndex: 200, // needed for mobile
+      },
+    } as const)
+)

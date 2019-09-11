@@ -14,12 +14,15 @@ const TextView = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  webview: {
-    height: '100%',
-    width: '100%',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      webview: {
+        height: '100%',
+        width: '100%',
+      },
+    } as const)
+)
 
 // We need to do the spacing in the guest content of the webView rather than
 // the component's styles, to make it feel like the whole "view" is

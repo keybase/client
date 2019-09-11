@@ -55,13 +55,16 @@ const Filename = (props: Props) => {
 
 export default Filename
 
-const styles = Styles.styleSheetCreate(() => ({
-  breakAll: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-  noShrink: {
-    flexShrink: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      breakAll: Styles.platformStyles({
+        isElectron: {
+          wordBreak: 'break-all',
+        },
+      }),
+      noShrink: {
+        flexShrink: 0,
+      },
+    } as const)
+)

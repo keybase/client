@@ -119,21 +119,24 @@ const PathItemInfo = (props: Props) => {
 
 export default PathItemInfo
 
-const styles = Styles.styleSheetCreate(() => ({
-  nameTextBox: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-    },
-    isElectron: {
-      textAlign: 'center',
-    },
-  }),
-  pathItemIcon: {
-    marginBottom: Styles.globalMargins.xtiny,
-  },
-  stylesNameText: {
-    textAlign: 'center',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      nameTextBox: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        },
+        isElectron: {
+          textAlign: 'center',
+        },
+      }),
+      pathItemIcon: {
+        marginBottom: Styles.globalMargins.xtiny,
+      },
+      stylesNameText: {
+        textAlign: 'center',
+      },
+    } as const)
+)

@@ -95,62 +95,65 @@ const InstallSecurityPrefs = (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    maxWidth: 700,
-    minWidth: 700,
-    paddingBottom: Styles.globalMargins.mediumLarge,
-    paddingLeft: Styles.globalMargins.large,
-    paddingRight: Styles.globalMargins.large,
-    paddingTop: Styles.globalMargins.mediumLarge,
-    width: 700,
-  },
-  enablingContainer: {
-    backgroundColor: Styles.globalColors.black_63,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  highlight: {
-    backgroundColor: Styles.globalColors.black_05,
-    borderColor: Styles.globalColors.blue,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 2,
-    position: 'absolute',
-  },
-  illustrationContainer: {
-    position: 'relative',
-  },
-  image: {
-    width: 408,
-  },
-  listText: {
-    paddingBottom: 16,
-    paddingTop: 1,
-  },
-  numberList: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.blue,
-      borderRadius: '50%',
-      color: Styles.globalColors.white,
-      height: 20,
-      marginRight: 13,
-      minWidth: 20,
-      paddingTop: 1,
-      textAlign: 'center',
-      width: 20,
-    },
-  }),
-  numberListContainer: {
-    paddingTop: Styles.globalMargins.large,
-  },
-  title: {
-    maxWidth: 480,
-    textAlign: 'center',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        maxWidth: 700,
+        minWidth: 700,
+        paddingBottom: Styles.globalMargins.mediumLarge,
+        paddingLeft: Styles.globalMargins.large,
+        paddingRight: Styles.globalMargins.large,
+        paddingTop: Styles.globalMargins.mediumLarge,
+        width: 700,
+      },
+      enablingContainer: {
+        backgroundColor: Styles.globalColors.black_63,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      highlight: {
+        backgroundColor: Styles.globalColors.black_05,
+        borderColor: Styles.globalColors.blue,
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 2,
+        position: 'absolute',
+      },
+      illustrationContainer: {
+        position: 'relative',
+      },
+      image: {
+        width: 408,
+      },
+      listText: {
+        paddingBottom: 16,
+        paddingTop: 1,
+      },
+      numberList: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blue,
+          borderRadius: '50%',
+          color: Styles.globalColors.white,
+          height: 20,
+          marginRight: 13,
+          minWidth: 20,
+          paddingTop: 1,
+          textAlign: 'center',
+          width: 20,
+        },
+      }),
+      numberListContainer: {
+        paddingTop: Styles.globalMargins.large,
+      },
+      title: {
+        maxWidth: 480,
+        textAlign: 'center',
+      },
+    } as const)
+)
 
 export default Kb.HeaderOrPopup(InstallSecurityPrefs)

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Container from '../../util/container'
-import {useFsPathInfo} from './hooks'
+import { useFsPathInfo } from './hooks'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 
@@ -59,4 +59,4 @@ const styles = Styles.styleSheetCreate(() => ({
   localPath: {
     marginTop: Styles.globalMargins.small,
   },
-}))
+} as const))

@@ -65,27 +65,30 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
   </>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  stylesBox: {
-    flexShrink: 0, // need this to be whole in menubar
-    height,
-    maxHeight: height,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-  },
-  stylesText: {
-    color: Styles.globalColors.white,
-  },
-  textOverflow: Styles.platformStyles({
-    isElectron: {
-      color: Styles.globalColors.white,
-      maxWidth: '100%',
-      overflow: 'hidden',
-      textAlign: 'center',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      stylesBox: {
+        flexShrink: 0, // need this to be whole in menubar
+        height,
+        maxHeight: height,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+      },
+      stylesText: {
+        color: Styles.globalColors.white,
+      },
+      textOverflow: Styles.platformStyles({
+        isElectron: {
+          color: Styles.globalColors.white,
+          maxWidth: '100%',
+          overflow: 'hidden',
+          textAlign: 'center',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+    } as const)
+)
 
 export default Upload

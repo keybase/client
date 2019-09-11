@@ -79,39 +79,42 @@ const DefaultView = (props: DefaultViewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      padding: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      paddingTop: Styles.globalMargins.mediumLarge,
-    },
-  }),
-  filename: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.small,
-  },
-  innerContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.globalStyles.flexGrow,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.large,
-      paddingRight: Styles.globalMargins.large,
-    },
-  }),
-  noOpenMobile: {
-    marginTop: Styles.globalMargins.medium,
-  },
-  symlink: {
-    marginTop: Styles.globalMargins.medium,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          padding: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          paddingTop: Styles.globalMargins.mediumLarge,
+        },
+      }),
+      filename: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.small,
+      },
+      innerContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexGrow,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          flex: 1,
+          justifyContent: 'center',
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.large,
+          paddingRight: Styles.globalMargins.large,
+        },
+      }),
+      noOpenMobile: {
+        marginTop: Styles.globalMargins.medium,
+      },
+      symlink: {
+        marginTop: Styles.globalMargins.medium,
+      },
+    } as const)
+)
 
 export default DefaultView

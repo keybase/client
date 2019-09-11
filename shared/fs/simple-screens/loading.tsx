@@ -20,9 +20,12 @@ export default (_: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-    ...Styles.globalStyles.flexGrow,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        backgroundColor: Styles.globalColors.blueLighter3,
+        ...Styles.globalStyles.flexGrow,
+      },
+    } as const)
+)

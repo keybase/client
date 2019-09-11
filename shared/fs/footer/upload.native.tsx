@@ -151,33 +151,36 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  backgroundBox: Styles.platformStyles({
-    common: {
-      height: 48,
-      width: '100%',
-    },
-    isAndroid: {
-      zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
-    },
-    isIOS: {
-      overflow: 'hidden',
-    },
-  }),
-  backgroundImage: {
-    height: 160,
-    width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
-  },
-  box: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    height: 48,
-    justifyContent: 'center',
-    marginTop: -48,
-  },
-  text: {
-    color: Styles.globalColors.white,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backgroundBox: Styles.platformStyles({
+        common: {
+          height: 48,
+          width: '100%',
+        },
+        isAndroid: {
+          zIndex: -100, // Android doesn't support `overflow: 'hidden'`.
+        },
+        isIOS: {
+          overflow: 'hidden',
+        },
+      }),
+      backgroundImage: {
+        height: 160,
+        width: 600, // Android doesn't support resizeMode="repeat", so use a super wide image here. TODO it does now!
+      },
+      box: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        height: 48,
+        justifyContent: 'center',
+        marginTop: -48,
+      },
+      text: {
+        color: Styles.globalColors.white,
+      },
+    } as const)
+)
 
 export default Upload

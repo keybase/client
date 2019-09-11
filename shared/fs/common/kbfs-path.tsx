@@ -55,11 +55,11 @@ const KbfsPathPopup = (props: PopupProps) => {
       items={
         Styles.isMobile
           ? [
-              {
-                onClick: openInFilesTab,
-                title: 'Open',
-              },
-            ]
+            {
+              onClick: openInFilesTab,
+              title: 'Open',
+            },
+          ]
           : []
       }
       visible={props.visible}
@@ -91,15 +91,15 @@ const KbfsPath = (props: Props) => {
       {popup}
     </>
   ) : (
-    <Kb.Box
-      style={styles.textContainer}
-      onMouseOver={() => setShowing(true)}
-      onMouseLeave={() => setShowing(false)}
-    >
-      {text}
-      {popup}
-    </Kb.Box>
-  )
+      <Kb.Box
+        style={styles.textContainer}
+        onMouseOver={() => setShowing(true)}
+        onMouseLeave={() => setShowing(false)}
+      >
+        {text}
+        {popup}
+      </Kb.Box>
+    )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -108,7 +108,7 @@ const styles = Styles.styleSheetCreate(() => ({
       maxWidth: 280,
     },
   }),
-  noBottomPadding: {paddingBottom: 0},
+  noBottomPadding: { paddingBottom: 0 },
   sectionContainer: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.small,
@@ -123,6 +123,6 @@ const styles = Styles.styleSheetCreate(() => ({
       display: 'inline-block',
     },
   }),
-}))
+} as const))
 
 export default KbfsPath

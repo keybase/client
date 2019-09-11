@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import * as Container from '../../util/container'
-import {isMobile} from '../../constants/platform'
+import { isMobile } from '../../constants/platform'
 
 type OwnProps = {
   path: Types.Path
@@ -118,7 +118,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
   openParent: () =>
     dispatch(
       ownProps.safeNavigateAppendPayload({
-        path: [{props: {path: Types.getPathParent(ownProps.path)}, selected: 'main'}],
+        path: [{ props: { path: Types.getPathParent(ownProps.path) }, selected: 'main' }],
       })
     ),
 })
@@ -127,7 +127,7 @@ export default Container.withSafeNavigation(
   Container.namedConnect(
     () => ({}),
     mapDispatchToProps,
-    (s, d, o: OwnPropsWithSafeNavigation) => ({...o, ...s, ...d}),
+    (s, d, o: OwnPropsWithSafeNavigation) => ({ ...o, ...s, ...d }),
     'Oops'
   )(Oops)
 ) as any
@@ -175,4 +175,4 @@ const styles = Styles.styleSheetCreate(() => ({
       textAlign: 'center',
     },
   }),
-}))
+} as const))

@@ -59,21 +59,24 @@ export default (props: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  confirmText: {
-    textAlign: 'center',
-  },
-  confirmTextBox: {
-    padding: Styles.globalMargins.medium,
-  },
-  menuRowText: {
-    color: Styles.globalColors.blueDark,
-  },
-  menuRowTextDisabled: {
-    color: Styles.globalColors.blueDark,
-    opacity: 0.6,
-  },
-  progressIndicator: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      confirmText: {
+        textAlign: 'center',
+      },
+      confirmTextBox: {
+        padding: Styles.globalMargins.medium,
+      },
+      menuRowText: {
+        color: Styles.globalColors.blueDark,
+      },
+      menuRowTextDisabled: {
+        color: Styles.globalColors.blueDark,
+        opacity: 0.6,
+      },
+      progressIndicator: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)

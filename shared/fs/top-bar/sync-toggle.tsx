@@ -102,37 +102,40 @@ const SyncToggle = (props: Props) =>
     </>
   ) : null
 
-const styles = Styles.styleSheetCreate(() => ({
-  explainText: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.xxtiny,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.tiny,
-    },
-  }),
-  floating: Styles.platformStyles({
-    isElectron: {
-      marginTop: -38,
-    },
-  }),
-  popupButtonContainer: {
-    marginTop: Styles.globalMargins.xsmall,
-  },
-  popupContainer: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.small,
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-    isElectron: {
-      paddingTop: Styles.globalMargins.small,
-      width: 235,
-    },
-    isMobile: {
-      paddingTop: Styles.globalMargins.large,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      explainText: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.xxtiny,
+        },
+        isMobile: {
+          marginTop: Styles.globalMargins.tiny,
+        },
+      }),
+      floating: Styles.platformStyles({
+        isElectron: {
+          marginTop: -38,
+        },
+      }),
+      popupButtonContainer: {
+        marginTop: Styles.globalMargins.xsmall,
+      },
+      popupContainer: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.small,
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+        },
+        isElectron: {
+          paddingTop: Styles.globalMargins.small,
+          width: 235,
+        },
+        isMobile: {
+          paddingTop: Styles.globalMargins.large,
+        },
+      }),
+    } as const)
+)
 
 export default Kb.OverlayParentHOC(SyncToggle)
