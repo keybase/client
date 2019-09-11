@@ -594,6 +594,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 	queryBase.Status = arg.Status
+	queryBase.ConvIDs = arg.ConvIDs
 
 	var gires chat1.GetInboxAndUnboxLocalRes
 	if arg.UnreadFirst {
@@ -2850,4 +2851,137 @@ func (h *Server) IgnorePinnedMessage(ctx context.Context, convID chat1.Conversat
 	}
 	h.G().InboxSource.NotifyUpdate(ctx, uid, convID)
 	return nil
+}
+
+func (h *Server) validateBotRole(ctx context.Context, role keybase1.TeamRole) error {
+	switch role {
+	case keybase1.TeamRole_BOT,
+		keybase1.TeamRole_RESTRICTEDBOT:
+		return nil
+	default:
+		return fmt.Errorf("Only %v and %v are valid roles. Found %v",
+			keybase1.TeamRole_BOT, keybase1.TeamRole_RESTRICTEDBOT, role)
+	}
+}
+
+func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.ConversationMembersType,
+	tlfName string, isPublic bool) (keybase1.TeamID, error) {
+
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupID(ctx, tlfName, isPublic)
+	if err != nil {
+		return "", err
+	}
+
+	return keybase1.TeamIDFromString(nameInfo.ID.String())
+}
+
+func (h *Server) fixupTeamErrorWithTLFName(ctx context.Context, username, tlfName string, err error) error {
+	switch err.(type) {
+	case nil:
+		return nil
+	case libkb.ExistsError:
+		h.Debug(ctx, "fixupTeamErrorWithTLFName: %v", err)
+		return libkb.ExistsError{Msg: fmt.Sprintf(
+			"user %q is already a member of team %q", username, tlfName)}
+	case libkb.NotFoundError:
+		h.Debug(ctx, "fixupTeamErrorWithTLFName: %v", err)
+		return libkb.NotFoundError{Msg: fmt.Sprintf(
+			"user %q is not a member of team %q", username, tlfName)}
+	default:
+		return err
+	}
+}
+
+func (h *Server) AddBotMember(ctx context.Context, arg chat1.AddBotMemberArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "AddBotMember")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return err
+	}
+
+	if err := h.validateBotRole(ctx, arg.Role); err != nil {
+		return err
+	}
+	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	if err != nil {
+		return err
+	}
+
+	_, err = teams.AddMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Server) EditBotMember(ctx context.Context, arg chat1.EditBotMemberArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "EditBotMember")()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return err
+	}
+
+	if err := h.validateBotRole(ctx, arg.Role); err != nil {
+		return err
+	}
+	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	if err != nil {
+		return err
+	}
+
+	return teams.EditMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
+}
+
+func (h *Server) RemoveBotMember(ctx context.Context, arg chat1.RemoveBotMemberArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "RemoveBotMember")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return err
+	}
+
+	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	if err != nil {
+		return err
+	}
+
+	return teams.RemoveMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
+func (h *Server) SetBotMemberSettings(ctx context.Context, arg chat1.SetBotMemberSettingsArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return err
+	}
+
+	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	if err != nil {
+		return err
+	}
+
+	return teams.SetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.BotSettings)
+}
+
+func (h *Server) GetBotMemberSettings(ctx context.Context, arg chat1.GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return res, err
+	}
+
+	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	if err != nil {
+		return res, err
+	}
+
+	return teams.GetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username)
 }

@@ -894,7 +894,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
 			if !isMatch {
-				return nil, fmt.Errorf("Unable to send, bot restricted from this channel")
+				return nil, NewRestrictedBotChannelError()
 			}
 			return []gregor1.UID{botUID}, nil
 		}
@@ -1149,7 +1149,8 @@ type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
 }
 
-// delivererExpireError is used when a message fails because it has languished in the outbox for too long.
+// delivererExpireError is used when a message fails because it has languished
+// in the outbox for too long.
 type delivererExpireError struct{}
 
 func (e delivererExpireError) Error() string {

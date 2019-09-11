@@ -20,7 +20,7 @@ type CmdTeamAddMembersBulk struct {
 }
 
 func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	cmd := cli.Command{
 		Name:         "add-members-bulk",
 		ArgumentHelp: "<team name>",
 		Usage:        "Add users to a team in bulk.",
@@ -43,7 +43,7 @@ func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 			},
 			cli.StringFlag{
 				Name:  "o, owners",
-				Usage: "specify ownsers to add",
+				Usage: "specify owners to add",
 			},
 			cli.BoolFlag{
 				Name:  "s, skip-chat-message",
@@ -52,6 +52,15 @@ func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		},
 		Description: teamAddMembersBulkDoc,
 	}
+
+	// TODO HOTPOT-599 expose publicly
+	if g.Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(g.GetMyUID()) {
+		cmd.Flags = append(cmd.Flags, cli.StringFlag{
+			Name:  "b, bots",
+			Usage: "specify bots to add",
+		})
+	}
+	return cmd
 }
 
 func NewCmdTeamAddMembersBulkRunner(g *libkb.GlobalContext) *CmdTeamAddMembersBulk {
@@ -86,6 +95,7 @@ func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
 		s string
 		t keybase1.TeamRole
 	}{
+		{"bots", keybase1.TeamRole_BOT},
 		{"readers", keybase1.TeamRole_READER},
 		{"writers", keybase1.TeamRole_WRITER},
 		{"admins", keybase1.TeamRole_ADMIN},
@@ -99,6 +109,7 @@ func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
 		tot += n
 	}
 	if tot == 0 {
+		// TODO HOTPOT-599 add --bots
 		return errors.New("Need at least one of --readers, --writers, --admins or --owners")
 	}
 	c.arg.SendChatNotification = !ctx.Bool("skip-chat-message")
@@ -126,11 +137,12 @@ func (c *CmdTeamAddMembersBulk) GetUsage() libkb.Usage {
 	}
 }
 
+// TODO HOTPOT-599 add --bots here too
 const teamAddMembersBulkDoc = `"keybase team add-members-bulk" allows you to add multiple users to a team, in bulk
 
 EXAMPLES:
 
-Add existing keybase users as writiers:
+Add existing keybase users as writers:
 
     keybase team add-members-bulk acme --writers=alice,bob,charlie
 

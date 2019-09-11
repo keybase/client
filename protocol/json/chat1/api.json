@@ -404,6 +404,14 @@
           "name": "channelNameMentions",
           "jsonkey": "channel_name_mentions",
           "optional": true
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "botUID",
+          "jsonkey": "bot_uid"
         }
       ]
     },

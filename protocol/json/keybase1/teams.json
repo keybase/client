@@ -3225,6 +3225,44 @@
       ],
       "response": null
     },
+    "teamGetBotSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "TeamBotSettings"
+    },
+    "teamSetBotSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": "TeamBotSettings"
+        }
+      ],
+      "response": null
+    },
     "teamRename": {
       "request": [
         {

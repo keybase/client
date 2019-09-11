@@ -6954,24 +6954,47 @@ func TestTeamBotSettings(t *testing.T) {
 			botuaUID2 := gregor1.UID(botua2.User.GetUID().ToBytes())
 			teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
 			require.NoError(t, err)
-			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
-				ID: teamID,
-			})
-			require.NoError(t, err)
+
+			pollForSeqno := func(expectedSeqno keybase1.Seqno) {
+				found := false
+				for !found {
+					select {
+					case teamChange := <-listener.teamChangedByID:
+						found = teamChange.TeamID == teamID &&
+							teamChange.LatestSeqno == expectedSeqno
+					case <-time.After(20 * time.Second):
+						require.Fail(t, "no event received")
+					}
+				}
+			}
 
 			botSettings := keybase1.TeamBotSettings{
 				Triggers: []string{".*"},
 			}
-			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua.Username,
-				keybase1.TeamRole_RESTRICTEDBOT, &botSettings)
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
 			require.NoError(t, err)
+			pollForSeqno(3)
 
 			botSettings2 := keybase1.TeamBotSettings{
 				Mentions: true,
 			}
-			_, err = teams.AddMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
-				keybase1.TeamRole_RESTRICTEDBOT, &botSettings2)
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings2,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
 			require.NoError(t, err)
+			pollForSeqno(5)
 
 			var unboxed chat1.UIMessage
 			consumeBotMessage := func(botUID *gregor1.UID, msgTyp chat1.MessageType, l *serverChatListener) {
@@ -7111,32 +7134,27 @@ func TestTeamBotSettings(t *testing.T) {
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
 
-			team, err = teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
-				ID: teamID,
+			// take out botua1 by restricting them to a nonexistent conv.
+			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
+			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				BotSettings: botSettings,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 
-			// take out botua1 by restricting them to a nonexistent conv.
-			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
-			err = team.PostTeamBotSettings(context.TODO(), map[keybase1.UserVersion]keybase1.TeamBotSettings{
-				botua.GetUserVersion(): botSettings,
+			actualBotSettings, err := ctc.as(t, users[0]).chatLocalHandler().GetBotMemberSettings(tc.startCtx, chat1.GetBotMemberSettingsArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
-			// wait for the teamchange to propagate
-			found := false
-			for !found {
-				select {
-				case teamChange := <-listener.teamChangedByID:
-					if teamChange.TeamID == team.ID &&
-						teamChange.LatestSeqno == 6 &&
-						teamChange.Changes.Misc &&
-						teamChange.ImplicitTeam == (mt != chat1.ConversationMembersType_TEAM) {
-						found = true
-					}
-				case <-time.After(20 * time.Second):
-					require.Fail(t, "no event received")
-				}
-			}
+			require.Equal(t, botSettings, actualBotSettings)
+
+			pollForSeqno(6)
 
 			arg = chat1.PostTextNonblockArg{
 				ConversationID:   created.Id,
@@ -7220,9 +7238,16 @@ func TestTeamBotSettings(t *testing.T) {
 			}
 
 			// take out botua2 by upgrading them to BOT
-			err = teams.EditMember(ctx, tc.m.G(), team.Name().String(), botua2.Username,
-				keybase1.TeamRole_BOT, nil)
+			err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				Role:        keybase1.TeamRole_BOT,
+				BotSettings: nil,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
 			require.NoError(t, err)
+			pollForSeqno(7)
 
 			// messages is not keyed for any restricted bot
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
@@ -7238,6 +7263,30 @@ func TestTeamBotSettings(t *testing.T) {
 			consumeBotMessage(nil, chat1.MessageType_TEXT, listener)
 			consumeBotMessage(nil, chat1.MessageType_TEXT, botuaListener2)
 			assertNoMessage(botuaListener)
+
+			// remove both bots.
+			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
+				ID: teamID,
+			})
+			require.NoError(t, err)
+			isMember := team.IsMember(ctx, botua.GetUserVersion())
+			require.False(t, isMember)
+			isMember = team.IsMember(ctx, botua2.GetUserVersion())
+			require.False(t, isMember)
 		})
 	})
 }

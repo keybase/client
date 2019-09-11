@@ -648,35 +648,34 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
 	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:        teamname,
-		ForceRepoll: true,
-	})
-	if err != nil {
-		return err
-	}
-	return EditMemberByID(ctx, g, team.ID, username, role, botSettings)
+	teamGetter := func() (*Team, error) { return GetForTeamManagementByStringName(ctx, g, teamname, true) }
+	return editMember(ctx, g, teamGetter, username, role, botSettings)
 }
 
 func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
+	teamGetter := func() (*Team, error) { return GetForTeamManagementByTeamID(ctx, g, teamID, true) }
+	return editMember(ctx, g, teamGetter, username, role, botSettings)
+}
+
+func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error),
+	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
 
 	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err == errInviteRequired {
-		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamID, username)
-		return editMemberInvite(ctx, g, teamID, username, role, uv, botSettings)
+		return editMemberInvite(ctx, g, teamGetter, username, role, uv, botSettings)
 	}
 	if err != nil {
 		return err
 	}
 
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+		t, err := teamGetter()
 		if err != nil {
 			return err
 		}
 		if !t.IsMember(ctx, uv) {
-			return fmt.Errorf("user %q is not a member of team %q", username, teamID)
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, t.Name())}
 		}
 		existingRole, err := t.MemberRole(ctx, uv)
 		if err != nil {
@@ -694,15 +693,17 @@ func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 
 		return t.ChangeMembership(ctx, req)
 	})
+
 }
 
-func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error),
 	username string, role keybase1.TeamRole,
 	uv keybase1.UserVersion, botSettings *keybase1.TeamBotSettings) error {
-	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+	t, err := teamGetter()
 	if err != nil {
 		return err
 	}
+	g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", t.ID, username)
 
 	// Note that there could be a problem if removeMemberInvite works but AddMember doesn't
 	// as the original invite will be lost.  But the user will get an error and can try
@@ -712,11 +713,111 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return err
 	}
 	// use AddMember in case it's possible to add them directly now
-	if _, err := AddMemberByID(ctx, g, teamID, username, role, nil); err != nil {
+	if _, err := AddMemberByID(ctx, g, t.ID, username, role, nil); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
 		return err
 	}
 	return nil
+}
+
+func SetBotSettings(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
+	botSettings keybase1.TeamBotSettings) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByStringName(ctx, g, teamname, false)
+	}
+
+	return setBotSettings(ctx, g, teamGetter, username, botSettings)
+}
+
+func SetBotSettingsByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string, botSettings keybase1.TeamBotSettings) error {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+	return setBotSettings(ctx, g, teamGetter, username, botSettings)
+}
+
+func setBotSettings(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error),
+	username string, botSettings keybase1.TeamBotSettings) error {
+
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return err
+	}
+
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := teamGetter()
+		if err != nil {
+			return err
+		}
+
+		if !t.IsMember(ctx, uv) {
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, t.Name())}
+		}
+		role, err := t.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+		if !role.IsRestrictedBot() {
+			return fmt.Errorf("%s is not a %v, but has the role %v",
+				username, keybase1.TeamRole_RESTRICTEDBOT, role)
+		}
+
+		return t.PostTeamBotSettings(ctx, map[keybase1.UserVersion]keybase1.TeamBotSettings{
+			uv: botSettings,
+		})
+	})
+}
+
+func GetBotSettings(ctx context.Context, g *libkb.GlobalContext,
+	teamname, username string) (res keybase1.TeamBotSettings, err error) {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        teamname,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	return getBotSettings(ctx, g, team, username)
+}
+
+func GetBotSettingsByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string) (res keybase1.TeamBotSettings, err error) {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	return getBotSettings(ctx, g, team, username)
+}
+
+func getBotSettings(ctx context.Context, g *libkb.GlobalContext,
+	team *Team, username string) (res keybase1.TeamBotSettings, err error) {
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
+	if err != nil {
+		return res, err
+	}
+
+	if !team.IsMember(ctx, uv) {
+		return res, libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, team.Name())}
+	}
+
+	role, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return res, err
+	}
+	if !role.IsRestrictedBot() {
+		return res, fmt.Errorf("%s is not a %v, but has the role %v",
+			username, keybase1.TeamRole_RESTRICTEDBOT, role)
+	}
+
+	botSettings, err := team.TeamBotSettings()
+	if err != nil {
+		return res, err
+	}
+	return botSettings[uv], nil
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
