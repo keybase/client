@@ -5,7 +5,7 @@ build_dir="$1"
 here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 source_commit="$(git -C "$here" log -1 --pretty=format:%h)"
-tag="$(cat "$build_dir/VERSION" | tr "+" "-")"
+tag="$(echo $1 | tr "+" "-")"
 
 # Clear the directory used for temporary, just in case a previous build failed
 rm -r $client_dir/.docker || true
