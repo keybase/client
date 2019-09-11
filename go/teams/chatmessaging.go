@@ -119,10 +119,10 @@ func SendChatSBSResolutionMessage(ctx context.Context, g *libkb.GlobalContext,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
 
-	if err = g.ChatHelper.SendMsgByName(ctx, team, nil,
+	if _, err = g.ChatHelper.SendMsgByNameNonblock(ctx, team, nil,
 		chat1.ConversationMembersType_IMPTEAMNATIVE,
 		keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM); err != nil {
+		chat1.MessageType_SYSTEM, nil); err != nil {
 		g.Log.CDebugf(ctx, "SendChatSBSResolutionMessage: failed to send message: %s", err)
 		return false
 	}
