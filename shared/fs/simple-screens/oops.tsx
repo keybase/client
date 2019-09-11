@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import * as Container from '../../util/container'
-import { isMobile } from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   path: Types.Path
@@ -118,7 +118,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnPropsWithSafeNavigation) => (
   openParent: () =>
     dispatch(
       ownProps.safeNavigateAppendPayload({
-        path: [{ props: { path: Types.getPathParent(ownProps.path) }, selected: 'main' }],
+        path: [{props: {path: Types.getPathParent(ownProps.path)}, selected: 'main'}],
       })
     ),
 })
@@ -127,52 +127,55 @@ export default Container.withSafeNavigation(
   Container.namedConnect(
     () => ({}),
     mapDispatchToProps,
-    (s, d, o: OwnPropsWithSafeNavigation) => ({ ...o, ...s, ...d }),
+    (s, d, o: OwnPropsWithSafeNavigation) => ({...o, ...s, ...d}),
     'Oops'
   )(Oops)
 ) as any
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {
-    marginTop: Styles.globalMargins.small,
-  },
-  container: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-    },
-    isMobile: {
-      padding: Styles.globalMargins.large,
-    },
-  }),
-  explainBox: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.small,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.medium,
-    },
-  }),
-  explainTextTeam: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  footer: {
-    paddingBottom: Styles.globalMargins.large,
-  },
-  header: {
-    backgroundColor: Styles.globalColors.red,
-    height: 40,
-  },
-  main: {
-    ...Styles.globalStyles.flexGrow,
-  },
-  textYouDontHave: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.xlarge,
-      textAlign: 'center',
-    },
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {
+        marginTop: Styles.globalMargins.small,
+      },
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        isMobile: {
+          padding: Styles.globalMargins.large,
+        },
+      }),
+      explainBox: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.small,
+        },
+        isMobile: {
+          marginTop: Styles.globalMargins.medium,
+        },
+      }),
+      explainTextTeam: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      footer: {
+        paddingBottom: Styles.globalMargins.large,
+      },
+      header: {
+        backgroundColor: Styles.globalColors.red,
+        height: 40,
+      },
+      main: {
+        ...Styles.globalStyles.flexGrow,
+      },
+      textYouDontHave: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          marginTop: Styles.globalMargins.xlarge,
+          textAlign: 'center',
+        },
+      }),
+    } as const)
+)

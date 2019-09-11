@@ -55,11 +55,11 @@ const KbfsPathPopup = (props: PopupProps) => {
       items={
         Styles.isMobile
           ? [
-            {
-              onClick: openInFilesTab,
-              title: 'Open',
-            },
-          ]
+              {
+                onClick: openInFilesTab,
+                title: 'Open',
+              },
+            ]
           : []
       }
       visible={props.visible}
@@ -91,38 +91,41 @@ const KbfsPath = (props: Props) => {
       {popup}
     </>
   ) : (
-      <Kb.Box
-        style={styles.textContainer}
-        onMouseOver={() => setShowing(true)}
-        onMouseLeave={() => setShowing(false)}
-      >
-        {text}
-        {popup}
-      </Kb.Box>
-    )
+    <Kb.Box
+      style={styles.textContainer}
+      onMouseOver={() => setShowing(true)}
+      onMouseLeave={() => setShowing(false)}
+    >
+      {text}
+      {popup}
+    </Kb.Box>
+  )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      maxWidth: 280,
-    },
-  }),
-  noBottomPadding: { paddingBottom: 0 },
-  sectionContainer: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.large,
-    },
-  }),
-  textContainer: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-} as const))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          maxWidth: 280,
+        },
+      }),
+      noBottomPadding: {paddingBottom: 0},
+      sectionContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.large,
+        },
+      }),
+      textContainer: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+    } as const)
+)
 
 export default KbfsPath
