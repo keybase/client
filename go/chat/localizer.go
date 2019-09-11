@@ -960,6 +960,12 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			conversationLocal.Info.Triple.Tlfid,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 	default:
+		if len(conversationLocal.Info.TlfName) == 0 {
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				"unable to get conversation name from message history", conversationRemote,
+				unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
 		info, ierr = infoSource.LookupID(ctx,
 			conversationLocal.Info.TlfName,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
