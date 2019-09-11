@@ -559,6 +559,12 @@ func (k *SimpleFS) startOp(ctx context.Context, opid keybase1.OpID,
 }
 
 func (k *SimpleFS) doneOp(ctx context.Context, opid keybase1.OpID, w *inprogress, err error) {
+	// We aren't accessing w.progress directionly but w can still be in there
+	// so is still protected by the lock.
+	k.lock.Lock()
+	w.progress.EndEstimate = keybase1.ToTime(k.config.Clock().Now())
+	k.lock.Unlock()
+
 	w.done <- err
 	close(w.done)
 	k.log.CDebugf(ctx, "done op %X, status=%+v", opid, err)

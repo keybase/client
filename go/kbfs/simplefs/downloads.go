@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -40,7 +41,16 @@ type download struct {
 	opid  keybase1.OpID
 }
 
-// downloadManager manages downloads.
+// downloadManager manages "downloads" initiated from outside KBFS. To KBFS,
+// this is more like "exporting". Currently this is only used by GUI, so its
+// APIs are tailored to the GUI.
+//
+// We have regular downloads which are tracked in the app visually, and are
+// moved into a "Downloads" folder after they're done, and non-regular
+// downloads which are for "Save" and "Send to other apps" on mobile. When user
+// chooses to save a photo or a video, or share a file to another app, we
+// download to a cache folder and have GUI call some APIs to actually add them
+// to the photo library or send to other apps.
 type downloadManager struct {
 	k         *SimpleFS
 	publisher libkbfs.SubscriptionManagerPublisher
@@ -76,7 +86,7 @@ func (m *downloadManager) getDownload(downloadID string) (download, error) {
 }
 
 func (m *downloadManager) updateDownload(downloadID string, f func(original download) download) (err error) {
-	defer m.publisher.DownloadStatusChanged()
+	defer m.publisher.PublishChange(keybase1.SubscriptionTopic_DOWNLOAD_STATUS)
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	download, ok := m.downloads[downloadID]
@@ -87,10 +97,12 @@ func (m *downloadManager) updateDownload(downloadID string, f func(original down
 	return nil
 }
 
+const monitorDownloadTickerInterval = time.Second
+
 func (m *downloadManager) monitorDownload(
 	ctx context.Context, opid keybase1.OpID, downloadID string,
 	done func(error)) {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(monitorDownloadTickerInterval)
 	defer ticker.Stop()
 	for {
 		select {
@@ -109,7 +121,7 @@ func (m *downloadManager) monitorDownload(
 				}
 			case errNoResult:
 				// This is from simpleFS. Likely download has finished, but
-				// wait for the done ch.
+				// wait for ctx.Done().
 			default:
 				done(err)
 				return
@@ -146,6 +158,9 @@ func (m *downloadManager) getDownloadPath(
 
 func (m *downloadManager) moveToDownloadFolder(
 	ctx context.Context, srcPath string, filename string) (localPath string, err error) {
+	// There's no download on iOS; just saving to the photos library and
+	// sharing to other apps, both of which are handled in JS after the
+	// download (to the cache dir) finishes.
 	if libkb.GetPlatformString() == "ios" {
 		return "", errors.New("MoveToDownloadFolder is not supported on iOS")
 	}
@@ -153,8 +168,9 @@ func (m *downloadManager) moveToDownloadFolder(
 	if err = os.MkdirAll(parentDir, 0700); err != nil {
 		return "", err
 	}
-	destPathBase := filepath.Join(parentDir, filename)
-	destPath := destPathBase
+	ext := filepath.Ext(filename)
+	destPathBase := filepath.Join(parentDir, filename[:len(filename)-len(ext)])
+	destPath := destPathBase + ext
 	for suffix := 1; ; suffix++ {
 		_, err := os.Stat(destPath)
 		if os.IsNotExist(err) {
@@ -163,13 +179,20 @@ func (m *downloadManager) moveToDownloadFolder(
 		if err != nil {
 			return "", err
 		}
-		destPath = fmt.Sprintf("%s (%d)", destPathBase, suffix)
+		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
 	}
 	// could race but it should be rare enough so fine
 
 	err = os.Rename(srcPath, destPath)
-	if err != nil {
-		// Rename failed; assume it's a cross-partition move.
+	switch er := err.(type) {
+	case nil:
+		return destPath, nil
+	case *os.LinkError:
+		if er.Err != syscall.EXDEV {
+			return "", err
+		}
+		// Rename failed because dest and src are on different devices. So
+		// use SimpleFSMove which copies then deletes.
 		opid, err := m.k.SimpleFSMakeOpid(ctx)
 		if err != nil {
 			return "", err
@@ -186,9 +209,10 @@ func (m *downloadManager) moveToDownloadFolder(
 		if err != nil {
 			return "", err
 		}
+		return destPath, nil
+	default:
+		return "", err
 	}
-
-	return destPath, nil
 }
 
 func (m *downloadManager) waitForDownload(ctx context.Context,
@@ -206,22 +230,18 @@ func (m *downloadManager) waitForDownload(ctx context.Context,
 
 	var localPath string
 	if d.info.IsRegularDownload {
-		localPath, err = m.moveToDownloadFolder(ctx, downloadPath, d.info.Filename)
-		if err != nil {
+		if localPath, err = m.moveToDownloadFolder(ctx, downloadPath, d.info.Filename); err != nil {
 			done(err)
 			return
 		}
 	} else {
 		localPath = downloadPath
 	}
-	if err = m.updateDownload(downloadID, func(d download) download {
+
+	done(m.updateDownload(downloadID, func(d download) download {
 		d.state.LocalPath = localPath
 		return d
-	}); err != nil {
-		done(err)
-		return
-	}
-	done(nil)
+	}))
 }
 
 func (m *downloadManager) startDownload(
@@ -247,7 +267,7 @@ func (m *downloadManager) startDownload(
 	}
 
 	func() {
-		defer m.publisher.DownloadStatusChanged()
+		defer m.publisher.PublishChange(keybase1.SubscriptionTopic_DOWNLOAD_STATUS)
 		m.lock.Lock()
 		defer m.lock.Unlock()
 		m.downloads[downloadID] = download{
@@ -271,7 +291,7 @@ func (m *downloadManager) startDownload(
 			if d.state.Done || d.state.Canceled || len(d.state.Error) > 0 {
 				return d
 			}
-			if err == context.Canceled {
+			if errors.Cause(err) == context.Canceled {
 				d.state.Canceled = true
 			} else if err != nil {
 				d.state.Error = err.Error()
@@ -326,8 +346,9 @@ func (m *downloadManager) cancelDownload(
 
 func (m *downloadManager) dismissDownload(
 	ctx context.Context, downloadID string) {
-	m.cancelDownload(ctx, downloadID)
-	defer m.publisher.DownloadStatusChanged()
+	// make sure it's canceled, but don't error if it's already dismissed.
+	_ = m.cancelDownload(ctx, downloadID)
+	defer m.publisher.PublishChange(keybase1.SubscriptionTopic_DOWNLOAD_STATUS)
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	delete(m.downloads, downloadID)

@@ -584,6 +584,10 @@ protocol SimpleFS {
     string downloadID;
     double progress;
     Time endEstimate;
+    // localPath is the path to the downloaded file when the download manager
+    // is done with it. This would be a path inside the cache dir for
+    // non-regular downloads, and a path in the Downloads folder if it's a
+    // regular download.
     string localPath;
     string error;
     boolean done;
@@ -594,13 +598,21 @@ protocol SimpleFS {
     array<DownloadState> states; // all downloads including non-regular ones
   }
   // returns download ID. isRegularDownload causes moving to the Downloads
-  // folder. Save on mobile and share to other apps use isRegularDownload=false.
+  // folder. This is used by GUI for normal downloads where download entries
+  // appear in the footer. Save on mobile and share to other apps use
+  // isRegularDownload=false, and the download manager doesn't do anything
+  // special after they're done. GUI handles calling the right APIs to save or
+  // share the file.
   string simpleFSStartDownload(KBFSPath path, boolean isRegularDownload);
   DownloadInfo simpleFSGetDownloadInfo(string downloadID);
   DownloadStatus simpleFSGetDownloadStatus();
+  // Canceling a download multiple times is fine, but canceling a dismissed
+  // download will error.
   void simpleFSCancelDownload(string downloadID);
   // Remove a download from the download manager. If the download is still
-  // running, this cancels it as well.
+  // running, this cancels it as well. Caller should make sure of calling this
+  // when it doesn't care about a download anymore. This includes both regular
+  // and non-regular downloads.
   void simpleFSDismissDownload(string downloadID);
   void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
 }

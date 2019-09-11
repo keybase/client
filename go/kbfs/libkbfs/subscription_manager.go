@@ -389,10 +389,7 @@ func (s subscriber) Unsubscribe(ctx context.Context, sid SubscriptionID) {
 
 var _ SubscriptionManagerPublisher = (*subscriptionManager)(nil)
 
-// DownloadStatusChanged implements the SubscriptionManagerPublisher interface.
-func (sm *subscriptionManager) DownloadStatusChanged() {
-	sm.lock.RLock()
-	defer sm.lock.RUnlock()
+func (sm *subscriptionManager) downloadStatusChangedLocked() {
 	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_DOWNLOAD_STATUS] == nil {
 		return
 	}
@@ -401,10 +398,7 @@ func (sm *subscriptionManager) DownloadStatusChanged() {
 	}
 }
 
-// FavoritesChanged implements the SubscriptionManagerPublisher interface.
-func (sm *subscriptionManager) FavoritesChanged() {
-	sm.lock.RLock()
-	defer sm.lock.RUnlock()
+func (sm *subscriptionManager) favoritesChangedLocked() {
 	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_FAVORITES] == nil {
 		return
 	}
@@ -413,15 +407,26 @@ func (sm *subscriptionManager) FavoritesChanged() {
 	}
 }
 
-// JournalStatusChanged implements the SubscriptionManagerPublisher interface.
-func (sm *subscriptionManager) JournalStatusChanged() {
-	sm.lock.RLock()
-	defer sm.lock.RUnlock()
+func (sm *subscriptionManager) journalStatusChangedLocked() {
 	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] == nil {
 		return
 	}
 	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] {
 		notifier.notify()
+	}
+}
+
+// PublishChange implements the SubscriptionManagerPublisher interface.
+func (sm *subscriptionManager) PublishChange(topic keybase1.SubscriptionTopic) {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+	switch topic {
+	case keybase1.SubscriptionTopic_FAVORITES:
+		sm.favoritesChangedLocked()
+	case keybase1.SubscriptionTopic_JOURNAL_STATUS:
+		sm.journalStatusChangedLocked()
+	case keybase1.SubscriptionTopic_DOWNLOAD_STATUS:
+		sm.downloadStatusChangedLocked()
 	}
 }
 

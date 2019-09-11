@@ -2040,9 +2040,7 @@ type SubscriptionManager interface {
 // SubscriptionManagerPublisher associates with one SubscriptionManager, and is
 // used to publish changes to subscribers mangaged by it.
 type SubscriptionManagerPublisher interface {
-	DownloadStatusChanged()
-	FavoritesChanged()
-	JournalStatusChanged()
+	PublishChange(topic keybase1.SubscriptionTopic)
 }
 
 // Config collects all the singleton instance instantiations needed to

@@ -4284,38 +4284,14 @@ func (m *MockSubscriptionManagerPublisher) EXPECT() *MockSubscriptionManagerPubl
 	return m.recorder
 }
 
-// DownloadStatusChanged mocks base method
-func (m *MockSubscriptionManagerPublisher) DownloadStatusChanged() {
+// PublishChange mocks base method
+func (m *MockSubscriptionManagerPublisher) PublishChange(arg0 keybase1.SubscriptionTopic) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "DownloadStatusChanged")
+	m.ctrl.Call(m, "PublishChange", arg0)
 }
 
-// DownloadStatusChanged indicates an expected call of DownloadStatusChanged
-func (mr *MockSubscriptionManagerPublisherMockRecorder) DownloadStatusChanged() *gomock.Call {
+// PublishChange indicates an expected call of PublishChange
+func (mr *MockSubscriptionManagerPublisherMockRecorder) PublishChange(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadStatusChanged", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).DownloadStatusChanged))
-}
-
-// FavoritesChanged mocks base method
-func (m *MockSubscriptionManagerPublisher) FavoritesChanged() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "FavoritesChanged")
-}
-
-// FavoritesChanged indicates an expected call of FavoritesChanged
-func (mr *MockSubscriptionManagerPublisherMockRecorder) FavoritesChanged() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FavoritesChanged", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).FavoritesChanged))
-}
-
-// JournalStatusChanged mocks base method
-func (m *MockSubscriptionManagerPublisher) JournalStatusChanged() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "JournalStatusChanged")
-}
-
-// JournalStatusChanged indicates an expected call of JournalStatusChanged
-func (mr *MockSubscriptionManagerPublisherMockRecorder) JournalStatusChanged() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JournalStatusChanged", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).JournalStatusChanged))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PublishChange", reflect.TypeOf((*MockSubscriptionManagerPublisher)(nil).PublishChange), arg0)
 }
