@@ -636,7 +636,8 @@ const styles = Styles.styleSheetCreate(
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {
-          marginTop: 18,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: Styles.globalMargins.small + 2,
         },
       }),
       importContactsContainer: {
