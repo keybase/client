@@ -24,7 +24,6 @@ if (__STORYBOOK__) {
       switch (dm) {
         case 'system': // fallthrough
         case 'alwaysDark': // fallthrough
-
         case 'alwaysLight':
           _setDarkModePreference(dm)
           break
