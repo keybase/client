@@ -509,11 +509,11 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     )
 
     // Handle when team-buiding is making a new chat v.s. adding members to a team.
-    const chatHeader = !!props.rolePickerProps ? (
+    const chatHeader = props.rolePickerProps ? (
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
         <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
         <Kb.Text type="Header">{props.title}</Kb.Text>
-        <Kb.Text type="BodyTiny">Add as many members as you would like</Kb.Text>
+        <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" alignItems="center">
@@ -679,9 +679,9 @@ const styles = Styles.styleSheetCreate(
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
         isElectron: {
+          alignSelf: 'center',
           position: 'absolute',
           top: -16,
-          alignSelf: 'center',
         },
       }),
       waiting: {
