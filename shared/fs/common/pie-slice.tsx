@@ -51,50 +51,53 @@ const stylePieWhole = {
   position: 'absolute' as const,
   width: pieSize,
 }
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    height: pieSize,
-    position: 'relative' as const,
-    width: pieSize,
-  },
-  filledNegative: {
-    backgroundColor: Styles.globalColors.greyLight,
-  },
-  filledPositive: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  leftFilled: {
-    ...stylePieHalf,
-    borderBottomLeftRadius: pieHalfSize,
-    borderTopLeftRadius: pieHalfSize,
-    left: 0,
-  },
-  leftUnfilled: {
-    ...stylePieHalf,
-    borderBottomLeftRadius: pieHalfSize,
-    borderTopLeftRadius: pieHalfSize,
-    left: 0,
-  },
-  rightFilled: {
-    ...stylePieHalf,
-    borderBottomRightRadius: pieHalfSize,
-    borderTopRightRadius: pieHalfSize,
-    left: pieHalfSize,
-  },
-  rotateContainer: {
-    ...stylePieWhole,
-    left: 0,
-  },
-  unfilledNegative: {
-    backgroundColor: Styles.globalColors.blueDark,
-  },
-  unfilledPositive: {
-    backgroundColor: Styles.globalColors.greyLight,
-  },
-  wholeUnfilled: {
-    ...stylePieWhole,
-    borderRadius: pieHalfSize,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        height: pieSize,
+        position: 'relative' as const,
+        width: pieSize,
+      },
+      filledNegative: {
+        backgroundColor: Styles.globalColors.greyLight,
+      },
+      filledPositive: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      leftFilled: {
+        ...stylePieHalf,
+        borderBottomLeftRadius: pieHalfSize,
+        borderTopLeftRadius: pieHalfSize,
+        left: 0,
+      },
+      leftUnfilled: {
+        ...stylePieHalf,
+        borderBottomLeftRadius: pieHalfSize,
+        borderTopLeftRadius: pieHalfSize,
+        left: 0,
+      },
+      rightFilled: {
+        ...stylePieHalf,
+        borderBottomRightRadius: pieHalfSize,
+        borderTopRightRadius: pieHalfSize,
+        left: pieHalfSize,
+      },
+      rotateContainer: {
+        ...stylePieWhole,
+        left: 0,
+      },
+      unfilledNegative: {
+        backgroundColor: Styles.globalColors.blueDark,
+      },
+      unfilledPositive: {
+        backgroundColor: Styles.globalColors.greyLight,
+      },
+      wholeUnfilled: {
+        ...stylePieWhole,
+        borderRadius: pieHalfSize,
+      },
+    } as const)
+)
 
 export default PieSlice

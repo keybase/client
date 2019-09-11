@@ -23,11 +23,14 @@ const NewFolder = props =>
     </Kb.WithTooltip>
   )
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerIcon: {
+        padding: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 const mapStateToProps = (state, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),

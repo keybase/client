@@ -54,26 +54,29 @@ export const StillCommon = (
   />
 )
 
-export const rowStyles = Styles.styleSheetCreate(() => ({
-  itemBox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    justifyContent: 'center',
-    minWidth: 0,
-    width: 0,
-  },
-  pathItemIcon: {
-    marginLeft: Styles.globalMargins.medium,
-    marginRight: Styles.globalMargins.medium,
-  },
-  rowText: Styles.platformStyles({
-    isMobile: {
-      flexShrink: 1,
-    },
-  }),
-  rowText_30: {
-    opacity: 0.3,
-  },
-}))
+export const rowStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      itemBox: {
+        ...Styles.globalStyles.flexBoxColumn,
+        flex: 1,
+        justifyContent: 'center',
+        minWidth: 0,
+        width: 0,
+      },
+      pathItemIcon: {
+        marginLeft: Styles.globalMargins.medium,
+        marginRight: Styles.globalMargins.medium,
+      },
+      rowText: Styles.platformStyles({
+        isMobile: {
+          flexShrink: 1,
+        },
+      }),
+      rowText_30: {
+        opacity: 0.3,
+      },
+    } as const)
+)
 
 export const normalRowHeight = Kb.smallListItem2Height

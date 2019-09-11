@@ -102,27 +102,30 @@ const KbfsPath = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      maxWidth: 280,
-    },
-  }),
-  noBottomPadding: {paddingBottom: 0},
-  sectionContainer: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.large,
-    },
-  }),
-  textContainer: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          maxWidth: 280,
+        },
+      }),
+      noBottomPadding: {paddingBottom: 0},
+      sectionContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.large,
+        },
+      }),
+      textContainer: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+    } as const)
+)
 
 export default KbfsPath

@@ -69,58 +69,61 @@ const Download = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  download: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.green,
-      borderRadius: 4,
-    },
-    isElectron: {
-      height: 32,
-      width: 140,
-    },
-    isMobile: {
-      height: 40,
-      width: 160,
-    },
-  }),
-  filename: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-  nameAndProgress: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  progress: {
-    marginTop: -2,
-  },
-  red: {
-    backgroundColor: Styles.globalColors.red,
-  },
-  tube: {
-    backgroundColor: Styles.globalColors.black_20,
-    borderRadius: 4.5,
-    height: 4,
-    width: '100%',
-  },
-  tubeBox: {
-    flex: 1,
-    position: 'relative',
-  },
-  tubeStuffing: {
-    backgroundColor: Styles.globalColors.white,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      download: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.green,
+          borderRadius: 4,
+        },
+        isElectron: {
+          height: 32,
+          width: 140,
+        },
+        isMobile: {
+          height: 40,
+          width: 160,
+        },
+      }),
+      filename: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.white,
+        },
+        isElectron: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+      nameAndProgress: {
+        flex: 1,
+        flexShrink: 1,
+        minWidth: 0,
+      },
+      progress: {
+        marginTop: -2,
+      },
+      red: {
+        backgroundColor: Styles.globalColors.red,
+      },
+      tube: {
+        backgroundColor: Styles.globalColors.black_20,
+        borderRadius: 4.5,
+        height: 4,
+        width: '100%',
+      },
+      tubeBox: {
+        flex: 1,
+        position: 'relative',
+      },
+      tubeStuffing: {
+        backgroundColor: Styles.globalColors.white,
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+    } as const)
+)
 
 export default Download

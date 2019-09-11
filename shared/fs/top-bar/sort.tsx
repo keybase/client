@@ -104,12 +104,15 @@ const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
     </>
   ) : null
 
-const styles = Styles.styleSheetCreate(() => ({
-  blueMobile: Styles.platformStyles({
-    isMobile: {
-      color: Styles.globalColors.blueDark,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      blueMobile: Styles.platformStyles({
+        isMobile: {
+          color: Styles.globalColors.blueDark,
+        },
+      }),
+    } as const)
+)
 
 export default Kb.OverlayParentHOC(Sort)

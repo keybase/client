@@ -49,46 +49,49 @@ export default class extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  closeBox: {
-    height: 48,
-    paddingLeft: Styles.globalMargins.tiny,
-    width: 64,
-  },
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.globalStyles.flexGrow,
-      backgroundColor: Styles.globalColors.black,
-    },
-  }),
-  contentContainer: {
-    ...Styles.globalStyles.flexGrow,
-  },
-  footer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    height: 48,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  header: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  loading: Styles.platformStyles({
-    common: {
-      height: 32,
-      width: 32,
-    },
-    isMobile: {
-      left: Styles.globalMargins.small,
-      position: 'absolute',
-      top: 48,
-    },
-  }),
-  text: {
-    color: Styles.globalColors.white,
-    lineHeight: 48,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      closeBox: {
+        height: 48,
+        paddingLeft: Styles.globalMargins.tiny,
+        width: 64,
+      },
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexGrow,
+          backgroundColor: Styles.globalColors.black,
+        },
+      }),
+      contentContainer: {
+        ...Styles.globalStyles.flexGrow,
+      },
+      footer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: 48,
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      header: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      loading: Styles.platformStyles({
+        common: {
+          height: 32,
+          width: 32,
+        },
+        isMobile: {
+          left: Styles.globalMargins.small,
+          position: 'absolute',
+          top: 48,
+        },
+      }),
+      text: {
+        color: Styles.globalColors.white,
+        lineHeight: 48,
+      },
+    } as const)
+)

@@ -52,11 +52,14 @@ const PathInfo_ = (props: PathInfoProps) => {
 
 export default PathInfo_
 
-const styles = Styles.styleSheetCreate(() => ({
-  copyPath: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  localPath: {
-    marginTop: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      copyPath: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      localPath: {
+        marginTop: Styles.globalMargins.small,
+      },
+    } as const)
+)
