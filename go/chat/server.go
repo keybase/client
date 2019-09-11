@@ -335,7 +335,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	for convLocal := range convLocalsCh {
 		convLocals = append(convLocals, convLocal)
 	}
-	if err = storage.NewInbox(h.G()).MergeLocalMetadata(ctx, uid, convLocals); err != nil {
+	if err = h.G().InboxSource.MergeLocalMetadata(ctx, uid, convLocals); err != nil {
 		// Don't abort the operation on this kind of error
 		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
 	}
