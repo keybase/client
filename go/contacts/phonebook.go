@@ -100,7 +100,7 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 		resolutionsForPeoplePage := make([]ContactResolution, len(newlyResolved))
 		for i, contact := range newlyResolved {
 			resolutionsForPeoplePage[i] = ContactResolution{
-				Description: fmt.Sprintf("%s (%s)", contact.ContactName,
+				Description: fmt.Sprintf("%s - %s", contact.ContactName,
 					contact.Component.ValueString()),
 				ResolvedUser: keybase1.User{
 					Uid:      contact.Uid,
