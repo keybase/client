@@ -304,26 +304,26 @@ const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set password screen.
-const startLogoutHandshakeIfAllowed = (state: Container.TypedState) =>
-  RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
-    if (canLogoutRes.canLogout) {
-      return startLogoutHandshake(state)
+const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
+  const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
+  if (canLogoutRes.canLogout) {
+    return startLogoutHandshake(state)
+  } else {
+    const heading = canLogoutRes.reason
+    if (isMobile) {
+      return RouteTreeGen.createNavigateAppend({
+        path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
+      })
     } else {
-      const heading = canLogoutRes.reason
-      if (isMobile) {
-        return RouteTreeGen.createNavigateAppend({
-          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
-        })
-      } else {
-        return [
-          RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading}, selected: 'changePassword'}],
-          }),
-        ]
-      }
+      return [
+        RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {heading}, selected: 'changePassword'}],
+        }),
+      ]
     }
-  })
+  }
+}
 
 const startLogoutHandshake = (state: Container.TypedState) =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
@@ -473,36 +473,35 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = (state: Container.TypedState) =>
-  RPCTypes.apiserverGetWithSessionRpcPromise({
-    endpoint: 'user/features',
-  })
-    .then(str => {
-      const obj: {
-        features: {
-          admin?: {
-            value: boolean
-          }
+const updateServerConfig = async (state: Container.TypedState) => {
+  try {
+    const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
+      endpoint: 'user/features',
+    })
+    const obj: {
+      features: {
+        admin?: {
+          value: boolean
         }
-      } = JSON.parse(str.body)
-      const features = Object.keys(obj.features).reduce((map, key) => {
-        map[key] = obj.features[key] && obj.features[key].value
-        return map
-      }, {}) as {[K in string]: boolean}
-
-      const serverConfig = {
-        chatIndexProfilingEnabled: !!features.admin,
-        dbCleanEnabled: !!features.admin,
-        printRPCStats: !!features.admin,
       }
+    } = JSON.parse(str.body)
+    const features = Object.keys(obj.features).reduce((map, key) => {
+      map[key] = obj.features[key] && obj.features[key].value
+      return map
+    }, {}) as {[K in string]: boolean}
 
-      logger.info('updateServerConfig', serverConfig)
-      updateServerConfigLastLoggedIn(state.config.username, serverConfig)
-    })
-    .catch(e => {
-      logger.info('updateServerConfig fail', e)
-    })
+    const serverConfig = {
+      chatIndexProfilingEnabled: !!features.admin,
+      dbCleanEnabled: !!features.admin,
+      printRPCStats: !!features.admin,
+    }
 
+    logger.info('updateServerConfig', serverConfig)
+    updateServerConfigLastLoggedIn(state.config.username, serverConfig)
+  } catch (e) {
+    logger.info('updateServerConfig fail', e)
+  }
+}
 const setNavigator = (_: Container.TypedState, action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)

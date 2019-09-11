@@ -244,11 +244,10 @@ class Input extends React.PureComponent<Props, State> {
     return rows * _lineHeight + 1 // border
   }
 
-  _containerStyle = underlineColor => {
+  _containerStyle = () => {
     return this.props.small
       ? {
           ...Styles.globalStyles.flexBoxRow,
-          borderBottom: `1px solid ${underlineColor}`,
           width: '100%',
         }
       : {
@@ -271,12 +270,13 @@ class Input extends React.PureComponent<Props, State> {
   render() {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
-    const containerStyle = this._containerStyle(underlineColor)
+    const containerStyle = this._containerStyle()
 
     const inputStyle = Styles.collapseStyles([
       styles.commonInput,
       this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
       {
+        borderBottom: `1px solid ${underlineColor}`,
         height: this.props.small ? 18 : 28,
         maxWidth: 460,
       },

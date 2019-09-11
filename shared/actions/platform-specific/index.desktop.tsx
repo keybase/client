@@ -102,19 +102,16 @@ function* initializeInputMonitor(): Iterable<any> {
   }
 }
 
-export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) =>
-  logger
-    .dump()
-    .then(fromRender => {
-      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
-      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
-    })
-    .then(() => {
-      // quit as soon as possible
-      if (action && action.payload.reason === 'quitting through menu') {
-        quit()
-      }
-    })
+export const dumpLogs = async (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) => {
+  const fromRender = await logger.dump()
+  const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+  const fromMain = await globalLogger.dump()
+  await writeLogLinesToFile([...fromRender, ...fromMain])
+  // quit as soon as possible
+  if (action && action.payload.reason === 'quitting through menu') {
+    quit()
+  }
+}
 
 function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
@@ -234,11 +231,16 @@ const onOutOfDate = (
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = (_: Container.TypedState, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
+const prepareLogSend = async (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1LogsendPrepareLogsendPayload
+) => {
   const response = action.payload.response
-  dumpLogs().then(() => {
+  try {
+    await dumpLogs()
+  } finally {
     response && response.result()
-  })
+  }
 }
 
 const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
@@ -268,29 +270,29 @@ function* startOutOfDateCheckLoop() {
   }
 }
 
-const checkForUpdate = () =>
-  RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
-    ConfigGen.createUpdateInfo({
-      critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
-      isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
-      message,
-    })
-  )
+const checkForUpdate = async () => {
+  const {status, message} = await RPCTypes.configGetUpdateInfoRpcPromise()
+  return ConfigGen.createUpdateInfo({
+    critical: status === RPCTypes.UpdateInfoStatus.criticallyOutOfDate,
+    isOutOfDate: status !== RPCTypes.UpdateInfoStatus.upToDate,
+    message,
+  })
+}
 
-const updateNow = () =>
-  RPCTypes.configStartUpdateIfNeededRpcPromise().then(() =>
-    // * If user choose to update:
-    //   We'd get killed and it doesn't matter what happens here.
-    // * If user hits "Ignore":
-    //   Note that we ignore the snooze here, so the state shouldn't change,
-    //   and we'd back to where we think we still need an update. So we could
-    //   have just unset the "updating" flag.However, in case server has
-    //   decided to pull out the update between last time we asked the updater
-    //   and now, we'd be in a wrong state if we didn't check with the service.
-    //   Since user has interacted with it, we still ask the service to make
-    //   sure.
-    ConfigGen.createCheckForUpdate()
-  )
+const updateNow = async () => {
+  await RPCTypes.configStartUpdateIfNeededRpcPromise()
+  // * If user choose to update:
+  //   We'd get killed and it doesn't matter what happens here.
+  // * If user hits "Ignore":
+  //   Note that we ignore the snooze here, so the state shouldn't change,
+  //   and we'd back to where we think we still need an update. So we could
+  //   have just unset the "updating" flag.However, in case server has
+  //   decided to pull out the update between last time we asked the updater
+  //   and now, we'd be in a wrong state if we didn't check with the service.
+  //   Since user has interacted with it, we still ask the service to make
+  //   sure.
+  return ConfigGen.createCheckForUpdate()
+}
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {

@@ -1060,29 +1060,38 @@ const acceptDisclaimer = (_: TypedState) =>
     }
   )
 
-const checkDisclaimer = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
-    .then(accepted => {
-      const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
-      if (accepted) {
-        // in new nav we could be in a modal anywhere in the app right now
-        actions.push(RouteTreeGen.createClearModals())
-        actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
-        if (isMobile) {
-          if (action.payload.nextScreen === 'airdrop') {
-            actions.push(
-              RouteTreeGen.createNavigateAppend({
-                path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
-              })
-            )
-          } else {
-            actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
-          }
-        }
-      }
+const checkDisclaimer = async (
+  _: TypedState,
+  action: WalletsGen.CheckDisclaimerPayload,
+  logger: Saga.SagaLogger
+) => {
+  try {
+    const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
+    const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+    if (!accepted) {
       return actions
-    })
-    .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
+    }
+
+    // in new nav we could be in a modal anywhere in the app right now
+    actions.push(RouteTreeGen.createClearModals())
+    actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+    if (isMobile) {
+      if (action.payload.nextScreen === 'airdrop') {
+        actions.push(
+          RouteTreeGen.createNavigateAppend({
+            path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
+          })
+        )
+      } else {
+        actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
+      }
+    }
+    return actions
+  } catch (err) {
+    logger.error(`Error checking wallet disclaimer: ${err.message}`)
+    return false
+  }
+}
 
 const rejectDisclaimer = (_: TypedState, __: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
@@ -1644,23 +1653,25 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
       version: action.payload.version,
     })
   )
-  const loadAction = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise().then(res =>
-    WalletsGen.createStaticConfigLoaded({
-      staticConfig: I.Record(res)(),
-    })
-  )
 
-  if (loadAction) {
-    yield Saga.put(loadAction)
+  try {
+    const res: Saga.RPCPromiseType<
+      typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise
+    > = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    yield Saga.put(
+      WalletsGen.createStaticConfigLoaded({
+        staticConfig: I.Record(res)(),
+      })
+    )
+  } finally {
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'wallets.loadStatic',
+        version: action.payload.version,
+      })
+    )
   }
-  yield Saga.put(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: false,
-      name: 'wallets.loadStatic',
-      version: action.payload.version,
-    })
-  )
-  return false
 }
 
 function* walletsSaga() {

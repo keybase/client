@@ -59,7 +59,6 @@ const (
 var (
 	advapi32                  = windows.NewLazySystemDLL("advapi32.dll")
 	procGetNamedSecurityInfoW = advapi32.NewProc("GetNamedSecurityInfoW")
-	procGetSecurityInfo       = advapi32.NewProc("GetSecurityInfo")
 )
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa446645.aspx

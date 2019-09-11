@@ -96,6 +96,24 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 		mctx.Warning("error retrieving synced contacts; continuing: %s", err)
 	}
 
+	if len(newlyResolved) > 0 {
+		resolutionsForPeoplePage := make([]ContactResolution, len(newlyResolved))
+		for i, contact := range newlyResolved {
+			resolutionsForPeoplePage[i] = ContactResolution{
+				Description: fmt.Sprintf("%s (%s)", contact.ContactName,
+					contact.Component.ValueString()),
+				ResolvedUser: keybase1.User{
+					Uid:      contact.Uid,
+					Username: contact.Username,
+				},
+			}
+		}
+		err = SendEncryptedContactResolutionToServer(mctx, resolutionsForPeoplePage)
+		if err != nil {
+			mctx.Warning("Could not add resolved contacts to people page: %v; returning contacts anyway", err)
+		}
+	}
+
 	return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults)
 }
 

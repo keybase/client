@@ -6,6 +6,8 @@ export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight' | undef
 
 let darkModePreference: DarkModePreference
 let systemDarkMode = false
+// supports system level changes
+let systemSupported = false
 
 // called ONLY from config sagas
 export const _setDarkModePreference = (pref: DarkModePreference) => {
@@ -15,6 +17,10 @@ export const _setDarkModePreference = (pref: DarkModePreference) => {
 export const _setSystemIsDarkMode = (dm: boolean) => {
   systemDarkMode = dm
 }
+export const _setSystemSupported = (supported: boolean) => {
+  systemSupported = supported
+}
+
 export const isDarkMode = () => {
   if (!flags.darkMode) {
     return false
@@ -30,3 +36,5 @@ export const isDarkMode = () => {
       return false
   }
 }
+
+export const isDarkModeSystemSupported = () => systemSupported

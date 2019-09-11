@@ -84,7 +84,7 @@ const PathItemInfo = (props: Props) => {
       {props.showTooltipOnName ? (
         <Kb.WithTooltip
           containerStyle={styles.nameTextBox}
-          text={Types.pathToString(props.path)}
+          tooltip={Types.pathToString(props.path)}
           multiline={true}
           showOnPressMobile={true}
         >

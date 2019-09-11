@@ -23,7 +23,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +69,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
         String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
         initOnce(getApplicationContext().getFilesDir().getPath(), "", getApplicationContext().getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
           new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
-        NativeLogger.info("KeybasePushNotificationListenerService created. path: " + getApplicationContext().getFilesDir().getPath());
+        NativeLogger.info("KeybasePushNotificationListenerService created");
 
         createNotificationChannel(this);
 
@@ -162,7 +161,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
             }
         }
 
-        NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived: " + bundle);
+        NativeLogger.info("KeybasePushNotificationListenerService.onMessageReceived");
 
         try {
             String type = bundle.getString("type");
@@ -311,6 +310,12 @@ interface WithBackgroundActive {
         } else {
           Keybase.setAppStateBackgroundActive();
           this.task();
+
+          // Check if we are foreground now for some reason. In that case we don't want to go background again
+          if (Keybase.isAppStateForeground()) {
+              return;
+          }
+
           if (Keybase.appDidEnterBackground()) {
               Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(context, new Bundle()));
           } else {

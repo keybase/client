@@ -17,14 +17,14 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('Tooltip', () => (
       <Kb.Box2 direction="horizontal" style={{flexWrap: 'wrap'}}>
-        <Kb.WithTooltip text="Here's a tooltip" containerStyle={styles.container} showOnPressMobile={true}>
+        <Kb.WithTooltip tooltip="Here's a tooltip" containerStyle={styles.container} showOnPressMobile={true}>
           <Kb.Box style={styles.box}>
             <Kb.Text type="Body">Hover me for a short tooltip</Kb.Text>
           </Kb.Box>
         </Kb.WithTooltip>
         <Kb.WithTooltip
           containerStyle={styles.container}
-          text="Here's a multiline tooltip lalala blahblah wejoif jewiofj weoifjwof iwjeoif jweoifj weoifj woief"
+          tooltip="Here's a multiline tooltip lalala blahblah wejoif jewiofj weoifjwof iwjeoif jweoifj weoifj woief"
           multiline={true}
           showOnPressMobile={true}
         >
@@ -34,7 +34,7 @@ const load = () => {
         </Kb.WithTooltip>
         <Kb.WithTooltip
           containerStyle={styles.container}
-          text="Here's a short tooltip"
+          tooltip="Here's a short tooltip"
           position="bottom center"
           showOnPressMobile={true}
         >
@@ -44,7 +44,7 @@ const load = () => {
         </Kb.WithTooltip>
         <Kb.WithTooltip
           containerStyle={styles.container}
-          text="Here's a short tooltip"
+          tooltip="Here's a short tooltip"
           position="top left"
           showOnPressMobile={true}
         >
@@ -54,7 +54,7 @@ const load = () => {
         </Kb.WithTooltip>
         <Kb.WithTooltip
           containerStyle={styles.container}
-          text="Here's a short tooltip"
+          tooltip="Here's a short tooltip"
           position="top right"
           showOnPressMobile={true}
         >
@@ -64,7 +64,7 @@ const load = () => {
         </Kb.WithTooltip>
         <Kb.WithTooltip
           containerStyle={styles.container}
-          text="Here's a short tooltip"
+          tooltip="Here's a short tooltip"
           position="bottom left"
           showOnPressMobile={true}
         >
@@ -74,7 +74,7 @@ const load = () => {
         </Kb.WithTooltip>
         <Kb.WithTooltip
           containerStyle={styles.container}
-          text="Here's a short tooltip"
+          tooltip="Here's a short tooltip"
           position="bottom right"
           showOnPressMobile={true}
         >

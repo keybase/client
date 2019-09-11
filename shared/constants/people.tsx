@@ -177,7 +177,7 @@ export const reduceRPCItemToPeopleItem = (
       })
     )
   } else if (item.data.t === RPCTypes.HomeScreenItemType.people) {
-    // Follow notification
+    // Follow notification or contact resolution
     const notification = item.data.people
     if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followed) {
       // Single follow notification
@@ -190,7 +190,7 @@ export const reduceRPCItemToPeopleItem = (
           badged,
           newFollows: [makeFollowedNotification({username: follow.user.username})],
           notificationTime: new Date(follow.followTime),
-          type: 'notification',
+          type: 'follow',
         })
       )
     } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
@@ -216,7 +216,50 @@ export const reduceRPCItemToPeopleItem = (
           ),
           notificationTime,
           numAdditional: multiFollow.numOthers,
-          type: 'notification',
+          type: 'follow',
+        })
+      )
+    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contact) {
+      // Single contact notification
+      const follow = notification.contact
+      if (!follow) {
+        return list
+      }
+      return list.push(
+        makeFollowedNotificationItem({
+          badged,
+          newFollows: [
+            makeFollowedNotification({contactDescription: follow.description, username: follow.username}),
+          ],
+          notificationTime: new Date(follow.resolveTime),
+          type: 'contact',
+        })
+      )
+    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contactMulti) {
+      // Multiple follows notification
+      const multiContact = notification.contactMulti
+      if (!multiContact) {
+        return list
+      }
+      const contacts = multiContact.contacts
+      if (!contacts) {
+        return list
+      }
+      const notificationTimes = contacts.map(contact => contact.resolveTime)
+      const maxNotificationTime = Math.max(...notificationTimes)
+      const notificationTime = new Date(maxNotificationTime)
+      return list.push(
+        makeFollowedNotificationItem({
+          badged,
+          newFollows: contacts.map(follow =>
+            makeFollowedNotification({
+              contactDescription: follow.description,
+              username: follow.username,
+            })
+          ),
+          notificationTime,
+          numAdditional: multiContact.numOthers,
+          type: 'contact',
         })
       )
     }
@@ -265,6 +308,7 @@ export const makeTodo = I.Record<Types._Todo>({
 })
 
 export const makeFollowedNotification = I.Record<Types._FollowedNotification>({
+  contactDescription: '',
   username: '',
 })
 
@@ -273,7 +317,7 @@ export const makeFollowedNotificationItem = I.Record<Types._FollowedNotification
   newFollows: [],
   notificationTime: new Date(),
   numAdditional: 0,
-  type: 'notification',
+  type: 'follow',
 })
 
 export const makeFollowSuggestion = I.Record<Types._FollowSuggestion>({
