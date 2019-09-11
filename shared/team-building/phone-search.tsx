@@ -8,6 +8,7 @@ import {ServiceIdWithContact, User} from 'constants/types/team-building'
 import ContinueButton from './continue-button'
 
 type PhoneSearchProps = {
+  continueLabel: string
   onContinue: (user: User) => void
   search: (query: string, service: 'phone') => void
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
@@ -97,7 +98,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
           {state === 'loading' && <Kb.ProgressIndicator type="Small" style={styles.loading} />}
         </Kb.Box2>
         <Kb.Box style={styles.spaceFillingBox} />
-        <ContinueButton onClick={_onContinue} disabled={!validity} />
+        <ContinueButton label={props.continueLabel} onClick={_onContinue} disabled={!validity} />
       </Kb.Box2>
     </>
   )

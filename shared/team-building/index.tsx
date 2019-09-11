@@ -466,6 +466,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       case 'email':
         content = (
           <EmailInput
+            continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
             namespace={props.namespace}
             teamBuildingSearchResults={props.teamBuildingSearchResults}
             search={props.search}
@@ -475,6 +476,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       case 'phone':
         content = (
           <PhoneSearch
+            continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
             teamBuildingSearchResults={props.teamBuildingSearchResults}
             search={props.search}
             onContinue={props.onAddRaw}
