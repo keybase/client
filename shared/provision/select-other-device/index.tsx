@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/provision'
 import * as Kb from '../../common-adapters'
-import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
+import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
 
 type Props = {
@@ -83,7 +83,7 @@ class SelectOtherDevice extends React.Component<Props> {
                 devices would you like to use?
               </Kb.Text>
             }
-            fixedHeight={isMobile ? 48 : 40}
+            fixedHeight={Styles.isMobile ? 48 : 40}
           />
         </Kb.Box2>
       </SignupScreen>
@@ -106,41 +106,41 @@ const Troubleshooting = ({onResetAccount}) => (
   </Kb.Box2>
 )
 
-const styles = styleSheetCreate(() => ({
-  backButton: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
       marginTop: 0,
     },
   }),
-  contentBox: platformStyles({
+  contentBox: Styles.platformStyles({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
-      padding: globalMargins.small,
+      padding: Styles.globalMargins.small,
     },
   }),
-  headerText: platformStyles({
+  headerText: Styles.platformStyles({
     common: {
-      paddingBottom: globalMargins.small,
+      paddingBottom: Styles.globalMargins.small,
     },
     isMobile: {
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
-      paddingTop: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
     },
   }),
   list: {
     flexGrow: 1,
   },
   troubleShooting: {
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
 }))
 
