@@ -509,57 +509,60 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     )
 
     // Handle when team-buiding is making a new chat v.s. adding members to a team.
-    const ChatHeader = props.rolePickerProps ? (
-      <>
-        <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+    const chatHeader = !!props.rolePickerProps ? (
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
         <Kb.Text type="Header">{props.title}</Kb.Text>
         <Kb.Text type="BodyTiny">Add as many members as you would like</Kb.Text>
-      </>
-    ) : (
-      <Kb.Text type="Header" style={styles.newChatHeader}>
-        {props.title}
-      </Kb.Text>
-    )
-    return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {Styles.isMobile ? null : (
-          <Kb.Box2 direction="vertical" alignItems="center">
-            {ChatHeader}
-          </Kb.Box2>
-        )}
-        {teamBox &&
-          (Styles.isMobile ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              {teamBox}
-            </Kb.Box2>
-          ) : (
-            teamBox
-          ))}
-        {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
-          <Kb.Text type="BodySmall">
-            Add up to 14 more people. Need more?
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
-              {' '}
-              Make it a team.
-            </Kb.Text>
-          </Kb.Text>
-        )}
-        <ServiceTabBar
-          services={Constants.servicesForNamespace(props.namespace)}
-          selectedService={props.selectedService}
-          onChangeService={props.onChangeService}
-          serviceResultCount={props.serviceResultCount}
-          showServiceResultCount={props.showServiceResultCount}
-        />
-        {Styles.isMobile && (
-          <ContactsBanner
-            {...props}
-            onRedoSearch={() => props.onChangeText(props.searchString)}
-            onRedoRecs={props.fetchUserRecs}
-          />
-        )}
-        {content}
       </Kb.Box2>
+    ) : (
+      <Kb.Box2 direction="vertical" alignItems="center">
+        <Kb.Text type="Header" style={styles.newChatHeader}>
+          {props.title}
+        </Kb.Text>
+      </Kb.Box2>
+    )
+
+    return (
+      <>
+        {!!props.rolePickerProps && !Styles.isMobile ? (
+          <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+        ) : null}
+        <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+          {Styles.isMobile ? null : chatHeader}
+          {teamBox &&
+            (Styles.isMobile ? (
+              <Kb.Box2 direction="horizontal" fullWidth={true}>
+                {teamBox}
+              </Kb.Box2>
+            ) : (
+              teamBox
+            ))}
+          {!!props.teamSoFar.length && Flags.newTeamBuildingForChatAllowMakeTeam && (
+            <Kb.Text type="BodySmall">
+              Add up to 14 more people. Need more?
+              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onMakeItATeam}>
+                {' '}
+                Make it a team.
+              </Kb.Text>
+            </Kb.Text>
+          )}
+          <ServiceTabBar
+            services={Constants.servicesForNamespace(props.namespace)}
+            selectedService={props.selectedService}
+            onChangeService={props.onChangeService}
+            serviceResultCount={props.serviceResultCount}
+            showServiceResultCount={props.showServiceResultCount}
+          />
+          {Styles.isMobile && (
+            <ContactsBanner
+              {...props}
+              onRedoSearch={() => props.onChangeText(props.searchString)}
+              onRedoRecs={props.fetchUserRecs}
+            />
+          )}
+          {content}
+        </Kb.Box2>
+      </>
     )
   }
 }
@@ -635,6 +638,11 @@ const styles = Styles.styleSheetCreate(
           maxWidth: '80%',
         },
       }),
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          marginTop: 18,
+        },
+      }),
       importContactsContainer: {
         justifyContent: 'flex-start',
         padding: Styles.globalMargins.xsmall,
@@ -674,8 +682,9 @@ const styles = Styles.styleSheetCreate(
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
         isElectron: {
-          position: 'relative',
+          position: 'absolute',
           top: -16,
+          alignSelf: 'center',
         },
       }),
       waiting: {
