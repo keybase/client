@@ -405,6 +405,17 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 			// address" path.
 			m.Debug("federation.LookupByAddress returned: %+v", nameResponse)
 			to = stellarcommon.RecipientInput(nameResponse.AccountID)
+
+			if nameResponse.Memo.Value != "" {
+				res.PublicMemo = &nameResponse.Memo.Value
+				if nameResponse.MemoType != "" {
+					res.PublicMemoType = &nameResponse.MemoType
+				} else {
+					// this is not in sep-0002, but was specified verbally:
+					t := "id"
+					res.PublicMemoType = &t
+				}
+			}
 		}
 	}
 
