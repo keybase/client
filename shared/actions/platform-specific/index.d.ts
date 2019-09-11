@@ -37,4 +37,4 @@ export declare function getContentTypeFromURL(
   }) => Promise<string> | void
 )
 
-export declare function platformConfigSaga(): Saga.SagaGenerator<any, any>
+export declare function platformConfigSaga()

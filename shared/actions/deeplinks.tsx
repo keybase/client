@@ -105,7 +105,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   return false
 }
 
-function* deeplinksSaga(): Saga.SagaGenerator<any, any> {
+function* deeplinksSaga() {
   yield* Saga.chainAction2(DeeplinksGen.link, handleAppLink)
   yield* Saga.chainAction2(DeeplinksGen.handleKeybaseLink, handleKeybaseLink)
 }

@@ -632,7 +632,7 @@ function* setupDarkMode() {
   }
 }
 
-export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)

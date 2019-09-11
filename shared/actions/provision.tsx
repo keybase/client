@@ -534,7 +534,7 @@ const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.Forg
   }
 }
 
-function* provisionSaga(): Saga.SagaGenerator<any, any> {
+function* provisionSaga() {
   // Always ensure we have one live
   makeProvisioningManager(false)
 

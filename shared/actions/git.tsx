@@ -118,7 +118,7 @@ function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRep
 const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   GitGen.createBadgeAppForGit({ids: new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs)})
 
-function* gitSaga(): Saga.SagaGenerator<any, any> {
+function* gitSaga() {
   // Create / Delete
   yield* Saga.chainAction2(GitGen.createPersonalRepo, createPersonalRepo)
   yield* Saga.chainAction2(GitGen.createTeamRepo, createTeamRepo)

@@ -177,7 +177,7 @@ function* _profileSaga() {
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
 }
 
-function* profileSaga(): Saga.SagaGenerator<any, any> {
+function* profileSaga() {
   yield Saga.spawn(_profileSaga)
   yield Saga.spawn(pgpSaga)
   yield Saga.spawn(proofsSaga)

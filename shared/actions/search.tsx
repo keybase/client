@@ -377,7 +377,7 @@ const clearSearchTextInput = (state, {payload: {searchKey}}: SearchGen.UserInput
   })
 }
 
-function* searchSaga(): Saga.SagaGenerator<any, any> {
+function* searchSaga() {
   yield* Saga.chainGenerator<SearchGen.SearchPayload>(SearchGen.search, search)
   yield* Saga.chainAction2(SearchGen.searchSuggestions, searchSuggestions)
   yield* Saga.chainAction2(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
