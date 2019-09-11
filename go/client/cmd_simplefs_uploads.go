@@ -53,7 +53,7 @@ func (c *CmdSimpleFSUploads) Run() error {
 
 	ui := c.G().UI.GetTerminalUI()
 	if len(status.SyncingPaths) == 0 && status.TotalSyncingBytes == 0 {
-		ui.Printf("There are currently no uploads\n")
+		ui.Printf("There are currently no uploads in progress\n")
 		return nil
 	}
 
