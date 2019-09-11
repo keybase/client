@@ -2983,34 +2983,40 @@ func (k *SimpleFS) SimpleFSUnsubscribe(
 	return nil
 }
 
+// SimpleFSStartDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSStartDownload(
 	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (
 	downloadID string, err error) {
 	return k.downloadManager.startDownload(ctx, arg)
 }
 
+// SimpleFSGetDownloadStatus implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetDownloadStatus(ctx context.Context) (
 	status keybase1.DownloadStatus, err error) {
 	return k.downloadManager.getDownloadStatus(ctx), nil
 }
 
+// SimpleFSCancelDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCancelDownload(
 	ctx context.Context, downloadID string) (err error) {
 	return k.downloadManager.cancelDownload(ctx, downloadID)
 }
 
+// SimpleFSDismissDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSDismissDownload(
 	ctx context.Context, downloadID string) (err error) {
 	k.downloadManager.dismissDownload(ctx, downloadID)
 	return nil
 }
 
+// SimpleFSGetDownloadInfo implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSGetDownloadInfo(
 	ctx context.Context, downloadID string) (
 	downloadInfo keybase1.DownloadInfo, err error) {
 	return k.downloadManager.getDownloadInfo(downloadID)
 }
 
+// SimpleFSConfigureDownload implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSConfigureDownload(
 	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
 	k.downloadManager.configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)

@@ -1771,7 +1771,7 @@ func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublishe
 	return c.subscriptionManagerPublisher
 }
 
-// SubscriptionManagerPublisher implements the Config interface.
+// KbEnv implements the Config interface.
 func (c *ConfigLocal) KbEnv() *libkb.Env {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
