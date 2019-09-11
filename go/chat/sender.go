@@ -856,9 +856,6 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		return []gregor1.UID{*botUID}, nil
 	}
 
-	// TODO HOTPOT-117 short circuit check if no RESTRICTEDBOT members are in
-	// the conv.
-
 	// Fetch the bot settings, if any
 	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
 	if err != nil {

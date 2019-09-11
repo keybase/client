@@ -141,6 +141,9 @@ func getConvNames(g *libkb.GlobalContext, botSettings keybase1.TeamBotSettings) 
 		if err != nil {
 			return nil, err
 		}
+		if convID.IsNil() {
+			continue
+		}
 		fetcher.query.ConvIDs = append(fetcher.query.ConvIDs, convID)
 	}
 	conversations, err := fetcher.fetch(context.TODO(), g)
@@ -169,9 +172,9 @@ EXAMPLES:
 
 View current bot settings:
 
-    keybase team bot-settings acme alice
+    keybase team bot-settings acme -u alice
 
 Specify new bot settings:
 
-    keybase team bot-settings acme alice --allow-mentions --triggers foo --triggers bar --allowed-convs #general
+    keybase team bot-settings acme -u alice --allow-mentions --triggers foo --triggers bar --allowed-convs #general
 `
