@@ -1,9 +1,11 @@
 import * as Types from './types/push'
+import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as ChatTypes from './types/chat2'
 import {isIOS} from './platform'
 import {isDevApplePushToken} from '../local-debug'
 import logger from '../logger'
+import {pluralize} from '../util/string'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 export const androidSenderID = '9603251415'
@@ -74,12 +76,36 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
         type: 'chat.extension',
       }
-    } else if (typeof message === 'string' && message.includes('Your contact')) {
+    } else if (typeof message === 'string' && message.startsWith('Your contact')) {
+      return {
+        type: 'settings.contacts',
+      }
     }
 
     return undefined
   } catch (e) {
     logger.error('Error handling push', e)
     return undefined
+  }
+}
+
+// When the notif is tapped we are only passed the message, use this as a marker
+// so we can handle it correctly.
+const contactNotifMarker = 'Your contact'
+export const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+  if (cts.length === 0) {
+    return ''
+  }
+  switch (cts.length) {
+    case 1:
+      return `${contactNotifMarker} ${cts[0].contactName} joined Keybase!`
+    case 2:
+      return `${contactNotifMarker}s ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+    default: {
+      const lenMinusTwo = cts.length - 2
+      return `${contactNotifMarker}s ${cts[0].contactName}, ${
+        cts[1].contactName
+      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
+    }
   }
 }

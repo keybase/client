@@ -2,6 +2,7 @@ import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
+import * as PushConstants from '../../constants/push'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
@@ -32,7 +33,6 @@ import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
-import {pluralize} from '../../util/string'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -538,8 +538,8 @@ const manageContactsCache = async (
   } catch (e) {
     logger.warn(`Error loading default country code: ${e.message}`)
   }
-  const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
 
+  const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {
@@ -551,7 +551,7 @@ const manageContactsCache = async (
     )
     if (newlyResolved && newlyResolved.length) {
       PushNotifications.localNotification({
-        message: makeResolvedMessage(newlyResolved),
+        message: PushConstants.makeContactsResolvedMessage(newlyResolved),
       })
     }
   } catch (e) {
@@ -559,27 +559,6 @@ const manageContactsCache = async (
     actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
-}
-
-// When the notif is tapped we are only passed the message, use this as a marker
-// so we can handle it correctly.
-export const contactNotifMarker = 'Your contact'
-const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
-  if (cts.length === 0) {
-    return ''
-  }
-  switch (cts.length) {
-    case 1:
-      return `${contactNotifMarker} ${cts[0].contactName} joined Keybase!`
-    case 2:
-      return `${contactNotifMarker}s ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
-    default: {
-      const lenMinusTwo = cts.length - 2
-      return `${contactNotifMarker}s ${cts[0].contactName}, ${
-        cts[1].contactName
-      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
-    }
-  }
 }
 
 function* setupDarkMode() {
