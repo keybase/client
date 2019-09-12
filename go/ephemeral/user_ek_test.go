@@ -149,7 +149,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	ekLib, ok := lib.(*EKLib)
 	require.True(t, ok)
 	// disable background keygen
-	ekLib.Shutdown()
+	ekLib.Shutdown(mctx)
 	needed, err := ekLib.NewUserEKNeeded(mctx)
 	require.NoError(t, err)
 	require.Equal(t, skipUserEKForTesting, needed)

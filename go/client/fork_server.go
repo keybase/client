@@ -92,7 +92,8 @@ func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.
 	err := srv.GetExclusiveLockWithoutAutoUnlock()
 	if err == nil {
 		g.Log.Debug("Flocked! Server must have died")
-		err := srv.ReleaseLock()
+		mctx := libkb.NewMetaContextTODO(g)
+		err := srv.ReleaseLock(mctx)
 		if err != nil {
 			return false, err
 		}

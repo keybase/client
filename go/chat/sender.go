@@ -1198,8 +1198,8 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		notifyFailureChs: make(map[string]chan []chat1.OutboxRecord),
 	}
 
-	g.PushShutdownHook(func() error {
-		d.Stop(context.Background())
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
+		d.Stop(mctx.Ctx())
 		return nil
 	})
 

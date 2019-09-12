@@ -57,7 +57,7 @@ func TestMerkleAuditWork(t *testing.T) {
 	}
 	expectMeta(t, metaCh, "loop-round-complete")
 
-	eng.Shutdown()
+	eng.Shutdown(m)
 	expectMeta(t, metaCh, "loop-exit")
 	expectMeta(t, metaCh, "")
 }
@@ -245,7 +245,7 @@ func TestMerkleAuditRetry(t *testing.T) {
 	require.NotEqual(t, startSeqno, differentSeqno, "result #4 seqno")
 	tc.G.Log.Debug("Fourth iteration succeeded on validating another root, %d.", differentSeqno)
 
-	eng.Shutdown()
+	eng.Shutdown(m)
 	expectMeta(t, metaCh, "loop-exit")
 	expectMeta(t, metaCh, "")
 }
@@ -333,7 +333,7 @@ func TestMerkleAuditFail(t *testing.T) {
 	}
 	expectMeta(t, metaCh, "loop-round-complete")
 
-	eng.Shutdown()
+	eng.Shutdown(m)
 	expectMeta(t, metaCh, "loop-exit")
 	expectMeta(t, metaCh, "")
 }
