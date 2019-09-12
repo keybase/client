@@ -3043,6 +3043,44 @@
     },
     {
       "type": "record",
+      "name": "ResetConvMember",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "conv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetAllResetConvMembersRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetConvMember"
+          },
+          "name": "members"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SearchRegexpRes",
       "fields": [
         {
@@ -4642,6 +4680,10 @@
         }
       ],
       "response": null
+    },
+    "getAllResetConvMembers": {
+      "request": [],
+      "response": "GetAllResetConvMembersRes"
     },
     "setConvRetentionLocal": {
       "request": [
