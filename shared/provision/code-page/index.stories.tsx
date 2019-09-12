@@ -85,7 +85,7 @@ const load = () => {
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    const tabs = [null, ...CodePage2._validTabs(current, otherType)]
+    const tabs = [null, ...CodePage2._validTabs(current as 'desktop' | 'mobile', otherType)]
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (

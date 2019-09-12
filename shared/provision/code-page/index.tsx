@@ -13,10 +13,11 @@ const greenBackground = require('../../images/illustrations/bg-provisioning-gree
 export type DeviceType = 'mobile' | 'desktop'
 export type Tab = 'QR' | 'enterText' | 'viewText'
 
+const currentDeviceType: DeviceType = Styles.isMobile ? 'mobile' : 'desktop'
+
 type Props = {
   error: string
   currentDeviceAlreadyProvisioned: boolean
-  currentDeviceType: DeviceType
   currentDeviceName: string
   otherDeviceName: string
   otherDeviceType: DeviceType
@@ -24,7 +25,6 @@ type Props = {
   textCode: string
   onBack: () => void
   onSubmitTextCode: (code: string) => void
-  setHeaderBackgroundColor: (color: string) => void
 }
 
 type State = {
@@ -33,22 +33,18 @@ type State = {
 }
 
 class CodePage2 extends React.Component<Props, State> {
-  static navigationOptions = ({navigation}) => ({
+  static navigationOptions = {
     header: null,
     headerBottomStyle: {height: undefined},
     headerLeft: null,
-    headerStyle: navigation.getParam('headerStyle'),
-  })
+    headerTransparent: true,
+  }
   constructor(props: Props) {
     super(props)
     this.state = {
       code: '',
       tab: (__STORYBOOK__ && this.props.tabOverride) || this._defaultTab(this.props),
     }
-  }
-
-  componentDidMount() {
-    this.props.setHeaderBackgroundColor(this._tabBackground())
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -59,8 +55,8 @@ class CodePage2 extends React.Component<Props, State> {
     }
   }
 
-  static _validTabs = (currentDeviceType, otherDeviceType) => {
-    if (currentDeviceType === 'desktop' && otherDeviceType === 'desktop') {
+  static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
+    if (deviceType === 'desktop' && otherDeviceType === 'desktop') {
       return ['viewText', 'enterText']
     } else {
       return ['QR', 'viewText', 'enterText']
@@ -76,9 +72,9 @@ class CodePage2 extends React.Component<Props, State> {
     const getTabOrOpposite = tabToShowToNew =>
       props.currentDeviceAlreadyProvisioned ? oppositeTabMap[tabToShowToNew] : tabToShowToNew
 
-    if (props.currentDeviceType === 'mobile') {
+    if (currentDeviceType === 'mobile') {
       return getTabOrOpposite('QR')
-    } else if (props.currentDeviceType === 'desktop') {
+    } else if (currentDeviceType === 'desktop') {
       return props.otherDeviceType === 'desktop' ? getTabOrOpposite('viewText') : getTabOrOpposite('QR')
     }
 
@@ -196,12 +192,12 @@ class CodePage2 extends React.Component<Props, State> {
           <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
         </Kb.Box2>
       ),
-      hideBorder: !this._inModal() || this.props.currentDeviceType !== 'desktop',
+      hideBorder: !this._inModal() || currentDeviceType !== 'desktop',
       style: {backgroundColor: this._tabBackground()},
     }
   }
   // We're in a modal unless this is a desktop being newly provisioned.
-  _inModal = () => this.props.currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
+  _inModal = () => currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
 
   render() {
     const content = this._body()
@@ -224,7 +220,7 @@ const SwitchTab = (
     onSelect: (tab: Tab) => void
   } & Props
 ) => {
-  if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
+  if (currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
     return null
   }
 
@@ -233,13 +229,13 @@ const SwitchTab = (
 
   if (props.selected === 'QR') {
     label = 'Type secret instead'
-    if (props.currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
+    if (currentDeviceType === 'mobile' && props.otherDeviceType === 'mobile') {
       tab = (props.currentDeviceAlreadyProvisioned
       ? Styles.isMobile
       : !Styles.isMobile)
         ? 'viewText'
         : 'enterText'
-    } else if (props.currentDeviceType === 'mobile') {
+    } else if (currentDeviceType === 'mobile') {
       tab = 'viewText'
     } else {
       tab = 'enterText'
@@ -264,7 +260,7 @@ const SwitchTab = (
 }
 
 const Qr = (props: Props) =>
-  props.currentDeviceType === 'desktop' ? (
+  currentDeviceType === 'desktop' ? (
     <Kb.Box2 direction="vertical" style={styles.qrOnlyContainer}>
       <QRImage code={props.textCode} cellSize={8} />
     </Kb.Box2>
@@ -363,7 +359,7 @@ const Instructions = (p: Props) => (
           </Kb.Text>
           <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}
+            Add {currentDeviceType === 'desktop' ? 'computer' : 'phone'}
           </Kb.Text>
         </Kb.Box2>
       </>
@@ -377,8 +373,8 @@ const styles = Styles.styleSheetCreate(
       backButton: Styles.platformStyles({
         isElectron: {
           marginBottom: Styles.globalMargins.small,
-          marginLeft: Styles.globalMargins.medium,
-          marginTop: Styles.globalMargins.medium,
+          marginLeft: Styles.globalMargins.xsmall,
+          marginTop: 56, // we're under the header, need to shift down
           // else the background can go above things, annoyingly
           zIndex: 1,
         },
