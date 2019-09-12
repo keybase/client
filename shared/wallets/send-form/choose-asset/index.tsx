@@ -3,19 +3,11 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import Header from '../header'
 
-const unexpandedNumDisplayOptions = 4
-
 export type DisplayItem = {
   currencyCode: string
   selected: boolean
   symbol: string
   type: 'display choice'
-}
-
-type ExpanderItem = {
-  onClick: () => void
-  text: string
-  type: 'expander'
 }
 
 export type Props = {
@@ -27,13 +19,7 @@ export type Props = {
   selected: string
 }
 
-type State = {
-  expanded: boolean
-}
-
-class ChooseAsset extends React.Component<Props, State> {
-  state = {expanded: false}
-
+class ChooseAsset extends React.Component<Props> {
   componentDidMount() {
     this.props.onRefresh()
   }
@@ -42,10 +28,7 @@ class ChooseAsset extends React.Component<Props, State> {
     item,
   }: {
     item:
-      | DisplayItem & {
-          key: string
-        }
-      | ExpanderItem & {
+      DisplayItem & {
           key: string
         }
   }) => {
@@ -59,18 +42,6 @@ class ChooseAsset extends React.Component<Props, State> {
             selected={item.selected}
             symbol={item.symbol}
           />
-        )
-      case 'expander':
-        return (
-          <Kb.ClickableBox key={item.key} onClick={item.onClick}>
-            <Kb.Box2 direction="horizontal" style={styles.choiceContainer}>
-              <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.expanderContainer}>
-                <Kb.Text type="BodySmallSemibold" style={styles.expanderText}>
-                  {item.text}
-                </Kb.Text>
-              </Kb.Box2>
-            </Kb.Box2>
-          </Kb.ClickableBox>
         )
     }
   }
@@ -92,22 +63,8 @@ class ChooseAsset extends React.Component<Props, State> {
   }
 
   render() {
-    const expanded = this.state.expanded
     const displayChoicesData =
-      this.props.displayChoices &&
-      this.props.displayChoices
-        .slice(0, expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
-        .map(dc => ({...dc, key: dc.currencyCode}))
-    if (this.props.displayChoices && !expanded) {
-      displayChoicesData.push({
-        currencyCode: 'expander',
-        key: 'expander',
-        onClick: () => this.setState({expanded: true}),
-        text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
-        // @ts-ignore When coming from props, displayChoicesData is pure DisplayItem
-        type: 'expander',
-      })
-    }
+      this.props.displayChoices.map(dc => ({...dc, key: dc.currencyCode}))
     if (!displayChoicesData.find(c => c.currencyCode === 'XLM')) {
       displayChoicesData.unshift({
         currencyCode: 'XLM',
@@ -225,15 +182,6 @@ const styles = Styles.styleSheetCreate(
       displayChoice: {
         width: '100%',
       },
-      expanderContainer: {
-        backgroundColor: Styles.globalColors.black_05,
-        borderRadius: Styles.borderRadius,
-        height: 22,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-      },
-      expanderText: {color: Styles.globalColors.black_50},
-      grey: {color: Styles.globalColors.black_50},
       growContainer: {
         alignItems: 'center',
         height: '100%',
