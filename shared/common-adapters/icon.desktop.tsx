@@ -140,7 +140,7 @@ class Icon extends Component<Props, void> {
             style={Styles.collapseStyles([
               style,
               this.props.padding && Shared.paddingStyles[this.props.padding],
-              colorStyleName === null ? {color} : null, // For colors that are not in Styles.globalColors
+              colorStyleName === undefined ? {color} : null, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
               'icon',
