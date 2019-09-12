@@ -32,14 +32,14 @@ export type Props = {
 
 let bounceIn, bounceOut
 if (!Styles.isMobile) {
-  bounceIn = Styles.styledKeyframes({
+  bounceIn = Styles.styledKeyframes(() => ({
     from: {transform: 'translateX(-30px)'},
     to: {transform: 'translateX(-8px)'},
-  })
-  bounceOut = Styles.styledKeyframes({
+  }))
+  bounceOut = Styles.styledKeyframes(() => ({
     from: {transform: 'translateX(-8px)'},
     to: {transform: 'translateX(22px)'},
-  })
+  }))
 }
 
 // @ts-ignore
