@@ -153,7 +153,8 @@ function callSearch(
 function* search(state, {payload: {term, service, searchKey}}) {
   const serviceId = _serviceToApiServiceName(service)
   if (!serviceId) {
-    throw new Error('Invalid service in search')
+    logger.warn('Invalid service in search')
+    return
   }
 
   const searchQuery = _toSearchQuery(service, term)
