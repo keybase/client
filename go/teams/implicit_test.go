@@ -251,15 +251,15 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 				Writers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"alice", "bob"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
-						keybase1.SocialAssertion{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
+						{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
+						{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
 					},
 				},
 				Readers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"trust", "worthy"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
-						keybase1.SocialAssertion{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
+						{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
+						{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
 					},
 				},
 				ConflictInfo: conflictInfo,
@@ -715,7 +715,7 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 			Writers: keybase1.ImplicitTeamUserSet{
 				KeybaseUsers: []string{fus[0].Username},
 				UnresolvedUsers: []keybase1.SocialAssertion{
-					keybase1.SocialAssertion{
+					{
 						User:    bad,
 						Service: keybase1.SocialAssertionService("phone"),
 					},
@@ -736,4 +736,23 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "Invalid phone number")
 	}
+}
+
+func TestCaseSensitiveDisplayNames(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	upEmail := strings.ToUpper(fus[0].Email)
+	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, upEmail)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), upEmail)
+
+	rooter := fmt.Sprintf("%s@hackernews", strings.ToUpper(fus[0].Username))
+	displayNameInput = fmt.Sprintf("%s,%s", fus[0].Username, rooter)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), rooter)
 }

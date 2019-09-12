@@ -2,11 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/settings'
 import * as Container from '../../util/container'
+import * as Platform from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import * as SettingsGen from '../../actions/settings-gen'
-import {EnterEmailBody} from '../../signup/email/'
-import {EnterPhoneNumberBody} from '../../signup/phone-number/'
+import {EnterEmailBody} from '../../signup/email'
+import {EnterPhoneNumberBody} from '../../signup/phone-number'
 import {VerifyBody} from '../../signup/phone-number/verify'
 import {e164ToDisplay} from '../../util/phone-numbers'
 
@@ -15,9 +16,10 @@ export const Email = () => {
   const nav = Container.useSafeNavigation()
 
   const [email, onChangeEmail] = React.useState('')
-  const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const [searchable, onChangeSearchable] = React.useState(true)
   const [addEmailInProgress, onAddEmailInProgress] = React.useState('')
-  const disabled = !email
+  const emailTrimmed = email.trim()
+  const disabled = !emailTrimmed
 
   const addedEmail = Container.useSelector(state => state.settings.email.addedEmail)
   const emailError = Container.useSelector(state => state.settings.email.error)
@@ -34,24 +36,28 @@ export const Email = () => {
   }, [addEmailInProgress, addedEmail, dispatch])
   // clean on edit
   React.useEffect(() => {
-    if (email !== addEmailInProgress && emailError) {
+    if (emailTrimmed !== addEmailInProgress && emailError) {
       dispatch(SettingsGen.createClearAddingEmail())
     }
-  }, [addEmailInProgress, dispatch, email, emailError])
+  }, [addEmailInProgress, dispatch, emailError, emailTrimmed])
 
   const onClose = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(() => {
     if (disabled || waiting) {
       return
     }
-    onAddEmailInProgress(email)
-    dispatch(SettingsGen.createAddEmail({email, searchable: allowSearch}))
-  }, [dispatch, disabled, email, allowSearch, waiting])
+    onAddEmailInProgress(emailTrimmed)
+    dispatch(SettingsGen.createAddEmail({email: emailTrimmed, searchable: searchable}))
+  }, [disabled, waiting, emailTrimmed, dispatch, searchable])
   return (
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+            Close
+          </Kb.Text>
+        ) : null,
         title: Styles.isMobile ? 'Add email address' : 'Add an email address',
       }}
       footer={{
@@ -83,18 +89,22 @@ export const Email = () => {
         <EnterEmailBody
           email={email}
           onChangeEmail={onChangeEmail}
-          showAllowSearch={true}
-          allowSearch={allowSearch}
-          onChangeAllowSearch={onChangeAllowSearch}
+          showSearchable={true}
+          searchable={searchable}
+          onChangeSearchable={onChangeSearchable}
           onContinue={onContinue}
-          icon={
-            <Kb.Icon type={Styles.isMobile ? 'icon-email-add-96' : 'icon-email-add-64'} style={styles.icon} />
+          iconType={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-email-add-96'
+                : 'icon-email-add-64'
+              : 'icon-email-add-64'
           }
         />
       </Kb.Box2>
       {!!emailError && (
         <Kb.Banner color="red" style={styles.banner}>
-          <Kb.BannerParagraph bannerColor="red" content={emailError.message} />
+          <Kb.BannerParagraph bannerColor="red" content={emailError} />
         </Kb.Banner>
       )}
     </Kb.Modal>
@@ -106,7 +116,7 @@ export const Phone = () => {
 
   const [phoneNumber, onChangeNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
@@ -129,14 +139,24 @@ export const Phone = () => {
 
   const onContinue = React.useCallback(
     () =>
-      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
-    [dispatch, disabled, waiting, allowSearch, phoneNumber]
+      disabled || waiting ? null : dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
+    [dispatch, disabled, waiting, searchable, phoneNumber]
   )
+
+  const onChangeNumberCb = React.useCallback((phoneNumber: string, validity: boolean) => {
+    onChangeNumber(phoneNumber)
+    onChangeValidity(validity)
+  }, [])
+
   return (
     <Kb.Modal
       onClose={onClose}
       header={{
-        leftButton: Styles.isMobile ? <Kb.Icon type="iconfont-arrow-left" onClick={onClose} /> : null,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodySemiboldLink" onClick={onClose}>
+            Close
+          </Kb.Text>
+        ) : null,
         title: Styles.isMobile ? 'Add phone number' : 'Add a phone number',
       }}
       footer={{
@@ -166,16 +186,16 @@ export const Phone = () => {
         style={styles.body}
       >
         <EnterPhoneNumberBody
-          onChangeNumber={onChangeNumber}
-          onChangeValidity={onChangeValidity}
+          onChangeNumber={onChangeNumberCb}
           onContinue={onContinue}
-          allowSearch={allowSearch}
-          onChangeAllowSearch={onChangeAllowSearch}
-          icon={
-            <Kb.Icon
-              type={Styles.isMobile ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
-              style={styles.icon}
-            />
+          searchable={searchable}
+          onChangeSearchable={onChangeSearchable}
+          iconType={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-phone-number-add-96'
+                : 'icon-phone-number-add-64'
+              : 'icon-phone-number-add-64'
           }
         />
       </Kb.Box2>
@@ -285,43 +305,36 @@ export const VerifyPhone = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  banner: {
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  blueBackground: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  body: {
-    ...Styles.padding(
-      Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
-      Styles.globalMargins.small,
-      0
-    ),
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-    position: 'relative',
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  footer: {
-    ...Styles.padding(Styles.globalMargins.small),
-  },
-  icon: Styles.platformStyles({
-    isElectron: {
-      height: 64,
-      width: 64,
-    },
-    isMobile: {
-      height: 96,
-      width: 96,
-    },
-  }),
-  verifyContainer: {
-    ...Styles.padding(0, Styles.globalMargins.small),
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      blueBackground: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      body: {
+        ...Styles.padding(
+          Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xlarge,
+          Styles.globalMargins.small,
+          0
+        ),
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+        position: 'relative',
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      footer: {
+        ...Styles.padding(Styles.globalMargins.small),
+      },
+      verifyContainer: {
+        ...Styles.padding(0, Styles.globalMargins.small),
+      },
+    } as const)
+)

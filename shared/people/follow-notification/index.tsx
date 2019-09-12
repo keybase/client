@@ -17,12 +17,11 @@ const connectedUsernamesProps = {
 
 export type NewFollow = Types.FollowedNotification
 
-export type Props = Types.FollowedNotificationItem & {
+export type Props = Types._FollowedNotificationItem & {
   onClickUser: (username: string) => void
 }
 
-// TODO remove this any type
-export default (props: any) => {
+export default (props: Props) => {
   if (props.newFollows.length === 1) {
     return <FollowNotification {...props} />
   }
@@ -34,6 +33,15 @@ const FollowNotification = (props: Props) => {
     throw new Error('Single follow notification must have exactly one user supplied')
   }
   const username = props.newFollows[0].username
+  const usernameComponent = (
+    <Kb.ConnectedUsernames
+      {...connectedUsernamesProps}
+      usernames={[username]}
+      onUsernameClicked={props.onClickUser}
+    />
+  )
+  const desc = props.newFollows[0].contactDescription
+  const optionalExplanation = desc ? ` (${desc})` : ''
   return (
     <Kb.ClickableBox onClick={() => props.onClickUser(username)}>
       <PeopleItem
@@ -50,14 +58,14 @@ const FollowNotification = (props: Props) => {
         contentStyle={styles.peopleItem}
         format="single"
       >
-        <Kb.Text type="Body">
-          <Kb.ConnectedUsernames
-            {...connectedUsernamesProps}
-            usernames={[username]}
-            onUsernameClicked={props.onClickUser}
-          />{' '}
-          followed you.
-        </Kb.Text>
+        {props.type === 'follow' ? (
+          <Kb.Text type="Body">{usernameComponent} followed you.</Kb.Text>
+        ) : (
+          <Kb.Text type="Body">
+            Your contact {usernameComponent}
+            {optionalExplanation} joined Keybase.
+          </Kb.Text>
+        )}
       </PeopleItem>
     </Kb.ClickableBox>
   )
@@ -68,26 +76,36 @@ export const MultiFollowNotification = (props: Props) => {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
   const usernames = props.newFollows.map(f => f.username)
+  const usernamesComponent = (
+    <>
+      <Kb.ConnectedUsernames
+        containerStyle={styles.usernames}
+        inlineGrammar={true}
+        showAnd={!props.numAdditional}
+        {...connectedUsernamesProps}
+        usernames={usernames}
+        onUsernameClicked={props.onClickUser}
+      />
+      {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others`}
+    </>
+  )
   return (
     <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
-      <Kb.Text type="Body" style={styles.multiText}>
-        <Kb.ConnectedUsernames
-          containerStyle={styles.usernames}
-          inlineGrammar={true}
-          showAnd={!props.numAdditional}
-          {...connectedUsernamesProps}
-          usernames={usernames}
-          onUsernameClicked={props.onClickUser}
-        />
-        {!!props.numAdditional && props.numAdditional > 0 && ` and ${props.numAdditional} others `} started
-        following you.
-      </Kb.Text>
+      {props.type === 'follow' ? (
+        <Kb.Text type="Body" style={styles.multiText}>
+          {usernamesComponent} started following you.
+        </Kb.Text>
+      ) : (
+        <Kb.Text type="Body" style={styles.multiText}>
+          Your contacts {usernamesComponent} joined Keybase.
+        </Kb.Text>
+      )}
       <Kb.ScrollView
         {...(Styles.isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={styles.scrollViewContainer}
       >
         {usernames.map(username => (
-          <Kb.WithTooltip key={username} text={username}>
+          <Kb.WithTooltip key={username} tooltip={username}>
             <Kb.Avatar
               onClick={() => props.onClickUser(username)}
               username={username}
@@ -101,32 +119,35 @@ export const MultiFollowNotification = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  avatar: {marginRight: Styles.globalMargins.xtiny},
-  iconContainer: {width: 'auto'},
-  multiText: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.xlarge,
-      marginTop: 2,
-    },
-    isElectron: {display: 'inline'},
-  }),
-  peopleItem: {justifyContent: 'center'},
-  scrollViewContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-    isMobile: {
-      ...Styles.globalStyles.flexBoxRow,
-      flexWrap: 'wrap',
-      height: 32,
-      overflow: 'hidden',
-      width: '100%',
-    },
-  }),
-  usernames: Styles.platformStyles({isElectron: {whiteSpace: 'wrap'}}),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {marginRight: Styles.globalMargins.xtiny},
+      iconContainer: {width: 'auto'},
+      multiText: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.xlarge,
+          marginTop: 2,
+        },
+        isElectron: {display: 'inline'},
+      }),
+      peopleItem: {justifyContent: 'center'},
+      scrollViewContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isMobile: {
+          ...Styles.globalStyles.flexBoxRow,
+          flexWrap: 'wrap',
+          height: 32,
+          overflow: 'hidden',
+          width: '100%',
+        },
+      }),
+      usernames: Styles.platformStyles({isElectron: {whiteSpace: 'normal'} as const}),
+    } as const)
+)

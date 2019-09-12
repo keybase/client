@@ -113,7 +113,7 @@ const DeviceSelector = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   contentBox: platformStyles({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
@@ -124,6 +124,6 @@ const styles = styleSheetCreate({
   list: {
     flexGrow: 1,
   },
-})
+}))
 
 export default DeviceSelector

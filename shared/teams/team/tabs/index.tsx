@@ -87,7 +87,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         style={iconCastPlatformStyles(props.selectedTab === 'settings' ? styles.iconSelected : styles.icon)}
       />
     ) : (
-      <TabText key="settings" selected={props.selectedTab === 'settings'} text={'Settings'} />
+      <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
     )
   )
 
@@ -121,7 +121,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
 }
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   badge: platformStyles({
     isElectron: {
       marginLeft: globalMargins.xtiny,
@@ -167,6 +167,6 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
   },
   tabTextSelected: {color: globalColors.black},
-})
+}))
 
 export default TeamTabs

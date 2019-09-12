@@ -5,7 +5,6 @@ package keybase
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"net"
@@ -17,7 +16,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/status"
 	"golang.org/x/sync/errgroup"
@@ -33,7 +31,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
@@ -43,6 +40,7 @@ import (
 
 var kbCtx *libkb.GlobalContext
 var kbChatCtx *globals.ChatContext
+var kbSvc *service.Service
 var conn net.Conn
 var startOnce sync.Once
 var logSendContext status.LogSendContext
@@ -53,6 +51,7 @@ var initComplete bool
 
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
+	DisplayChatNotification(notification *ChatNotification)
 }
 
 type NativeVideoHelper interface {
@@ -143,11 +142,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
-	var ekLogFile string
+	var ekLogFile, guiLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 		ekLogFile = logFile + ".ek"
 		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
+		guiLogFile = logFile + ".gui"
+		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
 	}
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
@@ -187,6 +188,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		EKLogFile:                      ekLogFile,
+		GUILogFile:                     guiLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
 		LocalRPCDebug:                  "",
@@ -200,8 +202,8 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		return err
 	}
 
-	svc := service.NewService(kbCtx, false)
-	err = svc.StartLoopbackServer()
+	kbSvc = service.NewService(kbCtx, false)
+	err = kbSvc.StartLoopbackServer()
 	if err != nil {
 		return err
 	}
@@ -209,13 +211,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-	err = svc.SetupCriticalSubServices()
+	err = kbSvc.SetupCriticalSubServices()
 	if err != nil {
 		return err
 	}
-	svc.SetupChatModules(nil)
-	svc.RunBackgroundOperations(uir)
-	kbChatCtx = svc.ChatContextified.ChatG()
+	kbSvc.SetupChatModules(nil)
+	kbSvc.RunBackgroundOperations(uir)
+	kbChatCtx = kbSvc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
 	logs := status.Logs{
@@ -278,14 +280,14 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
+func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	env := kbCtx.Env
 	logSendContext.UID = env.GetUID()
 	logSendContext.InstallID = env.GetInstallID()
 	logSendContext.StatusJSON = statusJSON
 	logSendContext.Feedback = feedback
-	logSendContext.Logs.Desktop = uiLogPath
+	logSendContext.Logs.GUI = env.GetGUILogFile()
 	logSendContext.Logs.Trace = traceDir
 	logSendContext.Logs.CPUProfile = cpuProfileDir
 	var numBytes int
@@ -386,6 +388,10 @@ func Version() string {
 	return libkb.VersionString()
 }
 
+func IsAppStateForeground() bool {
+	return kbCtx.MobileAppState.State() == keybase1.MobileAppState_FOREGROUND
+}
+
 func SetAppStateForeground() {
 	if !isInited() {
 		return
@@ -462,59 +468,6 @@ func BackgroundSync() {
 		}
 	}()
 	<-doneCh
-}
-
-func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
-	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
-	if err := waitForInit(5 * time.Second); err != nil {
-		return nil
-	}
-	gc := globals.NewContext(kbCtx, kbChatCtx)
-	ctx := globals.ChatCtx(context.Background(), gc,
-		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-
-	defer kbCtx.CTrace(ctx, fmt.Sprintf("HandleBackgroundNotification(%s,%v,%d,%d,%s,%d,%d)",
-		strConvID, displayPlaintext, intMembersType, intMessageID, pushID, badgeCount, unixTime),
-		func() error { return flattenError(err) })()
-
-	// Unbox
-	if !kbCtx.ActiveDevice.HaveKeys() {
-		return libkb.LoginRequiredError{}
-	}
-	mp := chat.NewMobilePush(gc)
-	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
-	bConvID, err := hex.DecodeString(strConvID)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID, err)
-		return err
-	}
-	convID := chat1.ConversationID(bConvID)
-	membersType := chat1.ConversationMembersType(intMembersType)
-	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
-		return err
-	}
-	if !displayPlaintext {
-		return nil
-	}
-
-	// Send notification
-	msg, err := mp.FormatPushText(ctx, uid, convID, membersType, msgUnboxed)
-	if err != nil {
-		return err
-	}
-	age := time.Since(time.Unix(int64(unixTime), 0))
-	if age >= 2*time.Minute {
-		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
-		return errors.New("stale notification")
-	}
-	// Send up the local notification with our message
-	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
-	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
-	// Hit the remote server to let it know we succeeded in showing something useful
-	mp.AckNotificationSuccess(ctx, []string{pushID})
-	return nil
 }
 
 // pushPendingMessageFailure sends at most one notification that a message

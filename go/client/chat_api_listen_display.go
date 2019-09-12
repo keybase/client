@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -15,7 +14,7 @@ type chatNotificationDisplay struct {
 	svc               *chatServiceHandler
 	showLocal         bool
 	hideExploding     bool
-	filtersNormalized []ChatChannel
+	filtersNormalized []chat1.ConversationID
 }
 
 func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool) *chatNotificationDisplay {
@@ -37,22 +36,28 @@ func newMsgNotification(source string) *chat1.MsgNotification {
 }
 
 func (d *chatNotificationDisplay) setupFilters(ctx context.Context, channelFilters []ChatChannel) error {
-	d.filtersNormalized = channelFilters
-	for i, v := range channelFilters {
-		v.MembersType = strings.ToUpper(v.MembersType)
-		v.TopicType = strings.ToUpper(v.TopicType)
-		if v.MembersType != "TEAM" {
-			// We are looking in inbox for conversations between users
-			// to normalize display name without using resolve RPC.
+	for _, v := range channelFilters {
+		if MembersTypeFromStrDefault(v.MembersType, d.G().GetEnv()) == chat1.ConversationMembersType_TEAM &&
+			len(v.TopicName) == 0 {
+			// treat this formulation of a channel as listing all team convs the users is in
+			topicType, err := TopicTypeFromStrDefault(v.TopicType)
+			if err != nil {
+				return err
+			}
+			convs, _, err := d.svc.getAllTeamConvs(ctx, v.Name, &topicType)
+			if err != nil {
+				return err
+			}
+			for _, conv := range convs {
+				d.filtersNormalized = append(d.filtersNormalized, conv.GetConvID())
+			}
+		} else {
 			conv, _, err := d.svc.findConversation(ctx, "", v)
 			if err != nil {
-				return fmt.Errorf("Unable to find chat channel for %q: %s", v.Name, err.Error())
+				return err
 			}
-			v.Name = conv.Info.TlfName
-		} else {
-			v.Name = strings.ToLower(v.Name)
+			d.filtersNormalized = append(d.filtersNormalized, conv.GetConvID())
 		}
-		d.filtersNormalized[i] = v
 	}
 	return nil
 }
@@ -112,33 +117,13 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *ch
 	}
 }
 
-func matchMembersTypeToFilter(filter ChatChannel, typ chat1.ConversationMembersType) bool {
-	if filter.MembersType == "" {
-		// Default empty value matches to any non-team convo.
-		switch typ {
-		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-			return true
-		default:
-			return false
-		}
-	}
-	return filter.MembersType == typ.String()
-}
-
-func (d *chatNotificationDisplay) matchFilters(conv *chat1.InboxUIItem) bool {
+func (d *chatNotificationDisplay) matchFilters(convID chat1.ConversationID) bool {
 	if len(d.filtersNormalized) == 0 {
 		// No filters - every message is relayed.
 		return true
 	}
 	for _, v := range d.filtersNormalized {
-		if matchMembersTypeToFilter(v, conv.MembersType) && v.Name == strings.ToLower(conv.Name) {
-			// If any of the following were specified by user and differ from
-			// what was received, filter the msg out.
-			if (v.TopicType != "" && conv.TopicType.String() != v.TopicType) ||
-				(v.TopicName != "" && conv.Channel != v.TopicName) {
-				continue
-			}
-			// It's a match.
+		if convID.Eq(v) {
 			return true
 		}
 	}
@@ -157,14 +142,13 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 	if err != nil {
 		return err
 	}
-	switch typ {
-	case chat1.ChatActivityType_INCOMING_MESSAGE:
+	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
 		inMsg := activity.IncomingMessage()
 		if d.hideExploding && inMsg.Message.IsEphemeral() {
 			// Skip exploding message
 			return nil
 		}
-		if !d.matchFilters(inMsg.Conv) {
+		if !d.matchFilters(inMsg.ConvID) {
 			// Skip filtered out message.
 			return nil
 		}

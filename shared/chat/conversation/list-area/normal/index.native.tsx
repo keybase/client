@@ -198,6 +198,7 @@ class ConversationList extends React.PureComponent<Props> {
             renderItem={this._renderItem}
             maintainVisibleContentPosition={this._maintainVisibleContentPosition}
             onViewableItemsChanged={this._onViewableItemsChanged}
+            keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
@@ -215,18 +216,21 @@ class ConversationList extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    flex: 1,
-    position: 'relative',
-  },
-  contentContainer: {
-    bottom: -mobileTypingContainerHeight,
-  },
-  jumpToRecent: {
-    bottom: 0,
-    position: 'absolute',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        flex: 1,
+        position: 'relative',
+      },
+      contentContainer: {
+        bottom: -mobileTypingContainerHeight,
+      },
+      jumpToRecent: {
+        bottom: 0,
+        position: 'absolute',
+      },
+    } as const)
+)
 
 export default ConversationList

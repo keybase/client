@@ -1,12 +1,13 @@
 import * as React from 'react'
 import GoButton from './go-button'
-import Input from './input'
 import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import * as Container from '../util/container'
+import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
+import {formatPhoneNumber} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
 
 type Props = {
@@ -15,12 +16,7 @@ type Props = {
   onEnterKeyDown: () => void
   onDownArrowKeyDown: () => void
   onUpArrowKeyDown: () => void
-  teamSoFar: Array<{
-    userId: string
-    prettyName: string
-    username: string
-    service: ServiceIdWithContact
-  }>
+  teamSoFar: Array<SelectedUser>
   onRemove: (userId: string) => void
   onBackspace: () => void
   onFinishTeamBuilding: () => void
@@ -28,13 +24,21 @@ type Props = {
   rolePickerProps?: RolePickerProps
 }
 
-const formatNameForUserBubble = (
-  username: string,
-  service: ServiceIdWithContact,
-  prettyName: string | null
-) => {
-  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
-  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+const formatNameForUserBubble = (u: SelectedUser) => {
+  let displayName: string
+  switch (u.service) {
+    case 'keybase':
+    case 'email':
+      displayName = u.username
+      break
+    case 'phone':
+      displayName = formatPhoneNumber(u.username)
+      break
+    default:
+      displayName = `${u.username} on ${u.service}`
+      break
+  }
+  return `${displayName} ${u.prettyName ? `(${u.prettyName})` : ''}`
 }
 
 class UserBubbleCollection extends React.PureComponent<{
@@ -48,43 +52,57 @@ class UserBubbleCollection extends React.PureComponent<{
         onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
+        tooltip={formatNameForUserBubble(u)}
       />
     ))
   }
 }
 
-const TeamInput = (props: Props) => (
-  <Input
-    hasMembers={!!props.teamSoFar.length}
-    onChangeText={props.onChangeText}
-    onEnterKeyDown={props.onEnterKeyDown}
-    onDownArrowKeyDown={props.onDownArrowKeyDown}
-    onUpArrowKeyDown={props.onUpArrowKeyDown}
-    onBackspace={props.onBackspace}
-    placeholder={
-      props.teamSoFar.length
-        ? 'Add another username or enter to chat'
-        : props.allowPhoneEmail
-        ? 'Enter a username, phone, or email'
-        : 'Enter a username'
-    }
-    searchString={props.searchString}
-  />
-)
-
 const TeamBox = (props: Props) => {
+  // Scroll to the end when a new user is added so they are visible.
+  const scrollViewRef = React.useRef<Kb.ScrollView>(null)
+  const last = !!props.teamSoFar.length && props.teamSoFar[props.teamSoFar.length - 1].userId
+  const prevLast = Container.usePrevious(last)
+  React.useEffect(() => {
+    if (prevLast !== undefined && prevLast !== last && scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({animated: true})
+    }
+  }, [prevLast, last])
+
+  const addMorePrompt = props.teamSoFar.length === 1 && (
+    <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
+      Keep adding people, or click Start when done.
+    </Kb.Text>
+  )
   return Styles.isMobile ? (
-    <Kb.Box2 direction="horizontal" style={styles.container}>
-      <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-      <TeamInput {...props} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      <Kb.ScrollView
+        horizontal={true}
+        alwaysBounceHorizontal={false}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+        {addMorePrompt}
+      </Kb.ScrollView>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" style={styles.search}>
-          <TeamInput {...props} />
-        </Kb.Box2>
+    <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" style={styles.bubbles}>
+        <Kb.ScrollView
+          horizontal={true}
+          ref={scrollViewRef}
+          showsHorizontalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Kb.Box2 direction="horizontal" fullHeight={true}>
+            <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+            {addMorePrompt}
+          </Kb.Box2>
+        </Kb.ScrollView>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullHeight={true} style={{marginLeft: 'auto'}}>
         {!!props.teamSoFar.length &&
           (props.rolePickerProps ? (
             <FloatingRolePicker
@@ -107,77 +125,74 @@ const TeamBox = (props: Props) => {
               />
             </FloatingRolePicker>
           ) : (
-            <GoButton label="Go!" onClick={props.onFinishTeamBuilding} />
+            <GoButton label="Start" onClick={props.onFinishTeamBuilding} />
           ))}
-      </Kb.Box2>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.bubbles}>
-        <Kb.ScrollView horizontal={true}>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.floatingBubbles}>
-            <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-          </Kb.Box2>
-        </Kb.ScrollView>
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  bubbles: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      paddingBottom: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.xsmall,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      backgroundColor: Styles.globalColors.blueGrey,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
-    },
-    isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      flex: 1,
-      minHeight: 48,
-    },
-  }),
-  floatingBubbles: Styles.platformStyles({
-    isElectron: {
-      justifyContent: 'flex-end',
-    },
-  }),
-  search: Styles.platformStyles({
-    common: {
-      flex: 1,
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      maxHeight: 170,
-      minHeight: 40,
-      overflowY: 'scroll',
-    },
-    isMobile: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      minHeight: 48,
-    },
-  }),
-  searchIcon: {
-    alignSelf: 'center',
-    marginLeft: 10,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addMorePrompt: {alignSelf: 'center', marginLeft: 28, maxWidth: 145},
+      bubbles: Styles.platformStyles({
+        isElectron: {
+          overflow: 'hidden',
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueGrey,
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          minHeight: 90,
+        },
+      }),
+      scrollContent: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      search: Styles.platformStyles({
+        common: {
+          flex: 1,
+          flexWrap: 'wrap',
+        },
+        isElectron: {
+          ...Styles.globalStyles.rounded,
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_20,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          maxHeight: 170,
+          minHeight: 40,
+          overflowY: 'scroll',
+        },
+        isMobile: {
+          borderBottomColor: Styles.globalColors.black_10,
+          borderBottomWidth: 1,
+          borderStyle: 'solid',
+          minHeight: 48,
+        },
+      }),
+      searchIcon: {
+        alignSelf: 'center',
+        marginLeft: 10,
+      },
+    } as const)
+)
 
 export default TeamBox

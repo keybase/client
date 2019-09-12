@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {Props} from './scroll-view'
 
-const ScrollView = (props: Props) => {
+const ScrollView = React.forwardRef((props: Props, ref) => {
   const {
     alwaysBounceHorizontal,
     alwaysBounceVertical,
@@ -10,14 +10,12 @@ const ScrollView = (props: Props) => {
     centerContent,
     className,
     contentContainerStyle,
-    hideVerticalScroll,
     horizontal,
     indicatorStyle,
     maximumZoomScale,
     minimumZoomScale,
     onLayout,
     onScroll,
-    ref,
     refreshControl,
     scrollEventThrottle,
     scrollsToTop,
@@ -27,31 +25,43 @@ const ScrollView = (props: Props) => {
     style,
     ...rest
   } = props
+  const hideScroll = showsVerticalScrollIndicator === false && showsHorizontalScrollIndicator === false
   const cn = Styles.classNames(
-    {'hide-scrollbar': hideVerticalScroll},
-    {'scroll-container': hideVerticalScroll},
+    // TODO: make it work for horizontal/vertical separately
+    // .hide-vertical-scrollbar::-webkit-scrollbar:vertical doesn't work.
+    {'hide-scrollbar': hideScroll},
+    {'scroll-container': hideScroll},
     className
   )
-  const overflowStyle = hideVerticalScroll ? styles.overflowHidden : styles.overflowAuto
+  const divRef = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      scrollToEnd: () => {
+        divRef.current &&
+          divRef.current.scrollTo({
+            left: divRef.current.scrollWidth,
+          })
+      },
+    }),
+    [divRef]
+  )
   return (
     <div
       className={cn}
-      style={Styles.collapseStyles([overflowStyle, style])}
+      style={Styles.collapseStyles([styles.overflowAuto, style])}
       onScroll={props.onScroll || undefined}
+      ref={divRef}
     >
       <div style={contentContainerStyle as any} {...rest} />
     </div>
   )
-}
+})
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   overflowAuto: {
     overflow: 'auto',
   },
-  overflowHidden: {
-    overflowX: 'hidden',
-    overflowY: 'auto',
-  },
-})
+}))
 
 export default ScrollView

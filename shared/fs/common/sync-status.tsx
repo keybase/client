@@ -80,7 +80,7 @@ function getTooltip(props: Props): string {
 }
 
 const SyncStatus = (props: Props) => (
-  <Kb.WithTooltip text={getTooltip(props)}>
+  <Kb.WithTooltip tooltip={getTooltip(props)}>
     {typeof props.status === 'number' ? (
       <Kb.Box2 direction="horizontal" style={{margin: Styles.globalMargins.xtiny}}>
         <PieSlice degrees={360 * props.status} animated={true} />

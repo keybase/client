@@ -8,14 +8,17 @@ import {Props as HeaderHocProps} from '../../common-adapters/header-hoc/types'
 
 export type Props = {
   addedEmail: string | null
+  addedPhone: boolean
   contactKeys: I.List<string>
   hasPassword: boolean
   onClearSupersededPhoneNumber: () => void
   onAddEmail: () => void
   onAddPhone: () => void
   onClearAddedEmail: () => void
+  onClearAddedPhone: () => void
   onDeleteAccount: () => void
   onSetPassword: () => void
+  onStartPhoneConversation: () => void
   onReload: () => void
   supersededPhoneNumber?: string
   tooManyEmails: boolean
@@ -39,7 +42,9 @@ const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; on
     />
   )
   return props.disabled ? (
-    <Kb.WithTooltip text={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}>
+    <Kb.WithTooltip
+      tooltip={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}
+    >
       {btn}
     </Kb.WithTooltip>
   ) : (
@@ -55,7 +60,10 @@ const EmailPhone = (props: Props) => (
       </Kb.Box2>
       <Kb.Text type="BodySmall">
         Secures your account by letting us send important notifications, and allows friends and teammates to
-        find you by phone number or email.
+        find you by phone number or email.{' '}
+        <Kb.Text type="BodySmallSecondaryLink" onClickURL="https://keybase.io/docs/chat/phones_and_emails">
+          Read more <Kb.Icon type="iconfont-open-browser" sizeType="Tiny" boxStyle={styles.displayInline} />
+        </Kb.Text>
       </Kb.Text>
     </Kb.Box2>
     {!!props.contactKeys.size && (
@@ -153,6 +161,17 @@ const AccountSettings = (props: Props) => (
           />
         </Kb.Banner>
       )}
+      {props.addedPhone && (
+        <Kb.Banner color="green" onClose={props.onClearAddedPhone}>
+          <Kb.BannerParagraph
+            bannerColor="green"
+            content={[
+              'Success! And now you can message anyone on Keybase by phone number. ',
+              {onClick: props.onStartPhoneConversation, text: 'Give it a try.'},
+            ]}
+          />
+        </Kb.Banner>
+      )}
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <EmailPhone {...props} />
         <Kb.Divider />
@@ -168,7 +187,7 @@ const AccountSettings = (props: Props) => (
   </Kb.Reloadable>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
     minHeight: undefined,
     width: undefined,
@@ -178,6 +197,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
   }),
+  displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
   password: {
     ...Styles.padding(Styles.globalMargins.xsmall, 0),
     flexGrow: 1,
@@ -203,6 +223,6 @@ const styles = Styles.styleSheetCreate({
   topButton: {
     marginTop: Styles.globalMargins.xtiny,
   },
-})
+}))
 
 export default Kb.HeaderHoc(AccountSettings)

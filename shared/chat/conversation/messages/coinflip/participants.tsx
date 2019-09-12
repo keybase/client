@@ -55,7 +55,7 @@ const CoinFlipParticipants = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       paddingBottom: Styles.globalMargins.tiny,
@@ -80,6 +80,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
   }),
-})
+}))
 
 export default CoinFlipParticipants

@@ -227,23 +227,21 @@ export type ResolveArrayThunks<TDispatchProps extends ReadonlyArray<any>> = TDis
 // KB added
 export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
   component: C
-) => TMergedProps extends React.ComponentProps<C>
-  ? ConnectedComponentClass<C, TOwnProps>
-  : never 
+) => TMergedProps extends React.ComponentProps<C> ? ConnectedComponentClass<C, TOwnProps> : never
 
 // To debug why the connect is returning never
 export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
   component: C
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
-  :   [
-        "missing props:",
-        Exclude<keyof GetProps<C>, keyof TMergedProps>,
-        "extra props:",
-        Exclude<keyof TMergedProps, keyof GetProps<C>>,
-        GetProps<C>,
-        TMergedProps
-      ]
+  : [
+      'missing props:',
+      Exclude<keyof GetProps<C>, keyof TMergedProps>,
+      'extra props:',
+      Exclude<keyof TMergedProps, keyof GetProps<C>>,
+      GetProps<C>,
+      TMergedProps
+    ]
 
 export interface ConnectDEBUG {
   <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(

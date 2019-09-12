@@ -361,12 +361,24 @@ func (u *User) Store(m MetaContext) error {
 func (u *User) StoreTopLevel(m MetaContext) error {
 
 	jw := jsonw.NewDictionary()
-	jw.SetKey("id", UIDWrapper(u.id))
-	jw.SetKey("basics", u.basics)
-	jw.SetKey("public_keys", u.publicKeys)
-	jw.SetKey("pictures", u.pictures)
+	err := jw.SetKey("id", UIDWrapper(u.id))
+	if err != nil {
+		return err
+	}
+	err = jw.SetKey("basics", u.basics)
+	if err != nil {
+		return err
+	}
+	err = jw.SetKey("public_keys", u.publicKeys)
+	if err != nil {
+		return err
+	}
+	err = jw.SetKey("pictures", u.pictures)
+	if err != nil {
+		return err
+	}
 
-	err := u.G().LocalDb.Put(
+	err = u.G().LocalDb.Put(
 		DbKeyUID(DBUser, u.id),
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
@@ -763,10 +775,7 @@ func (u *User) HasDeviceInCurrentInstall(did keybase1.DeviceID) bool {
 	}
 
 	_, err := ckf.GetSibkeyForDevice(did)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func (u *User) HasCurrentDeviceInCurrentInstall() bool {

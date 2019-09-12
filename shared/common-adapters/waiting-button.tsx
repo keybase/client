@@ -3,6 +3,10 @@ import Button from './button'
 import {namedConnect} from '../util/container'
 import * as WaitingConstants from '../constants/waiting'
 
+const Kb = {
+  Button,
+}
+
 type ButtonProps = React.ComponentProps<typeof Button>
 
 export type OwnProps = {
@@ -16,7 +20,7 @@ export type Props = {
   waitingKey: string | null
 } & ButtonProps
 
-/* Waiting button is a <Button /> with handling of waiting states.
+/* Waiting button is a <Kb.Button /> with handling of waiting states.
  *
  * There are two forms:
  *  waitingKey is null: The spinner activates as soon as the button is clicked,
@@ -42,14 +46,14 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
     this.props.onClick && this.props.onClick(event)
   }
 
-  render = () => {
+  render() {
     if (this.props.onlyDisable && !this.props.waitingKey) {
       throw new Error('WaitingButton onlyDisable should only be used with a waiting key')
     }
     const waiting = this.props.storeWaiting || this.state.localWaiting
     const {onlyDisable, storeWaiting, waitingKey, ...buttonProps} = this.props
     return (
-      <Button
+      <Kb.Button
         {...buttonProps}
         onClick={this._onClick}
         disabled={this.props.onlyDisable ? waiting || this.props.disabled : this.props.disabled}

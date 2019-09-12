@@ -1,46 +1,42 @@
 import {isMobile} from './platform'
 
-type ChatTab = 'tabs.chatTab'
-type DevicesTab = 'tabs.devicesTab'
-type FolderTab = 'tabs.folderTab'
-type LoginTab = 'tabs.loginTab'
-type PeopleTab = 'tabs.peopleTab'
-type SearchTab = 'tabs.searchTab'
-type SettingsTab = 'tabs.settingsTab'
-type TeamsTab = 'tabs.teamsTab'
-type FsTab = 'tabs.fsTab'
-type GitTab = 'tabs.gitTab'
-type WalletsTab = 'tabs.walletsTab'
+const chatTab = 'tabs.chatTab'
+const devicesTab = 'tabs.devicesTab'
+const folderTab = 'tabs.folderTab'
+const loginTab = 'tabs.loginTab'
+const peopleTab = 'tabs.peopleTab'
+const searchTab = 'tabs.searchTab'
+const settingsTab = 'tabs.settingsTab'
+const teamsTab = 'tabs.teamsTab'
+const gitTab = 'tabs.gitTab'
+const fsTab = 'tabs.fsTab'
+const walletsTab = 'tabs.walletsTab'
 
 export type Tab =
-  | ChatTab
-  | DevicesTab
-  | FolderTab
-  | LoginTab
-  | PeopleTab
-  | SettingsTab
-  | SearchTab
-  | TeamsTab
-  | GitTab
-  | FsTab
-  | WalletsTab
+  | typeof chatTab
+  | typeof devicesTab
+  | typeof folderTab
+  | typeof loginTab
+  | typeof peopleTab
+  | typeof settingsTab
+  | typeof searchTab
+  | typeof teamsTab
+  | typeof gitTab
+  | typeof fsTab
+  | typeof walletsTab
 
-const chatTab: Tab & AppTab = 'tabs.chatTab'
-const devicesTab: Tab & AppTab = 'tabs.devicesTab'
-const folderTab: Tab = 'tabs.folderTab'
-const loginTab: Tab = 'tabs.loginTab'
-const peopleTab: Tab & AppTab = 'tabs.peopleTab'
-const searchTab: Tab = 'tabs.searchTab'
-const settingsTab: Tab & AppTab = 'tabs.settingsTab'
-const teamsTab: Tab & AppTab = 'tabs.teamsTab'
-const gitTab: Tab & AppTab = 'tabs.gitTab'
-const fsTab: Tab & AppTab = 'tabs.fsTab'
-const walletsTab: Tab & AppTab = 'tabs.walletsTab'
-
-export type AppTab = PeopleTab | ChatTab | FsTab | TeamsTab | WalletsTab | GitTab | DevicesTab | SettingsTab
+export type AppTab =
+  | typeof peopleTab
+  | typeof chatTab
+  | typeof fsTab
+  | typeof teamsTab
+  | typeof walletsTab
+  | typeof gitTab
+  | typeof devicesTab
+  | typeof settingsTab
 
 // Canonical ordering for desktop tabs, used visually and for hotkeys
-const desktopTabOrder = [
+const desktopTabOrder: Array<AppTab> = [
   peopleTab,
   chatTab,
   fsTab,
@@ -49,7 +45,7 @@ const desktopTabOrder = [
   gitTab,
   devicesTab,
   settingsTab,
-].filter(Boolean)
+]
 
 function isValidInitialTab(tab: Tab | null) {
   return isValidInitialTabString(tab)

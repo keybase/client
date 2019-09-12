@@ -120,7 +120,7 @@ type httpsDialer struct {
 
 func (d httpsDialer) Dial(network string, addr string) (net.Conn, error) {
 	// Start by making a direct dialer and dialing and then wrap TLS around it
-	dd := directDialer{opts: d.opts}
+	dd := directDialer(d)
 	conn, err := dd.Dial(network, addr)
 	if err != nil {
 		return nil, err

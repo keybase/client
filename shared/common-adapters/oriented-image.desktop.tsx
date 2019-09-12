@@ -139,7 +139,7 @@ class OrientedImage extends React.Component<Props, State> {
       if (p.srcTransformed === imageData) return undefined
       return {srcTransformed: imageData}
     })
-      return undefined
+    return undefined
   }
 
   _canvasImageTransform = (orientation: number) => {
@@ -261,7 +261,7 @@ class OrientedImage extends React.Component<Props, State> {
    */
   render() {
     return (
-      <React.Fragment>
+      <>
         {this.state.srcTransformed && (
           // @ts-ignore codemod issue
           <ImageRef
@@ -273,7 +273,7 @@ class OrientedImage extends React.Component<Props, State> {
           />
         )}
         <canvas ref={el => (this._canvasRef = el)} style={styleCanvas} />
-      </React.Fragment>
+      </>
     )
   }
 }

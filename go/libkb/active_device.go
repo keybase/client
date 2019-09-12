@@ -3,7 +3,6 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -109,7 +108,10 @@ func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 
 func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 	// Always clear, if we are also setting we set all new values.
-	a.Clear()
+	err := a.Clear()
+	if err != nil {
+		return err
+	}
 	if a2 == nil {
 		return nil
 	}
@@ -170,25 +172,6 @@ func (a *ActiveDevice) setEncryptionKey(uv keybase1.UserVersion, deviceID keybas
 	}
 
 	a.encryptionKey = encKey
-	return nil
-}
-
-// setDeviceName acquires the write lock and sets the device name.
-// The acct parameter is not used for anything except to help ensure
-// that this is called from inside a LoginState account request.
-func (a *ActiveDevice) setDeviceName(uv keybase1.UserVersion, deviceID keybase1.DeviceID, deviceName string) error {
-	a.Lock()
-	defer a.Unlock()
-
-	if strings.TrimSpace(deviceName) == "" {
-		return errors.New("no device name specified")
-	}
-
-	if err := a.internalUpdateUserVersionDeviceID(uv, deviceID); err != nil {
-		return err
-	}
-
-	a.deviceName = deviceName
 	return nil
 }
 
@@ -273,7 +256,10 @@ func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 func (a *ActiveDevice) DeviceType(mctx MetaContext) (string, error) {
 	if a.secretSyncer.keys == nil {
 		mctx.Debug("keys are not synced with the server for this ActiveDevice. lets do that right now")
-		a.SyncSecretsForce(mctx)
+		_, err := a.SyncSecretsForce(mctx)
+		if err != nil {
+			return "", err
+		}
 	}
 	devices, err := a.secretSyncer.Devices()
 	if err != nil {

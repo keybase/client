@@ -58,7 +58,7 @@ const PaperKey = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   contents: {
     flexGrow: 1,
     maxWidth: Styles.isMobile ? 300 : 460,
@@ -69,7 +69,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fontTerminal,
   },
   inputContainer: {
-    background: Styles.globalColors.white,
+    backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
     borderRadius: 4,
     borderStyle: 'solid',
@@ -78,6 +78,6 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.small,
     width: '100%',
   },
-})
+}))
 
 export default PaperKey

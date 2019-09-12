@@ -204,12 +204,12 @@ func (w *WebProofChainLink) ProofText() string         { return w.proofText }
 func (w *WebProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	if w.protocol == "dns" {
-		ret.SetKey("protocol", jsonw.NewString(w.protocol))
-		ret.SetKey("domain", jsonw.NewString(w.hostname))
+		_ = ret.SetKey("protocol", jsonw.NewString(w.protocol))
+		_ = ret.SetKey("domain", jsonw.NewString(w.hostname))
 
 	} else {
-		ret.SetKey("protocol", jsonw.NewString(w.protocol+":"))
-		ret.SetKey("hostname", jsonw.NewString(w.hostname))
+		_ = ret.SetKey("protocol", jsonw.NewString(w.protocol+":"))
+		_ = ret.SetKey("hostname", jsonw.NewString(w.hostname))
 	}
 	return ret
 }
@@ -283,8 +283,8 @@ func (s *SocialProofChainLink) DisplayCheck(m MetaContext, ui IdentifyUI, lcr Li
 
 func (s *SocialProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
-	ret.SetKey("username", jsonw.NewString(s.username))
-	ret.SetKey("name", jsonw.NewString(s.service))
+	_ = ret.SetKey("username", jsonw.NewString(s.username))
+	_ = ret.SetKey("name", jsonw.NewString(s.service))
 	return ret
 }
 
@@ -1137,7 +1137,7 @@ func (r *RevokeChainLink) Type() string { return "revoke" }
 
 func (r *RevokeChainLink) ToDisplayString() string {
 	v := r.GetRevocations()
-	list := make([]string, len(v), len(v))
+	list := make([]string, len(v))
 	for i, s := range v {
 		list[i] = s.ToString(true)
 	}
@@ -1756,7 +1756,10 @@ func VerifyReverseSig(g *GlobalContext, key GenericKey, path string, payload *js
 		return err
 	}
 
-	jsonCopy.SetValueAtPath(path, jsonw.NewNil())
+	err = jsonCopy.SetValueAtPath(path, jsonw.NewNil())
+	if err != nil {
+		return err
+	}
 	if p2, err = jsonCopy.Marshal(); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err)}
 		return err

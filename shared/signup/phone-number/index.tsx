@@ -1,13 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
   error: string
-  onContinue: (phoneNumber: string, allowSearch: boolean) => void
+  onContinue: (phoneNumber: string, searchable: boolean) => void
   onSkip: () => void
   waiting: boolean
 }
@@ -15,10 +16,14 @@ export type Props = {
 const EnterPhoneNumber = (props: Props) => {
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
-  // const [allowSearch, onChangeAllowSearch] = React.useState(true)
+  // const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
   const onContinue = () =>
-    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* allowSearch */)
+    disabled || props.waiting ? {} : props.onContinue(phoneNumber, true /* searchable */)
+  const onChangeNumberCb = (phoneNumber: string, validity: boolean) => {
+    onChangePhoneNumber(phoneNumber)
+    onChangeValidity(validity)
+  }
   return (
     <SignupScreen
       buttons={[
@@ -50,11 +55,10 @@ const EnterPhoneNumber = (props: Props) => {
         // the push prompt might be overlaying us
         // TODO Y2K-57 move phone number earlier and check that email won't have this problem
         autoFocus={!Styles.isMobile}
-        onChangeNumber={onChangePhoneNumber}
-        onChangeValidity={onChangeValidity}
+        onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
-        allowSearch={true}
-        icon={Styles.isMobile ? <Kb.Icon type="icon-phone-number-add-96" style={styles.icon} /> : null}
+        searchable={true}
+        iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
       />
     </SignupScreen>
   )
@@ -62,15 +66,14 @@ const EnterPhoneNumber = (props: Props) => {
 
 type BodyProps = {
   autoFocus: boolean
-  onChangeNumber: (phoneNumber: string) => void
-  onChangeValidity: (valid: boolean) => void
+  onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
-  allowSearch: boolean
-  onChangeAllowSearch?: (allow: boolean) => void
-  icon: React.ReactNode
+  searchable: boolean
+  onChangeSearchable?: (allow: boolean) => void
+  iconType: Kb.IconType
 }
 export const EnterPhoneNumberBody = (props: BodyProps) => {
-  const showCheckbox = !!props.onChangeAllowSearch
+  const showCheckbox = !!props.onChangeSearchable
   return (
     <Kb.Box2
       alignItems="center"
@@ -79,20 +82,19 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       fullWidth={true}
       style={Styles.globalStyles.flexOne}
     >
-      {props.icon}
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={Styles.isMobile} style={styles.inputBox}>
+      <Kb.Icon type={props.iconType} />
+      <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <PhoneInput
           autoFocus={props.autoFocus}
           style={styles.input}
           onChangeNumber={props.onChangeNumber}
-          onChangeValidity={props.onChangeValidity}
           onEnterKeyDown={props.onContinue}
         />
         {showCheckbox ? (
           <Kb.Checkbox
             label="Allow friends to find you by this phone number"
-            checked={props.allowSearch}
-            onCheck={props.onChangeAllowSearch || null}
+            checked={props.searchable}
+            onCheck={props.onChangeSearchable || null}
             style={styles.checkbox}
           />
         ) : (
@@ -106,12 +108,8 @@ EnterPhoneNumberBody.defaultProps = {
   autoFocus: true,
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
-  icon: {
-    height: 96,
-    width: 96,
-  },
   input: Styles.platformStyles({
     isElectron: {
       height: 38,
@@ -128,6 +126,6 @@ const styles = Styles.styleSheetCreate({
       width: 368,
     },
   }),
-})
+}))
 
 export default EnterPhoneNumber

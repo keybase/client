@@ -7,7 +7,6 @@ package libkb
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -41,11 +40,9 @@ var (
 var (
 	modShell32               = windows.NewLazySystemDLL("Shell32.dll")
 	modOle32                 = windows.NewLazySystemDLL("Ole32.dll")
-	kernel32                 = windows.NewLazySystemDLL("kernel32.dll")
 	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
 	procCoTaskMemFree        = modOle32.NewProc("CoTaskMemFree")
 	shChangeNotifyProc       = modShell32.NewProc("SHChangeNotify")
-	procCreateMutex          = kernel32.NewProc("CreateMutexW")
 )
 
 // LookPath searches for an executable binary named file
@@ -160,28 +157,6 @@ func renameFile(g *GlobalContext, src string, dest string) error {
 			break
 		}
 	}
-	return err
-}
-
-func copyFile(src string, dest string) error {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	destFile, err := os.Create(dest) // creates if file doesn't exist
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	_, err = io.Copy(destFile, srcFile) // check first var for number of bytes copied
-	if err != nil {
-		return err
-	}
-
-	err = destFile.Sync()
 	return err
 }
 

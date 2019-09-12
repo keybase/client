@@ -1,9 +1,8 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, globalColors, styled, styleSheetCreate, platformStyles} from '../styles'
 import {pick} from 'lodash-es'
 import logger from '../logger'
-
 import {_StylesDesktop} from '../styles/css'
 import {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
@@ -53,6 +52,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (!n) {
       return
     }
+
     n.style.height = '1px'
     n.style.height = `${n.scrollHeight}px`
   }
@@ -177,21 +177,28 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const rows = this.props.rowsMin || Math.min(2, this.props.rowsMax || 2)
     const textStyle: any = getTextStyle(this.props.textType)
     const heightStyles: any = {
-      minHeight: rows * (textStyle.fontSize || 20),
+      minHeight:
+        rows * (maybeParseInt(textStyle.lineHeight, 10) || 20) +
+        (this.props.padding ? Styles.globalMargins[this.props.padding] * 2 : 0),
     }
     if (this.props.rowsMax) {
       heightStyles.maxHeight = this.props.rowsMax * (maybeParseInt(textStyle.lineHeight, 10) || 20)
     } else {
       heightStyles.overflowY = 'hidden'
     }
+
+    const paddingStyles: any = this.props.padding
+      ? Styles.padding(Styles.globalMargins[this.props.padding])
+      : {}
     return {
       ...this._getCommonProps(),
       rows,
-      style: collapseStyles([
+      style: Styles.collapseStyles([
         styles.noChrome, // noChrome comes before because we want lineHeight set in multiline
         textStyle,
         styles.multiline,
         heightStyles,
+        paddingStyles,
         this.props.style,
       ]),
     }
@@ -201,7 +208,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const textStyle = getTextStyle(this.props.textType)
     return {
       ...this._getCommonProps(),
-      style: collapseStyles([
+      style: Styles.collapseStyles([
         textStyle,
         styles.noChrome, // noChrome comes after to unset lineHeight in singleline
         this.props.flexable && styles.flexable,
@@ -264,37 +271,35 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
-  render = () => {
+  render() {
     const inputProps = this._getInputProps()
-    return (
-      <React.Fragment>
-        {this.props.multiline ? <StyledTextArea {...inputProps} /> : <StyledInput {...inputProps} />}
-      </React.Fragment>
-    )
+    return <>{this.props.multiline ? <StyledTextArea {...inputProps} /> : <StyledInput {...inputProps} />}</>
   }
 }
 
 // @ts-ignore this type is wrong
-const StyledTextArea = styled.textarea<'textarea', {placeholderColor: any}>(props => ({
+const StyledTextArea = Styles.styled.textarea<'textarea', {placeholderColor: any}>(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-  '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
+  '&::-webkit-input-placeholder': {color: props.placeholderColor || Styles.globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
 // @ts-ignore this type is wrong
-const StyledInput = styled.input<'input', {placeholderColor: any}>(props => ({
+const StyledInput = Styles.styled.input<'input', {placeholderColor: any}>(props => ({
   '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-  '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
+  '&::-webkit-input-placeholder': {color: props.placeholderColor || Styles.globalColors.black_50},
   '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
 }))
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   flexable: {
     flex: 1,
     minWidth: 0,
-    width: '100%',
+    // "width: 0" is needed for the input to shrink in flex
+    // https://stackoverflow.com/questions/42421361/input-button-elements-not-shrinking-in-a-flex-container
+    width: 0,
   },
-  multiline: platformStyles({
+  multiline: Styles.platformStyles({
     isElectron: {
       height: 'initial',
       paddingBottom: 0,
@@ -303,13 +308,13 @@ const styles = styleSheetCreate({
       width: '100%',
     },
   }),
-  noChrome: platformStyles({
+  noChrome: Styles.platformStyles({
     isElectron: {
       borderWidth: 0,
       lineHeight: 'unset',
       outline: 'none',
     },
   }),
-})
+}))
 
 export default PlainInput

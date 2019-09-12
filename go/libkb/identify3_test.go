@@ -123,11 +123,14 @@ func TestIdentify3State(t *testing.T) {
 	epsilon := inc / 2
 
 	// put in 3 items all inc time apart.
-	id3state.Put(mkSession(1))
+	err := id3state.Put(mkSession(1))
+	require.NoError(t, err)
 	fakeClock.Advance(inc)
-	id3state.Put(mkSession(2))
+	err = id3state.Put(mkSession(2))
+	require.NoError(t, err)
 	fakeClock.Advance(inc)
-	id3state.Put(mkSession(3))
+	err = id3state.Put(mkSession(3))
+	require.NoError(t, err)
 
 	// make sure that all 3 items hit the cache, and in the right order.
 	set := []int{1, 2, 3}

@@ -37,35 +37,35 @@ func TestExtractor(t *testing.T) {
 		})
 	}
 	cases := []testCase{
-		testCase{
+		{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_NEVER,
 		},
-		testCase{
+		{
 			message: "check out this lame site: www.google.com",
 			mode:    chat1.UnfurlMode_ALWAYS,
 		},
-		testCase{
+		{
 			message: maxCase,
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  maxRes,
 		},
-		testCase{
+		{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitUnfurl,
 				},
 			},
 		},
-		testCase{
+		{
 			message: "check out this lame post: `http://www.twitter.com/mike/383878473873`",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  nil,
 		},
-		testCase{
+		{
 			message: fmt.Sprintf(`%s
 			[mike@lisa-keybase]-[~/go/src/github.com/keybase/client/go] (mike/markdown)$ scraper https://www.wsj.com/articles/a-silicon-valley-tech-leader-walks-a-high-wire-between-the-u-s-and-china-1542650707?mod=hp_lead_pos4
 			2018/11/19 16:33:52 ++Chat: + Scraper: Scrape
@@ -83,52 +83,52 @@ func TestExtractor(t *testing.T) {
 			mode:   chat1.UnfurlMode_ALWAYS,
 			result: nil,
 		},
-		testCase{
+		{
 			message: "check out this lame post: `http://www.twitter.com/mike/383878473873` http://www.twitter.com/mike/MIKE",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/MIKE",
 					Typ: ExtractorHitUnfurl,
 				},
 			},
 		},
-		testCase{
+		{
 			message: "check out this lame post: ```http://www.twitter.com/mike/383878473873````",
 			mode:    chat1.UnfurlMode_ALWAYS,
 			result:  nil,
 		},
-		testCase{
+		{
 			message: "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:    chat1.UnfurlMode_WHITELISTED,
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitPrompt,
 				},
 			},
 		},
-		testCase{
+		{
 			message:   "check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:      chat1.UnfurlMode_WHITELISTED,
 			whitelist: []string{"twitter.com"},
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitUnfurl,
 				},
 			},
 		},
-		testCase{
+		{
 			message:   "http://www.github.com/keybase/client check out this lame post: http://www.twitter.com/mike/383878473873",
 			mode:      chat1.UnfurlMode_WHITELISTED,
 			whitelist: []string{"twitter.com", "github.com"},
 			result: []ExtractorHit{
-				ExtractorHit{
+				{
 					URL: "http://www.github.com/keybase/client",
 					Typ: ExtractorHitUnfurl,
 				},
-				ExtractorHit{
+				{
 					URL: "http://www.twitter.com/mike/383878473873",
 					Typ: ExtractorHitUnfurl,
 				},

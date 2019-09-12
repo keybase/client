@@ -13,6 +13,9 @@ const mapStateToProps = (state: Container.TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onBack: () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+  },
   onLogIn: (username: string) => dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())
@@ -33,7 +36,9 @@ export default Container.connect(
     return {
       devices: stateProps.devices.toArray(),
       onBack:
-        loggedInAccounts.size > 0 ? () => dispatchProps.onLogIn(loggedInAccounts.get(0) || '') : undefined,
+        loggedInAccounts.length > 0
+          ? () => dispatchProps.onLogIn(loggedInAccounts[0] || '')
+          : dispatchProps._onBack,
       onResetAccount: dispatchProps.onResetAccount,
       onSelect: dispatchProps.onSelect,
     }

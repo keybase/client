@@ -22,22 +22,20 @@ const load = async (state: Container.TypedState) => {
   }
 }
 
-function* requestPaperKey(): Iterable<any> {
-  yield* Saga.callRPCs(
-    RPCTypes.loginPaperKeyRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
-          response.result(false)
-        },
+function* requestPaperKey() {
+  yield RPCTypes.loginPaperKeyRpcSaga({
+    customResponseIncomingCallMap: {
+      'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
+        response.result(false)
       },
-      incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
-          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-      },
-      params: undefined,
-      waitingKey: Constants.waitingKey,
-    })
-  )
+    },
+    incomingCallMap: {
+      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
+        Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
+    },
+    params: undefined,
+    waitingKey: Constants.waitingKey,
+  })
 }
 
 const requestEndangeredTLFsLoad = async (
@@ -128,7 +126,7 @@ const receivedBadgeState = (_: Container.TypedState, action: NotificationsGen.Re
     ],
   })
 
-function* deviceSaga(): Saga.SagaGenerator<any, any> {
+function* deviceSaga() {
   // Load devices
   yield* Saga.chainAction2([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device

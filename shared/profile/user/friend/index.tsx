@@ -35,7 +35,7 @@ class Friend extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: {marginBottom: Styles.globalMargins.xxtiny},
   container: {
     flexShrink: 0,
@@ -51,6 +51,6 @@ const styles = Styles.styleSheetCreate({
       wordBreak: 'break-all',
     },
   }),
-})
+}))
 
 export default Friend

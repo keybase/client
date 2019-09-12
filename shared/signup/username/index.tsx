@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {maxUsernameLength} from '../../constants/signup'
 import {InfoIcon, SignupScreen, errorBanner} from '../common'
 
@@ -59,7 +60,7 @@ const EnterUsername = (props: Props) => {
         style={styles.body}
         fullWidth={true}
       >
-        <Kb.Avatar size={96} />
+        <Kb.Avatar size={Platform.isLargeScreen ? 96 : 64} />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
           <Kb.NewInput
             autoFocus={true}
@@ -93,7 +94,7 @@ EnterUsername.navigationOptions = {
   ),
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   body: {
     flex: 1,
   },
@@ -118,6 +119,6 @@ const styles = Styles.styleSheetCreate({
   inputSub: {
     marginLeft: 2,
   },
-})
+}))
 
 export default EnterUsername

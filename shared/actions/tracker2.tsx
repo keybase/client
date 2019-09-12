@@ -146,17 +146,15 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
     throw new Error('No guid on profile 2 load? ' + action.payload.assertion || '')
   }
   try {
-    yield* Saga.callRPCs(
-      RPCTypes.identify3Identify3RpcSaga({
-        incomingCallMap: {},
-        params: {
-          assertion: action.payload.assertion,
-          guiID: action.payload.guiID,
-          ignoreCache: !!action.payload.ignoreCache,
-        },
-        waitingKey: Constants.profileLoadWaitingKey,
-      })
-    )
+    yield RPCTypes.identify3Identify3RpcSaga({
+      incomingCallMap: {},
+      params: {
+        assertion: action.payload.assertion,
+        guiID: action.payload.guiID,
+        ignoreCache: !!action.payload.ignoreCache,
+      },
+      waitingKey: Constants.profileLoadWaitingKey,
+    })
   } catch (err) {
     if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
       yield Saga.put(
@@ -286,7 +284,7 @@ const loadNonUserProfile = async (_: Container.TypedState, action: Tracker2Gen.L
   }
 }
 
-function* tracker2Saga(): Saga.SagaGenerator<any, any> {
+function* tracker2Saga() {
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateUserCard, updateUserCard)
   yield* Saga.chainAction2(Tracker2Gen.changeFollow, changeFollow)
   yield* Saga.chainAction2(Tracker2Gen.ignore, ignore)

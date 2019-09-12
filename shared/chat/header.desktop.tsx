@@ -28,7 +28,7 @@ type Props = {
   username: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '17px' as any, wordBreak: 'break-all'} as const
+const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -40,7 +40,7 @@ const descStyleOverride = {
   paragraph: descStyle,
   preview: descStyle,
   strong: descStyle,
-}
+} as any
 
 const Header = (p: Props) => {
   let description = !!p.desc && (
@@ -63,7 +63,7 @@ const Header = (p: Props) => {
   }
   if (p.isTeam && p.desc && p.canEditDesc) {
     description = (
-      <Kb.WithTooltip position="bottom left" text="Set the description using the /headline command.">
+      <Kb.WithTooltip position="bottom left" tooltip="Set the description using the /headline command.">
         {description}
       </Kb.WithTooltip>
     )
@@ -121,7 +121,9 @@ const Header = (p: Props) => {
               />
             )}
           </Kb.Box2>
-          {description}
+          <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+            {description}
+          </Kb.Box2>
         </Kb.Box2>
         {p.showActions && (
           <Kb.Box2
@@ -131,16 +133,16 @@ const Header = (p: Props) => {
             alignSelf="flex-end"
             style={styles.actionIcons}
           >
-            <Kb.WithTooltip text={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
+            <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
               <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={p.onToggleThreadSearch} />
             </Kb.WithTooltip>
-            <Kb.WithTooltip text="Open folder">
+            <Kb.WithTooltip tooltip="Open folder">
               <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={p.onOpenFolder} />
             </Kb.WithTooltip>
-            <Kb.WithTooltip text="Chat info & settings">
+            <Kb.WithTooltip tooltip="Chat info & settings">
               <Kb.Icon
                 style={styles.clickable}
-                type={'iconfont-info'}
+                type="iconfont-info"
                 onClick={p.onToggleInfoPanel}
                 color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
               />
@@ -152,33 +154,40 @@ const Header = (p: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  actionIcons: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-  container: {
-    flexGrow: 1,
-    height: 40 - 1,
-  },
-  desc: {
-    ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-    color: Styles.globalColors.black_50,
-  },
-  headerTitle: Styles.platformStyles({
-    common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-  }),
-  left: {minWidth: 260},
-  right: {
-    flexGrow: 1,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-  shhIconStyle: {
-    marginLeft: Styles.globalMargins.xtiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionIcons: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+      container: {
+        flexGrow: 1,
+        height: 40 - 1,
+      },
+      desc: {
+        ...Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+        color: Styles.globalColors.black_50,
+      },
+      descriptionContainer: {
+        height: 17,
+        overflow: 'hidden',
+      },
+      headerTitle: Styles.platformStyles({
+        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      left: {minWidth: 260},
+      right: {
+        flexGrow: 1,
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.xsmall,
+      },
+      shhIconStyle: {
+        marginLeft: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 const Connected = Container.connect(
   state => {

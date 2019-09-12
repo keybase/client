@@ -36,12 +36,9 @@ func NewBgTickerWithWait(duration time.Duration, wait time.Duration) *BgTicker {
 }
 
 func (t *BgTicker) tick() {
-	for {
-		select {
-		case c := <-t.ticker.C:
-			time.Sleep(t.resumeWait)
-			t.c <- c
-		}
+	for c := range t.ticker.C {
+		time.Sleep(t.resumeWait)
+		t.c <- c
 	}
 }
 

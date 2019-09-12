@@ -561,6 +561,7 @@ export const localValidateStellarURILocalRpcPromise = (params: MessageTypes['ste
 // 'stellar.1.local.balancesLocal'
 // 'stellar.1.local.sendCLILocal'
 // 'stellar.1.local.sendPathCLILocal'
+// 'stellar.1.local.accountMergeCLILocal'
 // 'stellar.1.local.claimCLILocal'
 // 'stellar.1.local.recentPaymentsCLILocal'
 // 'stellar.1.local.paymentDetailCLILocal'

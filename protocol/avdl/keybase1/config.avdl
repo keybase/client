@@ -311,4 +311,6 @@ protocol config {
 
   // Runtime Stats
   void toggleRuntimeStats();
+
+  void appendGUILogs(string content);
 }

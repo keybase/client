@@ -1,32 +1,29 @@
-import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type DeviceID = string
 
-export type _Device = {
+export type Device = {
   created: number
   currentDevice: boolean
   deviceID: DeviceID
   lastUsed: number
   name: string
-  provisionedAt: number | null
-  provisionerName: string | null
-  revokedAt: number | null
-  revokedByName: string | null
+  provisionedAt?: number
+  provisionerName?: string
+  revokedAt?: number
+  revokedByName?: string
   type: DeviceType
 }
-export type Device = I.RecordOf<_Device>
 
-export type _State = {
-  deviceMap: I.Map<DeviceID, Device>
-  endangeredTLFMap: I.Map<DeviceID, I.Set<string>>
-  newPaperkey: HiddenString
-  selectedDeviceID: DeviceID | null
+export type State = {
+  deviceMap: Map<DeviceID, Device>
+  endangeredTLFMap: Map<DeviceID, Set<string>>
+  isNew: Set<string>
   justRevokedSelf: string
-  isNew: I.Set<string>
+  newPaperkey: HiddenString
+  selectedDeviceID?: DeviceID
 }
-export type State = I.RecordOf<_State>
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
 export function stringToDeviceType(s: string): DeviceType {

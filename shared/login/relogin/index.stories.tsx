@@ -1,15 +1,14 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Login, {Props} from '.'
-import * as Constants from '../../constants/config'
 
-const makeAccount = (username: string) =>
-  Constants.makeConfiguredAccount({hasStoredSecret: username !== 'no_secret', username})
+const makeAccount = (username: string) => ({
+  hasStoredSecret: username !== 'no_secret',
+  username,
+})
+
 const commonProps: Props = {
-  bannerError: false,
   error: '',
-  inputError: false,
-  inputKey: '0',
   onFeedback: Sb.action('onFeedback'),
   onForgotPassword: Sb.action('onForgotPassword'),
   onLogin: Sb.action('onLogin'),
@@ -28,8 +27,8 @@ const commonProps: Props = {
 const load = () => {
   Sb.storiesOf('Login/Login', module)
     .add('Single previous user', () => <Login {...commonProps} />)
-    .add('Input Error', () => <Login {...commonProps} inputError={true} error="Oh, no! What a mess!" />)
-    .add('Banner Error', () => <Login {...commonProps} bannerError={true} error="Oh, no! What a mess!" />)
+    .add('Input Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
+    .add('Banner Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
     .add('3 previous users', () => (
       <Login {...commonProps} users={['awendland', 'mgood', 'no_secret'].map(makeAccount)} />
     ))

@@ -658,15 +658,93 @@ func CreateAccountXLMTransactionWithMemo(from SeedStr, to AddressStr, amount str
 }
 
 // AccountMergeTransaction creates a signed transaction to merge the account `from` into `to`.
+// It will also create the `to` account if it does not already exist. If it does exist, and if
+// the `from` account has custom assets, this transaction will include payments of all of the
+// custom assets, and deletion of the `from` account's trustlines. AccountMergeTransaction will
+// error if the `from` account has a balance for an asset that the `to` account does not "trust."
 func AccountMergeTransaction(from SeedStr, to AddressStr,
-	seqnoProvider build.SequenceProvider, baseFee uint64) (res SignResult, err error) {
+	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return res, err
 	}
-	t.AddAccountMergeOp(to)
-	t.AddMemoText(defaultMemo)
 
+	fromAddr, err := from.Address()
+	if err != nil {
+		return res, err
+	}
+	fromAccount := NewAccount(fromAddr)
+	toAccount := NewAccount(to)
+	var targetAccountIsNew bool
+	if _, err = toAccount.BalanceXLM(); err == ErrSourceAccountNotFound {
+		// if the target account doesn't exist yet, create it.
+		t.AddCreateAccountOp(to, "1")
+		targetAccountIsNew = true
+	}
+	balances, err := fromAccount.Balances()
+	if err != nil {
+		return res, err
+	}
+
+	// if the target account is new, it won't have any trustlines
+	// which is only OK if the merging account doesnt have any non-native assets
+	var toTrustlines []Trustline
+	if !targetAccountIsNew {
+		toTrustlines, err = toAccount.Trustlines()
+		if err != nil {
+			return res, err
+		}
+	}
+	toAccountHasTrustline := func(asset AssetMinimal) bool {
+		if targetAccountIsNew {
+			return false
+		}
+		for _, tline := range toTrustlines {
+			if tline.Code == asset.CodeString() && tline.Issuer == asset.IssuerString() {
+				return true
+			}
+		}
+		return false
+	}
+
+	// pay all the non-native assets with balances to the target
+	for _, balance := range balances {
+		if balance.Asset.Type == "native" || balance.Balance == "0.0000000" {
+			continue
+		}
+		asset, err := NewAssetMinimal(balance.Asset.Code, balance.Asset.Issuer)
+		if err != nil {
+			return res, err
+		}
+		if !toAccountHasTrustline(asset) {
+			return res, fmt.Errorf("cannot merge %s:%s asset into an account without a trustline", asset.CodeString(), asset.IssuerString())
+		}
+		assetXDR, err := assetBaseToXDR(asset)
+		if err != nil {
+			return res, err
+		}
+		t.AddAssetPaymentOp(to, assetXDR, balance.Balance)
+	}
+
+	// delete all the trustlines in the from account
+	trustlines, err := fromAccount.Trustlines()
+	if err != nil {
+		return res, err
+	}
+	for _, trustline := range trustlines {
+		if trustline.Type == "native" {
+			continue
+		}
+		assetIssuer, err := NewAddressStr(trustline.Issuer)
+		if err != nil {
+			return res, err
+		}
+		t.AddDeleteTrustlineOp(trustline.Code, assetIssuer)
+	}
+
+	t.AddAccountMergeOp(to)
+	t.AddBuiltTimeBounds(timeBounds)
+	t.AddMemoText(defaultMemo)
 	return t.Sign(from)
 }
 
@@ -920,6 +998,18 @@ func CreateCustomAsset(source SeedStr, assetCode, limit, homeDomain string, xlmP
 // You should probably use CreateCustomAsset as it will make new issuer, dist for you,
 // but this one can be handy in tests where you want to specify the issuer, dist keys.
 func CreateCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full, assetCode, limit, homeDomain string, xlmPrice string, baseFee uint64) (issuer, distributor SeedStr, err error) {
+	// see if the asset has already been created
+	searchRes, err := AssetSearch(AssetSearchArg{
+		AssetCode: assetCode,
+		IssuerID:  issuerPair.Address(),
+	})
+	if err != nil {
+		return "", "", err
+	}
+	if len(searchRes) > 0 {
+		return "", "", ErrAssetAlreadyExists
+	}
+
 	// 1. create issuer
 	issuer, err = NewSeedStr(issuerPair.Seed())
 	if err != nil {
@@ -929,7 +1019,7 @@ func CreateCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full
 	if err != nil {
 		return "", "", err
 	}
-	_, _, _, err = createAccountXLM(source, issuerAddr, "5", "")
+	_, _, _, err = SendXLM(source, issuerAddr, "5", "")
 	if err != nil {
 		return "", "", err
 	}
@@ -943,7 +1033,7 @@ func CreateCustomAssetWithKPs(source SeedStr, issuerPair, distPair *keypair.Full
 	if err != nil {
 		return issuer, "", err
 	}
-	_, _, _, err = createAccountXLM(source, distributorAddr, "5", "")
+	_, _, _, err = SendXLM(source, distributorAddr, "5", "")
 	if err != nil {
 		return issuer, "", err
 	}

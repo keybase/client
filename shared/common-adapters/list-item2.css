@@ -4,23 +4,23 @@
 }
 
 .listItem2 .grow {
-  maxwidth: 0;
+  max-width: 0;
   overflow: hidden;
   transition: max-width 0.1s ease-out;
 }
 
 .listItem2:hover {
-  background-color: #a8ccff;
+  background-color: #EBF2FC;
 }
 .darkMode .listItem2:hover {
-  background-color: red;
+  background-color: rgba(24, 45, 110, .5);
 }
 
 .listItem2:hover .avatar-border {
   box-shadow: 0px 0px 0px 2px #a8ccff !important;
 }
 .darkMode .listItem2:hover .avatar-border {
-  box-shadow: 0px 0px 0px 2px red !important;
+  box-shadow: 0px 0px 0px 2px rgba(24, 45, 110, .5) !important;
 }
 
 .listItem2:hover .fade {
@@ -28,5 +28,5 @@
 }
 
 .listItem2:hover .grow {
-  max-width: 64;
+  max-width: 64px;
 }

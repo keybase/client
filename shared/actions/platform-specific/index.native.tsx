@@ -1,11 +1,12 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as FsTypes from '../../constants/types/fs'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as EngineGen from '../engine-gen-gen'
 import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -15,11 +16,13 @@ import {
   Alert,
   Linking,
   NativeModules,
+  NativeEventEmitter,
   ActionSheetIOS,
   CameraRoll,
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
+// eslint-ignore-next-line messed up export in module. fixed in the next update
 import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
@@ -32,48 +35,69 @@ import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-n
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {pluralize} from '../../util/string'
 
-type NextURI = string
-
-const requestPermissionsToWrite = (): Promise<void> => {
+const requestPermissionsToWrite = async () => {
   if (isAndroid) {
-    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-      buttonNegative: 'Cancel',
-      buttonNeutral: 'Ask me later',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your storage so we can download a file.',
-      title: 'Keybase Storage Permission',
-    }).then(permissionStatus =>
-      permissionStatus !== 'granted'
-        ? Promise.reject(new Error('Unable to acquire storage permissions'))
-        : Promise.resolve()
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        buttonNegative: 'Cancel',
+        buttonNeutral: 'Ask me later',
+        buttonPositive: 'OK',
+        message: 'Keybase needs access to your storage so we can download a file.',
+        title: 'Keybase Storage Permission',
+      }
     )
+    return permissionStatus !== 'granted'
+      ? Promise.reject(new Error('Unable to acquire storage permissions'))
+      : Promise.resolve()
   }
   return Promise.resolve()
 }
 
-const requestLocationPermission = (): Promise<void> => {
-  if (isAndroid) {
-    return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
-      buttonNegative: 'Cancel',
-      buttonPositive: 'OK',
-      message: 'Keybase needs access to your location in order to post it.',
-      title: 'Keybase Location Permission',
-    }).then(permissionStatus =>
-      permissionStatus !== 'granted'
-        ? Promise.reject(new Error('Unable to acquire location permissions'))
-        : Promise.resolve()
-    )
+export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositionPerm) => {
+  if (isIOS) {
+    const {status, permissions} = await Permissions.getAsync(Permissions.LOCATION)
+    switch (mode) {
+      case RPCChatTypes.UIWatchPositionPerm.base:
+        if (status === Permissions.PermissionStatus.DENIED) {
+          throw new Error('Please allow Keybase to access your location in the phone settings.')
+        }
+        break
+      case RPCChatTypes.UIWatchPositionPerm.always: {
+        const iOSPerms = permissions[Permissions.LOCATION].ios
+        if (!iOSPerms || iOSPerms.scope !== 'always') {
+          throw new Error(
+            'Please allow Keybase to access your location even if the app is not running for live location.'
+          )
+        }
+        break
+      }
+    }
   }
-  return Promise.resolve()
+  if (isAndroid) {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+        message: 'Keybase needs access to your location in order to post it.',
+        title: 'Keybase Location Permission',
+      }
+    )
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire location permissions')
+    }
+  }
 }
 
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export const saveAttachmentDialog = async (filePath: string) => {
   let goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
-  return requestPermissionsToWrite().then(() => CameraRoll.saveToCameraRoll(goodPath))
+  await requestPermissionsToWrite()
+  return CameraRoll.saveToCameraRoll(goodPath)
 }
 
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
@@ -95,92 +119,97 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
   }
 }
 
-function showShareActionSheetFromURL(options: {
+export const showShareActionSheetFromURL = async (options: {
   url?: any | null
   message?: any | null
   mimeType?: string | null
-}) {
+}) => {
   if (isIOS) {
     return new Promise((resolve, reject) =>
       ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
     )
   } else {
     if (!options.url && options.message) {
-      return NativeModules.ShareFiles.shareText(options.message, options.mimeType).then(
-        () => ({completed: true, method: ''}),
-        () => ({completed: false, method: ''})
-      )
+      try {
+        await NativeModules.ShareFiles.shareText(options.message, options.mimeType)
+        return {completed: true, method: ''}
+      } catch (_) {
+        return {completed: false, method: ''}
+      }
     }
 
-    return NativeModules.ShareFiles.share(options.url, options.mimeType).then(
-      () => ({completed: true, method: ''}),
-      () => ({completed: false, method: ''})
-    )
+    try {
+      await NativeModules.ShareFiles.share(options.url, options.mimeType)
+      return {completed: true, method: ''}
+    } catch (_) {
+      return {completed: false, method: ''}
+    }
   }
 }
 
 // Shows the shareactionsheet for a file, and deletes the file afterwards
-function showShareActionSheetFromFile(filePath: string): Promise<void> {
-  return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
+export const showShareActionSheetFromFile = async (filePath: string) => {
+  await showShareActionSheetFromURL({url: 'file://' + filePath})
+  return RNFetchBlob.fs.unlink(filePath)
 }
 
-const openAppSettings = () => {
+const openAppSettings = async () => {
   if (isAndroid) {
     NativeModules.NativeSettings.open()
   } else {
     const settingsURL = 'app-settings:'
-    Linking.canOpenURL(settingsURL).then(can => {
-      if (can) {
-        Linking.openURL(settingsURL)
-      } else {
-        logger.warn('Unable to open app settings')
-      }
-    })
+    const can = await Linking.canOpenURL(settingsURL)
+    if (can) {
+      Linking.openURL(settingsURL)
+    } else {
+      logger.warn('Unable to open app settings')
+    }
   }
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = async (
   url: string,
   cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
-) =>
+) => {
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
-  isAndroid
-    ? fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
-        .then(response => {
-          let contentType = ''
-          let disposition = ''
-          let statusCode = response.status
-          if (
-            statusCode === 200 ||
-            statusCode === 206 ||
-            // 416 can happen if the file is empty.
-            statusCode === 416
-          ) {
-            contentType = response.headers.get('Content-Type') || ''
-            disposition = response.headers.get('Content-Disposition') || ''
-            statusCode = 200 // Treat 200, 206, and 416 as 200.
-          }
-          cb({contentType, disposition, statusCode})
-        })
-        .catch(error => {
-          console.log(error)
-          cb({error})
-        })
-    : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-        .then(response => {
-          let contentType = ''
-          let disposition = ''
-          if (response.status === 200) {
-            contentType = response.headers.get('Content-Type') || ''
-            disposition = response.headers.get('Content-Disposition') || ''
-          }
-          cb({contentType, disposition, statusCode: response.status})
-        })
-        .catch(error => {
-          console.log(error)
-          cb({error})
-        })
+  if (isAndroid) {
+    try {
+      const response = await fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
+      let contentType = ''
+      let disposition = ''
+      let statusCode = response.status
+      if (
+        statusCode === 200 ||
+        statusCode === 206 ||
+        // 416 can happen if the file is empty.
+        statusCode === 416
+      ) {
+        contentType = response.headers.get('Content-Type') || ''
+        disposition = response.headers.get('Content-Disposition') || ''
+        statusCode = 200 // Treat 200, 206, and 416 as 200.
+      }
+      cb({contentType, disposition, statusCode})
+    } catch (error) {
+      console.log(error)
+      cb({error})
+    }
+  } else {
+    try {
+      const response = await fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
+      let contentType = ''
+      let disposition = ''
+      if (response.status === 200) {
+        contentType = response.headers.get('Content-Type') || ''
+        disposition = response.headers.get('Content-Disposition') || ''
+      }
+      cb({contentType, disposition, statusCode: response.status})
+    } catch (error) {
+      console.log(error)
+      cb({error})
+    }
+  }
+}
 
 const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused: boolean
@@ -207,28 +236,6 @@ const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileApp
   logger.info(`setting app state on service to: ${logState}`)
   return ConfigGen.createChangedFocus({appFocused})
 }
-
-const getStartupDetailsFromShare = (): Promise<
-  | null
-  | {
-      localPath: FsTypes.LocalPath
-    }
-  | {
-      text: string
-    }
-> =>
-  isAndroid
-    ? NativeModules.IntentHandler.getShareData().then(p => {
-        if (!p) return null
-        if (p.localPath) {
-          return {localPath: FsTypes.stringToLocalPath(p.localPath)}
-        }
-        if (p.text) {
-          return {text: p.text}
-        }
-        return null
-      })
-    : Promise.resolve(null)
 
 let _lastPersist = ''
 function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
@@ -268,16 +275,21 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   )
 }
 
-const updateMobileNetState = (_: Container.TypedState, action) => {
-  RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type}).catch(err => {
+const updateMobileNetState = async (
+  _: Container.TypedState,
+  action: ConfigGen.OsNetworkStatusChangedPayload
+) => {
+  try {
+    await RPCTypes.appStateUpdateMobileNetStateRpcPromise({state: action.payload.type})
+  } catch (err) {
     console.warn('Error sending mobileNetStateUpdate', err)
-  })
+  }
 }
 
-const initOsNetworkStatus = () =>
-  NetInfo.getConnectionInfo().then(({type}) =>
-    ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
-  )
+const initOsNetworkStatus = async () => {
+  const {type} = await NetInfo.getConnectionInfo()
+  return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
+}
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
@@ -291,32 +303,35 @@ function* setupNetInfoWatcher() {
   }
 }
 
+// TODO rewrite this, v slow
 function* loadStartupDetails() {
   let startupWasFromPush = false
-  let startupConversation = null
+  let startupConversation = undefined
   let startupFollowUser = ''
   let startupLink = ''
-  let startupTab = null
-  let startupSharePath = null
+  let startupTab = undefined
+  let startupSharePath = undefined
 
-  const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
-      .then(v => v.s || '')
-      .catch(() => {})
-  )
+  const routeStateTask = yield Saga._fork(async () => {
+    try {
+      const v = await RPCTypes.configGuiGetValueRpcPromise({path: 'ui.routeState2'})
+      return v.s || ''
+    } catch (_) {
+      return undefined
+    }
+  })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const initialShare = yield Saga._fork(getStartupDetailsFromShare)
-  const [routeState, link, push, share] = yield Saga.join(routeStateTask, linkTask, initialPush, initialShare)
+  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Clear last value to be extra safe bad things don't hose us forever
-  yield Saga._fork(() => {
-    RPCTypes.configGuiSetValueRpcPromise({
-      path: 'ui.routeState2',
-      value: {isNull: false, s: ''},
-    })
-      .then(() => {})
-      .catch(() => {})
+  yield Saga._fork(async () => {
+    try {
+      await RPCTypes.configGuiSetValueRpcPromise({
+        path: 'ui.routeState2',
+        value: {isNull: false, s: ''},
+      })
+    } catch (_) {}
   })
 
   // Top priority, push
@@ -327,23 +342,17 @@ function* loadStartupDetails() {
   } else if (link) {
     // Second priority, deep link
     startupLink = link
-  } else if (share) {
-    // Third priority, share
-    // TODO: handle share.localPath or share.text.
-    if (share.localPath) {
-      startupSharePath = share.localPath
-    }
   } else if (routeState) {
     // Last priority, saved from last session
     try {
       const item = JSON.parse(routeState)
       if (item) {
-        startupConversation = item.param && item.param.selectedConversationIDKey
-        startupTab = item.routeName
+        startupConversation = (item.param && item.param.selectedConversationIDKey) || undefined
+        startupTab = item.routeName || undefined
       }
     } catch (_) {
-      startupConversation = null
-      startupTab = null
+      startupConversation = undefined
+      startupTab = undefined
     }
   }
 
@@ -390,16 +399,18 @@ const handleFilePickerError = (_: Container.TypedState, action: ConfigGen.FilePi
   Alert.alert('Error', action.payload.error.message)
 }
 
-const editAvatar = () =>
-  launchImageLibraryAsync('photo')
-    .then(result =>
-      result.cancelled === true
-        ? null
-        : RouteTreeGen.createNavigateAppend({
-            path: [{props: {image: result}, selected: 'profileEditAvatar'}],
-          })
-    )
-    .catch(error => ConfigGen.createFilePickerError({error: new Error(error)}))
+const editAvatar = async () => {
+  try {
+    const result = await launchImageLibraryAsync('photo')
+    return result.cancelled === true
+      ? null
+      : RouteTreeGen.createNavigateAppend({
+          path: [{props: {image: result}, selected: 'profileEditAvatar'}],
+        })
+  } catch (error) {
+    return ConfigGen.createFilePickerError({error: new Error(error)})
+  }
+}
 
 const openAppStore = () =>
   Linking.openURL(
@@ -479,19 +490,14 @@ function* requestContactPermissions(
   ])
 }
 
-async function manageContactsCache(
+const manageContactsCache = async (
   state: Container.TypedState,
-  action: SettingsGen.LoadedContactImportEnabledPayload | ConfigGen.MobileAppStatePayload,
+  _: SettingsGen.LoadedContactImportEnabledPayload | EngineGen.Chat1ChatUiTriggerContactSyncPayload,
   logger: Saga.SagaLogger
-) {
-  if (action.type === ConfigGen.mobileAppState && action.payload.nextAppState !== 'active') {
-    return
-  }
-
+) => {
   if (state.settings.contacts.importEnabled === false) {
-    return RPCTypes.contactsSaveContactListRpcPromise({contacts: []}).then(() =>
-      SettingsGen.createSetContactImportedCount({count: null})
-    )
+    await RPCTypes.contactsSaveContactListRpcPromise({contacts: []})
+    return SettingsGen.createSetContactImportedCount({count: null})
   }
 
   // get permissions if we haven't loaded them for some reason
@@ -513,7 +519,15 @@ async function manageContactsCache(
   }
 
   // feature enabled and permission granted
-  const contacts = await Contacts.getContactsAsync()
+  let contacts: Contacts.ContactResponse
+  try {
+    contacts = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+  } catch (e) {
+    logger.error(`error loading contacts: ${e.message}`)
+    return SettingsGen.createSetContactImportedCount({count: null, error: e.message})
+  }
   let defaultCountryCode: string = ''
   try {
     defaultCountryCode = await NativeModules.Utils.getDefaultCountryCode()
@@ -562,6 +576,7 @@ async function manageContactsCache(
     }
   } catch (e) {
     logger.error('Error saving contacts list: ', e.message)
+    actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
 }
@@ -599,7 +614,25 @@ const getE164 = (phoneNumber: string, countryCode?: string) => {
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+function* setupDarkMode() {
+  const NativeAppearance = NativeModules.Appearance
+  if (NativeAppearance) {
+    const channel = Saga.eventChannel(emitter => {
+      const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
+      nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
+        emitter(colorScheme)
+      })
+      return () => {}
+    }, Saga.buffers.sliding(1))
+
+    while (true) {
+      const mode = yield Saga.take(channel)
+      yield Saga.put(ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'}))
+    }
+  }
+}
+
+export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)
@@ -624,7 +657,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     'requestContactPermissions'
   )
   yield* Saga.chainAction2(
-    [SettingsGen.loadedContactImportEnabled, ConfigGen.mobileAppState],
+    [SettingsGen.loadedContactImportEnabled, EngineGen.chat1ChatUiTriggerContactSync],
     manageContactsCache,
     'manageContactsCache'
   )
@@ -632,14 +665,5 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)
   yield Saga.spawn(setupNetInfoWatcher)
-}
-
-export {
-  showShareActionSheetFromFile,
-  showShareActionSheetFromURL,
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  getContentTypeFromURL,
-  platformConfigSaga,
-  requestLocationPermission,
+  yield Saga.spawn(setupDarkMode)
 }

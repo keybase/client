@@ -81,8 +81,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher type
 }
 
 func (r *AttachmentHTTPSrv) OnDbNuke(mctx libkb.MetaContext) error {
-	r.fetcher.OnDbNuke(mctx)
-	return nil
+	return r.fetcher.OnDbNuke(mctx)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
@@ -262,13 +261,20 @@ func (r *AttachmentHTTPSrv) serveGiphyGallerySelect(ctx context.Context, w http.
 			err)
 		return
 	}
+	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
+	if err := r.G().InboxSource.Draft(ctx, uid, convID, nil); err != nil {
+		r.Debug(ctx, "serveGiphyGallerySelect: failed to clear draft: %s", err)
+	}
 	if err := r.G().ChatHelper.SendTextByID(ctx, convID, tlfName, url, keybase1.TLFVisibility_PRIVATE); err != nil {
 		r.makeError(context.TODO(), w, http.StatusInternalServerError, "failed to send giphy url: %s",
 			err)
 	}
 	ui, err := r.G().UIRouter.GetChatUI()
 	if err == nil && ui != nil {
-		ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		err := ui.ChatGiphyToggleResultWindow(ctx, convID, false, true)
+		if err != nil {
+			r.Debug(ctx, "serveGiphyGallerySelect: failed to toggle giphy: %s", err)
+		}
 	} else {
 		r.Debug(ctx, "serveGiphyGallerySelect: failed to get chat UI: %s", err)
 	}
@@ -645,11 +651,16 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, si
 	}
 }
 
-func (c *CachingAttachmentFetcher) getCacheDir() string {
+func (c *CachingAttachmentFetcher) getBaseDir() string {
+	baseDir := c.G().GetCacheDir()
 	if len(c.tempDir) > 0 {
-		return c.tempDir
+		baseDir = c.tempDir
 	}
-	return filepath.Join(c.G().GetCacheDir(), "attachments")
+	return baseDir
+}
+
+func (c *CachingAttachmentFetcher) getCacheDir() string {
+	return filepath.Join(c.getBaseDir(), "attachments")
 }
 
 func (c *CachingAttachmentFetcher) getFullFilename(name string) string {
@@ -667,7 +678,10 @@ func (c *CachingAttachmentFetcher) cacheKey(asset chat1.Asset) string {
 }
 
 func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*os.File, error) {
-	os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	err := os.MkdirAll(c.getCacheDir(), os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
 	file, err := ioutil.TempFile(c.getCacheDir(), "att")
 	file.Close()
 	if err != nil {
@@ -684,8 +698,11 @@ func (c *CachingAttachmentFetcher) createAttachmentFile(ctx context.Context) (*o
 // file path since it's possible for the path to the cache dir to change,
 // especially on mobile.
 func (c *CachingAttachmentFetcher) normalizeFilenameFromCache(file string) string {
+	dir := filepath.Base(filepath.Dir(file))
 	file = filepath.Base(file)
-	return filepath.Join(c.getCacheDir(), file)
+	// some attachments may be in the "uploadedpreviews"/"uploadedfulls" dirs,
+	// so we preserve the parent directory here.
+	return filepath.Join(c.getBaseDir(), dir, file)
 }
 
 func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset chat1.Asset) (found bool, path string, err error) {
@@ -723,7 +740,7 @@ func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Wri
 		if err != nil {
 			c.Debug(ctx, "FetchAttachment: failed to read cached file, removing: %s", err)
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 			found = false
 		}
 		if found {
@@ -818,7 +835,7 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 		}
 		if found {
 			os.Remove(path)
-			c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
+			_ = c.diskLRU.Remove(ctx, c.G(), c.cacheKey(asset))
 		}
 	}
 

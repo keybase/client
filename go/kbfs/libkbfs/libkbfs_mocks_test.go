@@ -908,6 +908,20 @@ func (mr *MockKBFSOpsMockRecorder) AddRootNodeWrapper(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRootNodeWrapper", reflect.TypeOf((*MockKBFSOps)(nil).AddRootNodeWrapper), arg0)
 }
 
+// CheckMigrationPerms mocks base method
+func (m *MockKBFSOps) CheckMigrationPerms(arg0 context.Context, arg1 tlf.ID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckMigrationPerms", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CheckMigrationPerms indicates an expected call of CheckMigrationPerms
+func (mr *MockKBFSOpsMockRecorder) CheckMigrationPerms(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckMigrationPerms", reflect.TypeOf((*MockKBFSOps)(nil).CheckMigrationPerms), arg0, arg1)
+}
+
 // ClearCachedFavorites mocks base method
 func (m *MockKBFSOps) ClearCachedFavorites(arg0 context.Context) {
 	m.ctrl.T.Helper()
@@ -1465,17 +1479,17 @@ func (mr *MockKBFSOpsMockRecorder) RequestRekey(arg0, arg1 interface{}) *gomock.
 }
 
 // Reset mocks base method
-func (m *MockKBFSOps) Reset(arg0 context.Context, arg1 *tlfhandle.Handle) error {
+func (m *MockKBFSOps) Reset(arg0 context.Context, arg1 *tlfhandle.Handle, arg2 *tlf.ID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Reset", arg0, arg1)
+	ret := m.ctrl.Call(m, "Reset", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Reset indicates an expected call of Reset
-func (mr *MockKBFSOpsMockRecorder) Reset(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) Reset(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*MockKBFSOps)(nil).Reset), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*MockKBFSOps)(nil).Reset), arg0, arg1, arg2)
 }
 
 // SetEx mocks base method

@@ -2,17 +2,17 @@
   "protocol": "local",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "path": "../stellar1",
       "type": "idl",
       "import_as": "stellar1"
     },
@@ -302,6 +302,16 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessagePin",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
         }
       ]
     },
@@ -852,6 +862,13 @@
             "def": false
           },
           "body": "MessageFlip"
+        },
+        {
+          "label": {
+            "name": "PIN",
+            "def": false
+          },
+          "body": "MessagePin"
         }
       ]
     },
@@ -1266,6 +1283,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "BodyPlaintextV2",
+      "fields": [
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "BodyPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "BodyPlaintext",
       "switch": {
@@ -1285,7 +1316,7 @@
             "name": "V2",
             "def": false
           },
-          "body": "BodyPlaintextUnsupported"
+          "body": "BodyPlaintextV2"
         },
         {
           "label": {
@@ -1653,6 +1684,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationPinnedMessage",
+      "fields": [
+        {
+          "type": "MessageUnboxed",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -1681,6 +1726,13 @@
             "MessageUnboxed"
           ],
           "name": "snippetMsg"
+        },
+        {
+          "type": [
+            null,
+            "ConversationPinnedMessage"
+          ],
+          "name": "pinnedMsg"
         },
         {
           "type": [
@@ -3399,6 +3451,19 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PinMessageRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3610,6 +3675,10 @@
     },
     "postLocal": {
       "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
         {
           "name": "conversationID",
           "type": "ConversationID"
@@ -4859,15 +4928,6 @@
       ],
       "response": null
     },
-    "locationDenied": {
-      "request": [
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": null
-    },
     "advertiseBotCommandsLocal": {
       "request": [
         {
@@ -4899,6 +4959,37 @@
     "clearBotCommandsLocal": {
       "request": [],
       "response": "ClearBotCommandsLocalRes"
+    },
+    "pinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "unpinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "ignorePinnedMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

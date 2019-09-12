@@ -147,10 +147,10 @@ class CoinFlip extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     alignSelf: 'flex-start',
-    borderColor: Styles.globalColors.greyLight,
+    borderColor: Styles.globalColors.grey,
     borderLeftWidth: 4,
     borderStyle: 'solid',
     marginTop: Styles.globalMargins.xtiny,
@@ -163,7 +163,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
   },
   placeholder: {
-    backgroundColor: Styles.globalColors.greyLight,
+    backgroundColor: Styles.globalColors.grey,
   },
   progress: Styles.platformStyles({
     isElectron: {
@@ -189,6 +189,6 @@ const styles = Styles.styleSheetCreate({
   statusContainer: {
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default CoinFlip

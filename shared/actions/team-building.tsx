@@ -7,6 +7,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
 import {validateNumber} from '../util/phone-numbers'
+import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -14,21 +15,24 @@ type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespac
 
 const apiSearch = async (
   query: string,
-  service: TeamBuildingTypes.ServiceIdWithContact,
+  service: TeamBuildingTypes.ServiceId,
   maxResults: number,
   includeServicesSummary: boolean,
   impTofuQuery: RPCTypes.ImpTofuQuery | null,
   includeContacts: boolean
 ): Promise<Array<TeamBuildingTypes.User>> => {
   try {
-    const results = await RPCTypes.userSearchUserSearchRpcPromise({
-      impTofuQuery,
-      includeContacts: service === 'keybase' && includeContacts,
-      includeServicesSummary,
-      maxResults,
-      query,
-      service,
-    })
+    const results = await RPCTypes.userSearchUserSearchRpcPromise(
+      {
+        impTofuQuery,
+        includeContacts: service === 'keybase' && includeContacts,
+        includeServicesSummary,
+        maxResults,
+        query,
+        service,
+      },
+      Constants.searchWaitingKey
+    )
     return (results || []).reduce<Array<TeamBuildingTypes.User>>((arr, r) => {
       const u = Constants.parseRawResultToUser(r, service)
       u && arr.push(u)
@@ -40,76 +44,6 @@ const apiSearch = async (
   }
 }
 
-function* searchResultCounts(state: TypedState, {payload: {namespace}}: NSAction) {
-  const teamBuildingState = state[namespace].teamBuilding
-  const {teamBuildingSearchQuery, teamBuildingSelectedService} = teamBuildingState
-  const teamBuildingSearchLimit = 11 // Hard coded since this happens for background tabs
-
-  if (teamBuildingSearchQuery === '') {
-    return
-  }
-
-  // filter out the service we are searching for and contact
-  // Also filter out if we already have that result cached
-  const servicesToSearch = Constants.services
-    .filter(s => s !== teamBuildingSelectedService && s !== 'contact')
-    .filter(s => !teamBuildingState.teamBuildingSearchResults.hasIn([teamBuildingSearchQuery, s]))
-
-  const isStillInSameQuery = (state: TypedState): boolean => {
-    const teamBuildingState = state[namespace].teamBuilding
-
-    return (
-      teamBuildingState.teamBuildingSearchQuery === teamBuildingSearchQuery &&
-      teamBuildingState.teamBuildingSelectedService === teamBuildingSelectedService
-    )
-  }
-
-  // Defer so we aren't conflicting with the main search
-  yield Saga.callUntyped(Saga.delay, 100)
-
-  // Change this to control how many requests are in flight at a time
-  const parallelRequestsCount = 2
-
-  // Channel to interact with workers. Initial buffer size to handle all the messages we'll put
-  // + 1 because we'll put the END message at the end when we close
-  const serviceChannel = yield Saga.callUntyped(
-    Saga.channel,
-    Saga.buffers.expanding(servicesToSearch.length + 1)
-  )
-  servicesToSearch.forEach(service => serviceChannel.put(service))
-  // After the workers pull all the services they can stop
-  serviceChannel.close()
-
-  for (let i = 0; i < parallelRequestsCount; i++) {
-    yield Saga.spawn(function*() {
-      // The loop will exit when we run out of services
-      while (true) {
-        const service = yield Saga.take(serviceChannel)
-        // if we aren't in the same query, let's stop
-        if (!isStillInSameQuery(yield* Saga.selectState())) {
-          break
-        }
-        const action = yield apiSearch(
-          teamBuildingSearchQuery,
-          service,
-          teamBuildingSearchLimit,
-          true,
-          null,
-          false
-        ).then(users =>
-          TeamBuildingGen.createSearchResultsLoaded({
-            namespace,
-            query: teamBuildingSearchQuery,
-            service,
-            users,
-          })
-        )
-        yield Saga.put(action)
-      }
-    })
-  }
-}
-
 const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTofuQuery | null => {
   const phoneNumber = validateNumber(query, region)
   if (phoneNumber.valid) {
@@ -117,16 +51,10 @@ const makeImpTofuQuery = (query: string, region: string | null): RPCTypes.ImpTof
       phone: phoneNumber.e164,
       t: RPCTypes.ImpTofuSearchType.phone,
     }
-  } else {
-    // Consider the query a valid email if it contains at sign (but not at 0
-    // index) and a period after the at sign.
-    const atIndex = query.indexOf('@')
-    const periodIndex = query.lastIndexOf('.')
-    if (atIndex > 0 && periodIndex > atIndex && periodIndex !== query.length - 1) {
-      return {
-        email: query,
-        t: RPCTypes.ImpTofuSearchType.email,
-      }
+  } else if (validateEmailAddress(query)) {
+    return {
+      email: query,
+      t: RPCTypes.ImpTofuSearchType.email,
     }
   }
   return null
@@ -142,6 +70,7 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
     return false
   }
 
+  // search tab services include phone/email - 'keybase' is the ServiceId for these, and we transform the query into impTofuQuery
   const query = teamBuildingSearchQuery
   let impTofuQuery: RPCTypes.ImpTofuQuery | null = null
   if (teamBuildingSelectedService === 'keybase') {
@@ -178,22 +107,8 @@ const fetchUserRecs = async (
     ])
     const suggestionRes = _suggestionRes || []
     const contactRes = _contactRes || []
-    const contacts = contactRes.map(
-      (x): TeamBuildingTypes.User => ({
-        contact: true,
-        id: x.assertion,
-        label: x.displayLabel,
-        prettyName: x.displayName,
-        serviceMap: {keybase: x.username},
-      })
-    )
-    let suggestions = suggestionRes.map(
-      ({username, fullname}): TeamBuildingTypes.User => ({
-        id: username,
-        prettyName: fullname,
-        serviceMap: {keybase: username},
-      })
-    )
+    const contacts = contactRes.map(Constants.contactToUser)
+    let suggestions = suggestionRes.map(Constants.interestingPersonToUser)
     const expectingContacts = state.settings.contacts.importEnabled && includeContacts
     if (expectingContacts) {
       suggestions = suggestions.slice(0, 10)
@@ -217,26 +132,9 @@ export function filterForNs<S, A, L, R>(
   }
 }
 
-function filterGenForNs<S, A, L>(
-  namespace: TeamBuildingTypes.AllowedNamespace,
-  fn: (s: S, a: A & NSAction, l: L) => Iterable<any>
-) {
-  return function*(s, a, l) {
-    if (a && a.payload && a.payload.namespace === namespace) {
-      yield* fn(s, a, l)
-    }
-  }
-}
-
-export default function* commonSagas(
-  namespace: TeamBuildingTypes.AllowedNamespace
-): Saga.SagaGenerator<any, any> {
+export default function* commonSagas(namespace: TeamBuildingTypes.AllowedNamespace) {
   yield* Saga.chainAction2(TeamBuildingGen.search, filterForNs(namespace, search))
   yield* Saga.chainAction2(TeamBuildingGen.fetchUserRecs, filterForNs(namespace, fetchUserRecs))
-  yield* Saga.chainGenerator<TeamBuildingGen.SearchPayload>(
-    TeamBuildingGen.search,
-    filterGenForNs(namespace, searchResultCounts)
-  )
   // Navigation, before creating
   yield* Saga.chainAction2(
     [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],

@@ -46,31 +46,29 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 }
 
 func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
-	typs []chat1.MessageType, makeCombined func([]chat1.MessageUnboxed) chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
+	matches func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool, makeCombined func([]chat1.MessageUnboxed) *chat1.MessageUnboxed) (res []chat1.MessageUnboxed) {
 	var grouped []chat1.MessageUnboxed
-	typMap := make(map[chat1.MessageType]bool)
-	for _, t := range typs {
-		typMap[t] = true
-	}
 	addGrouped := func() {
 		if len(grouped) == 0 {
 			return
 		}
-		res = append(res, makeCombined(grouped))
+		msg := makeCombined(grouped)
+		if msg != nil {
+			res = append(res, *msg)
+		}
 		grouped = nil
 	}
 	for _, msg := range msgs {
-		if msg.IsValid() {
-			body := msg.Valid().MessageBody
-			mtyp, err := body.MessageType()
-			if err == nil && typMap[mtyp] && !msg.Valid().ClientHeader.Sender.Eq(uid) {
-				grouped = append(grouped, msg)
-			} else {
-				addGrouped()
-				res = append(res, msg)
-			}
+		if msg.IsValid() && matches(msg, grouped) {
+			grouped = append(grouped, msg)
+			continue
+		}
+		addGrouped()
+		// some match functions may depend on messages in grouped, so after we clear it
+		// this message might be a candidate to get grouped.
+		if msg.IsValid() && matches(msg, grouped) {
+			grouped = append(grouped, msg)
 		} else {
-			addGrouped()
 			res = append(res, msg)
 		}
 	}
@@ -78,11 +76,30 @@ func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs
 	return res
 }
 
-func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView) chat1.ThreadView {
+func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, tv chat1.ThreadView, conv types.RemoteConversation) chat1.ThreadView {
+
+	// group JOIN/LEAVE messages
 	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
-		[]chat1.MessageType{chat1.MessageType_JOIN, chat1.MessageType_LEAVE},
-		func(grouped []chat1.MessageUnboxed) chat1.MessageUnboxed {
-			mvalid := grouped[0].Valid()
+		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			body := msg.Valid().MessageBody
+			mtyp, err := body.MessageType()
+			if err != nil {
+				return false
+			}
+			if !(mtyp == chat1.MessageType_JOIN || mtyp == chat1.MessageType_LEAVE) {
+				return false
+			}
+			if msg.Valid().ClientHeader.Sender.Eq(uid) {
+				return false
+			}
+			for _, g := range grouped {
+				if g.Valid().SenderUsername == msg.Valid().SenderUsername {
+					return false
+				}
+			}
+			return true
+		},
+		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
 			var joiners, leavers []string
 			for _, j := range grouped {
 				if j.Valid().MessageBody.IsType(chat1.MessageType_JOIN) {
@@ -91,13 +108,71 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 					leavers = append(leavers, j.Valid().SenderUsername)
 				}
 			}
+			mvalid := grouped[0].Valid()
 			mvalid.ClientHeader.MessageType = chat1.MessageType_JOIN
 			mvalid.MessageBody = chat1.NewMessageBodyWithJoin(chat1.MessageJoin{
 				Joiners: joiners,
 				Leavers: leavers,
 			})
-			return chat1.NewMessageUnboxedWithValid(mvalid)
+			msg := chat1.NewMessageUnboxedWithValid(mvalid)
+			return &msg
 		})
+
+	var activeMap map[string]struct{}
+	// group BULKADDTOCONV system messages
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
+		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			body := msg.Valid().MessageBody
+			mtyp, err := body.MessageType()
+			if err == nil && mtyp == chat1.MessageType_SYSTEM {
+				body := msg.Valid().MessageBody.System()
+				typ, err := body.SystemType()
+				return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
+			}
+			return false
+		},
+		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+			var filteredUsernames, usernames []string
+			for _, j := range grouped {
+				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
+					body := j.Valid().MessageBody.System()
+					typ, err := body.SystemType()
+					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV {
+						usernames = append(usernames, body.Bulkaddtoconv().Usernames...)
+					}
+				}
+			}
+
+			if activeMap == nil && len(usernames) > 0 {
+				activeMap = make(map[string]struct{})
+				for _, uid := range conv.Conv.Metadata.AllList {
+					activeMap[uid.String()] = struct{}{}
+				}
+			}
+
+			// filter the usernames for people that are actually part of the team
+			for _, username := range usernames {
+				uid, err := t.G().GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
+				if err != nil {
+					continue
+				}
+				if _, ok := activeMap[uid.String()]; ok {
+					filteredUsernames = append(filteredUsernames, username)
+				}
+			}
+			if len(filteredUsernames) == 0 {
+				return nil
+			}
+
+			mvalid := grouped[0].Valid()
+			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
+			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
+				Usernames: filteredUsernames,
+			}))
+			msg := chat1.NewMessageUnboxedWithValid(mvalid)
+			return &msg
+		})
+
 	tv.Messages = newMsgs
 	return tv
 }
@@ -126,6 +201,8 @@ func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat
 				Previous: oldStored.Previous,
 			}
 		}
+	default:
+		// Nothing to do for other modes.
 	}
 	return pagination
 }
@@ -154,6 +231,8 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 			oldStored.Last = pagination.Last
 			t.convPageStatus[convID.String()] = oldStored
 		}
+	default:
+		// Nothing to do for other modes.
 	}
 }
 
@@ -179,7 +258,7 @@ func (t *UIThreadLoader) isConsolidateMsg(msg chat1.MessageUnboxed) bool {
 		return false
 	}
 	switch typ {
-	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE, chat1.MessageType_SYSTEM:
 		return true
 	default:
 		return false
@@ -272,8 +351,9 @@ func (t *UIThreadLoader) dispatchOldPagesJob(ctx context.Context, uid gregor1.UI
 			Next: resultPagination.Next,
 		}
 		t.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
-		if err := t.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /* query */, p,
-			types.ConvLoaderPriorityLow, newConvLoaderPagebackHook(t.G(), 0, 3))); err != nil {
+		if err := t.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p,
+			types.ConvLoaderPriorityLow, types.ConvLoaderGeneric,
+			newConvLoaderPagebackHook(t.G(), 0, 3))); err != nil {
 			t.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
 		}
 	}
@@ -447,7 +527,12 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		var pthread *string
 		if resThread != nil {
-			*resThread = t.groupThreadView(ctx, uid, *resThread)
+			conv, err := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+			if err != nil {
+				t.Debug(ctx, "LoadNonblock: failed to GetUnverifiedConv localonly: %v", err)
+				return
+			}
+			*resThread = t.groupThreadView(ctx, uid, *resThread, conv)
 			t.Debug(ctx, "LoadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
 			localSentThread = resThread
@@ -475,6 +560,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	getDelay := func() time.Duration {
 		return baseDelay - (t.clock.Now().Sub(startTime))
 	}
+	var rconv types.RemoteConversation
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -496,7 +582,11 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		uilock.Lock()
 		defer uilock.Unlock()
 		var rthread chat1.ThreadView
-		remoteThread = t.groupThreadView(ctx, uid, remoteThread)
+		rconv, fullErr = utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
+		if fullErr != nil {
+			return
+		}
+		remoteThread = t.groupThreadView(ctx, uid, remoteThread, rconv)
 		if rthread, fullErr =
 			t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
 			return
@@ -530,6 +620,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			skips := globals.CtxMessageCacheSkips(ctx)
 			cancelUIStatus := t.setUIStatus(ctx, chatUI, chat1.NewUIChatThreadStatusWithValidating(0),
 				getDelay())
+			defer func() {
+				setDisplayedStatus(cancelUIStatus)
+			}()
 			if t.resolveThreadDelay != nil {
 				t.clock.Sleep(*t.resolveThreadDelay)
 			}
@@ -562,11 +655,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				if len(changed) == 0 {
 					continue
 				}
-				conv, ierr := utils.GetUnverifiedConv(ctx, t.G(), uid, convID, types.InboxSourceDataSourceAll)
-				if ierr != nil {
-					return ierr
-				}
-				if changed, ierr = t.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, changed,
+				var ierr error
+				if changed, ierr = t.G().ConvSource.TransformSupersedes(ctx, rconv.Conv, uid, changed,
 					query, nil, nil); ierr != nil {
 					return ierr
 				}
@@ -585,7 +675,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				t.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
 					&act, chat1.ChatActivitySource_LOCAL)
 			}
-			setDisplayedStatus(cancelUIStatus)
 			return nil
 		}()
 	}
@@ -594,12 +683,16 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	if getDisplayedStatus() {
 		t.Debug(ctx, "LoadNonblock: status displayed, clearing")
 		t.clock.Sleep(t.validatedDelay)
+		// use a background context here in case our context has been canceled, we don't want to not
+		// get this banner off the screen.
 		if fullErr == nil {
-			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithValidated()); err != nil {
+			if err := chatUI.ChatThreadStatus(context.Background(),
+				chat1.NewUIChatThreadStatusWithValidated()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		} else {
-			if err := chatUI.ChatThreadStatus(ctx, chat1.NewUIChatThreadStatusWithNone()); err != nil {
+			if err := chatUI.ChatThreadStatus(context.Background(),
+				chat1.NewUIChatThreadStatusWithNone()); err != nil {
 				t.Debug(ctx, "LoadNonblock: failed to set status: %s", err)
 			}
 		}

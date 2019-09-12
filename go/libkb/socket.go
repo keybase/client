@@ -21,7 +21,7 @@ type SocketInfo struct {
 	log       logger.Logger
 	bindFile  string
 	dialFiles []string
-	testOwner bool
+	testOwner bool //nolint
 }
 
 func (s SocketInfo) GetBindFile() string {
@@ -40,10 +40,10 @@ type SocketWrapper struct {
 
 func (g *GlobalContext) MakeLoopbackServer() (l net.Listener, err error) {
 	g.socketWrapperMu.Lock()
+	defer g.socketWrapperMu.Unlock()
 	g.LoopbackListener = NewLoopbackListener(g)
 	l = g.LoopbackListener
-	g.socketWrapperMu.Unlock()
-	return
+	return l, err
 }
 
 func (g *GlobalContext) BindToSocket() (net.Listener, error) {
@@ -56,19 +56,21 @@ func NewTransportFromSocket(g *GlobalContext, s net.Conn) rpc.Transporter {
 
 // ResetSocket clears and returns a new socket
 func (g *GlobalContext) ResetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
-	g.SocketWrapper = nil
-	return g.GetSocket(clearError)
-}
-
-func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transporter, isNew bool, err error) {
-
-	g.Trace("GetSocket", func() error { return err })()
-
-	// Protect all global socket wrapper manipulation with a
-	// lock to prevent race conditions.
 	g.socketWrapperMu.Lock()
 	defer g.socketWrapperMu.Unlock()
 
+	g.SocketWrapper = nil
+	return g.getSocketLocked(clearError)
+}
+
+func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transporter, isNew bool, err error) {
+	g.Trace("GetSocket", func() error { return err })()
+	g.socketWrapperMu.Lock()
+	defer g.socketWrapperMu.Unlock()
+	return g.getSocketLocked(clearError)
+}
+
+func (g *GlobalContext) getSocketLocked(clearError bool) (conn net.Conn, xp rpc.Transporter, isNew bool, err error) {
 	needWrapper := false
 	if g.SocketWrapper == nil {
 		needWrapper = true

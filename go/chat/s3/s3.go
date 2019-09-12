@@ -81,9 +81,6 @@ type S3 struct {
 	// AttemptStrategy is the attempt strategy used for requests.
 	AttemptStrategy
 
-	// Reserve the right of using private data.
-	private byte
-
 	// client used for requests
 	client *http.Client
 }
@@ -832,7 +829,6 @@ type request struct {
 	method   string
 	bucket   string
 	path     string
-	signpath string
 	params   url.Values
 	headers  http.Header
 	baseurl  string
@@ -897,7 +893,7 @@ func (s3 *S3) prepare(req *request) error {
 				req.path = "/" + req.bucket + req.path
 			} else {
 				// Just in case, prevent injection.
-				if strings.IndexAny(req.bucket, "/:@") >= 0 {
+				if strings.ContainsAny(req.bucket, "/:@") {
 					return fmt.Errorf("bad S3 bucket: %q", req.bucket)
 				}
 				req.baseurl = strings.Replace(req.baseurl, "${bucket}", req.bucket, -1)
@@ -964,7 +960,10 @@ func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Re
 					var deadline time.Time
 					if s3.RequestTimeout > 0 {
 						deadline = time.Now().Add(s3.RequestTimeout)
-						c.SetDeadline(deadline)
+						err := c.SetDeadline(deadline)
+						if err != nil {
+							return nil, err
+						}
 					}
 
 					if s3.ReadTimeout > 0 || s3.WriteTimeout > 0 {
@@ -1031,8 +1030,12 @@ func buildError(r *http.Response) error {
 	}
 
 	err := Error{}
+
 	// TODO return error if Unmarshal fails?
-	xml.NewDecoder(r.Body).Decode(&err)
+	decodeErr := xml.NewDecoder(r.Body).Decode(&err)
+	if decodeErr != nil {
+		log.Printf("\tdecodeErr error: %v", decodeErr)
+	}
 	r.Body.Close()
 	err.StatusCode = r.StatusCode
 	if err.Message == "" {

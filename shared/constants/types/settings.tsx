@@ -1,4 +1,4 @@
-import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as RPCChatTypes from './rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
@@ -76,7 +76,7 @@ export type _EmailState = {
   addedEmail: string | null // show banner with dismiss on account settings
   emails: I.Map<string, EmailRow> | null
   newEmail: string
-  error: Error | null
+  error: string
 }
 export type EmailState = I.RecordOf<_EmailState>
 
@@ -107,6 +107,7 @@ export type _ChatState = {
 export type ChatState = I.RecordOf<_ChatState>
 
 export type _PhoneNumbersState = {
+  addedPhone: boolean
   error: string
   pendingVerification: string
   phones: I.Map<string, PhoneRow> | null
@@ -114,12 +115,14 @@ export type _PhoneNumbersState = {
 }
 export type PhoneNumbersState = I.RecordOf<_PhoneNumbersState>
 
+export type PermissionStatus = 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
 export type _ContactsState = {
   importEnabled: boolean | null
+  importError: string
   importPromptDismissed: boolean
   importedCount: number | null
   // OS permissions. 'undetermined' -> we can show the prompt; 'unknown' -> we haven't checked
-  permissionStatus: 'granted' | 'never_ask_again' | 'undetermined' | 'unknown'
+  permissionStatus: PermissionStatus
   userCountryCode: string | null
 }
 export type ContactsState = I.RecordOf<_ContactsState>
@@ -134,51 +137,11 @@ export type _State = {
   password: PasswordState
   phoneNumbers: PhoneNumbersState
   lockdownModeEnabled: boolean | null
-  useNativeFrame: boolean
   chat: ChatState
   checkPasswordIsCorrect: boolean | null
   proxyData: RPCTypes.ProxyData | null
   didToggleCertificatePinning: boolean | null
 }
 export type State = I.RecordOf<_State>
-
-type AboutTab = 'settingsTabs.aboutTab'
-type AdvancedTab = 'settingsTabs.advancedTab'
-type ChatTab = 'settingsTabs.chatTab'
-type DeleteMeTab = 'settingsTabs.deleteMeTab'
-type DevicesTab = 'settingsTabs.devicesTab'
-type FeedbackTab = 'settingsTabs.feedbackTab'
-type FoldersTab = 'settingsTabs.foldersTab'
-type FsTab = 'settingsTabs.fsTab'
-type GitTab = 'settingsTabs.gitTab'
-type InvitationsTab = 'settingsTabs.invitationsTab'
-type AccountTab = 'settingsTabs.accountTab'
-type NotificationsTab = 'settingsTabs.notificationsTab'
-type PasswordTab = 'settingsTabs.password'
-type ScreenprotectorTab = 'settingsTabs.screenprotector'
-type LogOutTab = 'settingsTabs.logOutTab'
-type UpdatePaymentTab = 'settingsTabs.updatePaymentTab'
-type WalletsTab = 'settingsTabs.walletsTab'
-type ContactsTab = 'settingsTabs.contactsTab'
-
-export type Tab =
-  | AccountTab
-  | UpdatePaymentTab
-  | InvitationsTab
-  | NotificationsTab
-  | AdvancedTab
-  | DeleteMeTab
-  | FeedbackTab
-  | AboutTab
-  | DevicesTab
-  | GitTab
-  | FoldersTab
-  | FsTab
-  | LogOutTab
-  | ScreenprotectorTab
-  | PasswordTab
-  | WalletsTab
-  | ChatTab
-  | ContactsTab
 
 export type PlanLevel = string

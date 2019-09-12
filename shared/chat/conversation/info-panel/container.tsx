@@ -78,8 +78,10 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     selectedConversationIDKey: conversationIDKey,
     selectedTab,
     smallTeam: meta.teamType !== 'big',
-    spinnerForHide:
-      state.waiting.counts.get(Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey), 0) > 0,
+    spinnerForHide: Container.anyWaiting(
+      state,
+      Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
+    ),
     teamname: meta.teamname,
   }
 }
@@ -207,7 +209,7 @@ const ConnectedInfoPanel = Container.connect(
                   snippet: m.decoratedText.stringValue(),
                 })
               } else {
-                m.unfurls.toList().map(u => {
+                m.unfurls.toList().forEach(u => {
                   if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
                     l.push({
                       author: m.author,

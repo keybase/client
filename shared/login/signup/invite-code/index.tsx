@@ -59,10 +59,10 @@ class InviteCode extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   progress: {
     width: 40,
   },
-})
+}))
 
 export default InviteCode

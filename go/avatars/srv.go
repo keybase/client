@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -32,6 +33,21 @@ func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *Srv {
 	}
 	s.httpSrv.HandleFunc("av", manager.SrvTokenModeDefault, s.serve)
 	return s
+}
+
+func (s *Srv) GetUserAvatar(username string) (string, error) {
+	if s.httpSrv == nil {
+		return "", fmt.Errorf("HttpSrv is not ready")
+	}
+
+	addr, err := s.httpSrv.Addr()
+	if err != nil {
+		return "", err
+	}
+
+	token := s.httpSrv.Token()
+
+	return fmt.Sprintf("http://%v/av?typ=user&name=%v&format=square_192&token=%v", addr, username, token), nil
 }
 
 func (s *Srv) debug(msg string, args ...interface{}) {
@@ -57,7 +73,11 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 		}
 		return resp.Body, nil
 	case "file":
-		return os.Open(parsed.Path)
+		filePath := parsed.Path
+		if runtime.GOOS == "windows" && len(filePath) > 0 {
+			filePath = filePath[1:]
+		}
+		return os.Open(filePath)
 	default:
 		return nil, fmt.Errorf("unknown URL scheme: %s raw: %s", parsed.Scheme, raw)
 	}

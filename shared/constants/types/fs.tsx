@@ -2,11 +2,11 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
-import * as TeamsTypes from '../../constants/types/teams'
+import * as TeamsTypes from './teams'
 // TODO importing FsGen causes an import loop
 import * as FsGen from '../../actions/fs-gen'
 import * as EngineGen from '../../actions/engine-gen-gen'
-import {IconType} from '../../common-adapters/icon.constants'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import {TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
@@ -467,30 +467,6 @@ export type _SendAttachmentToChat = {
 }
 export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
 
-export enum SendLinkToChatState {
-  None = 'none',
-  // when the modal is just shown and we don't know the convID(s) yet
-  LocatingConversation = 'locating-conversation',
-  // only applicable to big teams with multiple channels
-  PendingSelectConversation = 'pending-select-conversation',
-  // possibly without a convID, in which case we'll create it
-  ReadyToSend = 'ready-to-send',
-  Sending = 'sending',
-  Sent = 'sent',
-}
-
-export type _SendLinkToChat = {
-  // populated for teams only
-  channels: I.Map<ChatTypes.ConversationIDKey, string>
-  // This is the convID that we are sending into. So for group chats or small
-  // teams, this is the conversation. For big teams, this is the selected
-  // channel.
-  convID: ChatTypes.ConversationIDKey
-  path: Path
-  state: SendLinkToChatState
-}
-export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
-
 export enum PathItemActionMenuView {
   Root = 'root',
   Share = 'share',
@@ -536,7 +512,9 @@ export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
 export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
 
 export type _SystemFileManagerIntegration = {
+  directMountDir: string
   driverStatus: DriverStatus
+  preferredMountDirs: I.List<string>
   // This only controls if system-file-manager-integration-banner is shown in
   // Folders view. The banner always shows in Settings/Files screen.
   showingBanner: boolean
@@ -601,6 +579,12 @@ export type _Settings = {
 
 export type Settings = I.RecordOf<_Settings>
 
+export type _PathInfo = {
+  deeplinkPath: string
+  platformAfterMountPath: string
+}
+export type PathInfo = I.RecordOf<_PathInfo>
+
 export type _State = {
   destinationPicker: DestinationPicker
   downloads: Downloads
@@ -613,9 +597,9 @@ export type _State = {
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems
+  pathInfos: I.Map<Path, PathInfo>
   pathUserSettings: I.Map<Path, PathUserSetting>
   sendAttachmentToChat: SendAttachmentToChat
-  sendLinkToChat: SendLinkToChat
   settings: Settings
   sfmi: SystemFileManagerIntegration
   softErrors: SoftErrors
@@ -828,8 +812,7 @@ export type FavoriteFolder = {
 export enum FileViewType {
   Text = 'text',
   Image = 'image',
-  Audio = 'audio',
-  Video = 'video',
+  Av = 'av',
   Pdf = 'pdf',
   Default = 'default',
 }

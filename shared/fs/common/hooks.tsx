@@ -32,7 +32,7 @@ const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
-    if (!isPathItem(path)) {
+    if (Types.getPathLevel(path) < 3) {
       return () => {}
     }
 
@@ -89,4 +89,25 @@ export const useFsOnlineStatus = () => {
   React.useEffect(() => {
     dispatch(FsGen.createGetOnlineStatus())
   }, [dispatch])
+}
+
+export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
+  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path, Constants.emptyPathInfo))
+  const dispatch = useDispatchWhenConnected()
+  const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
+  React.useEffect(() => {
+    if (alreadyKnown) {
+      dispatch(FsGen.createLoadedPathInfo({path, pathInfo: knownPathInfo}))
+    } else if (pathInfo === Constants.emptyPathInfo) {
+      // We only need to load if it's empty. This never changes once we have
+      // it.
+      dispatch(FsGen.createLoadPathInfo({path}))
+    }
+  }, [path, alreadyKnown, knownPathInfo, pathInfo, dispatch])
+  return alreadyKnown ? knownPathInfo : pathInfo
+}
+
+export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
+  const softErrors = Container.useSelector(state => state.fs.softErrors)
+  return Constants.getSoftError(softErrors, path)
 }

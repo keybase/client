@@ -169,7 +169,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
           </Kb.Text>
           {reserve.description === 'account' && (
             <Kb.WithTooltip
-              text="Minimum balances help protect the network from the creation of spam accounts."
+              tooltip="Minimum balances help protect the network from the creation of spam accounts."
               multiline={true}
             >
               <Kb.Icon
@@ -216,61 +216,64 @@ const IssuerAccountID = (props: IssuerAccountIDProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  balance: {color: Styles.globalColors.purpleDark},
-  balanceContainer: {
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
-  },
-  balanceSummaryContainer: Styles.platformStyles({
-    common: {
-      flexShrink: 1,
-    },
-    isElectron: {
-      alignSelf: 'flex-end',
-      width: 355,
-    },
-  }),
-  caret: Styles.platformStyles({
-    isElectron: {lineHeight: '2'},
-    isMobile: {marginTop: 6},
-  }),
-  divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  dividerTop: {marginBottom: Styles.globalMargins.tiny},
-  equivContainer: {
-    justifyContent: 'flex-end',
-  },
-  equivDivider: {
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingRight: Styles.globalMargins.xtiny,
-  },
-  expandedRowContainer: {
-    justifyContent: 'flex-end',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.small,
-  },
-  headerContainer: {
-    height: Styles.isMobile ? 56 : 48,
-    padding: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-  },
-  labelContainer: {
-    flex: 1,
-  },
-  leftColText: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  questionMark: Styles.platformStyles({
-    common: {
-      marginLeft: 4,
-    },
-    isElectron: {
-      cursor: 'pointer',
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      balance: {color: Styles.globalColors.purpleDark},
+      balanceContainer: {
+        alignItems: 'flex-end',
+        justifyContent: 'flex-start',
+      },
+      balanceSummaryContainer: Styles.platformStyles({
+        common: {
+          flexShrink: 1,
+        },
+        isElectron: {
+          alignSelf: 'flex-end',
+          width: 355,
+        },
+      }),
+      caret: Styles.platformStyles({
+        isElectron: {lineHeight: '2'},
+        isMobile: {marginTop: 6},
+      }),
+      divider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      dividerTop: {marginBottom: Styles.globalMargins.tiny},
+      equivContainer: {
+        justifyContent: 'flex-end',
+      },
+      equivDivider: {
+        paddingLeft: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.xtiny,
+      },
+      expandedRowContainer: {
+        justifyContent: 'flex-end',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.small,
+      },
+      headerContainer: {
+        height: Styles.isMobile ? 56 : 48,
+        padding: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      labelContainer: {
+        flex: 1,
+      },
+      leftColText: {
+        alignItems: 'center',
+        flex: 1,
+      },
+      questionMark: Styles.platformStyles({
+        common: {
+          marginLeft: 4,
+        },
+        isElectron: {
+          cursor: 'pointer',
+        },
+      }),
+    } as const)
+)

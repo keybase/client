@@ -62,7 +62,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal">
           <Kb.Divider style={styles.divider} vertical={true} />
-          <Kb.WithTooltip text="React">
+          <Kb.WithTooltip tooltip="React">
             <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
               <Kb.Icon
                 className="hover_contained_color_blue"
@@ -72,7 +72,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             </Kb.Box>
           </Kb.WithTooltip>
           {!!this.props.onReply && (
-            <Kb.WithTooltip text="Reply">
+            <Kb.WithTooltip tooltip="Reply">
               <Kb.Box className="hover_container" onClick={this.props.onReply} style={styles.iconContainer}>
                 <Kb.Icon
                   className="hover_contained_color_blue"
@@ -98,49 +98,52 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
-    },
-    isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter3,
-      height: Styles.globalMargins.medium,
-    },
-  }),
-  divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginLeft: Styles.globalMargins.xsmall,
-    marginRight: Styles.globalMargins.xtiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  emojiBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    height: Styles.globalMargins.small,
-    justifyContent: 'center',
-    marginRight: Styles.globalMargins.xxtiny,
-    width: Styles.globalMargins.small,
-  },
-  icon: {
-    position: 'relative',
-    top: 1,
-  },
-  iconContainer: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-  }),
-  pickerContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      borderRadius: Styles.borderRadius,
-      margin: Styles.globalMargins.tiny,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.xsmall),
+        },
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueLighter3,
+          height: Styles.globalMargins.medium,
+        },
+      }),
+      divider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginLeft: Styles.globalMargins.xsmall,
+        marginRight: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      emojiBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: Styles.globalMargins.small,
+        justifyContent: 'center',
+        marginRight: Styles.globalMargins.xxtiny,
+        width: Styles.globalMargins.small,
+      },
+      icon: {
+        position: 'relative',
+        top: 1,
+      },
+      iconContainer: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      pickerContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.boxShadow,
+          borderRadius: Styles.borderRadius,
+          margin: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 export default EmojiRow

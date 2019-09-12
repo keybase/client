@@ -26,7 +26,7 @@ const OutOfDate = (p: Props) =>
     </Kb.Box2>
   )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.red,
@@ -39,7 +39,7 @@ const styles = Styles.styleSheetCreate({
     borderRadius: Styles.borderRadius,
     padding: Styles.globalMargins.medium,
   },
-})
+}))
 
 const mapStateToProps = (state: Container.TypedState) => ({
   message: state.config.appOutOfDateMessage,

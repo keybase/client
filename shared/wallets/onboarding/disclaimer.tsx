@@ -33,21 +33,27 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   beforeTimer: TickerID | null = null
 
   afterTick = () => {
-    this.setState({secondsLeftAfterAccept: Math.max(0, this.state.secondsLeftAfterAccept - 1)}, () => {
-      if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
-        removeTicker(this.afterTimer)
-        this.afterTimer = null
-        this.props.onCheckDisclaimer()
+    this.setState(
+      s => ({secondsLeftAfterAccept: Math.max(0, s.secondsLeftAfterAccept - 1)}),
+      () => {
+        if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
+          removeTicker(this.afterTimer)
+          this.afterTimer = null
+          this.props.onCheckDisclaimer()
+        }
       }
-    })
+    )
   }
 
   beforeTick = () => {
-    this.setState({secondsLeftBeforeAccept: this.state.secondsLeftBeforeAccept - 1}, () => {
-      if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
-        removeTicker(this.beforeTimer)
+    this.setState(
+      s => ({secondsLeftBeforeAccept: s.secondsLeftBeforeAccept - 1}),
+      () => {
+        if (this.state.secondsLeftBeforeAccept === 0 && this.beforeTimer) {
+          removeTicker(this.beforeTimer)
+        }
       }
-    })
+    )
   }
 
   removeTimers = () => {
@@ -285,59 +291,62 @@ const bulletOverride = {
   strong: bodyOverride.strong,
 }
 
-const styles = Styles.styleSheetCreate({
-  bodyBullet: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  bodyText: {
-    color: Styles.globalColors.white,
-    textAlign: 'left',
-  },
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      minHeight: 40,
-    },
-  }),
-  buttonLabelStyle: {color: Styles.globalColors.purpleDark},
-  buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
-  container: {
-    backgroundColor: Styles.globalColors.purple,
-    padding: Styles.globalMargins.medium,
-  },
-  gradient: Styles.platformStyles({
-    isElectron: {
-      backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
-        Styles.globalColors.purple
-      })`,
-      height: Styles.globalMargins.large,
-      position: 'relative',
-      top: -30,
-      width: '100%',
-    },
-  }),
-  header: {
-    marginTop: Styles.globalMargins.small,
-  },
-  headerText: {
-    color: Styles.globalColors.white,
-  },
-  labelStyle: {
-    color: Styles.globalColors.purpleDark,
-  },
-  notNowButtonStyle: {width: '100%'},
-  scrollView: {
-    marginBottom: 0,
-    marginTop: Styles.globalMargins.small,
-  },
-  scrollViewContentContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-    },
-    isElectron: {
-      height: 300,
-    },
-  }),
-  section: {marginBottom: Styles.globalMargins.xxtiny},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyBullet: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      bodyText: {
+        color: Styles.globalColors.white,
+        textAlign: 'left',
+      },
+      buttonBar: Styles.platformStyles({
+        isElectron: {
+          minHeight: 40,
+        },
+      }),
+      buttonLabelStyle: {color: Styles.globalColors.purpleDark},
+      buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
+      container: {
+        backgroundColor: Styles.globalColors.purple,
+        padding: Styles.globalMargins.medium,
+      },
+      gradient: Styles.platformStyles({
+        isElectron: {
+          backgroundImage: `linear-gradient(to bottom, ${Styles.globalColors.purple_01}, ${
+            Styles.globalColors.purple
+          })`,
+          height: Styles.globalMargins.large,
+          position: 'relative',
+          top: -30,
+          width: '100%',
+        },
+      }),
+      header: {
+        marginTop: Styles.globalMargins.small,
+      },
+      headerText: {
+        color: Styles.globalColors.white,
+      },
+      labelStyle: {
+        color: Styles.globalColors.purpleDark,
+      },
+      notNowButtonStyle: {width: '100%'},
+      scrollView: {
+        marginBottom: 0,
+        marginTop: Styles.globalMargins.small,
+      },
+      scrollViewContentContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+        },
+        isElectron: {
+          height: 300,
+        },
+      }),
+      section: {marginBottom: Styles.globalMargins.xxtiny},
+    } as const)
+)
 
 export default Disclaimer

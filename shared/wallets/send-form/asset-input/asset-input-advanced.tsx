@@ -90,12 +90,12 @@ const LeftBlock = (_: EmptyProps) => {
           (buildingAdvanced.recipientAsset === 'native' ? (
             <Kb.Text type="BodyTiny">Stellar Lumens</Kb.Text>
           ) : (
-            <React.Fragment>
+            <>
               <Kb.Text type="BodyTiny">{buildingAdvanced.recipientAsset.issuerName}</Kb.Text>
               <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="tail" style={styles.assetIDContainer}>
                 {buildingAdvanced.recipientAsset.code}/{buildingAdvanced.recipientAsset.issuerAccountID}
               </Kb.Text>
-            </React.Fragment>
+            </>
           ))}
         {!!builtPaymentAdvanced.amountError && (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
@@ -364,126 +364,129 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  amountLoading: {
-    height: 20,
-    width: 20,
-  },
-  assetIDContainer: {
-    maxWidth: '40%',
-  },
-  assetPathContainer: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    padding: Styles.globalMargins.small,
-  },
-  avatar: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  container: Styles.platformStyles({
-    isElectron: {
-      minHeight: 106,
-    },
-    isMobile: {
-      minHeight: 108,
-    },
-  }),
-  disabled: {
-    opacity: 0.3,
-  },
-  error: {
-    color: Styles.globalColors.redDark,
-  },
-  intermediateAbsoluteBlock: {
-    position: 'absolute',
-    right: Styles.globalMargins.mediumLarge,
-    width: Styles.globalMargins.mediumLarge,
-  },
-  intermediateAssetPathItem: {
-    height: 20,
-    paddingBottom: Styles.globalMargins.xxtiny,
-    paddingTop: Styles.globalMargins.xxtiny,
-  },
-  intermediateAssetPathItemCircleContainerInner: {
-    // This one has to be absolute as well otherwise it goes under the vertical line.
-    position: 'absolute',
-  },
-  intermediateAssetPathItemCircleContainerOuter: {
-    flexShrink: 0,
-    marginRight: Styles.globalMargins.tiny,
-    position: 'relative',
-    width: Styles.globalMargins.small,
-  },
-  intermediateAssetPathItemDomainContainer: {
-    flexShrink: 1,
-    maxWidth: Styles.globalMargins.large * 5,
-  },
-  intermediateBottomCircleContainer: {
-    bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
-  },
-  intermediateContainer: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    position: 'relative',
-    width: '100%',
-  },
-  intermediateContainerCollapsed: {
-    height: Styles.globalMargins.tiny,
-  },
-  intermediateContainerExpanded: {
-    minHeight: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  intermediateExpandButtonButton: {
-    padding: 0,
-  },
-  intermediateExpandButtonCollapsed: {
-    top: -10,
-  },
-  intermediateExpandButtonExpanded: {
-    bottom: -14,
-  },
-  intermediateExpandButtonLabelContainer: {
-    minWidth: 32,
-    width: 32,
-  },
-  intermediateExpandedContainer: {
-    paddingRight: Styles.globalMargins.mediumLarge,
-  },
-  intermediateLine: {
-    backgroundColor: Styles.globalColors.purple,
-    height: '100%',
-    width: 2,
-  },
-  intermediateLineContainer: {
-    bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleDiameter),
-    top: -(Styles.globalMargins.medium - pathCircleDiameter),
-  },
-  intermediateTopCircleContainer: {
-    top: -Styles.globalMargins.medium,
-  },
-  noShrink: {
-    flexShrink: 0,
-  },
-  pickAssetButton: Styles.platformStyles({
-    common: {
-      width: Styles.globalMargins.xlarge * 3,
-    },
-    isMobile: {
-      //    paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  // We need this to make the PickAssetButton on top of other stuff so amount
-  // error can extend below it.
-  pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
-  pickAssetButtonOverlayOuter: {position: 'relative'},
-  pickAssetButtonTopText: Styles.platformStyles({
-    isElectron: {lineHeight: '24px'},
-    isMobile: {lineHeight: 32},
-  }),
-  senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
-  shrink: {flexShrink: 1},
-  topLabel: {
-    marginBottom: Styles.globalMargins.xtiny,
-    maxWidth: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      amountLoading: {
+        height: 20,
+        width: 20,
+      },
+      assetIDContainer: {
+        maxWidth: '40%',
+      },
+      assetPathContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        padding: Styles.globalMargins.small,
+      },
+      avatar: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      container: Styles.platformStyles({
+        isElectron: {
+          minHeight: 106,
+        },
+        isMobile: {
+          minHeight: 108,
+        },
+      }),
+      disabled: {
+        opacity: 0.3,
+      },
+      error: {
+        color: Styles.globalColors.redDark,
+      },
+      intermediateAbsoluteBlock: {
+        position: 'absolute',
+        right: Styles.globalMargins.mediumLarge,
+        width: Styles.globalMargins.mediumLarge,
+      },
+      intermediateAssetPathItem: {
+        height: 20,
+        paddingBottom: Styles.globalMargins.xxtiny,
+        paddingTop: Styles.globalMargins.xxtiny,
+      },
+      intermediateAssetPathItemCircleContainerInner: {
+        // This one has to be absolute as well otherwise it goes under the vertical line.
+        position: 'absolute',
+      },
+      intermediateAssetPathItemCircleContainerOuter: {
+        flexShrink: 0,
+        marginRight: Styles.globalMargins.tiny,
+        position: 'relative',
+        width: Styles.globalMargins.small,
+      },
+      intermediateAssetPathItemDomainContainer: {
+        flexShrink: 1,
+        maxWidth: Styles.globalMargins.large * 5,
+      },
+      intermediateBottomCircleContainer: {
+        bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny),
+      },
+      intermediateContainer: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        position: 'relative',
+        width: '100%',
+      },
+      intermediateContainerCollapsed: {
+        height: Styles.globalMargins.tiny,
+      },
+      intermediateContainerExpanded: {
+        minHeight: Styles.globalMargins.tiny,
+        paddingBottom: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      intermediateExpandButtonButton: {
+        padding: 0,
+      },
+      intermediateExpandButtonCollapsed: {
+        top: -10,
+      },
+      intermediateExpandButtonExpanded: {
+        bottom: -14,
+      },
+      intermediateExpandButtonLabelContainer: {
+        minWidth: 32,
+        width: 32,
+      },
+      intermediateExpandedContainer: {
+        paddingRight: Styles.globalMargins.mediumLarge,
+      },
+      intermediateLine: {
+        backgroundColor: Styles.globalColors.purple,
+        height: '100%',
+        width: 2,
+      },
+      intermediateLineContainer: {
+        bottom: -(Styles.globalMargins.medium + Styles.globalMargins.xtiny - pathCircleDiameter),
+        top: -(Styles.globalMargins.medium - pathCircleDiameter),
+      },
+      intermediateTopCircleContainer: {
+        top: -Styles.globalMargins.medium,
+      },
+      noShrink: {
+        flexShrink: 0,
+      },
+      pickAssetButton: Styles.platformStyles({
+        common: {
+          width: Styles.globalMargins.xlarge * 3,
+        },
+        isMobile: {
+          //    paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      // We need this to make the PickAssetButton on top of other stuff so amount
+      // error can extend below it.
+      pickAssetButtonOverlayInner: {position: 'absolute', right: 0, top: 0},
+      pickAssetButtonOverlayOuter: {position: 'relative'},
+      pickAssetButtonTopText: Styles.platformStyles({
+        isElectron: {lineHeight: '24px'},
+        isMobile: {lineHeight: 32},
+      }),
+      senderMainContainer: {marginTop: Styles.globalMargins.xtiny},
+      shrink: {flexShrink: 1},
+      topLabel: {
+        marginBottom: Styles.globalMargins.xtiny,
+        maxWidth: '100%',
+      },
+    } as const)
+)

@@ -1,14 +1,13 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {isDarwin, isMobile, isLinux, defaultUseNativeFrame} from '../../constants/platform'
+import {isMobile, isLinux} from '../../constants/platform'
 import flags from '../../util/feature-flags'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import AppState from '../../app/app-state'
 import {ProxySettings} from '../proxy/container'
-import {DarkModePreference} from '../../styles/dark-mode'
+import {DarkModePreference, isDarkModeSystemSupported} from '../../styles/dark-mode'
 
 type Props = {
   openAtLogin: boolean
@@ -29,7 +28,7 @@ type Props = {
   processorProfileInProgress: boolean
   hasRandomPW: boolean
   useNativeFrame: boolean
-  onChangeUseNativeFrame: (arg0: boolean) => void
+  onChangeUseNativeFrame: (use: boolean) => void
   onEnableCertPinning: () => void
   allowTlsMitmToggle: boolean
   rememberPassword: boolean
@@ -37,19 +36,18 @@ type Props = {
   onToggleRuntimeStats: () => void
 }
 
-const stateUseNativeFrame = new AppState().state.useNativeFrame
-const initialUseNativeFrame =
-  stateUseNativeFrame !== null && stateUseNativeFrame !== undefined
-    ? stateUseNativeFrame
-    : defaultUseNativeFrame
+let initialUseNativeFrame: boolean | undefined
 
 const UseNativeFrame = (props: Props) => {
-  return !isMobile ? (
+  if (initialUseNativeFrame === undefined) {
+    initialUseNativeFrame = props.useNativeFrame
+  }
+  return isMobile ? null : (
     <>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
           checked={!props.useNativeFrame}
-          label={'Hide system window frame'}
+          label="Hide system window frame"
           onCheck={x => props.onChangeUseNativeFrame(!x)}
         />
       </Kb.Box>
@@ -59,13 +57,13 @@ const UseNativeFrame = (props: Props) => {
         </Kb.Text>
       )}
     </>
-  ) : null
+  )
 }
 
 const Advanced = (props: Props) => {
   const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
-    <Kb.ScrollView>
+    <Kb.ScrollView style={styles.scrollview}>
       <Kb.Box style={styles.advancedContainer}>
         <Kb.Box style={styles.progressContainer}>
           {props.settingLockdownMode && <Kb.ProgressIndicator />}
@@ -119,21 +117,26 @@ const Advanced = (props: Props) => {
             <Kb.Divider style={styles.proxyDivider} />
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Text type="Body">Dark mode</Kb.Text>
-              <Kb.Checkbox
-                label="Respect system settings"
-                disabled={!isDarwin}
-                checked={props.darkModePreference === 'system' || props.darkModePreference === undefined}
-                onCheck={() => props.onSetDarkModePreference('system')}
+              {isDarkModeSystemSupported() && (
+                <Kb.RadioButton
+                  label="Respect system settings"
+                  selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
+                  onSelect={() => props.onSetDarkModePreference('system')}
+                />
+              )}
+              <Kb.RadioButton
+                label="Dark"
+                selected={props.darkModePreference === 'alwaysDark'}
+                onSelect={() => props.onSetDarkModePreference('alwaysDark')}
               />
-              <Kb.Checkbox
-                label="Dark all the time"
-                checked={props.darkModePreference === 'alwaysDark'}
-                onCheck={() => props.onSetDarkModePreference('alwaysDark')}
-              />
-              <Kb.Checkbox
-                label="Light all the time 😎"
-                checked={props.darkModePreference === 'alwaysLight'}
-                onCheck={() => props.onSetDarkModePreference('alwaysLight')}
+              <Kb.RadioButton
+                label={
+                  <Kb.Text type="Body">
+                    Light <Kb.Emoji size={16} emojiName=":sunglasses:" />
+                  </Kb.Text>
+                }
+                selected={props.darkModePreference === 'alwaysLight'}
+                onSelect={() => props.onSetDarkModePreference('alwaysLight')}
               />
             </Kb.Box2>
           </Kb.Box2>
@@ -213,7 +216,7 @@ class Developer extends React.Component<Props, State> {
           onClick={props.onExtraKBFSLogging}
         />
         {this._showPprofControls() && (
-          <React.Fragment>
+          <>
             <Kb.Button
               label="Toggle Runtime Stats"
               onClick={this.props.onToggleRuntimeStats}
@@ -233,7 +236,7 @@ class Developer extends React.Component<Props, State> {
             <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Kb.Text>
-          </React.Fragment>
+          </>
         )}
         {flags.chatIndexProfilingEnabled && (
           <Kb.Button
@@ -270,7 +273,7 @@ class Developer extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   advancedContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     flex: 1,
@@ -316,11 +319,14 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.small,
     width: '100%',
   },
+  scrollview: {
+    width: '100%',
+  },
   text: Styles.platformStyles({
     isElectron: {
       cursor: 'default',
     },
   }),
-})
+}))
 
 export default Advanced

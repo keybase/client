@@ -102,7 +102,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
           ['email', 'emails'],
           emails =>
             emails
-            ? emails.update(action.payload.params.emailAddress, (email: any) =>
+              ? emails.update(action.payload.params.emailAddress, (email: any) =>
                   email
                     ? email.merge({
                         isVerified: true,
@@ -141,9 +141,9 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.onUpdatePasswordError:
       return state.update('password', password => password.merge({error: action.payload.error}))
     case SettingsGen.onChangeNewEmail:
-      return state.update('email', email => email.merge({error: null, newEmail: action.payload.email}))
+      return state.update('email', email => email.merge({error: '', newEmail: action.payload.email}))
     case SettingsGen.onUpdateEmailError:
-      return state.update('email', email => email.merge({error: action.payload.error}))
+      return state.update('email', email => email.merge({error: action.payload.error.message}))
     case SettingsGen.feedbackSent:
       return state.update('feedback', feedback => feedback.set('error', action.payload.error))
     case SettingsGen.sendFeedback:
@@ -167,8 +167,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       return state.update('password', password => password.merge({randomPW: action.payload.randomPW}))
     case SettingsGen.loadedCheckPassword:
       return state.merge({checkPasswordIsCorrect: action.payload.checkPasswordIsCorrect})
-    case SettingsGen.onChangeUseNativeFrame:
-      return state.merge({useNativeFrame: action.payload.enabled})
     case SettingsGen.addedPhoneNumber:
       return state.update('phoneNumbers', pn =>
         pn.merge({
@@ -197,14 +195,20 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         return state
       }
       return state.update('phoneNumbers', pn =>
-        pn.merge({error: action.payload.error, verificationState: action.payload.error ? 'error' : 'success'})
+        pn.merge({
+          addedPhone: !action.payload.error,
+          error: action.payload.error,
+          verificationState: action.payload.error ? 'error' : 'success',
+        })
       )
     case SettingsGen.loadedContactImportEnabled:
       return state.update('contacts', contacts => contacts.merge({importEnabled: action.payload.enabled}))
     case SettingsGen.loadedContactPermissions:
       return state.update('contacts', contacts => contacts.merge({permissionStatus: action.payload.status}))
     case SettingsGen.setContactImportedCount:
-      return state.update('contacts', contacts => contacts.set('importedCount', action.payload.count))
+      return state.update('contacts', contacts =>
+        contacts.merge({importError: action.payload.error, importedCount: action.payload.count})
+      )
     case SettingsGen.importContactsLater:
       return state.update('contacts', contacts => contacts.set('importPromptDismissed', true))
     case SettingsGen.loadedUserCountryCode:
@@ -212,9 +216,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.addEmail: {
       const {email} = action.payload
       const emailError = isValidEmail(email)
-      return state.update('email', emailState =>
-        emailState.merge({addingEmail: email, error: emailError ? new Error(emailError) : null})
-      )
+      return state.update('email', emailState => emailState.merge({addingEmail: email, error: emailError}))
     }
     case SettingsGen.addedEmail: {
       if (action.payload.email !== state.email.addingEmail) {
@@ -225,22 +227,33 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
         emailState.merge({
           addedEmail: action.payload.error ? null : action.payload.email,
           addingEmail: action.payload.error ? emailState.addingEmail : null,
-          error: action.payload.error || null,
+          error: action.payload.error || '',
         })
       )
     }
     case SettingsGen.sentVerificationEmail: {
-      return state.update('email', emailState =>
-        emailState.merge({
-          addedEmail: action.payload.email,
+      return state
+        .update('email', emailState =>
+          emailState.merge({
+            addedEmail: action.payload.email,
+          })
+        )
+        .updateIn(['email', 'emails'], emails => {
+          return emails.update(action.payload.email, email =>
+            email.merge({
+              lastVerifyEmailDate: new Date().getTime() / 1000,
+            })
+          )
         })
-      )
     }
     case SettingsGen.clearAddingEmail: {
-      return state.update('email', emailState => emailState.merge({addingEmail: null, error: null}))
+      return state.update('email', emailState => emailState.merge({addingEmail: null, error: ''}))
     }
     case SettingsGen.clearAddedEmail: {
       return state.update('email', emailState => emailState.merge({addedEmail: null}))
+    }
+    case SettingsGen.clearAddedPhone: {
+      return state.mergeIn(['phoneNumbers'], {addedPhone: false})
     }
     // Saga only actions
     case SettingsGen.dbNuke:

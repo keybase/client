@@ -1,13 +1,17 @@
 /* eslint-disable sort-keys */
-import Box from './box'
+import Badge from './badge'
+import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles} from './icon'
 import * as React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
+import './button.css'
 
 const Kb = {
+  Badge,
   Box,
+  Box2,
   ClickableBox,
   Icon,
   Text,
@@ -17,6 +21,7 @@ export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim'
 export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yellow'
 // Either type or backgroundColor must be set
 export type Props = {
+  badgeNumber?: number
   children?: React.ReactNode
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
@@ -31,6 +36,8 @@ export type Props = {
   disabled?: boolean
   waiting?: boolean
   small?: boolean
+  subLabel?: string
+  subLabelStyle?: Styles.StylesCrossPlatform
   fullWidth?: boolean
   className?: string
 }
@@ -136,10 +143,26 @@ class Button extends React.Component<Props> {
           ])}
         >
           {!this.props.waiting && this.props.children}
-          {!!this.props.label && (
-            <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, this.props.labelStyle])}>
-              {this.props.label}
-            </Kb.Text>
+          <Kb.Box2 direction="vertical" centerChildren={true}>
+            {!!this.props.label && (
+              <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, this.props.labelStyle])}>
+                {this.props.label}
+              </Kb.Text>
+            )}
+            {!!this.props.subLabel && (
+              <Kb.Text
+                type="BodyTiny"
+                style={Styles.collapseStyles([
+                  this.props.waiting && styles.opacity0,
+                  this.props.subLabelStyle,
+                ])}
+              >
+                {this.props.subLabel}
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+          {!!this.props.badgeNumber && (
+            <Kb.Badge badgeNumber={this.props.badgeNumber} badgeStyle={styles.badge} />
           )}
           {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Kb.Box>
@@ -183,6 +206,10 @@ const common = () =>
   })
 
 const styles = Styles.styleSheetCreate(() => ({
+  badge: {
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: 0,
+  },
   fullWidth: {
     flexGrow: 1,
     maxWidth: 460,

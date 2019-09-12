@@ -1,32 +1,26 @@
 import * as React from 'react'
 import * as Constants from '../../constants/login'
-import * as ConfigConstants from '../../constants/config'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {errorBanner, SignupScreen} from '../../signup/common'
 import {Props} from '.'
 
 type State = {
   open: boolean
 }
 
-const ItemBox = Styles.styled(Kb.Box)({
-  ...Styles.globalStyles.flexBoxCenter,
-  minHeight: 40,
-  width: '100%',
-})
-
 const other = 'Someone else...'
 
 const UserRow = ({user}) => (
-  <ItemBox>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow}>
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
     </Kb.Text>
-  </ItemBox>
+  </Kb.Box2>
 )
 
 class Login extends React.Component<Props, State> {
-  _inputRef = React.createRef<Kb.Input>()
+  _inputRef = React.createRef<Kb.PlainInput>()
 
   state = {
     open: false,
@@ -50,91 +44,153 @@ class Login extends React.Component<Props, State> {
   }
 
   render() {
-    const inputProps = {
-      autoFocus: true,
-      errorText: this.props.inputError ? this.props.error : '',
-      floatingHintTextOverride: '',
-      hintText: 'Password',
-      key: this.props.inputKey,
-      onChangeText: password => this.props.passwordChange(password),
-      onEnterKeyDown: () => this.props.onSubmit(),
-      ref: this._inputRef,
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
-      uncontrolled: true,
-    } as const
-
-    const checkboxProps = [
-      {
-        checked: this.props.showTyping,
-        label: 'Show typing',
-        onCheck: check => {
-          this.props.showTypingChange(check)
-        },
-      } as const,
-    ]
-
     const userRows = this.props.users
-      .concat(ConfigConstants.makeConfiguredAccount({username: other}))
+      .concat({hasStoredSecret: false, username: other})
       .map(u => <UserRow user={u.username} key={u.username} />)
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
 
     return (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        {this.props.bannerError && (
-          <Kb.Banner color="red">
-            <Kb.BannerParagraph bannerColor="red" content={this.props.error} />
-          </Kb.Banner>
-        )}
-        <Kb.Box style={stylesContainer}>
-          <Kb.UserCard username={this.props.selectedUser}>
+      <SignupScreen
+        banners={errorBanner(this.props.error)}
+        headerStyle={styles.header}
+        rightActionComponent={
+          <Kb.Button
+            type="Default"
+            mode="Secondary"
+            onClick={this.props.onSignup}
+            label="Create an account"
+          />
+        }
+        title="Log in"
+      >
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.contentBox}>
+          <Kb.UserCard
+            username={this.props.selectedUser}
+            outerStyle={styles.container}
+            style={styles.userContainer}
+          >
             <Kb.Dropdown
               onChanged={this._onClickUser}
               selected={userRows[selectedIdx]}
               items={userRows}
-              position={'bottom center'}
+              overlayStyle={styles.userOverlayStyle}
+              position="bottom center"
+              style={styles.userDropdown}
             />
-            <Kb.FormWithCheckbox
-              style={{alignSelf: 'stretch'}}
-              inputProps={inputProps}
-              checkboxesProps={checkboxProps}
-            />
-            <Kb.WaitingButton
-              disabled={!this.props.password}
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
+              <Kb.LabeledInput
+                autoFocus={true}
+                placeholder="Password"
+                style={styles.passwordInput}
+                onChangeText={this.props.passwordChange}
+                onEnterKeyDown={this.props.onSubmit}
+                ref={this._inputRef}
+                type="password"
+                value={this.props.password}
+              />
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>
+              <Kb.Text
+                type="BodySmallSecondaryLink"
+                onClick={this.props.onForgotPassword}
+                style={styles.forgotPassword}
+              >
+                Forgot password?
+              </Kb.Text>
+            </Kb.Box2>
+            <Kb.Box2
+              direction="vertical"
               fullWidth={true}
-              waitingKey={Constants.waitingKey}
-              style={{marginTop: 0, width: '100%'}}
-              label="Log in"
-              onClick={() => this.props.onSubmit()}
-            />
-            <Kb.Text
-              type="BodySmallSecondaryLink"
-              onClick={this.props.onForgotPassword}
-              style={{marginTop: 24}}
+              fullHeight={true}
+              style={styles.loginSubmitContainer}
             >
-              Forgot password?
-            </Kb.Text>
+              <Kb.WaitingButton
+                disabled={!this.props.password}
+                fullWidth={true}
+                waitingKey={Constants.waitingKey}
+                style={styles.loginSubmitButton}
+                label="Log in"
+                onClick={this.props.onSubmit}
+              />
+            </Kb.Box2>
           </Kb.UserCard>
-          <Kb.Text style={{marginTop: 30}} type="BodyPrimaryLink" onClick={this.props.onSignup}>
-            Create an account
-          </Kb.Text>
-        </Kb.Box>
-      </Kb.Box2>
+        </Kb.Box2>
+      </SignupScreen>
     )
   }
 }
 
-const stylesContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.white,
-  flex: 1,
-  justifyContent: 'center',
-}
-
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  contentBox: {
+    alignSelf: 'center',
+    flexGrow: 1,
+    maxWidth: 460,
+    padding: Styles.globalMargins.small,
+  },
+  forgotPassword: {
+    marginTop: Styles.globalMargins.tiny,
+  },
+  forgotPasswordContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  header: {
+    borderBottomWidth: 0,
+  },
+  inputRow: {
+    flex: 1,
+    marginBottom: 0,
+    marginTop: Styles.globalMargins.tiny,
+    width: '100%',
+  },
+  loginSubmitButton: {
+    marginTop: 0,
+    maxHeight: 32,
+    width: '100%',
+  },
+  loginSubmitContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
   other: {color: Styles.globalColors.black},
+  passwordInput: {
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.black_10,
+    borderRadius: 4,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    paddingBottom: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.medium,
+    textAlign: 'left',
+    width: '100%',
+  },
   provisioned: {color: Styles.globalColors.orange},
-})
+  userContainer: {
+    backgroundColor: Styles.globalColors.transparent,
+    flex: 1,
+  },
+  userDropdown: {
+    backgroundColor: Styles.globalColors.white,
+    width: '100%',
+  },
+  userOverlayStyle: {
+    backgroundColor: Styles.globalColors.white,
+    width: 348,
+  },
+  userRow: {
+    ...Styles.globalStyles.flexBoxCenter,
+    minHeight: 40,
+    width: '100%',
+  },
+}))
 
 export default Login

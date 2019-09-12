@@ -9,7 +9,7 @@ import {
   InfoNote,
   Button,
   ButtonBar,
-} from '../../common-adapters/'
+} from '../../common-adapters'
 import {compose, withProps, branch, renderComponent} from 'recompose'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
@@ -52,7 +52,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
   </ScrollView>
 )
 
-const styles = styleSheetCreate({
+const styles = styleSheetCreate(() => ({
   button: {
     marginBottom: globalMargins.small,
     marginTop: globalMargins.small,
@@ -72,7 +72,7 @@ const styles = styleSheetCreate({
     paddingTop: globalMargins.small,
     width: '100%',
   },
-})
+}))
 
 export default compose(
   withProps<any, any>(() => ({

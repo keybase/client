@@ -60,29 +60,32 @@ class Finished extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  pgpKeyString: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.fontTerminal,
-      backgroundColor: Styles.globalColors.greyLight,
-      border: `solid 1px ${Styles.globalColors.black_10}`,
-      borderRadius: 3,
-      color: Styles.globalColors.black,
-      flexGrow: 1,
-      fontSize: 12,
-      lineHeight: 17,
-      minHeight: 116,
-      overflowX: 'hidden',
-      overflowY: 'auto',
-      padding: 10,
-      textAlign: 'left',
-      userSelect: 'all',
-      whiteSpace: 'pre-wrap',
-      width: '100%',
-      wordWrap: 'break-word',
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      pgpKeyString: Styles.platformStyles({
+        isElectron: {
+          ...(Styles.globalStyles.fontTerminal as any),
+          backgroundColor: Styles.globalColors.greyLight,
+          border: `solid 1px ${Styles.globalColors.black_10}`,
+          borderRadius: 3,
+          color: Styles.globalColors.black,
+          flexGrow: 1,
+          fontSize: 12,
+          lineHeight: 17,
+          minHeight: 116,
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          padding: 10,
+          textAlign: 'left',
+          userSelect: 'all',
+          whiteSpace: 'pre-wrap',
+          width: '100%',
+          wordWrap: 'break-word',
+        } as const,
+      }),
+    } as const)
+)
 
 export default namedConnect(
   state => ({

@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingViewProps,
 } from 'react-native'
 import {isIPhoneX, isIOS} from '../constants/platform'
+
 const {StatusBarManager} = NativeModules
 
 class KeyboardAvoidingView extends React.Component<KeyboardAvoidingViewProps, {verticalOffset: number}> {

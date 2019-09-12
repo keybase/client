@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {isMobile} from '../../constants/platform'
 
 // props exported for stories
 export type Props = {
@@ -18,6 +19,7 @@ export type Props = {
   superseded: boolean
   type: 'phone' | 'email'
   verified: boolean
+  lastVerifyEmailDate?: number
 }
 
 const addSpacer = (into: string, add: string) => {
@@ -40,13 +42,24 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     return null
   }
 
+  // less than 30 minutes ago
+  const hasRecentVerifyEmail =
+    props.lastVerifyEmailDate && new Date().getTime() / 1000 - props.lastVerifyEmailDate < 30 * 60
+
   let subtitle = ''
-  if (props.type === 'email' && props.primary) {
-    subtitle = addSpacer(subtitle, 'Primary')
-    // TODO 'Check your inbox' if verification email was just sent
-  }
-  if (!props.searchable) {
-    subtitle = addSpacer(subtitle, 'Not searchable')
+
+  if (isMobile && hasRecentVerifyEmail && !props.verified) {
+    subtitle = 'Check your inbox'
+  } else {
+    if (hasRecentVerifyEmail && !props.verified) {
+      subtitle = addSpacer(subtitle, 'Check your inbox')
+    }
+    if (props.type === 'email' && props.primary) {
+      subtitle = addSpacer(subtitle, 'Primary')
+    }
+    if (!props.searchable) {
+      subtitle = addSpacer(subtitle, 'Not searchable')
+    }
   }
 
   const menuItems: Kb.MenuItems = []
@@ -76,17 +89,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     })
   }
 
-  // TODO: Drop this `if` once Y2K-180 is done.
-  if (!props.primary) {
-    if (menuItems.length > 0) {
-      menuItems.push('Divider')
-    }
-    menuItems.push({
-      danger: true,
-      onClick: props.onDelete,
-      title: 'Delete',
-    })
+  if (menuItems.length > 0) {
+    menuItems.push('Divider')
   }
+  menuItems.push({
+    danger: true,
+    onClick: props.onDelete,
+    title: 'Delete',
+  })
 
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
@@ -151,36 +161,39 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 }
 const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
-const styles = Styles.styleSheetCreate({
-  badge: {
-    borderRadius: Styles.isMobile ? 5 : 4,
-    height: Styles.isMobile ? 10 : 8,
-    width: Styles.isMobile ? 10 : 8,
-  },
-  badgeGearIcon: {
-    position: 'absolute',
-    right: 1,
-    top: 3,
-  },
-  badgeMenuItem: {
-    alignSelf: 'center',
-    marginLeft: 'auto',
-  },
-  container: {
-    height: Styles.isMobile ? 48 : 40,
-  },
-  gearIcon: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.clickable},
-  }),
-  gearIconContainer: {
-    padding: Styles.globalMargins.xtiny,
-    position: 'relative',
-  },
-  menuHeader: {
-    height: 64,
-  },
-  menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        borderRadius: Styles.isMobile ? 5 : 4,
+        height: Styles.isMobile ? 10 : 8,
+        width: Styles.isMobile ? 10 : 8,
+      },
+      badgeGearIcon: {
+        position: 'absolute',
+        right: 1,
+        top: 3,
+      },
+      badgeMenuItem: {
+        alignSelf: 'center',
+        marginLeft: 'auto',
+      },
+      container: {
+        height: Styles.isMobile ? 48 : 40,
+      },
+      gearIcon: Styles.platformStyles({
+        isElectron: {...Styles.desktopStyles.clickable},
+      }),
+      gearIconContainer: {
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
+      },
+      menuHeader: {
+        height: 64,
+      },
+      menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
+    } as const)
+)
 
 // props exported for stories
 export type OwnProps = {
@@ -268,6 +281,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        lastVerifyEmailDate: stateProps._emailRow.lastVerifyEmailDate || undefined,
         onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable),
         onMakePrimary: dispatchProps.email.onMakePrimary,
         onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,

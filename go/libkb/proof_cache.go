@@ -25,15 +25,15 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 	p := jsonw.NewDictionary()
 	if cr.Status != nil {
 		s := jsonw.NewDictionary()
-		s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
-		s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
-		p.SetKey("status", s)
+		_ = s.SetKey("code", jsonw.NewInt(int(cr.Status.GetProofStatus())))
+		_ = s.SetKey("desc", jsonw.NewString(cr.Status.GetDesc()))
+		_ = p.SetKey("status", s)
 		if cr.VerifiedHint != nil {
-			p.SetKey("verified_hint", cr.VerifiedHint.MarshalToJSON())
+			_ = p.SetKey("verified_hint", cr.VerifiedHint.MarshalToJSON())
 		}
 	}
-	p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
-	p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
+	_ = p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
+	_ = p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
 	return p
 }
 

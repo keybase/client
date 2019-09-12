@@ -32,7 +32,7 @@ const _Result = (props: Props) => {
       <Kb.Box2
         direction="vertical"
         centerChildren={true}
-        alignItems={'center'}
+        alignItems="center"
         fullWidth={true}
         style={styles.topContainer}
       >
@@ -52,36 +52,39 @@ const _Result = (props: Props) => {
 }
 const Result = Kb.HeaderOrPopup(_Result)
 
-const styles = Styles.styleSheetCreate({
-  bottomContainer: {
-    height: 80,
-  },
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 485,
-      width: 560,
-    },
-  }),
-  iconBadgeContainer: {
-    bottom: -5,
-    position: 'absolute',
-    right: -5,
-  },
-  serviceIcon: {
-    height: 64,
-    width: 64,
-  },
-  serviceIconContainer: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.tiny,
-      position: 'relative',
-    },
-  }),
-  topContainer: Styles.platformStyles({
-    common: {
-      flex: 1,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bottomContainer: {
+        height: 80,
+      },
+      container: Styles.platformStyles({
+        isElectron: {
+          height: 485,
+          width: 560,
+        },
+      }),
+      iconBadgeContainer: {
+        bottom: -5,
+        position: 'absolute',
+        right: -5,
+      },
+      serviceIcon: {
+        height: 64,
+        width: 64,
+      },
+      serviceIconContainer: Styles.platformStyles({
+        common: {
+          marginBottom: Styles.globalMargins.tiny,
+          position: 'relative',
+        },
+      }),
+      topContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+        },
+      }),
+    } as const)
+)
 
 export default Result

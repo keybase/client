@@ -91,21 +91,24 @@ const SwipeConvActions = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  actionText: {
-    backgroundColor: 'transparent',
-    color: Styles.globalColors.white,
-  },
-  container: {
-    flexDirection: 'row',
-    width: 128,
-  },
-  rightAction: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    width: 65, // set to one pixel larger to stop a visual blinking artifact
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionText: {
+        backgroundColor: 'transparent',
+        color: Styles.globalColors.white,
+      },
+      container: {
+        flexDirection: 'row',
+        width: 128,
+      },
+      rightAction: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        width: 65, // set to one pixel larger to stop a visual blinking artifact
+      },
+    } as const)
+)
 
 export default SwipeConvActions

@@ -1,11 +1,18 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import Box from './box'
 import HOCTimers, {PropsWithTimer} from './hoc-timers'
 import Icon from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import * as Flow from '../util/flow'
-import {collapseStyles, globalColors, globalMargins, globalStyles, StylesCrossPlatform} from '../styles'
+
+const Kb = {
+  Box,
+  Icon,
+  ProgressIndicator,
+  Text,
+}
 
 // States of the state machine for the save indicator:
 //
@@ -30,7 +37,7 @@ type SaveState = 'steady' | 'saving' | 'savingHysteresis' | 'justSaved'
 
 export type _Props = {
   saving: boolean
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
   // Minimum duration to stay in saving or savingHysteresis.
   minSavingTimeMs: number
   // Minimum duration to stay in justSaved.
@@ -106,9 +113,9 @@ const computeNextState = (props: _Props, state: State, now: Date): null | SaveSt
 }
 
 const defaultStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: globalMargins.medium,
+  height: Styles.globalMargins.medium,
   justifyContent: 'center',
 }
 
@@ -177,15 +184,15 @@ class SaveIndicator extends React.Component<Props, State> {
         return null
       case 'saving':
       case 'savingHysteresis':
-        return <ProgressIndicator style={{width: globalMargins.medium}} />
+        return <Kb.ProgressIndicator style={{width: Styles.globalMargins.medium}} />
       case 'justSaved':
         return (
-          <React.Fragment>
-            <Icon type="iconfont-check" color={globalColors.green} />
-            <Text type="BodySmall" style={{color: globalColors.greenDark}}>
+          <>
+            <Kb.Icon type="iconfont-check" color={Styles.globalColors.green} />
+            <Kb.Text type="BodySmall" style={{color: Styles.globalColors.greenDark}}>
               &nbsp; Saved
-            </Text>
-          </React.Fragment>
+            </Kb.Text>
+          </>
         )
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(saveState)
@@ -193,8 +200,10 @@ class SaveIndicator extends React.Component<Props, State> {
     }
   }
 
-  render = () => {
-    return <Box style={collapseStyles([defaultStyle, this.props.style])}>{this._getChildren()}</Box>
+  render() {
+    return (
+      <Kb.Box style={Styles.collapseStyles([defaultStyle, this.props.style])}>{this._getChildren()}</Kb.Box>
+    )
   }
 }
 

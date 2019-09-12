@@ -15,7 +15,7 @@ const ConfirmDisableCertPinningModal = (props: Props) => (
     header={<Kb.Icon type="iconfont-exclamation" sizeType="Big" color={Styles.globalColors.red} />}
     onCancel={props.onCancel}
     onConfirm={props.onConfirm}
-    prompt={`Are you sure you want to allow TLS MITM?`}
+    prompt="Are you sure you want to allow TLS MITM?"
   />
 )
 

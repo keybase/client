@@ -28,6 +28,7 @@ import (
 
 const (
 	quotaUsageStaleTolerance = 10 * time.Second
+	initEditBlockTimeout     = 500 * time.Millisecond
 )
 
 // KBFSOpsStandard implements the KBFSOps interface, and is go-routine
@@ -60,12 +61,20 @@ type KBFSOpsStandard struct {
 
 	initLock       sync.Mutex
 	initEditCancel context.CancelFunc
+	initEditReq    chan struct{}
+	initEditDone   chan struct{}
 	initSyncCancel context.CancelFunc
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
 
 const longOperationDebugDumpDuration = time.Minute
+
+type ctxKBFSOpsSkipEditHistoryBlockType int
+
+// This context key indicates that we should not block on TLF edit
+// history initialization, as it would cause a deadlock.
+const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBFSOpsStandard {
@@ -263,12 +272,60 @@ func (fs *KBFSOpsStandard) InvalidateNodeAndChildren(
 	return ops.InvalidateNodeAndChildren(ctx, node)
 }
 
+func (fs *KBFSOpsStandard) waitForEditHistoryInitialization(
+	ctx context.Context) {
+	if !fs.config.Mode().TLFEditHistoryEnabled() ||
+		ctx.Value(ctxKBFSOpsSkipEditHistoryBlock) != nil {
+		return
+	}
+
+	reqChan, doneChan := func() (chan<- struct{}, <-chan struct{}) {
+		fs.initLock.Lock()
+		defer fs.initLock.Unlock()
+		return fs.initEditReq, fs.initEditDone
+	}()
+	// There hasn't been a logged-in event yet, so don't wait for the
+	// edit history to be initialized.
+	if reqChan == nil {
+		return
+	}
+
+	// Send a request to unblock, if needed.
+	select {
+	case reqChan <- struct{}{}:
+	default:
+	}
+
+	select {
+	case <-doneChan:
+		// Avoid printing the log message if we don't need to wait at all.
+		return
+	default:
+	}
+
+	fs.log.CDebugf(ctx, "Waiting for the edit history to initialize")
+
+	// Don't wait too long for the edit history to be initialized, in
+	// case we are offline and someone is just trying to get the
+	// cached favorites.
+	ctx, cancel := context.WithTimeout(ctx, initEditBlockTimeout)
+	defer cancel()
+
+	// Wait for the initialization to complete.
+	select {
+	case <-doneChan:
+	case <-ctx.Done():
+	}
+}
+
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	[]favorites.Folder, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
+
+	fs.waitForEditHistoryInitialization(ctx)
 
 	favs, err := fs.favs.Get(ctx)
 	if err != nil {
@@ -302,6 +359,8 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
+
+	fs.waitForEditHistoryInitialization(ctx)
 
 	favs, err := fs.favs.GetAll(ctx)
 	if err != nil {
@@ -647,7 +706,8 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
-func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *tlfhandle.Handle) error {
+func (fs *KBFSOpsStandard) resetTlfID(
+	ctx context.Context, h *tlfhandle.Handle, newTlfID *tlf.ID) error {
 	if !h.IsBackedByTeam() {
 		return errors.WithStack(NonExistentTeamForHandleError{h})
 	}
@@ -657,26 +717,33 @@ func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *tlfhandle.Handle) 
 		return err
 	}
 
-	matches, epoch, err := h.TlfID().GetEpochFromTeamTLF(teamID)
-	if err != nil {
-		return err
-	}
-	if matches {
-		epoch++
+	var tlfID tlf.ID
+	if newTlfID != nil {
+		tlfID = *newTlfID
+		fs.log.CDebugf(ctx, "Resetting to TLF ID %s for TLF %s, %s",
+			tlfID, teamID, h.GetCanonicalName())
 	} else {
-		epoch = 0
-	}
+		matches, epoch, err := h.TlfID().GetEpochFromTeamTLF(teamID)
+		if err != nil {
+			return err
+		}
+		if matches {
+			epoch++
+		} else {
+			epoch = 0
+		}
 
-	// When creating a new TLF for an implicit team, always start with
-	// epoch 0.  A different path will handle TLF resets with an
-	// increased epoch, if necessary.
-	tlfID, err := tlf.MakeIDFromTeam(h.Type(), teamID, epoch)
-	if err != nil {
-		return err
-	}
+		// When creating a new TLF for an implicit team, always start with
+		// epoch 0.  A different path will handle TLF resets with an
+		// increased epoch, if necessary.
+		tlfID, err = tlf.MakeIDFromTeam(h.Type(), teamID, epoch)
+		if err != nil {
+			return err
+		}
 
-	fs.log.CDebugf(ctx, "Creating new TLF ID %s for team %s, %s",
-		tlfID, teamID, h.GetCanonicalName())
+		fs.log.CDebugf(ctx, "Creating new TLF ID %s for TLF %s, %s",
+			tlfID, teamID, h.GetCanonicalName())
+	}
 
 	err = fs.config.KBPKI().CreateTeamTLF(ctx, teamID, tlfID)
 	if err != nil {
@@ -697,7 +764,7 @@ func (fs *KBFSOpsStandard) createAndStoreTlfIDIfNeeded(
 		return nil
 	}
 
-	return fs.resetTlfID(ctx, h)
+	return fs.resetTlfID(ctx, h, nil)
 }
 
 func (fs *KBFSOpsStandard) transformReadError(
@@ -1476,6 +1543,19 @@ func (fs *KBFSOpsStandard) TeamAbandoned(
 	}
 }
 
+// CheckMigrationPerms implements the KBFSOps interface for folderBranchOps.
+func (fs *KBFSOpsStandard) CheckMigrationPerms(
+	ctx context.Context, id tlf.ID) (err error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	// We currently only migrate on the master branch of a TLF.
+	ops := fs.getOps(
+		ctx, data.FolderBranch{Tlf: id, Branch: data.MasterBranch},
+		FavoritesOpNoChange)
+	return ops.CheckMigrationPerms(ctx, id)
+}
+
 // MigrateToImplicitTeam implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) MigrateToImplicitTeam(
 	ctx context.Context, id tlf.ID) error {
@@ -1584,7 +1664,7 @@ func (fs *KBFSOpsStandard) NewNotificationChannel(
 
 // Reset implements the KBFSOps interface for KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Reset(
-	ctx context.Context, handle *tlfhandle.Handle) error {
+	ctx context.Context, handle *tlfhandle.Handle, newTlfID *tlf.ID) error {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
@@ -1594,15 +1674,32 @@ func (fs *KBFSOpsStandard) Reset(
 	if err != nil {
 		return err
 	}
-	id, _, err := fs.config.MDServer().GetForHandle(
-		ctx, bareHandle, kbfsmd.Merged, nil)
-	if err == nil {
-		fs.log.CDebugf(ctx, "Folder %s can't be reset; still has ID %s",
-			handle.GetCanonicalPath(), id)
-		return errors.WithStack(FolderNotResetOnServer{handle})
-	} else if _, ok := errors.Cause(err).(kbfsmd.ServerErrorClassicTLFDoesNotExist); !ok {
-		// Return errors if they don't indicate the folder is new.
-		return err
+
+	if newTlfID != nil {
+		oldPath := handle.GetCanonicalPath()
+		fs.log.CDebugf(
+			ctx, "Checking that %s is an appropriate ID for TLF %s after reset",
+			*newTlfID, oldPath)
+		md, err := fs.config.MDOps().GetForTLF(ctx, *newTlfID, nil)
+		if err != nil {
+			return err
+		}
+		newPath := md.GetTlfHandle().GetCanonicalPath()
+		if newPath != oldPath {
+			return errors.Errorf("Cannot reset %s (%s) to TLF %s (%s)",
+				oldPath, handle.TlfID(), newPath, *newTlfID)
+		}
+	} else {
+		id, _, err := fs.config.MDServer().GetForHandle(
+			ctx, bareHandle, kbfsmd.Merged, nil)
+		if err == nil {
+			fs.log.CDebugf(ctx, "Folder %s can't be reset; still has ID %s",
+				handle.GetCanonicalPath(), id)
+			return errors.WithStack(FolderNotResetOnServer{handle})
+		} else if _, ok := errors.Cause(err).(kbfsmd.ServerErrorClassicTLFDoesNotExist); !ok {
+			// Return errors if they don't indicate the folder is new.
+			return err
+		}
 	}
 
 	fs.opsLock.Lock()
@@ -1611,6 +1708,8 @@ func (fs *KBFSOpsStandard) Reset(
 	fb := data.FolderBranch{Tlf: handle.TlfID(), Branch: data.MasterBranch}
 	ops, ok := fs.ops[fb]
 	if ok {
+		fs.config.MDServer().CancelRegistration(ctx, handle.TlfID())
+
 		err := ops.Reset(ctx, handle)
 		if err != nil {
 			return err
@@ -1627,7 +1726,7 @@ func (fs *KBFSOpsStandard) Reset(
 	// Reset the TLF by overwriting the TLF ID in the sigchain.  This
 	// assumes that the server is in implicit team mode for new TLFs,
 	// which at this point it should always be.
-	return fs.resetTlfID(ctx, handle)
+	return fs.resetTlfID(ctx, handle, newTlfID)
 }
 
 // ClearConflictView resets a TLF's journal and conflict DB to a non
@@ -1797,17 +1896,21 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 }
 
 func (fs *KBFSOpsStandard) startInitEdit() (
-	context.Context, context.CancelFunc) {
+	ctx context.Context, cancel context.CancelFunc,
+	reqChan <-chan struct{}, doneChan chan<- struct{}) {
 	fs.initLock.Lock()
 	defer fs.initLock.Unlock()
-	ctx := CtxWithRandomIDReplayable(
+	ctx = CtxWithRandomIDReplayable(
 		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel = context.WithCancel(ctx)
+	ctx = context.WithValue(ctx, ctxKBFSOpsSkipEditHistoryBlock, struct{}{})
 	if fs.initEditCancel != nil {
 		fs.initEditCancel()
 	}
 	fs.initEditCancel = cancel
-	return ctx, cancel
+	fs.initEditReq = make(chan struct{}, 1)
+	fs.initEditDone = make(chan struct{})
+	return ctx, cancel, fs.initEditReq, fs.initEditDone
 }
 
 func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
@@ -1825,15 +1928,25 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		return
 	}
 
-	ctx, cancel := fs.startInitEdit()
+	ctx, cancel, reqChan, doneChan := fs.startInitEdit()
 	defer cancel()
+	defer close(doneChan)
 
-	time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
-
-	select {
-	case <-ctx.Done():
-		return
-	default:
+	doBlock := fs.config.Mode().BlockTLFEditHistoryIntialization()
+	if doBlock {
+		fs.log.CDebugf(ctx, "Waiting for a TLF edit history request")
+		select {
+		case <-reqChan:
+		case <-ctx.Done():
+			return
+		}
+	} else {
+		time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 	}
 
 	fs.log.CDebugf(ctx, "Querying the kbfs-edits inbox for new TLFs")
@@ -1866,7 +1979,9 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 				"Handle %s for existing folder unexpectedly has no TLF ID",
 				h.GetCanonicalName())
 		}
-		time.Sleep(fs.config.Mode().BackgroundWorkPeriod())
+		if !doBlock {
+			time.Sleep(fs.config.Mode().BackgroundWorkPeriod())
+		}
 	}
 }
 

@@ -1,28 +1,5 @@
 import {PlatformsExpandedType} from '../constants/types/more'
-import {IconType} from '../common-adapters/icon.constants' // do NOT pull in all of common-adapters
-
-const ProveMessages = {
-  btc: 'Set a Bitcoin address',
-  dns: 'Prove your website',
-  dnsOrGenericWebSite: 'Prove your website',
-  facebook: 'Prove your Facebook',
-  github: 'Prove your GitHub',
-  hackernews: 'Prove your Hacker News',
-  http: 'Prove your HTTP website',
-  https: 'Prove your HTTPS website',
-  keybase: '',
-  none: '',
-  pgp: 'Add a PGP key',
-  reddit: 'Prove your Reddit',
-  rooter: 'Prove your Rooter',
-  twitter: 'Prove your Twitter',
-  web: 'Prove your website',
-  zcash: 'Set a Zcash address',
-}
-
-export function proveMessage(platform: PlatformsExpandedType) {
-  return ProveMessages[platform]
-}
+import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 
 export function subtitle(platform: PlatformsExpandedType): string | null {
   switch (platform) {
@@ -39,24 +16,14 @@ export function subtitle(platform: PlatformsExpandedType): string | null {
   }
 }
 
-export type ServiceId =
-  | 'email'
-  | 'facebook'
-  | 'github'
-  | 'hackernews'
-  | 'keybase'
-  | 'pgp'
-  | 'reddit'
-  | 'twitter'
+export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'reddit' | 'twitter'
 
 export function serviceIdToIcon(service: ServiceId): IconType {
   return ({
-    email: 'iconfont-mention',
     facebook: 'iconfont-identity-facebook',
     github: 'iconfont-identity-github',
     hackernews: 'iconfont-identity-hn',
     keybase: 'iconfont-identity-devices',
-    pgp: 'iconfont-identity-pgp',
     reddit: 'iconfont-identity-reddit',
     twitter: 'iconfont-identity-twitter',
   } as const)[service]
@@ -64,12 +31,10 @@ export function serviceIdToIcon(service: ServiceId): IconType {
 
 export function serviceIdToLogo24(service: ServiceId): IconType {
   return ({
-    email: 'icon-keybase-logo-24',
     facebook: 'icon-facebook-logo-24',
     github: 'icon-github-logo-24',
     hackernews: 'icon-hacker-news-logo-24',
     keybase: 'icon-keybase-logo-24',
-    pgp: 'icon-pgp-key-24',
     reddit: 'icon-reddit-logo-24',
     twitter: 'icon-twitter-logo-24',
   } as const)[service]
@@ -81,12 +46,10 @@ export type UserId = string
 
 export function serviceIdFromString(val: string): ServiceId {
   switch (val) {
-    case 'email':
     case 'facebook':
     case 'github':
     case 'hackernews':
     case 'keybase':
-    case 'pgp':
     case 'reddit':
     case 'twitter':
       return val

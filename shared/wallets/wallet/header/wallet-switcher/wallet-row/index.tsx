@@ -11,39 +11,42 @@ export type Props = {
   unreadPayments: number
 }
 
-const styles = Styles.styleSheetCreate({
-  amount: {
-    color: Styles.globalColors.black_50,
-  },
-  avatar: {marginRight: Styles.globalMargins.xtiny},
-  containerBox: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    flexDirection: 'row',
-    height: 48,
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  firstRowContainer: {
-    alignItems: 'center',
-  },
-  icon: {
-    height: 32,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-    minWidth: 32,
-  },
-  rowContainer: {
-    alignItems: 'center',
-  },
-  title: {
-    color: Styles.globalColors.blueDark,
-  },
-  titleSelected: {
-    ...Styles.globalStyles.fontSemibold,
-    color: Styles.globalColors.black,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      amount: {
+        color: Styles.globalColors.black_50,
+      },
+      avatar: {marginRight: Styles.globalMargins.xtiny},
+      containerBox: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
+        flexDirection: 'row',
+        height: 48,
+        justifyContent: 'space-between',
+        width: '100%',
+      },
+      firstRowContainer: {
+        alignItems: 'center',
+      },
+      icon: {
+        height: 32,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+        minWidth: 32,
+      },
+      rowContainer: {
+        alignItems: 'center',
+      },
+      title: {
+        color: Styles.globalColors.blueDark,
+      },
+      titleSelected: {
+        ...Styles.globalStyles.fontSemibold,
+        color: Styles.globalColors.black,
+      },
+    } as const)
+)
 
 const WalletRow = (props: Props) => {
   const emptyIcon = <Kb.Box2 direction="horizontal" style={styles.icon} />

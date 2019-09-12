@@ -586,6 +586,7 @@ protocol local {
                                   string publicNote, AccountID fromAccountID);
 
   SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+  TransactionID accountMergeCLILocal(AccountID fromAccountID, union { null, SecretKey } fromSecretKey, string to);
 
   // Claim a relay payment
   // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.

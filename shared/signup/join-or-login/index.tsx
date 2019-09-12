@@ -39,7 +39,7 @@ const JoinOrLogin = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   body: {
     flex: 1,
   },
@@ -74,6 +74,6 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.orange,
   },
-})
+}))
 
 export default JoinOrLogin

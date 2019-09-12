@@ -8,10 +8,8 @@ import {readImageFromClipboard} from '../../../util/clipboard.desktop'
 import {Props} from './index.types'
 import '../conversation.css'
 import ThreadLoadStatus from '../load-status/container'
-
-type State = {
-  showDropOverlay: boolean
-}
+import PinnedMessage from '../pinned-message/container'
+import ThreadSearch from '../search/container'
 
 const Offline = () => (
   <Kb.Box style={styles.offline}>
@@ -21,9 +19,8 @@ const Offline = () => (
   </Kb.Box>
 )
 
-class Conversation extends React.PureComponent<Props, State> {
+class Conversation extends React.PureComponent<Props> {
   _mounted = false
-  state = {showDropOverlay: false}
 
   componentWillUnmount() {
     this._mounted = false
@@ -34,10 +31,7 @@ class Conversation extends React.PureComponent<Props, State> {
   }
 
   _onPaste = e => {
-    readImageFromClipboard(e, () => {
-      this._mounted && this.setState({showDropOverlay: true})
-    }).then(clipboardData => {
-      this._mounted && this.setState({showDropOverlay: false})
+    readImageFromClipboard(e, () => {}).then(clipboardData => {
       if (clipboardData) {
         this.props.onPaste(clipboardData)
       }
@@ -57,6 +51,15 @@ class Conversation extends React.PureComponent<Props, State> {
               scrollListUpCounter={this.props.scrollListUpCounter}
               conversationIDKey={this.props.conversationIDKey}
             />
+            {!this.props.showThreadSearch && (
+              <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
+            )}
+            {this.props.showThreadSearch && (
+              <ThreadSearch
+                style={styles.threadSearchStyle}
+                conversationIDKey={this.props.conversationIDKey}
+              />
+            )}
             <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
@@ -75,22 +78,29 @@ class Conversation extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    position: 'relative',
-  },
-  innerContainer: {
-    flex: 1,
-    position: 'relative',
-  },
-  offline: {
-    ...Styles.globalStyles.flexBoxCenter,
-    backgroundColor: Styles.globalColors.black_10,
-    flex: 1,
-    maxHeight: Styles.globalMargins.medium,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        flex: 1,
+        position: 'relative',
+      },
+      innerContainer: {
+        flex: 1,
+        position: 'relative',
+      },
+      offline: {
+        ...Styles.globalStyles.flexBoxCenter,
+        backgroundColor: Styles.globalColors.black_10,
+        flex: 1,
+        maxHeight: Styles.globalMargins.medium,
+      },
+      threadSearchStyle: {
+        position: 'absolute' as const,
+        top: 0,
+      },
+    } as const)
+)
 
 export default Conversation

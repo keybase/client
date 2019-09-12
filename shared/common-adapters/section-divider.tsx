@@ -47,7 +47,7 @@ const SectionDivider = (props: Props) => {
 const height = Styles.isMobile ? 40 : 32
 SectionDivider.height = height
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.blueLighter3,
@@ -60,6 +60,6 @@ const styles = Styles.styleSheetCreate({
     height: 20,
     width: 20,
   },
-})
+}))
 
 export default SectionDivider

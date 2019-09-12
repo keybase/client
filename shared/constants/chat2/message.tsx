@@ -356,6 +356,13 @@ const makeMessageSetDescription = I.Record<MessageTypes._MessageSetDescription>(
   type: 'setDescription',
 })
 
+const makeMessagePin = I.Record<MessageTypes._MessagePin>({
+  ...makeMessageCommonNoDeleteNoEdit,
+  pinnedMessageID: 0,
+  reactions: I.Map(),
+  type: 'pin',
+})
+
 const makeMessageSetChannelname = I.Record<MessageTypes._MessageSetChannelname>({
   ...makeMessageCommonNoDeleteNoEdit,
   newChannelname: '',
@@ -678,6 +685,18 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
   )
 }
 
+export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | null => {
+  const unfurls = message.type === 'text' && message.unfurls.size ? message.unfurls.toList().toArray() : null
+  const mapInfo =
+    !!unfurls &&
+    unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
+    unfurls[0].unfurl.generic &&
+    unfurls[0].unfurl.generic.mapInfo
+      ? unfurls[0].unfurl.generic
+      : null
+  return mapInfo
+}
+
 const validUIMessagetoMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
@@ -859,6 +878,12 @@ const validUIMessagetoMessage = (
             reactions,
           })
         : null
+    case RPCChatTypes.MessageType.pin:
+      return makeMessagePin({
+        ...common,
+        pinnedMessageID: m.pinnedMessageID || m.messageID,
+        reactions,
+      })
     case RPCChatTypes.MessageType.metadata:
       return m.messageBody.metadata
         ? makeMessageSetChannelname({
@@ -1056,9 +1081,9 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const lastOrdinal = state.chat2.messageOrdinals
-    .get(conversationIDKey, I.List())
-    .last(Types.numberToOrdinal(0))
+  const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
+    Types.numberToOrdinal(0)
+  )
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
@@ -1090,9 +1115,9 @@ export const makePendingAttachmentMessage = (
   errorReason: string | null,
   explodeTime?: number
 ) => {
-  const lastOrdinal = state.chat2.messageOrdinals
-    .get(conversationIDKey, I.List())
-    .last(Types.numberToOrdinal(0))
+  const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
+    Types.numberToOrdinal(0)
+  )
   const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
@@ -1236,6 +1261,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'requestPayment':
     case 'setChannelname':
     case 'setDescription':
+    case 'pin':
     case 'systemAddedToTeam':
     case 'systemChangeRetention':
     case 'systemGitPush':
@@ -1266,3 +1292,20 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {seconds: 86400 * 7, text: '7 days'},
   {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()
+
+export const messageAttachmentTransferStateToProgressLabel = (
+  transferState: Types.MessageAttachmentTransferState
+): string => {
+  switch (transferState) {
+    case 'downloading':
+      return 'Downloading'
+    case 'uploading':
+      return 'Uploading'
+    case 'mobileSaving':
+      return 'Saving...'
+    case 'remoteUploading':
+      return 'waiting...'
+    default:
+      return ''
+  }
+}

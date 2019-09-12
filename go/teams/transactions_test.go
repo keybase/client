@@ -101,13 +101,13 @@ func TestTransactionRotateKey(t *testing.T) {
 	// Create payloads manually so user add and user del happen in
 	// separate links.
 	tx.payloads = []txPayload{
-		txPayload{
+		{
 			Tag: txPayloadTagCryptomembers,
 			Val: &keybase1.TeamChangeReq{
 				Writers: []keybase1.UserVersion{otherB.GetUserVersion()},
 			},
 		},
-		txPayload{
+		{
 			Tag: txPayloadTagCryptomembers,
 			Val: &keybase1.TeamChangeReq{
 				None: []keybase1.UserVersion{otherA.GetUserVersion()},

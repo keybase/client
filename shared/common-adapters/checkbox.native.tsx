@@ -17,11 +17,11 @@ const Checkbox = (props: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     paddingBottom: Styles.globalMargins.xtiny,
     paddingTop: Styles.globalMargins.xtiny,
   },
-})
+}))
 
 export default Checkbox

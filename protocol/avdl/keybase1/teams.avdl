@@ -1290,6 +1290,7 @@ protocol teams {
     boolean deleteChatHistory;
     boolean deleteOtherMessages;
     boolean deleteTeam;
+    boolean pinMessage;
   }
 
   record ProfileTeamLoadRes {
@@ -1360,4 +1361,15 @@ protocol teams {
   TeamID getTeamID(string teamName);
 
   FastTeamLoadRes ftl(FastTeamLoadArg arg);
+
+
+  record MemberEmail {
+    string email;
+    string role;
+  }
+
+  record MemberUsername {
+    string username;
+    string role;
+  }
 }

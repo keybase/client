@@ -44,8 +44,8 @@ func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer
 	if m.decryptCh != nil {
 		m.decryptCh <- struct{}{}
 	}
-	io.Copy(w, body)
-	return nil
+	_, err := io.Copy(w, body)
+	return err
 }
 
 func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer,
@@ -121,16 +121,18 @@ func TestChatSrvAttachmentHTTPSrv(t *testing.T) {
 		manager.NewSrv(tc.Context().ExternalG()), fetcher,
 		func() chat1.RemoteInterface { return mockSigningRemote{} })
 
-	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+	_, err = postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m0",
 		},
 	}))
-	postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+	require.NoError(t, err)
+	_, err = postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Path: "m1",
 		},
 	}))
+	require.NoError(t, err)
 
 	tv, err := tc.Context().ConvSource.Pull(context.TODO(), conv.Id, uid,
 		chat1.GetThreadReason_GENERAL,
@@ -258,11 +260,16 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	found, path, err := fetcher.localAssetPath(context.TODO(), *body.Attachment().Preview)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
+
 	t.Logf("found path: %s", path)
 
 	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.True(t, found)
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 	t.Logf("found path: %s", path)
 
 	// Try with an attachment with no preview
@@ -287,7 +294,10 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	require.True(t, msgRes.Messages[0].IsValid())
 	body = msgRes.Messages[0].Valid().MessageBody
 	require.Nil(t, body.Attachment().Preview)
-	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
+	found, _, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
 	require.NoError(t, err)
 	require.False(t, found)
+	// No preview is available, but the file is still on disk.
+	_, err = os.Stat(path)
+	require.NoError(t, err)
 }

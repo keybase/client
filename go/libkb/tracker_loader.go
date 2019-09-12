@@ -58,7 +58,7 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 		close(l.shutdownCh)
 		l.started = false
 		go func() {
-			l.eg.Wait()
+			_ = l.eg.Wait()
 			close(ch)
 		}()
 	} else {

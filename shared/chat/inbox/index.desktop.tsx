@@ -108,6 +108,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _calculateShowUnreadShortcut = () => {
+    if (!this._mounted) {
+      return
+    }
     if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
@@ -145,6 +148,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
   }
 
   _onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    if (!this._mounted) {
+      return
+    }
     const toUnbox = this.props.rows
       .slice(visibleStartIndex, visibleStopIndex + 1)
       .reduce<Array<Types.ConversationIDKey>>((arr, r) => {

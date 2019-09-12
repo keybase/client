@@ -18,7 +18,6 @@ import (
 type KeyringFile struct {
 	filename         string
 	Entities         openpgp.EntityList
-	isPublic         bool
 	indexID          map[string](*openpgp.Entity) // Map of 64-bit uppercase-hex KeyIds
 	indexFingerprint map[PGPFingerprint](*openpgp.Entity)
 	Contextified
@@ -40,7 +39,7 @@ func NewKeyrings(g *GlobalContext) *Keyrings {
 func (g *GlobalContext) SKBFilenameForUser(un NormalizedUsername) string {
 	tmp := g.Env.GetSecretKeyringTemplate()
 	token := "%u"
-	if strings.Index(tmp, token) < 0 {
+	if !strings.Contains(tmp, token) {
 		return tmp
 	}
 
@@ -115,7 +114,6 @@ func (k *KeyringFile) Load() error {
 	file, err := os.Open(k.filename)
 	if os.IsNotExist(err) {
 		k.G().Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
-		err = nil
 	} else if err != nil {
 		k.G().Log.Errorf("Cannot open keyring %s: %s\n", k.filename, err)
 		return err
@@ -407,7 +405,10 @@ func (k *Keyrings) GetSecretKeyWithPrompt(m MetaContext, arg SecretKeyPromptArg)
 	key, _, err = k.GetSecretKeyAndSKBWithPrompt(m, arg)
 
 	if key != nil && err == nil {
-		setCachedSecretKey(m, arg.Ska, key, nil)
+		err := setCachedSecretKey(m, arg.Ska, key, nil)
+		if err != nil {
+			m.Debug("GetSecretKeyWithPrompt: error setting cached key: %+v", err)
+		}
 	}
 
 	return key, err
@@ -425,8 +426,6 @@ func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(m MetaContext, arg SecretKeyProm
 		secretStore = NewSecretStore(m.G(), arg.Ska.Me.GetNormalizedName())
 	}
 	if key, err = skb.PromptAndUnlock(m, arg, secretStore, arg.Ska.Me); err != nil {
-		key = nil
-		skb = nil
 		return nil, nil, err
 	}
 	return key, skb, nil

@@ -1,12 +1,15 @@
 // Darkmode is managed by redux but for things (proxies and etc) to get this value simply the value is
 // copied here
 import flags from '../util/feature-flags'
+
 export type DarkModePreference = 'system' | 'alwaysDark' | 'alwaysLight' | undefined
 
 let darkModePreference: DarkModePreference
 let systemDarkMode = false
+// supports system level changes
+let systemSupported = false
 
-// called ONLY from config sagas
+// called ONLY from config sagas and mobile boot
 export const _setDarkModePreference = (pref: DarkModePreference) => {
   darkModePreference = pref
 }
@@ -14,6 +17,10 @@ export const _setDarkModePreference = (pref: DarkModePreference) => {
 export const _setSystemIsDarkMode = (dm: boolean) => {
   systemDarkMode = dm
 }
+export const _setSystemSupported = (supported: boolean) => {
+  systemSupported = supported
+}
+
 export const isDarkMode = () => {
   if (!flags.darkMode) {
     return false
@@ -29,3 +36,5 @@ export const isDarkMode = () => {
       return false
   }
 }
+
+export const isDarkModeSystemSupported = () => systemSupported

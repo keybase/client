@@ -406,6 +406,7 @@ type load2ArgT struct {
 	public                    bool
 	skipAudit                 bool
 	skipNeedHiddenRotateCheck bool
+	skipSeedCheck             bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -831,9 +832,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
-	if err != nil {
-		return nil, err
+	if !arg.skipSeedCheck {
+		err = hiddenPackage.CheckUpdatesAgainstSeedsWithMap(mctx, ret.PerTeamKeySeedsUnverified)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Make sure public works out

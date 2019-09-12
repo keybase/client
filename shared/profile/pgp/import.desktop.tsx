@@ -49,8 +49,11 @@ const styleTerminal = {
   textAlign: 'left',
 }
 
-export default namedConnect(() => ({}), dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-}), (s, d, o: OwnProps) => ({...o, ...s, ...d}), 'Import')(
-  Import
-)
+export default namedConnect(
+  () => ({}),
+  dispatch => ({
+    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
+  (s, d, o: OwnProps) => ({...o, ...s, ...d}),
+  'Import'
+)(Import)

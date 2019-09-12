@@ -75,6 +75,8 @@ class AvatarUpload extends React.Component<Props> {
   }
 
   render() {
+    const uri =
+      this.props.image && this.props.image.cancelled === false ? parseUri(this.props.image, true) : null
     return (
       <Kb.StandardScreen
         onCancel={this.props.onClose}
@@ -114,15 +116,9 @@ class AvatarUpload extends React.Component<Props> {
                   : null
               }
             >
-              <Kb.NativeFastImage
-                resizeMode="cover"
-                source={{
-                  uri: `${
-                    this.props.image && this.props.image.cancelled === false ? parseUri(this.props.image) : ''
-                  }`,
-                }}
-                style={this._imageDimensions()}
-              />
+              {uri && (
+                <Kb.NativeFastImage resizeMode="cover" source={{uri}} style={this._imageDimensions()} />
+              )}
             </Kb.ZoomableBox>
           </Kb.Box>
           <Kb.ButtonBar direction="column">
@@ -140,25 +136,28 @@ class AvatarUpload extends React.Component<Props> {
   }
 }
 
-const styles = styleSheetCreate({
-  button: {
-    marginTop: globalMargins.tiny,
-    width: '100%',
-  },
-  container: {
-    ...padding(0, globalMargins.medium),
-    marginBottom: globalMargins.small,
-    marginTop: globalMargins.small,
-  },
-  standardScreen: {...padding(0)},
-  zoomContainer: {
-    backgroundColor: globalColors.grey,
-    height: AVATAR_SIZE,
-    marginBottom: globalMargins.tiny,
-    overflow: 'hidden',
-    position: 'relative',
-    width: AVATAR_SIZE,
-  },
-} as const)
+const styles = styleSheetCreate(
+  () =>
+    ({
+      button: {
+        marginTop: globalMargins.tiny,
+        width: '100%',
+      },
+      container: {
+        ...padding(0, globalMargins.medium),
+        marginBottom: globalMargins.small,
+        marginTop: globalMargins.small,
+      },
+      standardScreen: {...padding(0)},
+      zoomContainer: {
+        backgroundColor: globalColors.grey,
+        height: AVATAR_SIZE,
+        marginBottom: globalMargins.tiny,
+        overflow: 'hidden',
+        position: 'relative',
+        width: AVATAR_SIZE,
+      },
+    } as const)
+)
 
 export default AvatarUpload

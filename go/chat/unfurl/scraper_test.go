@@ -50,7 +50,7 @@ func (d *dummyHTTPSrv) Start() string {
 		Addr:    fmt.Sprintf("%s:%d", localhost, port),
 		Handler: mux,
 	}
-	go d.srv.Serve(listener)
+	go func() { _ = d.srv.Serve(listener) }()
 	return d.srv.Addr
 }
 
@@ -62,7 +62,7 @@ func (d *dummyHTTPSrv) serveAppleTouchIcon(w http.ResponseWriter, r *http.Reques
 	if d.shouldServeAppleTouchIcon {
 		w.WriteHeader(200)
 		dat, _ := ioutil.ReadFile(filepath.Join("testcases", "github.png"))
-		io.Copy(w, bytes.NewBuffer(dat))
+		_, _ = io.Copy(w, bytes.NewBuffer(dat))
 		return
 	}
 	w.WriteHeader(404)
@@ -381,6 +381,10 @@ func (t *testingLiveLocationTracker) LocationUpdate(ctx context.Context, coord c
 
 func (t *testingLiveLocationTracker) GetCoordinates(ctx context.Context, key types.LiveLocationKey) []chat1.Coordinate {
 	return t.coords
+}
+
+func (t *testingLiveLocationTracker) GetEndTime(ctx context.Context, key types.LiveLocationKey) *time.Time {
+	return nil
 }
 
 func (t *testingLiveLocationTracker) ActivelyTracking(ctx context.Context) bool {

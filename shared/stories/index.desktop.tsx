@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 import * as React from 'react'
 import * as Sb from './storybook'
+import * as Kb from '../common-adapters'
 import {addDecorator} from '@storybook/react'
 import sharedStories from './shared-stories'
 import desktopStories from './platform-stories.desktop'
@@ -24,25 +25,6 @@ const filteredStories = Object.keys(stories).reduce(
   filter ? {} : stories
 )
 
-function useInterval(callback: () => void, delay: number | null) {
-  const savedCallback = React.useRef<() => void>()
-
-  React.useEffect(() => {
-    savedCallback.current = callback
-  }, [callback])
-
-  React.useEffect(() => {
-    function tick() {
-      const c = savedCallback.current
-      c && c()
-    }
-    if (delay !== null) {
-      let id = setInterval(tick, delay)
-      return () => clearInterval(id)
-    } else return undefined
-  }, [delay])
-}
-
 // keep modes in the module so its kept between stories
 let _darkMode = false
 let _autoSwap = false
@@ -56,13 +38,13 @@ const RootWrapper = ({children}) => {
     _autoSwap = autoSwap
   }, [darkMode, autoSwap])
 
-  useInterval(
+  Kb.useInterval(
     () => {
       const next = !darkMode
-      setDarkMode(next)
       _setSystemIsDarkMode(next)
+      setDarkMode(next)
     },
-    autoSwap ? 1000 : null
+    autoSwap ? 1000 : undefined
   )
 
   if (__STORYSHOT__) {
@@ -74,11 +56,15 @@ const RootWrapper = ({children}) => {
     )
   } else {
     return (
-      <div
-        key={darkMode ? 'dark' : 'light'}
-        style={{height: '100%', width: '100%'}}
-        className={darkMode ? 'darkMode' : ''}
-      >
+      <>
+        <div
+          key={darkMode ? 'dark' : 'light'}
+          style={{height: '100%', width: '100%'}}
+          className={darkMode ? 'darkMode' : ''}
+        >
+          {children}
+          <div id="modal-root" key={darkMode ? 'dark' : 'light'} />
+        </div>
         <div
           style={{
             border: 'red 1px solid',
@@ -90,21 +76,20 @@ const RootWrapper = ({children}) => {
           }}
           title="Shift+Click to turn on auto"
           onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
             if (e.shiftKey) {
               setAutoSwap(!autoSwap)
             } else {
               const next = !darkMode
-              setDarkMode(next)
               _setSystemIsDarkMode(next)
+              setDarkMode(next)
               setAutoSwap(false)
             }
           }}
         >
           {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
         </div>
-        {children}
-        <div id="modal-root" />
-      </div>
+      </>
     )
   }
 }

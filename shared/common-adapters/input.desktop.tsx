@@ -1,7 +1,7 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 
 import {Props, Selection, TextInfo} from './input'
 import {checkTextInfo} from './input.shared'
@@ -230,32 +230,31 @@ class Input extends React.PureComponent<Props, State> {
 
   _underlineColor = () => {
     if (this.props.hideUnderline) {
-      return globalColors.transparent
+      return Styles.globalColors.transparent
     }
 
     if (this.props.errorText && this.props.errorText.length) {
-      return globalColors.red
+      return Styles.globalColors.red
     }
 
-    return this.state.focused ? globalColors.blue : globalColors.black_10
+    return this.state.focused ? Styles.globalColors.blue : Styles.globalColors.black_10
   }
 
   _rowsToHeight = rows => {
     return rows * _lineHeight + 1 // border
   }
 
-  _containerStyle = underlineColor => {
+  _containerStyle = () => {
     return this.props.small
       ? {
-          ...globalStyles.flexBoxRow,
-          borderBottom: `1px solid ${underlineColor}`,
+          ...Styles.globalStyles.flexBoxRow,
           width: '100%',
         }
       : {
-          ...globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
-          marginBottom: globalMargins.small,
-          marginTop: globalMargins.small,
+          marginBottom: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.small,
         }
   }
 
@@ -268,52 +267,37 @@ class Input extends React.PureComponent<Props, State> {
     }
   }
 
-  render = () => {
+  render() {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
-    const containerStyle = this._containerStyle(underlineColor)
+    const containerStyle = this._containerStyle()
 
-    const commonInputStyle: any = {
-      ...globalStyles.fontSemibold,
-      backgroundColor: globalColors.transparent,
-      border: 'none',
-      color: globalColors.black,
-      flex: 1,
-      outlineWidth: 0,
-      ...(this.props.small
-        ? {
-            fontSize: _bodyTextStyle.fontSize,
-            fontWeight: _bodyTextStyle.fontWeight,
-            lineHeight: _bodyTextStyle.lineHeight,
-            textAlign: 'left',
-          }
-        : {
-            borderBottom: `1px solid ${underlineColor}`,
-            fontSize: _headerTextStyle.fontSize,
-            fontWeight: _headerTextStyle.fontWeight,
-            lineHeight: _headerTextStyle.lineHeight,
-            minWidth: 333,
-            textAlign: 'center',
-          }),
-    }
+    const inputStyle = Styles.collapseStyles([
+      styles.commonInput,
+      this.props.small ? styles.commonInputSmall : styles.commonInputRegular,
+      {
+        borderBottom: `1px solid ${underlineColor}`,
+        height: this.props.small ? 18 : 28,
+        maxWidth: 460,
+      },
+    ])
 
-    const inputStyle = {
-      ...commonInputStyle,
-      height: this.props.small ? 18 : 28,
-      maxWidth: 460,
-    }
-
-    const textareaStyle = {
-      ...commonInputStyle,
-      height: 'initial',
-      minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
-      paddingBottom: 0,
-      paddingTop: 0,
-      resize: 'none',
-      width: '100%',
-      wrap: 'off',
-      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
-    }
+    const textareaStyle = Styles.collapseStyles([
+      styles.commonInput,
+      this.props.small
+        ? styles.commonInputSmall
+        : {...styles.commonInputRegular, borderBottom: `1px solid ${underlineColor}`},
+      {
+        height: 'initial',
+        minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+        paddingBottom: 0,
+        paddingTop: 0,
+        resize: 'none',
+        width: '100%',
+        wrap: 'off',
+        ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
+      },
+    ])
 
     const value = this._getValue()
 
@@ -350,39 +334,28 @@ class Input extends React.PureComponent<Props, State> {
 
     const singlelineProps = {
       ...commonProps,
-      style: collapseStyles([inputStyle, this.props.inputStyle]),
+      style: Styles.collapseStyles([inputStyle, this.props.inputStyle]),
       type: this._propTypeToSingleLineType(),
     }
 
     const multilineProps = {
       ...commonProps,
       rows: this.props.rowsMin || defaultRowsToShow,
-      style: collapseStyles([textareaStyle, this.props.inputStyle]),
+      style: Styles.collapseStyles([textareaStyle, this.props.inputStyle]),
     }
 
-    const smallLabelStyle = collapseStyles([
-      globalStyles.fontSemibold,
-      {
-        color: globalColors.blueDark,
-        fontSize: _bodySmallTextStyle.fontSize,
-        lineHeight: `${_lineHeight}px`,
-        marginRight: 8,
-      },
-      this.props.smallLabelStyle,
-    ])
-
-    const inputRealCSS = `::-webkit-input-placeholder { color: rgba(0,0,0,.4); }`
-
     return (
-      <Box style={collapseStyles([containerStyle, this.props.style])}>
-        <style>{inputRealCSS}</style>
+      <Box style={Styles.collapseStyles([containerStyle, this.props.style])}>
         {!this.props.small && !this.props.hideLabel && (
-          <Text center={true} type="BodySmallSemibold" style={_floatingStyle}>
+          <Text center={true} type="BodySmallSemibold" style={styles.floating}>
             {floatingHintText}
           </Text>
         )}
         {!!this.props.small && !!this.props.smallLabel && !this.props.hideLabel && (
-          <Text type="BodySmall" style={smallLabelStyle}>
+          <Text
+            type="BodySmall"
+            style={Styles.collapseStyles([styles.smallLabel, this.props.smallLabelStyle])}
+          >
             {this.props.smallLabel}
           </Text>
         )}
@@ -398,7 +371,7 @@ class Input extends React.PureComponent<Props, State> {
           <Text
             center={true}
             type="BodySmallError"
-            style={collapseStyles([_errorStyle, this.props.errorStyle])}
+            style={Styles.collapseStyles([styles.error, this.props.errorStyle])}
           >
             {this.props.errorText}
           </Text>
@@ -413,17 +386,49 @@ const _headerTextStyle: any = getTextStyle('Header')
 const _bodyTextStyle: any = getTextStyle('Body')
 const _bodySmallTextStyle: any = getTextStyle('BodySmall')
 
-const _errorStyle = {
-  marginTop: globalMargins.xtiny,
-  width: '100%',
-}
-
-const _floatingStyle = platformStyles({
-  isElectron: {
-    color: globalColors.blueDark,
-    display: 'block',
-    minHeight: _bodySmallTextStyle.lineHeight,
+const styles = Styles.styleSheetCreate(() => ({
+  commonInput: Styles.collapseStyles([
+    Styles.globalStyles.fontSemibold,
+    {
+      backgroundColor: Styles.globalColors.transparent,
+      border: 'none',
+      color: Styles.globalColors.black,
+      flex: 1,
+      outlineWidth: 0,
+    },
+  ]),
+  commonInputRegular: {
+    fontSize: _headerTextStyle.fontSize,
+    fontWeight: _headerTextStyle.fontWeight,
+    lineHeight: _headerTextStyle.lineHeight,
+    minWidth: 333,
+    textAlign: 'center',
   },
-})
-
+  commonInputSmall: {
+    fontSize: _bodyTextStyle.fontSize,
+    fontWeight: _bodyTextStyle.fontWeight,
+    lineHeight: _bodyTextStyle.lineHeight,
+    textAlign: 'left',
+  },
+  error: {
+    marginTop: Styles.globalMargins.xtiny,
+    width: '100%',
+  },
+  floating: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.blueDark,
+      display: 'block',
+      minHeight: _bodySmallTextStyle.lineHeight,
+    },
+  }),
+  smallLabel: Styles.collapseStyles([
+    Styles.globalStyles.fontSemibold,
+    {
+      color: Styles.globalColors.blueDark,
+      fontSize: _bodySmallTextStyle.fontSize,
+      lineHeight: `${_lineHeight}px`,
+      marginRight: 8,
+    },
+  ]),
+}))
 export default Input

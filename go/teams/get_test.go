@@ -17,11 +17,12 @@ func TestTeamGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	kbtest.CreateAndSignupFakeUser("team", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	name := createTeam(tc)
 
-	_, err := GetForTestByStringName(context.TODO(), tc.G, name)
+	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +32,8 @@ func TestTeamApplicationKey(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	kbtest.CreateAndSignupFakeUser("team", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	name := createTeam(tc)
 
@@ -64,11 +66,12 @@ func TestTeamGetRepeat(t *testing.T) {
 		tc := SetupTest(t, "team", 1)
 		defer tc.Cleanup()
 
-		kbtest.CreateAndSignupFakeUser("team", tc.G)
+		_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+		require.NoError(t, err)
 
 		name := createTeam(tc)
 
-		_, err := GetForTestByStringName(context.TODO(), tc.G, name)
+		_, err = GetForTestByStringName(context.TODO(), tc.G, name)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -80,7 +83,8 @@ func TestTeamGetWhileCreate(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	kbtest.CreateAndSignupFakeUser("team", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	name := createTeam(tc)
 
@@ -208,10 +212,10 @@ func TestGetTeamIDByName(t *testing.T) {
 
 	// Test as unrelated user
 	mctx = libkb.NewMetaContextForTest(*tcs[1])
-	res, err = GetTeamIDByNameRPC(mctx, teamName.String())
+	_, err = GetTeamIDByNameRPC(mctx, teamName.String())
 	require.Error(t, err)
 
-	res, err = GetTeamIDByNameRPC(mctx, subteamName.String())
+	_, err = GetTeamIDByNameRPC(mctx, subteamName.String())
 	require.Error(t, err)
 
 	// Add user 1 as a reader to root team
@@ -223,7 +227,7 @@ func TestGetTeamIDByName(t *testing.T) {
 	require.Equal(t, teamID, res)
 
 	// Try to get subteam id, should still fail.
-	res, err = GetTeamIDByNameRPC(mctx, subteamName.String())
+	_, err = GetTeamIDByNameRPC(mctx, subteamName.String())
 	require.Error(t, err)
 }
 
@@ -231,11 +235,12 @@ func teamGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
-	kbtest.CreateAndSignupFakeUser("team", tc.G)
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
 
 	name := createTeam(tc)
 
-	_, err := GetForTestByStringName(context.TODO(), tc.G, name)
+	_, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	if err != nil {
 		t.Fatal(err)
 	}

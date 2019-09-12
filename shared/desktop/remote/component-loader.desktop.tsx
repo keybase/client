@@ -7,7 +7,6 @@ import ReactDOM from 'react-dom'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {setupContextMenu} from '../app/menu-helper.desktop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
@@ -15,7 +14,7 @@ disableDragDrop()
 
 module.hot && module.hot.accept()
 
-type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker' | 'tracker2'
+type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker2'
 
 type Props = {
   children: React.ReactNode
@@ -30,7 +29,7 @@ class RemoteComponentLoader extends React.Component<Props> {
   _store: any
   _window: SafeElectron.BrowserWindowType | null
 
-  constructor(props) {
+  constructor(props: Props) {
     super(props)
     this._window = SafeElectron.getRemote().getCurrentWindow()
     const remoteStore = new RemoteStore({
@@ -40,7 +39,6 @@ class RemoteComponentLoader extends React.Component<Props> {
       windowParam: props.params,
     })
     this._store = remoteStore.getStore()
-    setupContextMenu(this._window)
   }
 
   _onGotProps = () => {
@@ -67,7 +65,7 @@ class RemoteComponentLoader extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
@@ -80,7 +78,7 @@ const styles = Styles.styleSheetCreate({
   loading: {
     backgroundColor: Styles.globalColors.greyDark,
   },
-})
+}))
 
 export default function(options: {
   child: React.ReactNode

@@ -8,13 +8,12 @@ const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('wind
 type State = {
   width: number
   height: number
-  loaded: boolean
 }
 // TODO: I don't understand why the props were being included in the state
 //  so I took them out. Someone should sanity check that.
 
 class ImageView extends React.Component<ImageViewProps, State> {
-  state = {height: 0, loaded: false, width: 0}
+  state = {height: 0, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -32,8 +31,6 @@ class ImageView extends React.Component<ImageViewProps, State> {
       () => {}
     )
   }
-
-  _setLoaded = () => this.setState({loaded: true})
 
   render() {
     const {onLoadingStateChange} = this.props
@@ -63,20 +60,23 @@ class ImageView extends React.Component<ImageViewProps, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  image: {
-    alignSelf: 'center',
-    flex: 1,
-  },
-  zoomableBox: {
-    flex: 1,
-    position: 'relative',
-  },
-  zoomableBoxContainer: {
-    flex: 1,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      image: {
+        alignSelf: 'center',
+        flex: 1,
+      },
+      zoomableBox: {
+        flex: 1,
+        position: 'relative',
+      },
+      zoomableBoxContainer: {
+        flex: 1,
+        overflow: 'hidden',
+        position: 'relative',
+      },
+    } as const)
+)
 
 export default ImageView

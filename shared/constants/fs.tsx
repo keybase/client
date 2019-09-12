@@ -16,8 +16,6 @@ import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
 
 export const syncToggleWaitingKey = 'fs:syncToggle'
-export const sendLinkToChatFindConversationWaitingKey = 'fs:sendLinkToChatFindConversation'
-export const sendLinkToChatSendWaitingKey = 'fs:sendLinkToChatSend'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -264,13 +262,6 @@ export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
   title: '',
 })
 
-export const makeSendLinkToChat = I.Record<Types._SendLinkToChat>({
-  channels: I.Map(),
-  convID: ChatConstants.noConversationIDKey,
-  path: Types.stringToPath('/keybase'),
-  state: Types.SendLinkToChatState.None,
-})
-
 export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
   downloadKey: null,
   previousView: Types.PathItemActionMenuView.Root,
@@ -299,7 +290,9 @@ export const makeDriverStatusDisabled = I.Record<Types._DriverStatusDisabled>({
 export const defaultDriverStatus = isLinux ? makeDriverStatusEnabled() : makeDriverStatusUnknown()
 
 export const makeSystemFileManagerIntegration = I.Record<Types._SystemFileManagerIntegration>({
+  directMountDir: '',
   driverStatus: defaultDriverStatus,
+  preferredMountDirs: I.List(),
   showingBanner: false,
 })
 
@@ -318,6 +311,13 @@ export const makeSettings = I.Record<Types._Settings>({
   spaceAvailableNotificationThreshold: 0,
 })
 
+export const makePathInfo = I.Record<Types._PathInfo>({
+  deeplinkPath: '',
+  platformAfterMountPath: '',
+})
+
+export const emptyPathInfo = makePathInfo()
+
 export const makeState = I.Record<Types._State>({
   destinationPicker: makeDestinationPicker(),
   downloads: I.Map(),
@@ -328,11 +328,11 @@ export const makeState = I.Record<Types._State>({
   lastPublicBannerClosedTlf: '',
   localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
+  pathInfos: I.Map(),
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map(),
   sendAttachmentToChat: makeSendAttachmentToChat(),
-  sendLinkToChat: makeSendLinkToChat(),
   settings: makeSettings(),
   sfmi: makeSystemFileManagerIntegration(),
   softErrors: makeSoftErrors(),
@@ -475,11 +475,8 @@ export const viewTypeFromMimeType = (mime: Types.Mime | null): Types.FileViewTyp
     if (supportedImgMimeTypes.has(mimeType)) {
       return Types.FileViewType.Image
     }
-    if (mimeType.startsWith('audio/')) {
-      return Types.FileViewType.Audio
-    }
-    if (mimeType.startsWith('video/')) {
-      return Types.FileViewType.Video
+    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
+      return Types.FileViewType.Av
     }
     if (mimeType === 'application/pdf') {
       return Types.FileViewType.Pdf
@@ -694,10 +691,15 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
+// TODO: move this to Go
 export const escapePath = (path: Types.Path): string =>
-  Types.pathToString(path).replace(/(\\)|( )/g, (_, p1, p2) => `\\${p1 || p2}`)
-export const unescapePath = (escaped: string): Types.Path =>
-  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (_, p1, p2) => p1 || p2)) // turns "\\" into "\", and "\ " into " "
+  'keybase://' +
+  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength)).replace(
+    // We need to do this because otherwise encodeURIComponent would encode
+    // "/"s.
+    /%2F/g,
+    '/'
+  )
 
 const makeParsedPathRoot = I.Record<Types._ParsedPathRoot>({kind: Types.PathKind.Root})
 export const parsedPathRoot: Types.ParsedPathRoot = makeParsedPathRoot()
@@ -833,23 +835,6 @@ export const rebasePathToDifferentTlf = (path: Types.Path, newTlfPath: Types.Pat
       .join('/')
   )
 
-export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
-  switch (parsedPath.kind) {
-    case Types.PathKind.Root:
-    case Types.PathKind.TlfList:
-      return false
-    case Types.PathKind.GroupTlf:
-    case Types.PathKind.TeamTlf:
-      return false
-    case Types.PathKind.InGroupTlf:
-    case Types.PathKind.InTeamTlf:
-      return parsedPath.tlfType !== Types.TlfType.Public
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
-      return false
-  }
-}
-
 export const canChat = (path: Types.Path) => {
   const parsedPath = parsePath(path)
   switch (parsedPath.kind) {
@@ -885,7 +870,7 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
     if (parsedPath.writers.size + (parsedPath.readers ? parsedPath.readers.size : 0) === 2) {
       const notMe = parsedPath.writers.concat(parsedPath.readers || []).filter(u => u !== me)
       if (notMe.size === 1) {
-        return notMe.first()
+        return notMe.first() as string
       }
     }
     return 'group conversation'
@@ -1000,15 +985,6 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
-
-export const makeActionsForShowSendLinkToChat = (path: Types.Path): Array<TypedActions> => [
-  FsGen.createInitSendLinkToChat({path}),
-  putActionIfOnPathForNav1(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {path}, selected: 'sendLinkToChat'}],
-    })
-  ),
-]
 
 export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
   FsGen.createInitSendAttachmentToChat({path}),

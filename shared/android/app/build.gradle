@@ -6,7 +6,7 @@ apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "4.4.0"
+def VERSION_NAME = "4.5.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -210,7 +210,7 @@ android {
 
 // KB:
 play {
-    track = 'alpha'
+    track = 'internal'
     serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
 }
 
@@ -235,6 +235,7 @@ dependencies {
     implementation project(':react-native-webview')
     implementation project(':react-native-community-netinfo')
     implementation project(':react-native-reanimated')
+    implementation project(':react-native-video')
 
     addUnimodulesDependencies([modulesPaths: ['../../node_modules']])
 }

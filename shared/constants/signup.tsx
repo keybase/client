@@ -1,6 +1,6 @@
 import * as I from 'immutable'
 import * as Types from './types/signup'
-import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from '../constants/platform'
+import {isAndroid, isIOS, isDarwin, isWindows, isLinux, isMobile} from './platform'
 import HiddenString from '../util/hidden-string'
 
 export const maxUsernameLength = 16
@@ -14,6 +14,8 @@ const devicename =
   (isWindows && 'My Windows Device') ||
   (isLinux && 'My Linux Device') ||
   (isMobile ? 'Mobile Device' : 'Home Computer')
+
+export const noEmail = 'NOEMAIL'
 
 export const makeState = I.Record<Types._State>({
   devicename,

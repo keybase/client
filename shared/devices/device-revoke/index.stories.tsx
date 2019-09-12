@@ -1,7 +1,8 @@
-import * as React from 'react'
 import * as Constants from '../../constants/devices'
-import * as Types from '../../constants/types/devices'
+import * as Container from '../../util/container'
+import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Types from '../../constants/types/devices'
 import DeviceRevoke, {Props} from '.'
 
 const props: Props = {
@@ -12,6 +13,7 @@ const props: Props = {
     type: 'desktop',
   }),
   endangeredTLFs: [],
+  iconNumber: 1,
   onCancel: Sb.action('oncancel'),
   onSubmit: Sb.action('onsubmit'),
   waiting: false,
@@ -20,14 +22,31 @@ const props: Props = {
 const load = () => {
   Sb.storiesOf('Devices/Revoke', module)
     .add('Paper key', () => (
-      <DeviceRevoke {...props} device={props.device.merge({name: 'my paper key', type: 'backup'})} />
+      <DeviceRevoke
+        {...props}
+        device={Container.produce(props.device, draftState => {
+          draftState.name = 'my paper key'
+          draftState.type = 'backup'
+        })}
+      />
     ))
     .add('Mobile Device', () => (
-      <DeviceRevoke {...props} device={props.device.merge({name: 'my iphone', type: 'mobile'})} />
+      <DeviceRevoke
+        {...props}
+        device={Container.produce(props.device, draftState => {
+          draftState.name = 'my iphone'
+          draftState.type = 'mobile'
+        })}
+      />
     ))
     .add('Desktop Device', () => <DeviceRevoke {...props} />)
     .add('Current Device', () => (
-      <DeviceRevoke {...props} device={props.device.merge({currentDevice: true})} />
+      <DeviceRevoke
+        {...props}
+        device={Container.produce(props.device, draftState => {
+          draftState.currentDevice = true
+        })}
+      />
     ))
     .add('Device with Endangered TLFs', () => (
       <DeviceRevoke

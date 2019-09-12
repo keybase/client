@@ -143,6 +143,7 @@ const getStyle = (type, isEditing) => {
 const editing = {
   backgroundColor: Styles.globalColors.yellowLight,
   borderRadius: 2,
+  color: Styles.globalColors.blackOrWhite,
   paddingLeft: Styles.globalMargins.tiny,
   paddingRight: Styles.globalMargins.tiny,
 }
@@ -154,7 +155,7 @@ const sent = Styles.platformStyles({
     whiteSpace: 'pre-wrap',
     width: '100%',
     wordBreak: 'break-word',
-  },
+  } as const,
   isMobile: {
     ...Styles.globalStyles.flexBoxColumn,
   },
@@ -170,57 +171,60 @@ const pendingFailEditing = {
   ...pendingFail,
   ...editing,
 }
-const styles = Styles.styleSheetCreate({
-  claimButton: {
-    alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  claimLabel: {
-    color: Styles.globalColors.white,
-  },
-  editing,
-  pendingFail,
-  pendingFailEditing,
-  quoteContainer: {
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.greyLight,
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  replyContainer: {
-    paddingTop: Styles.globalMargins.xtiny,
-  },
-  replyContentContainer: {
-    flex: 1,
-  },
-  replyEdited: {
-    color: Styles.globalColors.black_20,
-  },
-  replyImageContainer: {
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  replyProgress: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -12,
-    marginLeft: -12,
-    marginRight: -12,
-    marginTop: -12,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-    width: 24,
-  },
-  replyTextContainer: {
-    alignSelf: 'flex-start',
-    flex: 1,
-  },
-  replyUsername: {
-    alignSelf: 'center',
-  },
-  sent,
-  sentEditing,
-  wrapper: {alignSelf: 'flex-start', flex: 1},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      claimButton: {
+        alignSelf: 'flex-start',
+        marginTop: Styles.globalMargins.xtiny,
+      },
+      claimLabel: {
+        color: Styles.globalColors.white,
+      },
+      editing,
+      pendingFail,
+      pendingFailEditing,
+      quoteContainer: {
+        alignSelf: 'stretch',
+        backgroundColor: Styles.globalColors.grey,
+        paddingLeft: Styles.globalMargins.xtiny,
+      },
+      replyContainer: {
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+      replyContentContainer: {
+        flex: 1,
+      },
+      replyEdited: {
+        color: Styles.globalColors.black_20,
+      },
+      replyImageContainer: {
+        overflow: 'hidden',
+        position: 'relative',
+      },
+      replyProgress: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -12,
+        marginLeft: -12,
+        marginRight: -12,
+        marginTop: -12,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+        width: 24,
+      },
+      replyTextContainer: {
+        alignSelf: 'flex-start',
+        flex: 1,
+      },
+      replyUsername: {
+        alignSelf: 'center',
+      },
+      sent,
+      sentEditing,
+      wrapper: {alignSelf: 'flex-start', flex: 1},
+    } as const)
+)
 
 export default MessageText

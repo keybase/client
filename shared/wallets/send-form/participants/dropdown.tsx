@@ -57,7 +57,7 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   dropdownEntry: {
     padding: Styles.globalMargins.xtiny,
   },
@@ -81,4 +81,4 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
-})
+}))

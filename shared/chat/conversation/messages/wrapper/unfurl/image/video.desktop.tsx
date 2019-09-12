@@ -23,7 +23,7 @@ export class Video extends React.Component<Props, State> {
     } else {
       this._videoRef.current.pause()
     }
-    this.setState({playingVideo: !this.state.playingVideo})
+    this.setState(s => ({playingVideo: !s.playingVideo}))
   }
   render() {
     return (
@@ -38,7 +38,7 @@ export class Video extends React.Component<Props, State> {
           ])}
         >
           {!this.state.playingVideo && (
-            <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
+            <Kb.Icon type="icon-play-64" style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>
         <video
@@ -55,25 +55,28 @@ export class Video extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  absoluteContainer: {
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    alignSelf: 'flex-start',
-    position: 'relative',
-  },
-  playButton: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -32,
-    marginLeft: -32,
-    marginRight: -32,
-    marginTop: -32,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      absoluteContainer: {
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      container: {
+        alignSelf: 'flex-start',
+        position: 'relative',
+      },
+      playButton: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -32,
+        marginLeft: -32,
+        marginRight: -32,
+        marginTop: -32,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+      },
+    } as const)
+)

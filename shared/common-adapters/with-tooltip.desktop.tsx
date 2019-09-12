@@ -5,6 +5,12 @@ import Toast from './toast'
 import Text from './text'
 import {Props} from './with-tooltip'
 
+const Kb = {
+  Box,
+  Text,
+  Toast,
+}
+
 type State = {
   mouseIn: boolean
   visible: boolean
@@ -38,7 +44,7 @@ class WithTooltip extends React.Component<Props, State> {
   render() {
     return (
       <>
-        <Box
+        <Kb.Box
           style={this.props.containerStyle}
           forwardedRef={this._setAttachmentRef}
           onMouseOver={this._onMouseEnter}
@@ -46,33 +52,33 @@ class WithTooltip extends React.Component<Props, State> {
           className={this.props.className}
         >
           {this.props.children}
-        </Box>
+        </Kb.Box>
         {!this.props.disabled && this.state.mouseIn && (
-          <Toast
+          <Kb.Toast
             containerStyle={Styles.collapseStyles([
               styles.container,
               this.props.multiline && styles.containerMultiline,
             ])}
-            visible={!!this.props.text && this.state.visible}
+            visible={!!this.props.tooltip && this.state.visible}
             attachTo={this._getAttachmentRef}
             position={this.props.position || 'top center'}
             className={this.props.toastClassName}
           >
-            <Text
+            <Kb.Text
               center={!Styles.isMobile}
               type="BodySmall"
               style={Styles.collapseStyles([styles.text, this.props.textStyle])}
             >
-              {this.props.text}
-            </Text>
-          </Toast>
+              {this.props.tooltip}
+            </Kb.Text>
+          </Kb.Toast>
         )}
       </>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       borderRadius: Styles.borderRadius,
@@ -88,8 +94,8 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       color: Styles.globalColors.white,
       wordBreak: 'break-word',
-    },
+    } as const,
   }),
-})
+}))
 
 export default WithTooltip

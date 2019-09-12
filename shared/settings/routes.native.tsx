@@ -22,6 +22,7 @@ import DisableCertPinningModal from './disable-cert-pinning-modal/container'
 import {DeleteModal} from './account/confirm-delete'
 import {Email, Phone, VerifyPhone} from './account/add-modals'
 import ManageContactsTab from './manage-contacts.native'
+import PushPrompt from './notifications/push-prompt.native'
 
 export const newRoutes = {
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
@@ -56,7 +57,7 @@ export const newRoutes = {
   // TODO connect broken
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
-  settingsRoot: {getScreen: (): typeof SettingsRoot => require('./').default},
+  settingsRoot: {getScreen: (): typeof SettingsRoot => require('.').default},
   // TODO connect broken
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
 }
@@ -71,6 +72,9 @@ export const newModalRoutes = {
   settingsAddPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   settingsDeleteAddress: {
     getScreen: (): typeof DeleteModal => require('./account/confirm-delete').DeleteModal,
+  },
+  settingsPushPrompt: {
+    getScreen: (): typeof PushPrompt => require('./notifications/push-prompt.native').default,
   },
   settingsVerifyPhone: {getScreen: (): typeof VerifyPhone => require('./account/add-modals').VerifyPhone},
 }

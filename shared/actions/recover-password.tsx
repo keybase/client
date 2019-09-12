@@ -159,7 +159,7 @@ function* restartRecovery(state: Container.TypedState) {
   yield Saga.put(RouteTreeGen.createNavigateUp())
 }
 
-function* recoverPasswordSaga(): Saga.SagaGenerator<any, any> {
+function* recoverPasswordSaga() {
   yield* Saga.chainGenerator<RecoverPasswordGen.StartRecoverPasswordPayload>(
     RecoverPasswordGen.startRecoverPassword,
     startRecoverPassword

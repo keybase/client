@@ -31,5 +31,22 @@
   }];
 }
 
+- (void)displayChatNotification:(KeybaseChatNotification *)notification {
+  NSString* ident = [NSString stringWithFormat:@"%@:%ld", notification.convID, notification.message.id_];
+  NSString* msg;
+  if (notification.isPlaintext && [notification.message.plaintext length] != 0) {
+    if([ notification.message.from.keybaseUsername isEqualToString: notification.conversationName ]) {
+      msg = [NSString stringWithFormat:@"%@: %@", notification.message.from.keybaseUsername, notification.message.plaintext];
+    } else {
+      msg = [NSString stringWithFormat:@"%@ (%@): %@", notification.message.from.keybaseUsername, notification.conversationName, notification.message.plaintext];
+    }
+  } else {
+    msg = notification.message.serverMessage;
+  }
+
+  [self localNotification:ident msg:msg badgeCount:notification.badgeCount soundName:notification.soundName convID:notification.convID typ:@"chat.newmessage"];
+}
+
+
 @end
 

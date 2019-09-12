@@ -65,7 +65,7 @@ const JoinAirdrop = (p: {onJoinAirdrop: (() => void) | null; inAirdrop: boolean;
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
-      <Kb.Icon sizeType={'Small'} type="iconfont-info" />
+      <Kb.Icon sizeType="Small" type="iconfont-info" />
       <Kb.Text style={styles.infoText} type="BodySmallSemibold">
         What is Stellar?
       </Kb.Text>
@@ -159,37 +159,40 @@ class WalletList extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  addContainerBox: {alignItems: 'center', height: rowHeight},
-  icon: {
-    height: Styles.globalMargins.mediumLarge,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.mediumLarge,
-  },
-  infoText: {
-    paddingLeft: Styles.globalMargins.tiny,
-    position: 'relative',
-    top: -1,
-  },
-  joinAirdrop: {
-    alignItems: 'center',
-    height: rowHeight,
-  },
-  progressHeader: {
-    height: 18,
-    left: 40,
-    position: 'absolute',
-    top: 9,
-    width: 18,
-    zIndex: 2,
-  },
-  progressIndicator: {height: 30, width: 30},
-  whatIsStellar: {
-    height: Styles.globalMargins.large,
-    justifyContent: 'center',
-    width: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addContainerBox: {alignItems: 'center', height: rowHeight},
+      icon: {
+        height: Styles.globalMargins.mediumLarge,
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+        width: Styles.globalMargins.mediumLarge,
+      },
+      infoText: {
+        paddingLeft: Styles.globalMargins.tiny,
+        position: 'relative',
+        top: -1,
+      },
+      joinAirdrop: {
+        alignItems: 'center',
+        height: rowHeight,
+      },
+      progressHeader: {
+        height: 18,
+        left: 40,
+        position: 'absolute',
+        top: 9,
+        width: 18,
+        zIndex: 2,
+      },
+      progressIndicator: {height: 30, width: 30},
+      whatIsStellar: {
+        height: Styles.globalMargins.large,
+        justifyContent: 'center',
+        width: '100%',
+      },
+    } as const)
+)
 
 export {WalletList}

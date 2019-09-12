@@ -173,6 +173,8 @@ type InboxSource interface {
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
 	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
+	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -522,6 +524,7 @@ type LiveLocationTracker interface {
 	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
 	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
 	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
+	GetEndTime(ctx context.Context, key LiveLocationKey) *time.Time
 	ActivelyTracking(ctx context.Context) bool
 	StopAllTracking(ctx context.Context)
 }

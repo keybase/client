@@ -157,7 +157,9 @@ class _StellarValue extends React.PureComponent<
       </Kb.Text>
     ) : (
       <Kb.Box ref={r => this._storeAttachmentRef(r)} style={styles.tooltip}>
-        <Kb.WithTooltip text={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}>
+        <Kb.WithTooltip
+          tooltip={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}
+        >
           <Kb.Text
             type="BodyPrimaryLink"
             onClick={this.props.toggleShowingMenu}
@@ -412,38 +414,41 @@ class Assertion extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
-  crypto: Styles.platformStyles({
-    isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
-  }),
-  floatingMenu: {
-    maxWidth: 240,
-    minWidth: 196,
-  },
-  halfOpacity: Styles.platformStyles({
-    isMobile: {opacity: 0.5}, // desktop is handled by emotion
-  }),
-  menuHeader: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    padding: Styles.globalMargins.small,
-  },
-  metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
-  positionRelative: {position: 'relative'},
-  site: {color: Styles.globalColors.black_20},
-  siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
-  statusContainer: Styles.platformStyles({
-    isMobile: {position: 'relative', top: -2},
-  }),
-  strikeThrough: {textDecorationLine: 'line-through'},
-  textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
-  tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
-  username: Styles.platformStyles({
-    common: {letterSpacing: 0.2},
-    isElectron: {wordBreak: 'break-all'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+      crypto: Styles.platformStyles({
+        isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
+      }),
+      floatingMenu: {
+        maxWidth: 240,
+        minWidth: 196,
+      },
+      halfOpacity: Styles.platformStyles({
+        isMobile: {opacity: 0.5}, // desktop is handled by emotion
+      }),
+      menuHeader: {
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        padding: Styles.globalMargins.small,
+      },
+      metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+      positionRelative: {position: 'relative'},
+      site: {color: Styles.globalColors.black_20},
+      siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
+      statusContainer: Styles.platformStyles({
+        isMobile: {position: 'relative', top: -2},
+      }),
+      strikeThrough: {textDecorationLine: 'line-through'},
+      textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
+      tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
+      username: Styles.platformStyles({
+        common: {letterSpacing: 0.2},
+        isElectron: {wordBreak: 'break-all'},
+      }),
+    } as const)
+)
 
 export default Assertion

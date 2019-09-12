@@ -84,21 +84,24 @@ class Devices extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    position: 'relative',
-  },
-  progress: {
-    left: 12,
-    position: 'absolute',
-    top: Styles.isMobile ? 22 : 14,
-    width: 20,
-  },
-  revokedNote: {
-    padding: Styles.globalMargins.medium,
-    width: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        position: 'relative',
+      },
+      progress: {
+        left: 12,
+        position: 'absolute',
+        top: Styles.isMobile ? 22 : 14,
+        width: 20,
+      },
+      revokedNote: {
+        padding: Styles.globalMargins.medium,
+        width: '100%',
+      },
+    } as const)
+)
 
 const DeviceHeader = ({onAddNew}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
@@ -111,7 +114,7 @@ const DeviceHeader = ({onAddNew}) => (
     </Kb.Button>
   </Kb.ClickableBox>
 )
-const headerStyles = Styles.styleSheetCreate({
+const headerStyles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -122,7 +125,7 @@ const headerStyles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 const RevokedHeader = ({onToggleExpanded, expanded}) => (
   <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
@@ -145,36 +148,39 @@ const PaperKeyNudge = ({onAddDevice}) => (
     </Kb.Box2>
   </Kb.ClickableBox>
 )
-const paperKeyNudgeStyles = Styles.styleSheetCreate({
-  border: Styles.platformStyles({
-    common: {
-      borderColor: Styles.globalColors.black_05,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      flex: 1,
-    },
-    isElectron: {
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-    },
-    isMobile: {
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      padding: Styles.globalMargins.tiny,
-    },
-  }),
-  desc: Styles.platformStyles({
-    isElectron: {
-      maxWidth: 450,
-    },
-  }),
-  flexOne: {flex: 1},
-})
+const paperKeyNudgeStyles = Styles.styleSheetCreate(
+  () =>
+    ({
+      border: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.black_05,
+          borderRadius: Styles.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flex: 1,
+        },
+        isElectron: {
+          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          padding: Styles.globalMargins.tiny,
+        },
+      }),
+      desc: Styles.platformStyles({
+        isElectron: {
+          maxWidth: 450,
+        },
+      }),
+      flexOne: {flex: 1},
+    } as const)
+)
 
 export default Kb.HeaderOnMobile(Devices)

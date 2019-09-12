@@ -142,7 +142,11 @@ const Tracker = (props: Props) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
-      <Kb.ScrollView style={styles.scrollView} hideVerticalScroll={true}>
+      <Kb.ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
@@ -199,83 +203,90 @@ const reason = {
   textAlign: 'center' as const,
 }
 
-const styles = Styles.styleSheetCreate({
-  assertions: {
-    backgroundColor: Styles.globalColors.white,
-    flexShrink: 0,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  avatarBackground: {
-    backgroundColor: Styles.globalColors.white,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: avatarSize / 2,
-  },
-  avatarContainer: {flexShrink: 0, position: 'relative'},
-  buttons: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fillAbsolute,
-      backgroundColor: Styles.globalColors.white_90,
-      flexShrink: 0,
-      height: barHeight,
-      position: 'absolute',
-      top: undefined,
-    },
-    isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
-  }),
-  chatIcon: {marginRight: Styles.globalMargins.tiny},
-  close: Styles.platformStyles({
-    common: {padding: Styles.globalMargins.tiny},
-    isElectron: {
-      ...Styles.desktopStyles.windowDraggingClickable,
-    },
-  }),
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    position: 'relative',
-  },
-  header: {
-    justifyContent: 'flex-end',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-    position: 'absolute',
-    zIndex: 9,
-  },
-  nameWithIconContainer: {alignSelf: 'center'},
-  reason: Styles.platformStyles({
-    common: {
-      ...reason,
-      ...Styles.globalStyles.fillAbsolute,
-      bottom: undefined,
-      paddingBottom: reason.paddingBottom + avatarSize / 2,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-    },
-  }),
-  reasonInvisible: {
-    ...reason,
-    opacity: 0,
-  },
-  scrollView: {
-    ...Styles.globalStyles.fillAbsolute,
-    paddingBottom: Styles.globalMargins.small,
-  },
-  spaceUnderButtons: {
-    flexShrink: 0,
-    height: barHeight,
-  },
-  teamShowcases: {
-    backgroundColor: Styles.globalColors.white,
-    flexShrink: 0,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      assertions: {
+        backgroundColor: Styles.globalColors.white,
+        flexShrink: 0,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      avatarBackground: {
+        backgroundColor: Styles.globalColors.white,
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: avatarSize / 2,
+      },
+      avatarContainer: {flexShrink: 0, position: 'relative'},
+      buttons: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fillAbsolute,
+          backgroundColor: Styles.globalColors.white_90,
+          flexShrink: 0,
+          height: barHeight,
+          position: 'absolute',
+          top: undefined,
+        },
+        isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
+      }),
+      chatIcon: {marginRight: Styles.globalMargins.tiny},
+      close: Styles.platformStyles({
+        common: {padding: Styles.globalMargins.tiny},
+        isElectron: {
+          ...Styles.desktopStyles.windowDraggingClickable,
+        },
+      }),
+      container: {
+        backgroundColor: Styles.globalColors.white,
+        position: 'relative',
+      },
+      header: {
+        justifyContent: 'flex-end',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+        position: 'absolute',
+        zIndex: 9,
+      },
+      nameWithIconContainer: {alignSelf: 'center'},
+      reason: Styles.platformStyles({
+        common: {
+          ...reason,
+          ...Styles.globalStyles.fillAbsolute,
+          bottom: undefined,
+          paddingBottom: reason.paddingBottom + avatarSize / 2,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.windowDragging,
+        },
+      }),
+      reasonInvisible: {
+        ...reason,
+        opacity: 0,
+      },
+      scrollView: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.fillAbsolute,
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          paddingBottom: Styles.globalMargins.small,
+        },
+      }),
+      spaceUnderButtons: {
+        flexShrink: 0,
+        height: barHeight,
+      },
+      teamShowcases: {
+        backgroundColor: Styles.globalColors.white,
+        flexShrink: 0,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Tracker

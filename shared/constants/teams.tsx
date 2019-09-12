@@ -7,7 +7,7 @@ import {getFullRoute} from './router2'
 import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
-import * as TeamBuildingConstants from '../constants/team-building'
+import * as TeamBuildingConstants from './team-building'
 import {Service} from './types/search'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
@@ -193,6 +193,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   listFirst: false,
   manageMembers: false,
   manageSubteams: false,
+  pinMessage: false,
   renameChannel: false,
   renameTeam: false,
   setMemberShowcase: false,
@@ -296,7 +297,11 @@ export const userIsRoleInTeam = (
   username: string,
   role: Types.TeamRoleType
 ): boolean => {
-  return userIsRoleInTeamWithInfo(state.teams.teamNameToMembers.get(teamname, I.Map()), username, role)
+  return userIsRoleInTeamWithInfo(
+    state.teams.teamNameToMembers.get(teamname) || I.Map<string, Types.MemberInfo>(),
+    username,
+    role
+  )
 }
 
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
@@ -308,7 +313,10 @@ const getTeamChannelInfos = (
   state: TypedState,
   teamname: Types.Teamname
 ): I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
-  return state.teams.teamNameToChannelInfos.get(teamname, I.Map())
+  return (
+    state.teams.teamNameToChannelInfos.get(teamname) ||
+    I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
+  )
 }
 
 const getChannelInfoFromConvID = (
@@ -451,7 +459,7 @@ const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
 const getTeamMembers = (state: TypedState, teamname: Types.Teamname): I.Map<string, Types.MemberInfo> =>
-  state.teams.teamNameToMembers.get(teamname, I.Map())
+  state.teams.teamNameToMembers.get(teamname) || I.Map<string, Types.MemberInfo>()
 
 const getTeamPublicitySettings = (state: TypedState, teamname: Types.Teamname): Types._PublicitySettings =>
   state.teams.teamNameToPublicitySettings.get(teamname, {
@@ -480,13 +488,13 @@ const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Typ
   state.teams.teamNameToSubteams.get(teamname, I.Set())
 
 const getTeamSettings = (state: TypedState, teamname: Types.Teamname): Types.TeamSettings =>
-  state.teams.teamNameToSettings.get(teamname, makeTeamSettings())
+  state.teams.teamNameToSettings.get(teamname) || makeTeamSettings()
 
 const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): I.Set<Types.ResetUser> =>
   state.teams.teamNameToResetUsers.get(teamname, I.Set())
 
 const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): I.Map<string, boolean> =>
-  state.teams.teamNameToLoadingInvites.get(teamname, I.Map())
+  state.teams.teamNameToLoadingInvites.get(teamname) || I.Map<string, boolean>()
 
 const getTeamRequests = (state: TypedState, teamname: Types.Teamname): I.Set<Types.RequestInfo> =>
   state.teams.teamNameToRequests.get(teamname, I.Set())

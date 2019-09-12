@@ -19,7 +19,6 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
-import * as FsConstants from '../../constants/fs'
 import URL from 'url-parse'
 import {isMobile} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
@@ -271,7 +270,6 @@ function* loadDaemonAccounts(
           })
         )
       }
-      return undefined
     }
   }
 }
@@ -306,26 +304,26 @@ const resetGlobalStore = (): any => ({payload: {}, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set password screen.
-const startLogoutHandshakeIfAllowed = (state: Container.TypedState) =>
-  RPCTypes.userCanLogoutRpcPromise().then(canLogoutRes => {
-    if (canLogoutRes.canLogout) {
-      return startLogoutHandshake(state)
+const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
+  const canLogoutRes = await RPCTypes.userCanLogoutRpcPromise()
+  if (canLogoutRes.canLogout) {
+    return startLogoutHandshake(state)
+  } else {
+    const heading = canLogoutRes.reason
+    if (isMobile) {
+      return RouteTreeGen.createNavigateAppend({
+        path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
+      })
     } else {
-      const heading = canLogoutRes.reason
-      if (isMobile) {
-        return RouteTreeGen.createNavigateAppend({
-          path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
-        })
-      } else {
-        return [
-          RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {heading}, selected: 'changePassword'}],
-          }),
-        ]
-      }
+      return [
+        RouteTreeGen.createNavigateAppend({path: [Tabs.settingsTab]}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {heading}, selected: 'changePassword'}],
+        }),
+      ]
     }
-  })
+  }
+}
 
 const startLogoutHandshake = (state: Container.TypedState) =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
@@ -384,9 +382,13 @@ const routeToInitialScreen = (state: Container.TypedState) => {
 
     // A share
     if (state.config.startupSharePath) {
+      // TODO/FIXME: this seems unused. [ShareDataIntent] in
+      // actions/platform-specific/push.native.tsx happens at cold-start too,
+      // so maybe we can just use that. Though that happens before this
+      // (routeToInitialScreen), so in the end it just routes to the saved tab
+      // which gets rid of the destination-picker modal.
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}),
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
       ]
@@ -397,7 +399,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       return [
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-        RouteTreeGen.createNavigateAppend({path: FsConstants.fsRootRouteForNav1}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
       ]
     }
@@ -472,36 +473,35 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = (state: Container.TypedState) =>
-  RPCTypes.apiserverGetWithSessionRpcPromise({
-    endpoint: 'user/features',
-  })
-    .then(str => {
-      const obj: {
-        features: {
-          admin?: {
-            value: boolean
-          }
+const updateServerConfig = async (state: Container.TypedState) => {
+  try {
+    const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
+      endpoint: 'user/features',
+    })
+    const obj: {
+      features: {
+        admin?: {
+          value: boolean
         }
-      } = JSON.parse(str.body)
-      const features = Object.keys(obj.features).reduce((map, key) => {
-        map[key] = obj.features[key] && obj.features[key].value
-        return map
-      }, {}) as {[K in string]: boolean}
-
-      const serverConfig = {
-        chatIndexProfilingEnabled: !!features.admin,
-        dbCleanEnabled: !!features.admin,
-        printRPCStats: !!features.admin,
       }
+    } = JSON.parse(str.body)
+    const features = Object.keys(obj.features).reduce((map, key) => {
+      map[key] = obj.features[key] && obj.features[key].value
+      return map
+    }, {}) as {[K in string]: boolean}
 
-      logger.info('updateServerConfig', serverConfig)
-      updateServerConfigLastLoggedIn(state.config.username, serverConfig)
-    })
-    .catch(e => {
-      logger.info('updateServerConfig fail', e)
-    })
+    const serverConfig = {
+      chatIndexProfilingEnabled: !!features.admin,
+      dbCleanEnabled: !!features.admin,
+      printRPCStats: !!features.admin,
+    }
 
+    logger.info('updateServerConfig', serverConfig)
+    updateServerConfigLastLoggedIn(state.config.username, serverConfig)
+  } catch (e) {
+    logger.info('updateServerConfig fail', e)
+  }
+}
 const setNavigator = (_: Container.TypedState, action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
@@ -549,6 +549,10 @@ function* criticalOutOfDateCheck() {
     } catch (e) {
       logger.error("Can't call critical check", e)
     }
+    // We just need this once on mobile. Long timers don't work there.
+    if (isMobile) {
+      return
+    }
     yield Saga.delay(3600 * 1000) // 1 hr
   }
 }
@@ -584,7 +588,7 @@ const saveDarkPrefs = async (state: Container.TypedState) => {
   } catch (_) {}
 }
 
-function* configSaga(): Saga.SagaGenerator<any, any> {
+function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   yield* Saga.chainAction2([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)

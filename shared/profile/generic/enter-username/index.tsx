@@ -250,110 +250,117 @@ class _EnterUsername extends React.Component<Props> {
 
 const EnterUsername = Kb.HeaderOrPopup(_EnterUsername)
 
-const styles = Styles.styleSheetCreate({
-  backButton: {left: Styles.globalMargins.small, position: 'absolute', top: Styles.globalMargins.small},
-  borderBlue: {borderColor: Styles.globalColors.blue},
-  borderRed: {borderColor: Styles.globalColors.red},
-  buttonBar: {
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium, Styles.globalMargins.medium),
-  },
-  buttonBarWarning: {backgroundColor: Styles.globalColors.yellow},
-  buttonBig: {flex: 2.5},
-  buttonSmall: {flex: 1},
-  colorBlue: {color: Styles.globalColors.blueDark},
-  colorRed: {color: Styles.globalColors.redDark},
-  container: Styles.platformStyles({isElectron: {height: 485, width: 560}}),
-  flexOne: {flex: 1},
-  inlineIcon: {
-    position: 'relative',
-    top: 1,
-  },
-  input: Styles.platformStyles({
-    common: {marginRight: Styles.globalMargins.medium},
-    isAndroid: {
-      top: 1,
-    },
-    isElectron: {
-      marginTop: -1,
-    },
-  }),
-  inputBox: {
-    ...Styles.padding(Styles.globalMargins.xsmall),
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: Styles.globalMargins.xsmall,
-  },
-  inputBoxSmall: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
-  },
-  inputContainer: {
-    ...Styles.padding(0, Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium),
-    flex: 1,
-    justifyContent: 'center',
-  },
-  inputPlaceholder: {
-    left: 1,
-    position: 'absolute',
-    right: 0,
-    top: 1,
-  },
-  invisible: {
-    // opacity doesn't work in nested Text on android
-    // see here: https://github.com/facebook/react-native/issues/18057
-    color: Styles.globalColors.transparent,
-  },
-  marginLeftAuto: {marginLeft: 'auto'},
-  opacity40: {
-    opacity: 0.4,
-  },
-  opacity75: {
-    opacity: 0.75,
-  },
-  paddingRightTiny: {paddingRight: Styles.globalMargins.tiny},
-  placeholder: {
-    color: Styles.globalColors.black_35,
-  },
-  placeholderService: {
-    color: Styles.globalColors.black_20,
-  },
-  positionRelative: {
-    position: 'relative',
-  },
-  serviceIconFull: {
-    height: 64,
-    width: 64,
-  },
-  serviceIconHeaderContainer: {
-    paddingTop: Styles.globalMargins.medium,
-  },
-  serviceMeta: Styles.platformStyles({
-    isElectron: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  serviceProofIcon: {
-    bottom: -Styles.globalMargins.tiny,
-    position: 'absolute',
-    right: -Styles.globalMargins.tiny,
-  },
-  unreachableBox: Styles.platformStyles({
-    common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
-    isElectron: {width: 360},
-  }),
-  unreachablePlaceholder: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_35},
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-  warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: {left: Styles.globalMargins.small, position: 'absolute', top: Styles.globalMargins.small},
+      borderBlue: {borderColor: Styles.globalColors.blue},
+      borderRed: {borderColor: Styles.globalColors.red},
+      buttonBar: {
+        ...Styles.padding(
+          Styles.globalMargins.small,
+          Styles.globalMargins.medium,
+          Styles.globalMargins.medium
+        ),
+      },
+      buttonBarWarning: {backgroundColor: Styles.globalColors.yellow},
+      buttonBig: {flex: 2.5},
+      buttonSmall: {flex: 1},
+      colorBlue: {color: Styles.globalColors.blueDark},
+      colorRed: {color: Styles.globalColors.redDark},
+      container: Styles.platformStyles({isElectron: {height: 485, width: 560}}),
+      flexOne: {flex: 1},
+      inlineIcon: {
+        position: 'relative',
+        top: 1,
+      },
+      input: Styles.platformStyles({
+        common: {marginRight: Styles.globalMargins.medium},
+        isAndroid: {
+          top: 1,
+        },
+        isElectron: {
+          marginTop: -1,
+        },
+      }),
+      inputBox: {
+        ...Styles.padding(Styles.globalMargins.xsmall),
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        padding: Styles.globalMargins.xsmall,
+      },
+      inputBoxSmall: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+      },
+      inputContainer: {
+        ...Styles.padding(0, Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium),
+        flex: 1,
+        justifyContent: 'center',
+      },
+      inputPlaceholder: {
+        left: 1,
+        position: 'absolute',
+        right: 0,
+        top: 1,
+      },
+      invisible: {
+        // opacity doesn't work in nested Text on android
+        // see here: https://github.com/facebook/react-native/issues/18057
+        color: Styles.globalColors.transparent,
+      },
+      marginLeftAuto: {marginLeft: 'auto'},
+      opacity40: {
+        opacity: 0.4,
+      },
+      opacity75: {
+        opacity: 0.75,
+      },
+      paddingRightTiny: {paddingRight: Styles.globalMargins.tiny},
+      placeholder: {
+        color: Styles.globalColors.black_35,
+      },
+      placeholderService: {
+        color: Styles.globalColors.black_20,
+      },
+      positionRelative: {
+        position: 'relative',
+      },
+      serviceIconFull: {
+        height: 64,
+        width: 64,
+      },
+      serviceIconHeaderContainer: {
+        paddingTop: Styles.globalMargins.medium,
+      },
+      serviceMeta: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
+      serviceProofIcon: {
+        bottom: -Styles.globalMargins.tiny,
+        position: 'absolute',
+        right: -Styles.globalMargins.tiny,
+      },
+      unreachableBox: Styles.platformStyles({
+        common: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall)},
+        isElectron: {width: 360},
+      }),
+      unreachablePlaceholder: Styles.platformStyles({
+        common: {color: Styles.globalColors.black_35},
+        isElectron: {
+          wordBreak: 'break-all',
+        },
+      }),
+      warningText: {color: Styles.globalColors.brown_75, marginTop: Styles.globalMargins.small},
+    } as const)
+)
 
 export default EnterUsername

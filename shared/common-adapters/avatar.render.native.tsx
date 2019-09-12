@@ -98,36 +98,39 @@ const imageStyles = sizes.reduce((map, size) => {
   return map
 }, {})
 
-const styles = Styles.styleSheetCreate({
-  ...boxStyles,
-  ...iconStyles,
-  ...imageStyles,
-  background: {
-    bottom: backgroundOffset,
-    left: backgroundOffset,
-    position: 'absolute',
-    right: backgroundOffset,
-    top: backgroundOffset,
-  },
-  borderBase: {
-    borderWidth: borderSize,
-    bottom: borderOffset,
-    left: borderOffset,
-    margin: borderSize / 2,
-    position: 'absolute',
-    right: borderOffset,
-    top: borderOffset,
-  },
-  edit: {
-    bottom: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  editTeam: {
-    bottom: -2,
-    position: 'absolute',
-    right: -28,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      ...boxStyles,
+      ...iconStyles,
+      ...imageStyles,
+      background: {
+        bottom: backgroundOffset,
+        left: backgroundOffset,
+        position: 'absolute',
+        right: backgroundOffset,
+        top: backgroundOffset,
+      },
+      borderBase: {
+        borderWidth: borderSize,
+        bottom: borderOffset,
+        left: borderOffset,
+        margin: borderSize / 2,
+        position: 'absolute',
+        right: borderOffset,
+        top: borderOffset,
+      },
+      edit: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
+      },
+      editTeam: {
+        bottom: -2,
+        position: 'absolute',
+        right: -28,
+      },
+    } as const)
+)
 
 export default Avatar

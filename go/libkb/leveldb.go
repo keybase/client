@@ -38,7 +38,7 @@ func LevelDbPrefix(typ ObjType) []byte {
 }
 
 func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbKey, value []byte) (err error) {
-	defer convertNoSpaceError(err)
+	defer convertNoSpaceError(&err)
 
 	idb := id.ToBytes(levelDbTableKv)
 	if aliases == nil {
@@ -104,7 +104,7 @@ func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byt
 }
 
 func levelDbDelete(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (err error) {
-	defer convertNoSpaceError(err)
+	defer convertNoSpaceError(&err)
 	key := id.ToBytes(levelDbTableKv)
 	if err := ops.Delete(key, nil); err != nil {
 		return err
@@ -203,7 +203,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 		err = nil
 	} else if IsNoSpaceOnDeviceError(err) {
 		// If we are out of space force a db clean
-		go l.cleaner.clean(true)
+		go func() { _ = l.cleaner.clean(true) }()
 	}
 
 	// Notably missing here is the error handling for when DB open fails but on
@@ -434,7 +434,7 @@ func (l LevelDbTransaction) Delete(id DbKey) error {
 }
 
 func (l LevelDbTransaction) Commit() (err error) {
-	defer convertNoSpaceError(err)
+	defer convertNoSpaceError(&err)
 	return l.tr.Commit()
 }
 
@@ -442,11 +442,9 @@ func (l LevelDbTransaction) Discard() {
 	l.tr.Discard()
 }
 
-func convertNoSpaceError(err error) error {
-	if IsNoSpaceOnDeviceError(err) {
+func convertNoSpaceError(err *error) {
+	if IsNoSpaceOnDeviceError(*err) {
 		// embed in exportable error type
-		err = NoSpaceOnDeviceError{Desc: err.Error()}
+		*err = NoSpaceOnDeviceError{Desc: (*err).Error()}
 	}
-
-	return err
 }

@@ -24,6 +24,7 @@ type ContactLookupResults struct {
 	// should are valid for the following amount of time:
 	ResolvedFreshness   time.Duration
 	UnresolvedFreshness time.Duration
+	Token               Token
 }
 
 func NewContactLookupResults() ContactLookupResults {
@@ -59,8 +60,14 @@ type ContactUsernameAndFullName struct {
 	Fullname string
 }
 
+type Token string
+
+const NoneToken Token = ""
+
 type ContactsProvider interface {
+	LookupAllWithToken(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode, Token) (ContactLookupResults, error)
 	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupResults, error)
 	FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error)
 	FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error)
+	FindServiceMaps(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error)
 }

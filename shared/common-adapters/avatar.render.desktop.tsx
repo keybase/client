@@ -45,24 +45,27 @@ const Avatar = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  border: Styles.platformStyles({
-    isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
-  }),
-  borderTeam: Styles.platformStyles({
-    isElectron: {boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`},
-  }),
-  clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
-  edit: {
-    bottom: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  editTeam: {
-    bottom: -2,
-    position: 'absolute',
-    right: -18,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      border: Styles.platformStyles({
+        isElectron: {boxShadow: `0px 0px 0px 2px ${Styles.globalColors.black_10}}`},
+      }),
+      borderTeam: Styles.platformStyles({
+        isElectron: {boxShadow: `0px 0px 0px 1px ${Styles.globalColors.black_10} inset`},
+      }),
+      clickable: Styles.platformStyles({isElectron: {...Styles.desktopStyles.clickable}}),
+      edit: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
+      },
+      editTeam: {
+        bottom: -2,
+        position: 'absolute',
+        right: -18,
+      },
+    } as const)
+)
 
 export default Avatar

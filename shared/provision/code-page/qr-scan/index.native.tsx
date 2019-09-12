@@ -17,20 +17,20 @@ const QRScan = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   camera: {
     flexGrow: 1,
   },
   container: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.black,
-    height: 200,
+    height: 160,
     overflow: 'hidden',
     position: 'relative',
   },
   waiting: {
     ...Styles.globalStyles.fillAbsolute,
   },
-})
+}))
 
 export default QRScan

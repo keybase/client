@@ -76,6 +76,7 @@
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 
+      <receiver android:name="io.keybase.ossifrage.ChatBroadcastReceiver" />
       <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationPublisher" />
       <receiver android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationBootEventReceiver">
           <intent-filter>
@@ -84,7 +85,7 @@
       </receiver>
       <service android:name="com.dieam.reactnativepushnotification.modules.RNPushNotificationRegistrationService"/>
       <service
-          android:name="io.keybase.ossifrage.KeybasePushNotificationListenerService"
+          android:name=".KeybasePushNotificationListenerService"
           android:exported="false" >
           <intent-filter>
               <action android:name="com.google.firebase.MESSAGING_EVENT" />

@@ -20,7 +20,7 @@ const Header = (props: HeaderProps) => {
         <Kb.Text center={true} type="BodyBig" selectable={true}>
           {props.name}
         </Kb.Text>
-        {!isMobile && <Kbfs.PathItemInfo path={props.path} mode="default" />}
+        {!isMobile && <Kbfs.LastModifiedLine path={props.path} mode="default" />}
       </Kb.Box2>
       <Kb.Box style={styles.headerIcons}>
         <Kbfs.OpenInSystemFileManager path={props.path} />
@@ -37,22 +37,25 @@ const Header = (props: HeaderProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  close: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
-  container: {minHeight: 48},
-  filePreviewHeader: {
-    flex: 1,
-    flexShrink: 1,
-  },
-  headerIcons: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginRight: Styles.globalMargins.small,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      close: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      container: {minHeight: 48},
+      filePreviewHeader: {
+        flex: 1,
+        flexShrink: 1,
+      },
+      headerIcons: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginRight: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Header

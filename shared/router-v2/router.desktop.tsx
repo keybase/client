@@ -233,6 +233,8 @@ const createElectronApp = Component => {
 
     componentDidMount() {
       let action = this.initialAction
+      // maybe slightly unsafe but keeping this close to the reference
+      // eslint-disable-next-line
       let startupState = this.state.nav
       if (!startupState) {
         startupState = Component.router.getStateForAction(action)
@@ -334,24 +336,27 @@ const createElectronApp = Component => {
 
 const ElectronApp = createElectronApp(RootStackNavigator)
 
-const styles = Styles.styleSheetCreate({
-  contentArea: {
-    flexGrow: 1,
-    position: 'relative',
-  },
-  contentAreaLogin: Styles.platformStyles({
-    isElectron: {
-      flexGrow: 1,
-      position: 'relative',
-    },
-    isMobile: {
-      flexGrow: 1,
-      position: 'relative',
-    },
-  }),
-  modalContainer: {...Styles.globalStyles.fillAbsolute},
-  sceneContainer: {flexDirection: 'column'},
-  transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      contentArea: {
+        flexGrow: 1,
+        position: 'relative',
+      },
+      contentAreaLogin: Styles.platformStyles({
+        isElectron: {
+          flexGrow: 1,
+          position: 'relative',
+        },
+        isMobile: {
+          flexGrow: 1,
+          position: 'relative',
+        },
+      }),
+      modalContainer: {...Styles.globalStyles.fillAbsolute},
+      sceneContainer: {flexDirection: 'column'},
+      transparentSceneUnderHeader: {...Styles.globalStyles.fillAbsolute},
+    } as const)
+)
 
 export default ElectronApp

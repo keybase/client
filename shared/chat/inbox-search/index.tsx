@@ -6,7 +6,6 @@ import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
-import {Owl} from '../inbox/owl'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -81,10 +80,10 @@ class InboxSearch extends React.Component<Props, State> {
     )
   }
   _toggleCollapseName = () => {
-    this.setState({nameCollapsed: !this.state.nameCollapsed})
+    this.setState(s => ({nameCollapsed: !s.nameCollapsed}))
   }
   _toggleCollapseText = () => {
-    this.setState({textCollapsed: !this.state.textCollapsed})
+    this.setState(s => ({textCollapsed: !s.textCollapsed}))
   }
   _selectName = (item, index) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
@@ -128,7 +127,7 @@ class InboxSearch extends React.Component<Props, State> {
               <Kb.WithTooltip
                 containerStyle={styles.progressBar}
                 position="bottom center"
-                text={`${this.props.indexPercent}% complete`}
+                tooltip={`${this.props.indexPercent}% complete`}
               >
                 <Kb.ProgressBar style={styles.progressBar} ratio={ratio} />
               </Kb.WithTooltip>
@@ -155,12 +154,6 @@ class InboxSearch extends React.Component<Props, State> {
   render() {
     const textResults = this._textResults()
     const nameResults = this._nameResults()
-    const noResults =
-      this._isStatusDone(this.props.nameStatus) &&
-      this._isStatusDone(this.props.textStatus) &&
-      this.props.nameResults.length === 0 &&
-      this.props.textResults.length === 0 &&
-      this.props.query.length > 0
     const sections = [
       {
         data: nameResults,
@@ -171,7 +164,7 @@ class InboxSearch extends React.Component<Props, State> {
         renderHeader: this._renderNameHeader,
         renderItem: this._renderHit,
         status: this.props.nameStatus,
-        title: this.props.nameResultsUnread ? 'Recent' : 'Chats',
+        title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
     ]
     if (!this.props.nameResultsUnread) {
@@ -197,38 +190,40 @@ class InboxSearch extends React.Component<Props, State> {
           keyboardShouldPersistTaps="handled"
           sections={sections}
         />
-        {noResults && <Owl />}
       </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.blueGrey,
-      contain: 'strict',
-      height: '100%',
-      maxWidth: inboxWidth,
-      minWidth: inboxWidth,
-      position: 'relative',
-    },
-  }),
-  errorText: {
-    color: Styles.globalColors.redDark,
-  },
-  percentContainer: {
-    padding: Styles.globalMargins.tiny,
-  },
-  progressBar: {
-    alignSelf: 'center',
-    flex: 1,
-    width: '100%',
-  },
-  textHeader: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.blueGrey,
+          contain: 'strict',
+          height: '100%',
+          maxWidth: inboxWidth,
+          minWidth: inboxWidth,
+          position: 'relative',
+        },
+      }),
+      errorText: {
+        color: Styles.globalColors.redDark,
+      },
+      percentContainer: {
+        padding: Styles.globalMargins.tiny,
+      },
+      progressBar: {
+        alignSelf: 'center',
+        flex: 1,
+        width: '100%',
+      },
+      textHeader: {
+        backgroundColor: Styles.globalColors.blueLighter3,
+      },
+    } as const)
+)
 
 export default InboxSearch

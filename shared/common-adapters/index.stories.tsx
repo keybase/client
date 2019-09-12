@@ -11,12 +11,14 @@ import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
 import confirmModal from './confirm-modal/index.stories'
 import copyText from './copy-text.stories'
+import copyableText from './copyable-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
 import floatingMenu from './floating-menu/index.stories'
 import header from './header-hoc/index.stories'
 import icon from './icon.stories'
 import input from './input.stories'
+import labeledInput from './labeled-input.stories'
 import list from './list.stories'
 import listItem from './list-item.stories'
 import listItem2 from './list-item2.stories'
@@ -38,13 +40,12 @@ import standardScreen from './standard-screen.stories'
 import switchStories from './switch.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
-import av from './av.stories'
+import video from './video.stories'
 
 const load = () => {
   ;[
     avatarLine,
     animated,
-    av,
     avatar,
     backButton,
     badge,
@@ -56,12 +57,14 @@ const load = () => {
     choiceList,
     confirmModal,
     copyText,
+    copyableText,
     dropdown,
     formWithCheckbox,
     floatingMenu,
     header,
     icon,
     input,
+    labeledInput,
     list,
     listItem,
     listItem2,
@@ -83,6 +86,7 @@ const load = () => {
     switchStories,
     text,
     tooltip,
+    video,
   ].forEach(load => load())
 }
 

@@ -57,10 +57,10 @@ class Feedback extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (prevProps.sending !== this.props.sending || this.props.sendError !== prevProps.sendError) {
       const success = !this.props.sending && !this.props.sendError
-      this.setState({
-        feedback: success ? '' : this.state.feedback,
+      this.setState(s => ({
+        feedback: success ? '' : s.feedback,
         showSuccessBanner: this.props.showInternalSuccessBanner && success,
-      })
+      }))
       this.props.onFeedbackDone(success)
     }
   }
@@ -91,7 +91,7 @@ class Feedback extends React.Component<Props, State> {
     const {sending, sendError} = this.props
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-        <Kb.ScrollView>
+        <Kb.ScrollView alwaysBounceVertical={false}>
           {this.state.showSuccessBanner && (
             <Kb.Banner color="green">
               <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
@@ -162,15 +162,18 @@ class Feedback extends React.Component<Props, State> {
 
 export default Feedback
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    common: {flex: 1},
-  }),
-  mainBox: {padding: Styles.globalMargins.small},
-  outerStyle: {backgroundColor: 'white'},
-  smallLabel: {color: 'black'},
-  text: Styles.platformStyles({
-    isElectron: {cursor: 'default'},
-  }),
-  textBox: {flex: 1},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {flex: 1},
+      }),
+      mainBox: {padding: Styles.globalMargins.small},
+      outerStyle: {backgroundColor: 'white'},
+      smallLabel: {color: 'black'},
+      text: Styles.platformStyles({
+        isElectron: {cursor: 'default'},
+      }),
+      textBox: {flex: 1},
+    } as const)
+)

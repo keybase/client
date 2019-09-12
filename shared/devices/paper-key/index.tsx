@@ -64,33 +64,36 @@ const PaperKey = () => {
 
 const borderWidth = 3
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    alignSelf: 'center',
-    maxWidth: Styles.isMobile ? undefined : 560,
-    padding: Styles.globalMargins.medium,
-  },
-  header: {position: 'absolute'},
-  intro: {textAlign: 'center'},
-  keyBox: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.blueDarker,
-    borderRadius: borderWidth,
-    borderStyle: 'solid',
-    borderWidth,
-    minHeight: 100,
-    padding: Styles.globalMargins.medium,
-    position: 'relative',
-  },
-  keyBoxCorner: {
-    position: 'absolute',
-    right: -borderWidth,
-    top: -borderWidth,
-  },
-  text: {
-    ...Styles.globalStyles.fontTerminal,
-    color: Styles.globalColors.blueDark,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        alignSelf: 'center',
+        maxWidth: Styles.isMobile ? undefined : 560,
+        padding: Styles.globalMargins.medium,
+      },
+      header: {position: 'absolute'},
+      intro: {textAlign: 'center'},
+      keyBox: {
+        backgroundColor: Styles.globalColors.white,
+        borderColor: Styles.globalColors.blueDarker,
+        borderRadius: borderWidth,
+        borderStyle: 'solid',
+        borderWidth,
+        minHeight: 100,
+        padding: Styles.globalMargins.medium,
+        position: 'relative',
+      },
+      keyBoxCorner: {
+        position: 'absolute',
+        right: -borderWidth,
+        top: -borderWidth,
+      },
+      text: {
+        ...Styles.globalStyles.fontTerminal,
+        color: Styles.globalColors.blueDark,
+      },
+    } as const)
+)
 
 export default PaperKey

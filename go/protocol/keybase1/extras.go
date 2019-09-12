@@ -1266,7 +1266,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_FS_GUI,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_KBFS_CHAT,
 		TLFIdentifyBehavior_GUI_PROFILE:
@@ -3229,6 +3228,14 @@ func (h *HiddenTeamChain) KeySummary() string {
 	return fmt.Sprintf("{last:%d, lastPerTeamKeys:%+v, readerPerTeamKeys: %+v}", h.Last, h.LastPerTeamKeys, h.ReaderPerTeamKeys)
 }
 
+func (h *HiddenTeamChain) LinkAndKeySummary() string {
+	if h == nil {
+		return "empty"
+	}
+	ks := h.KeySummary()
+	return fmt.Sprintf("{nOuterlinks: %d, nInnerLinks:%d, keys:%s}", len(h.Outer), len(h.Inner), ks)
+}
+
 func (h *TeamData) KeySummary() string {
 	if h == nil {
 		return "Ø"
@@ -3398,4 +3405,8 @@ func (r APIUserSearchResult) GetStringIDForCompare() string {
 
 func NewPathWithKbfsPath(path string) Path {
 	return NewPathWithKbfs(KBFSPath{Path: path})
+}
+
+func (p PerTeamKey) Equal(q PerTeamKey) bool {
+	return p.EncKID.Equal(q.EncKID) && p.SigKID.Equal(q.SigKID)
 }

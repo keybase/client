@@ -2,11 +2,12 @@ package home
 
 import (
 	"context"
+	"github.com/keybase/client/go/contacts"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,4 +65,40 @@ func TestHome(t *testing.T) {
 
 	require.NoError(t, home.MarkViewed(ctx))
 	require.NoError(t, home.ActionTaken(ctx))
+}
+
+func TestContactResolutionPeoplePage(t *testing.T) {
+	tc := libkb.SetupTest(t, "home", 2)
+	defer tc.Cleanup()
+	tc2 := libkb.SetupTest(t, "home", 2)
+	defer tc2.Cleanup()
+
+	// Make one user with two devices
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	err = u.Login(tc.G)
+	require.NoError(t, err)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, u, libkb.DeviceTypeDesktop)
+
+	resolutions := []contacts.ContactResolution{{
+		Description: "Jakob - (216) 555-2222",
+		ResolvedUser: keybase1.User{
+			Uid:      keybase1.UID(34),
+			Username: "jakob223",
+		},
+	}}
+
+	// Send resolution to server
+	err = contacts.SendEncryptedContactResolutionToServer(tc.MetaContext(), resolutions)
+	require.NoError(t, err)
+
+	// Get people page from server as second device,
+	// check it has the right contents
+	h := NewHome(tc2.G)
+	err = h.getToCache(tc2.MetaContext().Ctx(), false, 0, true)
+	require.NoError(t, err)
+	require.Len(t, h.homeCache.obj.Items, 3)
+	item := h.homeCache.obj.Items[2].Data.People().Contact()
+	require.Equal(t, resolutions[0].Description, item.Description)
+	require.Equal(t, resolutions[0].ResolvedUser.Username, item.Username)
 }

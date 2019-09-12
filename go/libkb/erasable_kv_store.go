@@ -203,9 +203,9 @@ func (s *FileErasableKVStore) write(mctx MetaContext, key string, data []byte) (
 		return err
 	}
 	// remove the temp file if it still exists at the end of this function
-	defer ShredFile(tmp.Name())
+	defer func() { _ = ShredFile(tmp.Name()) }()
 
-	if SetDisableBackup(mctx, tmp.Name()); err != nil {
+	if err := SetDisableBackup(mctx, tmp.Name()); err != nil {
 		return err
 	}
 
@@ -231,12 +231,15 @@ func (s *FileErasableKVStore) write(mctx MetaContext, key string, data []byte) (
 	// we'd need to somehow call the ReplaceFile Win32 function (which Go
 	// doesn't expose anywhere as far as I know, so this would require CGO) to
 	// take advantage of its lpBackupFileName param.
-	s.erase(mctx, key)
+	err = s.erase(mctx, key)
+	if err != nil {
+		return err
+	}
 
 	if err := os.Rename(tmp.Name(), filepath); err != nil {
 		return err
 	}
-	if SetDisableBackup(mctx, filepath); err != nil {
+	if err := SetDisableBackup(mctx, filepath); err != nil {
 		return err
 	}
 
@@ -281,7 +284,7 @@ func (s *FileErasableKVStore) read(mctx MetaContext, key string) (data []byte, e
 
 func (s *FileErasableKVStore) noiseHash(noiseBytes []byte) []byte {
 	h := sha256.New()
-	h.Write(noiseBytes[:])
+	_, _ = h.Write(noiseBytes)
 	return h.Sum(nil)
 }
 

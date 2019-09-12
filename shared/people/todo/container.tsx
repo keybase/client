@@ -4,7 +4,7 @@ import * as PeopleGen from '../../actions/people-gen'
 import * as Types from '../../constants/types/people'
 import * as Tabs from '../../constants/tabs'
 import * as SettingsTabs from '../../constants/settings'
-import {IconType} from '../../common-adapters/icon.constants'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 import {todoTypes} from '../../constants/people'
 import {connect, isMobile} from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -35,7 +35,7 @@ function makeDefaultButtons(onConfirm, confirmLabel, onDismiss?, dismissLabel?) 
   ] as Array<TaskButton>
   if (onDismiss) {
     result.push({
-      label: dismissLabel || 'Later',
+      label: dismissLabel || 'Skip',
       mode: 'Secondary',
       onClick: onDismiss,
     })
@@ -237,7 +237,7 @@ const GitRepoConnector = connect(
         onClick: () => dispatchProps.onConfirm(true),
       },
       {
-        label: 'Later',
+        label: 'Skip',
         mode: 'Secondary',
         onClick: dispatchProps.onDismiss,
       },
@@ -258,10 +258,11 @@ const TeamShowcaseConnector = connect(
 )(Task)
 
 const VerifyAllEmailConnector = connect(
-  state => ({...mapStateToProps(state), _addedEmail: state.settings.email.addedEmail}),
+  state => ({...mapStateToProps(state), _addingEmail: state.settings.email.addingEmail}),
   dispatch => ({
     _onConfirm: email => {
       dispatch(SettingsGen.createEditEmail({email, verify: true}))
+      dispatch(PeopleGen.createSetResentEmail({email}))
     },
     onManage: () => {
       dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}))
@@ -269,22 +270,27 @@ const VerifyAllEmailConnector = connect(
     },
   }),
   (s, d, o: TodoOwnProps) => {
-    const meta = o.metadata
+    const meta = o.metadata && o.metadata.type === 'email' ? o.metadata : undefined
+
+    // Has the user received a verification email less than 30 minutes ago?
+    const hasRecentVerifyEmail =
+      meta && meta.lastVerifyEmailDate && Date.now() / 1000 - meta.lastVerifyEmailDate < 30 * 60
+
     return {
       ...o,
       buttons: [
-        ...(meta && meta.type === 'email'
+        ...(meta
           ? [
               {
-                label: 'Verify',
+                label: hasRecentVerifyEmail ? `Verify again` : 'Verify',
                 onClick: () => d._onConfirm(meta.email),
                 type: 'Success',
-                waiting: s._addedEmail && s._addedEmail === meta.email,
+                waiting: s._addingEmail && s._addingEmail === meta.email,
               },
             ]
           : []),
         {
-          label: 'Manage email',
+          label: 'Manage emails',
           mode: 'Secondary',
           onClick: d.onManage,
         },

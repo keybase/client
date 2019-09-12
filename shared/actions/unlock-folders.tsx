@@ -40,15 +40,15 @@ const refresh = (_: Container.TypedState, action: EngineGen.Keybase1RekeyUIRefre
   })
 }
 
-const registerRekeyUI = () =>
-  RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
-    .then(() => {
-      logger.info('Registered rekey ui')
-    })
-    .catch(error => {
-      logger.warn('error in registering rekey ui: ')
-      logger.debug('error in registering rekey ui: ', error)
-    })
+const registerRekeyUI = async () => {
+  try {
+    await RPCTypes.delegateUiCtlRegisterRekeyUIRpcPromise()
+    logger.info('Registered rekey ui')
+  } catch (error) {
+    logger.warn('error in registering rekey ui: ')
+    logger.debug('error in registering rekey ui: ', error)
+  }
+}
 
 // we get this with sessionID == 0 if we call openDialog
 const delegateRekeyUI = (
@@ -72,7 +72,7 @@ const delegateRekeyUI = (
   response && response.result(session.id)
 }
 
-function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
+function* unlockFoldersSaga() {
   yield* Saga.chainGenerator<UnlockFoldersGen.CheckPaperKeyPayload>(
     UnlockFoldersGen.checkPaperKey,
     checkPaperKey

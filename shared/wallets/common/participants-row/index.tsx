@@ -50,7 +50,7 @@ class ParticipantsRow extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   childContainer: Styles.platformStyles({
     isElectron: {
       width: '100%',
@@ -85,6 +85,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default ParticipantsRow

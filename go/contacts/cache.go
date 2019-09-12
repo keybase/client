@@ -59,6 +59,7 @@ type cachedLookupResult struct {
 
 type lookupResultCache struct {
 	Lookups map[ContactLookupKey]cachedLookupResult
+	Token   Token
 	Version struct {
 		Major int
 		Minor int
@@ -157,6 +158,11 @@ func (s *ContactCacheStore) ClearCache(mctx libkb.MetaContext) error {
 	return s.encryptedDB.Delete(mctx.Ctx(), cacheKey)
 }
 
+func (c *CachedContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (res ContactLookupResults, err error) {
+	return c.LookupAll(mctx, emails, numbers, userRegion)
+}
+
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (res ContactLookupResults, err error) {
 
@@ -217,8 +223,10 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	mctx.Debug("After checking cache, %d emails and %d numbers left to be looked up", len(remainingEmails), len(remainingNumbers))
 
 	if len(remainingEmails)+len(remainingNumbers) > 0 {
-		apiRes, err := c.Provider.LookupAll(mctx, remainingEmails, remainingNumbers, userRegion)
+		apiRes, err := c.Provider.LookupAllWithToken(mctx, remainingEmails, remainingNumbers, userRegion, conCache.Token)
 		if err == nil {
+			conCache.Token = apiRes.Token
+
 			now := mctx.G().Clock().Now()
 			expiresAt := now.Add(apiRes.ResolvedFreshness)
 			for k, v := range apiRes.Results {
@@ -255,6 +263,10 @@ func (c *CachedContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []ke
 
 func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
 	return c.Provider.FindFollowing(mctx, uids)
+}
+
+func (c *CachedContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
+	return c.Provider.FindServiceMaps(mctx, uids)
 }
 
 // RemoveContactsCachePhoneEntry removes cached lookup for phone number.

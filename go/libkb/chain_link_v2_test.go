@@ -119,7 +119,6 @@ func serdeOuterLink(t *testing.T, tc TestContext, seqno keybase1.Seqno, highSkip
 	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
 
 	var highSkip *HighSkip
-	highSkip = nil
 	if highSkipSeqno != nil {
 		highSkipPre := NewHighSkip(*highSkipSeqno, highSkipHash)
 		highSkip = &highSkipPre

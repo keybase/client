@@ -26,8 +26,7 @@ platform :ios do
   desc "This will also make sure the profile is up to date"
   lane :beta do
     version = get_version_number(xcodeproj: ENV['XCODEPROJ_NAME'], target: 'Keybase')
-    build_number = latest_testflight_build_number(version: version, live: "false", initial_build_number: 1) + 1
-    increment_build_number({ build_number: build_number })
+    increment_build_number(build_number: number_of_commits)
 
     sigh(app_identifier: "keybase.ios")
     sigh(app_identifier: "keybase.ios.KeybaseShare")

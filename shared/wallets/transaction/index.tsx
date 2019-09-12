@@ -12,7 +12,7 @@ import {
   Text,
   WaitingButton,
 } from '../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import * as Styles from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
 
@@ -41,18 +41,18 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
         />
       )
     case 'stellarPublicKey':
-      return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
+      return <Icon type="icon-placeholder-secret-user-48" />
     case 'otherAccount':
       return (
         <Box2
           alignSelf="flex-start"
           direction="horizontal"
-          style={collapseStyles([styles.transferIconContainer, {width: size}])}
+          style={Styles.collapseStyles([styles.transferIconContainer, {width: size}])}
         >
           <Icon
-            color={globalColors.purple}
+            color={Styles.globalColors.purple}
             sizeType={props.detailView ? 'Bigger' : 'Big'}
-            style={collapseStyles([!props.detailView && styles.transferIcon])}
+            style={Styles.collapseStyles([!props.detailView && styles.transferIcon])}
             type="iconfont-wallet-transfer"
           />
         </Box2>
@@ -75,7 +75,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   switch (props.counterpartyType) {
     case 'airdrop':
       return (
-        <Text style={{color: globalColors.purpleDark}} type={props.textTypeSemibold}>
+        <Text style={{color: Styles.globalColors.purpleDark}} type={props.textTypeSemibold}>
           Stellar airdrop
         </Text>
       )
@@ -143,10 +143,7 @@ const Detail = (props: DetailProps) => {
       const assetCode = props.trustline.asset.code
       const assetIssuer = props.trustline.asset.verifiedDomain || 'Unknown'
       const asset = (
-        <Text
-          type={'BodySmall'}
-          style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}
-        >
+        <Text type="BodySmall" style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}>
           <Text type="BodySmallBold">{assetCode}</Text>/{assetIssuer}
         </Text>
       )
@@ -168,33 +165,33 @@ const Detail = (props: DetailProps) => {
   if (props.issuerDescription) {
     // non-native asset
     amount = (
-      <React.Fragment>
+      <>
         <Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>{' '}
         <Text selectable={props.selectableText} type={textType}>
           ({props.issuerDescription})
         </Text>
-      </React.Fragment>
+      </>
     )
   } else if (props.isXLM) {
     // purely, strictly lumens
     amount = (
-      <React.Fragment>
+      <>
         <Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>
-      </React.Fragment>
+      </>
     )
   } else {
     // lumens sent with outside currency exchange rate
     amount = (
-      <React.Fragment>
+      <>
         Lumens worth{' '}
         <Text selectable={true} type={textTypeExtrabold}>
           {props.amountUser}
         </Text>
-      </React.Fragment>
+      </>
     )
   }
 
@@ -296,15 +293,15 @@ type AmountProps = {
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'airdrop':
-      return globalColors.purpleDark
+      return Styles.globalColors.purpleDark
     case 'senderOnly':
-      return globalColors.black
+      return Styles.globalColors.black
     case 'receiverOnly':
-      return globalColors.greenDark
+      return Styles.globalColors.greenDark
     case 'senderAndReceiver':
-      return globalColors.black
+      return Styles.globalColors.black
     case 'none':
-      return globalColors.black
+      return Styles.globalColors.black
     default:
       throw new Error(`Unexpected role ${role}`)
   }
@@ -326,13 +323,13 @@ const getAmount = (role: Types.Role, amount: string, sourceAmount?: string): str
 }
 
 const Amount = (props: AmountProps) => {
-  const color = props.pending || props.canceled ? globalColors.black_20 : roleToColor(props.yourRole)
+  const color = props.pending || props.canceled ? Styles.globalColors.black_20 : roleToColor(props.yourRole)
 
   const amount = getAmount(props.yourRole, props.amountDescription, props.sourceAmountDescription)
   return (
     <Text
       selectable={props.selectableText}
-      style={collapseStyles([
+      style={Styles.collapseStyles([
         {color, flexShrink: 0, textAlign: 'right'},
         props.canceled && styles.lineThrough,
       ])}
@@ -391,7 +388,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   return (
     <Text
       selectable={props.selectableText}
-      style={props.reverseColor ? {color: globalColors.white} : undefined}
+      style={props.reverseColor ? {color: Styles.globalColors.white} : undefined}
       title={tooltip}
       type="BodySmall"
     >
@@ -418,10 +415,10 @@ const TimestampLine = (props: TimestampLineProps) => {
 
 const styleMarkdownMemo = {
   paragraph: {
-    color: globalColors.purpleDark,
+    color: Styles.globalColors.purpleDark,
   },
   strong: {
-    color: globalColors.purpleDark,
+    color: Styles.globalColors.purpleDark,
   },
 }
 
@@ -481,7 +478,9 @@ export const Transaction = (props: Props) => {
   const large = true
   const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
   const backgroundColor =
-    (props.unread || pending) && !props.detailView ? globalColors.blueLighter2 : globalColors.white
+    (props.unread || pending) && !props.detailView
+      ? Styles.globalColors.blueLighter2
+      : Styles.globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -529,7 +528,7 @@ export const Transaction = (props: Props) => {
               <MarkdownMemo
                 memo={props.memo}
                 hideDivider={props.fromAirdrop}
-                style={styles.marginTopXTiny}
+                style={styles.memoStyle}
                 styleOverride={props.fromAirdrop ? styleMarkdownMemo : undefined}
               />
             )}
@@ -575,35 +574,42 @@ export const Transaction = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate({
-  breakWord: platformStyles({isElectron: {wordBreak: 'break-word'}}),
-  cancelButton: {
-    alignSelf: 'flex-start',
-  },
-  container: {
-    padding: globalMargins.tiny,
-    paddingRight: globalMargins.small,
-  },
-  flexOne: {flex: 1},
-  lineThrough: {
-    textDecorationLine: 'line-through',
-  } as const,
-  marginLeftAuto: {marginLeft: 'auto'},
-  marginTopXTiny: {
-    marginTop: globalMargins.xtiny,
-  },
-  orangeLine: {backgroundColor: globalColors.orange, height: 1},
-  rightContainer: {
-    flex: 1,
-    marginLeft: globalMargins.tiny,
-  },
-  transferIcon: {
-    position: 'relative',
-    top: globalMargins.xtiny,
-  },
-  transferIconContainer: {
-    justifyContent: 'center',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      breakWord: Styles.platformStyles({isElectron: {wordBreak: 'break-word'} as const}),
+      cancelButton: {
+        alignSelf: 'flex-start',
+      },
+      container: {
+        padding: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      flexOne: {flex: 1},
+      lineThrough: {
+        textDecorationLine: 'line-through',
+      } as const,
+      marginLeftAuto: {marginLeft: 'auto'},
+      marginTopXTiny: {
+        marginTop: Styles.globalMargins.xtiny,
+      },
+      memoStyle: {
+        marginTop: Styles.globalMargins.xtiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1},
+      rightContainer: {
+        flex: 1,
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      transferIcon: {
+        position: 'relative',
+        top: Styles.globalMargins.xtiny,
+      },
+      transferIconContainer: {
+        justifyContent: 'center',
+      },
+    } as const)
+)
 
 export default Transaction

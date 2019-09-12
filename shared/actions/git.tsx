@@ -1,5 +1,4 @@
 import * as ConfigGen from './config-gen'
-import * as GregorGen from './gregor-gen'
 import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -101,18 +100,6 @@ const clearNavBadges = async () => {
   }
 }
 
-const handleIncomingGregor = (_: TypedState, action: GregorGen.PushOOBMPayload) => {
-  const gitMessages = action.payload.messages.filter(i => i.system === 'git')
-  const msgs = gitMessages.map(msg => JSON.parse(msg.body.toString()))
-  for (let body of msgs) {
-    const needsLoad = ['delete', 'create', 'update'].includes(body.action)
-    if (needsLoad) {
-      return GitGen.createLoadGit()
-    }
-  }
-  return false
-}
-
 function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRepoPayload) {
   const {teamname, repoID} = action.payload
   let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
@@ -131,7 +118,7 @@ function* navigateToTeamRepo(state: TypedState, action: GitGen.NavigateToTeamRep
 const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   GitGen.createBadgeAppForGit({ids: new Set(action.payload.badgeState.newGitRepoGlobalUniqueIDs)})
 
-function* gitSaga(): Saga.SagaGenerator<any, any> {
+function* gitSaga() {
   // Create / Delete
   yield* Saga.chainAction2(GitGen.createPersonalRepo, createPersonalRepo)
   yield* Saga.chainAction2(GitGen.createTeamRepo, createTeamRepo)
@@ -148,9 +135,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
 
   // clear on load
   yield* Saga.chainAction2(GitGen.loadGit, clearNavBadges)
-
-  // Gregor
-  yield* Saga.chainAction2(GregorGen.pushOOBM, handleIncomingGregor)
 }
 
 export default gitSaga

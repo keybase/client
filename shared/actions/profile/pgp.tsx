@@ -1,7 +1,7 @@
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouteTreeGen from '../route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
 
 function* generatePgp(state) {
@@ -18,7 +18,7 @@ function* generatePgp(state) {
   const onKeyGenerated = ({key}, response) => {
     if (canceled) {
       response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-        return undefined
+      return undefined
     } else {
       response.result()
       return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))

@@ -45,7 +45,7 @@ const Row = (props: Props) => (
     />
     <Kb.Box
       style={{
-        ..._rowStyle,
+        ...styles.rowStyle,
         ...(props.expanded
           ? {
               backgroundColor: Styles.globalColors.white,
@@ -57,14 +57,14 @@ const Row = (props: Props) => (
     >
       <Kb.ClickableBox
         onClick={props.onToggleExpand}
-        style={props.expanded ? _rowClickStyleExpanded : _rowClickStyle}
+        style={props.expanded ? styles.rowClickExpanded : styles.rowClick}
         hoverColor={Styles.isMobile ? undefined : Styles.globalColors.transparent}
         underlayColor={Styles.globalColors.transparent}
       >
-        <Kb.Box style={_rowTopStyle}>
+        <Kb.Box style={styles.rowTop}>
           <Kb.Icon
             type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-            style={_iconCaretStyle}
+            style={styles.iconCaret}
             sizeType="Tiny"
           />
           <Kb.Avatar
@@ -78,12 +78,12 @@ const Row = (props: Props) => (
             {props.teamname ? `${props.teamname}/${props.name}` : props.name}
           </Kb.Text>
           {props.isNew && (
-            <Kb.Meta title="new" style={_metaStyle} backgroundColor={Styles.globalColors.orange} />
+            <Kb.Meta title="new" style={styles.meta} backgroundColor={Styles.globalColors.orange} />
           )}
         </Kb.Box>
       </Kb.ClickableBox>
       {props.expanded && (
-        <Kb.Box style={_rowBottomStyle}>
+        <Kb.Box style={styles.rowBottom}>
           <Kb.Box
             style={{
               ...Styles.globalStyles.flexBoxRow,
@@ -134,7 +134,7 @@ const Row = (props: Props) => (
                   ? 'Signed and encrypted using device'
                   : ', signed and encrypted using device'}
               </Kb.Text>
-              <Kb.Text type="BodySmall" style={_deviceStyle} onClick={props.onClickDevice}>
+              <Kb.Text type="BodySmall" style={styles.device} onClick={props.onClickDevice}>
                 {' '}
                 {props.devicename}
               </Kb.Text>
@@ -216,69 +216,74 @@ const Row = (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
-  copyTextContainer: {
-    flexShrink: 1,
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.tiny,
-    maxWidth: 460,
-    width: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      copyTextContainer: {
+        flexShrink: 1,
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.tiny,
+        maxWidth: 460,
+        width: '100%',
+      },
 
-const _deviceStyle = {
-  ...Styles.globalStyles.fontSemibold,
-  ...Styles.globalStyles.italic,
-  color: Styles.globalColors.black_50,
-}
+      device: {
+        ...Styles.globalStyles.fontSemibold,
+        ...Styles.globalStyles.italic,
+        color: Styles.globalColors.black_50,
+      },
 
-const _rowBottomStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  paddingBottom: Styles.globalMargins.tiny,
-  paddingLeft: Styles.globalMargins.medium,
-  width: '100%',
-}
+      iconCaret: Styles.platformStyles({
+        common: {
+          marginBottom: 2,
+          marginRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
 
-const _iconCaretStyle = Styles.platformStyles({
-  common: {
-    marginBottom: 2,
-    marginRight: Styles.globalMargins.tiny,
-  },
-  isElectron: {
-    display: 'inline-block',
-  },
-})
+      meta: {
+        alignSelf: 'center',
+        marginLeft: 6,
+      },
 
-const _metaStyle = {
-  alignSelf: 'center',
-  marginLeft: 6,
-} as const
+      rowBottom: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        width: '100%',
+      },
 
-const _rowTopStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  marginBottom: Styles.globalMargins.xtiny,
-  paddingLeft: Styles.globalMargins.tiny,
-}
+      rowClick: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+        width: '100%',
+      },
 
-const _rowStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  flexShrink: 0,
-  minHeight: Styles.globalMargins.large,
-  paddingLeft: 0,
-  width: '100%',
-}
-const _rowClickStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  paddingBottom: Styles.globalMargins.tiny,
-  paddingTop: Styles.globalMargins.tiny,
-  width: '100%',
-}
+      rowClickExpanded: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: 0,
+        paddingTop: Styles.globalMargins.tiny,
+        width: '100%',
+      },
 
-const _rowClickStyleExpanded = {
-  ..._rowClickStyle,
-  paddingBottom: 0,
-}
+      rowStyle: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-start',
+        flexShrink: 0,
+        minHeight: Styles.globalMargins.large,
+        paddingLeft: 0,
+        width: '100%',
+      },
+      rowTop: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default Row

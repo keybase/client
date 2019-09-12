@@ -90,13 +90,13 @@ func (c *CmdSimpleFSWrite) Run() error {
 	r := bufio.NewReader(os.Stdin)
 
 	for {
-		n, err := r.Read(buf[:cap(buf)])
+		n, bufErr := r.Read(buf[:cap(buf)])
 		buf = buf[:n]
 		if n == 0 {
-			if err == nil {
+			if bufErr == nil {
 				continue
 			}
-			if err == io.EOF {
+			if bufErr == io.EOF {
 				break
 			}
 		}
@@ -104,7 +104,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 		err2 := cli.SimpleFSWrite(context.TODO(), keybase1.SimpleFSWriteArg{
 			OpID:    opid,
 			Offset:  c.offset,
-			Content: buf[:],
+			Content: buf,
 		})
 		if err2 != nil {
 			err = err2
@@ -112,9 +112,11 @@ func (c *CmdSimpleFSWrite) Run() error {
 		}
 		c.offset += int64(n)
 
-		if err != nil {
-			if err == io.EOF {
+		if bufErr != nil {
+			if bufErr == io.EOF {
 				err = nil
+			} else {
+				err = bufErr
 			}
 			break
 		}

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
-import * as ConfigConstants from '../constants/config'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import Menubar from './index.desktop'
@@ -75,8 +74,8 @@ const load = () => {
   Storybook.storiesOf('Menubar', module)
     .addDecorator(providers)
     .add('Normal', () => <Menubar {...props} />)
-    .add('Starting up', () => <Menubar {...props} daemonHandshakeState={'starting'} />)
-    .add('Waiting on bootstrap', () => <Menubar {...props} daemonHandshakeState={'waitingForWaiters'} />)
+    .add('Starting up', () => <Menubar {...props} daemonHandshakeState="starting" />)
+    .add('Waiting on bootstrap', () => <Menubar {...props} daemonHandshakeState="waitingForWaiters" />)
     .add('Not logged in', () => <Menubar {...props} loggedIn={false} />)
     .add('With a file notification', () => (
       <Menubar
@@ -107,16 +106,10 @@ const load = () => {
     ))
     .add('Out of date banner', () => (
       <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
+        <OutOfDate outOfDate={{critical: false, updating: false}} updateNow={Storybook.action('updateNow')} />
+        <OutOfDate outOfDate={{critical: true, updating: false}} updateNow={Storybook.action('updateNow')} />
         <OutOfDate
-          outOfDate={ConfigConstants.makeOutOfDate({critical: false})}
-          updateNow={Storybook.action('updateNow')}
-        />
-        <OutOfDate
-          outOfDate={ConfigConstants.makeOutOfDate({critical: true})}
-          updateNow={Storybook.action('updateNow')}
-        />
-        <OutOfDate
-          outOfDate={ConfigConstants.makeOutOfDate({critical: true, message: 'This is a critical message.'})}
+          outOfDate={{critical: true, message: 'This is a critical message.', updating: false}}
           updateNow={Storybook.action('updateNow')}
         />
       </Kb.Box2>

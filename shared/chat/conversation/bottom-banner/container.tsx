@@ -1,5 +1,6 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -16,29 +17,30 @@ type OwnProps = {
 type Props = {
   type: 'invite' | 'none' | 'broken'
   users: Array<string>
+  hasMessages: boolean
+  dismissed: boolean
   openShareSheet: () => void
   openSMS: (email: string) => void
+  onDismiss: () => void
   usernameToContactName: {[username: string]: string}
 }
 
-class BannerContainer extends React.PureComponent<Props> {
-  render() {
-    switch (this.props.type) {
-      case 'invite':
-        return (
-          <InviteBanner
-            openShareSheet={this.props.openShareSheet}
-            openSMS={this.props.openSMS}
-            users={this.props.users}
-            usernameToContactName={this.props.usernameToContactName}
-          />
-        )
-      case 'broken':
-        return <Kb.ProofBrokenBanner users={this.props.users} />
-      case 'none':
-        return null
-    }
-    return null
+const BannerContainer = (props: Props) => {
+  switch (props.type) {
+    case 'invite':
+      return !props.dismissed && props.hasMessages ? (
+        <InviteBanner
+          openShareSheet={props.openShareSheet}
+          openSMS={props.openSMS}
+          onDismiss={props.onDismiss}
+          users={props.users}
+          usernameToContactName={props.usernameToContactName}
+        />
+      ) : null
+    case 'broken':
+      return <Kb.ProofBrokenBanner users={props.users} />
+    case 'none':
+      return null
   }
 }
 
@@ -46,18 +48,25 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
+  const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey, false)
   return {
+    _dismissed,
     _following,
     _meta,
     _users,
   }
 }
 
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
+  onDismiss: () =>
+    dispatch(Chat2Gen.createDismissBottomBanner({conversationIDKey: ownProps.conversationIDKey})),
+})
+
 export default Container.connect(
   mapStateToProps,
-  () => ({}),
-  (stateProps, __, _: OwnProps) => {
-    let type
+  mapDispatchToProps,
+  (stateProps, dispatchProps, _: OwnProps) => {
+    let type: Props['type']
     let users: Array<string> = []
 
     if (stateProps._meta.teamType !== 'adhoc') {
@@ -81,6 +90,9 @@ export default Container.connect(
     }
 
     return {
+      dismissed: stateProps._dismissed,
+      hasMessages: !stateProps._meta.isEmpty,
+      onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
         showShareActionSheetFromURL({

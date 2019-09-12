@@ -51,6 +51,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSClearConflicts(cl, g),
 			NewCmdSimpleFSFinishResolvingConflicts(cl, g),
 			NewCmdSimpleFSSync(cl, g),
+			NewCmdSimpleFSUploads(cl, g),
 		}, getBuildSpecificFSCommands(cl, g)...),
 	}
 }
@@ -214,7 +215,7 @@ func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, des
 			err = ErrTargetFileExists
 		}
 	} else {
-		if exists, _ := libkb.FileExists(dest.Local()); exists == true {
+		if exists, _ := libkb.FileExists(dest.Local()); exists {
 			// we should have already tested whether it's a directory
 			err = ErrTargetFileExists
 		}
@@ -366,7 +367,7 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 
 	g.Log.Debug("doSimpleFSRemoteGlob %s", pathString)
 
-	if strings.ContainsAny(directory, "?*[]") == true {
+	if strings.ContainsAny(directory, "?*[]") {
 		return nil, errors.New("wildcards not supported in parent directories")
 	}
 
@@ -404,7 +405,7 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 		}
 		for _, entry := range listResult.Entries {
 			match, err := filepath.Match(base, entry.Name)
-			if err == nil && match == true {
+			if err == nil && match {
 				rp, err := newPathWithSameType(
 					filepath.ToSlash(filepath.Join(directory, entry.Name)),
 					path)
@@ -427,7 +428,7 @@ func doSimpleFSGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.Si
 		}
 
 		pathString := path.String()
-		if strings.ContainsAny(filepath.Base(pathString), "?*[]") == false {
+		if !strings.ContainsAny(filepath.Base(pathString), "?*[]") {
 			returnPaths = append(returnPaths, path)
 			continue
 		}

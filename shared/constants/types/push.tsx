@@ -1,6 +1,6 @@
-import * as I from 'immutable'
 import * as ChatTypes from './chat2'
 import * as RPCChatTypes from './rpc-chat-gen'
+
 export type TokenType = 'apple' | 'appledev' | 'androidplay'
 
 export type PushNotification =
@@ -16,7 +16,7 @@ export type PushNotification =
     }
   | {
       conversationIDKey: ChatTypes.ConversationIDKey
-      membersType: RPCChatTypes.ConversationMembersType | null
+      membersType?: RPCChatTypes.ConversationMembersType
       type: 'chat.newmessage'
       unboxPayload: string
       userInteraction: boolean
@@ -31,10 +31,8 @@ export type PushNotification =
       conversationIDKey: ChatTypes.ConversationIDKey
     }
 
-export type _State = {
+export type State = {
   hasPermissions: boolean
   showPushPrompt: boolean
   token: string
 }
-
-export type State = I.RecordOf<_State>

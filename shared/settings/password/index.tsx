@@ -41,17 +41,17 @@ class UpdatePassword extends Component<Props, State> {
   }
 
   _handlePasswordChange(password: string) {
-    this.setState({
-      errorSaving: this._errorSaving(password, this.state.passwordConfirm),
+    this.setState(s => ({
+      errorSaving: this._errorSaving(password, s.passwordConfirm),
       password,
-    })
+    }))
   }
 
   _handlePasswordConfirmChange(passwordConfirm: string) {
-    this.setState({
-      errorSaving: this._errorSaving(this.state.password, passwordConfirm),
+    this.setState(s => ({
+      errorSaving: this._errorSaving(s.password, passwordConfirm),
       passwordConfirm,
-    })
+    }))
   }
 
   _errorSaving(password: string, passwordConfirm: string): string {
@@ -191,32 +191,35 @@ class UpdatePassword extends Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  bodyText: {
-    paddingBottom: Styles.globalMargins.small,
-  },
-  buttonBar: {
-    minHeight: undefined,
-  },
-  checkbox: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-    width: '100%',
-  },
-  container: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    flexGrow: 1,
-    padding: Styles.globalMargins.small,
-  },
-  headerText: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  passwordFormat: {
-    alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.xtiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyText: {
+        paddingBottom: Styles.globalMargins.small,
+      },
+      buttonBar: {
+        minHeight: undefined,
+      },
+      checkbox: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+        width: '100%',
+      },
+      container: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        flexGrow: 1,
+        padding: Styles.globalMargins.small,
+      },
+      headerText: {
+        paddingBottom: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      passwordFormat: {
+        alignSelf: 'flex-start',
+        marginTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default UpdatePassword

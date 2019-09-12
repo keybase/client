@@ -77,7 +77,7 @@
   font-weight: 700;
 }
 .darkMode .text_HeaderLink {
-  color: rgba(179, 113, 0, 0.85);
+  color: rgba(24, 45, 110, 0.5);
 }
 
 .text_BodyBig {
@@ -115,8 +115,6 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
-}
-.darkMode .text_BodyBigLink {
 }
 
 .text_Body {
@@ -182,8 +180,6 @@
   font-family: Keybase;
   font-weight: 600;
 }
-.darkMode .text_BodySemiboldLink {
-}
 
 .text_BodyExtrabold {
   font-size: 14px;
@@ -208,8 +204,6 @@
   font-family: Keybase;
   font-weight: 400;
 }
-.darkMode .text_BodyPrimaryLink {
-}
 
 .text_BodySecondaryLink {
   font-size: 14px;
@@ -222,7 +216,7 @@
   font-weight: 400;
 }
 .darkMode .text_BodySecondaryLink {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmall {
@@ -235,7 +229,7 @@
   font-weight: 400;
 }
 .darkMode .text_BodySmall {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallBold {
@@ -248,7 +242,7 @@
   font-weight: 700;
 }
 .darkMode .text_BodySmallBold {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallItalic {
@@ -262,7 +256,7 @@
   font-style: italic;
 }
 .darkMode .text_BodySmallItalic {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallPrimaryLink {
@@ -275,9 +269,6 @@
   font-family: Keybase;
   font-weight: 400;
 }
-.darkMode .text_BodySmallPrimaryLink {
-  color: rgba(255, 255, 255, 0.85);
-}
 
 .text_BodySmallExtrabold {
   font-size: 13px;
@@ -289,7 +280,7 @@
   font-weight: 800;
 }
 .darkMode .text_BodySmallExtrabold {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSemiboldItalic {
@@ -303,7 +294,7 @@
   font-weight: 600;
 }
 .darkMode .text_BodySmallSemiboldItalic {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSemiboldPrimaryLink {
@@ -315,8 +306,6 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
-}
-.darkMode .text_BodySmallSemiboldPrimaryLink {
 }
 
 .text_BodySmallSemiboldSecondaryLink {
@@ -330,7 +319,7 @@
   font-weight: 600;
 }
 .darkMode .text_BodySmallSemiboldSecondaryLink {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSecondaryLink {
@@ -344,7 +333,7 @@
   font-weight: 400;
 }
 .darkMode .text_BodySmallSecondaryLink {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallExtraboldSecondaryLink {
@@ -358,7 +347,7 @@
   font-weight: 800;
 }
 .darkMode .text_BodySmallExtraboldSecondaryLink {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallError {
@@ -370,8 +359,6 @@
   font-family: Keybase;
   font-weight: 400;
 }
-.darkMode .text_BodySmallError {
-}
 
 .text_BodySmallSuccess {
   font-size: 13px;
@@ -382,8 +369,6 @@
   font-family: Keybase;
   font-weight: 400;
 }
-.darkMode .text_BodySmallSuccess {
-}
 
 .text_BodySmallWallet {
   font-size: 13px;
@@ -393,8 +378,6 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 400;
-}
-.darkMode .text_BodySmallWallet {
 }
 
 .text_BodyTiny {
@@ -407,7 +390,7 @@
   font-weight: 400;
 }
 .darkMode .text_BodyTiny {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyLink {
@@ -421,7 +404,7 @@
   font-weight: 400;
 }
 .darkMode .text_BodyTinyLink {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyBold {
@@ -434,7 +417,7 @@
   font-weight: 700;
 }
 .darkMode .text_BodyTinyBold {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyExtrabold {
@@ -445,6 +428,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 800;
+}
+.darkMode .text_BodyTinyExtrabold {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinySemibold {
@@ -457,7 +443,7 @@
   font-weight: 600;
 }
 .darkMode .text_BodyTinySemibold {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinySemiboldItalic {
@@ -470,6 +456,9 @@
   font-weight: 600;
   font-style: italic;
 }
+.darkMode .text_BodyTinySemiboldItalic {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmallSemibold {
   font-size: 13px;
@@ -481,7 +470,7 @@
   font-weight: 600;
 }
 .darkMode .text_BodySmallSemibold {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_Terminal {
@@ -493,7 +482,7 @@
   font-family: Source Code Pro;
 }
 .darkMode .text_Terminal {
-  color: rgba(255, 255, 255, 0.85);
+  color: #4c8eff;
 }
 
 .text_TerminalComment {
@@ -504,8 +493,6 @@
   text-rendering: optimizeLegibility;
   font-family: Source Code Pro;
 }
-.darkMode .text_TerminalComment {
-}
 
 .text_TerminalEmpty {
   font-size: 13px;
@@ -515,8 +502,6 @@
   text-rendering: optimizeLegibility;
   font-family: Source Code Pro;
   height: 20px;
-}
-.darkMode .text_TerminalEmpty {
 }
 
 .text_TerminalInline {
@@ -533,6 +518,7 @@
   word-wrap: break-word;
 }
 .darkMode .text_TerminalInline {
+  color: #f00;
 }
 
 .text_center {

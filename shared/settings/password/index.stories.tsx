@@ -26,10 +26,10 @@ const load = () => {
     .add('Normal - Has PGP on server', () => <Password {...props} hasPGPKeyOnServer={true} />)
     .add('Normal - Show Typing', () => <Password {...props} showTyping={true} />)
     .add('Error - New Password Requirements', () => (
-      <Password {...props} newPasswordError={'Your new password must have minimum 12 characters.'} />
+      <Password {...props} newPasswordError="Your new password must have minimum 12 characters." />
     ))
     .add('Error - New Password Mismatch', () => (
-      <Password {...props} newPasswordConfirmError={'Password confirmation does not match.'} />
+      <Password {...props} newPasswordConfirmError="Password confirmation does not match." />
     ))
 }
 

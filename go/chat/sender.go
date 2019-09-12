@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
@@ -18,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
@@ -274,7 +276,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 		return msg, nil, err
 	}
 	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
-		// Don't do anything here for reactions, they can't be edited
+		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil
 	}
 
@@ -292,15 +294,21 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	// Use ConvSource with an `After` which query. Fetches from a combination of local cache
 	// and the server. This is an opportunity for the server to retain messages that should
 	// have been deleted without getting caught.
-	tv, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
-		chat1.GetThreadReason_PREPARE,
-		&chat1.GetThreadQuery{
-			MarkAsRead:   false,
-			MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
-			After:        &timeBeforeFirst,
-		}, nil)
-	if err != nil {
-		return msg, nil, err
+	var tv chat1.ThreadView
+	switch deleteTarget.ClientHeader.MessageType {
+	case chat1.MessageType_UNFURL:
+		// no edits/deletes possible here
+	default:
+		tv, err = s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
+			chat1.GetThreadReason_PREPARE,
+			&chat1.GetThreadQuery{
+				MarkAsRead:   false,
+				MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED},
+				After:        &timeBeforeFirst,
+			}, nil)
+		if err != nil {
+			return msg, nil, err
+		}
 	}
 
 	// Get all affected messages to be deleted
@@ -556,8 +564,9 @@ func (s *BlockingSender) getParticipantsForMentions(ctx context.Context, uid gre
 			return conv.Info.Participants, nil
 		}
 		return ib.Convs[0].Info.Participants, nil
+	default:
+		return conv.Info.Participants, nil
 	}
-	return conv.Info.Participants, nil
 }
 func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
 	conv *chat1.ConversationLocal) (res chat1.MessagePlaintext, atMentions []gregor1.UID, chanMention chat1.ChannelMention, err error) {
@@ -587,10 +596,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 	maybeToTeam := func(maybeMentions []chat1.MaybeMention) (res []chat1.KnownTeamMention) {
 		for _, maybe := range maybeMentions {
 			if s.G().TeamMentionLoader.IsTeamMention(ctx, uid, maybe, nil) {
-				res = append(res, chat1.KnownTeamMention{
-					Name:    maybe.Name,
-					Channel: maybe.Channel,
-				})
+				res = append(res, chat1.KnownTeamMention(maybe))
 			}
 		}
 		return res
@@ -684,8 +690,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
-		convID := (*conv).GetConvID()
+		convID := conv.GetConvID()
 		msg.ClientHeader.Conv = conv.Info.Triple
+		if len(msg.ClientHeader.TlfName) == 0 {
+			msg.ClientHeader.TlfName = conv.Info.TlfName
+			msg.ClientHeader.TlfPublic = conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+		}
 		s.Debug(ctx, "Prepare: performing convID based checks")
 
 		// Check for outboxID based edits
@@ -777,13 +787,22 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
-	// on the client header in case this conversation gets upgrade to impteam.
+	// on the client header in case this conversation gets upgraded to impteam.
 	msg.ClientHeader.KbfsCryptKeysUsed = new(bool)
 	if membersType == chat1.ConversationMembersType_KBFS {
 		s.Debug(ctx, "setting KBFS crypt keys used flag")
 		*msg.ClientHeader.KbfsCryptKeysUsed = true
 	} else {
 		*msg.ClientHeader.KbfsCryptKeysUsed = false
+	}
+
+	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, conv, atMentions)
+	if err != nil {
+		return res, err
+	}
+	if len(botUIDs) > 0 {
+		// TODO HOTPOT-330 Add support for "hidden" messages for multiple bots
+		msg.ClientHeader.BotUID = &botUIDs[0]
 	}
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
@@ -802,6 +821,88 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		ChannelMention:      chanMention,
 		TopicNameState:      topicNameState,
 	}, nil
+}
+
+func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
+	conv *chat1.ConversationLocal, atMentions []gregor1.UID) ([]gregor1.UID, error) {
+	if conv == nil {
+		return nil, nil
+	}
+	if msg.ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
+		return nil, nil
+	}
+
+	// no bots in KBFS convs
+	if conv.GetMembersType() == chat1.ConversationMembersType_KBFS {
+		return nil, nil
+	}
+
+	// Skip checks if botUID already set
+	if msg.ClientHeader.BotUID != nil {
+		return nil, nil
+	}
+
+	// Check if we are superseding a bot message. If so just take what the
+	// superseded has.
+	if msg.ClientHeader.Supersedes > 0 {
+		target, err := s.getMessage(ctx, uid, conv.GetConvID(), msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
+		if err != nil {
+			return nil, err
+		}
+		botUID := target.ClientHeader.BotUID
+		if botUID == nil {
+			return nil, nil
+		}
+		return []gregor1.UID{*botUID}, nil
+	}
+
+	// TODO HOTPOT-117 short circuit check if no RESTRICTEDBOT members are in
+	// the conv.
+
+	// Fetch the bot settings, if any
+	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+	if err != nil {
+		// If we fail here the conversation could be a IMPTEAMUPGRADE conv that
+		// used the old KBFS tlfID, so we short circuit.
+		return nil, nil
+	}
+	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: msg.ClientHeader.TlfPublic,
+	})
+	if err != nil {
+		return nil, err
+	}
+	teamBotSettings, err := team.TeamBotSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	mentionMap := make(map[string]struct{})
+	for _, uid := range atMentions {
+		mentionMap[uid.String()] = struct{}{}
+	}
+
+	var botUIDs []gregor1.UID
+	for uv, botSettings := range teamBotSettings {
+		botUID := gregor1.UID(uv.Uid.ToBytes())
+		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, msg,
+			conv, mentionMap, s.DebugLabeler)
+		if err != nil {
+			return nil, err
+		}
+		// If the bot is the sender encrypt only for them.
+		if msg.ClientHeader.Sender.Eq(botUID) {
+			if !isMatch {
+				return nil, fmt.Errorf("Unable to send, bot restricted from this channel")
+			}
+			return []gregor1.UID{botUID}, nil
+		}
+		if isMatch {
+			botUIDs = append(botUIDs, botUID)
+		}
+	}
+	return botUIDs, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair(ctx context.Context) (kp libkb.NaclSigningKeyPair, err error) {
@@ -851,9 +952,9 @@ func (s *BlockingSender) Sign(payload []byte) ([]byte, error) {
 	return s.getRi().S3Sign(context.Background(), arg)
 }
 
-func (s *BlockingSender) presentUIItem(ctx context.Context, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+func (s *BlockingSender) presentUIItem(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
 	if conv != nil {
-		pc := utils.PresentConversationLocal(ctx, *conv, s.G().Env.GetUsername().String())
+		pc := utils.PresentConversationLocal(ctx, s.G(), uid, *conv)
 		res = &pc
 	}
 	return res
@@ -921,7 +1022,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		// Log some useful information about the message we are sending
 		obidstr := "(none)"
 		if boxed.ClientHeader.OutboxID != nil {
-			obidstr = fmt.Sprintf("%s", *boxed.ClientHeader.OutboxID)
+			obidstr = boxed.ClientHeader.OutboxID.String()
 		}
 		s.Debug(ctx, "Send: sending message: convID: %s outboxID: %s", convID, obidstr)
 
@@ -936,14 +1037,17 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		}
 		plres, err = s.getRi().PostRemote(ctx, rarg)
 		if err != nil {
-			switch err.(type) {
+			switch e := err.(type) {
 			case libkb.ChatStalePreviousStateError:
 				// If we hit the stale previous state error, that means we should try again, since our view is
 				// out of date.
 				s.Debug(ctx, "Send: failed because of stale previous state, trying the whole thing again")
 				if !clearedCache {
 					s.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
-					s.G().InboxSource.Clear(ctx, sender)
+					err := s.G().InboxSource.Clear(ctx, sender)
+					if err != nil {
+						s.Debug(ctx, "Send: error clearing: %+v", err)
+					}
 					clearedCache = true
 				}
 				continue
@@ -957,9 +1061,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
-				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
-				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
-				utils.ForceReloadUPAKsForUIDs(ctx, s.G(), merr.UIDs)
+				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", e.UIDs)
+				err := utils.ForceReloadUPAKsForUIDs(ctx, s.G(), e.UIDs)
+				if err != nil {
+					s.Debug(ctx, "Send: error forcing reloads: %+v", err)
+				}
 				continue
 			default:
 				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
@@ -1012,7 +1118,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				convID),
 			ConvID:                     convID,
 			DisplayDesktopNotification: false,
-			Conv:                       s.presentUIItem(ctx, convLocal),
+			Conv:                       s.presentUIItem(ctx, boxed.ClientHeader.Sender, convLocal),
 		})
 		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
 			chat1.ChatActivitySource_LOCAL)
@@ -1539,13 +1645,9 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 }
 
 func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
-	switch err {
-	case ErrDuplicateConnection:
-		// This just happens when threads are racing to reconnect to Gregor, don't count it as
-		// an error to send.
-		return false
-	}
-	return true
+	// This just happens when threads are racing to reconnect to
+	// Gregor, don't count it as an error to send.
+	return err != ErrDuplicateConnection
 }
 
 func (s *Deliverer) shouldBreakLoop(ctx context.Context, obr chat1.OutboxRecord) bool {

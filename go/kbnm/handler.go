@@ -20,8 +20,6 @@ var errMissingField = errors.New("missing field")
 
 var errUserNotFound = errors.New("user not found")
 
-var errParsing = errors.New("failed to parse keybase output")
-
 var errKeybaseNotRunning = errors.New("keybase is not running")
 
 var errKeybaseNotLoggedIn = errors.New("keybase is not logged in")

@@ -22,6 +22,11 @@ type anotherMockContactsProvider struct {
 	queryCount int
 }
 
+func (c *anotherMockContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ContactLookupResults, error) {
+	return c.LookupAll(mctx, emails, numbers, userRegion)
+}
+
 func (c *anotherMockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupResults, error) {
 
@@ -38,6 +43,10 @@ func (c *anotherMockContactsProvider) FindUsernames(mctx libkb.MetaContext, uids
 
 func (c *anotherMockContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
 	return c.provider.FindFollowing(mctx, uids)
+}
+
+func (c *anotherMockContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
+	return c.provider.FindServiceMaps(mctx, uids)
 }
 
 func TestCacheProvider(t *testing.T) {

@@ -5,7 +5,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {anyWaiting} from '../../constants/waiting'
 import * as Constants from '../../constants/settings'
 
-type OwnProps = Container.RouteProps<{feedback: string}>
+type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
 export default Container.namedConnect(
   state => ({

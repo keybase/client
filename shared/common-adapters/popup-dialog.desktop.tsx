@@ -23,23 +23,38 @@ export function PopupDialog({
   styleClipContainer,
   allowClipBubbling,
 }: Props) {
+  const [mouseDownOnCover, setMouseDownOnCover] = React.useState(false)
   return (
     <EscapeHandler onESC={!immuneToEscape ? onClose || null : null}>
       <Box
         style={Styles.collapseStyles([styles.cover, styleCover])}
-        onClick={onClose}
-        onMouseUp={onMouseUp}
-        onMouseDown={onMouseDown}
+        onMouseUp={(e: React.MouseEvent) => {
+          if (mouseDownOnCover) {
+            onClose && onClose()
+          }
+          onMouseUp && onMouseUp(e)
+        }}
+        onMouseDown={(e: React.MouseEvent) => {
+          setMouseDownOnCover(true)
+          onMouseDown && onMouseDown(e)
+        }}
         onMouseMove={onMouseMove}
       >
-        <Box style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}>
+        <Box
+          style={Styles.collapseStyles([styles.container, fill && styles.containerFill, styleContainer])}
+          onMouseDown={(e: React.BaseSyntheticEvent) => {
+            setMouseDownOnCover(false)
+            e.stopPropagation()
+          }}
+          onMouseUp={(e: React.BaseSyntheticEvent) => e.stopPropagation()}
+        >
           {onClose && (
             <Icon
               type="iconfont-close"
               style={Styles.collapseStyles([styles.close, styleClose])}
-              color={Styles.globalColors.white}
+              color={Styles.globalColors.whiteOrBlack}
               onClick={onClose}
-              hoverColor={Styles.globalColors.white_40}
+              hoverColor={Styles.globalColors.white_40OrBlack_60}
             />
           )}
           <Box
@@ -88,7 +103,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.fillAbsolute,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50,
+    backgroundColor: Styles.globalColors.black_50OrWhite_75,
     justifyContent: 'center',
     paddingBottom: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.large,

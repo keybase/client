@@ -201,12 +201,12 @@ func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	}
 }
 
-func (s *Source) isAdmin() bool {
+func (s *Source) isAdmin() bool { //nolint
 	username := s.G().GetEnv().GetUsername().String()
 	return admins[username]
 }
 
-var admins = map[string]bool{
+var admins = map[string]bool{ //nolint
 	"mikem":         true,
 	"max":           true,
 	"candrencil64":  true,

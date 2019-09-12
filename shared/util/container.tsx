@@ -9,6 +9,10 @@ import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector} from 'react-redux'
 
+// to keep fallback objects static for react
+export const emptyArray: Array<any> = []
+export const emptySet = new Set<any>()
+export const emptyMap = new Map<any, any>()
 export const NullComponent = () => null
 export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
   a: NoError | HasError
@@ -80,3 +84,4 @@ export {flowRight as compose} from 'lodash-es'
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce} from 'immer'
 export type Draft<T> = _Draft<T>
+export {default as HiddenString} from './hidden-string'

@@ -53,7 +53,7 @@ const Explain = (props: Props) => {
 }
 
 const NoAccess = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
         type={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
@@ -74,7 +74,7 @@ const NoAccess = (props: Props) => (
 )
 
 const NonExistent = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+  <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
         type={
@@ -132,48 +132,50 @@ export default Container.withSafeNavigation(
   )(Oops)
 ) as any
 
-const styles = Styles.styleSheetCreate({
-  button: {
-    marginTop: Styles.globalMargins.small,
-  },
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexGrow,
-      backgroundColor: Styles.globalColors.white,
-    },
-    isMobile: {
-      padding: Styles.globalMargins.large,
-    },
-  }),
-  explainBox: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.small,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.medium,
-    },
-  }),
-  explainTextTeam: {
-    marginLeft: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  footer: {
-    paddingBottom: Styles.globalMargins.large,
-  },
-  header: {
-    backgroundColor: Styles.globalColors.red,
-    height: 40,
-  },
-  main: {
-    ...Styles.globalStyles.flexGrow,
-  },
-  textYouDontHave: Styles.platformStyles({
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.xlarge,
-      textAlign: 'center',
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {
+        marginTop: Styles.globalMargins.small,
+      },
+      container: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+        },
+        isMobile: {
+          padding: Styles.globalMargins.large,
+        },
+      }),
+      explainBox: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.small,
+        },
+        isMobile: {
+          marginTop: Styles.globalMargins.medium,
+        },
+      }),
+      explainTextTeam: {
+        marginLeft: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      footer: {
+        paddingBottom: Styles.globalMargins.large,
+      },
+      header: {
+        backgroundColor: Styles.globalColors.red,
+        height: 40,
+      },
+      main: {
+        ...Styles.globalStyles.flexGrow,
+      },
+      textYouDontHave: Styles.platformStyles({
+        isElectron: {
+          marginTop: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          marginTop: Styles.globalMargins.xlarge,
+          textAlign: 'center',
+        },
+      }),
+    } as const)
+)

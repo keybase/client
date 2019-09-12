@@ -298,18 +298,6 @@ func AssertProvisioned(tc libkb.TestContext) error {
 	return nil
 }
 
-func AssertNotProvisioned(tc libkb.TestContext) error {
-	m := NewMetaContextForTest(tc)
-	prov, err := isLoggedInWithError(m)
-	if err != nil {
-		return err
-	}
-	if prov {
-		return errors.New("AssertNotProvisioned failed: user is provisioned")
-	}
-	return nil
-}
-
 func AssertLoggedIn(tc libkb.TestContext) error {
 	if !LoggedIn(tc) {
 		return libkb.LoginRequiredError{}

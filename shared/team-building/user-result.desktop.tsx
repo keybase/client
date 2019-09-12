@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
 import {Props} from './user-result'
-import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
 // TODO
 // * Use ListItem2
@@ -27,7 +27,7 @@ type LocalState = {
 class Row extends React.Component<Props, LocalState> {
   state = {hovering: false}
 
-  render = () => {
+  render() {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
@@ -67,7 +67,7 @@ class Row extends React.Component<Props, LocalState> {
           />
           <Services
             keybaseResult={keybaseResult}
-            services={this.props.services}
+            services={serviceMapToArray(this.props.services)}
             keybaseUsername={keybaseUsername}
             followingState={this.props.followingState}
           />
@@ -96,7 +96,7 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
@@ -154,7 +154,7 @@ const Services = ({
   keybaseUsername,
   followingState,
 }: {
-  services: {[K in Types.ServiceIdWithContact]?: string}
+  services: Array<Types.ServiceIdWithContact>
   keybaseResult: boolean
   keybaseUsername: string | null
   followingState: Types.FollowingState
@@ -162,22 +162,20 @@ const Services = ({
   if (keybaseResult) {
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
-        {Object.keys(services)
-          .filter(s => s !== 'keybase')
-          .map(service => (
-            <Kb.WithTooltip key={service} text={services[service]} position="top center">
-              <Kb.Icon
-                type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
-                style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
-              />
-            </Kb.WithTooltip>
-          ))}
+        {services.map(service => (
+          <Kb.WithTooltip key={service} tooltip={services[service]} position="top center">
+            <Kb.Icon
+              type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
+              style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
+            />
+          </Kb.WithTooltip>
+        ))}
       </Kb.Box2>
     )
   } else if (keybaseUsername) {
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
-        <Kb.Icon type={'icon-keybase-logo-16'} style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
+        <Kb.Icon type="icon-keybase-logo-16" style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
         <Kb.Text type="BodySemibold" style={followingStateToStyle(followingState)}>
           {keybaseUsername}
         </Kb.Text>
@@ -243,82 +241,85 @@ const AlreadyAddedIconButton = () => (
 
 const ActionButtonSize = Styles.isMobile ? 40 : 32
 export const userResultHeight = 50
-const styles = Styles.styleSheetCreate({
-  actionButton: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      backgroundColor: Styles.globalColors.grey,
-      height: ActionButtonSize,
-      marginLeft: Styles.globalMargins.tiny,
-      width: ActionButtonSize,
-    },
-  }),
-  actionButtonHighlight: {
-    backgroundColor: Styles.globalColors.blue,
-  },
-  actionButtonHoverContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.rounded,
-      height: ActionButtonSize,
-      justifyContent: 'center',
-      width: ActionButtonSize,
-    },
-  }),
-  addToTeamIcon: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
-  },
-  highlighted: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.blueLighter2,
-      borderRadius: Styles.borderRadius,
-    },
-  }),
-  keybaseServiceIcon: Styles.platformStyles({
-    common: {
-      marginRight: Styles.globalMargins.xtiny,
-    },
-  }),
-  removeButton: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
-  },
-  removeButtonHighlight: {
-    backgroundColor: Styles.globalColors.red,
-  },
-  rowContainer: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: userResultHeight,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-    },
-  }),
-  serviceIcon: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: 18,
-      width: 18,
-    },
-  }),
-  services: {
-    justifyContent: 'flex-end',
-  },
-  username: {
-    flex: 1,
-    marginLeft: Styles.globalMargins.small,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionButton: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.rounded,
+          backgroundColor: Styles.globalColors.grey,
+          height: ActionButtonSize,
+          marginLeft: Styles.globalMargins.tiny,
+          width: ActionButtonSize,
+        },
+      }),
+      actionButtonHighlight: {
+        backgroundColor: Styles.globalColors.blue,
+      },
+      actionButtonHoverContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.rounded,
+          height: ActionButtonSize,
+          justifyContent: 'center',
+          width: ActionButtonSize,
+        },
+      }),
+      addToTeamIcon: {
+        ...Styles.globalStyles.rounded,
+        height: ActionButtonSize,
+        width: ActionButtonSize,
+      },
+      highlighted: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blueLighter2,
+          borderRadius: Styles.borderRadius,
+        },
+      }),
+      keybaseServiceIcon: Styles.platformStyles({
+        common: {
+          marginRight: Styles.globalMargins.xtiny,
+        },
+      }),
+      removeButton: {
+        ...Styles.globalStyles.rounded,
+        height: ActionButtonSize,
+        width: ActionButtonSize,
+      },
+      removeButtonHighlight: {
+        backgroundColor: Styles.globalColors.red,
+      },
+      rowContainer: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          height: userResultHeight,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+        },
+      }),
+      serviceIcon: Styles.platformStyles({
+        common: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          height: 18,
+          width: 18,
+        },
+      }),
+      services: {
+        justifyContent: 'flex-end',
+      },
+      username: {
+        flex: 1,
+        marginLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Row

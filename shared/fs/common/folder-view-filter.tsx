@@ -8,7 +8,7 @@ import * as React from 'react'
 import {debounce} from 'lodash-es'
 
 type Props = {
-  onCancel?: (() => void)| null
+  onCancel?: (() => void) | null
   onUpdate: (arg0: string) => void
   path: Types.Path
   pathItem: Types.PathItem
@@ -30,6 +30,9 @@ class FolderViewFilter extends React.PureComponent<Props> {
       Constants.isFolder(this.props.path, this.props.pathItem) &&
       Types.getPathLevel(this.props.path) > 1 && (
         <Kb.SearchFilter
+          size="small"
+          placeholderCentered={true}
+          mobileCancelButton={true}
           focusOnMount={Styles.isMobile}
           hotkey="f"
           onCancel={this.props.onCancel}

@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../../styles'
 import logger from '../../../../../logger'
 import {Props} from './image-render.types'
-import {Video} from 'expo-av'
+import Video from 'react-native-video'
 
 type State = {
   paused: boolean
@@ -15,10 +15,8 @@ export class ImageRender extends React.Component<Props, State> {
     paused: false,
     showVideo: false,
   }
-  private videoRef: any = React.createRef()
 
   onVideoClick = () => {
-    this.videoRef.current && this.videoRef.current.playAsync()
     this.setState({showVideo: true})
   }
 
@@ -42,15 +40,14 @@ export class ImageRender extends React.Component<Props, State> {
           {this.state.showVideo ? (
             <Video
               source={source}
-              useNativeControls={!this.state.paused}
+              controls={!this.state.paused}
+              paused={this.state.paused}
               onLoad={() => this._allLoads()}
               onError={e => {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
-              resizeMode={Video.RESIZE_MODE_COVER}
               style={Styles.collapseStyles([styles.video, {height, width}])}
-              shouldPlay={true}
-              ref={this.videoRef}
+              resizeMode="contain"
             />
           ) : (
             <Kb.NativeFastImage
@@ -74,11 +71,11 @@ export class ImageRender extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {position: 'relative'},
   poster: {...Styles.globalStyles.fillAbsolute, borderRadius: Styles.borderRadius},
   video: {borderRadius: Styles.borderRadius},
-})
+}))
 
 export function imgMaxWidth() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
@@ -88,4 +85,9 @@ export function imgMaxWidth() {
 export function imgMaxWidthRaw() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
   return maxWidth
+}
+
+export function imgMaxHeightRaw() {
+  const {height: maxHeight} = Kb.NativeDimensions.get('window')
+  return maxHeight
 }

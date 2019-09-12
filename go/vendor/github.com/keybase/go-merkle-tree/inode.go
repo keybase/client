@@ -1,7 +1,5 @@
 package merkleTree
 
-import ()
-
 type childPointerMap struct {
 	tab []Hash
 }
@@ -19,7 +17,7 @@ func newChildPointerMapFromNode(n *Node) *childPointerMap {
 }
 
 func (c *childPointerMap) exportToNode(h Hasher, prevRoot Hash, level Level) (hash Hash, node Node, objExported []byte, err error) {
-	node.Type = nodeTypeINode
+	node.Type = NodeTypeINode
 	node.INodes = c.tab
 	return node.export(h, prevRoot, level)
 }

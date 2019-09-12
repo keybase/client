@@ -6,6 +6,7 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
+import rimraf from 'rimraf'
 
 const [, , command, ...rest] = process.argv
 
@@ -31,7 +32,7 @@ const commands = {
       makeShims()
       fixTypes()
       checkFSEvents()
-      patchExpoAV()
+      clearTSCache()
     },
     help: '',
   },
@@ -64,17 +65,6 @@ const fixTypes = () => {
       path.resolve(__dirname, '..', '..', 'node_modules', '@types', 'react-native', 'index.d.ts')
     )
   } catch (_) {}
-}
-
-function patchExpoAV() {
-  try {
-    const root = path.resolve(__dirname, '..', '..')
-    const src = path.join(root, 'android', 'patched-expo-av-build.gradle')
-    const dst = path.join(root, 'node_modules', 'expo-av', 'android', 'build.gradle')
-    fs.copyFileSync(src, dst)
-  } catch (e) {
-    console.warn('patching expo-av failed', e)
-  }
 }
 
 function makeShims() {
@@ -119,6 +109,12 @@ const decorateInfo = info => {
   }
 
   return temp
+}
+
+const warnFail = err => console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
+const clearTSCache = () => {
+  const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
+  rimraf(glob, {}, warnFail)
 }
 
 function main() {

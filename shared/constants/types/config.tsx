@@ -1,75 +1,83 @@
-import * as I from 'immutable'
+import * as NetInfo from '@react-native-community/netinfo'
 import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
-import {Tab} from '../tabs'
-import {RPCError} from '../../util/errors'
-import {LocalPath} from '../../constants/types/fs'
-import * as NetInfo from '@react-native-community/netinfo'
 import {DarkModePreference} from '../../styles/dark-mode'
+import {LocalPath} from './fs'
+import {RPCError} from '../../util/errors'
+import {Tab} from '../tabs'
 
-export type _OutOfDate = {
+export type OutOfDate = {
   critical: boolean
   message?: string
   updating: boolean
 }
-export type OutOfDate = I.RecordOf<_OutOfDate>
 export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 export type AppOutOfDateStatus = 'critical' | 'suggested' | 'ok' | 'checking'
-export type _ConfiguredAccount = {
+export type ConfiguredAccount = {
   hasStoredSecret: boolean
   username: string
 }
-export type ConfiguredAccount = I.RecordOf<_ConfiguredAccount>
-
 // 'notavailable' is the desktop default
 export type ConnectionType = NetInfo.ConnectionType | 'notavailable'
 
-export type _State = {
+export type WindowState = {
+  dockHidden: boolean
+  height: number
+  isFullScreen: boolean
+  width: number
+  windowHidden: boolean
+  x: number
+  y: number
+}
+
+export type State = {
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string
   appOutOfDateStatus: AppOutOfDateStatus
-  avatarRefreshCounter: I.Map<string, number>
-  configuredAccounts: I.List<ConfiguredAccount>
-  daemonError: Error | null
+  avatarRefreshCounter: Map<string, number>
+  configuredAccounts: Array<ConfiguredAccount>
+  daemonError?: Error
   daemonHandshakeState: DaemonHandshakeState
   daemonHandshakeFailedReason: string
   daemonHandshakeRetriesLeft: number
-  daemonHandshakeWaiters: I.Map<string, number>
+  daemonHandshakeWaiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
   darkModePreference: DarkModePreference
   debugDump: Array<string>
   deviceID: RPCTypes.DeviceID
-  deviceName: string | null
+  deviceName?: string
   defaultUsername: string
-  followers: I.Set<string>
-  following: I.Set<string>
-  globalError: null | Error | RPCError
+  followers: Set<string>
+  following: Set<string>
+  globalError?: Error | RPCError
   httpSrvAddress: string
   httpSrvToken: string
   justDeletedSelf: string
   loggedIn: boolean
-  logoutHandshakeWaiters: I.Map<string, number>
+  logoutHandshakeWaiters: Map<string, number>
   logoutHandshakeVersion: number
   menubarWindowID: number
   notifySound: boolean
   openAtLogin: boolean
   osNetworkOnline: boolean
-  outOfDate?: OutOfDate | null
+  outOfDate?: OutOfDate
   pushLoaded: boolean
   registered: boolean
-  runtimeStats: RPCTypes.RuntimeStats | null
+  remoteWindowNeedsProps: Map<string, Map<string, number>>
+  runtimeStats?: RPCTypes.RuntimeStats
   startupDetailsLoaded: boolean
   startupWasFromPush: boolean
   startupConversation: ConversationIDKey
   startupFollowUser: string
   startupLink: string
-  startupTab: Tab | null
-  startupSharePath: LocalPath | null
+  startupTab?: Tab
+  startupSharePath?: LocalPath
   systemDarkMode: boolean
+  windowState: WindowState
   uid: string
   userActive: boolean
   username: string
+  useNativeFrame: boolean
 }
-export type State = I.RecordOf<_State>

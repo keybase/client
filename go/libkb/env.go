@@ -83,6 +83,7 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                    { re
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
 func (n NullConfiguration) GetEKLogFile() string                            { return "" }
+func (n NullConfiguration) GetGUILogFile() string                           { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
@@ -372,7 +373,7 @@ func (e *Env) GetMountDir() (string, error) {
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
-		func() string { return e.GetMountDirDefault() },
+		e.GetMountDirDefault,
 	), nil
 }
 
@@ -390,11 +391,11 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
 	e.HomeFinder = NewHomeFinder("keybase",
-		func() string { return e.getHomeFromTestOrCmd() },
+		e.getHomeFromTestOrCmd,
 		func() string { return e.GetConfig().GetHome() },
-		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
+		e.getMobileSharedHomeFromCmdOrConfig,
 		osname,
-		func() RunMode { return e.GetRunMode() },
+		e.GetRunMode,
 		getLog,
 		os.Getenv)
 	return &e
@@ -510,15 +511,6 @@ func (e *Env) GetString(flist ...(func() string)) string {
 		}
 	}
 	return ret
-}
-
-func (e *Env) getPGPFingerprint(flist ...(func() *PGPFingerprint)) *PGPFingerprint {
-	for _, f := range flist {
-		if ret := f(); ret != nil {
-			return ret
-		}
-	}
-	return nil
 }
 
 func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
@@ -692,6 +684,16 @@ func (e *Env) GetConfigFilename() string {
 
 func (e *Env) GetUpdaterConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				dir, err := e.GetRootConfigDirectory()
+				if err != nil {
+					return ""
+				}
+				return filepath.Join(dir, UpdaterConfigFile)
+			}
+			return ""
+		},
 		func() string { return e.cmd.GetUpdaterConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
@@ -701,6 +703,16 @@ func (e *Env) GetUpdaterConfigFilename() string {
 
 func (e *Env) GetGUIConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				dir, err := e.GetRootConfigDirectory()
+				if err != nil {
+					return ""
+				}
+				return filepath.Join(dir, GUIConfigFile)
+			}
+			return ""
+		},
 		func() string { return e.cmd.GetGUIConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_GUI_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetGUIConfigFilename() },
@@ -886,8 +898,8 @@ func (e *Env) GetUsername() NormalizedUsername {
 
 func (e *Env) GetSocketBindFile() (string, error) {
 	return e.GetString(
-		func() string { return e.sandboxSocketFile() },
-		func() string { return e.defaultSocketFile() },
+		e.sandboxSocketFile,
+		e.defaultSocketFile,
 	), nil
 }
 
@@ -1588,7 +1600,7 @@ func (e *Env) GetEffectiveLogFile() (filename string, ok bool) {
 
 	filePrefix := e.GetLogPrefix()
 	if filePrefix != "" {
-		filePrefix = filePrefix + time.Now().Format("20060102T150405.999999999Z0700")
+		filePrefix += time.Now().Format("20060102T150405.999999999Z0700")
 		logFile = filePrefix + ".log"
 		return logFile, true
 	}
@@ -1608,6 +1620,14 @@ func (e *Env) GetEKLogFile() string {
 		func() string { return e.cmd.GetEKLogFile() },
 		func() string { return os.Getenv("KEYBASE_EK_LOG_FILE") },
 		func() string { return filepath.Join(e.GetLogDir(), EKLogFileName) },
+	)
+}
+
+func (e *Env) GetGUILogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetGUILogFile() },
+		func() string { return os.Getenv("KEYBASE_GUI_LOG_FILE") },
+		func() string { return filepath.Join(e.GetLogDir(), GUILogFileName) },
 	)
 }
 
@@ -1698,6 +1718,7 @@ type AppConfig struct {
 	MobileSharedHomeDir            string
 	LogFile                        string
 	EKLogFile                      string
+	GUILogFile                     string
 	UseDefaultLogFile              bool
 	RunMode                        RunMode
 	Debug                          bool
@@ -1728,6 +1749,10 @@ func (c AppConfig) GetLogFile() string {
 
 func (c AppConfig) GetEKLogFile() string {
 	return c.EKLogFile
+}
+
+func (c AppConfig) GetGUILogFile() string {
+	return c.GUILogFile
 }
 
 func (c AppConfig) GetUseDefaultLogFile() (bool, bool) {

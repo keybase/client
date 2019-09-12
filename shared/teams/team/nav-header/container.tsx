@@ -10,6 +10,7 @@ import {
 } from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
+import {selfToUser} from '../../../constants/team-building'
 
 type OwnProps = {
   teamname: string
@@ -99,9 +100,7 @@ const mapStateToPropsSub = (state, {teamname}) => ({
 const mapDispatchToPropsSub = dispatch => ({
   onAddSelf: (you: string, teamname: string) => {
     dispatch(appendNewTeamBuilder(teamname))
-    dispatch(
-      createAddUsersToTeamSoFar({namespace: 'teams', users: [{id: you, prettyName: you, serviceMap: {}}]})
-    )
+    dispatch(createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(you)]}))
   },
 })
 

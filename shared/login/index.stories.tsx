@@ -2,6 +2,7 @@ import recoverPassword from './recover-password/index.stories'
 import relogin from './relogin/index.stories'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
+import {storyDecorator} from '../signup/common-stories'
 import JoinOrLogin from './join-or-login'
 import Loading from './loading'
 
@@ -31,9 +32,9 @@ const load = () => {
   relogin()
 
   Sb.storiesOf('Login/JoinOrLogin', module)
+    .addDecorator(storyDecorator)
     .add('Normal', () => <JoinOrLogin {...joinOrLoginProps} />)
     .add('Banner', () => <JoinOrLogin {...joinOrLoginProps} bannerMessage="You just deleted your account!" />)
-    .add('Feedback', () => <JoinOrLogin {...joinOrLoginProps} onFeedback={Sb.action('onFeedback')} />)
     .add('Proxy Settings', () => <JoinOrLogin {...joinOrLoginProps} isOnline={false} />)
 
   Sb.storiesOf('Login/Loading', module)

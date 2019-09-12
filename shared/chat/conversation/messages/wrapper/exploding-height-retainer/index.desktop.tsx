@@ -207,7 +207,7 @@ class Flame extends React.Component<{}, {color: string; timer: number; width: nu
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
   exploded: Styles.platformStyles({
     isElectron: {
@@ -233,6 +233,6 @@ const styles = Styles.styleSheetCreate({
     right: -1 * (maxFlameWidth + flameOffset),
     width: maxFlameWidth + flameOffset,
   },
-})
+}))
 
 export default ExplodingHeightRetainer

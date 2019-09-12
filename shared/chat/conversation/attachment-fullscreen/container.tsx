@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as FsGen from '../../../actions/fs-gen'
-import Fullscreen from './'
+import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 
@@ -21,34 +21,20 @@ const mapStateToProps = (state: Container.TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onDownloadAttachment: (message: Types.MessageAttachment) => {
-    dispatch(
-      Chat2Gen.createAttachmentDownload({
-        message,
-      })
-    )
-  },
-  _onHotkey: (conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, cmd: string) => {
-    switch (cmd) {
-      case 'left':
-      case 'right':
-        dispatch(
-          Chat2Gen.createAttachmentFullscreenNext({
-            backInTime: cmd === 'left',
-            conversationIDKey,
-            messageID,
-          })
-        )
-        break
-    }
-  },
+  _onDownloadAttachment: (message: Types.MessageAttachment) =>
+    dispatch(Chat2Gen.createAttachmentDownload({message})),
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
-  onClose: () => {
-    dispatch(RouteTreeGen.createNavigateUp())
+  _onSwitchAttachment: (
+    conversationIDKey: Types.ConversationIDKey,
+    messageID: Types.MessageID,
+    prev: boolean
+  ) => {
+    dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
   },
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Connected = Container.connect(
@@ -63,14 +49,15 @@ const Connected = Container.connect(
     )
     return {
       autoPlay: stateProps.autoPlay,
-      hotkeys: ['left', 'right'],
       isVideo: Constants.isVideoAttachment(message),
       message,
       onClose: dispatchProps.onClose,
       onDownloadAttachment: message.downloadPath
         ? undefined
         : () => dispatchProps._onDownloadAttachment(message),
-      onHotkey: (cmd: string) => dispatchProps._onHotkey(message.conversationIDKey, message.id, cmd),
+      onNextAttachment: () => dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, false),
+      onPreviousAttachment: () =>
+        dispatchProps._onSwitchAttachment(message.conversationIDKey, message.id, true),
       onShowInFinder: message.downloadPath ? () => dispatchProps._onShowInFinder(message) : undefined,
       path: message.fileURL || message.previewURL,
       previewHeight: height,

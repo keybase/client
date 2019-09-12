@@ -1,24 +1,24 @@
 import logger from '../../logger'
 import * as React from 'react'
-import {HOCTimers, PropsWithTimer} from '../../common-adapters'
-import Feedback from './index'
+import * as Kb from '../../common-adapters'
+import Feedback from '.'
 import logSend from '../../native/log-send'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {isAndroid, version, logFileName, pprofDir} from '../../constants/platform'
+import {isAndroid, version, pprofDir} from '../../constants/platform'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 import {getExtraChatLogsForLogSend, getPushTokenForLogSend} from '../../constants/settings'
 
-type OwnProps = Container.RouteProps<{feedback: string}>
+type OwnProps = Container.RouteProps<{heading: string; feedback: string}>
 
 export type State = {
-  sentFeedback: boolean
   sending: boolean
   sendError: Error | null
 }
-export type Props = PropsWithTimer<{
+export type Props = Kb.PropsWithTimer<{
   chat: Object
+  feedback: string
   loggedOut: boolean
   push: Object
   onBack: () => void
@@ -43,7 +43,6 @@ class FeedbackContainer extends React.Component<Props, State> {
   state = {
     sendError: null,
     sending: false,
-    sentFeedback: false,
   }
   _dumpLogs = () => logger.dump().then(writeLogLinesToFile)
 
@@ -56,15 +55,13 @@ class FeedbackContainer extends React.Component<Props, State> {
   }
 
   _onSendFeedback = (feedback: string, sendLogs: boolean, sendMaxBytes: boolean) => {
-    this.setState({sending: true, sentFeedback: false})
+    this.setState({sending: true})
 
     this.props.setTimeout(() => {
-      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
+      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
 
-      // @ts-ignore
       maybeDump
         .then(() => {
-          const logPath = logFileName
           logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = sendLogs
             ? {...this.props.status, ...this.props.chat, ...this.props.push}
@@ -76,7 +73,6 @@ class FeedbackContainer extends React.Component<Props, State> {
             feedback || '',
             sendLogs,
             sendMaxBytes,
-            logPath,
             traceDir,
             cpuProfileDir
           )
@@ -87,7 +83,6 @@ class FeedbackContainer extends React.Component<Props, State> {
             this.setState({
               sendError: null,
               sending: false,
-              sentFeedback: true,
             })
           }
         })
@@ -97,7 +92,6 @@ class FeedbackContainer extends React.Component<Props, State> {
             this.setState({
               sendError: err,
               sending: false,
-              sentFeedback: false,
             })
           }
         })
@@ -106,14 +100,18 @@ class FeedbackContainer extends React.Component<Props, State> {
 
   render() {
     return (
-      <Feedback
-        onSendFeedback={this._onSendFeedback}
-        sending={this.state.sending}
-        sendError={this.state.sendError}
-        loggedOut={this.props.loggedOut}
-        showInternalSuccessBanner={true}
-        onFeedbackDone={() => null}
-      />
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.HeaderHocHeader onBack={this.props.onBack} title={this.props.title} />
+        <Feedback
+          onSendFeedback={this._onSendFeedback}
+          sending={this.state.sending}
+          sendError={this.state.sendError}
+          loggedOut={this.props.loggedOut}
+          showInternalSuccessBanner={true}
+          onFeedbackDone={() => null}
+          feedback={this.props.feedback}
+        />
+      </Kb.Box2>
     )
   }
 }
@@ -139,15 +137,15 @@ const connected = Container.compose(
     }),
     dispatch => ({
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-      title: 'Feedback',
     }),
     (s, d, o: OwnProps) => ({
       ...s,
       ...d,
       feedback: Container.getRouteProps(o, 'feedback', ''),
+      title: Container.getRouteProps(o, 'heading', 'Feedback'),
     })
   ),
-  HOCTimers
+  Kb.HOCTimers
 )(FeedbackContainer)
 
 export default connected

@@ -1,16 +1,23 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/provision'
 import * as Kb from '../../common-adapters'
-import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../styles'
+import * as Styles from '../../styles'
+import {SignupScreen} from '../../signup/common'
 
 type Props = {
   devices: Array<Types.Device>
   onSelect: (name: string) => void
   onResetAccount: () => void
-  onBack?: () => void
+  onBack: () => void
 }
 
 class SelectOtherDevice extends React.Component<Props> {
+  static navigationOptions = {
+    header: null,
+    headerBottomStyle: {height: undefined},
+    headerLeft: null, // no back button
+  }
+
   _renderItem = (index, item) => {
     if (item.name === 'troubleshooting') {
       return <Troubleshooting key="trouble" onResetAccount={this.props.onResetAccount} />
@@ -57,34 +64,29 @@ class SelectOtherDevice extends React.Component<Props> {
   render() {
     const items = [...this.props.devices, {name: 'troubleshooting'}]
     return (
-      <Kb.Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        gap={isMobile ? undefined : 'medium'}
-        gapEnd={true}
-      >
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
+      <SignupScreen noBackground={true} onBack={this.props.onBack} title="Authorize this computer">
+        <Kb.Box2
+          direction="vertical"
+          fullHeight={true}
+          fullWidth={true}
+          style={styles.contentBox}
+          gap="medium"
+        >
           <Kb.List
             style={styles.list}
             items={items}
             renderItem={this._renderItem}
             keyProperty="name"
             ListHeaderComponent={
-              <Kb.Text center={true} type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+              <Kb.Text center={true} type="Body" style={styles.headerText}>
                 For security reasons, you need to authorize with an existing device. Which of your existing
                 devices would you like to use?
               </Kb.Text>
             }
-            fixedHeight={isMobile ? 48 : 40}
+            fixedHeight={Styles.isMobile ? 48 : 40}
           />
         </Kb.Box2>
-        {this.props.onBack && (
-          <Kb.Box2 direction="horizontal">
-            <Kb.Button label="Back to my existing account" onClick={this.props.onBack} />
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
+      </SignupScreen>
     )
   }
 }
@@ -104,37 +106,42 @@ const Troubleshooting = ({onResetAccount}) => (
   </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
-  backButton: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
       marginTop: 0,
     },
   }),
-  contentBox: platformStyles({
+  contentBox: Styles.platformStyles({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
-      padding: globalMargins.small,
+      padding: Styles.globalMargins.small,
     },
   }),
-  headerText: platformStyles({
+  headerText: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.small,
+    },
     isMobile: {
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
-      paddingTop: globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
     },
   }),
   list: {
     flexGrow: 1,
   },
   troubleShooting: {
-    paddingTop: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
-})
+}))
 
 export default SelectOtherDevice
