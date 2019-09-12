@@ -301,7 +301,7 @@ const styles = Styles.styleSheetCreate(
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
         flexShrink: 0,
-        minHeight: 48,
+        minHeight: 50,
         overflow: 'hidden',
         paddingRight: containerPadding,
       },
@@ -326,11 +326,24 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         paddingBottom: isIOS ? 7 : 10,
       },
-      input: {
-        flex: 1,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-      },
+      input: Styles.platformStyles({
+        common: {
+          flex: 1,
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+        },
+        // Android doesn't because there is some intrinsic margins that are enough for our purpose.
+        isAndroid: {
+          marginTop: -8,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        // iOS needs these extra margins to give the text proper margins (Like you'd expect)
+        isIOS: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
       marginRightSmall: {
         marginRight: Styles.globalMargins.small,
       },
