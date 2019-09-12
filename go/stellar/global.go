@@ -64,6 +64,8 @@ type Stellar struct {
 	// Slot for build payments that do not use BuildPaymentID.
 	buildPaymentSlot *slotctx.PrioritySlot
 
+	reconnectSlot *slotctx.Slot
+
 	badger *badges.Badger
 }
 
@@ -77,6 +79,7 @@ func NewStellar(g *libkb.GlobalContext, walletState *WalletState, badger *badges
 		hasWalletCache:   make(map[keybase1.UserVersion]bool),
 		federationClient: getFederationClient(g),
 		buildPaymentSlot: slotctx.NewPriority(),
+		reconnectSlot:    slotctx.New(),
 		badger:           badger,
 	}
 }
@@ -289,12 +292,21 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
 	defer mctx.TraceTimed("Stellar.handleReconnect", func() error { return nil })()
 	mctx.Debug("stellar received reconnect msg, doing delayed wallet refresh")
-	time.Sleep(4 * time.Second)
+	mctx = mctx.WithCtx(s.reconnectSlot.Use(mctx.Ctx()))
+	mctx, cancel := cancelOnMobileBackground(mctx)
+	defer cancel()
+	if err := libkb.Sleep(mctx.Ctx(), 4*time.Second); err != nil {
+		mctx.Debug("Stellar.handleReconnect canceled")
+		return
+	}
 	if libkb.IsMobilePlatform() {
 		// sleep some more on mobile
-		time.Sleep(4 * time.Second)
+		if err := libkb.Sleep(mctx.Ctx(), 4*time.Second); err != nil {
+			mctx.Debug("Stellar.handleReconnect canceled")
+			return
+		}
 	}
-	mctx.Debug("stellar reconnect msg delay complete, refreshing wallet state")
+	mctx.Debug("Stellar.handleReconnect delay complete, refreshing wallet state")
 
 	if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
 		mctx.Debug("Stellar.handleReconnect RefreshAll error: %s", err)
