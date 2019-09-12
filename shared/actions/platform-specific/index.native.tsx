@@ -31,7 +31,6 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
-import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {pluralize} from '../../util/string'
 
@@ -91,7 +90,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
 }
 
 export const saveAttachmentDialog = async (filePath: string) => {
-  let goodPath = filePath
+  const goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
   await requestPermissionsToWrite()
   return CameraRoll.saveToCameraRoll(goodPath)
@@ -310,7 +309,7 @@ function* loadStartupDetails() {
   let startupFollowUser = ''
   let startupLink = ''
   let startupTab = undefined
-  let startupSharePath = undefined
+  const startupSharePath = undefined
 
   const routeStateTask = yield Saga._fork(async () => {
     try {
@@ -539,27 +538,8 @@ const manageContactsCache = async (
   } catch (e) {
     logger.warn(`Error loading default country code: ${e.message}`)
   }
-  const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
-    const {name, phoneNumbers = [], emails = []} = contact
+  const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
 
-    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
-      const formatted = getE164(pn.number || '', pn.countryCode || defaultCountryCode)
-      if (formatted) {
-        res.push({
-          label: pn.label,
-          phoneNumber: formatted,
-        })
-      }
-      return res
-    }, [])
-
-    components.push(...emails.map(e => ({email: e.email, label: e.label})))
-    if (components.length) {
-      ret.push({components, name})
-    }
-
-    return ret
-  }, [])
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {
@@ -597,20 +577,6 @@ const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
         lenMinusTwo
       )} joined Keybase!`
     }
-  }
-}
-
-// Get phone number in e.164, or null if we can't parse it.
-const getE164 = (phoneNumber: string, countryCode?: string) => {
-  try {
-    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
-    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
-    if (reason !== ValidationResult.IS_POSSIBLE) {
-      return null
-    }
-    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
-  } catch (e) {
-    return null
   }
 }
 
