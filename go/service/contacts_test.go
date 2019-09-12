@@ -357,3 +357,45 @@ func TestSyncContactsWithServiceSummary(t *testing.T) {
 	require.Equal(t, "alice123", res[1].Contact.ServiceMap["rooter"])
 	require.Equal(t, "tacovontaco", res[1].Contact.ServiceMap["twitter"])
 }
+
+func TestUserSearchPhoneEmailWithResults(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	all.contactsMock.Emails["fermatp@keyba.se"] = contacts.MakeMockLookupUser("pierre", "Pierre de Fermat")
+	all.contactsMock.PhoneNumbers["+1555165432"] = contacts.MakeMockLookupUser("lwg", "Gottfried Wilhelm Leibniz")
+
+	doSearch := func(service, query string) []keybase1.APIUserSearchResult {
+		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: false,
+			Service:         service,
+			Query:           query,
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		return res
+	}
+
+	// Do imptofu queries such that they will resolve when looked up by
+	// contacts provider.
+
+	{
+		query := "+1555165432"
+		res := doSearch("phone", query)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Imptofu)
+		require.Equal(t, "1555165432@phone", res[0].Imptofu.Assertion)
+		require.Equal(t, "lwg", res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "Gottfried Wilhelm Leibniz", res[0].Imptofu.PrettyName)
+	}
+
+	{
+		query := "fermatp@keyba.se"
+		res := doSearch("email", query)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Imptofu)
+		require.Equal(t, "[fermatp@keyba.se]@email", res[0].Imptofu.Assertion)
+		require.Equal(t, "pierre", res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "Pierre de Fermat", res[0].Imptofu.PrettyName)
+	}
+}

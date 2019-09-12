@@ -26,7 +26,7 @@ import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
-import EmailInput from './email-input'
+import EmailSearch from './email-search'
 import * as Constants from '../constants/team-building'
 
 export const numSectionLabel = '0-9'
@@ -83,7 +83,6 @@ export type Props = ContactProps & {
   highlightedIndex: number | null
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
-  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -463,7 +462,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     switch (props.selectedService) {
       case 'email':
         content = (
-          <EmailInput
+          <EmailSearch
             continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
             namespace={props.namespace}
             teamBuildingSearchResults={props.teamBuildingSearchResults}
@@ -475,9 +474,9 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         content = (
           <PhoneSearch
             continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
-            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            namespace={props.namespace}
             search={props.search}
-            onContinue={props.onAddRaw}
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
           />
         )
         break

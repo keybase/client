@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Types from '../constants/types/team-building'
-import emailInput from './email-input/index.stories'
+import emailSearch from './email-search/index.stories'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
 import Input from './input'
@@ -109,7 +109,6 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -204,7 +203,6 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -296,7 +294,6 @@ const load = () => {
         ]}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[]}
@@ -325,7 +322,6 @@ const load = () => {
         teamBuildingSearchResults={{}}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
       />
     ))
@@ -348,7 +344,6 @@ const load = () => {
         teamSoFar={generateTeamSofar(9)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -424,7 +419,6 @@ const load = () => {
         teamSoFar={generateTeamSofar(10)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -500,7 +494,6 @@ const load = () => {
         teamSoFar={generateTeamSofar(100)}
         serviceResultCount={{}}
         onAdd={Sb.action('onAdd')}
-        onAddRaw={Sb.action('onAddRaw')}
         highlightedIndex={1}
         search={Sb.action('search')}
         searchResults={[
@@ -765,13 +758,13 @@ const load = () => {
   Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
     <PhoneSearch
       continueLabel="Continue"
-      onContinue={Sb.action('onContinue')}
+      namespace="chat2"
       search={Sb.action('search')}
       teamBuildingSearchResults={{}}
     />
   ))
 
-  emailInput()
+  emailSearch()
 }
 
 export default load
