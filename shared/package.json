@@ -65,7 +65,7 @@
       "<rootDir>/.tsOut"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!universalify|react-spring|fs-extra|react-redux|react-gateway|@storybook|lodash-es|@react-navigation)"
+      "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|lodash-es|@react-navigation)"
     ],
     "setupFiles": [],
     "setupFilesAfterEnv": [
@@ -83,7 +83,7 @@
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.tsx",
       "typed-connect": "<rootDir>/util/__mocks__/typed-connect.tsx",
-      "react-spring": "<rootDir>/__mocks__/empty.tsx",
+      "react-spring": "<rootDir>/__mocks__/react-spring.tsx",
       "react-list": "<rootDir>/__mocks__/react-list.tsx",
       "desktop/app/resolve-root": "<rootDir>/__mocks__/resolve-root.tsx",
       "^electron$": "<rootDir>/__mocks__/electron.tsx",
@@ -131,7 +131,7 @@
     "classnames": "2.2.6",
     "emoji-datasource": "4.1.0",
     "emoji-datasource-apple": "4.1.0",
-    "emoji-mart": "2.11.1",
+    "emoji-mart": "2.9.2",
     "exif-js": "2.3.0",
     "expo-barcode-scanner": "5.0.1",
     "expo-contacts": "5.0.2",
