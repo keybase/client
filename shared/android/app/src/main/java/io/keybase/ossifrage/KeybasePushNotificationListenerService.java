@@ -5,11 +5,12 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import anddroidx.core.app.RequiresApi;
-import anddroidx.core.app.NotificationCompat;
-import anddroidx.core.app.NotificationCompat.MessagingStyle;
-import anddroidx.core.app.NotificationManagerCompat;
-import anddroidx.core.app.Person;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationCompat.MessagingStyle;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
 import com.google.firebase.messaging.FirebaseMessagingService;

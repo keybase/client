@@ -12,7 +12,8 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.core.annotation.RequiresApi;
+
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.MessagingStyle;
 import androidx.core.app.NotificationManagerCompat;
