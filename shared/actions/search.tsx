@@ -35,14 +35,18 @@ function _serviceToApiServiceName(service: Types.Service): ServiceIdWithContact 
   )
 }
 
-function _rawResultToId(serviceName: string, serviceUsername: string): Types.SearchResultId {
-  if (serviceName.toLowerCase() === 'keybase' || serviceName === '') {
-    return serviceUsername
+function _rawResultToId(result: RPCTypes.APIUserSearchResult): Types.SearchResultId {
+  const idParts = [] as string[]
+  if (result.service) {
+    idParts.push(`${result.service.username}@${result.service.serviceName}`)
   }
-  return `${serviceUsername}@${serviceName}`
+  if (result.keybase) {
+    idParts.push(result.keybase.username)
+  }
+  return idParts.join('+')
 }
 
-function _toSearchQuery(serviceName: string, searchTerm: string): Types.SearchQuery {
+function _toSearchQuery(serviceName: Types.Service, searchTerm: string): Types.SearchQuery {
   return `${serviceName}-${searchTerm}`
 }
 
@@ -50,7 +54,7 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
   if (result.keybase && result.service) {
     const {keybase, service} = result
     return {
-      id: _rawResultToId('Keybase', keybase.username),
+      id: _rawResultToId(result),
       leftFullname: keybase.fullName || null,
       leftIcon: null,
       leftService: 'Keybase',
@@ -65,7 +69,7 @@ function _parseKeybaseRawResult(result: RPCTypes.APIUserSearchResult): Types.Sea
   if (result.keybase) {
     const {keybase} = result
     return {
-      id: _rawResultToId('Keybase', keybase.username),
+      id: _rawResultToId(result),
       leftFullname: keybase.fullName || null,
       leftIcon: null,
       leftService: 'Keybase',
@@ -84,7 +88,7 @@ function _parseThirdPartyRawResult(result: RPCTypes.APIUserSearchResult): Types.
   if (result.service && result.keybase) {
     const {service, keybase} = result
     return {
-      id: _rawResultToId(service.serviceName, service.username),
+      id: _rawResultToId(result),
       leftFullname: keybase.fullName || null,
       leftIcon: serviceIdToLogo24(serviceIdFromString(service.serviceName)),
       leftService: Constants.serviceIdToService(service.serviceName),
@@ -99,7 +103,7 @@ function _parseThirdPartyRawResult(result: RPCTypes.APIUserSearchResult): Types.
   if (result.service) {
     const service = result.service
     return {
-      id: _rawResultToId(service.serviceName, service.username),
+      id: _rawResultToId(result),
       leftFullname: service.fullName,
       leftIcon: serviceIdToLogo24(serviceIdFromString(service.serviceName)),
       leftService: Constants.serviceIdToService(service.serviceName),
@@ -125,7 +129,7 @@ function _parseRawResultToRow(result: RPCTypes.APIUserSearchResult, service: Typ
 
 function _parseSuggestion(username: string, fullname: string) {
   return {
-    id: _rawResultToId('keybase', username),
+    id: username,
     leftFullname: fullname,
     leftIcon: serviceIdToLogo24('keybase'),
     leftService: Constants.serviceIdToService('keybase'),
@@ -150,7 +154,13 @@ function callSearch(
   })
 }
 
-function* search(state, {payload: {term, service, searchKey}}) {
+type payloadArg = {
+  term: string
+  service: Types.Service
+  searchKey: string
+}
+
+function* search(state, {payload: {term, service, searchKey}}: {payload: payloadArg}) {
   const serviceId = _serviceToApiServiceName(service)
   if (!serviceId) {
     logger.warn('Invalid service in search')

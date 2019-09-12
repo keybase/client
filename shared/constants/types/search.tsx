@@ -4,9 +4,6 @@ export type Service = 'Facebook' | 'GitHub' | 'Hacker News' | 'Keybase' | 'Reddi
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-// This is what the api expects/returns
-export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hackernews' | 'Pgp' | 'Facebook'
-
 export type SearchResultId = string // i.e. marcopolo or marcopolo@github
 export type SearchQuery = string
 
