@@ -506,6 +506,36 @@ func TestContactSearchMixing(t *testing.T) {
 	}
 }
 
+func TestContactSearchMobilePhonesGoFirst(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactList := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 0, name: "Isaac Newton", phone: "+1555123456", label: "home"}),
+		makeContact(makeContactArg{index: 1, name: "Isaac Newton", email: "isaac@newt.on"}),
+		makeContact(makeContactArg{index: 2, name: "Isaac Newton", phone: "+1555012345", label: "mobile"}),
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactList)
+	require.NoError(t, err)
+
+	{
+		// We expect to see the "mobile" phone number ranked above the "home" phone
+		// number, and both should rank above email.
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "isaac",
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 3)
+		require.Equal(t, "1555012345@phone", res[0].Contact.Assertion)
+		require.Equal(t, "1555123456@phone", res[1].Contact.Assertion)
+		require.Equal(t, "[isaac@newt.on]@email", res[2].Contact.Assertion)
+	}
+}
+
 func TestUserSearchDirectTofu(t *testing.T) {
 	tc, searchHandler, _ := setupUserSearchTest(t)
 	defer tc.Cleanup()
