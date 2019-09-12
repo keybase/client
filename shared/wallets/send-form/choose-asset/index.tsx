@@ -27,10 +27,9 @@ class ChooseAsset extends React.Component<Props> {
   _renderItem = ({
     item,
   }: {
-    item:
-      DisplayItem & {
-          key: string
-        }
+    item: DisplayItem & {
+      key: string
+    }
   }) => {
     switch (item.type) {
       case 'display choice':
@@ -63,8 +62,7 @@ class ChooseAsset extends React.Component<Props> {
   }
 
   render() {
-    const displayChoicesData =
-      this.props.displayChoices.map(dc => ({...dc, key: dc.currencyCode}))
+    const displayChoicesData = this.props.displayChoices.map(dc => ({...dc, key: dc.currencyCode}))
     if (!displayChoicesData.find(c => c.currencyCode === 'XLM')) {
       displayChoicesData.unshift({
         currencyCode: 'XLM',
