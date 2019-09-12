@@ -4924,6 +4924,52 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 	}
 }
 
+type ResetConvMember struct {
+	Username string         `codec:"username" json:"username"`
+	Uid      gregor1.UID    `codec:"uid" json:"uid"`
+	Conv     ConversationID `codec:"conv" json:"conv"`
+}
+
+func (o ResetConvMember) DeepCopy() ResetConvMember {
+	return ResetConvMember{
+		Username: o.Username,
+		Uid:      o.Uid.DeepCopy(),
+		Conv:     o.Conv.DeepCopy(),
+	}
+}
+
+type GetAllResetConvMembersRes struct {
+	Members    []ResetConvMember `codec:"members" json:"members"`
+	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetAllResetConvMembersRes) DeepCopy() GetAllResetConvMembersRes {
+	return GetAllResetConvMembersRes{
+		Members: (func(x []ResetConvMember) []ResetConvMember {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ResetConvMember, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Members),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type SearchRegexpRes struct {
 	Offline          bool                          `codec:"offline" json:"offline"`
 	Hits             []ChatSearchHit               `codec:"hits" json:"hits"`
@@ -5872,6 +5918,9 @@ type AddTeamMemberAfterResetArg struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 }
 
+type GetAllResetConvMembersArg struct {
+}
+
 type SetConvRetentionLocalArg struct {
 	ConvID ConversationID  `codec:"convID" json:"convID"`
 	Policy RetentionPolicy `codec:"policy" json:"policy"`
@@ -6054,6 +6103,7 @@ type LocalInterface interface {
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
+	GetAllResetConvMembers(context.Context) (GetAllResetConvMembersRes, error)
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
@@ -6842,6 +6892,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getAllResetConvMembers": {
+				MakeArg: func() interface{} {
+					var ret [1]GetAllResetConvMembersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetAllResetConvMembers(ctx)
+					return
+				},
+			},
 			"setConvRetentionLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]SetConvRetentionLocalArg
@@ -7489,6 +7549,11 @@ func (c LocalClient) UnboxMobilePushNotification(ctx context.Context, __arg Unbo
 
 func (c LocalClient) AddTeamMemberAfterReset(ctx context.Context, __arg AddTeamMemberAfterResetArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.addTeamMemberAfterReset", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetAllResetConvMembers(ctx context.Context) (res GetAllResetConvMembersRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getAllResetConvMembers", []interface{}{GetAllResetConvMembersArg{}}, &res)
 	return
 }
 

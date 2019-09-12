@@ -787,6 +787,50 @@ func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
 	}
 }
 
+type ResetConvMemberAPI struct {
+	ConversationID string `codec:"conversationID" json:"conversationID"`
+	Username       string `codec:"username" json:"username"`
+}
+
+func (o ResetConvMemberAPI) DeepCopy() ResetConvMemberAPI {
+	return ResetConvMemberAPI{
+		ConversationID: o.ConversationID,
+		Username:       o.Username,
+	}
+}
+
+type GetResetConvMembersRes struct {
+	Members    []ResetConvMemberAPI `codec:"members" json:"members"`
+	RateLimits []RateLimitRes       `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetResetConvMembersRes) DeepCopy() GetResetConvMembersRes {
+	return GetResetConvMembersRes{
+		Members: (func(x []ResetConvMemberAPI) []ResetConvMemberAPI {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ResetConvMemberAPI, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Members),
+		RateLimits: (func(x []RateLimitRes) []RateLimitRes {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimitRes, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type ApiInterface interface {
 }
 
