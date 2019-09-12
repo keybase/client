@@ -1,4 +1,4 @@
-import globalColors from './colors'
+import {themed as globalColors} from './colors'
 import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
 import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import {Background} from '../common-adapters/text'
@@ -17,15 +17,24 @@ export const globalMargins = {
 }
 /* eslint-enable sort-keys */
 
-export const backgroundModeToColor = {
-  Announcements: globalColors.blue,
-  Documentation: globalColors.blueDarker,
-  HighRisk: globalColors.red,
-  Information: globalColors.yellow,
-  Normal: globalColors.white,
-  Success: globalColors.green,
-  Terminal: globalColors.blueDarker2,
+const _backgroundModeToColor = {
+  Announcements: 'blue',
+  Documentation: 'blueDarker',
+  HighRisk: 'red',
+  Information: 'yellow',
+  Normal: 'white',
+  Success: 'green',
+  Terminal: 'blueDarker2',
 }
+
+export const backgroundModeToColor = new Proxy(
+  {},
+  {
+    get: function(_: unknown, prop: string) {
+      return globalColors[_backgroundModeToColor[prop]]
+    },
+  }
+)
 
 export const backgroundModeToTextColor = (backgroundMode: Background) => {
   switch (backgroundMode) {
