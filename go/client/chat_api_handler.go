@@ -79,8 +79,8 @@ type ChatAPIHandler interface {
 	ListCommandsV1(context.Context, Call, io.Writer) error
 	PinV1(context.Context, Call, io.Writer) error
 	UnpinV1(context.Context, Call, io.Writer) error
-	GetResetConvMembers(context.Context, Call, io.Writer) error
-	AddResetConvMember(context.Context, Call, io.Writer) error
+	GetResetConvMembersV1(context.Context, Call, io.Writer) error
+	AddResetConvMemberV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -1001,13 +1001,13 @@ func (o addResetConvMemberOptionsV1) Check() error {
 	return nil
 }
 
-func (a *ChatAPI) GetResetConvMembers(ctx context.Context, c Call, w io.Writer) error {
-	return a.encodeReply(c, a.svcHandler.GetResetConvMembers(ctx), w)
+func (a *ChatAPI) GetResetConvMembersV1(ctx context.Context, c Call, w io.Writer) error {
+	return a.encodeReply(c, a.svcHandler.GetResetConvMembersV1(ctx), w)
 }
 
-func (a *ChatAPI) AddResetConvMember(ctx context.Context, c Call, w io.Writer) error {
+func (a *ChatAPI) AddResetConvMemberV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: methodUnpin,
+		return ErrInvalidOptions{version: 1, method: methodAddResetConvMember,
 			err: errors.New("empty options")}
 	}
 	var opts addResetConvMemberOptionsV1
@@ -1017,7 +1017,7 @@ func (a *ChatAPI) AddResetConvMember(ctx context.Context, c Call, w io.Writer) e
 	if err := opts.Check(); err != nil {
 		return err
 	}
-	return a.encodeReply(c, a.svcHandler.AddResetConvMember(ctx, opts), w)
+	return a.encodeReply(c, a.svcHandler.AddResetConvMemberV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

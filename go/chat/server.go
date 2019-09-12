@@ -1793,10 +1793,20 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 		return res, err
 	}
 	for _, conv := range ib.ConvsUnverified {
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		default:
+			continue
+		}
 		for _, ru := range conv.Conv.Metadata.ResetList {
+			username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
+			if err != nil {
+				return res, err
+			}
 			res.Members = append(res.Members, chat1.ResetConvMember{
-				Uid:  ru,
-				Conv: conv.GetConvID(),
+				Uid:      ru,
+				Conv:     conv.GetConvID(),
+				Username: username.String(),
 			})
 		}
 	}
