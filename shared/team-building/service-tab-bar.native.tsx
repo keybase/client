@@ -59,18 +59,17 @@ const ServiceIcon = (props: IconProps) => {
           style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
-            <Kb.Box2
-              direction="vertical"
-              style={styles.label}
-            >
+            <Kb.Box2 direction="vertical">
               {props.label.map((label, i) => (
                 <Kb.Text
                   key={i}
                   center={true}
                   type="BodyTiny"
                   // @ts-ignore: we need to allow any color here for various services
-                  style={{ color }}
-                >{label}</Kb.Text>
+                  style={{color}}
+                >
+                  {label}
+                </Kb.Text>
               ))}
             </Kb.Box2>
           </Kb.Box2>

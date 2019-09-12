@@ -45,12 +45,17 @@ const ServiceIcon = (props: IconProps) => {
               boxStyle={styles.serviceIconBox}
             />
           </Kb.Box2>
-          <Kb.Box2
-            direction="vertical"
-            style={styles.label}
-          >
+          <Kb.Box2 direction="vertical" style={styles.label}>
             {props.label.map((label, i) => (
-              <Kb.Text key={i} center={true} type="BodyTiny" style={{color}}>{label}</Kb.Text>
+              <Kb.Text
+                key={i}
+                center={true}
+                type="BodyTiny"
+                // @ts-ignore: we need to allow any color here for various services
+                style={{color}}
+              >
+                {label}
+              </Kb.Text>
             ))}
           </Kb.Box2>
           {!!props.showCount &&
