@@ -762,6 +762,16 @@ func PathPaymentTx(mctx libkb.MetaContext, walletState *WalletState, sendArg Sen
 		return nil, nil, nil, errors.New("cannot send a path payment to a user without a stellar account")
 	}
 
+	if recipient.HasMemo() {
+		if sendArg.PublicMemo != nil {
+			return nil, nil, nil, fmt.Errorf("federation recipient included its own memo, but send called with a memo")
+		}
+		sendArg.PublicMemo, err = recipient.Memo()
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	}
+
 	baseFee := walletState.BaseFee(mctx)
 
 	to, err := stellarnet.NewAddressStr(recipient.AccountID.String())
