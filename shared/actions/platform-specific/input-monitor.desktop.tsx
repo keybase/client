@@ -82,17 +82,22 @@ class InputMonitor {
     console.log('InputMonitor: Timer cleared')
   }
 
+  private listenerOptions = {
+    capture: true,
+    passive: true,
+  }
+
   private listenForMouseKeyboard = () => {
     this.unlistenForMouseKeyboard()
     console.log('InputMonitor: adding mouseKeyboard events')
-    window.addEventListener('mousemove', this.onMouseKeyboard, true)
-    window.addEventListener('keypress', this.onMouseKeyboard, true)
+    window.addEventListener('mousemove', this.onMouseKeyboard, this.listenerOptions)
+    window.addEventListener('keypress', this.onMouseKeyboard, this.listenerOptions)
   }
 
   private unlistenForMouseKeyboard = () => {
     console.log('InputMonitor: removing mouseKeyboard events')
-    window.removeEventListener('mousemove', this.onMouseKeyboard, true)
-    window.removeEventListener('keypress', this.onMouseKeyboard, true)
+    window.removeEventListener('mousemove', this.onMouseKeyboard, this.listenerOptions)
+    window.removeEventListener('keypress', this.onMouseKeyboard, this.listenerOptions)
   }
 
   private transition = (reason: Reason) => {
