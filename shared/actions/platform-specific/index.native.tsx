@@ -561,21 +561,23 @@ const manageContactsCache = async (
   return actions
 }
 
+// When the notif is tapped we are only passed the message, use this as a marker
+// so we can handle it correctly.
+export const contactNotifMarker = 'Your contact'
 const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
   if (cts.length === 0) {
     return ''
   }
   switch (cts.length) {
     case 1:
-      return `Your contact ${cts[0].contactName} joined Keybase!`
+      return `${contactNotifMarker} ${cts[0].contactName} joined Keybase!`
     case 2:
-      return `Your contacts ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+      return `${contactNotifMarker}s ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
     default: {
       const lenMinusTwo = cts.length - 2
-      return `Your contacts ${cts[0].contactName}, ${cts[1].contactName}, and ${lenMinusTwo} ${pluralize(
-        'other',
-        lenMinusTwo
-      )} joined Keybase!`
+      return `${contactNotifMarker}s ${cts[0].contactName}, ${
+        cts[1].contactName
+      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
     }
   }
 }

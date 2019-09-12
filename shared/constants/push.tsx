@@ -33,6 +33,7 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
 
     const userInteraction = !!n.userInteraction
     const data = isIOS ? n.data || n._data : n
+    const message = n.message
 
     if (!data) {
       return undefined
@@ -73,6 +74,7 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
         type: 'chat.extension',
       }
+    } else if (typeof message === 'string' && message.includes('Your contact')) {
     }
 
     return undefined
