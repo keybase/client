@@ -234,19 +234,18 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
       )
     }
     case SettingsGen.sentVerificationEmail: {
-      return state
-        .update('email', emailState =>
-          emailState.merge({
-            addedEmail: action.payload.email,
-          })
-        )
-        .updateIn(['email', 'emails'], emails => {
-          return emails.update(action.payload.email, email =>
-            email.merge({
-              lastVerifyEmailDate: new Date().getTime() / 1000,
-            })
-          )
+      return state.update('email', emailState =>
+        emailState.merge({
+          addedEmail: action.payload.email,
+          emails: (emailState.emails || I.Map<string, Types.EmailRow>()).update(
+            action.payload.email,
+            (email = Constants.makeEmailRow({email: action.payload.email, isVerified: false})) =>
+              email.merge({
+                lastVerifyEmailDate: new Date().getTime() / 1000,
+              })
+          ),
         })
+      )
     }
     case SettingsGen.clearAddingEmail: {
       return state.update('email', emailState => emailState.merge({addingEmail: null, error: ''}))
