@@ -11,12 +11,13 @@ import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
 type EmailInputProps = {
+  continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'email') => void
   teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
 }
 
-const EmailInput = ({namespace, search, teamBuildingSearchResults}: EmailInputProps) => {
+const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailInputProps) => {
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
@@ -85,7 +86,7 @@ const EmailInput = ({namespace, search, teamBuildingSearchResults}: EmailInputPr
       </Kb.Box2>
       <Kb.Box2 direction="verticalReverse" fullWidth={true} style={styles.bottomContainer}>
         <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
-          <ContinueButton onClick={onSubmit} disabled={!canSubmit} />
+          <ContinueButton label={continueLabel} onClick={onSubmit} disabled={!canSubmit} />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>

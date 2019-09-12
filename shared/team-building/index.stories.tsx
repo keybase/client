@@ -763,6 +763,7 @@ const load = () => {
 
   Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
     <PhoneSearch
+      continueLabel="Continue"
       onContinue={Sb.action('onContinue')}
       search={Sb.action('search')}
       teamBuildingSearchResults={{}}

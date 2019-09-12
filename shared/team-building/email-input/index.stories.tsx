@@ -11,6 +11,7 @@ const load = () => {
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Email address', () => (
       <EmailInput
+        continueLabel="Continue"
         search={Sb.action('search')}
         namespace={namespace}
         teamBuildingSearchResults={{
