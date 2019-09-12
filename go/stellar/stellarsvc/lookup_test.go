@@ -119,18 +119,12 @@ func TestLookupRecipientFederation(t *testing.T) {
 	require.Equal(t, "ABCDEFGHIJK", *res.PublicMemo)
 	require.Equal(t, "hash", *res.PublicMemoType)
 
-	// if they don't return a memo_type, it should be 'id'
-	// (this is not in sep-0002, but a verbal specification)
+	// if they don't return a memo_type, it's an error
 	res, err = stellar.LookupRecipient(mctx, stellarcommon.RecipientInput("memonotype*stellar.org"), false)
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.Nil(t, res.User)
 	require.Nil(t, res.Assertion)
-	require.NotNil(t, res.AccountID)
-	require.EqualValues(t, randomPubMemo, *res.AccountID)
-	require.NotNil(t, res.PublicMemo)
-	require.NotNil(t, res.PublicMemoType)
-	require.Equal(t, "123456", *res.PublicMemo)
-	require.Equal(t, "id", *res.PublicMemoType)
+	require.Nil(t, res.AccountID)
 
 	// We ask external server about federation address, we get account id back
 	// That account ID is the primary of a keybase user.

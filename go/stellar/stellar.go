@@ -406,15 +406,13 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 			m.Debug("federation.LookupByAddress returned: %+v", nameResponse)
 			to = stellarcommon.RecipientInput(nameResponse.AccountID)
 
+			// if there is a memo, include it in the result
 			if nameResponse.Memo.Value != "" {
 				res.PublicMemo = &nameResponse.Memo.Value
-				if nameResponse.MemoType != "" {
-					res.PublicMemoType = &nameResponse.MemoType
-				} else {
-					// this is not in sep-0002, but was specified verbally:
-					t := "id"
-					res.PublicMemoType = &t
+				if nameResponse.MemoType == "" {
+					return res, fmt.Errorf("Federation server %q returned invalid memo", domain)
 				}
+				res.PublicMemoType = &nameResponse.MemoType
 			}
 		}
 	}
@@ -626,6 +624,16 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err
+	}
+
+	if recipient.HasMemo() {
+		if sendArg.PublicMemo != nil {
+			return res, fmt.Errorf("federation recipient included its own memo, but send called with a memo")
+		}
+		sendArg.PublicMemo, err = recipient.Memo()
+		if err != nil {
+			return res, err
+		}
 	}
 
 	var txID string
