@@ -1,6 +1,6 @@
 {
   "name": "React-RCTWebSocket",
-  "version": "0.60.4",
+  "version": "0.60.5",
   "summary": "A library for supporting WebSockets, a protocol which provides full-duplex communication channels over a single TCP connection.",
   "homepage": "http://facebook.github.io/react-native/",
   "documentation_url": "https://facebook.github.io/react-native/docs/network#websocket-support",
@@ -12,12 +12,9 @@
   },
   "source": {
     "git": "https://github.com/facebook/react-native.git",
-    "tag": "v0.60.4"
+    "tag": "v0.60.5"
   },
-  "source_files": [
-    "*.{h,m}",
-    "Libraries/fishhook/*.{h,c}"
-  ],
+  "source_files": "*.{h,m}",
   "preserve_paths": [
     "package.json",
     "LICENSE",
@@ -26,10 +23,7 @@
   "header_dir": "React",
   "dependencies": {
     "React-Core": [
-      "0.60.4"
-    ],
-    "React-fishhook": [
-      "0.60.4"
+      "0.60.5"
     ]
   }
 }

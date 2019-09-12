@@ -65,7 +65,26 @@ const fixTypes = () => {
   } catch (_) {}
 }
 
+const fixUnimodules = () => {
+  const root = path.resolve(
+    __dirname,
+    '..',
+    '..',
+    'node_modules',
+    '@unimodules',
+    'react-native-adapter',
+    'android'
+  )
+  try {
+    const buildGradle = fs.readFileSync(path.resolve(__dirname, 'unimodules-build-gradle'), {
+      encoding: 'utf8',
+    })
+    fs.writeFileSync(path.join(root, 'build.gradle'), buildGradle)
+  } catch (_) {}
+}
+
 function fixModules() {
+  fixUnimodules()
   // run jetify to fix android deps
   exec('yarn jetify', null, null)
 
