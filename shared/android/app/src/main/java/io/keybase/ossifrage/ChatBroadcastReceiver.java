@@ -27,10 +27,10 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
     return null;
  }
 
-
   @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
   @Override
   public void onReceive(Context context, Intent intent) {
+    MainActivity.setupKBRuntime(context, false);
     ConvData convData = new ConvData(intent);
     PendingIntent openConv = intent.getParcelableExtra("openConvPendingIntent");
     NotificationCompat.Builder repliedNotification = new NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
