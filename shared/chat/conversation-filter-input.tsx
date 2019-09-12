@@ -8,7 +8,6 @@ export type Props = {
   filter: string
   isLoading: boolean
   isSearching: boolean
-  showNewTag: boolean
   onBack: () => void
   onEnsureSelection: () => void
   onNewChat?: () => void
