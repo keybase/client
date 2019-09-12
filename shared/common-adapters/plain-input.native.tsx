@@ -19,30 +19,14 @@ import {Box2} from './box'
 
 import {InternalProps, TextInfo, Selection} from './plain-input'
 
-type ContentSizeChangeEvent = {
-  nativeEvent: {
-    contentSize: {
-      width: number
-      height: number
-    }
-  }
-}
-
-type State = {
-  height: number | null
-}
-
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
-class PlainInput extends Component<InternalProps, State> {
+class PlainInput extends Component<InternalProps> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',
   }
 
-  state: State = {
-    height: null,
-  }
   _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
@@ -140,23 +124,6 @@ class PlainInput extends Component<InternalProps, State> {
     this.props.onSelectionChange && this.props.onSelectionChange(this._lastNativeSelection)
   }
 
-  _onContentSizeChange = (event: ContentSizeChangeEvent) => {
-    if (this.props.multiline) {
-      let height = event.nativeEvent.contentSize.height
-      const minHeight = this.props.rowsMin && this.props.rowsMin * this._lineHeight()
-      const maxHeight = this.props.rowsMax && this.props.rowsMax * this._lineHeight()
-      if (minHeight && height < minHeight) {
-        height = minHeight
-      } else if (maxHeight && height > maxHeight) {
-        height = maxHeight
-      }
-
-      if (height !== this.state.height) {
-        this.setState({height})
-      }
-    }
-  }
-
   _lineHeight = () => {
     const textStyle = getTextStyle(this.props.textType)
     return textStyle.lineHeight
@@ -208,7 +175,6 @@ class PlainInput extends Component<InternalProps, State> {
         minHeight: (this.props.rowsMin || defaultRowsToShow) * lineHeight,
       },
       !!this.props.rowsMax && {maxHeight: this.props.rowsMax * lineHeight},
-      isIOS && !!this.state.height && {height: this.state.height},
       paddingStyles,
     ])
   }
@@ -257,7 +223,6 @@ class PlainInput extends Component<InternalProps, State> {
         ...common,
         blurOnSubmit: false,
         multiline: true,
-        onContentSizeChange: this._onContentSizeChange,
       }
     }
     return common
@@ -292,7 +257,7 @@ const styles = styleSheetCreate(() => ({
   multiline: platformStyles({
     isMobile: {
       height: undefined,
-      textAlignVertical: 'top', // android centers by default
+      textAlignVertical: 'bottom', // android centers by default
     },
   }),
   singleline: {padding: 0},
