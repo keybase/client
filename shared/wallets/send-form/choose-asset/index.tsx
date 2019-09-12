@@ -11,13 +11,6 @@ export type DisplayItem = {
   symbol: string
   type: 'display choice'
 }
-export type OtherItem = {
-  currencyCode: string
-  disabledExplanation: string
-  issuer: string
-  selected: boolean
-  type: 'other choice'
-}
 
 type ExpanderItem = {
   onClick: () => void
@@ -28,9 +21,8 @@ type ExpanderItem = {
 export type Props = {
   displayChoices: Array<DisplayItem>
   onBack: () => void
-  onChoose: (item: DisplayItem | OtherItem) => void
+  onChoose: (item: DisplayItem) => void
   onRefresh: () => void
-  otherChoices: Array<OtherItem>
   isRequest: boolean
   selected: string
 }
@@ -53,9 +45,6 @@ class ChooseAsset extends React.Component<Props, State> {
       | DisplayItem & {
           key: string
         }
-      | OtherItem & {
-          key: string
-        }
       | ExpanderItem & {
           key: string
         }
@@ -69,17 +58,6 @@ class ChooseAsset extends React.Component<Props, State> {
             onClick={() => this.props.onChoose(item)}
             selected={item.selected}
             symbol={item.symbol}
-          />
-        )
-      case 'other choice':
-        return (
-          <OtherChoice
-            key={item.key}
-            currencyCode={item.currencyCode}
-            disabledExplanation={item.disabledExplanation}
-            issuer={item.issuer}
-            onClick={() => this.props.onChoose(item)}
-            selected={item.selected}
           />
         )
       case 'expander':
@@ -107,14 +85,6 @@ class ChooseAsset extends React.Component<Props, State> {
             </Kb.Text>
           </Kb.Box2>
         )
-      case 'other choices':
-        return (
-          <Kb.Box2 direction="vertical" style={styles.sectionHeaderContainer} fullWidth={true}>
-            <Kb.Text key="other" type="BodySmallSemibold">
-              Other assets
-            </Kb.Text>
-          </Kb.Box2>
-        )
       case 'divider':
         return <Kb.Divider key={section.key} />
     }
@@ -122,7 +92,7 @@ class ChooseAsset extends React.Component<Props, State> {
   }
 
   render() {
-    const expanded = this.state.expanded || !this.props.otherChoices || this.props.otherChoices.length === 0
+    const expanded = this.state.expanded
     const displayChoicesData =
       this.props.displayChoices &&
       this.props.displayChoices
@@ -152,18 +122,6 @@ class ChooseAsset extends React.Component<Props, State> {
         data: displayChoicesData,
         key: 'display choices',
       },
-      ...(this.props.otherChoices.length === 0
-        ? []
-        : [
-            {data: [], key: 'divider'},
-            {
-              data: this.props.otherChoices.map(oc => ({
-                ...oc,
-                key: `${oc.currencyCode}:${oc.issuer}`,
-              })),
-              key: 'other choices',
-            },
-          ]),
     ]
     return (
       <Kb.MaybePopup onClose={this.props.onBack}>
@@ -221,63 +179,6 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
           type="iconfont-check"
           color={Styles.globalColors.blue}
           boxStyle={Kb.iconCastPlatformStyles(styles.checkIcon)}
-        />
-      )}
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
-
-type OtherChoiceProps = {
-  currencyCode: string
-  disabledExplanation: string
-  issuer: string
-  onClick: () => void
-  selected: boolean
-}
-
-const OtherChoice = (props: OtherChoiceProps) => (
-  <Kb.ClickableBox
-    hoverColor={!props.disabledExplanation ? Styles.globalColors.blueLighter2 : null}
-    onClick={!props.disabledExplanation ? props.onClick : undefined}
-  >
-    <Kb.Box2
-      direction="horizontal"
-      style={styles.choiceContainer}
-      fullWidth={true}
-      gap="small"
-      gapStart={true}
-      gapEnd={true}
-    >
-      <Kb.Box2 direction="vertical">
-        <Kb.Text
-          type="Body"
-          style={Styles.collapseStyles([
-            props.selected && styles.blue,
-            !!props.disabledExplanation && styles.grey,
-          ])}
-        >
-          <Kb.Text
-            type="BodyExtrabold"
-            style={Styles.collapseStyles([
-              props.selected && styles.blue,
-              !!props.disabledExplanation && styles.grey,
-            ])}
-          >
-            {props.currencyCode}
-          </Kb.Text>
-          /{props.issuer}
-        </Kb.Text>
-        {!!props.disabledExplanation && (
-          <Kb.Text type="BodySmall" style={styles.grey}>
-            {props.disabledExplanation}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-      {props.selected && (
-        <Kb.Icon
-          type="iconfont-check"
-          color={Styles.globalColors.blue}
-          style={Kb.iconCastPlatformStyles(styles.checkIcon)}
         />
       )}
     </Kb.Box2>
