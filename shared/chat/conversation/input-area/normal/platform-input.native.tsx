@@ -331,17 +331,12 @@ const styles = Styles.styleSheetCreate(
           flex: 1,
           marginLeft: Styles.globalMargins.tiny,
           marginRight: Styles.globalMargins.tiny,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
         },
-        // Android doesn't because there is some intrinsic margins that are enough for our purpose.
         isAndroid: {
+          // This is to counteract some intrinsic margins the android view has
           marginTop: -8,
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
-        },
-        // iOS needs these extra margins to give the text proper margins (Like you'd expect)
-        isIOS: {
-          paddingBottom: Styles.globalMargins.tiny,
-          paddingTop: Styles.globalMargins.tiny,
         },
       }),
       marginRightSmall: {
