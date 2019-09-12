@@ -393,6 +393,11 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     )
   }
 
+  _onSelectCountry = (code: string) => {
+    this._setCountry(code, false)
+    this._phoneInputRef.current && this._phoneInputRef.current.focus()
+  }
+
   render() {
     return (
       <Kb.Box2
@@ -468,7 +473,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         </Kb.Box2>
         <CountrySelector
           attachTo={this.props.getAttachmentRef}
-          onSelect={x => this._setCountry(x, false)}
+          onSelect={this._onSelectCountry}
           onHidden={this._toggleShowingMenu}
           selected={this.state.country}
           visible={this.props.showingMenu}
