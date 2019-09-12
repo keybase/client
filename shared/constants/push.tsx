@@ -76,7 +76,7 @@ export const normalizePush = (n: any): Types.PushNotification | undefined => {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
         type: 'chat.extension',
       }
-    } else if (typeof message === 'string' && message.startsWith('Your contact')) {
+    } else if (typeof message === 'string' && message.startsWith('Your contact') && userInteraction) {
       return {
         type: 'settings.contacts',
       }
