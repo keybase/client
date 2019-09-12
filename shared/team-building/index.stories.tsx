@@ -755,16 +755,12 @@ const load = () => {
     ))
 
   Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
-<<<<<<< HEAD
     <PhoneSearch
       continueLabel="Continue"
-      onContinue={Sb.action('onContinue')}
+      namespace="chat2"
       search={Sb.action('search')}
       teamBuildingSearchResults={{}}
     />
-=======
-    <PhoneSearch namespace="chat2" search={Sb.action('search')} teamBuildingSearchResults={{}} />
->>>>>>> wip
   ))
 
   emailSearch()
