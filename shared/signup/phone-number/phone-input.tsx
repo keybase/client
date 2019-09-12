@@ -156,9 +156,9 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   private onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
-    if (Styles.isMobile && this.mobileItems && this.mobileItems.length >= 1) {
+    if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
       this.onSelectMenu(this.mobileItems[0].value)
-    } else if (this.desktopItems && this.desktopItems.length >= 1) {
+    } else if (this.desktopItems && this.desktopItems[0]) {
       this.onSelectMenu(this.desktopItems[0].alpha2)
     }
     this.props.onHidden()
