@@ -545,7 +545,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = rolePickerProps ? 'Add people' : 'New chat'
+  const title = rolePickerProps ? `Add to ${ownProps.teamname}` : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
@@ -624,6 +624,7 @@ const mergeProps = (
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
+    teamname: ownProps.teamname,
     title,
     waitingForCreate,
   }

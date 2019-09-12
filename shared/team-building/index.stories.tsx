@@ -39,6 +39,7 @@ const commonProps = {
   showRecs: false,
   showResults: false,
   showServiceResultCount: false,
+  teamname: '',
 }
 
 const contactProps = {
@@ -266,7 +267,7 @@ const load = () => {
         {...contactProps}
         {...eventHandlers}
         namespace="chat2"
-        title="The Title"
+        title="Keybase Test Team"
         includeContacts={true}
         rolePickerProps={{
           changeSendNotification: Sb.action('changeSendNotification'),
