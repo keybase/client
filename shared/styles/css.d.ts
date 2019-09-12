@@ -18,7 +18,7 @@ type _StylesCrossPlatformOverride = {
   textAlign: _StylesMobile['textAlign']
 }
 
-type _StylesCrossPlatform = {
+export type _StylesCrossPlatform = {
   [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
     ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
     : k extends keyof _StylesMobile

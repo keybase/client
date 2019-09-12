@@ -68,12 +68,12 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
             Context context = getApplicationContext();
             // limit fresco memory
-            ImagePipelineConfig frescoConfig = ImagePipelineConfig
-                    .newBuilder(context)
-                    .setBitmapMemoryCacheParamsSupplier(new CustomBitmapMemoryCacheParamsSupplier(context))
-                    .build();
-
-            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
+//            ImagePipelineConfig frescoConfig = ImagePipelineConfig
+//                    .newBuilder(context)
+//                    .setBitmapMemoryCacheParamsSupplier(new CustomBitmapMemoryCacheParamsSupplier(context))
+//                    .build();
+//
+//            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
 
             @SuppressWarnings("UnnecessaryLocalVariable")
             List<ReactPackage> packages = new PackageList(this).getPackages();
@@ -91,7 +91,7 @@ public class MainApplication extends Application implements ReactApplication {
                 }
             });
 
-            packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+           // packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
 
             return packages;
         }

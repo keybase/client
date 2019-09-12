@@ -117,7 +117,7 @@ const styles = Styles.styleSheetCreate(
       },
       outerCard: {
         flex: 1,
-        height: 'unset',
+        // height: 'unset',
       },
       outerCardAvatar: {
         backgroundColor: Styles.globalColors.transparent,
