@@ -104,27 +104,14 @@ class ConversationFilterInput extends React.PureComponent<Props> {
       >
         {searchInput}
         {!this.props.isSearching && !!this.props.onNewChat && !Styles.isMobile && (
-          <Kb.Box style={Flags.wonderland ? styles.wonderlandBorder : {}}>
-            <Kb.WithTooltip
-              position="top center"
-              tooltip={
-                Flags.wonderland
-                  ? `(${Platforms.shortcutSymbol}N)`
-                  : `New chat (${Platforms.shortcutSymbol}N)`
-              }
-            >
-              <Kb.Button small={true} onClick={this.props.onNewChat} style={styles.newChatButton}>
-                {Flags.wonderland ? (
-                  <>
-                    <Kb.Text type="BodyBig" style={styles.newChatButtonText}>
-                      New chat
-                    </Kb.Text>
-                    <Kb.Emoji size={16} emojiName=":rabbit2:" />
-                  </>
-                ) : (
-                  <Kb.Icon type="iconfont-compose" color={Styles.globalColors.white} style={styles.newIcon} />
-                )}
-              </Kb.Button>
+          <Kb.Box style={styles.rainbowBorder}>
+            <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
+              <Kb.Button
+                small={true}
+                label="New chat"
+                onClick={this.props.onNewChat}
+                style={styles.newChatButton}
+              />
             </Kb.WithTooltip>
           </Kb.Box>
         )}
@@ -223,6 +210,19 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
+      rainbowBorder: Styles.platformStyles({
+        common: {
+          padding: 2,
+        },
+        isElectron: {
+          background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
+          borderRadius: 6,
+        },
+        isMobile: {
+          backgroundColor: '#0dff0c',
+          borderRadius: 8,
+        },
+      }),
       searchBox: Styles.platformStyles({
         common: {flex: 1},
         isElectron: Styles.desktopStyles.windowDraggingClickable,
@@ -248,19 +248,6 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       whiteBg: {backgroundColor: Styles.globalColors.white},
-      wonderlandBorder: Styles.platformStyles({
-        common: {
-          padding: 2,
-        },
-        isElectron: {
-          background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
-          borderRadius: 6,
-        },
-        isMobile: {
-          backgroundColor: '#0dff0c',
-          borderRadius: 8,
-        },
-      }),
     } as const)
 )
 

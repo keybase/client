@@ -4,7 +4,6 @@ import * as Styles from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import * as Constants from '../../../constants/chat2'
-import Flags from '../../../util/feature-flags'
 
 type OwnProps = {
   hide: boolean
@@ -15,8 +14,8 @@ const _HeaderNewChatButton = (props: OwnProps) => {
   if (props.hide) {
     return null
   }
-  return Flags.wonderland ? (
-    <Kb.Box style={styles.wonderlandButtonContainer}>
+  return (
+    <Kb.Box style={styles.rainbowButtonContainer}>
       <Kb.Box2 direction="vertical" style={styles.gradientContainer}>
         <Kb.Box style={styles.gradientRed} />
         <Kb.Box style={styles.gradientOrange} />
@@ -24,23 +23,14 @@ const _HeaderNewChatButton = (props: OwnProps) => {
         <Kb.Box style={styles.gradientGreen} />
       </Kb.Box2>
       <Kb.Button
-        label={'New chat 🐇'}
+        label={'New chat'}
         mode="Primary"
         onClick={props.onNewChat}
         small={true}
-        style={styles.wonderlandButton}
+        style={styles.rainbowButton}
         type="Default"
       />
     </Kb.Box>
-  ) : (
-    <Kb.Button
-      label={'New chat'}
-      mode="Primary"
-      type="Default"
-      onClick={props.onNewChat}
-      small={true}
-      style={styles.button}
-    />
   )
 }
 
@@ -95,7 +85,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         marginRight: Styles.globalMargins.tiny,
       },
-      wonderlandButton: Styles.platformStyles({
+      rainbowButton: Styles.platformStyles({
         common: {
           left: 0,
           margin: 2,
@@ -103,16 +93,16 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
           position: 'absolute',
           top: 0,
-          width: 112,
+          width: 96,
         },
       }),
-      wonderlandButtonContainer: Styles.platformStyles({
+      rainbowButtonContainer: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
           marginLeft: Styles.globalMargins.small,
           marginRight: Styles.globalMargins.small,
           position: 'relative',
-          width: 116,
+          width: 100,
         },
         isAndroid: {
           marginTop: 10,
