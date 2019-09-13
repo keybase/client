@@ -56,7 +56,7 @@ const styles = Styles.styleSheetCreate(
           marginRight: Styles.globalMargins.small,
         },
         isElectron: Styles.desktopStyles.windowDraggingClickable,
-      },
+      }),
       buttonIcon: {
         marginRight: Styles.globalMargins.tiny,
       },
