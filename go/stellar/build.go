@@ -229,6 +229,9 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			log("error with recipient field %v: %v", arg.To, err)
 			res.ToErrMsg = "Recipient not found."
 		} else {
+			if recipient.PublicMemo != nil {
+				res.PublicMemoOverride = *recipient.PublicMemo
+			}
 			bannerThey := "they"
 			bannerTheir := "their"
 			if recipient.User != nil && !arg.ToIsAccountID {
