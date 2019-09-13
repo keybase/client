@@ -102,7 +102,8 @@ func TestVersionAndStop(t *testing.T) {
 }
 
 func CtlStop(g *libkb.GlobalContext) error {
-	if err := g.Shutdown(); err != nil {
+	mctx := libkb.NewMetaContextTODO(g)
+	if err := g.Shutdown(mctx); err != nil {
 		return err
 	}
 	cli, err := client.GetCtlClient(g)
