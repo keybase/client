@@ -147,7 +147,7 @@ const checkDevicename = async (state: Container.TypedState) => {
 }
 
 // Actually sign up ///////////////////////////////////////////////////////////
-function* reallySignupOnNoErrors(state: Container.TypedState): Saga.SagaGenerator<any, any> {
+function* reallySignupOnNoErrors(state: Container.TypedState) {
   if (!noErrors(state)) {
     logger.warn('Still has errors, bailing on really signing up')
     return
@@ -194,7 +194,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState): Saga.SagaGenerato
   }
 }
 
-const signupSaga = function*(): Saga.SagaGenerator<any, any> {
+const signupSaga = function*() {
   // validation actions
   yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
   yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername, 'checkUsername')

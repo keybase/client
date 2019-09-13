@@ -241,30 +241,33 @@ export default (props: Props) => {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bodyContainer: {
-    maxWidth: Styles.globalMargins.large * 10 + Styles.globalMargins.mediumLarge * 2,
-    padding: Styles.globalMargins.mediumLarge,
-  },
-  container: {
-    height,
-    maxHeight: height,
-    minHeight: height,
-  },
-  dismissIcon: Styles.platformStyles({
-    isElectron: {
-      display: 'block',
-      padding: Styles.globalMargins.tiny,
-    },
-  }),
-  fancyIcon: {
-    paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-  },
-  textBrown: {
-    color: Styles.globalColors.brown_75,
-  },
-  textWhite: {
-    color: Styles.globalColors.white,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyContainer: {
+        maxWidth: Styles.globalMargins.large * 10 + Styles.globalMargins.mediumLarge * 2,
+        padding: Styles.globalMargins.mediumLarge,
+      },
+      container: {
+        height,
+        maxHeight: height,
+        minHeight: height,
+      },
+      dismissIcon: Styles.platformStyles({
+        isElectron: {
+          display: 'block',
+          padding: Styles.globalMargins.tiny,
+        },
+      }),
+      fancyIcon: {
+        paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      textBrown: {
+        color: Styles.globalColors.brown_75,
+      },
+      textWhite: {
+        color: Styles.globalColors.white,
+      },
+    } as const)
+)

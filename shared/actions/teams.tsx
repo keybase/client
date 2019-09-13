@@ -99,19 +99,17 @@ const getTeamProfileAddList = async (_: TypedState, action: TeamsGen.GetTeamProf
 }
 
 function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload) {
-  yield* Saga.callRPCs(
-    RPCTypes.teamsTeamDeleteRpcSaga({
-      customResponseIncomingCallMap: {
-        'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-        'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
-      },
-      incomingCallMap: {},
-      params: {
-        name: action.payload.teamname,
-      },
-      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
-    })
-  )
+  yield RPCTypes.teamsTeamDeleteRpcSaga({
+    customResponseIncomingCallMap: {
+      'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+      'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+    },
+    incomingCallMap: {},
+    params: {
+      name: action.payload.teamname,
+    },
+    waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+  })
 }
 const leaveTeam = async (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
   const {context, teamname} = action.payload
@@ -1406,7 +1404,7 @@ function addThemToTeamFromTeamBuilder(
   )
 }
 
-function* teamBuildingSaga(): Saga.SagaGenerator<any, any> {
+function* teamBuildingSaga() {
   yield* commonTeamBuildingSaga('teams')
 
   yield* Saga.chainAction2(
@@ -1415,7 +1413,7 @@ function* teamBuildingSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
+const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.leaveTeam, leaveTeam, 'leaveTeam')
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam, 'deleteTeam')
   yield* Saga.chainAction2(TeamsGen.getTeamProfileAddList, getTeamProfileAddList, 'getTeamProfileAddList')

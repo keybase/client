@@ -2,6 +2,7 @@ import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
+import * as PushConstants from '../../constants/push'
 import * as ConfigGen from '../config-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
@@ -30,9 +31,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
-import {phoneUtil, PhoneNumberFormat, ValidationResult} from '../../util/phone-numbers'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
-import {pluralize} from '../../util/string'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -90,7 +89,7 @@ export const requestLocationPermission = async (mode: RPCChatTypes.UIWatchPositi
 }
 
 export const saveAttachmentDialog = async (filePath: string) => {
-  let goodPath = filePath
+  const goodPath = filePath
   logger.debug('saveAttachment: ', goodPath)
   await requestPermissionsToWrite()
   return CameraRoll.saveToCameraRoll(goodPath)
@@ -309,7 +308,7 @@ function* loadStartupDetails() {
   let startupFollowUser = ''
   let startupLink = ''
   let startupTab = undefined
-  let startupSharePath = undefined
+  const startupSharePath = undefined
 
   const routeStateTask = yield Saga._fork(async () => {
     try {
@@ -538,27 +537,8 @@ const manageContactsCache = async (
   } catch (e) {
     logger.warn(`Error loading default country code: ${e.message}`)
   }
-  const mapped = contacts.data.reduce((ret: Array<RPCTypes.Contact>, contact) => {
-    const {name, phoneNumbers = [], emails = []} = contact
 
-    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
-      const formatted = getE164(pn.number || '', pn.countryCode || defaultCountryCode)
-      if (formatted) {
-        res.push({
-          label: pn.label,
-          phoneNumber: formatted,
-        })
-      }
-      return res
-    }, [])
-
-    components.push(...emails.map(e => ({email: e.email, label: e.label})))
-    if (components.length) {
-      ret.push({components, name})
-    }
-
-    return ret
-  }, [])
+  const mapped = SettingsConstants.nativeContactsToContacts(contacts, defaultCountryCode)
   logger.info(`Importing ${mapped.length} contacts.`)
   const actions: Array<Container.TypedActions> = []
   try {
@@ -570,7 +550,7 @@ const manageContactsCache = async (
     )
     if (newlyResolved && newlyResolved.length) {
       PushNotifications.localNotification({
-        message: makeResolvedMessage(newlyResolved),
+        message: PushConstants.makeContactsResolvedMessage(newlyResolved),
       })
     }
   } catch (e) {
@@ -578,39 +558,6 @@ const manageContactsCache = async (
     actions.push(SettingsGen.createSetContactImportedCount({count: null, error: e.message}))
   }
   return actions
-}
-
-const makeResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
-  if (cts.length === 0) {
-    return ''
-  }
-  switch (cts.length) {
-    case 1:
-      return `Your contact ${cts[0].contactName} joined Keybase!`
-    case 2:
-      return `Your contacts ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
-    default: {
-      const lenMinusTwo = cts.length - 2
-      return `Your contacts ${cts[0].contactName}, ${cts[1].contactName}, and ${lenMinusTwo} ${pluralize(
-        'other',
-        lenMinusTwo
-      )} joined Keybase!`
-    }
-  }
-}
-
-// Get phone number in e.164, or null if we can't parse it.
-const getE164 = (phoneNumber: string, countryCode?: string) => {
-  try {
-    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
-    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
-    if (reason !== ValidationResult.IS_POSSIBLE) {
-      return null
-    }
-    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
-  } catch (e) {
-    return null
-  }
 }
 
 function* setupDarkMode() {
@@ -631,7 +578,7 @@ function* setupDarkMode() {
   }
 }
 
-export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainAction2(ConfigGen.openAppSettings, openAppSettings)

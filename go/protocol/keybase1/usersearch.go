@@ -4,14 +4,13 @@
 package keybase1
 
 import (
-	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
 
-type APIUserServiceIDWithContact string
+type APIUserServiceID string
 
-func (o APIUserServiceIDWithContact) DeepCopy() APIUserServiceIDWithContact {
+func (o APIUserServiceID) DeepCopy() APIUserServiceID {
 	return o
 }
 
@@ -56,13 +55,13 @@ func (o APIUserKeybaseResult) DeepCopy() APIUserKeybaseResult {
 }
 
 type APIUserServiceResult struct {
-	ServiceName APIUserServiceIDWithContact `codec:"serviceName" json:"service_name"`
-	Username    string                      `codec:"username" json:"username"`
-	PictureUrl  string                      `codec:"pictureUrl" json:"picture_url"`
-	Bio         string                      `codec:"bio" json:"bio"`
-	Location    string                      `codec:"location" json:"location"`
-	FullName    string                      `codec:"fullName" json:"full_name"`
-	Confirmed   *bool                       `codec:"confirmed,omitempty" json:"confirmed,omitempty"`
+	ServiceName APIUserServiceID `codec:"serviceName" json:"service_name"`
+	Username    string           `codec:"username" json:"username"`
+	PictureUrl  string           `codec:"pictureUrl" json:"picture_url"`
+	Bio         string           `codec:"bio" json:"bio"`
+	Location    string           `codec:"location" json:"location"`
+	FullName    string           `codec:"fullName" json:"full_name"`
+	Confirmed   *bool            `codec:"confirmed,omitempty" json:"confirmed,omitempty"`
 }
 
 func (o APIUserServiceResult) DeepCopy() APIUserServiceResult {
@@ -84,8 +83,8 @@ func (o APIUserServiceResult) DeepCopy() APIUserServiceResult {
 }
 
 type APIUserServiceSummary struct {
-	ServiceName APIUserServiceIDWithContact `codec:"serviceName" json:"service_name"`
-	Username    string                      `codec:"username" json:"username"`
+	ServiceName APIUserServiceID `codec:"serviceName" json:"service_name"`
+	Username    string           `codec:"username" json:"username"`
 }
 
 func (o APIUserServiceSummary) DeepCopy() APIUserServiceSummary {
@@ -116,13 +115,13 @@ func (o ImpTofuSearchResult) DeepCopy() ImpTofuSearchResult {
 }
 
 type APIUserSearchResult struct {
-	Score           float64                                               `codec:"score" json:"score"`
-	Keybase         *APIUserKeybaseResult                                 `codec:"keybase,omitempty" json:"keybase,omitempty"`
-	Service         *APIUserServiceResult                                 `codec:"service,omitempty" json:"service,omitempty"`
-	Contact         *ProcessedContact                                     `codec:"contact,omitempty" json:"contact,omitempty"`
-	Imptofu         *ImpTofuSearchResult                                  `codec:"imptofu,omitempty" json:"imptofu,omitempty"`
-	ServicesSummary map[APIUserServiceIDWithContact]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
-	RawScore        float64                                               `codec:"rawScore" json:"rawScore"`
+	Score           float64                                    `codec:"score" json:"score"`
+	Keybase         *APIUserKeybaseResult                      `codec:"keybase,omitempty" json:"keybase,omitempty"`
+	Service         *APIUserServiceResult                      `codec:"service,omitempty" json:"service,omitempty"`
+	Contact         *ProcessedContact                          `codec:"contact,omitempty" json:"contact,omitempty"`
+	Imptofu         *ImpTofuSearchResult                       `codec:"imptofu,omitempty" json:"imptofu,omitempty"`
+	ServicesSummary map[APIUserServiceID]APIUserServiceSummary `codec:"servicesSummary" json:"services_summary"`
+	RawScore        float64                                    `codec:"rawScore" json:"rawScore"`
 }
 
 func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
@@ -156,11 +155,11 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Imptofu),
-		ServicesSummary: (func(x map[APIUserServiceIDWithContact]APIUserServiceSummary) map[APIUserServiceIDWithContact]APIUserServiceSummary {
+		ServicesSummary: (func(x map[APIUserServiceID]APIUserServiceSummary) map[APIUserServiceID]APIUserServiceSummary {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[APIUserServiceIDWithContact]APIUserServiceSummary, len(x))
+			ret := make(map[APIUserServiceID]APIUserServiceSummary, len(x))
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
@@ -228,120 +227,17 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 	}
 }
 
-type ImpTofuSearchType int
-
-const (
-	ImpTofuSearchType_PHONE ImpTofuSearchType = 0
-	ImpTofuSearchType_EMAIL ImpTofuSearchType = 1
-)
-
-func (o ImpTofuSearchType) DeepCopy() ImpTofuSearchType { return o }
-
-var ImpTofuSearchTypeMap = map[string]ImpTofuSearchType{
-	"PHONE": 0,
-	"EMAIL": 1,
-}
-
-var ImpTofuSearchTypeRevMap = map[ImpTofuSearchType]string{
-	0: "PHONE",
-	1: "EMAIL",
-}
-
-func (e ImpTofuSearchType) String() string {
-	if v, ok := ImpTofuSearchTypeRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
-type ImpTofuQuery struct {
-	T__     ImpTofuSearchType `codec:"t" json:"t"`
-	Phone__ *PhoneNumber      `codec:"phone,omitempty" json:"phone,omitempty"`
-	Email__ *EmailAddress     `codec:"email,omitempty" json:"email,omitempty"`
-}
-
-func (o *ImpTofuQuery) T() (ret ImpTofuSearchType, err error) {
-	switch o.T__ {
-	case ImpTofuSearchType_PHONE:
-		if o.Phone__ == nil {
-			err = errors.New("unexpected nil value for Phone__")
-			return ret, err
-		}
-	case ImpTofuSearchType_EMAIL:
-		if o.Email__ == nil {
-			err = errors.New("unexpected nil value for Email__")
-			return ret, err
-		}
-	}
-	return o.T__, nil
-}
-
-func (o ImpTofuQuery) Phone() (res PhoneNumber) {
-	if o.T__ != ImpTofuSearchType_PHONE {
-		panic("wrong case accessed")
-	}
-	if o.Phone__ == nil {
-		return
-	}
-	return *o.Phone__
-}
-
-func (o ImpTofuQuery) Email() (res EmailAddress) {
-	if o.T__ != ImpTofuSearchType_EMAIL {
-		panic("wrong case accessed")
-	}
-	if o.Email__ == nil {
-		return
-	}
-	return *o.Email__
-}
-
-func NewImpTofuQueryWithPhone(v PhoneNumber) ImpTofuQuery {
-	return ImpTofuQuery{
-		T__:     ImpTofuSearchType_PHONE,
-		Phone__: &v,
-	}
-}
-
-func NewImpTofuQueryWithEmail(v EmailAddress) ImpTofuQuery {
-	return ImpTofuQuery{
-		T__:     ImpTofuSearchType_EMAIL,
-		Email__: &v,
-	}
-}
-
-func (o ImpTofuQuery) DeepCopy() ImpTofuQuery {
-	return ImpTofuQuery{
-		T__: o.T__.DeepCopy(),
-		Phone__: (func(x *PhoneNumber) *PhoneNumber {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Phone__),
-		Email__: (func(x *EmailAddress) *EmailAddress {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Email__),
-	}
-}
-
 type GetNonUserDetailsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Assertion string `codec:"assertion" json:"assertion"`
 }
 
 type UserSearchArg struct {
-	Query                  string        `codec:"query" json:"query"`
-	Service                string        `codec:"service" json:"service"`
-	MaxResults             int           `codec:"maxResults" json:"maxResults"`
-	IncludeServicesSummary bool          `codec:"includeServicesSummary" json:"includeServicesSummary"`
-	IncludeContacts        bool          `codec:"includeContacts" json:"includeContacts"`
-	ImpTofuQuery           *ImpTofuQuery `codec:"impTofuQuery,omitempty" json:"impTofuQuery,omitempty"`
+	Query                  string `codec:"query" json:"query"`
+	Service                string `codec:"service" json:"service"`
+	MaxResults             int    `codec:"maxResults" json:"maxResults"`
+	IncludeServicesSummary bool   `codec:"includeServicesSummary" json:"includeServicesSummary"`
+	IncludeContacts        bool   `codec:"includeContacts" json:"includeContacts"`
 }
 
 type UserSearchInterface interface {

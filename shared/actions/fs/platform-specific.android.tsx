@@ -63,7 +63,7 @@ const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => 
   return copyToDownloadDir(localPath, mimeType)
 }
 
-export default function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+export default function* platformSpecificSaga() {
   yield Saga.spawn(nativeSaga)
   yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccessAndroid)
 }

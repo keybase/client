@@ -72,7 +72,7 @@ const delegateRekeyUI = (
   response && response.result(session.id)
 }
 
-function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
+function* unlockFoldersSaga() {
   yield* Saga.chainGenerator<UnlockFoldersGen.CheckPaperKeyPayload>(
     UnlockFoldersGen.checkPaperKey,
     checkPaperKey

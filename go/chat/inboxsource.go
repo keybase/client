@@ -469,6 +469,11 @@ func (s *RemoteInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID c
 	return nil
 }
 
+func (s *RemoteInboxSource) MergeLocalMetadata(ctx context.Context, uid gregor1.UID,
+	convs []chat1.ConversationLocal) error {
+	return nil
+}
+
 func (s *RemoteInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {
 
 }
@@ -667,6 +672,11 @@ func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID c
 		return err
 	}
 	return nil
+}
+
+func (s *HybridInboxSource) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
+	return s.createInbox().MergeLocalMetadata(ctx, uid, convs)
 }
 
 func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) {

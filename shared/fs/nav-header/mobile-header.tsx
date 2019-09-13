@@ -69,48 +69,51 @@ export const getHeight = (path: Types.Path) =>
 
 const getHeightStyle = (height: number) => ({height, maxHeight: height, minHeight: height})
 
-const styles = Styles.styleSheetCreate(() => ({
-  backButton: Styles.platformStyles({
-    common: {
-      opacity: 1,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isAndroid: {
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
-  },
-  expandedTitleContainer: {
-    backgroundColor: Styles.globalColors.white,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  expandedTopContainer: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isAndroid: {
-      height: 56,
-    },
-    isIOS: {
-      height: 44,
-    },
-  }),
-  gap: {
-    flex: 1,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      backButton: Styles.platformStyles({
+        common: {
+          opacity: 1,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isAndroid: {
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
+      container: {
+        backgroundColor: Styles.globalColors.white,
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        paddingTop: Styles.isAndroid ? undefined : Styles.statusBarHeight,
+      },
+      expandedTitleContainer: {
+        backgroundColor: Styles.globalColors.white,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      expandedTopContainer: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isAndroid: {
+          height: 56,
+        },
+        isIOS: {
+          height: 44,
+        },
+      }),
+      gap: {
+        flex: 1,
+      },
+    } as const)
+)
 
 export default NavMobileHeader

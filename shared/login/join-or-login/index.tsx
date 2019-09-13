@@ -13,9 +13,13 @@ type Props = Kb.PropsWithTimer<{
 }>
 
 const Intro = (props: Props) => {
-  Kb.useInterval(props.checkIsOnline, 2000)
+  const [showing, setShowing] = React.useState(true)
+  Kb.useInterval(props.checkIsOnline, showing ? 5000 : undefined)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
+      {Styles.isMobile && (
+        <Kb.NavigationEvents onDidFocus={() => setShowing(true)} onWillBlur={() => setShowing(false)} />
+      )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <InfoIcon />
       </Kb.Box2>
@@ -45,7 +49,7 @@ const Intro = (props: Props) => {
         <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
           <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
           <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
-          {!props.isOnline && (
+          {props.isOnline === false && (
             <Kb.Button
               label="Configure a proxy"
               mode="Secondary"

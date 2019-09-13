@@ -46,6 +46,8 @@ type ChatServiceHandler interface {
 	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
 	PinV1(context.Context, pinOptionsV1) Reply
 	UnpinV1(context.Context, unpinOptionsV1) Reply
+	GetResetConvMembersV1(context.Context) Reply
+	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -402,6 +404,44 @@ func (c *chatServiceHandler) UnpinV1(ctx context.Context, opts unpinOptionsV1) R
 		RateLimits: c.aggRateLimits(allLimits),
 	}
 	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) GetResetConvMembersV1(ctx context.Context) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	lres, err := client.GetAllResetConvMembers(ctx)
+	if err != nil {
+		return c.errReply(err)
+	}
+	var res chat1.GetResetConvMembersRes
+	for _, m := range lres.Members {
+		res.Members = append(res.Members, chat1.ResetConvMemberAPI{
+			ConversationID: m.Conv.String(),
+			Username:       m.Username,
+		})
+	}
+	res.RateLimits = c.aggRateLimits(lres.RateLimits)
+	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) AddResetConvMemberV1(ctx context.Context, opts addResetConvMemberOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	if err := client.AddTeamMemberAfterReset(ctx, chat1.AddTeamMemberAfterResetArg{
+		Username: opts.Username,
+		ConvID:   convID,
+	}); err != nil {
+		return c.errReply(err)
+	}
+	return Reply{Result: chat1.EmptyRes{}}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,

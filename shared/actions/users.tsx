@@ -13,7 +13,7 @@ const onIdentifyUpdate = (
     newlyFixed: action.payload.params.okUsernames || [],
   })
 
-function* usersSaga(): Saga.SagaGenerator<any, any> {
+function* usersSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate, 'onIdentifyUpdate')
 }
 

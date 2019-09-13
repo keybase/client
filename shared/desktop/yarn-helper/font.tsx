@@ -262,15 +262,32 @@ function updateIconConstants() {
   const icons = {}
 
   // Build constants for the png assests.
-  fs.readdirSync(paths.iconpng)
-    .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
+  const iconFiles = fs.readdirSync(paths.iconpng).filter(i => i.indexOf('@') === -1)
+  // light
+  iconFiles
+    .filter(i => i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
       icons[shortName] = {
         extension: i.slice(-3),
         isFont: false,
+        nameDark: undefined,
         require: `'../images/icons/${i}'`,
+        requireDark: undefined,
       }
+    })
+  // dark
+  iconFiles
+    .filter(i => i.startsWith('iconDark-'))
+    .forEach(i => {
+      const shortName = i.slice(0, -4)
+      const lightName = shortName.replace(/^iconDark-/, 'icon-')
+      if (!icons[lightName]) {
+        console.error(`Found a dark icon without a matching light icon! ${lightName} ${i}`)
+        process.exit(1)
+      }
+      icons[lightName].nameDark = `'${shortName}'`
+      icons[lightName].requireDark = `'../images/icons/${i}'`
     })
 
   // Build constants for iconfont svgs
@@ -289,7 +306,9 @@ function updateIconConstants() {
     gridSize?: number
     extension?: string
     charCode?: number
+    nameDark?: string
     require?: string
+    requireDark?: string
   }
 
   const iconMeta_ = {
@@ -304,7 +323,9 @@ function updateIconConstants() {
           icon.extension ? [`extension: '${icons[name].extension}'`] : [],
           icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
           `isFont: ${icon.isFont}`,
+          icon.nameDark ? [`nameDark: ${icons[name].nameDark}`] : [],
           icon.require ? [`require: require(${icons[name].require})`] : [],
+          icon.requireDark ? [`requireDark: require(${icons[name].requireDark})`] : [],
         ]
 
         return `'${name}': {

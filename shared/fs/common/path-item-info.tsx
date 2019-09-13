@@ -9,7 +9,7 @@ import PathItemIcon from './path-item-icon-container'
 import CommaSeparatedName from './comma-separated-name'
 import * as Container from '../../util/container'
 import {pluralize} from '../../util/string'
-import {useFsChildren, useFsPathMetadata, useFsOnlineStatus} from './hooks'
+import {useFsChildren, useFsPathMetadata, useFsOnlineStatus, useFsSoftError} from './hooks'
 
 type Props = {
   containerStyle?: Styles.StylesCrossPlatform
@@ -64,6 +64,18 @@ const getTlfInfoLineOrLastModifiedLine = (path: Types.Path) => {
   }
 }
 
+const SoftErrorBanner = ({path}: {path: Types.Path}) => {
+  const softError = useFsSoftError(path)
+  switch (softError) {
+    case null:
+      return null
+    case Types.SoftError.NoAccess:
+      return <Kb.Banner color="blue">You don't have access to this folder or file.</Kb.Banner>
+    case Types.SoftError.Nonexistent:
+      return <Kb.Banner color="yellow">This file or folder doesn't exist.</Kb.Banner>
+  }
+}
+
 const PathItemInfo = (props: Props) => {
   useFsOnlineStatus() // when used in chat, we don't have this from Files tab
   useFsPathMetadata(props.path)
@@ -79,46 +91,52 @@ const PathItemInfo = (props: Props) => {
     />
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
-      <PathItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
-      {props.showTooltipOnName ? (
-        <Kb.WithTooltip
-          containerStyle={styles.nameTextBox}
-          tooltip={Types.pathToString(props.path)}
-          multiline={true}
-          showOnPressMobile={true}
-        >
-          {name}
-        </Kb.WithTooltip>
-      ) : (
-        <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
-      )}
-      {pathItem.type === Types.PathType.File && (
-        <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
-      )}
-      {pathItem.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
-      {getTlfInfoLineOrLastModifiedLine(props.path)}
-    </Kb.Box2>
+    <>
+      <SoftErrorBanner path={props.path} />
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={props.containerStyle}>
+        <PathItemIcon path={props.path} size={48} style={styles.pathItemIcon} />
+        {props.showTooltipOnName ? (
+          <Kb.WithTooltip
+            containerStyle={styles.nameTextBox}
+            tooltip={Types.pathToString(props.path)}
+            multiline={true}
+            showOnPressMobile={true}
+          >
+            {name}
+          </Kb.WithTooltip>
+        ) : (
+          <Kb.Box style={styles.nameTextBox}>{name}</Kb.Box>
+        )}
+        {pathItem.type === Types.PathType.File && (
+          <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(pathItem.size)}</Kb.Text>
+        )}
+        {pathItem.type === Types.PathType.Folder && <FilesAndFoldersCount {...props} />}
+        {getTlfInfoLineOrLastModifiedLine(props.path)}
+      </Kb.Box2>
+    </>
   )
 }
 
 export default PathItemInfo
 
-const styles = Styles.styleSheetCreate(() => ({
-  nameTextBox: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-    },
-    isElectron: {
-      textAlign: 'center',
-    },
-  }),
-  pathItemIcon: {
-    marginBottom: Styles.globalMargins.xtiny,
-  },
-  stylesNameText: {
-    textAlign: 'center',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      nameTextBox: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        },
+        isElectron: {
+          textAlign: 'center',
+        },
+      }),
+      pathItemIcon: {
+        marginBottom: Styles.globalMargins.xtiny,
+      },
+      stylesNameText: {
+        textAlign: 'center',
+      },
+    } as const)
+)

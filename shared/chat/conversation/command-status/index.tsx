@@ -32,11 +32,11 @@ const textColor = (typ: RPCChatTypes.UICommandStatusDisplayTyp) => {
     case RPCChatTypes.UICommandStatusDisplayTyp.error:
       return Styles.globalColors.white
     case RPCChatTypes.UICommandStatusDisplayTyp.warning:
-      return undefined
+      return Styles.globalColors.blackOrBlack
     case RPCChatTypes.UICommandStatusDisplayTyp.status:
-      return undefined
+      return Styles.globalColors.black
   }
-  return undefined
+  return Styles.globalColors.black
 }
 
 const CommandStatus = (props: Props) => {

@@ -26,7 +26,7 @@ import {memoize} from '../util/memoize'
 import {throttle} from 'lodash-es'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
-import EmailInput from './email-input'
+import EmailSearch from './email-search'
 import * as Constants from '../constants/team-building'
 
 export const numSectionLabel = '0-9'
@@ -83,7 +83,6 @@ export type Props = ContactProps & {
   highlightedIndex: number | null
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
-  onAddRaw: (user: User) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
@@ -105,6 +104,7 @@ export type Props = ContactProps & {
   showServiceResultCount: boolean
   teamBuildingSearchResults: {[query: string]: {[service in ServiceIdWithContact]: Array<User>}}
   teamSoFar: Array<SelectedUser>
+  teamname: string
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
   title: string
@@ -462,7 +462,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     switch (props.selectedService) {
       case 'email':
         content = (
-          <EmailInput
+          <EmailSearch
+            continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
             namespace={props.namespace}
             teamBuildingSearchResults={props.teamBuildingSearchResults}
             search={props.search}
@@ -472,9 +473,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       case 'phone':
         content = (
           <PhoneSearch
-            teamBuildingSearchResults={props.teamBuildingSearchResults}
+            continueLabel={props.teamSoFar.length > 0 ? 'Add' : 'Continue'}
+            namespace={props.namespace}
             search={props.search}
-            onContinue={props.onAddRaw}
+            teamBuildingSearchResults={props.teamBuildingSearchResults}
           />
         )
         break
@@ -506,15 +508,25 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         rolePickerProps={props.rolePickerProps}
       />
     )
+
+    // Handle when team-buiding is making a new chat v.s. adding members to a team.
+    const chatHeader = props.rolePickerProps ? (
+      <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+        <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+        <Kb.Text type="Header">{props.title}</Kb.Text>
+        <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
+      </Kb.Box2>
+    ) : (
+      <Kb.Box2 direction="vertical" alignItems="center">
+        <Kb.Text type="Header" style={styles.newChatHeader}>
+          {props.title}
+        </Kb.Text>
+      </Kb.Box2>
+    )
+
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        {Styles.isMobile ? null : (
-          <Kb.Box2 direction="horizontal" alignItems="center">
-            <Kb.Text type="Header" style={{margin: Styles.globalMargins.xsmall}}>
-              {props.title}
-            </Kb.Text>
-          </Kb.Box2>
-        )}
+        {Styles.isMobile ? null : chatHeader}
         {teamBox &&
           (Styles.isMobile ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -607,7 +619,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderRadius: 4,
           height: 560,
-          overflow: 'hidden',
+          overflow: 'visible',
           width: 400,
         },
       }),
@@ -621,6 +633,12 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           maxWidth: '80%',
+        },
+      }),
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: Styles.globalMargins.small + 2,
         },
       }),
       importContactsContainer: {
@@ -654,7 +672,19 @@ const styles = Styles.styleSheetCreate(
       mobileFlex: Styles.platformStyles({
         isMobile: {flex: 1},
       }),
+      newChatHeader: Styles.platformStyles({
+        isElectron: {
+          margin: Styles.globalMargins.xsmall,
+        },
+      }),
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
+      teamAvatar: Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'center',
+          position: 'absolute',
+          top: -16,
+        },
+      }),
       waiting: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: Styles.globalColors.black_20,

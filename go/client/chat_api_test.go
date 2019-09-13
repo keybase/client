@@ -174,6 +174,14 @@ func (h *handlerTracker) UnpinV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) GetResetConvMembersV1(context.Context, Call, io.Writer) error {
+	return nil
+}
+
+func (h *handlerTracker) AddResetConvMemberV1(context.Context, Call, io.Writer) error {
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -284,6 +292,14 @@ func (c *chatEcho) PinV1(context.Context, pinOptionsV1) Reply {
 }
 
 func (c *chatEcho) UnpinV1(context.Context, unpinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetResetConvMembersV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

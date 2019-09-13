@@ -495,13 +495,15 @@ const showPaperkeyPage = (state: Container.TypedState) =>
 const showFinalErrorPage = (state: Container.TypedState, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
   let path: Array<string>
+  let replace = true
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     path = ['error']
+    replace = false // can't replace with a modal!
   } else {
     path = []
   }
 
-  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace: true})
+  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace})
 }
 
 const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
@@ -534,7 +536,7 @@ const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.Forg
   }
 }
 
-function* provisionSaga(): Saga.SagaGenerator<any, any> {
+function* provisionSaga() {
   // Always ensure we have one live
   makeProvisioningManager(false)
 

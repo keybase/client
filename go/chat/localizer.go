@@ -579,31 +579,6 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 	return tlfName
 }
 
-func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
-
-	st := storage.New(s.G(), s.G().ConvSource)
-	res, err := st.FetchMessages(ctx, convID, uid, utils.PluckMessageIDs(msgs))
-	if err != nil {
-		// Just say we didn't find it in this case
-		return nil, chat1.ConversationErrorType_TRANSIENT, err
-	}
-
-	// Make sure we got legit msgs
-	var foundMsgs []chat1.MessageUnboxed
-	for _, msg := range res {
-		if msg != nil {
-			foundMsgs = append(foundMsgs, *msg)
-		}
-	}
-
-	if len(foundMsgs) == 0 {
-		return nil, chat1.ConversationErrorType_TRANSIENT, errors.New("missing messages locally")
-	}
-
-	return foundMsgs, chat1.ConversationErrorType_NONE, nil
-}
-
 func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uid gregor1.UID,
 	conv chat1.Conversation) (*chat1.ConversationMinWriterRoleInfoLocal, error) {
 	if conv.ConvSettings == nil {
@@ -857,22 +832,18 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		if err == nil {
 			summaries = append(summaries, pinSummary)
 		}
-		if len(summaries) == 0 {
+		if len(summaries) == 0 ||
+			conversationRemote.GetMembersType() == chat1.ConversationMembersType_IMPTEAMUPGRADE ||
+			conversationRemote.GetMembersType() == chat1.ConversationMembersType_KBFS {
 			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
 			if err == nil {
 				summaries = append(summaries, tlfSummary)
 			}
 		}
-		var msgs []chat1.MessageUnboxed
-		if s.offline {
-			msgs, errTyp, err = s.getMessagesOffline(ctx, conversationRemote.GetConvID(),
-				uid, summaries, conversationRemote.Metadata.FinalizeInfo)
-		} else {
-			msgs, err = s.G().ConvSource.GetMessages(ctx, conversationRemote,
-				uid, utils.PluckMessageIDs(summaries), nil)
-			if !s.isErrPermanent(err) {
-				errTyp = chat1.ConversationErrorType_TRANSIENT
-			}
+		msgs, err := s.G().ConvSource.GetMessages(ctx, conversationRemote,
+			uid, utils.PluckMessageIDs(summaries), nil)
+		if !s.isErrPermanent(err) {
+			errTyp = chat1.ConversationErrorType_TRANSIENT
 		}
 		if err != nil {
 			convErr := s.checkRekeyError(ctx, err, conversationRemote, unverifiedTLFName)
@@ -948,6 +919,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
 				maxValidID = mm.GetMessageID()
 			}
+		} else {
+			st, _ := mm.State()
+			s.Debug(ctx, "skipping invalid max msg: state: %v", st)
 		}
 	}
 	// Resolve edits/deletes on snippet message
@@ -990,6 +964,12 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			conversationLocal.Info.Triple.Tlfid,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 	default:
+		if len(conversationLocal.Info.TlfName) == 0 {
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				"unable to get conversation name from message history", conversationRemote,
+				unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
 		info, ierr = infoSource.LookupID(ctx,
 			conversationLocal.Info.TlfName,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)

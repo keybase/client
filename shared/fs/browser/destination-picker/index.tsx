@@ -142,65 +142,68 @@ const HighOrderDestinationPickerMobile = withProps(
 
 export default (Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop)
 
-const styles = Styles.styleSheetCreate(() => ({
-  actionRowContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.blueLighter3,
-    flexShrink: 0,
-    height: RowCommon.normalRowHeight,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  actionText: {
-    color: Styles.globalColors.blueDark,
-  },
-  anotherHeader: {
-    height: 48,
-    justifyContent: 'space-between',
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 480,
-      width: 560,
-    },
-  }),
-  desktopHeader: {
-    marginBottom: 10,
-    marginTop: Styles.globalMargins.medium,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
-  },
-  footer: Styles.platformStyles({
-    common: {
-      height: 64,
-    },
-    isElectron: {
-      backgroundColor: Styles.globalColors.white_90,
-      bottom: 0,
-      position: 'absolute',
-    },
-  }),
-  mobileHeaderButton: {
-    paddingBottom: 8,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: 8,
-  },
-  mobileHeaderContent: {
-    paddingRight: 90, // width of the "Cancel" button
-  },
-  newFolderBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    padding: Styles.globalMargins.tiny,
-  },
-  newFolderText: {
-    color: Styles.globalColors.blueDark,
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  rowsContainer: {
-    flex: 1,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionRowContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.blueLighter3,
+        flexShrink: 0,
+        height: RowCommon.normalRowHeight,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      actionText: {
+        color: Styles.globalColors.blueDark,
+      },
+      anotherHeader: {
+        height: 48,
+        justifyContent: 'space-between',
+        paddingRight: Styles.globalMargins.tiny,
+      },
+      container: Styles.platformStyles({
+        isElectron: {
+          height: 480,
+          width: 560,
+        },
+      }),
+      desktopHeader: {
+        marginBottom: 10,
+        marginTop: Styles.globalMargins.medium,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+      },
+      footer: Styles.platformStyles({
+        common: {
+          height: 64,
+        },
+        isElectron: {
+          backgroundColor: Styles.globalColors.white_90,
+          bottom: 0,
+          position: 'absolute',
+        },
+      }),
+      mobileHeaderButton: {
+        paddingBottom: 8,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: 8,
+      },
+      mobileHeaderContent: {
+        paddingRight: 90, // width of the "Cancel" button
+      },
+      newFolderBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        padding: Styles.globalMargins.tiny,
+      },
+      newFolderText: {
+        color: Styles.globalColors.blueDark,
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      rowsContainer: {
+        flex: 1,
+      },
+    } as const)
+)

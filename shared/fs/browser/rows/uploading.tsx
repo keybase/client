@@ -63,13 +63,16 @@ const Uploading = (props: UploadingProps) => (
   />
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  opacity30: {
-    opacity: 0.3,
-  },
-  textFailed: {
-    color: Styles.globalColors.redDark,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      opacity30: {
+        opacity: 0.3,
+      },
+      textFailed: {
+        color: Styles.globalColors.redDark,
+      },
+    } as const)
+)
 
 export default Uploading

@@ -71,21 +71,24 @@ const Desktop = (props: DownloadsProps) =>
     </>
   ) : null
 
-const styles = Styles.styleSheetCreate(() => ({
-  box: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueLighter3,
-      overflow: 'hidden',
-    },
-    isElectron: {height: 40},
-    isMobile: {height: 48},
-  }),
-  iconBoxEllipsis: {
-    backgroundColor: Styles.globalColors.black_10,
-    borderRadius: 4,
-    marginLeft: Styles.globalMargins.xtiny,
-  },
-  space: {flex: 1},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blueLighter3,
+          overflow: 'hidden',
+        },
+        isElectron: {height: 40},
+        isMobile: {height: 48},
+      }),
+      iconBoxEllipsis: {
+        backgroundColor: Styles.globalColors.black_10,
+        borderRadius: 4,
+        marginLeft: Styles.globalMargins.xtiny,
+      },
+      space: {flex: 1},
+    } as const)
+)
 
 export default (Styles.isMobile ? Mobile : Desktop)
