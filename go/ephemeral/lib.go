@@ -64,13 +64,16 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 	return ekLib
 }
 
-func (e *EKLib) Shutdown() {
+func (e *EKLib) Shutdown(mctx libkb.MetaContext) error {
 	e.Lock()
 	defer e.Unlock()
 	if e.stopCh != nil {
+		mctx.Debug("stopping background eklib loop")
 		close(e.stopCh)
 		e.stopCh = nil
 	}
+	e.purgeDeviceEKsIfOneshot(mctx)
+	return nil
 }
 
 func (e *EKLib) backgroundKeygen(mctx libkb.MetaContext) {
@@ -132,13 +135,6 @@ func (e *EKLib) setBackgroundDeleteTestCh(ch chan bool) {
 }
 
 func (e *EKLib) checkLogin(mctx libkb.MetaContext) error {
-	if isOneshot, err := mctx.G().IsOneshot(mctx.Ctx()); err != nil {
-		mctx.Debug("EKLib#checkLogin unable to check IsOneshot %v", err)
-		return err
-	} else if isOneshot {
-		return fmt.Errorf("Aborting ephemeral key generation, using oneshot session!")
-	}
-
 	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(mctx); err != nil {
 		return err
 	} else if !loggedIn {
@@ -521,6 +517,9 @@ func (e *EKLib) GetOrCreateLatestTeamEK(mctx libkb.MetaContext, teamID keybase1.
 		}
 		return err
 	})
+	if err != nil {
+		return ek, false, err
+	}
 	// sanity check key type
 	typ, err := ek.KeyType()
 	if err != nil {
@@ -1096,6 +1095,19 @@ func (e *EKLib) ClearCaches(mctx libkb.MetaContext) {
 		s.ClearCache()
 	}
 }
+func (e *EKLib) purgeDeviceEKsIfOneshot(mctx libkb.MetaContext) {
+	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
+		if isOneshot, err := mctx.G().IsOneshot(mctx.Ctx()); err != nil {
+			mctx.Debug("unable to check IsOneshot %v", err)
+		} else if isOneshot {
+			username := mctx.G().Env.GetUsername()
+			mctx.Debug("Calling ForceDeleteAll because %q is running in oneshot mode", username)
+			if err := deviceEKStorage.ForceDeleteAll(mctx, username); err != nil {
+				mctx.Debug("Unable to complete ForceDeleteAll: %v", err)
+			}
+		}
+	}
+}
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
 	go func() {
@@ -1114,6 +1126,7 @@ func (e *EKLib) OnLogout(mctx libkb.MetaContext) error {
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}
+	e.purgeDeviceEKsIfOneshot(mctx)
 	return nil
 }
 

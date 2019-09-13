@@ -44,8 +44,8 @@ func ServiceInit(g *libkb.GlobalContext, httpSrv *manager.Srv, source Source) *S
 	m := libkb.NewMetaContextBackground(g)
 	source.StartBackgroundTasks(m)
 	s := NewSrv(g, httpSrv, source) // start the http srv up
-	g.PushShutdownHook(func() error {
-		source.StopBackgroundTasks(m)
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
+		source.StopBackgroundTasks(mctx)
 		return nil
 	})
 	return s

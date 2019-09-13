@@ -76,7 +76,8 @@ func main() {
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	e2 := g.Shutdown()
+	mctx := libkb.NewMetaContextTODO(g)
+	e2 := g.Shutdown(mctx)
 	if err == nil {
 		err = e2
 	}
@@ -432,31 +433,33 @@ func HandleSignals(g *libkb.GlobalContext) {
 	c := make(chan os.Signal, 1)
 	// Note: os.Kill can't be trapped.
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	mctx := libkb.NewMetaContextTODO(g)
 	for {
 		s := <-c
 		if s != nil {
-			g.Log.Debug("trapped signal %v", s)
+			mctx.Debug("trapped signal %v", s)
 
 			// if the current command has a Stop function, then call it.
 			// It will do its own stopping of the process and calling
 			// shutdown
 			if stop, ok := cmd.(client.Stopper); ok {
-				g.Log.Debug("Stopping command cleanly via stopper")
+				mctx.Debug("Stopping command cleanly via stopper")
 				stop.Stop(keybase1.ExitCode_OK)
 				return
 			}
 
 			// if the current command has a Cancel function, then call it:
 			if canc, ok := cmd.(client.Canceler); ok {
-				g.Log.Debug("canceling running command")
+				mctx.Debug("canceling running command")
 				if err := canc.Cancel(); err != nil {
-					g.Log.Warning("error canceling command: %s", err)
+					mctx.Warning("error canceling command: %s", err)
 				}
 			}
 
-			g.Log.Debug("calling shutdown")
-			_ = g.Shutdown()
-			g.Log.Error("interrupted")
+			mctx.Debug("calling shutdown")
+			_ = g.Shutdown(mctx)
+			mctx.Error("interrupted")
 			keybaseExit(3)
 		}
 	}
