@@ -62,6 +62,14 @@ func (p *CmdProve) fileOutputHook(txt string) (err error) {
 	return
 }
 
+var proofServiceRewrite = map[string]string{
+	"twitter.com":          "twitter",
+	"github.com":           "github",
+	"reddit.com":           "reddit",
+	"news.ycombinator.com": "hackernews",
+	"facebook.com":         "facebook",
+}
+
 // RunClient runs the `keybase prove` subcommand in client/server mode.
 func (p *CmdProve) Run() error {
 	cli, err := GetProveClient(p.G())
@@ -70,6 +78,10 @@ func (p *CmdProve) Run() error {
 	}
 
 	var proveUIProtocol rpc.Protocol
+
+	if to, found := proofServiceRewrite[p.arg.Service]; found {
+		p.arg.Service = to
+	}
 
 	if p.arg.Auto {
 		ui := &ProveRooterUI{
