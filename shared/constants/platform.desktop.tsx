@@ -50,6 +50,7 @@ const getLinuxPaths = () => {
   return {
     cacheRoot: logDir,
     dataRoot: `${(useXDG && process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
+    guiConfigFilename: `${homeConfigDir}/gui_config.json`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
@@ -64,11 +65,12 @@ const getWindowsPaths = () => {
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
   }
-  let dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
+  const dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
   const logDir = `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`
   return {
     cacheRoot: `${process.env['APPDATA'] || ''}\\${appName}\\`,
     dataRoot: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`,
+    guiConfigFilename: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\gui_config.json`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
@@ -84,6 +86,7 @@ const getDarwinPaths = () => {
   return {
     cacheRoot: `${libraryDir}Caches/${appName}/`,
     dataRoot: `${libraryDir}Application Support/${appName}/`,
+    guiConfigFilename: `${libraryDir}Application Support/${appName}/gui_config.json`,
     jsonDebugFileName: `${logDir}${appName}.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
@@ -97,7 +100,14 @@ if (!paths) {
   throw new Error('Unknown OS')
 }
 
-export const {dataRoot, cacheRoot, socketPath, jsonDebugFileName, serverConfigFileName} = paths
+export const {
+  dataRoot,
+  cacheRoot,
+  socketPath,
+  jsonDebugFileName,
+  serverConfigFileName,
+  guiConfigFilename,
+} = paths
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''
