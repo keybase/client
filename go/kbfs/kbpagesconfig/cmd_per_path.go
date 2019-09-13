@@ -172,11 +172,21 @@ var perPathSetPermissionCmd = cli.Command{
 	},
 }
 
+// This isn't supported by kbpagesd at this time.
+const customPagesEnabled = false
+
+func getPerPathSetCmdUsageText() string {
+	customPage := ""
+	if customPagesEnabled {
+		customPage = "\n   set <403|404> <path_relative_to_site_root> <path> [path ...]"
+	}
+	return "set Access-Control-Allow-Origin <''|'*'> <path> [path ...]" + customPage
+}
+
 var perPathSetCmd = cli.Command{
-	Name:  "set",
-	Usage: "configure a parameter on path(s)",
-	UsageText: "set Access-Control-Allow-Origin <''|'*'> <path> [path ...]\n" +
-		"   set <403|404> <path_relative_to_site_root> <path> [path ...]",
+	Name:      "set",
+	Usage:     "configure a parameter on path(s)",
+	UsageText: getPerPathSetCmdUsageText(),
 	Action: func(c *cli.Context) {
 		if len(c.Args()) < 3 {
 			fmt.Fprintln(os.Stderr, "need at least 3 args")
@@ -188,8 +198,8 @@ var perPathSetCmd = cli.Command{
 				"creating config editor error: %v\n", err)
 			os.Exit(1)
 		}
-		switch c.Args()[0] {
-		case "Access-Control-Allow-Origin":
+		switch {
+		case c.Args()[0] == "Access-Control-Allow-Origin":
 			for _, p := range c.Args()[2:] {
 				err := editor.setAccessControlAllowOrigin(p, c.Args()[1])
 				if err != nil {
@@ -199,7 +209,7 @@ var perPathSetCmd = cli.Command{
 					os.Exit(1)
 				}
 			}
-		case "403":
+		case customPagesEnabled && c.Args()[0] == "403":
 			for _, p := range c.Args()[2:] {
 				err := editor.set403(p, c.Args()[1])
 				if err != nil {
@@ -209,7 +219,7 @@ var perPathSetCmd = cli.Command{
 					os.Exit(1)
 				}
 			}
-		case "404":
+		case customPagesEnabled && c.Args()[0] == "404":
 			for _, p := range c.Args()[2:] {
 				err := editor.set404(p, c.Args()[1])
 				if err != nil {

@@ -273,6 +273,11 @@ func (c *perPathConfigsReaderV1) getPermissions(p string, username *string) (
 	return permissions, ac.maxPermission, ac.p
 }
 
+func (c *perPathConfigsReaderV1) getSetAccessControlAllowOrigin(p string) (setting string) {
+	ac := c.getPerPathConfig(nil, p)
+	return ac.accessControlAllowOrigin
+}
+
 // makePerPathConfigsReaderV1 makes an *perPathConfigsReaderV1 out of
 // user-defined per-path configs. It recursively constructs nested
 // *perPathConfigsReaderV1 so that each defined path has a corresponding
