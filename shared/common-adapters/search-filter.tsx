@@ -188,10 +188,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         ref={this._inputRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
-        style={Styles.collapseStyles([
-          styles.input,
-          !!this.props.negative && styles.textNegative,
-        ])}
+        style={Styles.collapseStyles([styles.input, !!this.props.negative && styles.textNegative])}
         placeholderColor={this.props.negative ? Styles.globalColors.white_75 : ''}
       />
     )
