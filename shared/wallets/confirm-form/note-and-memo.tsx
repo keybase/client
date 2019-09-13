@@ -27,7 +27,7 @@ const NoteAndMemo = (props: Props) => (
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Public note
+            Public memo
           </Kb.Text>
           <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.publicMemo}
