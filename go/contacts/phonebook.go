@@ -87,12 +87,12 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 			if !contact.Resolved {
 				// We resolve based on display name, not assertion, so we don't
 				// duplicate multiple assertions for the same contact.
-				unres[contact.DisplayName] = struct{}{}
+				unres[contact.ContactName] = struct{}{}
 			}
 		}
 
 		for _, resolution := range resolveResults {
-			if _, wasUnresolved := unres[resolution.DisplayName]; wasUnresolved && resolution.Resolved {
+			if _, wasUnresolved := unres[resolution.ContactName]; wasUnresolved && resolution.Resolved {
 				// We only want to show one resolution per username.
 				newlyResolvedMap[resolution.Username] = resolution
 			}
