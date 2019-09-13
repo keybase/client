@@ -41,7 +41,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
         />
       )
     case 'stellarPublicKey':
-      return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
+      return <Icon type="icon-placeholder-secret-user-48" style={{height: 48, width: 48}} />
     case 'otherAccount':
       return (
         <Box2
