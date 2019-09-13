@@ -7,31 +7,45 @@ import androidx.multidex.MultiDex;
 
 import com.evernote.android.job.JobManager;
 import com.facebook.react.PackageList;
-import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.shell.MainPackageConfig;
 import com.facebook.soloader.SoLoader;
+
+import org.unimodules.adapters.react.ModuleRegistryAdapter;
+import org.unimodules.adapters.react.ReactAdapterPackage;
+import org.unimodules.adapters.react.ReactModuleRegistryProvider;
+import org.unimodules.core.interfaces.Package;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import io.keybase.ossifrage.modules.StorybookConstants;
+import expo.modules.barcodescanner.BarCodeScannerPackage;
+import expo.modules.constants.ConstantsPackage;
+import expo.modules.contacts.ContactsPackage;
+import expo.modules.imagepicker.ImagePickerPackage;
+import expo.modules.permissions.PermissionsPackage;
+import expo.modules.sms.SMSPackage;
 import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
-import io.keybase.ossifrage.generated.BasePackageList;
-
-import org.unimodules.adapters.react.ModuleRegistryAdapter;
-import org.unimodules.adapters.react.ReactModuleRegistryProvider;
-import org.unimodules.core.interfaces.SingletonModule;
+import io.keybase.ossifrage.modules.StorybookConstants;
 
 public class MainApplication extends Application implements ReactApplication {
-    private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(new BasePackageList().getPackageList(), Arrays.<SingletonModule>asList());
+    private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(Arrays.<Package>asList(
+      new ReactAdapterPackage(),
+      new ConstantsPackage(),
+      // Same order as package.json
+      new BarCodeScannerPackage(),
+      new ContactsPackage(),
+      new ImagePickerPackage(),
+      new PermissionsPackage(),
+      new SMSPackage()
+    ), null);
+
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -91,7 +105,7 @@ public class MainApplication extends Application implements ReactApplication {
                 }
             });
 
-           // packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+            packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
 
             return packages;
         }
