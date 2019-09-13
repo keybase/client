@@ -23,6 +23,7 @@ const props = {
   tooManyEmails: false,
   tooManyPhones: false,
   waiting: false,
+  moreThanOneEmail: true,
 }
 
 const cc = {
@@ -49,6 +50,7 @@ const contacts: {
 const confirmDeleteProps = {
   onCancel: Sb.action('onCancel'),
   onConfirm: Sb.action('onConfirm'),
+  lastEmail: false,
 }
 
 const provider = Sb.createPropProviderWithCommon({
@@ -73,6 +75,7 @@ const load = () => {
         address="cecile@keyba.se"
         searchable={true}
         type="email"
+        lastEmail={false}
       />
     ))
     .add('Confirm delete email not searchable', () => (
@@ -81,6 +84,7 @@ const load = () => {
         address="cecile@keyba.se"
         searchable={false}
         type="email"
+        lastEmail={false}
       />
     ))
     .add('Confirm delete phone searchable', () => (
@@ -89,6 +93,7 @@ const load = () => {
         address="+33 6 76 38 86 97"
         searchable={true}
         type="phone"
+        lastEmail={false}
       />
     ))
     .add('Confirm delete phone not searchable', () => (
@@ -97,6 +102,7 @@ const load = () => {
         address="+33 6 76 38 86 97"
         searchable={false}
         type="phone"
+        lastEmail={false}
       />
     ))
 }
