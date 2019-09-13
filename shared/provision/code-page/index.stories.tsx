@@ -40,7 +40,7 @@ const QRScanProps = {
 
 const load = () => {
   Sb.storiesOf(`Provision/CodePage2`, module).add(
-    "A<Type1> adding Type2 means from that Type1 is provisioning Type2 and we're seeing it from Type1's perspective",
+    "<Type1> adding Type2 means from that Type1 is provisioning Type2. <..> means we're seeing it from Type1's perspective.",
     () => null
   )
 
@@ -80,7 +80,7 @@ const load = () => {
     }
 
     // We're looking at this from current's perspective
-    const currentTypeName = `A${current}`
+    const currentTypeName = `<${current}>`
     const n1 = provisioned ? currentTypeName : otherType
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
