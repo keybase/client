@@ -172,7 +172,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             padding={0}
             placeholder="Add a public memo (on Stellar)"
             placeholderColor={placeholderColor}
-            style={!!this.props.publicMemoOverride ? styles.inputDisabled : styles.input}
+            style={this.props.publicMemoOverride ? styles.inputDisabled : styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
