@@ -180,20 +180,8 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
-func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
-	mctx := libkb.NewMetaContext(ctx, b.G().ExternalG())
-	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
-	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
-		ConversationID: convID,
-		Status:         status,
-	}); err != nil {
-		return err
-	}
-	if status != chat1.ConversationStatus_REPORTED {
-		return nil
-	}
-
+func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, uid gregor1.UID, convID chat1.ConversationID) {
+	ctx := mctx.Ctx()
 	// Send word to API server about the report
 	b.Debug(ctx, "RemoteSetConversationStatus: sending report to server")
 	// Get TLF name to post
@@ -218,6 +206,80 @@ func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid g
 	})
 	if err != nil {
 		b.Debug(ctx, "RemoteSetConversationStatus: failed to post report: %s", err.Error())
+	}
+}
+
+// blockOtherUser attempts to do a user-block based on a convID if the conversation is
+// impteam and has exactly two members: the active user and the user about to get blocked.
+func (b *baseInboxSource) blockOtherUser(mctx libkb.MetaContext, convID chat1.ConversationID) (err error) {
+	conversations, err := mctx.G().ChatHelper.FindConversationsByID(mctx.Ctx(), []chat1.ConversationID{convID})
+	if err != nil {
+		mctx.Debug("blockOtherUser: error loading conversation by ID", convID, err)
+		return err
+	}
+	if len(conversations) != 1 {
+		mctx.Debug("blockOtherUser: did not find exactly 1 conversation, so don't user-block")
+		return nil
+	}
+	conv := conversations[0]
+	if conv.GetMembersType() != chat1.ConversationMembersType_IMPTEAMNATIVE {
+		mctx.Debug("blockOtherUser: conversation is not an implicit team, so don't user-block")
+		return nil
+	}
+	participants := conv.Info.Participants
+	if len(participants) != 2 {
+		mctx.Debug("blockOtherUser: conversation does not have exactly 2 users, so don't user-block")
+		return nil
+	}
+	myName := mctx.G().Env.GetUsername().String()
+	var otherUser string
+	var foundMyself bool
+	for _, participant := range participants {
+		if myName == participant.Username {
+			foundMyself = true
+		} else {
+			otherUser = participant.Username
+		}
+	}
+	if !foundMyself || otherUser == "" {
+		mctx.Debug("blockOtherUser: did not find myself and another user, so don't user-block")
+		return nil
+	}
+
+	otherUserUID, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(otherUser))
+	if err != nil || otherUserUID.String() == "" {
+		mctx.Debug("blockOtherUser: could not load user and lookup UID, so don't user-block", err)
+		return nil
+	}
+	apiArg := libkb.APIArg{
+		Endpoint:    "user/block",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"block_uid": libkb.S{Val: otherUserUID.String()},
+			"unblock":   libkb.B{Val: false},
+		},
+	}
+	_, err = mctx.G().API.Post(mctx, apiArg)
+	_ = mctx.G().CardCache().Delete(keybase1.UID(otherUserUID.String()))
+	return err
+}
+
+func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	mctx := libkb.NewMetaContext(ctx, b.G().ExternalG())
+	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
+	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
+		ConversationID: convID,
+		Status:         status,
+	}); err != nil {
+		return err
+	}
+	switch status {
+	case chat1.ConversationStatus_REPORTED:
+		b.notifyServerAboutReportedConv(mctx, uid, convID)
+		fallthrough
+	case chat1.ConversationStatus_BLOCKED:
+		return b.blockOtherUser(mctx, convID)
 	}
 	return nil
 }
