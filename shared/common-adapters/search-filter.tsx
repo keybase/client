@@ -191,7 +191,6 @@ class SearchFilter extends React.PureComponent<Props, State> {
         style={Styles.collapseStyles([
           styles.input,
           !!this.props.negative && styles.textNegative,
-          Styles.isMobile && !this._typing() && styles.inputNoGrow,
         ])}
         placeholderColor={this.props.negative ? Styles.globalColors.white_75 : ''}
       />
@@ -367,7 +366,6 @@ const styles = Styles.styleSheetCreate(() => ({
     flexShrink: 1,
     paddingLeft: 0,
     paddingRight: 0,
-    width: undefined,
   },
   inputNoGrow: {
     flexGrow: 0,
