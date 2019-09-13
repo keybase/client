@@ -394,6 +394,10 @@ func TestInboxChatBlockingAlsoUserBlocks(t *testing.T) {
 	ctxAlice := ctc.as(t, alice).startCtx
 	uidAlice := alice.User.GetUID().ToBytes()
 
+	listener := newServerChatListener()
+	ctc.as(t, alice).h.G().NotifyRouter.AddListener(listener)
+	ctc.world.Tcs[alice.Username].ChatG.Syncer.(*Syncer).isConnected = true
+
 	// alice blocks a team channel conversation with only spammer in it
 	conv := mustCreateConversationForTest(t, ctc, alice, chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM, spammer)

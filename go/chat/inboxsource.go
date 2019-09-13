@@ -180,10 +180,10 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
-func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, uid gregor1.UID, convID chat1.ConversationID) {
+func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	ctx := mctx.Ctx()
 	// Send word to API server about the report
-	b.Debug(ctx, "RemoteSetConversationStatus: sending report to server")
+	defer b.Trace(ctx, func() error { return err }, "notifyServerAboutReportedConv")()
 	// Get TLF name to post
 	tlfname := "<error fetching TLF name>"
 	ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll,
@@ -191,7 +191,7 @@ func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, 
 			ConvIDs: []chat1.ConversationID{convID},
 		}, nil)
 	if err != nil {
-		b.Debug(ctx, "RemoteSetConversationStatus: failed to fetch conversation: %s", err)
+		b.Debug(ctx, "notifyServerAboutReportedConv: failed to fetch conversation: %s", err)
 	} else {
 		if len(ib.Convs) > 0 {
 			tlfname = ib.Convs[0].Info.TLFNameExpanded()
@@ -205,13 +205,16 @@ func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, 
 		Args:        args,
 	})
 	if err != nil {
-		b.Debug(ctx, "RemoteSetConversationStatus: failed to post report: %s", err.Error())
+		b.Debug(ctx, "notifyServerAboutReportedConv: failed to post report: %s", err.Error())
 	}
+	return nil
 }
 
 // blockOtherUser attempts to do a user-block based on a convID if the conversation is
 // impteam and has exactly two members: the active user and the user about to get blocked.
 func (b *baseInboxSource) blockOtherUser(mctx libkb.MetaContext, convID chat1.ConversationID) (err error) {
+	defer b.Trace(mctx.Ctx(), func() error { return err }, "blockOtherUser")()
+
 	conversations, err := mctx.G().ChatHelper.FindConversationsByID(mctx.Ctx(), []chat1.ConversationID{convID})
 	if err != nil {
 		mctx.Debug("blockOtherUser: error loading conversation by ID", convID, err)
@@ -276,7 +279,7 @@ func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid g
 	}
 	switch status {
 	case chat1.ConversationStatus_REPORTED:
-		b.notifyServerAboutReportedConv(mctx, uid, convID)
+		_ = b.notifyServerAboutReportedConv(mctx, uid, convID)
 		fallthrough
 	case chat1.ConversationStatus_BLOCKED:
 		return b.blockOtherUser(mctx, convID)
