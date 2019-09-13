@@ -6,7 +6,6 @@ import Flags from '../util/feature-flags'
 
 export type Props = {
   filter: string
-  isLoading: boolean
   isSearching: boolean
   onBack: () => void
   onEnsureSelection: () => void
@@ -87,7 +86,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         onEnterKeyDown={this._onEnterKeyDown}
       />
     )
-    const children = (
+    return (
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
@@ -115,16 +114,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           </Kb.Box>
         )}
       </Kb.Box2>
-    )
-    return (
-      <>
-        {children}
-        {this.props.isLoading && Styles.isMobile && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
-        )}
-      </>
     )
   }
 }
@@ -188,12 +177,6 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
         position: 'relative',
         top: 1,
-      },
-      loadingContainer: {
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
       },
       newChatButton: Styles.platformStyles({
         isElectron: {

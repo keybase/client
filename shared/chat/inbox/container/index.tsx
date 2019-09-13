@@ -30,6 +30,7 @@ const mapStateToProps = state => {
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
+    isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
     rows,
@@ -96,6 +97,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
     _onMountedDesktop: dispatchProps._onMountedDesktop,
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
+    isLoading: stateProps.isLoading,
     isSearching: stateProps.isSearching,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {

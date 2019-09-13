@@ -53,4 +53,5 @@ export type Props = {
   toggleSmallTeamsExpanded: () => void
   unreadIndices: I.List<number>
   isSearching: boolean
+  isLoading: boolean
 }

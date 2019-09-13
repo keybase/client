@@ -18,7 +18,6 @@ type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     filter: ownProps.query,
-    isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
   }
 }
@@ -38,7 +37,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _onHotkey: dispatchProps._onHotkey,
   filter: stateProps.filter,
   hotkeys: isDarwin ? ['command+n'] : ['ctrl+n'],
-  isLoading: stateProps.isLoading,
   isSearching: stateProps.isSearching,
   onBack: dispatchProps.onBack,
   onEnsureSelection: ownProps.onEnsureSelection,
