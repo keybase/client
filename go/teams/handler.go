@@ -286,7 +286,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 }
 
 func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow, changes keybase1.TeamChangeSet) (err error) {
-	ctx = libkb.WithLogTag(ctx, "CLKR")
+	ctx = libkb.WithLogTag(ctx, "THCN")
 	defer g.CTrace(ctx, "HandleChangeNotification", func() error { return err })()
 	for _, row := range rows {
 		if err := handleChangeSingle(ctx, g, row, changes); err != nil {
