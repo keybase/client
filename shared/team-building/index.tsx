@@ -147,12 +147,11 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
         </Kb.Text>
-        <Kb.Box2 direction="horizontal" style={styles.bannerButtonContainer}>
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.bannerButtonContainer}>
           <Kb.Button
             label="Import contacts"
             backgroundColor="blue"
             onClick={props.onImportContacts}
-            style={styles.bannerImportButton}
             small={true}
           />
           <Kb.Button
@@ -160,7 +159,6 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             backgroundColor="blue"
             mode="Secondary"
             onClick={props.onAskForContactsLater}
-            style={styles.bannerLaterButton}
             small={true}
           />
         </Kb.Box2>
@@ -585,22 +583,13 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       bannerButtonContainer: {
+        alignSelf: 'flex-start',
         flexWrap: 'wrap',
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
       bannerIcon: {
         maxHeight: 112,
-      },
-      bannerImportButton: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.small,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-      },
-      bannerLaterButton: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
       },
       bannerText: {
         flexWrap: 'wrap',
