@@ -15,7 +15,7 @@ export type Props = {
 
 export type IconProps = {
   service: ServiceIdWithContact
-  label: string
+  label: Array<string>
   labelPresence: number // how much to show the label [0, 1]
   onClick: () => void
   count: number | null
