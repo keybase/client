@@ -26,7 +26,6 @@ const derivedProps = (
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
-    setHeaderBackgroundColor: Sb.action('setHeaderBackgroundColor'),
     textCode: otherDeviceType === 'mobile' || currentDeviceType === 'mobile' ? textCodeLong : textCodeShort,
   }
 }
@@ -40,7 +39,7 @@ const QRScanProps = {
 
 const load = () => {
   Sb.storiesOf(`Provision/CodePage2`, module).add(
-    "<Type1> adding Type2 means from that Type1 is provisioning Type2. <..> means we're seeing it from Type1's perspective.",
+    "<Type1> adding Type2 means from that Type1 is provisioning Type2 and we're seeing it from Type1's perspective",
     () => null
   )
 
@@ -80,12 +79,12 @@ const load = () => {
     }
 
     // We're looking at this from current's perspective
-    const currentTypeName = `<${current}>`
+    const currentTypeName = `A${current}`
     const n1 = provisioned ? currentTypeName : otherType
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    const tabs = [null, ...CodePage2._validTabs(current as 'desktop' | 'mobile', otherType)]
+    const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (
