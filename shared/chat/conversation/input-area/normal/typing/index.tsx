@@ -78,63 +78,66 @@ export const Typing = (props: Props) => (
 )
 
 export const mobileTypingContainerHeight = 18
-const styles = Styles.styleSheetCreate(() => ({
-  isTypingAnimation: Styles.platformStyles({
-    isElectron: {
-      left: 24,
-      position: 'absolute',
-    },
-    isMobile: {
-      height: 16,
-      width: 16,
-    },
-  }),
-  isTypingContainer: Styles.platformStyles({
-    common: {
-      flexGrow: 1,
-      opacity: 1,
-    },
-    isMobile: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'flex-end',
-      backgroundColor: Styles.globalColors.white,
-      height: mobileTypingContainerHeight,
-      left: Styles.globalMargins.xtiny,
-      position: 'absolute',
-      top: -mobileTypingContainerHeight / 2 - 2,
-      zIndex: 999,
-    },
-  }),
-  isTypingText: Styles.platformStyles({
-    isElectron: {
-      flexGrow: 1,
-      left: 56,
-      marginTop: 2,
-      position: 'absolute',
-      textAlign: 'left',
-    },
-    isMobile: {
-      marginRight: Styles.globalMargins.tiny,
-    },
-  }),
-  typingIcon: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-      width: 24,
-    },
-    isElectron: {
-      bottom: 7,
-      left: 21,
-    },
-    isMobile: {
-      bottom: 0,
-    },
-  }),
-  typingIconContainer: Styles.platformStyles({
-    isMobile: {
-      alignItems: 'center',
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      isTypingAnimation: Styles.platformStyles({
+        isElectron: {
+          left: 24,
+          position: 'absolute',
+        },
+        isMobile: {
+          height: 16,
+          width: 16,
+        },
+      }),
+      isTypingContainer: Styles.platformStyles({
+        common: {
+          flexGrow: 1,
+          opacity: 1,
+        },
+        isMobile: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'flex-end',
+          backgroundColor: Styles.globalColors.white,
+          height: mobileTypingContainerHeight,
+          left: Styles.globalMargins.xtiny,
+          position: 'absolute',
+          top: -mobileTypingContainerHeight / 2 - 2,
+          zIndex: 999,
+        },
+      }),
+      isTypingText: Styles.platformStyles({
+        isElectron: {
+          flexGrow: 1,
+          left: 56,
+          marginTop: 2,
+          position: 'absolute',
+          textAlign: 'left',
+        },
+        isMobile: {
+          marginRight: Styles.globalMargins.tiny,
+        },
+      }),
+      typingIcon: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          width: 24,
+        },
+        isElectron: {
+          bottom: 7,
+          left: 21,
+        },
+        isMobile: {
+          bottom: 0,
+        },
+      }),
+      typingIconContainer: Styles.platformStyles({
+        isMobile: {
+          alignItems: 'center',
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)

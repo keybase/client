@@ -29,8 +29,11 @@ class GiphySearch extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {height: 80},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {height: 80},
+    } as const)
+)
 
 export default GiphySearch

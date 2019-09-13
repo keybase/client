@@ -6,6 +6,7 @@ import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
 import {InfoPanel, Panel, ParticipantTyp} from '.'
 import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -383,8 +384,8 @@ class InfoPanelSelector extends React.PureComponent<Props> {
         selectedAttachmentView={this.props.selectedAttachmentView}
       />
     ) : (
-      <Box onClick={this.props.onBack} style={clickCatcherStyle}>
-        <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
+      <Box onClick={this.props.onBack} style={styles.clickCatcher}>
+        <Box style={styles.panelContainer} onClick={evt => evt.stopPropagation()}>
           <ConnectedInfoPanel
             onBack={this.props.onBack}
             onSelectTab={this.props.onSelectTab}
@@ -399,22 +400,27 @@ class InfoPanelSelector extends React.PureComponent<Props> {
   }
 }
 
-const clickCatcherStyle = {
-  bottom: 0,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: 39,
-}
-const panelContainerStyle = {
-  bottom: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  position: 'absolute',
-  right: 0,
-  top: 40,
-  width: 320,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      clickCatcher: {
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 39,
+      },
+      panelContainer: {
+        bottom: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'absolute',
+        right: 0,
+        top: 40,
+        width: 320,
+      },
+    } as const)
+)
 
 const InfoConnected = Container.connect(
   mapStateToSelectorProps,

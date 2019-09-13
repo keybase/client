@@ -106,27 +106,30 @@ class TeamMention extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-  resolved: {
-    backgroundColor: Styles.globalColors.blue,
-    borderRadius: 2,
-    color: Styles.globalColors.white,
-  },
-  text: Styles.platformStyles({
-    common: {
-      letterSpacing: 0.3,
-      paddingLeft: 2,
-      paddingRight: 2,
-    },
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+      resolved: {
+        backgroundColor: Styles.globalColors.blue,
+        borderRadius: 2,
+        color: Styles.globalColors.white,
+      },
+      text: Styles.platformStyles({
+        common: {
+          letterSpacing: 0.3,
+          paddingLeft: 2,
+          paddingRight: 2,
+        },
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+    } as const)
+)
 
 export default TeamMention
