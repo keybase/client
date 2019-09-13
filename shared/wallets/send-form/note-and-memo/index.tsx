@@ -15,6 +15,7 @@ type SecretNoteProps = {
 type PublicMemoProps = {
   publicMemo: string // Initial value only
   publicMemoError?: string
+  publicMemoOverride?: string
   onChangePublicMemo: (memo: string) => void
   maxLength: number
 }
@@ -171,17 +172,21 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             padding={0}
             placeholder="Add a public memo (on Stellar)"
             placeholderColor={placeholderColor}
-            style={styles.input}
+            style={this.props.publicMemoOverride ? styles.inputDisabled : styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
-            value={this.state.publicMemo}
+            disabled={!!this.props.publicMemoOverride}
+            value={this.props.publicMemoOverride || this.state.publicMemo}
             maxBytes={this.props.maxLength}
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodyTiny">
               {this.props.maxLength - Buffer.byteLength(this.state.publicMemo)} characters left
             </Kb.Text>
+          )}
+          {!!this.props.publicMemoOverride && (
+            <Kb.Text type="BodyTiny">This memo was provided by the recipient and cannot be changed.</Kb.Text>
           )}
           {!!this.props.publicMemoError && (
             <Kb.Text type="BodySmallError">{this.props.publicMemoError}</Kb.Text>
@@ -226,6 +231,10 @@ const styles = Styles.styleSheetCreate(
       input: {
         backgroundColor: Styles.globalColors.white,
         color: Styles.globalColors.black_on_white,
+      },
+      inputDisabled: {
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.greyDarker,
       },
     } as const)
 )

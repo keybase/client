@@ -478,6 +478,7 @@ type BuildPaymentResLocal struct {
 	AmountErrMsg        string            `codec:"amountErrMsg" json:"amountErrMsg"`
 	SecretNoteErrMsg    string            `codec:"secretNoteErrMsg" json:"secretNoteErrMsg"`
 	PublicMemoErrMsg    string            `codec:"publicMemoErrMsg" json:"publicMemoErrMsg"`
+	PublicMemoOverride  string            `codec:"publicMemoOverride" json:"publicMemoOverride"`
 	WorthDescription    string            `codec:"worthDescription" json:"worthDescription"`
 	WorthInfo           string            `codec:"worthInfo" json:"worthInfo"`
 	WorthAmount         string            `codec:"worthAmount" json:"worthAmount"`
@@ -497,6 +498,7 @@ func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 		AmountErrMsg:        o.AmountErrMsg,
 		SecretNoteErrMsg:    o.SecretNoteErrMsg,
 		PublicMemoErrMsg:    o.PublicMemoErrMsg,
+		PublicMemoOverride:  o.PublicMemoOverride,
 		WorthDescription:    o.WorthDescription,
 		WorthInfo:           o.WorthInfo,
 		WorthAmount:         o.WorthAmount,

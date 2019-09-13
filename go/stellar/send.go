@@ -76,13 +76,18 @@ func SendPaymentLocal(mctx libkb.MetaContext, arg stellar1.SendPaymentLocalArg) 
 	mctx, cancel = mctx.WithTimeout(30 * time.Second)
 	defer cancel()
 
+	var pubMemo *stellarnet.Memo
+	if arg.PublicMemo != "" {
+		pubMemo = stellarnet.NewMemoText(arg.PublicMemo)
+	}
+
 	sendRes, err := SendPaymentGUI(mctx, getGlobal(mctx.G()).walletState, SendPaymentArg{
 		From:           arg.From,
 		To:             stellarcommon.RecipientInput(to),
 		Amount:         arg.Amount,
 		DisplayBalance: displayBalance,
 		SecretNote:     arg.SecretNote,
-		PublicMemo:     stellarnet.NewMemoText(arg.PublicMemo),
+		PublicMemo:     pubMemo,
 		ForceRelay:     false,
 		QuickReturn:    arg.QuickReturn,
 	})
