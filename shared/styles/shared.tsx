@@ -49,6 +49,7 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   flexBoxRowReverse: {...flexCommon, flexDirection: 'row-reverse'},
   flexGrow: {flexGrow: 1},
   flexOne: {flex: 1},
+  flexWrap: {flexWrap: 'wrap'},
   fullHeight: {height: '100%'},
   fullWidth: {width: '100%'},
   rounded: {borderRadius: 3},
