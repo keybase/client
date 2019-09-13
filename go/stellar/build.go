@@ -306,6 +306,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 				if recipient.HasMemo() {
 					res.PublicMemoOverride = *recipient.PublicMemo
+					log("recipient has federation public memo override: %q", res.PublicMemoOverride)
 				}
 			}
 		}
