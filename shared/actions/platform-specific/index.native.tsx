@@ -285,8 +285,8 @@ const updateMobileNetState = async (
 }
 
 const initOsNetworkStatus = async () => {
-    const {type} = await NetInfo.fetch()
-    return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
+  const {type} = await NetInfo.fetch()
+  return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
 }
 
 function* setupNetInfoWatcher() {
