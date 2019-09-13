@@ -57,10 +57,9 @@ func postNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig string,
 		Endpoint:    "team/team_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"team_id":           libkb.S{Val: string(teamID)},
-			"sig":               libkb.S{Val: sig},
-			"boxes":             libkb.S{Val: string(boxesJSON)},
-			"creator_device_id": libkb.S{Val: string(mctx.ActiveDevice().DeviceID())},
+			"team_id": libkb.S{Val: string(teamID)},
+			"sig":     libkb.S{Val: sig},
+			"boxes":   libkb.S{Val: string(boxesJSON)},
 		},
 	}
 	_, err = mctx.G().GetAPI().Post(mctx, apiArg)

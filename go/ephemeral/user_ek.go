@@ -44,9 +44,8 @@ func postNewUserEK(mctx libkb.MetaContext, sig string, boxes []keybase1.UserEkBo
 		Endpoint:    "user/user_ek",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"sig":               libkb.S{Val: sig},
-			"boxes":             libkb.S{Val: string(boxesJSON)},
-			"creator_device_id": libkb.S{Val: string(mctx.ActiveDevice().DeviceID())},
+			"sig":   libkb.S{Val: sig},
+			"boxes": libkb.S{Val: string(boxesJSON)},
 		},
 	}
 	_, err = mctx.G().GetAPI().Post(mctx, apiArg)
