@@ -84,14 +84,14 @@ public class MainActivity extends ReactFragmentActivity {
   }
 
 
-  public static void setupKBRuntime(Context context, boolean createDummyFile) {
+  public static void setupKBRuntime(Context context, boolean shouldCreateDummyFile) {
     try {
       Keybase.setGlobalExternalKeyStore(new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
     } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
       NativeLogger.error("Exception in MainActivity.onCreate", e);
     }
 
-    if (createDummyFile) {
+    if (shouldCreateDummyFile) {
       createDummyFile(context);
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
