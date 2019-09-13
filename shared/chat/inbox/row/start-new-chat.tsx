@@ -49,11 +49,13 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: Styles.globalMargins.xxtiny,
       },
-      button: {
-        ...Styles.desktopStyles.windowDraggingClickable,
-        flexGrow: 1,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
+      button: Styles.platformStyles({
+        common: {
+          flexGrow: 1,
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
+        },
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
       },
       buttonIcon: {
         marginRight: Styles.globalMargins.tiny,
