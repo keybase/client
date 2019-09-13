@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -120,7 +121,40 @@ func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofA
 	}, nil
 }
 
-// Prove handles the `keybase.1.listProofServices` RPC.
+var choiceProofServices = map[string]int{
+	"twitter":         1,
+	"github":          2,
+	"reddit":          3,
+	"hackernews":      4,
+	"facebook":        5,
+	"web":             6,
+	"https":           7,
+	"http":            8,
+	"dns":             9,
+	"rooter":          10,
+	"mastodon.social": 11,
+}
+
+func (ph *ProveHandler) ListSomeProofServices(ctx context.Context) (res []string, err error) {
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTraceTimed(ctx, fmt.Sprintf("ListSomeProofServices"), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	var services []string
+	for _, service := range ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx) {
+		if _, found := choiceProofServices[service]; found {
+			services = append(services, service)
+		}
+	}
+	key := func(service string) int {
+		if x, found := choiceProofServices[service]; found {
+			return x
+		}
+		return len(choiceProofServices) + 100
+	}
+	sort.SliceStable(services, func(i, j int) bool { return key(services[i]) < key(services[j]) })
+	return services, nil
+}
+
 func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
 	ctx = libkb.WithLogTag(ctx, "PV")
 	defer ph.G().CTraceTimed(ctx, fmt.Sprintf("ListProofServices"), func() error { return err })()
