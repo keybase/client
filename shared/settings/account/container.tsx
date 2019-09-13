@@ -62,7 +62,7 @@ export default connect(
         ...(stateProps._phones ? stateProps._phones.keys() : []),
       ]),
       hasPassword: stateProps.hasPassword,
-      moreThanOneEmail: stateProps._emails && stateProps._emails.size > 1,
+      moreThanOneEmail: stateProps._emails ? stateProps._emails.size > 1 : false,
       onClearSupersededPhoneNumber: () =>
         supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
       supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
