@@ -16,6 +16,7 @@ import (
 	"path"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"testing"
@@ -54,6 +55,7 @@ func makeFS(ctx context.Context, t testing.TB, config *libkbfs.ConfigLocal) (
 		errLog:        log,
 		errVlog:       config.MakeVLogger(log),
 		notifications: libfs.NewFSNotifications(log),
+		root:          NewRoot(),
 		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
 	}
@@ -4036,4 +4038,47 @@ func TestHardLinkNotSupported(t *testing.T) {
 	old4 := path.Join(mnt.Dir, ".kbfs_status")
 	new4 := path.Join(mnt.Dir, "hardlink")
 	checkLinkErr(old4, new4, true)
+}
+
+func TestOpenFileCount(t *testing.T) {
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	defer testCleanupDelayer(ctx, t)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	mnt, _, cancelFn := makeFS(ctx, t, config)
+	defer mnt.Close()
+	defer cancelFn()
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	p := path.Join(mnt.Dir, libfs.OpenFileCountFileName)
+	checkCount := func(expected int64) {
+		f, err := os.Open(p)
+		require.NoError(t, err)
+		defer f.Close()
+
+		b, err := ioutil.ReadAll(f)
+		require.NoError(t, err)
+
+		i, err := strconv.ParseInt(string(b), 10, 64)
+		require.NoError(t, err)
+		require.Equal(t, expected, i)
+	}
+
+	checkCount(0)
+
+	_, err := ioutil.Lstat(path.Join(mnt.Dir, PrivateName))
+	require.NoError(t, err)
+	checkCount(1)
+
+	_, err = ioutil.Lstat(path.Join(mnt.Dir, PublicName))
+	require.NoError(t, err)
+	checkCount(2)
+
+	_, err = ioutil.Lstat(path.Join(mnt.Dir, PrivateName))
+	require.NoError(t, err)
+	checkCount(2)
+
+	err = ioutil.Mkdir(
+		path.Join(mnt.Dir, PrivateName, "jdoe", "d"), os.ModeDir)
+	require.NoError(t, err)
+	checkCount(4)
 }
