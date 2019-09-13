@@ -1,6 +1,3 @@
-import * as I from 'immutable'
-
-export type _State = {
+export type State = Readonly<{
   keybaseLinkError: string
-}
-export type State = I.RecordOf<_State>
+}>
