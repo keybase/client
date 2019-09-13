@@ -44,11 +44,7 @@ const load = () => {
       />
     ))
     .add('Public memo override from a federated address', () => (
-      <PublicMemo
-      {...commonProps}
-      maxLength={28}
-      publicMemoOverride="Ref #1234567890"
-    />
+      <PublicMemo {...commonProps} maxLength={28} publicMemoOverride="Ref #1234567890" />
     ))
 }
 
