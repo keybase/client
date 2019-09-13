@@ -117,3 +117,8 @@ const ArchivedTimeLinkPrefix = ".kbfs_archived_time="
 // a TLF that contains the directory name of an archived revision
 // described by the given relative time.
 const ArchivedRelTimeFilePrefix = ".kbfs_archived_reltime="
+
+// OpenFileCountFileName is the name of the file that contains the
+// number of KBFS files and directories currently being held open by
+// the operating system.
+const OpenFileCountFileName = ".kbfs_open_file_count"

@@ -60,7 +60,7 @@ type FS struct {
 	// overridden to execute f without any delay.
 	execAfterDelay func(d time.Duration, f func())
 
-	root Root
+	root *Root
 
 	platformParams PlatformParams
 
@@ -130,6 +130,7 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool,
 		errVlog:        config.MakeVLogger(errLog),
 		debugServer:    debugServer,
 		notifications:  libfs.NewFSNotifications(log),
+		root:           NewRoot(),
 		platformParams: platformParams,
 		quotaUsage: libkbfs.NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
@@ -382,7 +383,7 @@ func (f *FS) processError(ctx context.Context,
 
 // Root implements the fs.FS interface for FS.
 func (f *FS) Root() (fs.Node, error) {
-	return &f.root, nil
+	return f.root, nil
 }
 
 // quotaUsageStaleTolerance is the lifespan of stale usage data that libfuse
@@ -434,6 +435,16 @@ type Root struct {
 	private *FolderList
 	public  *FolderList
 	team    *FolderList
+
+	lookupLock sync.RWMutex
+	lookupMap  map[tlf.Type]bool
+}
+
+// NewRoot creates a new root structure for KBFS FUSE mounts.
+func NewRoot() *Root {
+	return &Root{
+		lookupMap: make(map[tlf.Type]bool),
+	}
 }
 
 var _ fs.NodeAccesser = (*FolderList)(nil)
@@ -484,12 +495,17 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return platformNode, err
 	}
 
+	r.lookupLock.Lock()
+	defer r.lookupLock.Unlock()
 	switch req.Name {
 	case PrivateName:
+		r.lookupMap[tlf.Private] = true
 		return r.private, nil
 	case PublicName:
+		r.lookupMap[tlf.Public] = true
 		return r.public, nil
 	case TeamName:
+		r.lookupMap[tlf.SingleTeam] = true
 		return r.team, nil
 	}
 
@@ -590,4 +606,21 @@ func (r *Root) Link(
 
 func (r *Root) log() logger.Logger {
 	return r.private.fs.log
+}
+func (r *Root) openFileCount() (ret int64) {
+	ret += r.private.openFileCount()
+	ret += r.public.openFileCount()
+	ret += r.team.openFileCount()
+
+	r.lookupLock.RLock()
+	defer r.lookupLock.RUnlock()
+	return ret + int64(len(r.lookupMap))
+}
+
+func (r *Root) forgetFolderList(t tlf.Type) {
+	// If the kernel ever forgets a folder list, reset the lookup
+	// function for that type and decrement the lookup counter.
+	r.lookupLock.Lock()
+	defer r.lookupLock.Unlock()
+	delete(r.lookupMap, t)
 }
