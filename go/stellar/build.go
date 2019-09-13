@@ -303,6 +303,10 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 						log("failed to determine from address while determining whether to offer the advanced send page")
 					}
 				}
+
+				if recipient.HasMemo() {
+					res.PublicMemoOverride = *recipient.PublicMemo
+				}
 			}
 		}
 	}
