@@ -297,6 +297,7 @@ class RNApp extends React.PureComponent<Props> {
   render() {
     return (
       <>
+        <Kb.NativeStatusBar barStyle={this.props.isDarkMode ? 'light-content' : 'dark-content'} />
         <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
         <GlobalError />
         <OutOfDate />
