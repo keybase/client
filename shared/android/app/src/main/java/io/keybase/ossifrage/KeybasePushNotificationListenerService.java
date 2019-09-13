@@ -61,18 +61,9 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
 
     @Override
     public void onCreate() {
-        try {
-            Keybase.setGlobalExternalKeyStore(new KeyStore(getApplicationContext(), getSharedPreferences("KeyStore", MODE_PRIVATE)));
-        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
-            NativeLogger.error("Exception in KeybasePushNotificationListenerService.onCreate while trying to link the Android KeyStore to go bind", e);
-        }
-        String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
-        initOnce(getApplicationContext().getFilesDir().getPath(), "", getApplicationContext().getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-          new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+        MainActivity.setupKBRuntime(this, false);
         NativeLogger.info("KeybasePushNotificationListenerService created");
-
         createNotificationChannel(this);
-
     }
 
 
