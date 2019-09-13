@@ -207,32 +207,35 @@ class Flame extends React.Component<{}, {color: string; timer: number; width: nu
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
-  exploded: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      bottom: 0,
-      color: Styles.globalColors.black_20_on_white,
-      padding: 2,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingTop: 0,
-      position: 'absolute',
-      right: 0,
-      whiteSpace: 'nowrap',
-    },
-  }),
-  flame: {
-    height: 17,
-    marginBottom: 1,
-    marginTop: 1,
-    opacity: 1,
-  },
-  flameContainer: {
-    position: 'absolute',
-    right: -1 * (maxFlameWidth + flameOffset),
-    width: maxFlameWidth + flameOffset,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+      exploded: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.white,
+          bottom: 0,
+          color: Styles.globalColors.black_20_on_white,
+          padding: 2,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingTop: 0,
+          position: 'absolute',
+          right: 0,
+          whiteSpace: 'nowrap',
+        },
+      }),
+      flame: {
+        height: 17,
+        marginBottom: 1,
+        marginTop: 1,
+        opacity: 1,
+      },
+      flameContainer: {
+        position: 'absolute',
+        right: -1 * (maxFlameWidth + flameOffset),
+        width: maxFlameWidth + flameOffset,
+      },
+    } as const)
+)
 
 export default ExplodingHeightRetainer

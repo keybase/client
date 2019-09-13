@@ -230,45 +230,48 @@ const AshTower = (props: {explodedBy?: string; numImages: number; showExploded: 
     </>
   )
 }
-const styles = Styles.styleSheetCreate(() => ({
-  ashes: {
-    height: 80,
-    width: 400,
-  },
-  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
-  emojiTower: {
-    ...Styles.globalStyles.flexBoxColumn,
-    bottom: 0,
-    overflow: 'hidden',
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    width: 20,
-  },
-  exploded: {
-    backgroundColor: Styles.globalColors.white,
-    color: Styles.globalColors.black_20_on_white,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  retaining: {
-    overflow: 'hidden',
-  },
-  slider: {
-    backgroundColor: Styles.globalColors.white,
-    bottom: 0,
-    height: '100%',
-    left: 0,
-    overflow: 'hidden',
-    position: 'absolute',
-    top: 0,
-  },
-  tagBox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'flex-end',
-    bottom: 2,
-    minWidth: 200,
-    position: 'absolute',
-    right: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      ashes: {
+        height: 80,
+        width: 400,
+      },
+      container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+      emojiTower: {
+        ...Styles.globalStyles.flexBoxColumn,
+        bottom: 0,
+        overflow: 'hidden',
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        width: 20,
+      },
+      exploded: {
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.black_20_on_white,
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      retaining: {
+        overflow: 'hidden',
+      },
+      slider: {
+        backgroundColor: Styles.globalColors.white,
+        bottom: 0,
+        height: '100%',
+        left: 0,
+        overflow: 'hidden',
+        position: 'absolute',
+        top: 0,
+      },
+      tagBox: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'flex-end',
+        bottom: 2,
+        minWidth: 200,
+        position: 'absolute',
+        right: 0,
+      },
+    } as const)
+)
 export default ExplodingHeightRetainer

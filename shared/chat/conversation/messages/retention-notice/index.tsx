@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Icon, Text} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 export type Props = {
   canChange: boolean
@@ -8,37 +8,45 @@ export type Props = {
   explanation: string
 }
 
-const iconType = isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
+const iconType = Styles.isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
 
 export default (props: Props) => {
   return (
-    <Box style={containerStyle}>
-      <Icon type={iconType} style={iconStyle} />
-      <Text center={true} type="BodySmallSemibold">
+    <Kb.Box style={styles.container}>
+      <Kb.Icon type={iconType} style={styles.icon} />
+      <Kb.Text center={true} type="BodySmallSemibold">
         {props.explanation}
-      </Text>
+      </Kb.Text>
       {props.canChange && (
-        <Text type="BodySmallSemibold" style={{color: globalColors.blueDark}} onClick={props.onChange}>
+        <Kb.Text
+          type="BodySmallSemibold"
+          style={{color: Styles.globalColors.blueDark}}
+          onClick={props.onChange}
+        >
           Change this
-        </Text>
+        </Kb.Text>
       )}
-    </Box>
+    </Kb.Box>
   )
 }
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: globalColors.blueLighter3,
-  paddingBottom: globalMargins.small,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.small,
-  width: '100%',
-}
-
-const iconStyle = {
-  height: isMobile ? 48 : 32,
-  marginBottom: globalMargins.tiny,
-  width: isMobile ? 48 : 32,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.blueLighter3,
+        paddingBottom: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.small,
+        width: '100%',
+      },
+      icon: {
+        height: Styles.isMobile ? 48 : 32,
+        marginBottom: Styles.globalMargins.tiny,
+        width: Styles.isMobile ? 48 : 32,
+      },
+    } as const)
+)

@@ -40,58 +40,61 @@ export const ExplodingExplainerElement = (props: Props) => (
   </Kb.MaybePopup>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: 20,
-    },
-    isElectron: {marginLeft: Styles.globalMargins.tiny},
-    isMobile: {marginTop: Styles.globalMargins.tiny},
-  }),
-  buttonBox: Styles.platformStyles({
-    common: {marginTop: Styles.globalMargins.xsmall},
-    isElectron: {...Styles.globalStyles.flexBoxRow},
-    isMobile: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'stretch',
-      flex: 1,
-      flexDirection: 'column-reverse',
-      paddingTop: Styles.globalMargins.xlarge,
-      width: '100%',
-    },
-  }),
-  labelText: {
-    color: Styles.globalColors.blueDark,
-  },
-  linkText: {
-    color: Styles.globalColors.white,
-  },
-  padding: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blue,
-      maxWidth: 560,
-      padding: Styles.globalMargins.small,
-    },
-    isElectron: {
-      borderRadius: 6,
-      marginBottom: 40,
-      marginLeft: 80,
-      marginRight: 80,
-      marginTop: 40,
-      minHeight: 440,
-    },
-    isMobile: {
-      flexGrow: 1,
-      flexShrink: 1,
-      maxHeight: '100%',
-      paddingTop: Styles.globalMargins.xlarge,
-    },
-  }),
-  text: {
-    color: Styles.globalColors.white,
-    paddingBottom: Styles.globalMargins.xsmall,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.white,
+          borderRadius: 20,
+        },
+        isElectron: {marginLeft: Styles.globalMargins.tiny},
+        isMobile: {marginTop: Styles.globalMargins.tiny},
+      }),
+      buttonBox: Styles.platformStyles({
+        common: {marginTop: Styles.globalMargins.xsmall},
+        isElectron: {...Styles.globalStyles.flexBoxRow},
+        isMobile: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+          flex: 1,
+          flexDirection: 'column-reverse',
+          paddingTop: Styles.globalMargins.xlarge,
+          width: '100%',
+        },
+      }),
+      labelText: {
+        color: Styles.globalColors.blueDark,
+      },
+      linkText: {
+        color: Styles.globalColors.white,
+      },
+      padding: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.blue,
+          maxWidth: 560,
+          padding: Styles.globalMargins.small,
+        },
+        isElectron: {
+          borderRadius: 6,
+          marginBottom: 40,
+          marginLeft: 80,
+          marginRight: 80,
+          marginTop: 40,
+          minHeight: 440,
+        },
+        isMobile: {
+          flexGrow: 1,
+          flexShrink: 1,
+          maxHeight: '100%',
+          paddingTop: Styles.globalMargins.xlarge,
+        },
+      }),
+      text: {
+        color: Styles.globalColors.white,
+        paddingBottom: Styles.globalMargins.xsmall,
+      },
+    } as const)
+)
 
 export default Kb.HeaderOnMobile(ExplodingExplainerElement)

@@ -49,41 +49,44 @@ class UnfurlPrompt extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  choiceContainer: Styles.platformStyles({
-    isElectron: {
-      width: 370,
-    },
-  }),
-  closeContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-    },
-    isElectron: {
-      marginLeft: 'auto',
-      width: 30,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignSelf: 'flex-start',
-      backgroundColor: Styles.globalColors.blueLighter3,
-      borderRadius: Styles.borderRadius,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      maxWidth: 600,
-    },
-  }),
-  icon: Styles.platformStyles({
-    isElectron: {
-      alignSelf: 'center',
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      choiceContainer: Styles.platformStyles({
+        isElectron: {
+          width: 370,
+        },
+      }),
+      closeContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          marginLeft: 'auto',
+          width: 30,
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignSelf: 'flex-start',
+          backgroundColor: Styles.globalColors.blueLighter3,
+          borderRadius: Styles.borderRadius,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          maxWidth: 600,
+        },
+      }),
+      icon: Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'center',
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
+        },
+      }),
+    } as const)
+)
 
 export default UnfurlPrompt

@@ -39,12 +39,12 @@ class TopMessage extends React.PureComponent<Props> {
         {this.props.loadMoreType === 'noMoreToLoad' && this.props.showRetentionNotice && (
           <RetentionNotice conversationIDKey={this.props.conversationIDKey} measure={this.props.measure} />
         )}
-        <Kb.Box style={spacerStyle} />
+        <Kb.Box style={styles.spacer} />
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
         {this.props.pendingState === 'waiting' && (
-          <Kb.Text type="BodySmallSemibold" style={loadingStyle}>
+          <Kb.Text type="BodySmallSemibold" style={styles.loading}>
             Loading...
           </Kb.Text>
         )}
@@ -54,7 +54,7 @@ class TopMessage extends React.PureComponent<Props> {
             {this.props.createConversationError ? (
               <>
                 <Kb.Text type="BodySmallSemibold">Failed to create conversation:</Kb.Text>
-                <Kb.Text type="BodySmall" style={errorTextStyle} selectable={true}>
+                <Kb.Text type="BodySmall" style={styles.errorText} selectable={true}>
                   {this.props.createConversationError}
                 </Kb.Text>
               </>
@@ -66,17 +66,17 @@ class TopMessage extends React.PureComponent<Props> {
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
           this.props.pendingState === 'done' && (
-            <Kb.Box style={moreStyle}>
+            <Kb.Box style={styles.more}>
               <NewChatCard />
             </Kb.Box>
           )}
         {this.props.showTeamOffer && (
-          <Kb.Box style={moreStyle}>
+          <Kb.Box style={styles.more}>
             <CreateTeamNotice />
           </Kb.Box>
         )}
         {this.props.loadMoreType === 'moreToLoad' && (
-          <Kb.Box style={moreStyle}>
+          <Kb.Box style={styles.more}>
             <Kb.Text type="BodyBig">
               <Kb.Emoji size={16} emojiName=":moyai:" />
             </Kb.Text>
@@ -88,28 +88,30 @@ class TopMessage extends React.PureComponent<Props> {
   }
 }
 
-const loadingStyle = {
-  marginLeft: Styles.globalMargins.small,
-}
-
-const spacerStyle = {
-  height: Styles.globalMargins.small,
-}
-
-const moreStyle = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  paddingBottom: Styles.globalMargins.medium,
-  width: '100%',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      errorText: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      loading: {
+        marginLeft: Styles.globalMargins.small,
+      },
+      more: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        paddingBottom: Styles.globalMargins.medium,
+        width: '100%',
+      },
+      spacer: {
+        height: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 const errorStyle = {
-  ...moreStyle,
+  ...styles.more,
   margin: Styles.globalMargins.medium,
-}
-
-const errorTextStyle = {
-  marginTop: Styles.globalMargins.tiny,
 }
 
 export default Container.namedConnect(
