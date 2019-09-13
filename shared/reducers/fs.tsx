@@ -219,9 +219,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.resetStore:
       return initialState
     case FsGen.pathItemLoaded:
-      return state.update('pathItems', pathItems =>
-        pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
-      )
+      return state
+        .update('pathItems', pathItems =>
+          pathItems.update(action.payload.path, original => updatePathItem(original, action.payload.pathItem))
+        )
+        .update('softErrors', softErrors =>
+          softErrors
+            .removeIn(['pathErrors', action.payload.path])
+            .removeIn(['tlfErrors', Constants.getTlfPath(action.payload.path)])
+        )
     case FsGen.folderListLoaded: {
       const toRemove: Array<Types.Path> = []
       const toMerge = action.payload.pathItems.map((newPathItem, path) => {
