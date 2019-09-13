@@ -50,6 +50,7 @@ const styles = Styles.styleSheetCreate(
         top: Styles.globalMargins.xxtiny,
       },
       button: {
+        ...Styles.desktopStyles.windowDraggingClickable,
         flexGrow: 1,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
