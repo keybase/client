@@ -99,7 +99,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
         disabled: true,
         onClick: null,
         subTitle:
-          'You need to delete your other emails, or make another one primary, before you can delete your primary email.',
+          'You need to delete your other emails, or make another one primary, before you can delete this email.',
         title: 'Delete',
       }
     : {danger: true, onClick: props.onDelete, title: 'Delete'}
