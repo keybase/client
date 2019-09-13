@@ -62,13 +62,13 @@ export default connect(
         ...(stateProps._phones ? stateProps._phones.keys() : []),
       ]),
       hasPassword: stateProps.hasPassword,
+      moreThanOneEmail: stateProps._emails && stateProps._emails.size > 1,
       onClearSupersededPhoneNumber: () =>
         supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
       supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
       title: 'Your account',
       tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
       tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
-      moreThanOneEmail: stateProps._emails && stateProps._emails.size > 1,
       waiting: stateProps.waiting,
     }
   }

@@ -34,12 +34,17 @@ const getPrompt = (props: Props) =>
   )
 
 const getDescription = (props: Props) => {
-  let description = '';
-  if (props.searchable) {
-    description += `Your friends will no longer be able to find you by this ${props.type === 'email' ? 'email address' : 'number'}.`
-  }
+  let description = ''
   if (props.lastEmail) {
-    description += `\nYou won't get important notifications from Keybase`
+    description += `Since you'll have deleted all email addresses, you won't get email notifications from Keybase anymore.`
+  }
+  if (props.searchable) {
+    if (props.lastEmail) {
+      description += ' '
+    }
+    description += `Your friends will no longer be able to find you by this ${
+      props.type === 'email' ? 'email address' : 'number'
+    }.`
   }
   return description
 }
@@ -55,7 +60,12 @@ const ConfirmDeleteAddress = (props: Props) => (
   />
 )
 
-type OwnProps = Container.RouteProps<{address: string; searchable: boolean; type: 'email' | 'phone', lastEmail?: boolean}>
+type OwnProps = Container.RouteProps<{
+  address: string
+  searchable: boolean
+  type: 'email' | 'phone'
+  lastEmail?: boolean
+}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()

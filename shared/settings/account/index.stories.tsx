@@ -10,6 +10,7 @@ const props = {
   addedPhone: false,
   contactKeys: I.List(),
   hasPassword: false,
+  moreThanOneEmail: true,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
   onClearAddedEmail: Sb.action('onClearAddedEmail'),
@@ -23,7 +24,6 @@ const props = {
   tooManyEmails: false,
   tooManyPhones: false,
   waiting: false,
-  moreThanOneEmail: true,
 }
 
 const cc = {
@@ -48,9 +48,9 @@ const contacts: {
 }
 
 const confirmDeleteProps = {
+  lastEmail: false,
   onCancel: Sb.action('onCancel'),
   onConfirm: Sb.action('onConfirm'),
-  lastEmail: false,
 }
 
 const provider = Sb.createPropProviderWithCommon({
