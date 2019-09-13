@@ -36,6 +36,22 @@ const realCSS = (inTeam: boolean) => `
 
 // TODO
 // * Use ListItem2
+
+/*
+ * Case 1: the service is 'keybase' (isKeybaseResult = true)
+ *
+ *    Top: "{keybaseUsername}" (with following state color)
+ *    Bottom: "{prettyName} • {services icons}"
+ *
+ * Case 2: the service is not keybase
+ *
+ *    Top: "{serviceUsername}"
+ *    Bottom: "{keybaseUsername} • {prettyName} • {services icons}"
+ *
+ *    {keybaseUsername} if the user is also a keybase user
+ *    {prettyName} if the user added it
+ *    {service icons} if the user has proofs
+ */
 const UserResult = (props: Props) => {
   /*
    * Regardless of the service that is being searched, if we find that a
@@ -58,20 +74,43 @@ const UserResult = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
-        style={Styles.collapseStyles([styles.rowContainer])}
+        style={styles.rowContainer}
       >
         {!Styles.isMobile && <Kb.DesktopStyle style={realCSS(props.inTeam)} />}
         <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
-        <Username
-          isPreExistingTeamMember={props.isPreExistingTeamMember}
-          isKeybaseResult={isKeybaseResult}
-          keybaseUsername={keybaseUsername}
-          displayLabel={props.displayLabel}
-          username={serviceUsername || ''}
-          prettyName={props.prettyName}
-          followingState={props.followingState}
-          services={props.services}
-        />
+        <Kb.Box2 direction="vertical" style={styles.username}>
+          {serviceUsername ? (
+            <>
+              <Username
+                followingState={props.followingState}
+                isKeybaseResult={isKeybaseResult}
+                keybaseUsername={keybaseUsername}
+                username={serviceUsername || ''}
+              />
+              <BottomRow
+                displayLabel={props.displayLabel}
+                followingState={props.followingState}
+                isKeybaseResult={isKeybaseResult}
+                isPreExistingTeamMember={props.isPreExistingTeamMember}
+                keybaseUsername={keybaseUsername}
+                prettyName={props.prettyName}
+                services={props.services}
+                username={serviceUsername || ''}
+              />
+            </>
+          ) : (
+            <>
+              <Kb.Text type="BodySemibold" lineClamp={2} style={styles.contactName}>
+                {props.prettyName}
+              </Kb.Text>
+              {!!props.displayLabel && props.displayLabel !== props.prettyName && (
+                <Kb.Text type="BodySmall" lineClamp={1}>
+                  {props.displayLabel}
+                </Kb.Text>
+              )}
+            </>
+          )}
+        </Kb.Box2>
         {!props.isPreExistingTeamMember && (
           <ActionButton inTeam={props.inTeam} onAdd={props.onAdd} onRemove={props.onRemove} />
         )}
@@ -81,6 +120,14 @@ const UserResult = (props: Props) => {
 }
 
 const AvatarSize = 48
+const dotSeparator = '•'
+
+const isPreExistingTeamMemberText = (prettyName: string) =>
+  `${prettyName ? prettyName + ` ${dotSeparator} ` : ''} Already in team`
+
+const textWithConditionalSeparator = (text: string, conditional: boolean) =>
+  `${text}${conditional ? ` ${dotSeparator}` : ''}`
+
 const Avatar = ({
   resultForService,
   keybaseUsername,
@@ -103,88 +150,98 @@ const Avatar = ({
   )
 }
 
-const isPreExistingTeamMemberText = (prettyName: string) =>
-  `${prettyName ? prettyName + ' • ' : ''} Already in team`
+const ServicesIconList = (props: {services: Array<Types.ServiceIdWithContact>}) => (
+  <Kb.Box2 direction="horizontal">
+    {props.services.map(service => (
+      <Kb.WithTooltip key={service} tooltip={service} position="top center">
+        <Kb.Icon
+          fontSize={14}
+          type={serviceIdToIconFont(service)}
+          style={Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
+          boxStyle={!Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
+        />
+      </Kb.WithTooltip>
+    ))}
+  </Kb.Box2>
+)
 
 const FormatPrettyName = (props: {
   displayLabel: string
-  followingState: Types.FollowingState
-  isKeybaseResult: boolean
-  keybaseUsername: string | null
   prettyName: string
   services: Array<Types.ServiceIdWithContact>
 }) =>
-  props.isKeybaseResult ? (
+  props.prettyName ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
-      {props.prettyName && props.prettyName !== props.keybaseUsername ? (
-        <Kb.Text type="BodySmall">{props.prettyName + (props.services.length ? ' •' : '')}</Kb.Text>
-      ) : (
-        !!props.displayLabel && (
-          <Kb.Text type="BodySmall">{props.displayLabel + (props.services.length ? ' •' : '')}</Kb.Text>
-        )
-      )}
-      <Kb.Box2 direction="horizontal">
-        {props.services.map(service => (
-          <Kb.WithTooltip key={service} tooltip={service} position="top center">
-            <Kb.Icon
-              fontSize={14}
-              type={serviceIdToIconFont(service)}
-              style={Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
-              boxStyle={!Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
-            />
-          </Kb.WithTooltip>
-        ))}
-      </Kb.Box2>
+      <Kb.Text type="BodySmall">
+        {textWithConditionalSeparator(props.prettyName, !!props.services.length)}
+      </Kb.Text>
     </Kb.Box2>
-  ) : null
+  ) : (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
+      <Kb.Text type="BodySmall">
+        {textWithConditionalSeparator(props.displayLabel, !!props.services.length)}
+      </Kb.Text>
+    </Kb.Box2>
+  )
 
-const Username = (props: {
-  username: string
-  prettyName: string
-  displayLabel: string
-  isPreExistingTeamMember?: boolean
-  followingState: Types.FollowingState
+const BottomRow = (props: {
   isKeybaseResult: boolean
+  username: string
+  isPreExistingTeamMember: boolean
   keybaseUsername: string | null
+  followingState: Types.FollowingState
+  displayLabel: string
+  prettyName: string
   services: {[K in Types.ServiceIdWithContact]?: string}
-}) => (
-  <Kb.Box2 direction="vertical" style={styles.username}>
-    {props.username ? (
+}) => {
+  const keybaseUsernameComponent =
+    !props.isKeybaseResult && props.keybaseUsername ? (
       <>
         <Kb.Text
           type="BodySemibold"
           style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
         >
-          {props.username}
+          {props.keybaseUsername}
         </Kb.Text>
-        {props.isPreExistingTeamMember ? (
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {isPreExistingTeamMemberText(props.prettyName)}
-          </Kb.Text>
-        ) : (
+        <Kb.Text type="BodySmall">{` ${dotSeparator} `} </Kb.Text>
+      </>
+    ) : null
+
+  return (
+    <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+      {keybaseUsernameComponent}
+      {props.isPreExistingTeamMember ? (
+        <Kb.Text type="BodySmall" lineClamp={1}>
+          {isPreExistingTeamMemberText(props.prettyName)}
+        </Kb.Text>
+      ) : (
+        <Kb.Box2 direction="horizontal">
           <FormatPrettyName
             displayLabel={props.displayLabel}
-            followingState={props.followingState}
-            isKeybaseResult={props.isKeybaseResult}
-            keybaseUsername={props.keybaseUsername}
             prettyName={props.prettyName}
             services={serviceMapToArray(props.services)}
           />
-        )}
-      </>
-    ) : (
-      <>
-        <Kb.Text type="BodySemibold" lineClamp={2} style={styles.contactName}>
-          {props.prettyName}
-        </Kb.Text>
-        {!!props.displayLabel && props.displayLabel !== props.prettyName && (
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {props.displayLabel}
-          </Kb.Text>
-        )}
-      </>
+          <ServicesIconList services={serviceMapToArray(props.services)} />
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+}
+
+const Username = (props: {
+  followingState: Types.FollowingState
+  isKeybaseResult: boolean
+  keybaseUsername: string | null
+  username: string
+}) => (
+  <Kb.Text
+    type="BodySemibold"
+    style={followingStateToStyle(
+      props.isKeybaseResult && props.keybaseUsername ? props.followingState : 'NoState'
     )}
-  </Kb.Box2>
+  >
+    {props.username}
+  </Kb.Text>
 )
 
 const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () => void}) => {

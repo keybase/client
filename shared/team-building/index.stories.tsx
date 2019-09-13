@@ -726,26 +726,6 @@ const load = () => {
           onAdd={Sb.action('onAdd')}
           onRemove={Sb.action('onRemove')}
         />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
-            keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
-          }}
-          followingState={'Following' as const}
-          highlight={true}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
       </>
     ))
     .add('Keybase/Contact Tab - Keybase User w/ Contact', () => null)
