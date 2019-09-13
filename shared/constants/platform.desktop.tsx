@@ -50,7 +50,7 @@ const getLinuxPaths = () => {
   return {
     cacheRoot: logDir,
     dataRoot: `${(useXDG && process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
-    guiConfigFilename: `${homeConfigDir}/gui_config.json`,
+    guiConfigFilename: `${homeConfigDir}/${appName}/gui_config.json`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
