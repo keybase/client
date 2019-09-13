@@ -661,7 +661,97 @@ const load = () => {
 
   Sb.storiesOf('Team-Building/User Result', module)
     .addDecorator(provider)
-    .add('Chris', () => (
+    .add('Keybase/Contact Tab - Keybase User', () => (
+      <>
+        {/* Following */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max on Facebook',
+            github: 'max on GitHub',
+            hackernews: 'max on HackerNews',
+            keybase: 'max',
+            reddit: 'max on Reddit',
+            twitter: 'max on Twitter',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Not Following */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max on Facebook',
+            github: 'max on GitHub',
+            hackernews: 'max on HackerNews',
+            keybase: 'max',
+            reddit: 'max on Reddit',
+            twitter: 'max on Twitter',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Following - In Team */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max on Facebook',
+            github: 'max on GitHub',
+            hackernews: 'max on HackerNews',
+            keybase: 'max',
+            reddit: 'max on Reddit',
+            twitter: 'max on Twitter',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max on Facebook',
+            github: 'max on GitHub',
+            hackernews: 'max on HackerNews',
+            keybase: 'max',
+            reddit: 'max on Reddit',
+            twitter: 'max on Twitter',
+          }}
+          followingState={'Following' as const}
+          highlight={true}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
+    ))
+    .add('Keybase/Contact Tab - Keybase User w/ Contact', () => null)
+    .add('Service Tab - Also Keybse User', () => null)
+    .add('Service Tab - Not Keybsae ', () => null)
+    .add('OLD - Chris', () => (
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
@@ -672,6 +762,7 @@ const load = () => {
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
           hackernews: 'malgorithms on HackerNews',
+          keybase: 'malgorithms',
           reddit: 'malgorithms on Reddit',
           twitter: 'malgorithms on Twitter',
         }}
@@ -682,7 +773,7 @@ const load = () => {
         onRemove={Sb.action('onRemove')}
       />
     ))
-    .add('Chris (already in team)', () => (
+    .add('OLD - Chris (already in team)', () => (
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
@@ -703,7 +794,7 @@ const load = () => {
         onRemove={Sb.action('onRemove')}
       />
     ))
-    .add('marcopolo (github) - keybase user. following', () => (
+    .add('OLD - marcopolo (github) - keybase user. following', () => (
       <UserResult
         resultForService="github"
         username="marcopolo"
@@ -718,7 +809,7 @@ const load = () => {
         onRemove={Sb.action('onRemove')}
       />
     ))
-    .add('marcopolo2 (github) - no keybase user', () => (
+    .add('OLD - marcopolo2 (github) - no keybase user', () => (
       <UserResult
         resultForService="github"
         username="marcopolo"
@@ -733,7 +824,7 @@ const load = () => {
         isPreExistingTeamMember={false}
       />
     ))
-    .add('Chris Highlighted (already in team)', () => (
+    .add('OLD - Chris Highlighted (already in team)', () => (
       <UserResult
         isPreExistingTeamMember={false}
         username="chris"

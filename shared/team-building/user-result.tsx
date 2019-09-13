@@ -3,55 +3,81 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
-import {Props} from './user-result'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
+
+/*
+ * User Result can be in several layout states depending on the context in which it is rendered
+ *
+ * 1. Team Building > "A Keybase User" (desktop) or Team Building > "Keybase & Contacts" (mobile)
+ *    State 1: The user is a keybase user
+ *    State 2:
+ *
+ * 2. Team Building > Any other service tab
+ */
+export type Props = {
+  // They are already a member in the actual team, not this temporary set.
+  isPreExistingTeamMember: boolean
+  resultForService: Types.ServiceIdWithContact
+  username: string
+  prettyName: string
+  displayLabel: string
+  services: {[K in Types.ServiceIdWithContact]?: string}
+  inTeam: boolean
+  followingState: Types.FollowingState
+  highlight: boolean
+  onAdd: () => void
+  onRemove: () => void
+}
+
+// Desktop hover styling
+const realCSS = (inTeam: boolean) => `
+    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
+`
 
 // TODO
 // * Use ListItem2
+const UserResult = (props: Props) => {
+  /*
+   * Regardless of the service that is being searched, if we find that a
+   * service user is also a keybase user, we also want to show their keybase
+   * username, other services, and full name.
+   */
+  const isKeybaseResult = props.resultForService === 'keybase'
+  const keybaseUsername: string | null = props.services['keybase'] || null
+  const serviceUsername = props.services[props.resultForService]
+  const onAdd = !props.isPreExistingTeamMember ? props.onAdd : undefined
+  const onRemove = !props.isPreExistingTeamMember ? props.onRemove : undefined
 
-class UserResult extends React.Component<Props> {
-  render() {
-    const keybaseResult = this.props.resultForService === 'keybase'
-    const keybaseUsername: string | null = this.props.services['keybase'] || null
-    const serviceUsername = this.props.services[this.props.resultForService]
-    const onAdd = !this.props.isPreExistingTeamMember ? this.props.onAdd : undefined
-    const onRemove = !this.props.isPreExistingTeamMember ? this.props.onRemove : undefined
-
-    return (
-      <Kb.ClickableBox onClick={this.props.inTeam ? onRemove : onAdd}>
-        <Kb.Box2
-          className={Styles.classNames({
-            hoverRow: !this.props.inTeam,
-            hoverRowinTeam: this.props.inTeam,
-          })}
-          direction="horizontal"
-          fullWidth={true}
-          centerChildren={true}
-          style={styles.rowContainer}
-        >
-          <Avatar resultForService={this.props.resultForService} keybaseUsername={keybaseUsername} />
-          <Username
-            isPreExistingTeamMember={this.props.isPreExistingTeamMember}
-            keybaseResult={keybaseResult}
-            keybaseUsername={keybaseUsername}
-            displayLabel={this.props.displayLabel}
-            username={serviceUsername || ''}
-            prettyName={this.props.prettyName}
-            followingState={this.props.followingState}
-            services={this.props.services}
-          />
-          {!this.props.isPreExistingTeamMember && (
-            <ActionButton
-              inTeam={this.props.inTeam}
-              onAdd={this.props.onAdd}
-              onRemove={this.props.onRemove}
-              highlight={this.props.highlight}
-            />
-          )}
-        </Kb.Box2>
-      </Kb.ClickableBox>
-    )
-  }
+  return (
+    <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
+      <Kb.Box2
+        className={Styles.classNames({
+          hoverRow: !props.inTeam,
+          hoverRowinTeam: props.inTeam,
+        })}
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        style={Styles.collapseStyles([styles.rowContainer])}
+      >
+        {!Styles.isMobile && <Kb.DesktopStyle style={realCSS(props.inTeam)} />}
+        <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
+        <Username
+          isPreExistingTeamMember={props.isPreExistingTeamMember}
+          isKeybaseResult={isKeybaseResult}
+          keybaseUsername={keybaseUsername}
+          displayLabel={props.displayLabel}
+          username={serviceUsername || ''}
+          prettyName={props.prettyName}
+          followingState={props.followingState}
+          services={props.services}
+        />
+        {!props.isPreExistingTeamMember && (
+          <ActionButton inTeam={props.inTeam} onAdd={props.onAdd} onRemove={props.onRemove} />
+        )}
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
 }
 
 const AvatarSize = 48
@@ -83,12 +109,12 @@ const isPreExistingTeamMemberText = (prettyName: string) =>
 const FormatPrettyName = (props: {
   displayLabel: string
   followingState: Types.FollowingState
-  keybaseResult: boolean
+  isKeybaseResult: boolean
   keybaseUsername: string | null
   prettyName: string
   services: Array<Types.ServiceIdWithContact>
 }) =>
-  props.keybaseResult ? (
+  props.isKeybaseResult ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
       {props.prettyName && props.prettyName !== props.keybaseUsername ? (
         <Kb.Text type="BodySmall">{props.prettyName + (props.services.length ? ' •' : '')}</Kb.Text>
@@ -97,15 +123,18 @@ const FormatPrettyName = (props: {
           <Kb.Text type="BodySmall">{props.displayLabel + (props.services.length ? ' •' : '')}</Kb.Text>
         )
       )}
-      {props.services.map(service => (
-        <Kb.WithTooltip key={service} tooltip={service} position="top center">
-          <Kb.Icon
-            fontSize={14}
-            type={serviceIdToIconFont(service)}
-            style={Kb.iconCastPlatformStyles(styles.serviceIcon)}
-          />
-        </Kb.WithTooltip>
-      ))}
+      <Kb.Box2 direction="horizontal">
+        {props.services.map(service => (
+          <Kb.WithTooltip key={service} tooltip={service} position="top center">
+            <Kb.Icon
+              fontSize={14}
+              type={serviceIdToIconFont(service)}
+              style={Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
+              boxStyle={!Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
+            />
+          </Kb.WithTooltip>
+        ))}
+      </Kb.Box2>
     </Kb.Box2>
   ) : null
 
@@ -115,7 +144,7 @@ const Username = (props: {
   displayLabel: string
   isPreExistingTeamMember?: boolean
   followingState: Types.FollowingState
-  keybaseResult: boolean
+  isKeybaseResult: boolean
   keybaseUsername: string | null
   services: {[K in Types.ServiceIdWithContact]?: string}
 }) => (
@@ -136,7 +165,7 @@ const Username = (props: {
           <FormatPrettyName
             displayLabel={props.displayLabel}
             followingState={props.followingState}
-            keybaseResult={props.keybaseResult}
+            isKeybaseResult={props.isKeybaseResult}
             keybaseUsername={props.keybaseUsername}
             prettyName={props.prettyName}
             services={serviceMapToArray(props.services)}
@@ -158,12 +187,7 @@ const Username = (props: {
   </Kb.Box2>
 )
 
-const ActionButton = (props: {
-  highlight: boolean
-  inTeam: boolean
-  onAdd: () => void
-  onRemove: () => void
-}) => {
+const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () => void}) => {
   const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (
@@ -189,12 +213,16 @@ const AlreadyAddedIconButton = () => (
 const ActionButtonSize = 40
 export const userResultHeight = Styles.globalMargins.xlarge
 const styles = Styles.styleSheetCreate(() => ({
-  actionButton: {
-    height: ActionButtonSize,
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.small,
-    width: ActionButtonSize,
-  },
+  actionButton: Styles.platformStyles({
+    common: {
+      height: ActionButtonSize,
+      marginLeft: Styles.globalMargins.tiny,
+      width: ActionButtonSize,
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.small,
+    },
+  }),
   addToTeamIcon: {
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
