@@ -232,10 +232,8 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.Chain.PerTeamKeys, 4)
 	require.Zero(t, len(team.ReaderKeyMasks))
 
-	t.Logf("C becomes a regular bot and gets access")
-	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username)
-	require.NoError(t, err)
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT, nil)
+	t.Logf("D becomes a regular bot and gets access")
+	err = EditMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 
 	team, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
@@ -245,8 +243,22 @@ func TestLoaderKeyGen(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requireGen(team, 5)
-	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 5, "number of kbfs rkms")
+	requireGen(team, 4)
+	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
+
+	t.Logf("C becomes a restricted bot and has no access")
+	err = EditMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	require.NoError(t, err)
+
+	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, team)
+	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Len(t, team.Chain.PerTeamKeys, 4)
+	require.Zero(t, len(team.ReaderKeyMasks))
 }
 
 func TestLoaderKBFSKeyGen(t *testing.T) {

@@ -263,7 +263,8 @@ protocol local {
     EXPIRED_5,
     TOOMANYATTEMPTS_6,
     ALREADY_DELETED_7,
-    UPLOADFAILED_8
+    UPLOADFAILED_8,
+    RESTRICTEDBOT_9
   }
 
   record OutboxStateError {
@@ -819,6 +820,7 @@ protocol local {
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
+    array<ConversationID> convIDs;
 
     boolean unreadFirst;
     UnreadFirstNumLimit unreadFirstLimit;
@@ -1180,4 +1182,10 @@ protocol local {
   PinMessageRes pinMessage(ConversationID convID, MessageID msgID);
   PinMessageRes unpinMessage(ConversationID convID);
   void ignorePinnedMessage(ConversationID convID);
+
+  void addBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
+  void editBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
+  void removeBotMember(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
+  void setBotMemberSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
+  keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
 }

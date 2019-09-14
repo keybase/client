@@ -245,6 +245,7 @@ type MsgSummary struct {
 	AtMentionUsernames  []string                 `codec:"atMentionUsernames,omitempty" json:"at_mention_usernames,omitempty"`
 	ChannelMention      string                   `codec:"channelMention,omitempty" json:"channel_mention,omitempty"`
 	ChannelNameMentions []UIChannelNameMention   `codec:"channelNameMentions,omitempty" json:"channel_name_mentions,omitempty"`
+	BotUID              *string                  `codec:"botUID,omitempty" json:"bot_uid,omitempty"`
 }
 
 func (o MsgSummary) DeepCopy() MsgSummary {
@@ -305,6 +306,13 @@ func (o MsgSummary) DeepCopy() MsgSummary {
 			}
 			return ret
 		})(o.ChannelNameMentions),
+		BotUID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.BotUID),
 	}
 }
 

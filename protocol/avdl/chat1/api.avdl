@@ -160,6 +160,8 @@ protocol api {
     @jsonkey("channel_name_mentions")
     @optional(true)
     array<UIChannelNameMention> channelNameMentions;
+    @jsonkey("bot_uid")
+    union { null, string } botUID;
   }
 
 
