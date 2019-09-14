@@ -121,7 +121,7 @@ export type Coordinate = {
   lon: number
 }
 
-export type _State = {
+export type State = Readonly<{
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
     I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
@@ -174,9 +174,7 @@ export type _State = {
   threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
   lastCoord: Coordinate | null
-}
-
-export type State = I.RecordOf<_State>
+}>
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
   Common.stringToConversationIDKey(conversationID.toString('hex'))
