@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/profiling/pprof"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/sync/errgroup"
@@ -122,6 +123,13 @@ func (r *Runner) updateStats(ctx context.Context) {
 
 	var stats keybase1.RuntimeStats
 	stats.ProcessStats = append(stats.ProcessStats, serviceStats)
+	if serviceStats.CpuSeverity >= 20000 {
+		r.debug(ctx, "cpu severity very high, running 30s profile")
+		if err := pprof.DoTimedPprofProfileInDir(r.G().GetLog(),
+			pprof.CpuPprofProfiler{}, r.G().GetLogDir(), 30); err != nil {
+			r.debug(ctx, "failed to run cpu profile: %s", err)
+		}
+	}
 
 	stats.DbStats = make([]keybase1.DbStats, 0, 2)
 	r.addDbStats(ctx, keybase1.DbType_MAIN, r.G().LocalDb, &stats)

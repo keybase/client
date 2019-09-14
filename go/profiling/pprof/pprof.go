@@ -31,7 +31,7 @@ func durationSecToDuration(s keybase1.DurationSec) time.Duration {
 
 // DoTimedPprofProfile asynchronously runs a profile with the given
 // timedProfiler and associated parameters.
-func DoTimedPprofProfile(log libkb.LogUI, delayedLog logger.Logger,
+func DoTimedPprofProfile(log logger.Logger,
 	profiler TimedPprofProfiler, outputFile string,
 	durationSeconds keybase1.DurationSec) (err error) {
 	if !filepath.IsAbs(outputFile) {
@@ -70,13 +70,13 @@ func DoTimedPprofProfile(log libkb.LogUI, delayedLog logger.Logger,
 		time.Sleep(durationSecToDuration(durationSeconds))
 		profiler.Stop()
 		close(f)
-		delayedLog.Info("%s profile to %s done", name, outputFile)
+		log.Info("%s profile to %s done", name, outputFile)
 	}()
 
 	return nil
 }
 
-func DoTimedPprofProfileInDir(log libkb.LogUI, delayedLog logger.Logger,
+func DoTimedPprofProfileInDir(log logger.Logger,
 	profiler TimedPprofProfiler, dir string,
 	durationSeconds keybase1.DurationSec) (err error) {
 	name := profiler.Name()
@@ -98,7 +98,7 @@ func DoTimedPprofProfileInDir(log libkb.LogUI, delayedLog logger.Logger,
 	}
 
 	outputFile := profiler.MakeFilename(dir, time.Now(), durationSecToDuration(durationSeconds))
-	return DoTimedPprofProfile(log, delayedLog, profiler, outputFile, durationSeconds)
+	return DoTimedPprofProfile(log, profiler, outputFile, durationSeconds)
 }
 
 type CpuPprofProfiler struct{}

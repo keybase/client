@@ -24,8 +24,7 @@ func NewPprofHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PprofHandler {
 }
 
 func (c *PprofHandler) ProcessorProfile(_ context.Context, arg keybase1.ProcessorProfileArg) (err error) {
-	logui := c.getLogUI(arg.SessionID)
-	return pprof.DoTimedPprofProfile(logui, c.G().Log, pprof.CpuPprofProfiler{}, arg.ProfileFile,
+	return pprof.DoTimedPprofProfile(c.G().Log, pprof.CpuPprofProfiler{}, arg.ProfileFile,
 		arg.ProfileDurationSeconds)
 }
 
@@ -39,19 +38,16 @@ func (c *PprofHandler) logDir(logDirForMobile string) string {
 }
 
 func (c *PprofHandler) LogProcessorProfile(_ context.Context, arg keybase1.LogProcessorProfileArg) (err error) {
-	logui := c.getLogUI(arg.SessionID)
-	return pprof.DoTimedPprofProfileInDir(logui, c.G().Log, pprof.CpuPprofProfiler{},
+	return pprof.DoTimedPprofProfileInDir(c.G().Log, pprof.CpuPprofProfiler{},
 		c.logDir(arg.LogDirForMobile), arg.ProfileDurationSeconds)
 }
 
 func (c *PprofHandler) Trace(_ context.Context, arg keybase1.TraceArg) (err error) {
-	logui := c.getLogUI(arg.SessionID)
-	return pprof.DoTimedPprofProfile(logui, c.G().Log, pprof.TracePprofProfiler{}, arg.TraceFile,
+	return pprof.DoTimedPprofProfile(c.G().Log, pprof.TracePprofProfiler{}, arg.TraceFile,
 		arg.TraceDurationSeconds)
 }
 
 func (c *PprofHandler) LogTrace(_ context.Context, arg keybase1.LogTraceArg) (err error) {
-	logui := c.getLogUI(arg.SessionID)
-	return pprof.DoTimedPprofProfileInDir(logui, c.G().Log, pprof.TracePprofProfiler{},
+	return pprof.DoTimedPprofProfileInDir(c.G().Log, pprof.TracePprofProfiler{},
 		c.logDir(arg.LogDirForMobile), arg.TraceDurationSeconds)
 }
