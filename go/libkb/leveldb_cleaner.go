@@ -176,9 +176,6 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 		return true
 	}
 	validCache := c.cache.Len() >= c.config.MinCacheSize
-	if c.isMobile {
-		return validCache && c.G().MobileAppState.State() == keybase1.MobileAppState_BACKGROUNDACTIVE
-	}
 	return validCache &&
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }
