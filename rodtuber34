@@ -1,0 +1,33 @@
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120984fe2a2bae9b4b1f70ccff40145dcf69540964f6a5242ba46426da9b1817a7b0a",
+      "host": "keybase.io",
+      "kid": "0120984fe2a2bae9b4b1f70ccff40145dcf69540964f6a5242ba46426da9b1817a7b0a",
+      "uid": "fa92c543a4186acb368963fb81894619",
+      "username": "rodtuber34"
+    },
+    "merkle_root": {
+      "ctime": 1568117358,
+      "hash": "a22ae9898e08977d34a5de6a58e79e577cdedecd8bca549bee98464b8cb64315568841405852312fb2f96a58297f0e9d6235d25e1413a171b34b2fd601fcb5ec",
+      "hash_meta": "c6fbb44c9505a1b0636f5c906752c8d28b81ed4c14f391237ce7ae3eaa3245ac",
+      "seqno": 6395433
+    },
+    "service": {
+      "entropy": "u7lTKpW/xWfz6VTCtbYX4e9j",
+      "name": "github",
+      "username": "rodtuber34"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "4.4.1"
+  },
+  "ctime": 1568117362,
+  "expire_in": 504576000,
+  "prev": "e8279a49ffbe9c7bbb49be9805c195c06fbd8521ce998f86c72ac3a68ac58c33",
+  "seqno": 14,
+  "tag": "signature"
+}
