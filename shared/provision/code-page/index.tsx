@@ -24,6 +24,7 @@ type Props = {
   tabOverride?: Tab
   textCode: string
   onBack: () => void
+  onClose: () => void
   onSubmitTextCode: (code: string) => void
 }
 
@@ -53,6 +54,10 @@ class CodePage2 extends React.Component<Props, State> {
     if (curDefault !== prevDefault) {
       this.setState({tab: curDefault})
     }
+  }
+
+  componentWillUnmount() {
+    this.props.onClose()
   }
 
   static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
@@ -122,6 +127,7 @@ class CodePage2 extends React.Component<Props, State> {
         fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
+        {/*<Kb.NavigationEvents onDidBlur={this.props.onClose} />*/}
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
