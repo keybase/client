@@ -1374,11 +1374,15 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.attachmentFullscreenSelection: {
         const {autoPlay, message} = action.payload
-        return state.set('attachmentFullscreenSelection', {autoPlay, message})
+        draftState.attachmentFullscreenSelection = {autoPlay, message}
+        return
       }
       case Chat2Gen.handleSeeingWallets: // fallthrough
       case Chat2Gen.setWalletsOld:
-        return state.isWalletsNew ? state.set('isWalletsNew', false) : state
+        if (draftState.isWalletsNew) {
+          draftState.isWalletsNew = false
+        }
+        return
       case Chat2Gen.attachmentLoading: {
         const {message} = action.payload
         let nextState = state
