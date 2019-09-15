@@ -540,28 +540,36 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         )
         return
       case Chat2Gen.clearCommandStatusInfo:
-        return state.deleteIn(['commandStatusMap', action.payload.conversationIDKey])
+        draftState.commandStatusMap = draftState.commandStatusMap.delete(action.payload.conversationIDKey)
+        return
       case Chat2Gen.giphyToggleWindow: {
         const conversationIDKey = action.payload.conversationIDKey
-        let nextState = state.setIn(['giphyWindowMap', conversationIDKey], action.payload.show)
+        draftState.giphyWindowMap = draftState.giphyWindowMap.set(conversationIDKey, action.payload.show)
         if (!action.payload.show) {
-          nextState = nextState.setIn(['giphyResultMap', conversationIDKey], null)
+          draftState.giphyResultMap = draftState.giphyResultMap.set(conversationIDKey, null)
         }
         if (action.payload.clearInput) {
-          nextState = nextState.setIn(['unsentTextMap', conversationIDKey], new HiddenString(''))
+          draftState.unsentTextMap = draftState.unsentTextMap.set(conversationIDKey, new HiddenString(''))
         }
-        return nextState
+        return
       }
       case Chat2Gen.updateLastCoord:
-        return state.set('lastCoord', action.payload.coord)
+        draftState.lastCoord = action.payload.coord
+        return
       case Chat2Gen.giphyGotSearchResult:
-        return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
+        draftState.giphyResultMap = draftState.giphyResultMap.set(
+          action.payload.conversationIDKey,
+          action.payload.results
+        )
+        return
       case Chat2Gen.setPaymentConfirmInfo:
-        return actionHasError(action)
-          ? state.set('paymentConfirmInfo', {error: action.payload.error})
-          : state.set('paymentConfirmInfo', {summary: action.payload.summary})
+        draftState.paymentConfirmInfo = actionHasError(action)
+          ? {error: action.payload.error}
+          : {summary: action.payload.summary}
+        return
       case Chat2Gen.clearPaymentConfirmInfo:
-        return state.set('paymentConfirmInfo', null)
+        draftState.paymentConfirmInfo = null
+        return
       case Chat2Gen.badgesUpdated: {
         const badgeMap = I.Map<Types.ConversationIDKey, number>(
           action.payload.conversations.map(({convID, badgeCounts}) => [
