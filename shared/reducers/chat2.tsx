@@ -1157,174 +1157,170 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
       }
       case Chat2Gen.replyJump:
-        return state.deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
+        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
+          action.payload.conversationIDKey
+        )
+        return
       case Chat2Gen.threadSearchResults:
-        return state.updateIn(['threadSearchInfoMap', action.payload.conversationIDKey], info =>
-          info.set(
-            'hits',
-            action.payload.clear ? I.List(action.payload.messages) : info.hits.concat(action.payload.messages)
-          )
+        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
+          action.payload.conversationIDKey,
+          info =>
+            info.set(
+              'hits',
+              action.payload.clear
+                ? I.List(action.payload.messages)
+                : info.hits.concat(action.payload.messages)
+            )
         )
+        return
       case Chat2Gen.setThreadSearchStatus:
-        return state.updateIn(
-          ['threadSearchInfoMap', action.payload.conversationIDKey],
-          (info = Constants.makeThreadSearchInfo()) => {
-            return info.set('status', action.payload.status)
-          }
+        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
+          action.payload.conversationIDKey,
+          (info = Constants.makeThreadSearchInfo()) => info.set('status', action.payload.status)
         )
+        return
       case Chat2Gen.toggleThreadSearch:
-        return state
-          .updateIn(
-            ['threadSearchInfoMap', action.payload.conversationIDKey],
-            (old = Constants.makeThreadSearchInfo()) => {
-              return old.merge({
-                hits: I.List(),
-                status: 'initial',
-                visible: !old.visible,
-              })
-            }
-          )
-          .deleteIn(['messageCenterOrdinals', action.payload.conversationIDKey])
-      case Chat2Gen.threadSearch:
-        return state.updateIn(
-          ['threadSearchInfoMap', action.payload.conversationIDKey],
-          (info = Constants.makeThreadSearchInfo()) => {
-            return info.set('hits', I.List())
-          }
-        )
-      case Chat2Gen.setThreadSearchQuery:
-        return state.setIn(['threadSearchQueryMap', action.payload.conversationIDKey], action.payload.query)
-      case Chat2Gen.inboxSearchSetTextStatus:
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            textStatus: action.payload.status,
-          })
-        })
-      case Chat2Gen.inboxSearchSetIndexPercent:
-        if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
-          return state
-        }
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            indexPercent: action.payload.percent,
-          })
-        })
-      case Chat2Gen.toggleInboxSearch: {
-        let nextState = state
-        if (action.payload.enabled && !state.inboxSearch) {
-          nextState = state.set('inboxSearch', Constants.makeInboxSearchInfo())
-        } else if (!action.payload.enabled && state.inboxSearch) {
-          nextState = state.set('inboxSearch', null)
-        }
-        return nextState
-      }
-      case Chat2Gen.inboxSearchTextResult:
-        if (!state.inboxSearch || state.inboxSearch.textStatus !== 'inprogress') {
-          return state
-        }
-        if (!state.metaMap.get(action.payload.result.conversationIDKey)) {
-          return state
-        }
-        return state.update('inboxSearch', info => {
-          const old = info || Constants.makeInboxSearchInfo()
-          const textResults = old.textResults
-            .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)
-            .push(action.payload.result)
-            .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => {
-              return r.time - l.time
+        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
+          action.payload.conversationIDKey,
+          (old = Constants.makeThreadSearchInfo()) =>
+            old.merge({
+              hits: I.List(),
+              status: 'initial',
+              visible: !old.visible,
             })
-          return old.merge({
-            textResults,
-          })
+        )
+
+        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
+          action.payload.conversationIDKey
+        )
+        return
+      case Chat2Gen.threadSearch:
+        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
+          action.payload.conversationIDKey,
+          (info = Constants.makeThreadSearchInfo()) => info.set('hits', I.List())
+        )
+        return
+      case Chat2Gen.setThreadSearchQuery:
+        draftState.threadSearchQueryMap = draftState.threadSearchQueryMap.set(
+          action.payload.conversationIDKey,
+          action.payload.query
+        )
+        return
+      case Chat2Gen.inboxSearchSetTextStatus:
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          textStatus: action.payload.status,
         })
-      case Chat2Gen.inboxSearchStarted:
-        if (!state.inboxSearch) {
-          return state
+        return
+      case Chat2Gen.inboxSearchSetIndexPercent:
+        if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
+          return
         }
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            nameStatus: 'inprogress',
-            selectedIndex: 0,
-            textResults: I.List(),
-            textStatus: 'inprogress',
-          })
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          indexPercent: action.payload.percent,
         })
+        return
+      case Chat2Gen.toggleInboxSearch: {
+        if (action.payload.enabled && !draftState.inboxSearch) {
+          draftState.inboxSearch = Constants.makeInboxSearchInfo()
+        } else if (!action.payload.enabled && draftState.inboxSearch) {
+          draftState.inboxSearch = null
+        }
+        return
+      }
+      case Chat2Gen.inboxSearchTextResult: {
+        if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
+          return
+        }
+        if (!draftState.metaMap.get(action.payload.result.conversationIDKey)) {
+          return
+        }
+        const old = draftState.inboxSearch || Constants.makeInboxSearchInfo()
+        const textResults = old.textResults
+          .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)
+          .push(action.payload.result)
+          .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => r.time - l.time)
+        draftState.inboxSearch = old.merge({textResults})
+        return
+      }
+      case Chat2Gen.inboxSearchStarted:
+        if (!draftState.inboxSearch) {
+          return
+        }
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          nameStatus: 'inprogress',
+          selectedIndex: 0,
+          textResults: I.List(),
+          textStatus: 'inprogress',
+        })
+        return
       case Chat2Gen.inboxSearchNameResults: {
-        if (!state.inboxSearch || state.inboxSearch.nameStatus !== 'inprogress') {
-          return state
+        if (!draftState.inboxSearch || draftState.inboxSearch.nameStatus !== 'inprogress') {
+          return
         }
         const results = action.payload.results.reduce((l, r) => {
-          if (state.metaMap.get(r.conversationIDKey)) {
+          if (draftState.metaMap.get(r.conversationIDKey)) {
             return l.push(r)
           }
           return l
         }, I.List())
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            nameResults: results,
-            nameResultsUnread: action.payload.unread,
-            nameStatus: 'success',
-          })
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          nameResults: results,
+          nameResultsUnread: action.payload.unread,
+          nameStatus: 'success',
         })
+        return
       }
       case Chat2Gen.inboxSearchMoveSelectedIndex: {
-        if (!state.inboxSearch) {
-          return state
+        if (!draftState.inboxSearch) {
+          return
         }
-        let selectedIndex = state.inboxSearch.selectedIndex
-        const totalResults = state.inboxSearch.nameResults.size + state.inboxSearch.textResults.size
+        let selectedIndex = draftState.inboxSearch.selectedIndex
+        const totalResults = draftState.inboxSearch.nameResults.size + draftState.inboxSearch.textResults.size
         if (action.payload.increment && selectedIndex < totalResults - 1) {
           selectedIndex++
         } else if (!action.payload.increment && selectedIndex > 0) {
           selectedIndex--
         }
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            selectedIndex,
-          })
+
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex,
         })
+        return
       }
       case Chat2Gen.inboxSearchSelect:
-        if (!state.inboxSearch || action.payload.selectedIndex == null) {
-          return state
+        if (!draftState.inboxSearch || action.payload.selectedIndex == null) {
+          return
         }
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            selectedIndex: action.payload.selectedIndex,
-          })
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          selectedIndex: action.payload.selectedIndex,
         })
+        return
       case Chat2Gen.inboxSearch:
-        if (!state.inboxSearch) {
-          return state
+        if (!draftState.inboxSearch) {
+          return
         }
-        return state.update('inboxSearch', info => {
-          return (info || Constants.makeInboxSearchInfo()).merge({
-            query: action.payload.query,
-          })
+        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+          query: action.payload.query,
         })
+        return
       case Chat2Gen.loadAttachmentView:
-        return state.updateIn(
-          ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
-          (info = Constants.initialAttachmentViewInfo) => {
-            return info.merge({
-              status: 'loading',
-            })
-          }
+        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
+          [action.payload.conversationIDKey, action.payload.viewType],
+          (info = Constants.initialAttachmentViewInfo) => info.merge({status: 'loading'})
         )
+        return
       case Chat2Gen.addAttachmentViewMessage:
-        return state.updateIn(
-          ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
-          (info = Constants.initialAttachmentViewInfo) => {
-            return info.merge({
+        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
+          [action.payload.conversationIDKey, action.payload.viewType],
+          (info = Constants.initialAttachmentViewInfo) =>
+            info.merge({
               messages:
                 info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
-                  ? info.messages.push(action.payload.message).sort((l: any, r: any) => {
-                      return r.id - l.id
-                    })
+                  ? info.messages.push(action.payload.message).sort((l: any, r: any) => r.id - l.id)
                   : info.messages,
             })
-          }
         )
+        return
       case Chat2Gen.setAttachmentViewStatus:
         return state.updateIn(
           ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
