@@ -1,5 +1,6 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
+import * as Wallet from '../types/wallets'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as TeamBuildingConstants from '../team-building'
@@ -23,61 +24,61 @@ export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasse
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 
-export const makeState = () => ({
-  accountsInfoMap: I.Map<
-    Common.ConversationIDKey,
-    I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
-  >(),
+export const makeState = (): Types.State => ({
+  accountsInfoMap: I.Map() /*I.Map<
+    Types.ConversationIDKey,
+    I.Map<RPCChatTypes.MessageID, Types.ChatRequestInfo | Types.ChatPaymentInfo>
+  >()*/,
   attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map<
-    Common.ConversationIDKey,
-    I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>
+    Types.ConversationIDKey,
+    I.Map<RPCChatTypes.GalleryItemTyp, Types.AttachmentViewInfo>
   >(),
-  badgeMap: I.Map<Common.ConversationIDKey, number>(), // id to the badge count
-  botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>(),
-  commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>(),
-  commandStatusMap: I.Map<Common.ConversationIDKey, CommandStatusInfo>(),
-  containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>(),
+  badgeMap: I.Map<Types.ConversationIDKey, number>(), // id to the badge count
+  botCommandsUpdateStatusMap: I.Map<Types.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>(),
+  commandMarkdownMap: I.Map<Types.ConversationIDKey, RPCChatTypes.UICommandMarkdown>(),
+  commandStatusMap: I.Map<Types.ConversationIDKey, Types.CommandStatusInfo>(),
+  containsLatestMessageMap: I.Map<Types.ConversationIDKey, boolean>(),
   createConversationError: null,
-  dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>(),
-  editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>(),
-  explodingModeLocks: I.Map<Common.ConversationIDKey, number>(), // locks set on exploding mode while user is inputting text,
-  explodingModes: I.Map<Common.ConversationIDKey, number>(), // seconds to exploding message expiration,
+  dismissedInviteBannersMap: I.Map<Types.ConversationIDKey, boolean>(),
+  editingMap: I.Map<Types.ConversationIDKey, Types.Ordinal>(),
+  explodingModeLocks: I.Map<Types.ConversationIDKey, number>(), // locks set on exploding mode while user is inputting text,
+  explodingModes: I.Map<Types.ConversationIDKey, number>(), // seconds to exploding message expiration,
   flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>(),
   focus: null,
-  giphyResultMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>(),
-  giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>(),
+  giphyResultMap: I.Map<Types.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>(),
+  giphyWindowMap: I.Map<Types.ConversationIDKey, boolean>(),
   inboxHasLoaded: false,
   inboxSearch: null,
   inboxShowNew: false,
   isWalletsNew: true,
   lastCoord: null,
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>(),
-  messageCenterOrdinals: I.Map<Common.ConversationIDKey, CenterOrdinal>(), // ordinals to center threads on,
-  messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>(), // messages in a thread,
-  messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>(), // ordered ordinals in a thread,
-  metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>(), // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>(), // if we have more data to load,
-  orangeLineMap: I.Map<Common.ConversationIDKey, number>(), // last message we've seen,
+  messageCenterOrdinals: I.Map<Types.ConversationIDKey, Types.CenterOrdinal>(), // ordinals to center threads on,
+  messageMap: I.Map<Types.ConversationIDKey, I.Map<Types.Ordinal, Types.Message>>(), // messages in a thread,
+  messageOrdinals: I.Map<Types.ConversationIDKey, I.OrderedSet<Types.Ordinal>>(), // ordered ordinals in a thread,
+  metaMap: I.Map<Types.ConversationIDKey, Types.ConversationMeta>(), // metadata about a thread, There is a special node for the pending conversation,
+  moreToLoadMap: I.Map<Types.ConversationIDKey, boolean>(), // if we have more data to load,
+  orangeLineMap: I.Map<Types.ConversationIDKey, number>(), // last message we've seen,
   paymentConfirmInfo: null,
-  paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>(),
-  pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>(), // messages waiting to be sent,
-  prependTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>(),
+  paymentStatusMap: I.Map<Wallet.PaymentID, Types.ChatPaymentInfo>(),
+  pendingOutboxToOrdinal: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>(), // messages waiting to be sent,
+  prependTextMap: I.Map<Types.ConversationIDKey, HiddenString | null>(),
   previousSelectedConversation: noConversationIDKey,
   quote: null,
-  replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>(),
+  replyToMap: I.Map<Types.ConversationIDKey, Types.Ordinal>(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>(),
-  threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>(),
-  threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>(),
+  threadLoadStatus: I.Map<Types.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>(),
+  threadSearchInfoMap: I.Map<Types.ConversationIDKey, Types.ThreadSearchInfo>(),
+  threadSearchQueryMap: I.Map<Types.ConversationIDKey, HiddenString | null>(),
   trustedInboxHasLoaded: false,
-  typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>(), // who's typing currently,
-  unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>(),
-  unreadMap: I.Map<Common.ConversationIDKey, number>(),
-  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>(),
+  typingMap: I.Map<Types.ConversationIDKey, I.Set<string>>(), // who's typing currently,
+  unfurlPromptMap: I.Map<Types.ConversationIDKey, I.Map<Types.MessageID, I.Set<string>>>(),
+  unreadMap: I.Map<Types.ConversationIDKey, number>(),
+  unsentTextMap: I.Map<Types.ConversationIDKey, HiddenString | null>(),
   userReacjis: defaultUserReacjis,
 })
 
