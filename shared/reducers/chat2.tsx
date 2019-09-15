@@ -13,7 +13,6 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
-import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -23,11 +22,11 @@ const initialState: Types.State = Constants.makeState()
 
 // Backend gives us messageIDs sometimes so we need to find our ordinal
 const messageIDToOrdinal = (
-  messageMap: Types.State['messageMap'],
-  pendingOutboxToOrdinal: Types.State['pendingOutboxToOrdinal'],
+  messageMap: Container.Draft<Types.State['messageMap']>,
+  pendingOutboxToOrdinal: Container.Draft<Types.State['pendingOutboxToOrdinal']>,
   conversationIDKey: Types.ConversationIDKey,
   messageID: Types.MessageID
-): Types.Ordinal | null => {
+) => {
   // A message we didn't send in this session?
   let m = messageMap.getIn([conversationIDKey, Types.numberToOrdinal(messageID)])
   if (m && m.id && m.id === messageID) {
@@ -51,10 +50,7 @@ const messageIDToOrdinal = (
   return null
 }
 
-const metaMapReducer = (
-  metaMap: Types.State['metaMap'],
-  action: Chat2Gen.Actions
-): Types.State['metaMap'] => {
+const metaMapReducer = (metaMap: Container.Draft<Types.State['metaMap']>, action: Chat2Gen.Actions) => {
   switch (action.type) {
     case Chat2Gen.setConversationOffline:
       return metaMap.update(action.payload.conversationIDKey, meta =>
@@ -178,10 +174,10 @@ const metaMapReducer = (
 }
 
 const messageMapReducer = (
-  messageMap: Types.State['messageMap'],
+  messageMap: Container.Draft<Types.State['messageMap']>,
   action: Chat2Gen.Actions,
-  pendingOutboxToOrdinal: Types.State['pendingOutboxToOrdinal']
-): Types.State['messageMap'] => {
+  pendingOutboxToOrdinal: Container.Draft<Types.State['pendingOutboxToOrdinal']>
+) => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
       return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
@@ -385,7 +381,7 @@ const messageMapReducer = (
 }
 
 const messageOrdinalsReducer = (
-  messageOrdinals: Types.State['messageOrdinals'],
+  messageOrdinals: Container.Draft<Types.State['messageOrdinals']>,
   action: Chat2Gen.Actions
 ): Types.State['messageOrdinals'] => {
   switch (action.type) {
@@ -405,7 +401,7 @@ const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceT
 type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 
 export default (_state: Types.State = initialState, action: Actions): Types.State =>
-  Container.produce(state, (draftState: Container.Draft<Types.State>) => {
+  Container.produce(_state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
       case Chat2Gen.resetStore:
         return {...initialState, staticConfig: draftState.staticConfig}
@@ -634,7 +630,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.messageSetQuoting: {
         const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
-        const counter = (state.quote ? state.quote.counter : 0) + 1
+        const counter = (draftState.quote ? draftState.quote.counter : 0) + 1
         draftState.quote = Constants.makeQuoteInfo({
           counter,
           ordinal,
@@ -653,7 +649,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         let oldMessageMap = draftState.messageMap
 
         // so we can keep messages if they haven't mutated
-        const previousMessageMap = state.messageMap
+        const previousMessageMap = draftState.messageMap
 
         // first group into convoid
         const convoToMessages: {[K in string]: Array<Types.Message>} = messages.reduce((map: any, m) => {
@@ -856,7 +852,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         })
 
         let messageCenterOrdinals = draftState.messageCenterOrdinals
-        let centeredMessageIDs = action.payload.centeredMessageIDs || []
+        const centeredMessageIDs = action.payload.centeredMessageIDs || []
         centeredMessageIDs.forEach(cm => {
           let ordinal = messageIDToOrdinal(
             draftState.messageMap,
@@ -1385,22 +1381,21 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       case Chat2Gen.attachmentLoading: {
         const {message} = action.payload
-        let nextState = state
         if (
-          state.attachmentFullscreenSelection &&
-          state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-          state.attachmentFullscreenSelection.message.id === message.id &&
+          draftState.attachmentFullscreenSelection &&
+          draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+          draftState.attachmentFullscreenSelection.message.id === message.id &&
           message.type === 'attachment'
         ) {
-          nextState = nextState.set('attachmentFullscreenSelection', {
-            autoPlay: state.attachmentFullscreenSelection.autoPlay,
+          draftState.attachmentFullscreenSelection = {
+            autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
             message: message
               .set('transferState', 'downloading')
               .set('transferProgress', action.payload.ratio),
-          })
+          }
         }
-        nextState = nextState.updateIn(
-          ['attachmentViewMap', action.payload.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
+        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
+          [action.payload.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
           (info = Constants.initialAttachmentViewInfo) =>
             info.merge({
               messages: info.messages.update(
@@ -1412,29 +1407,32 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
               ),
             })
         )
-        return nextState.withMutations(s => {
-          s.set('metaMap', metaMapReducer(state.metaMap, action))
-          s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
-          s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
-        })
+
+        draftState.metaMap = metaMapReducer(draftState.metaMap, action)
+        draftState.messageMap = messageMapReducer(
+          draftState.messageMap,
+          action,
+          draftState.pendingOutboxToOrdinal
+        )
+        draftState.messageOrdinals = messageOrdinalsReducer(draftState.messageOrdinals, action)
+        return
       }
       case Chat2Gen.attachmentDownloaded: {
         const {message} = action.payload
-        let nextState = state
         if (
           !actionHasError(action) &&
-          state.attachmentFullscreenSelection &&
-          state.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
-          state.attachmentFullscreenSelection.message.id === message.id &&
+          draftState.attachmentFullscreenSelection &&
+          draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
+          draftState.attachmentFullscreenSelection.message.id === message.id &&
           message.type === 'attachment'
         ) {
-          nextState = nextState.set('attachmentFullscreenSelection', {
-            autoPlay: state.attachmentFullscreenSelection.autoPlay,
+          draftState.attachmentFullscreenSelection = {
+            autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
             message: message.set('downloadPath', action.payload.path || null),
-          })
+          }
         }
-        nextState = nextState.updateIn(
-          ['attachmentViewMap', message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
+        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
+          [message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
           (info = Constants.initialAttachmentViewInfo) =>
             info.merge({
               messages: info.messages.update(
@@ -1452,21 +1450,30 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
               ),
             })
         )
-        return nextState.withMutations(s => {
-          s.set('metaMap', metaMapReducer(state.metaMap, action))
-          s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
-          s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
-        })
+
+        draftState.metaMap = metaMapReducer(draftState.metaMap, action)
+        draftState.messageMap = messageMapReducer(
+          draftState.messageMap,
+          action,
+          draftState.pendingOutboxToOrdinal
+        )
+        draftState.messageOrdinals = messageOrdinalsReducer(draftState.messageOrdinals, action)
+        return
       }
       case Chat2Gen.updateUserReacjis: {
         let {skinTone, topReacjis} = action.payload.userReacjis
         if (!topReacjis) {
           topReacjis = Constants.defaultTopReacjis
         }
-        return state.merge({userReacjis: {skinTone, topReacjis}})
+        draftState.userReacjis = {skinTone, topReacjis}
+        return
       }
       case Chat2Gen.dismissBottomBanner: {
-        return state.setIn(['dismissedInviteBannersMap', action.payload.conversationIDKey], true)
+        draftState.dismissedInviteBannersMap = draftState.dismissedInviteBannersMap.set(
+          action.payload.conversationIDKey,
+          true
+        )
+        return
       }
       // metaMap/messageMap/messageOrdinalsList only actions
       case Chat2Gen.messageDelete:
@@ -1490,11 +1497,14 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.messagesExploded:
       case Chat2Gen.saveMinWriterRole:
       case Chat2Gen.updateMessages:
-        return state.withMutations(s => {
-          s.set('metaMap', metaMapReducer(state.metaMap, action))
-          s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
-          s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
-        })
+        draftState.metaMap = metaMapReducer(draftState.metaMap, action)
+        draftState.messageMap = messageMapReducer(
+          draftState.messageMap,
+          action,
+          draftState.pendingOutboxToOrdinal
+        )
+        draftState.messageOrdinals = messageOrdinalsReducer(draftState.messageOrdinals, action)
+        return
       case TeamBuildingGen.resetStore:
       case TeamBuildingGen.cancelTeamBuilding:
       case TeamBuildingGen.addUsersToTeamSoFar:
@@ -1507,10 +1517,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case TeamBuildingGen.selectRole:
       case TeamBuildingGen.labelsSeen:
       case TeamBuildingGen.changeSendNotification:
-        return state.update('teamBuilding', teamBuilding =>
-          teamBuildingReducer('chat2', teamBuilding, action)
-        )
-
+        draftState.teamBuilding = teamBuildingReducer('chat2', _state.teamBuilding, action)
+        return
       // Saga only actions
       case Chat2Gen.attachmentPreviewSelect:
       case Chat2Gen.attachmentsUpload:
@@ -1563,9 +1571,6 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.pinMessage:
       case Chat2Gen.unpinMessage:
       case Chat2Gen.ignorePinnedMessage:
-        return state
-      default:
-        ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
-        return state
+        return
     }
   })
