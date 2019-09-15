@@ -1322,42 +1322,55 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         )
         return
       case Chat2Gen.setAttachmentViewStatus:
-        return state.updateIn(
-          ['attachmentViewMap', action.payload.conversationIDKey, action.payload.viewType],
-          (info = Constants.initialAttachmentViewInfo) => {
-            return info.merge({
+        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
+          [action.payload.conversationIDKey, action.payload.viewType],
+          (info = Constants.initialAttachmentViewInfo) =>
+            info.merge({
               last: action.payload.last,
               status: action.payload.status,
             })
-          }
         )
+        return
       case Chat2Gen.clearAttachmentView:
-        return state.deleteIn(['attachmentViewMap', action.payload.conversationIDKey])
+        draftState.attachmentViewMap = draftState.attachmentViewMap.delete(action.payload.conversationIDKey)
+        return
       case Chat2Gen.staticConfigLoaded:
-        return state.set('staticConfig', action.payload.staticConfig)
-      case Chat2Gen.metasReceived: {
-        return state.merge({
-          inboxHasLoaded: action.payload.fromInboxRefresh ? true : state.inboxHasLoaded,
-          messageMap: messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal),
-          messageOrdinals: messageOrdinalsReducer(state.messageOrdinals, action),
-          metaMap: metaMapReducer(state.metaMap, action),
-          trustedInboxHasLoaded: action.payload.initialTrustedLoad ? true : state.trustedInboxHasLoaded,
-        })
-      }
+        draftState.staticConfig = action.payload.staticConfig
+        return
+      case Chat2Gen.metasReceived:
+        draftState.inboxHasLoaded = action.payload.fromInboxRefresh ? true : draftState.inboxHasLoaded
+        draftState.messageMap = messageMapReducer(
+          draftState.messageMap,
+          action,
+          draftState.pendingOutboxToOrdinal
+        )
+        draftState.messageOrdinals = messageOrdinalsReducer(draftState.messageOrdinals, action)
+        draftState.metaMap = metaMapReducer(draftState.metaMap, action)
+        draftState.trustedInboxHasLoaded = action.payload.initialTrustedLoad
+          ? true
+          : draftState.trustedInboxHasLoaded
+        return
       case Chat2Gen.paymentInfoReceived: {
         const {conversationIDKey, messageID, paymentInfo} = action.payload
-        let nextState = state.update('accountsInfoMap', old =>
-          old.setIn([conversationIDKey, messageID], paymentInfo)
+        draftState.accountsInfoMap = draftState.accountsInfoMap.setIn(
+          [conversationIDKey, messageID],
+          paymentInfo
         )
-        return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
+        draftState.paymentStatusMap = draftState.paymentStatusMap.setIn([paymentInfo.paymentID], paymentInfo)
+        return
       }
       case Chat2Gen.setMaybeMentionInfo: {
         const {name, info} = action.payload
-        return state.setIn(['maybeMentionMap', name], info)
+        draftState.maybeMentionMap = draftState.maybeMentionMap.set(name, info)
+        return
       }
       case Chat2Gen.requestInfoReceived: {
         const {conversationIDKey, messageID, requestInfo} = action.payload
-        return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
+        draftState.accountsInfoMap = draftState.accountsInfoMap.setIn(
+          [conversationIDKey, messageID],
+          requestInfo
+        )
+        return
       }
       case Chat2Gen.attachmentFullscreenSelection: {
         const {autoPlay, message} = action.payload
