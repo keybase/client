@@ -64,9 +64,11 @@ const metaMapReducer = (metaMap: Container.Draft<Types.State['metaMap']>, action
       )
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
-        Constants.getConversationIDKeyMetasToLoad(action.payload.conversationIDKeys, metaMap).forEach(
-          conversationIDKey =>
-            map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
+        Constants.getConversationIDKeyMetasToLoad(
+          action.payload.conversationIDKeys,
+          metaMap as Types.State['metaMap']
+        ).forEach(conversationIDKey =>
+          map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
         )
       )
     case Chat2Gen.metaReceivedError: {
@@ -383,7 +385,7 @@ const messageMapReducer = (
 const messageOrdinalsReducer = (
   messageOrdinals: Container.Draft<Types.State['messageOrdinals']>,
   action: Chat2Gen.Actions
-): Types.State['messageOrdinals'] => {
+): Container.Draft<Types.State['messageOrdinals']> => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
       return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
@@ -404,7 +406,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
   Container.produce(_state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
       case Chat2Gen.resetStore:
-        return {...initialState, staticConfig: draftState.staticConfig}
+        return {...initialState, staticConfig: draftState.staticConfig as Types.State['staticConfig']}
       case Chat2Gen.setInboxShowIsNew:
         draftState.inboxShowNew = action.payload.isNew
         return
