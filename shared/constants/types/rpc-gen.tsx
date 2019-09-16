@@ -3526,6 +3526,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
 // 'keybase.1.pprof.processorProfile'
 // 'keybase.1.pprof.trace'
+// 'keybase.1.prove.listSomeProofServices'
 // 'keybase.1.prove.listProofServices'
 // 'keybase.1.prove.validateUsername'
 // 'keybase.1.proveUi.promptOverwrite'
