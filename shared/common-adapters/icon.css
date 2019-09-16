@@ -154,7 +154,7 @@
 .icon-gen-iconfont-hide::before {content: "\e98a";}
 .icon-gen-iconfont-nav-2-hamburger::before {content: "\e98b";}
 .icon-gen-iconfont-unhide::before {content: "\e98c";}
-.icon-gen-iconfont-app-un-maximize::before {content: "\e98d";}
+.icon-gen-iconfont-password::before {content: "\e98d";}
 .icon-gen-iconfont-wave-2::before {content: "\e98e";}
 .icon-gen-iconfont-mailbox::before {content: "\e98f";}
 .icon-gen-iconfont-calculate::before {content: "\e990";}
@@ -164,4 +164,7 @@
 .icon-gen-iconfont-block::before {content: "\e994";}
 .icon-gen-iconfont-reply::before {content: "\e995";}
 .icon-gen-iconfont-number-pad::before {content: "\e996";}
+.icon-gen-iconfont-radio::before {content: "\e997";}
+.icon-gen-iconfont-radio-update::before {content: "\e998";}
+.icon-gen-iconfont-app-un-maximize::before {content: "\e999";}
 
