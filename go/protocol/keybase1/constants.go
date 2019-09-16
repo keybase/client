@@ -78,6 +78,7 @@ const (
 	StatusCode_SCSigBadTotalOrder                          StatusCode = 1022
 	StatusCode_SCBadTrackSession                           StatusCode = 1301
 	StatusCode_SCDeviceBadName                             StatusCode = 1404
+	StatusCode_SCDeviceBadStatus                           StatusCode = 1405
 	StatusCode_SCDeviceNameInUse                           StatusCode = 1408
 	StatusCode_SCDeviceNotFound                            StatusCode = 1409
 	StatusCode_SCDeviceMismatch                            StatusCode = 1410
@@ -303,6 +304,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCSigBadTotalOrder":         1022,
 	"SCBadTrackSession":          1301,
 	"SCDeviceBadName":            1404,
+	"SCDeviceBadStatus":          1405,
 	"SCDeviceNameInUse":          1408,
 	"SCDeviceNotFound":           1409,
 	"SCDeviceMismatch":           1410,
@@ -526,6 +528,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1022: "SCSigBadTotalOrder",
 	1301: "SCBadTrackSession",
 	1404: "SCDeviceBadName",
+	1405: "SCDeviceBadStatus",
 	1408: "SCDeviceNameInUse",
 	1409: "SCDeviceNotFound",
 	1410: "SCDeviceMismatch",

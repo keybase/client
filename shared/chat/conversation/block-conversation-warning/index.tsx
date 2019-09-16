@@ -16,6 +16,11 @@ const BlockConversationWarning = (props: Props) => {
 
   const _onConfirm = () => (reportAbuse ? props.onBlockAndReport() : props.onBlock())
 
+  const baseDescription = "You won't see this conversation anymore. "
+  const participantDescription = props.participants.includes(',') // if there's more than 1 other user
+    ? 'They won’t be notified or know you’ve blocked it.'
+    : "They won’t be notified that you've blocked them, but they might be able to figure it out."
+
   return (
     <Kb.ConfirmModal
       icon="iconfont-block"
@@ -28,7 +33,7 @@ const BlockConversationWarning = (props: Props) => {
           onCheck={checked => setReportAbuse(checked)}
         />
       }
-      description="You won’t see this conversation anymore. They won’t be notified or know you’ve blocked the conversation."
+      description={baseDescription + participantDescription}
       onCancel={props.onBack}
       onConfirm={_onConfirm}
       prompt={`Block the conversation with ${props.participants}?`}

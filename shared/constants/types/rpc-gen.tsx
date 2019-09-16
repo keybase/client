@@ -2009,6 +2009,7 @@ export enum StatusCode {
   scsigbadtotalorder = 1022,
   scbadtracksession = 1301,
   scdevicebadname = 1404,
+  scdevicebadstatus = 1405,
   scdevicenameinuse = 1408,
   scdevicenotfound = 1409,
   scdevicemismatch = 1410,
