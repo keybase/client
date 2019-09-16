@@ -276,7 +276,6 @@ function* loadDaemonAccounts(
 
 const showDeletedSelfRootPage = () => [
   RouteTreeGen.createSwitchLoggedIn({loggedIn: false}),
-  ConfigGen.createLogout(),
   RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
 ]
 
