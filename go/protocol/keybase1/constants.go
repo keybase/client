@@ -42,6 +42,7 @@ const (
 	StatusCode_SCBadEmail                                  StatusCode = 472
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
+	StatusCode_SCDuplicate                                 StatusCode = 706
 	StatusCode_SCBadInvitationCode                         StatusCode = 707
 	StatusCode_SCBadSignupTeamName                         StatusCode = 711
 	StatusCode_SCFeatureFlag                               StatusCode = 712
@@ -268,6 +269,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCBadEmail":                 472,
 	"SCRateLimit":                602,
 	"SCBadSignupUsernameTaken":   701,
+	"SCDuplicate":                706,
 	"SCBadInvitationCode":        707,
 	"SCBadSignupTeamName":        711,
 	"SCFeatureFlag":              712,
@@ -492,6 +494,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	472:  "SCBadEmail",
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
+	706:  "SCDuplicate",
 	707:  "SCBadInvitationCode",
 	711:  "SCBadSignupTeamName",
 	712:  "SCFeatureFlag",
