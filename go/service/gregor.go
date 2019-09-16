@@ -255,8 +255,6 @@ func (g *gregorHandler) Init() {
 	go g.monitorAppState()
 	// Start replay thread
 	go g.syncReplayThread()
-	// Start push state loop
-	go g.pushStateThread()
 }
 
 const (
@@ -445,8 +443,8 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	// In case we need to interrupt auth'ing or the ping loop,
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
-
 	g.uri = uri
+	go g.pushStateThread(g.shutdownCh)
 	if uri.UseTLS() {
 		err = g.connectTLS()
 	} else {
@@ -525,7 +523,7 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 	g.firehoseHandlers = freshHandlers
 }
 
-func (g *gregorHandler) pushStateThread() {
+func (g *gregorHandler) pushStateThread(shutdownCh chan struct{}) {
 	var lastPush func()
 	var lastTime time.Time
 	dur := time.Second
@@ -545,6 +543,8 @@ func (g *gregorHandler) pushStateThread() {
 			}
 		case <-time.After(dur):
 			trigger()
+		case <-shutdownCh:
+			return
 		}
 	}
 }
