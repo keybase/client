@@ -248,7 +248,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
-          {!!this.props.isLoading && (
+          {(!!this.props.isLoading || true) && (
             <Kb.Box style={styles.loadingContainer}>
               <Kb.LoadingLine />
             </Kb.Box>

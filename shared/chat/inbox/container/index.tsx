@@ -73,7 +73,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const unreadIndices: Array<number> = []
   for (let i = stateProps.rows.length - 1; i >= 0; i--) {
     const row = stateProps.rows[i]
@@ -99,6 +99,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
     isLoading: stateProps.isLoading,
     isSearching: stateProps.isSearching,
+    navigation: ownProps.navigation,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {
       if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
@@ -135,9 +136,26 @@ type Props = {
 } & _Props
 
 class InboxWrapper extends React.PureComponent<Props> {
-  static navigationOptions = {
+  // static navigationOptions = {
+  //   header: undefined,
+  //   headerRight: <HeaderNewChatButton />,
+  //   headerTitle: () => (
+  //     <Kb.Text type="BodyBig" lineClamp={1}>
+  //       {' '}
+  //       Chats{' '}
+  //     </Kb.Text>
+  //   ),
+  //   headerStyle: {
+  //     borderBottomWidth: 0,
+  //   },
+  //   title: 'Chats',
+  // }
+  static navigationOptions = ({navigation}) => ({
     header: undefined,
     headerRight: <HeaderNewChatButton />,
+    headerStyle: navigation && navigation.state && navigation.state.params && navigation.state.params.hideBottomBorder ? {
+      borderBottomWidth: 0,
+    } : undefined,
     headerTitle: () => (
       <Kb.Text type="BodyBig" lineClamp={1}>
         {' '}
@@ -145,7 +163,7 @@ class InboxWrapper extends React.PureComponent<Props> {
       </Kb.Text>
     ),
     title: 'Chats',
-  }
+  })
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 
@@ -166,6 +184,17 @@ class InboxWrapper extends React.PureComponent<Props> {
       if (toUnbox.length) {
         this.props._onInitialLoad(toUnbox)
       }
+    }
+    if (isMobile) {
+      // this.props.navigation.setParams({hideBottomBorder: this.props.isLoading})
+      this.props.navigation.setParams({hideBottomBorder: true})
+    }
+  }
+  
+  componentDidUpdate(prevProps) {
+    if (this.props.isLoading != prevProps.isLoading) {
+      // this.props.navigation.setParams({hideBottomBorder: nextProps.isLoading})
+      this.props.navigation.setParams({ hideBottomBorder: true })
     }
   }
 
