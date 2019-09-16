@@ -82,7 +82,6 @@ class Login extends React.Component<Props, State> {
               <Kb.LabeledInput
                 autoFocus={true}
                 placeholder="Password"
-                style={styles.passwordInput}
                 onChangeText={this.props.passwordChange}
                 onEnterKeyDown={this.props.onSubmit}
                 ref={this._inputRef}
@@ -160,19 +159,6 @@ const styles = Styles.styleSheetCreate(() => ({
     justifyContent: 'flex-end',
   },
   other: {color: Styles.globalColors.black},
-  passwordInput: {
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    paddingBottom: Styles.globalMargins.medium,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.medium,
-    textAlign: 'left',
-    width: '100%',
-  },
   provisioned: {color: Styles.globalColors.orange},
   userContainer: {
     backgroundColor: Styles.globalColors.transparent,
