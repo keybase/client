@@ -70,6 +70,7 @@ protocol constants {
     SCSigBadTotalOrder_1022,
     SCBadTrackSession_1301,
     SCDeviceBadName_1404,
+    SCDeviceBadStatus_1405,
     SCDeviceNameInUse_1408,
     SCDeviceNotFound_1409,
     SCDeviceMismatch_1410,

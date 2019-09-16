@@ -265,6 +265,7 @@ const (
 	SCDecryptionKeyNotFound                     = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession                           = int(keybase1.StatusCode_SCBadTrackSession)
 	SCDeviceBadName                             = int(keybase1.StatusCode_SCDeviceBadName)
+	SCDeviceBadStatus                           = int(keybase1.StatusCode_SCDeviceBadStatus)
 	SCDeviceNameInUse                           = int(keybase1.StatusCode_SCDeviceNameInUse)
 	SCDeviceNotFound                            = int(keybase1.StatusCode_SCDeviceNotFound)
 	SCDeviceMismatch                            = int(keybase1.StatusCode_SCDeviceMismatch)
