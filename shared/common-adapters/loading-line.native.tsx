@@ -2,6 +2,7 @@ import * as React from 'react'
 import {ReAnimated, ReAnimatedEasing} from './mobile.native'
 import * as Styles from '../styles'
 import {Props} from './loading-line'
+import {Box2} from './box'
 
 const R = ReAnimated
 
@@ -49,7 +50,10 @@ class LoadingLine extends React.Component<Props> {
   _opacity = runLoop()
 
   render() {
-    return <R.View style={[styles.line, {opacity: this._opacity}]} />
+    return (<Box2 direction="vertical">
+      <R.View style={[styles.line, { opacity: this._opacity }]} />
+      <R.View style={[styles.lineInBack]} />
+    </Box2>)
   }
 }
 
@@ -58,6 +62,12 @@ const styles = Styles.styleSheetCreate(
     ({
       line: {
         backgroundColor: Styles.globalColors.blue,
+        height: 1,
+        position: 'absolute',
+        width: '100%',
+      },
+      lineInBack: {
+        backgroundColor: Styles.globalColors.grey,
         height: 1,
         position: 'absolute',
         width: '100%',
