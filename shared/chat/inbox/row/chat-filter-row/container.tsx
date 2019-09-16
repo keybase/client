@@ -1,4 +1,3 @@
-import * as Constants from '../../../../constants/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {appendNewChatBuilder} from '../../../../actions/typed-routes'
