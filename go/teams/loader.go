@@ -605,12 +605,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Backfill stubbed links that need to be filled now.
 	tracer.Stage("backfill")
+	var filledInStubbedLinks bool
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
 			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
+		filledInStubbedLinks = true
 	}
 
 	tracer.Stage("pre-fetch")
@@ -912,8 +914,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Cache the validated result if it was actually updated via the team/get endpoint. In many cases, we're not
-	// actually mutating the teams.
-	if teamUpdate != nil {
+	// actually mutating the teams. Also, if we wound up filling in stubbed links, let's also restore the cache.
+	if teamUpdate != nil || filledInStubbedLinks {
 		tracer.Stage("put")
 		l.storage.Put(mctx, ret)
 	}
