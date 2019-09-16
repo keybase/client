@@ -160,15 +160,23 @@ export const SignupScreen = (props: SignupScreenProps) => (
       />
     )}
     {Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.HeaderHocHeader
-        headerStyle={props.headerStyle}
-        title={props.title}
-        titleComponent={props.titleComponent}
-        rightActionLabel={props.rightActionLabel}
-        onRightAction={props.onRightAction}
-        leftAction={props.leftAction}
-        leftActionText={props.leftActionText}
-        onBack={props.onBack}
+      <Kb.ModalHeader
+        leftButton={
+          props.leftAction ? (
+            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
+              {props.leftActionText || props.leftAction}
+            </Kb.Text>
+          ) : null
+        }
+        rightButton={
+          props.onRightAction ? (
+            <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
+              {props.rightActionLabel || props.rightActionComponent}
+            </Kb.Text>
+          ) : null
+        }
+        style={props.headerStyle}
+        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
       />
     )}
     {Styles.isMobile && props.header}

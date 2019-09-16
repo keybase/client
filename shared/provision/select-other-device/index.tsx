@@ -19,27 +19,48 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   _renderItem = (index, item) => {
-    if (item.name === 'troubleshooting') {
-      return <Troubleshooting key="trouble" onResetAccount={this.props.onResetAccount} />
+    if (item.name === 'reset') {
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySmall" style={styles.or}>
+            or
+          </Kb.Text>
+          <Kb.ListItem2
+            type="Small"
+            firstItem={true}
+            key="reset"
+            onClick={this.props.onResetAccount}
+            icon={<Kb.Icon type="icon-skull-32" />}
+            body={
+              <Kb.Box2 direction="vertical" fullWidth={true}>
+                <Kb.Text type="BodySemibold">I lost all my devices/paper keys</Kb.Text>
+                <Kb.Text type="BodySmall">Reset your account</Kb.Text>
+              </Kb.Box2>
+            }
+          />
+        </Kb.Box2>
+      )
     }
 
     const {name, type} = item
-    let iconType
+    let iconType: Kb.IconType
+    let description: string = ''
     switch (type) {
       case 'mobile':
         iconType = 'icon-phone-32'
+        description = 'Phone'
         break
       case 'desktop':
         iconType = 'icon-computer-32'
+        description = 'Copmuter'
         break
       case 'backup':
         iconType = 'icon-paper-key-32'
+        description = 'Paper key'
         break
       default:
         iconType = 'icon-paper-key-32'
     }
-
-    const isBackup = type === 'backup'
 
     return (
       <Kb.ListItem2
@@ -50,11 +71,8 @@ class SelectOtherDevice extends React.Component<Props> {
         icon={<Kb.Icon type={iconType} />}
         body={
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold">
-              {name}
-              {isBackup ? '...' : ''}
-            </Kb.Text>
-            {isBackup && <Kb.Text type="BodySmall">Paper key</Kb.Text>}
+            <Kb.Text type="BodySemibold">{name}</Kb.Text>
+            <Kb.Text type="BodySmall">{description}</Kb.Text>
           </Kb.Box2>
         }
       />
@@ -62,9 +80,14 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 
   render() {
-    const items = [...this.props.devices, {name: 'troubleshooting'}]
+    const items = [...this.props.devices, {name: 'reset'}]
     return (
-      <SignupScreen noBackground={true} onBack={this.props.onBack} title="Authorize this computer">
+      <SignupScreen
+        noBackground={true}
+        onBack={this.props.onBack}
+        title={`Authorize this ${Styles.isMobile ? 'phone' : 'computer'}`}
+        contentContainerStyle={Styles.padding(0)}
+      >
         <Kb.Box2
           direction="vertical"
           fullHeight={true}
@@ -78,10 +101,15 @@ class SelectOtherDevice extends React.Component<Props> {
             renderItem={this._renderItem}
             keyProperty="name"
             ListHeaderComponent={
-              <Kb.Text center={true} type="Body" style={styles.headerText}>
-                For security reasons, you need to authorize with an existing device. Which of your existing
-                devices would you like to use?
-              </Kb.Text>
+              <Kb.Box2 direction="vertical">
+                <Kb.Text center={true} type="Body" style={styles.headerText}>
+                  For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
+                  with another of your devices or a paper key.
+                </Kb.Text>
+                <Kb.Text center={true} type="Body" style={styles.headerText}>
+                  Which do you have handy?
+                </Kb.Text>
+              </Kb.Box2>
             }
             fixedHeight={Styles.isMobile ? 48 : 40}
           />
@@ -91,32 +119,7 @@ class SelectOtherDevice extends React.Component<Props> {
   }
 }
 
-const Troubleshooting = ({onResetAccount}) => (
-  <Kb.Box2 direction="vertical" gap="small" style={styles.troubleShooting}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-      <Kb.Icon type="iconfont-wrenches" />
-      <Kb.Text type="BodySmallSemibold">Troubleshooting</Kb.Text>
-    </Kb.Box2>
-    <Kb.Text type="BodySemibold">
-      If you have lost all of your devices, or if you uninstalled Keybase from all of them, you can{' '}
-      <Kb.Text type="BodySemiboldLink" onClick={onResetAccount}>
-        reset your account.
-      </Kb.Text>
-    </Kb.Text>
-  </Kb.Box2>
-)
-
 const styles = Styles.styleSheetCreate(() => ({
-  backButton: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.medium,
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginLeft: 0,
-      marginTop: 0,
-    },
-  }),
   contentBox: Styles.platformStyles({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
@@ -137,10 +140,10 @@ const styles = Styles.styleSheetCreate(() => ({
   list: {
     flexGrow: 1,
   },
-  troubleShooting: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+  or: {
+    backgroundColor: Styles.globalColors.blueGrey,
+    color: Styles.globalColors.black_50,
+    ...Styles.padding(Styles.globalMargins.xsmall),
   },
 }))
 
