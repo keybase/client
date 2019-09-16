@@ -34,19 +34,12 @@ const getPrompt = (props: Props) =>
   )
 
 const getDescription = (props: Props) => {
-  let description = ''
-  if (props.lastEmail) {
-    description += `Since you'll have deleted all email addresses, you won't get email notifications from Keybase anymore.`
-  }
-  if (props.searchable) {
-    if (props.lastEmail) {
-      description += ' '
-    }
-    description += `Your friends will no longer be able to find you by this ${
-      props.type === 'email' ? 'email address' : 'number'
-    }.`
-  }
-  return description
+  return [
+    ...(props.lastEmail ? [`Since you'll have deleted all email addresses, you won't get email notifications from Keybase anymore.`] : []),
+    ...(props.searchable ? [`Your friends will no longer be able to find you by this ${
+          props.type === 'email' ? 'email address' : 'number'
+        }.`] : [])
+  ].join(' ')
 }
 
 const ConfirmDeleteAddress = (props: Props) => (
