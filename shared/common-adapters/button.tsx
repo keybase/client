@@ -51,125 +51,116 @@ const Progress = ({small, white}) => (
   </Kb.Box>
 )
 
-class Button extends React.Component<Props> {
-  static defaultProps = {
-    mode: 'Primary',
-    type: 'Default',
+const _Button = (props: Props, ref: React.Ref<ClickableBox>) => {
+  let containerStyle = props.backgroundColor
+    ? backgroundColorContainerStyles[props.mode]
+    : containerStyles[props.mode + props.type]
+  let labelStyle = props.backgroundColor
+    ? backgroundColorLabelStyles[props.mode + (props.mode === 'Secondary' ? '' : props.backgroundColor)]
+    : labelStyles[props.mode + props.type]
+
+  if (props.fullWidth) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
   }
-  render() {
-    let containerStyle = this.props.backgroundColor
-      ? backgroundColorContainerStyles[this.props.mode]
-      : containerStyles[this.props.mode + this.props.type]
-    let labelStyle = this.props.backgroundColor
-      ? backgroundColorLabelStyles[
-          this.props.mode + (this.props.mode === 'Secondary' ? '' : this.props.backgroundColor)
-        ]
-      : labelStyles[this.props.mode + this.props.type]
 
-    if (this.props.fullWidth) {
-      containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
+  if (props.small) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.small])
+  }
+
+  const unclickable = props.disabled || props.waiting
+  if (unclickable) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.opacity30])
+  }
+
+  if (props.waiting) {
+    labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0])
+  }
+
+  containerStyle = Styles.collapseStyles([containerStyle, props.style])
+
+  const onClick = (!unclickable && props.onClick) || undefined
+  const whiteSpinner =
+    (props.mode === 'Primary' && !(props.backgroundColor || props.type === 'Dim')) ||
+    (props.mode === 'Secondary' && !!props.backgroundColor)
+
+  // Hover border colors
+  const classNames: Array<string> = []
+  if (props.mode === 'Secondary' && !props.backgroundColor) {
+    // base grey border
+    classNames.push('button__border')
+    if (!unclickable) {
+      // hover effect
+      classNames.push(`button__border_${typeToColorName[props.type]}`)
     }
+  }
 
-    if (this.props.small) {
-      containerStyle = Styles.collapseStyles([containerStyle, styles.small])
-    }
-
-    const unclickable = this.props.disabled || this.props.waiting
-    if (unclickable) {
-      containerStyle = Styles.collapseStyles([containerStyle, styles.opacity30])
-    }
-
-    if (this.props.waiting) {
-      labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0])
-    }
-
-    containerStyle = Styles.collapseStyles([containerStyle, this.props.style])
-
-    const onClick = (!unclickable && this.props.onClick) || undefined
-    const whiteSpinner =
-      (this.props.mode === 'Primary' && !(this.props.backgroundColor || this.props.type === 'Dim')) ||
-      (this.props.mode === 'Secondary' && !!this.props.backgroundColor)
-
-    // Hover border colors
-    let classNames: Array<string> = []
-    if (this.props.mode === 'Secondary' && !this.props.backgroundColor) {
-      // base grey border
-      classNames.push('button__border')
-      if (!unclickable) {
-        // hover effect
-        classNames.push(`button__border_${typeToColorName[this.props.type]}`)
-      }
-    }
-
-    // Hover background colors
-    let underlayClassNames: Array<string> = []
-    if (this.props.mode === 'Primary' && !unclickable) {
-      underlayClassNames.push(
-        'button__underlay',
-        this.props.backgroundColor
-          ? `button__underlay_${this.props.backgroundColor}`
-          : 'button__underlay_black10'
-      )
-    } else if (this.props.mode === 'Secondary' && !unclickable) {
-      // default 0.2 opacity + 0.15 here = 0.35 hover
-      underlayClassNames.push(
-        'button__underlay',
-        this.props.backgroundColor
-          ? 'button__underlay_black'
-          : `button__underlay_${typeToColorName[this.props.type]}`
-      )
-    }
-    const underlay =
-      !Styles.isMobile && underlayClassNames.length ? (
-        <Kb.Box className={Styles.classNames(underlayClassNames)} />
-      ) : null
-
-    return (
-      <Kb.ClickableBox
-        className={Styles.classNames(classNames)}
-        style={containerStyle}
-        onClick={onClick}
-        onMouseEnter={this.props.onMouseEnter}
-        onMouseLeave={this.props.onMouseLeave}
-        hoverColor={Styles.globalColors.transparent}
-      >
-        {underlay}
-        <Kb.Box
-          style={Styles.collapseStyles([
-            Styles.globalStyles.flexBoxRow,
-            Styles.globalStyles.flexBoxCenter,
-            styles.labelContainer,
-            this.props.labelContainerStyle,
-          ])}
-        >
-          {!this.props.waiting && this.props.children}
-          <Kb.Box2 direction="vertical" centerChildren={true}>
-            {!!this.props.label && (
-              <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, this.props.labelStyle])}>
-                {this.props.label}
-              </Kb.Text>
-            )}
-            {!!this.props.subLabel && (
-              <Kb.Text
-                type="BodyTiny"
-                style={Styles.collapseStyles([
-                  this.props.waiting && styles.opacity0,
-                  this.props.subLabelStyle,
-                ])}
-              >
-                {this.props.subLabel}
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-          {!!this.props.badgeNumber && (
-            <Kb.Badge badgeNumber={this.props.badgeNumber} badgeStyle={styles.badge} />
-          )}
-          {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
-        </Kb.Box>
-      </Kb.ClickableBox>
+  // Hover background colors
+  const underlayClassNames: Array<string> = []
+  if (props.mode === 'Primary' && !unclickable) {
+    underlayClassNames.push(
+      'button__underlay',
+      props.backgroundColor ? `button__underlay_${props.backgroundColor}` : 'button__underlay_black10'
+    )
+  } else if (props.mode === 'Secondary' && !unclickable) {
+    // default 0.2 opacity + 0.15 here = 0.35 hover
+    underlayClassNames.push(
+      'button__underlay',
+      props.backgroundColor ? 'button__underlay_black' : `button__underlay_${typeToColorName[props.type]}`
     )
   }
+  const underlay =
+    !Styles.isMobile && underlayClassNames.length ? (
+      <Kb.Box className={Styles.classNames(underlayClassNames)} />
+    ) : null
+
+  return (
+    <Kb.ClickableBox
+      ref={ref}
+      className={Styles.classNames(classNames)}
+      style={containerStyle}
+      onClick={onClick}
+      onMouseEnter={props.onMouseEnter}
+      onMouseLeave={props.onMouseLeave}
+      hoverColor={Styles.globalColors.transparent}
+    >
+      {underlay}
+      <Kb.Box
+        style={Styles.collapseStyles([
+          Styles.globalStyles.flexBoxRow,
+          Styles.globalStyles.flexBoxCenter,
+          styles.labelContainer,
+          props.labelContainerStyle,
+        ])}
+      >
+        {!props.waiting && props.children}
+        <Kb.Box2 direction="vertical" centerChildren={true}>
+          {!!props.label && (
+            <Kb.Text type="BodySemibold" style={Styles.collapseStyles([labelStyle, props.labelStyle])}>
+              {props.label}
+            </Kb.Text>
+          )}
+          {!!props.subLabel && (
+            <Kb.Text
+              type="BodyTiny"
+              style={Styles.collapseStyles([props.waiting && styles.opacity0, props.subLabelStyle])}
+            >
+              {props.subLabel}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+        {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
+        {!!props.waiting && <Progress small={props.small} white={whiteSpinner} />}
+      </Kb.Box>
+    </Kb.ClickableBox>
+  )
 }
+
+_Button.defaultProps = {
+  mode: 'Primary',
+  type: 'Default',
+}
+
+const Button = React.forwardRef<ClickableBox, Props>(_Button)
 
 const typeToColorName = {
   Default: 'blue',
