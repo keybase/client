@@ -528,14 +528,23 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 func (g *gregorHandler) pushStateThread() {
 	var lastPush func()
 	var lastTime time.Time
-	for push := range g.pushStateCh {
-		lastPush = push
-		if time.Since(lastTime) > time.Second {
-			if lastPush != nil {
-				go lastPush()
-				lastPush = nil
-			}
+	dur := time.Second
+	trigger := func() {
+		if lastPush != nil {
+			go lastPush()
+			lastPush = nil
 			lastTime = time.Now()
+		}
+	}
+	for {
+		select {
+		case push := <-g.pushStateCh:
+			lastPush = push
+			if time.Since(lastTime) > dur {
+				trigger()
+			}
+		case <-time.After(dur):
+			trigger()
 		}
 	}
 }
