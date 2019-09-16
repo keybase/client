@@ -104,7 +104,7 @@ class SelectOtherDevice extends React.Component<Props> {
               <Kb.Box2 direction="vertical">
                 <Kb.Text center={true} type="Body" style={styles.headerText}>
                   For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
-                  with another of your devices or a paper key.
+                  with another device or a paper key.
                 </Kb.Text>
                 <Kb.Text center={true} type="Body" style={styles.headerText}>
                   Which do you have handy?
