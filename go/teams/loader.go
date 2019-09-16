@@ -905,9 +905,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	// Cache the validated result
-	tracer.Stage("put")
-	l.storage.Put(mctx, ret)
+	// Cache the validated result if it was actually updated via the team/get endpoint. In many cases, we're not
+	// actually mutating the team.
+	if teamUpdate != nil {
+		tracer.Stage("put")
+		l.storage.Put(mctx, ret)
+	}
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
