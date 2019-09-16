@@ -1973,6 +1973,7 @@ export enum StatusCode {
   scbademail = 472,
   scratelimit = 602,
   scbadsignupusernametaken = 701,
+  scduplicate = 706,
   scbadinvitationcode = 707,
   scbadsignupteamname = 711,
   scfeatureflag = 712,
