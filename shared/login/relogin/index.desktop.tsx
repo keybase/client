@@ -2,8 +2,8 @@ import * as React from 'react'
 import * as Constants from '../../constants/login'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {errorBanner, SignupScreen} from '../../signup/common'
-import {Props} from '.'
+import { errorBanner, SignupScreen } from '../../signup/common'
+import { Props } from '.'
 
 type State = {
   open: boolean
@@ -11,7 +11,7 @@ type State = {
 
 const other = 'Someone else...'
 
-const UserRow = ({user}) => (
+const UserRow = ({ user }) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow}>
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
@@ -27,7 +27,7 @@ class Login extends React.Component<Props, State> {
   }
 
   _toggleOpen = () => {
-    this.setState(prevState => ({open: !prevState.open}))
+    this.setState(prevState => ({ open: !prevState.open }))
   }
 
   _onClickUser = (selected: React.ReactElement) => {
@@ -45,7 +45,7 @@ class Login extends React.Component<Props, State> {
 
   render() {
     const userRows = this.props.users
-      .concat({hasStoredSecret: false, username: other})
+      .concat({ hasStoredSecret: false, username: other })
       .map(u => <UserRow user={u.username} key={u.username} />)
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
@@ -158,8 +158,8 @@ const styles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     justifyContent: 'flex-end',
   },
-  other: {color: Styles.globalColors.black},
-  provisioned: {color: Styles.globalColors.orange},
+  other: { color: Styles.globalColors.black },
+  provisioned: { color: Styles.globalColors.orange },
   userContainer: {
     backgroundColor: Styles.globalColors.transparent,
     flex: 1,
@@ -177,6 +177,6 @@ const styles = Styles.styleSheetCreate(() => ({
     minHeight: 40,
     width: '100%',
   },
-}))
+} as const))
 
 export default Login
