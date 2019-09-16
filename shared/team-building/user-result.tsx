@@ -150,39 +150,63 @@ const Avatar = ({
   )
 }
 
-const ServicesIconList = (props: {services: Array<Types.ServiceIdWithContact>}) => (
-  <Kb.Box2 direction="horizontal">
-    {props.services.map(service => (
-      <Kb.WithTooltip key={service} tooltip={service} position="top center">
-        <Kb.Icon
-          fontSize={14}
-          type={serviceIdToIconFont(service)}
-          style={Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
-          boxStyle={!Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)}
-        />
-      </Kb.WithTooltip>
-    ))}
-  </Kb.Box2>
-)
+// If service icons are the only item present in the bottom row, then don't apply margin-left to the first icon
+const ServicesIcons = (props: {
+  services: Array<Types.ServiceIdWithContact>
+  prettyName: string
+  displayLabel: string
+  isKeybaseResult: boolean
+  keybaseUsername: string | null
+}) => {
+  // When the result is from a non-keybase service, we could have:
+  //  1. keybase username
+  //  2. pretty name or display label
+  //
+  // When the result is from the keybase service, we could have:
+  //  1. pretty name or display name
+  const firstIconNoMargin = !props.isKeybaseResult
+    ? !props.keybaseUsername && !props.prettyName && !props.displayLabel
+    : !props.prettyName && !props.displayLabel
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={Styles.isMobile} style={styles.services}>
+      {props.services.map((service, index) => (
+        <Kb.WithTooltip key={service} tooltip={service} position="top center">
+          {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
+          <Kb.Icon
+            fontSize={14}
+            type={serviceIdToIconFont(service)}
+            style={
+              firstIconNoMargin && index === 0
+                ? null
+                : Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)
+            }
+            boxStyle={
+              firstIconNoMargin && index === 0
+                ? null
+                : !Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)
+            }
+          />
+        </Kb.WithTooltip>
+      ))}
+    </Kb.Box2>
+  )
+}
 
 const FormatPrettyName = (props: {
   displayLabel: string
   prettyName: string
   services: Array<Types.ServiceIdWithContact>
+  showServicesIcons: boolean
 }) =>
   props.prettyName ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
-      <Kb.Text type="BodySmall">
-        {textWithConditionalSeparator(props.prettyName, !!props.services.length)}
-      </Kb.Text>
-    </Kb.Box2>
-  ) : (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
-      <Kb.Text type="BodySmall">
-        {textWithConditionalSeparator(props.displayLabel, !!props.services.length)}
-      </Kb.Text>
-    </Kb.Box2>
-  )
+    <Kb.Text type="BodySmall">
+      {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
+    </Kb.Text>
+  ) : props.displayLabel ? (
+    <Kb.Text type="BodySmall">
+      {textWithConditionalSeparator(props.displayLabel, props.showServicesIcons && !!props.services.length)}
+    </Kb.Text>
+  ) : null
 
 const BottomRow = (props: {
   isKeybaseResult: boolean
@@ -194,35 +218,50 @@ const BottomRow = (props: {
   prettyName: string
   services: {[K in Types.ServiceIdWithContact]?: string}
 }) => {
-  const keybaseUsernameComponent =
-    !props.isKeybaseResult && props.keybaseUsername ? (
-      <>
-        <Kb.Text
-          type="BodySemibold"
-          style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
-        >
-          {props.keybaseUsername}
-        </Kb.Text>
-        <Kb.Text type="BodySmall">{` ${dotSeparator} `} </Kb.Text>
-      </>
-    ) : null
+  const serviceUserIsAlsoKeybaseUser = !props.isKeybaseResult && props.keybaseUsername
+  const showServicesIcons = props.isKeybaseResult || !!props.keybaseUsername
+  const keybaseUsernameComponent = serviceUserIsAlsoKeybaseUser ? (
+    <>
+      <Kb.Text
+        type="BodySemibold"
+        style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
+      >
+        {props.keybaseUsername}
+      </Kb.Text>
+      <Kb.Text type="BodySemibold">&nbsp;</Kb.Text>
+      <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
+      <Kb.Text type="BodySemibold">&nbsp;</Kb.Text>
+    </>
+  ) : null
 
   return (
-    <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="flex-start" style={styles.bottomRowContainer}>
       {keybaseUsernameComponent}
       {props.isPreExistingTeamMember ? (
         <Kb.Text type="BodySmall" lineClamp={1}>
           {isPreExistingTeamMemberText(props.prettyName)}
         </Kb.Text>
       ) : (
-        <Kb.Box2 direction="horizontal">
+        <>
           <FormatPrettyName
             displayLabel={props.displayLabel}
             prettyName={props.prettyName}
             services={serviceMapToArray(props.services)}
+            showServicesIcons={showServicesIcons}
           />
-          <ServicesIconList services={serviceMapToArray(props.services)} />
-        </Kb.Box2>
+          {/* When the service result does not have any information other than
+            the service username we don't want to show the service icons since
+            there will only be one item */}
+          {showServicesIcons ? (
+            <ServicesIcons
+              services={serviceMapToArray(props.services)}
+              isKeybaseResult={props.isKeybaseResult}
+              prettyName={props.prettyName}
+              displayLabel={props.displayLabel}
+              keybaseUsername={props.keybaseUsername}
+            />
+          ) : null}
+        </>
       )}
     </Kb.Box2>
   )
@@ -284,6 +323,12 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
     width: ActionButtonSize,
+  },
+  bottomRowContainer: {
+    alignItems: 'baseline',
+    // TODO: The smallest desktop width pushes text incorrectly.
+    // TODO: Long prettyName and services can push underneath the ActionButton.
+    flexWrap: 'nowrap',
   },
   contactName: {
     lineHeight: 22,
