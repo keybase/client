@@ -221,6 +221,7 @@ type gregorHandler struct {
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
 	replayCh    chan replayThreadArg
+	pushStateCh chan func()
 
 	// Testing
 	testingEvents       *testingEvents
@@ -241,6 +242,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		forceSessionCheck: false,
 		connectHappened:   make(chan struct{}),
 		replayCh:          make(chan replayThreadArg, 10),
+		pushStateCh:       make(chan func(), 100),
 	}
 	return gh
 }
@@ -253,6 +255,8 @@ func (g *gregorHandler) Init() {
 	go g.monitorAppState()
 	// Start replay thread
 	go g.syncReplayThread()
+	// Start push state loop
+	go g.pushStateThread()
 }
 
 const (
@@ -521,21 +525,37 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 	g.firehoseHandlers = freshHandlers
 }
 
+func (g *gregorHandler) pushStateThread() {
+	var lastPush func()
+	for {
+		select {
+		case push := <-g.pushStateCh:
+			lastPush = push
+		case <-time.After(time.Second):
+			if lastPush != nil {
+				go lastPush()
+				lastPush = nil
+			}
+		}
+	}
+}
+
 func (g *gregorHandler) pushState(r keybase1.PushReason) {
 	s, err := g.getState(context.Background())
 	if err != nil {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
 	}
-	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) {
-		g.Debug(context.Background(), "pushState: pushing state with %d items", len(s.Items_))
-		h.PushState(s, r)
-	})
-
-	// Only send this state update on reception of new data, not a reconnect since we will
-	// be sending that on a different code path altogether (see OnConnect).
-	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
-		g.badger.PushState(context.Background(), s)
+	g.pushStateCh <- func() {
+		g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) {
+			g.Debug(context.Background(), "pushState: pushing state with %d items", len(s.Items_))
+			h.PushState(s, r)
+		})
+		// Only send this state update on reception of new data, not a reconnect since we will
+		// be sending that on a different code path altogether (see OnConnect).
+		if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
+			g.badger.PushState(context.Background(), s)
+		}
 	}
 }
 
@@ -1298,6 +1318,7 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown()
 	g.setFirstConnect(true)
 	g.shutdownGregorClient(context.TODO())
+	g.pushStateCh <- nil // clear any pending push state calls
 	return nil
 }
 
