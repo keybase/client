@@ -117,7 +117,7 @@ type ButtonMeta = {
   disabled?: boolean
   label: string
   onClick: () => void
-  type: ButtonProps['type']
+  type?: ButtonProps['type']
   waiting?: boolean
 }
 

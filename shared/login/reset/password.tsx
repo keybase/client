@@ -25,8 +25,20 @@ const KnowPassword = () => (
   </SignupScreen>
 )
 
-const EnterPassword = () => <Kb.Text type="HeaderBig">Enter your password?</Kb.Text>
+const EnterPassword = () => (
+  <SignupScreen title="Your password" onBack={todo} buttons={[{label: 'Continue', onClick: todo}]}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.LabeledInput placeholder="Enter your password" containerStyle={styles.input} type="password" />
+    </Kb.Box2>
+  </SignupScreen>
+)
 
-const styles = Styles.styleSheetCreate(() => ({}))
+const styles = Styles.styleSheetCreate(() => ({
+  input: Styles.platformStyles({
+    isElectron: {
+      width: 368,
+    },
+  }),
+}))
 
 export {EnterPassword, KnowPassword}
