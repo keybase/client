@@ -52,7 +52,7 @@ class SelectOtherDevice extends React.Component<Props> {
         break
       case 'desktop':
         iconType = 'icon-computer-32'
-        description = 'Copmuter'
+        description = 'Computer'
         break
       case 'backup':
         iconType = 'icon-paper-key-32'
@@ -101,17 +101,16 @@ class SelectOtherDevice extends React.Component<Props> {
             renderItem={this._renderItem}
             keyProperty="name"
             ListHeaderComponent={
-              <Kb.Box2 direction="vertical">
-                <Kb.Text center={true} type="Body" style={styles.headerText}>
+              <Kb.Box2 direction="vertical" style={styles.headerText}>
+                <Kb.Text center={true} type="Body">
                   For security reasons, you need to authorize this {Styles.isMobile ? 'phone' : 'computer'}{' '}
                   with another device or a paper key.
                 </Kb.Text>
-                <Kb.Text center={true} type="Body" style={styles.headerText}>
+                <Kb.Text center={true} type="Body">
                   Which do you have handy?
                 </Kb.Text>
               </Kb.Box2>
             }
-            fixedHeight={Styles.isMobile ? 48 : 40}
           />
         </Kb.Box2>
       </SignupScreen>
