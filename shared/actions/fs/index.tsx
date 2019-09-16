@@ -777,16 +777,18 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
 // timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
-const checkKbfsServerReachabilityIfNeeded = (
+const checkKbfsServerReachabilityIfNeeded = async (
   _: TypedState,
   action: ConfigGen.OsNetworkStatusChangedPayload
 ) => {
   if (!action.payload.isInit) {
-    return RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise().catch(err =>
+    try {
+      await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+    } catch (err) {
       logger.warn(`failed to check KBFS reachability: ${err.message}`)
-    )
+    }
   }
-  return undefined
+  return null
 }
 
 const onNotifyFSOverallSyncSyncStatusChanged = (
@@ -800,7 +802,7 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
     ? Types.DiskSpaceStatus.Warning
     : Types.DiskSpaceStatus.Ok
   // We need to type this separately since otherwise we can't concat to it.
-  let actions: Array<
+  const actions: Array<
     | NotificationsGen.BadgeAppPayload
     | FsGen.OverallSyncStatusChangedPayload
     | FsGen.ShowHideDiskSpaceBannerPayload
@@ -855,22 +857,34 @@ const setDebugLevel = (_: TypedState, action: FsGen.SetDebugLevelPayload) =>
 
 const subscriptionDeduplicateIntervalSecond = 1
 
-const subscribePath = (_: TypedState, action: FsGen.SubscribePathPayload) =>
-  RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
-    deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-    kbfsPath: Types.pathToString(action.payload.path),
-    subscriptionID: action.payload.subscriptionID,
-    topic: action.payload.topic,
-  }).catch(makeUnretriableErrorHandler(action, action.payload.path))
+const subscribePath = async (_: TypedState, action: FsGen.SubscribePathPayload) => {
+  try {
+    await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
+      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+      kbfsPath: Types.pathToString(action.payload.path),
+      subscriptionID: action.payload.subscriptionID,
+      topic: action.payload.topic,
+    })
+    return null
+  } catch (err) {
+    return makeUnretriableErrorHandler(action, action.payload.path)(err)
+  }
+}
 
-const subscribeNonPath = (_: TypedState, action: FsGen.SubscribeNonPathPayload) =>
-  RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-    deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-    subscriptionID: action.payload.subscriptionID,
-    topic: action.payload.topic,
-  }).catch(makeUnretriableErrorHandler(action))
+const subscribeNonPath = async (_: TypedState, action: FsGen.SubscribeNonPathPayload) => {
+  try {
+    await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+      subscriptionID: action.payload.subscriptionID,
+      topic: action.payload.topic,
+    })
+    return null
+  } catch (err) {
+    return makeUnretriableErrorHandler(action)(err)
+  }
+}
 
 const unsubscribe = async (_: TypedState, action: FsGen.UnsubscribePayload) => {
   try {
@@ -920,42 +934,44 @@ const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
   })
 }
 
-const loadDownloadInfo = (_: TypedState, action: FsGen.LoadDownloadInfoPayload) =>
-  RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
-    downloadID: action.payload.downloadID,
-  })
-    .then(res =>
-      FsGen.createLoadedDownloadInfo({
-        downloadID: action.payload.downloadID,
-        info: Constants.makeDownloadInfo({
-          filename: res.filename,
-          isRegularDownload: res.isRegularDownload,
-          path: '/keybase' + res.path.path,
-          startTime: res.startTime,
-        }),
-      })
-    )
-    .catch()
-
-const loadDownloadStatus = () =>
-  RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise().then(res =>
-    FsGen.createLoadedDownloadStatus({
-      regularDownloads: I.List(res.regularDownloadIDs || []),
-      state: I.Map(
-        (res.states || []).map(s => [
-          s.downloadID,
-          Constants.makeDownloadState({
-            canceled: s.canceled,
-            done: s.done,
-            endEstimate: s.endEstimate,
-            error: s.error,
-            localPath: s.localPath,
-            progress: s.progress,
-          }),
-        ])
-      ),
+const loadDownloadInfo = async (_: TypedState, action: FsGen.LoadDownloadInfoPayload) => {
+  try {
+    const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
+      downloadID: action.payload.downloadID,
     })
-  )
+    return FsGen.createLoadedDownloadInfo({
+      downloadID: action.payload.downloadID,
+      info: Constants.makeDownloadInfo({
+        filename: res.filename,
+        isRegularDownload: res.isRegularDownload,
+        path: '/keybase' + res.path.path,
+        startTime: res.startTime,
+      }),
+    })
+  } catch {
+    return undefined
+  }
+}
+
+const loadDownloadStatus = async () => {
+  const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+  return FsGen.createLoadedDownloadStatus({
+    regularDownloads: I.List(res.regularDownloadIDs || []),
+    state: I.Map(
+      (res.states || []).map(s => [
+        s.downloadID,
+        Constants.makeDownloadState({
+          canceled: s.canceled,
+          done: s.done,
+          endEstimate: s.endEstimate,
+          error: s.error,
+          localPath: s.localPath,
+          progress: s.progress,
+        }),
+      ])
+    ),
+  })
+}
 
 function* fsSaga() {
   yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)

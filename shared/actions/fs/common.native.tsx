@@ -52,12 +52,12 @@ const finishedDownloadWithIntent = async (
         await showShareActionSheetFromURL({mimeType, url: localPath})
         return FsGen.createDismissDownload({downloadID})
       case Types.DownloadIntent.None:
-        return undefined
+        return null
       default:
-        return undefined
+        return null
     }
   } catch (err) {
-    return makeRetriableErrorHandler(action)
+    return makeRetriableErrorHandler(action)(err)
   }
 }
 
