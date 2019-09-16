@@ -2853,7 +2853,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-app-un-maximize': {
-    charCode: 0xe98d,
+    charCode: 0xe999,
     gridSize: 16,
     isFont: true,
   },
@@ -3372,6 +3372,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-password': {
+    charCode: 0xe98d,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-people': {
     charCode: 0xe94a,
     gridSize: 16,
@@ -3409,6 +3414,16 @@ const iconMeta_ = {
   },
   'iconfont-question-mark': {
     charCode: 0xe950,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-radio': {
+    charCode: 0xe997,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-radio-update': {
+    charCode: 0xe998,
     gridSize: 16,
     isFont: true,
   },
@@ -3553,7 +3568,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-unhide': {
-    charCode: 0xe98c,
+    charCode: 0xe99a,
     gridSize: 16,
     isFont: true,
   },
