@@ -55,6 +55,8 @@ export type Route = {
 }
 export type RouteMap = {[K in string]: Route}
 
+export const assertNever = (_: never) => undefined
+
 export {
   branch,
   defaultProps,
