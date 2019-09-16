@@ -145,13 +145,7 @@ func (ph *ProveHandler) ListSomeProofServices(ctx context.Context) (res []string
 			services = append(services, service)
 		}
 	}
-	key := func(service string) int {
-		if x, found := choiceProofServices[service]; found {
-			return x
-		}
-		return len(choiceProofServices) + 100
-	}
-	sort.SliceStable(services, func(i, j int) bool { return key(services[i]) < key(services[j]) })
+	sort.SliceStable(services, func(i, j int) bool { return choiceProofServices[services[i]] < choiceProofServices[services[j]] })
 	return services, nil
 }
 
