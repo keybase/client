@@ -13,8 +13,5 @@ export default (state: Types.State = initialState, action: AutoresetGen.Actions)
         return initialState
       case AutoresetGen.dummy:
         return draftState
-      default:
-        Container.assertNever(action)
-        return draftState
     }
   })
