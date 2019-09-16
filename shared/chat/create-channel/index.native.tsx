@@ -27,7 +27,7 @@ const CreateChannel = (props: Props) => (
           autoCapitalize="sentences"
           multiline={true}
           rowsMin={1}
-          rowsMax={4}
+          rowsMax={2}
           // From go/chat/msgchecker/constants.go#HeadlineMaxLength
           maxLength={280}
           hintText="Description or topic (optional)"

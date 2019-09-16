@@ -115,18 +115,16 @@ function* inboxRefresh(
     )
   }
 
-  yield* Saga.callRPCs(
-    RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-      incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
-      params: {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        maxUnbox: 0,
-        query: Constants.makeInboxQuery([]),
-        skipUnverified: false,
-      },
-      waitingKey: Constants.waitingKeyInboxRefresh,
-    })
-  )
+  yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+    incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
+    params: {
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      maxUnbox: 0,
+      query: Constants.makeInboxQuery([]),
+      skipUnverified: false,
+    },
+    waitingKey: Constants.waitingKeyInboxRefresh,
+  })
 }
 
 // When we get info on a team we need to unbox immediately so we can get the channel names
@@ -2152,7 +2150,7 @@ function* attachmentDownload(
   }
 
   // Download it
-  const destPath = yield* Saga.callPromise(downloadFilePath, message.fileName)
+  const destPath = yield downloadFilePath(message.fileName)
   yield Saga.callUntyped(downloadAttachment, destPath, message)
 }
 
@@ -2516,7 +2514,7 @@ function* mobileMessageAttachmentShare(
   }
   const fileName = yield* downloadAttachment('', message)
   try {
-    yield* Saga.callPromise(showShareActionSheetFromFile, fileName, message.fileType)
+    yield showShareActionSheetFromFile(fileName)
   } catch (e) {
     logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }
@@ -2546,7 +2544,7 @@ function* mobileMessageAttachmentSave(
   )
   try {
     logger.info('Trying to save chat attachment to camera roll')
-    yield* Saga.callPromise(saveAttachmentToCameraRoll, fileName, message.fileType)
+    yield saveAttachmentToCameraRoll(fileName, message.fileType)
   } catch (err) {
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
@@ -3394,7 +3392,7 @@ const createConversationFromTeamBuilder = (
   }),
 ]
 
-export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
+export function* chatTeamBuildingSaga() {
   yield* commonTeamBuildingSaga('chat2')
   yield* Saga.chainAction2(
     TeamBuildingGen.finishedTeamBuilding,
@@ -3402,7 +3400,7 @@ export function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
   )
 }
 
-function* chat2Saga(): Saga.SagaGenerator<any, any> {
+function* chat2Saga() {
   // Platform specific actions
   if (isMobile) {
     // Push us into the conversation

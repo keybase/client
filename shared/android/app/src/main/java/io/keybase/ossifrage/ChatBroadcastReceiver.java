@@ -27,10 +27,10 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
     return null;
  }
 
-
   @RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
   @Override
   public void onReceive(Context context, Intent intent) {
+    MainActivity.setupKBRuntime(context, false);
     ConvData convData = new ConvData(intent);
     PendingIntent openConv = intent.getParcelableExtra("openConvPendingIntent");
     NotificationCompat.Builder repliedNotification = new NotificationCompat.Builder(context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)
@@ -43,7 +43,7 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
     if (messageBody != null) {
 
       try {
-        WithBackgroundActive withBackgroundActive = () -> Keybase.handlePostTextReply(convData.convID, convData.tlfName, messageBody);
+        WithBackgroundActive withBackgroundActive = () -> Keybase.handlePostTextReply(convData.convID, convData.tlfName, convData.lastMsgId, messageBody);
         withBackgroundActive.whileActive(context);
         repliedNotification.setContentText("Replied");
       } catch (Exception e) {
@@ -63,22 +63,26 @@ public class ChatBroadcastReceiver extends BroadcastReceiver {
 class ConvData {
   String convID;
   String tlfName;
+  long lastMsgId;
 
-  ConvData(String convId, String tlfName) {
+  ConvData(String convId, String tlfName, long lastMsgId) {
     this.convID = convId;
     this.tlfName = tlfName;
+    this.lastMsgId = lastMsgId;
   }
 
   ConvData (Intent intent) {
     Bundle data = intent.getBundleExtra("ConvData");
     this.convID = data.getString("convID");
     this.tlfName = data.getString("tlfName");
+    this.lastMsgId = data.getLong("lastMsgId");
   }
 
   public Intent intoIntent(Context context) {
     Bundle data = new Bundle();
     data.putString("convID", this.convID);
     data.putString("tlfName", this.tlfName);
+    data.putLong("lastMsgId", this.lastMsgId);
     Intent intent = new Intent(context, ChatBroadcastReceiver.class);
     intent.putExtra("ConvData", data);
     return intent;

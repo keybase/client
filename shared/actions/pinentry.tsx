@@ -75,7 +75,7 @@ const onCancel = (_: Container.TypedState, action: PinentryGen.OnCancelPayload) 
   })
 }
 
-function* pinentrySaga(): Saga.SagaGenerator<any, any> {
+function* pinentrySaga() {
   yield* Saga.chainAction2(PinentryGen.onSubmit, onSubmit)
   yield* Saga.chainAction2(PinentryGen.onCancel, onCancel)
   yield* Saga.chainAction2(PinentryGen.newPinentry, onNewPinentry)

@@ -148,7 +148,7 @@ public class KBPushNotifier implements PushNotifier {
     bundle.putString("convID", chatNotification.getConvID());
     PendingIntent pending_intent = buildPendingIntent(bundle);
 
-    ConvData convData = new ConvData(chatNotification.getConvID(), chatNotification.getTlfName());
+    ConvData convData = new ConvData(chatNotification.getConvID(), chatNotification.getTlfName(), chatNotification.getMessage().getID());
 
     NotificationCompat.Builder builder =
       new NotificationCompat.Builder(this.context, KeybasePushNotificationListenerService.CHAT_CHANNEL_ID)

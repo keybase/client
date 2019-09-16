@@ -32,7 +32,7 @@ const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
-    if (!isPathItem(path)) {
+    if (Types.getPathLevel(path) < 3) {
       return () => {}
     }
 
@@ -105,4 +105,9 @@ export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): 
     }
   }, [path, alreadyKnown, knownPathInfo, pathInfo, dispatch])
   return alreadyKnown ? knownPathInfo : pathInfo
+}
+
+export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
+  const softErrors = Container.useSelector(state => state.fs.softErrors)
+  return Constants.getSoftError(softErrors, path)
 }

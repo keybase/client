@@ -296,6 +296,22 @@ func (e BoxingError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 //=============================================================================
 
+type RestrictedBotChannelError struct{}
+
+func NewRestrictedBotChannelError() RestrictedBotChannelError {
+	return RestrictedBotChannelError{}
+}
+
+func (e RestrictedBotChannelError) Error() string {
+	return "bot restricted from sending to this channel"
+}
+
+func (e RestrictedBotChannelError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_RESTRICTEDBOT, true
+}
+
+//=============================================================================
+
 type BoxingCryptKeysError struct {
 	Err error
 }

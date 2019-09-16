@@ -58,9 +58,8 @@ class FeedbackContainer extends React.Component<Props, State> {
     this.setState({sending: true})
 
     this.props.setTimeout(() => {
-      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve('')
+      const maybeDump = sendLogs ? this._dumpLogs() : Promise.resolve()
 
-      // @ts-ignore
       maybeDump
         .then(() => {
           logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)

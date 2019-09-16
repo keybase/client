@@ -270,7 +270,6 @@ function* loadDaemonAccounts(
           })
         )
       }
-      return undefined
     }
   }
 }
@@ -590,7 +589,7 @@ const saveDarkPrefs = async (state: Container.TypedState) => {
   } catch (_) {}
 }
 
-function* configSaga(): Saga.SagaGenerator<any, any> {
+function* configSaga() {
   // Start the handshake process. This means we tell all sagas we're handshaking with the daemon. If another
   // saga needs to do something before we leave the loading screen they should call daemonHandshakeWait
   yield* Saga.chainAction2([ConfigGen.restartHandshake, ConfigGen.startHandshake], startHandshake)

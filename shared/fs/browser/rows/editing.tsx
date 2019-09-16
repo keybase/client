@@ -75,32 +75,35 @@ const Editing = (props: EditingProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  button: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  iconCancel: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.tiny,
-      paddingRight: 0,
-    },
-    isMobile: {
-      fontSize: 22,
-    },
-  }),
-  rightBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexShrink: 1,
-    justifyContent: 'flex-end',
-  },
-  text: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fontSemibold,
-      maxWidth: '100%',
-    },
-    isMobile: {marginTop: 22},
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      button: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
+      iconCancel: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+          paddingRight: 0,
+        },
+        isMobile: {
+          fontSize: 22,
+        },
+      }),
+      rightBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        flexShrink: 1,
+        justifyContent: 'flex-end',
+      },
+      text: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fontSemibold,
+          maxWidth: '100%',
+        },
+        isMobile: {marginTop: 22},
+      }),
+    } as const)
+)
 
 export default Editing

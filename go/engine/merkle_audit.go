@@ -109,8 +109,10 @@ func (e *MerkleAudit) Run(mctx libkb.MetaContext) (err error) {
 	return RunEngine2(mctx, e.task)
 }
 
-func (e *MerkleAudit) Shutdown() {
+func (e *MerkleAudit) Shutdown(mctx libkb.MetaContext) error {
+	mctx.Debug("stopping merkle root background audit engine")
 	e.task.Shutdown()
+	return nil
 }
 
 // randSeqno picks a random number between [low, high) that's different from prev.

@@ -2,6 +2,7 @@ package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -53,8 +54,8 @@ public class MainActivity extends ReactFragmentActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
 
-  private void createDummyFile() {
-    final File dummyFile = new File(this.getFilesDir(), "dummy.txt");
+  private static void createDummyFile(Context context) {
+    final File dummyFile = new File(context.getFilesDir(), "dummy.txt");
     try {
       if (dummyFile.createNewFile()) {
         dummyFile.setWritable(true);
@@ -82,20 +83,27 @@ public class MainActivity extends ReactFragmentActivity {
     return instanceManager.getCurrentReactContext();
   }
 
-  @Override
-  @TargetApi(Build.VERSION_CODES.KITKAT)
-  protected void onCreate(Bundle savedInstanceState) {
+
+  public static void setupKBRuntime(Context context, boolean shouldCreateDummyFile) {
     try {
-      Keybase.setGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
+      Keybase.setGlobalExternalKeyStore(new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
     } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
       NativeLogger.error("Exception in MainActivity.onCreate", e);
     }
 
-    createDummyFile();
+    if (shouldCreateDummyFile) {
+      createDummyFile(context);
+    }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
-    initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
+    initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
       new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
 
+  }
+
+  @Override
+  @TargetApi(Build.VERSION_CODES.KITKAT)
+  protected void onCreate(Bundle savedInstanceState) {
+    setupKBRuntime(this, true);
     super.onCreate(null);
 
 

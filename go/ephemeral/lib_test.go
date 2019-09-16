@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -26,8 +27,8 @@ func TestKeygenIfNeeded(t *testing.T) {
 	tc, mctx, _ := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	ekLib := NewEKLib(mctx)
-	defer ekLib.Shutdown()
+	ekLib, ok := tc.G.GetEKLib().(*EKLib)
+	require.True(t, ok)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 	err := ekLib.KeygenIfNeeded(mctx)
@@ -117,8 +118,8 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	defer tc.Cleanup()
 
 	teamID := createTeam(tc)
-	ekLib := NewEKLib(mctx)
-	defer ekLib.Shutdown()
+	ekLib, ok := tc.G.GetEKLib().(*EKLib)
+	require.True(t, ok)
 	fc := clockwork.NewFakeClockAt(time.Now())
 	ekLib.SetClock(fc)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
@@ -336,14 +337,14 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ekLib := NewEKLib(mctx)
-	defer ekLib.Shutdown()
+	ekLib, ok := tc.G.GetEKLib().(*EKLib)
+	require.True(t, ok)
 	err = ekLib.CleanupStaleUserAndDeviceEKs(mctx)
 	require.NoError(t, err)
 
 	deviceEK, err := s.Get(mctx, 0)
 	require.Error(t, err)
-	_, ok := err.(libkb.UnboxError)
+	_, ok = err.(libkb.UnboxError)
 	require.True(t, ok)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
@@ -368,13 +369,13 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ekLib := NewEKLib(mctx)
-	defer ekLib.Shutdown()
+	ekLib, ok := tc.G.GetEKLib().(*EKLib)
+	require.True(t, ok)
 	ch := make(chan bool, 1)
 	ekLib.setBackgroundDeleteTestCh(ch)
 	err = ekLib.keygenIfNeeded(mctx, libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
-	_, ok := err.(EphemeralKeyError)
+	_, ok = err.(EphemeralKeyError)
 	require.False(t, ok)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 
@@ -393,7 +394,7 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 }
 
-func TestLoginOneshotNoEphemeral(t *testing.T) {
+func TestLoginOneshotWithEphemeral(t *testing.T) {
 	tc, mctx, user := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 	uis := libkb.UIs{
@@ -404,52 +405,51 @@ func TestLoginOneshotNoEphemeral(t *testing.T) {
 	mctx = mctx.WithUIs(uis)
 	teamID := createTeam(tc)
 
-	ekLib := NewEKLib(mctx)
-	defer ekLib.Shutdown()
-	_, created, err := ekLib.GetOrCreateLatestTeamEK(mctx, teamID)
-	require.NoError(t, err)
-	require.True(t, created)
-
 	eng := engine.NewPaperKey(tc.G)
-	err = engine.RunEngine2(mctx, eng)
+	err := engine.RunEngine2(mctx, eng)
 	require.NoError(t, err)
 	require.NotZero(t, len(eng.Passphrase()))
 	require.NoError(t, tc.G.Logout(context.TODO()))
 
-	tc2 := libkb.SetupTest(t, "ephemeral", 2)
-	defer tc2.Cleanup()
-	mctx2 := libkb.NewMetaContextForTest(tc2)
-	NewEphemeralStorageAndInstall(mctx2)
+	keygenWithOneshot := func() (keybase1.DeviceEk, keybase1.UserEk, keybase1.TeamEphemeralKey) {
+		tc := libkb.SetupTest(t, "ephemeral", 2)
+		defer tc.Cleanup()
+		mctx := libkb.NewMetaContextForTest(tc)
+		NewEphemeralStorageAndInstall(mctx)
+		teams.ServiceInit(tc.G)
 
-	eng2 := engine.NewLoginOneshot(tc2.G, keybase1.LoginOneshotArg{
-		Username: user.NormalizedUsername().String(),
-		PaperKey: eng.Passphrase(),
-	})
-	err = engine.RunEngine2(mctx2, eng2)
-	require.NoError(t, err)
+		eng := engine.NewLoginOneshot(tc.G, keybase1.LoginOneshotArg{
+			Username: user.NormalizedUsername().String(),
+			PaperKey: eng.Passphrase(),
+		})
+		err = engine.RunEngine2(mctx, eng)
+		require.NoError(t, err)
 
-	ekLib2 := NewEKLib(mctx2)
-	defer ekLib2.Shutdown()
+		err = tc.G.GetEKLib().KeygenIfNeeded(mctx)
+		require.NoError(t, err)
 
-	// Make sure we can't access or create any ephemeral keys
-	_, created, err = ekLib2.GetOrCreateLatestTeamEK(mctx2, teamID)
-	require.Error(t, err)
-	require.False(t, created)
-	_, ok := err.(EphemeralKeyError)
-	require.False(t, ok)
+		deks := tc.G.GetDeviceEKStorage()
+		dekGen, err := deks.MaxGeneration(mctx, false)
+		require.NoError(t, err)
+		dek, err := deks.Get(mctx, dekGen)
+		require.NoError(t, err)
 
-	deks := tc2.G.GetDeviceEKStorage()
-	gen, err := deks.MaxGeneration(mctx2, false)
-	require.NoError(t, err)
-	require.EqualValues(t, -1, gen)
+		ueks := tc.G.GetUserEKBoxStorage()
+		uekGen, err := ueks.MaxGeneration(mctx, false)
+		require.NoError(t, err)
+		uek, err := ueks.Get(mctx, uekGen, nil)
+		require.NoError(t, err)
 
-	ueks := tc2.G.GetUserEKBoxStorage()
-	gen, err = ueks.MaxGeneration(mctx2, false)
-	require.NoError(t, err)
-	require.EqualValues(t, -1, gen)
+		tek, created, err := tc.G.GetEKLib().GetOrCreateLatestTeamEK(mctx, teamID)
+		require.NoError(t, err)
+		require.True(t, created)
 
-	teks := tc2.G.GetUserEKBoxStorage()
-	gen, err = teks.MaxGeneration(mctx2, false)
-	require.NoError(t, err)
-	require.EqualValues(t, -1, gen)
+		return dek, uek, tek
+	}
+
+	dek, uek, tek := keygenWithOneshot()
+	dek2, uek2, tek2 := keygenWithOneshot()
+	require.NotEqual(t, dek, dek2)
+	require.NotEqual(t, uek, uek2)
+	require.NotEqual(t, tek, tek2)
 }

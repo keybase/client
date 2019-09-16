@@ -13,9 +13,13 @@ type Props = Kb.PropsWithTimer<{
 }>
 
 const Intro = (props: Props) => {
-  Kb.useInterval(props.checkIsOnline, 2000)
+  const [showing, setShowing] = React.useState(true)
+  Kb.useInterval(props.checkIsOnline, showing ? 5000 : undefined)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
+      {Styles.isMobile && (
+        <Kb.NavigationEvents onDidFocus={() => setShowing(true)} onWillBlur={() => setShowing(false)} />
+      )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <InfoIcon />
       </Kb.Box2>

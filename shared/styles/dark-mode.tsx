@@ -9,7 +9,7 @@ let systemDarkMode = false
 // supports system level changes
 let systemSupported = false
 
-// called ONLY from config sagas
+// called ONLY from config sagas and mobile boot
 export const _setDarkModePreference = (pref: DarkModePreference) => {
   darkModePreference = pref
 }

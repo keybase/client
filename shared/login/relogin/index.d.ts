@@ -6,10 +6,7 @@ export type Props = {
   onForgotPassword: () => void
   onSignup: () => void
   onSomeoneElse: () => void
-  inputError: boolean
-  bannerError: boolean
   error: string
-  inputKey: string
   password: string
   showTyping: boolean
   selectedUser: string

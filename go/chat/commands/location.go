@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -74,12 +73,6 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	var liveLocation chat1.LiveLocation
 	liveLocationEndTime := h.isLiveLocation(toks)
 	if liveLocationEndTime != nil {
-		statusStr := fmt.Sprintf("You are now posting your location until %s. Keybase will try to use your location when the app is not in use.", humanize.Time(gregor1.FromTime(*liveLocationEndTime)))
-		err := h.getChatUI().ChatCommandStatus(ctx, convID, statusStr, chat1.UICommandStatusDisplayTyp_STATUS,
-			[]chat1.UICommandStatusActionTyp{chat1.UICommandStatusActionTyp_APPSETTINGS})
-		if err != nil {
-			h.Debug(ctx, "Execute: error with command status: %+v", err)
-		}
 		liveLocation.EndTime = *liveLocationEndTime
 	}
 	if _, err := h.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, tlfName,

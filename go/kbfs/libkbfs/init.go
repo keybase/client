@@ -726,7 +726,9 @@ func doInit(
 	}
 	config.SetChat(chat)
 
-	kbfsOps := NewKBFSOpsStandard(kbCtx, config)
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(kbCtx, config, initDoneCh)
+	defer close(initDoneCh)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))

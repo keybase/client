@@ -746,7 +746,7 @@ const addEmail = async (state: TypedState, action: SettingsGen.AddEmailPayload, 
   }
 }
 
-function* settingsSaga(): Saga.SagaGenerator<any, any> {
+function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
   yield* Saga.chainAction2(SettingsGen.invitesSend, sendInvite)

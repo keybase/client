@@ -16,7 +16,6 @@ type ChooseComponentProps = {
   mimeType: Types.Mime | null
   path: Types.Path
   pathType: Types.PathType
-  softError: Types.SoftError | null
   waitForKbfsDaemon: () => void
 }
 
@@ -51,8 +50,9 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     return <SimpleScreens.Loading />
   }
 
-  if (props.softError) {
-    return <SimpleScreens.Oops path={props.path} reason={props.softError} />
+  const softError = Kbfs.useFsSoftError(props.path)
+  if (softError) {
+    return <SimpleScreens.Oops path={props.path} reason={softError} />
   }
   switch (props.pathType) {
     case Types.PathType.Folder:
@@ -106,7 +106,6 @@ const Connected = Container.namedConnect(
     const path = Container.getRouteProps(ownProps, 'path', Constants.defaultPath)
     return {
       _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-      _softErrors: state.fs.softErrors,
       kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
     }
   },
@@ -134,7 +133,6 @@ const Connected = Container.namedConnect(
           : null,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
-      softError: Constants.getSoftError(stateProps._softErrors, path),
       waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,
     }
   },

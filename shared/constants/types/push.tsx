@@ -30,6 +30,9 @@ export type PushNotification =
       type: 'chat.extension'
       conversationIDKey: ChatTypes.ConversationIDKey
     }
+  | {
+      type: 'settings.contacts'
+    }
 
 export type State = {
   hasPermissions: boolean

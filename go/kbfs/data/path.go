@@ -23,6 +23,10 @@ type Path struct {
 // IsValid returns true if the path has at least one node (for the
 // root).
 func (p Path) IsValid() bool {
+	if p.Tlf == tlf.NullID {
+		return false
+	}
+
 	if len(p.Path) < 1 {
 		return false
 	}

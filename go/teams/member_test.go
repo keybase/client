@@ -171,7 +171,7 @@ func TestMemberAddBot(t *testing.T) {
 	err = EditMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_RESTRICTEDBOT, nil)
 	require.Error(t, err)
 
-	err = EditMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	err = EditMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{Cmds: true})
 	require.NoError(t, err)
 	assertRole(tc, name, otherA.Username, keybase1.TeamRole_RESTRICTEDBOT)
 
@@ -179,11 +179,23 @@ func TestMemberAddBot(t *testing.T) {
 	res, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT, nil)
 	require.Error(t, err)
 
-	res, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	res, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT,
+		&keybase1.TeamBotSettings{Mentions: true})
 	require.NoError(t, err)
 	require.Equal(t, otherB.Username, res.User.Username)
-
 	assertRole(tc, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT)
+
+	// make sure the bot settings links are present
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	teamBotSettings, err := team.TeamBotSettings()
+	require.NoError(t, err)
+	require.Len(t, teamBotSettings, 2)
+	require.Equal(t, keybase1.TeamBotSettings{Cmds: true}, teamBotSettings[otherA.GetUserVersion()])
+	require.Equal(t, keybase1.TeamBotSettings{Mentions: true}, teamBotSettings[otherB.GetUserVersion()])
 
 	// second AddMember should return err
 	_, err = AddMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_WRITER, nil)

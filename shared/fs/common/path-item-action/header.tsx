@@ -25,14 +25,17 @@ const Header = (props: Props) => (
 
 export default Header
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      padding: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.large,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.large,
+        },
+      }),
+    } as const)
+)

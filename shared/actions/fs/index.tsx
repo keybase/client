@@ -400,7 +400,7 @@ function* download(
     case Types.DownloadIntent.None:
       // This adds " (1)" suffix to the base name, if the destination path
       // already exists.
-      localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
+      localPath = yield Constants.downloadFilePathFromPath(path)
       break
     case Types.DownloadIntent.CameraRoll:
     case Types.DownloadIntent.Share:
@@ -411,7 +411,7 @@ function* download(
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      localPath = yield* Saga.callPromise(Constants.downloadFilePathFromPath, path)
+      localPath = yield Constants.downloadFilePathFromPath(path)
       break
   }
 
@@ -709,7 +709,7 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
     let pathItem = makeEntry(dirent)
     if (pathItem.type === Types.PathType.File) {
       const mimeType = yield* _loadMimeType(path)
-      pathItem = pathItem.set('mimeType', mimeType)
+      pathItem = pathItem.set('mimeType', mimeType || null)
     }
     yield Saga.put(
       FsGen.createPathItemLoaded({
@@ -952,7 +952,7 @@ const subscribePath = (_: TypedState, action: FsGen.SubscribePathPayload) =>
     kbfsPath: Types.pathToString(action.payload.path),
     subscriptionID: action.payload.subscriptionID,
     topic: action.payload.topic,
-  }).catch(makeUnretriableErrorHandler(action))
+  }).catch(makeUnretriableErrorHandler(action, action.payload.path))
 
 const subscribeNonPath = (_: TypedState, action: FsGen.SubscribeNonPathPayload) =>
   RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
@@ -1008,7 +1008,7 @@ const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
   })
 }
 
-function* fsSaga(): Saga.SagaGenerator<any, any> {
+function* fsSaga() {
   yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
   yield* Saga.chainGenerator<FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload>(

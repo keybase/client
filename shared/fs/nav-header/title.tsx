@@ -112,31 +112,34 @@ const FsNavHeaderTitle = (props: Props) =>
   )
 export default FsNavHeaderTitle
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      marginTop: -Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.xsmall,
-    },
-    isElectron: Styles.desktopStyles.windowDraggingClickable,
-  }),
-  dropdown: {
-    marginLeft: -Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
-  },
-  floating: Styles.platformStyles({
-    isElectron: {
-      width: 196,
-    },
-  }),
-  icon: {
-    padding: Styles.globalMargins.tiny,
-  },
-  mainTitleText: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
-  rootTitle: {
-    marginLeft: Styles.globalMargins.xsmall,
-  },
-  slash: {
-    paddingLeft: Styles.globalMargins.xxtiny,
-    paddingRight: Styles.globalMargins.xxtiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          marginTop: -Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+        },
+        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      }),
+      dropdown: {
+        marginLeft: -Styles.globalMargins.tiny, // the icon has padding, so offset it to align with the name below
+      },
+      floating: Styles.platformStyles({
+        isElectron: {
+          width: 196,
+        },
+      }),
+      icon: {
+        padding: Styles.globalMargins.tiny,
+      },
+      mainTitleText: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
+      rootTitle: {
+        marginLeft: Styles.globalMargins.xsmall,
+      },
+      slash: {
+        paddingLeft: Styles.globalMargins.xxtiny,
+        paddingRight: Styles.globalMargins.xxtiny,
+      },
+    } as const)
+)

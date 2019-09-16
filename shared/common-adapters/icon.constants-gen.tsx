@@ -4,7 +4,9 @@ type IconMeta = {
   gridSize?: number
   extension?: string
   charCode?: number
+  nameDark?: string
   require?: string
+  requireDark?: string
 }
 
 const iconMeta_ = {
@@ -2591,7 +2593,9 @@ const iconMeta_ = {
   'icon-team-git-16': {
     extension: 'png',
     isFont: false,
+    nameDark: 'iconDark-team-git-16',
     require: require('../images/icons/icon-team-git-16.png'),
+    requireDark: require('../images/icons/iconDark-team-git-16.png'),
   },
   'icon-team-leave-28': {
     extension: 'png',

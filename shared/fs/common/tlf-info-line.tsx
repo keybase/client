@@ -113,21 +113,24 @@ const TlfInfoLine = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  meta: {
-    alignSelf: 'center',
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  textDefault: {
-    textAlign: 'center',
-  },
-  textRow: Styles.platformStyles({
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      meta: {
+        alignSelf: 'center',
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      textDefault: {
+        textAlign: 'center',
+      },
+      textRow: Styles.platformStyles({
+        isElectron: {
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        },
+      }),
+    } as const)
+)
 
 export default TlfInfoLine

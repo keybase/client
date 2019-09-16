@@ -202,20 +202,23 @@ export default (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  menuRowText: {
-    color: Styles.globalColors.blueDark,
-  },
-  menuRowTextDisabled: {
-    color: Styles.globalColors.blueDark,
-    opacity: 0.6,
-  },
-  progressIndicator: {
-    bottom: 0,
-    left: 0,
-    marginRight: Styles.globalMargins.xtiny,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      menuRowText: {
+        color: Styles.globalColors.blueDark,
+      },
+      menuRowTextDisabled: {
+        color: Styles.globalColors.blueDark,
+        opacity: 0.6,
+      },
+      progressIndicator: {
+        bottom: 0,
+        left: 0,
+        marginRight: Styles.globalMargins.xtiny,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+    } as const)
+)

@@ -37,22 +37,25 @@ const Header = (props: HeaderProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  close: Styles.platformStyles({
-    isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-  }),
-  container: {minHeight: 48},
-  filePreviewHeader: {
-    flex: 1,
-    flexShrink: 1,
-  },
-  headerIcons: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginRight: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      close: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.tiny,
+        },
+      }),
+      container: {minHeight: 48},
+      filePreviewHeader: {
+        flex: 1,
+        flexShrink: 1,
+      },
+      headerIcons: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        marginRight: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Header

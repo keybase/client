@@ -85,6 +85,7 @@ const (
 	DeviceProvisionedAfterContentCreationErrMsg = "this device was created after the message was sent"
 	MemberAddedAfterContentCreationErrMsg       = "you were added to the team after this message was sent"
 	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
+	DeviceCloneWithOneshotErrMsg                = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
 )
 
 type IncorrectTeamEphemeralKeyTypeError struct {
@@ -143,6 +144,11 @@ func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneratio
 		humanMsg = DeviceProvisionedAfterContentCreationErrMsg
 	} else if deviceIsCloned(mctx) {
 		humanMsg = DeviceCloneErrMsg
+		if isOneshot, err := mctx.G().IsOneshot(mctx.Ctx()); err != nil {
+			mctx.Debug("unable to check IsOneshot %v", err)
+		} else if isOneshot {
+			humanMsg = DeviceCloneWithOneshotErrMsg
+		}
 	}
 	return newEphemeralKeyError(debugMsg, humanMsg,
 		EphemeralKeyErrorKind_UNBOX, missingKind)

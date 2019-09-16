@@ -856,9 +856,6 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		return []gregor1.UID{*botUID}, nil
 	}
 
-	// TODO HOTPOT-117 short circuit check if no RESTRICTEDBOT members are in
-	// the conv.
-
 	// Fetch the bot settings, if any
 	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
 	if err != nil {
@@ -894,7 +891,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
 			if !isMatch {
-				return nil, fmt.Errorf("Unable to send, bot restricted from this channel")
+				return nil, NewRestrictedBotChannelError()
 			}
 			return []gregor1.UID{botUID}, nil
 		}
@@ -1149,7 +1146,8 @@ type DelivererInfoError interface {
 	IsImmediateFail() (chat1.OutboxErrorType, bool)
 }
 
-// delivererExpireError is used when a message fails because it has languished in the outbox for too long.
+// delivererExpireError is used when a message fails because it has languished
+// in the outbox for too long.
 type delivererExpireError struct{}
 
 func (e delivererExpireError) Error() string {
@@ -1198,8 +1196,8 @@ func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 		notifyFailureChs: make(map[string]chan []chat1.OutboxRecord),
 	}
 
-	g.PushShutdownHook(func() error {
-		d.Stop(context.Background())
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
+		d.Stop(mctx.Ctx())
 		return nil
 	})
 

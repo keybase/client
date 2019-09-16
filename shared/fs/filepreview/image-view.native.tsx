@@ -60,20 +60,23 @@ class ImageView extends React.Component<ImageViewProps, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  image: {
-    alignSelf: 'center',
-    flex: 1,
-  },
-  zoomableBox: {
-    flex: 1,
-    position: 'relative',
-  },
-  zoomableBoxContainer: {
-    flex: 1,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      image: {
+        alignSelf: 'center',
+        flex: 1,
+      },
+      zoomableBox: {
+        flex: 1,
+        position: 'relative',
+      },
+      zoomableBoxContainer: {
+        flex: 1,
+        overflow: 'hidden',
+        position: 'relative',
+      },
+    } as const)
+)
 
 export default ImageView

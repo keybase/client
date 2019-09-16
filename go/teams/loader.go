@@ -821,6 +821,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 					}
 				}
 			}
+			if role.IsRestrictedBot() {
+				// Clear out any secrets we may have had in memory if we were a
+				// previous role that had PTK access.
+				state := teamShim().MainChain()
+				state.PerTeamKeySeedsUnverified = make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeedItem)
+				state.ReaderKeyMasks = make(map[keybase1.TeamApplication]map[keybase1.PerTeamKeyGeneration]keybase1.MaskB64)
+				state.TlfCryptKeys = make(map[keybase1.TeamApplication][]keybase1.CryptKey)
+			}
 		}
 	}
 

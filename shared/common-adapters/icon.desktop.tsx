@@ -51,7 +51,7 @@ class Icon extends Component<Props, void> {
     }
 
     const isFontIcon = iconMeta[iconType].isFont
-    let fontSizeHint
+    let fontSizeHint: undefined | {fontSize: number}
     // explicit
     if (this.props.fontSize) {
       fontSizeHint = {fontSize: this.props.fontSize}
@@ -60,10 +60,10 @@ class Icon extends Component<Props, void> {
     }
     // in style sheet, so don't apply
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
-      fontSizeHint = null
+      fontSizeHint = undefined
     }
     const onClick = this.props.onClick
-      ? e => {
+      ? (e: React.BaseSyntheticEvent) => {
           e.stopPropagation()
           this.props.onClick && this.props.onClick(e)
         }
@@ -71,7 +71,7 @@ class Icon extends Component<Props, void> {
 
     const hasContainer = !this.props.noContainer && ((this.props.onClick && this.props.style) || isFontIcon)
 
-    let iconElement
+    let iconElement: React.ReactNode = null
 
     if (isFontIcon) {
       // handled by a class below
@@ -97,9 +97,9 @@ class Icon extends Component<Props, void> {
     }
 
     if (hasContainer) {
-      let colorStyleName: null | string = null // Populated if using CSS
-      let hoverStyleName
-      let inheritStyle
+      let colorStyleName: undefined | string // Populated if using CSS
+      let hoverStyleName: undefined | string
+      let inheritStyle: undefined | {color: string; hoverColor: string}
 
       // TODO get rid of this concept
       if (this.props.inheritColor) {
@@ -140,7 +140,7 @@ class Icon extends Component<Props, void> {
             style={Styles.collapseStyles([
               style,
               this.props.padding && Shared.paddingStyles[this.props.padding],
-              colorStyleName === null ? {color} : null, // For colors that are not in Styles.globalColors
+              typeof colorStyleName !== 'string' ? {color} : null, // For colors that are not in Styles.globalColors
             ])}
             className={Styles.classNames(
               'icon',
@@ -163,13 +163,14 @@ class Icon extends Component<Props, void> {
   }
 }
 
-const imgName = (type: IconType, ext: string, mult: number, prefix?: string, postfix?: string) =>
-  `${prefix || ''}${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
+const imgName = (name: string, ext: string, mult: number, prefix?: string, postfix?: string) =>
+  `${prefix || ''}${resolveImageAsURL('icons', name)}${mult > 1 ? `@${mult}x` : ''}.${ext}${postfix ||
     ''} ${mult}x`
 
 function iconTypeToSrcSet(type: IconType) {
   const ext = Shared.typeExtension(type)
-  return [1, 2].map(mult => imgName(type, ext, mult)).join(', ')
+  const name: string = (Styles.isDarkMode() && iconMeta[type].nameDark) || type
+  return [1, 2].map(mult => imgName(name, ext, mult)).join(', ')
 }
 
 export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {

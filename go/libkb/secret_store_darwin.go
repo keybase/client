@@ -108,24 +108,6 @@ func (k KeychainSecretStore) storeSecret(mctx MetaContext, account keychainSlott
 	return keychain.AddItem(item)
 }
 
-func (k KeychainSecretStore) updateAccessibility(mctx MetaContext, account keychainSlottedAccount) {
-	query := keychain.NewItem()
-	query.SetSecClass(keychain.SecClassGenericPassword)
-	query.SetService(k.serviceName(mctx))
-	query.SetAccount(account.String())
-
-	// iOS keychain returns `keychain.ErrorParam` if this is set so we skip it.
-	if !isIOS {
-		query.SetMatchLimit(keychain.MatchLimitOne)
-	}
-
-	updateItem := keychain.NewItem()
-	updateItem.SetAccessible(k.accessible())
-	if err := keychain.UpdateItem(query, updateItem); err != nil {
-		mctx.Debug("KeychainSecretStore.updateAccessibility: failed: %s", err)
-	}
-}
-
 func (k KeychainSecretStore) mobileKeychainPermissionDeniedCheck(mctx MetaContext, err error) {
 	mctx.G().Log.Debug("mobileKeychainPermissionDeniedCheck: checking for mobile permission denied")
 	if !(isIOS && mctx.G().IsMobileAppType()) {
@@ -155,7 +137,6 @@ func (k KeychainSecretStore) RetrieveSecret(mctx MetaContext, accountName Normal
 			// We've reached the end of the keychain entries so let's return
 			// the previous secret we found.
 			secret = previousSecret
-			k.updateAccessibility(mctx, account)
 			err = nil
 			mctx.Debug("found last slot: %d, finished read", i)
 			break
