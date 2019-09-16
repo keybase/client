@@ -127,6 +127,7 @@ type BackgroundConvLoader struct {
 
 	clock      clockwork.Clock
 	resumeWait time.Duration
+	loadWait   time.Duration
 
 	activeLoads  map[string]activeLoad
 	suspendCount int
@@ -149,6 +150,7 @@ func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 		identNotifier: NewCachingIdentifyNotifier(g),
 		clock:         clockwork.NewRealClock(),
 		resumeWait:    time.Second,
+		loadWait:      time.Second,
 		activeLoads:   make(map[string]activeLoad),
 	}
 	b.identNotifier.ResetOnGUIConnect()
@@ -316,6 +318,12 @@ func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
 	return false
 }
 
+func (b *BackgroundConvLoader) isSuspended() bool {
+	b.Lock()
+	defer b.Unlock()
+	return b.suspendCount > 0
+}
+
 func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	b.Lock()
 	defer b.Unlock()
@@ -406,17 +414,24 @@ func (b *BackgroundConvLoader) loop(uid gregor1.UID, stopCh chan struct{}) error
 func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) error {
 	bgctx := context.Background()
 	b.Debug(bgctx, "loadLoop: starting for uid: %s", uid)
-
 	for {
 		select {
 		case task := <-b.loadCh:
-			b.Debug(bgctx, "loadLoop: running task: %s", task.job)
-			nextTask := b.load(bgctx, *task, uid)
-			if nextTask != nil {
-				if err := b.enqueue(bgctx, *nextTask); err != nil {
+			if b.isSuspended() {
+				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
+				if err := b.enqueue(bgctx, *task); err != nil {
 					b.Debug(bgctx, "enqueue error %s", err)
 				}
+			} else {
+				b.Debug(bgctx, "loadLoop: running task: %s", task.job)
+				nextTask := b.load(bgctx, *task, uid)
+				if nextTask != nil {
+					if err := b.enqueue(bgctx, *nextTask); err != nil {
+						b.Debug(bgctx, "enqueue error %s", err)
+					}
+				}
 			}
+			b.clock.Sleep(b.loadWait)
 		case <-stopCh:
 			return nil
 		}
