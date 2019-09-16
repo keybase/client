@@ -4,10 +4,10 @@ import {Props} from '.'
 
 const patternImage = Styles.backgroundURL('payment-pattern-80.png')
 
-const bgScroll = Styles.styledKeyframes(() => ({
+const bgScroll = Styles.styledKeyframes({
   from: {transform: 'translateY(0)'},
   to: {transform: 'translateY(-80px)'},
-}))
+})
 
 // @ts-ignore
 const BackgroundBox = Styles.styled.div(() => ({
