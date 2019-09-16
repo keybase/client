@@ -38,7 +38,7 @@ const getDescription = (props: Props) => {
     ...(props.lastEmail ? [`Since you'll have deleted all email addresses, you won't get email notifications from Keybase anymore.`] : []),
     ...(props.searchable ? [`Your friends will no longer be able to find you by this ${
           props.type === 'email' ? 'email address' : 'number'
-        }.`] : [])
+        }.`] : []),
   ].join(' ')
 }
 
