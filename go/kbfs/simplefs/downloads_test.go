@@ -39,20 +39,22 @@ func TestDownloadManager(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(downloadDir)
 
-	sfs.SimpleFSConfigureDownload(ctx, keybase1.SimpleFSConfigureDownloadArg{
+	err = sfs.SimpleFSConfigureDownload(ctx, keybase1.SimpleFSConfigureDownloadArg{
 		CacheDirOverride:    cacheDir,
 		DownloadDirOverride: downloadDir,
 	})
+	require.NoError(t, err)
 
 	testDownload := func(isRegularDownload bool, regularDownloadIndex int) {
-		sfs.SimpleFSStartDownload(ctx, keybase1.SimpleFSStartDownloadArg{
+		downloadID, err := sfs.SimpleFSStartDownload(ctx, keybase1.SimpleFSStartDownloadArg{
 			Path:              keybase1.KBFSPath{Path: "/private/jdoe/test.txt"},
 			IsRegularDownload: isRegularDownload,
 		})
+		require.NoError(t, err)
 		status, err := sfs.SimpleFSGetDownloadStatus(ctx)
 		require.NoError(t, err)
 		require.Len(t, status.States, 1)
-		downloadID := status.States[0].DownloadID
+		require.Equal(t, downloadID, status.States[0].DownloadID)
 		if isRegularDownload {
 			require.Len(t, status.RegularDownloadIDs, 1)
 			require.Equal(t, downloadID, status.RegularDownloadIDs[0])
