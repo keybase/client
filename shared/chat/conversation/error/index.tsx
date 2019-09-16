@@ -22,13 +22,13 @@ const ConversationError = ({text}: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      body: {
+        marginTop: Styles.globalMargins.small,
+      },
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         padding: Styles.globalMargins.medium,
         width: '100%',
-      },
-      body: {
-        marginTop: Styles.globalMargins.small,
       },
       errorBox: {
         ...Styles.globalStyles.flexBoxRow,
