@@ -53,9 +53,11 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	// coming from a standalone launch.
 	g.StartStandaloneChat()
 
-	return g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
+	_, err = g.ChatHelper.SendMsgByNameNonblock(ctx, team,
+		&globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM)
+		chat1.MessageType_SYSTEM, nil)
+	return err
 }
 
 func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team string,
@@ -87,9 +89,10 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
 
-	if err = g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
+	if _, err = g.ChatHelper.SendMsgByNameNonblock(ctx, team,
+		&globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM); err != nil {
+		chat1.MessageType_SYSTEM, nil); err != nil {
 		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to send message: %s", err)
 		return false
 	}
@@ -118,6 +121,8 @@ func SendChatSBSResolutionMessage(ctx context.Context, g *libkb.GlobalContext,
 		AssertionService:  assertionService,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
+
+	g.StartStandaloneChat()
 
 	if _, err = g.ChatHelper.SendMsgByNameNonblock(ctx, team, nil,
 		chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -152,9 +157,10 @@ func SendTeamChatCreateMessage(ctx context.Context, g *libkb.GlobalContext, team
 	// Ensure we have chat available
 	g.StartStandaloneChat()
 
-	if err = g.ChatHelper.SendMsgByName(ctx, team, &globals.DefaultTeamTopic,
+	if _, err = g.ChatHelper.SendMsgByNameNonblock(ctx, team,
+		&globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM); err != nil {
+		chat1.MessageType_SYSTEM, nil); err != nil {
 		return false
 	}
 
@@ -184,9 +190,10 @@ func SendTeamChatChangeAvatar(mctx libkb.MetaContext, team, username string) boo
 	// Ensure we have chat available
 	mctx.G().StartStandaloneChat()
 
-	if err = mctx.G().ChatHelper.SendMsgByName(mctx.Ctx(), team, &globals.DefaultTeamTopic,
+	if _, err = mctx.G().ChatHelper.SendMsgByNameNonblock(mctx.Ctx(), team,
+		&globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM); err != nil {
+		chat1.MessageType_SYSTEM, nil); err != nil {
 		return false
 	}
 
