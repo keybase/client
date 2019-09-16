@@ -418,7 +418,7 @@ func (b *BackgroundConvLoader) loadLoop(uid gregor1.UID, stopCh chan struct{}) e
 		select {
 		case task := <-b.loadCh:
 			if b.isSuspended() {
-				b.Debug(bgctx, "loadLoop: suspending, re-enqueueing task: %s", task.job)
+				b.Debug(bgctx, "loadLoop: suspended, re-enqueueing task: %s", task.job)
 				if err := b.enqueue(bgctx, *task); err != nil {
 					b.Debug(bgctx, "enqueue error %s", err)
 				}
