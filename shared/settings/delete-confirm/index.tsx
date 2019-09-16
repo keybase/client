@@ -64,7 +64,7 @@ class DeleteConfirm extends React.Component<Props, State> {
             onSetBox3={box3 => this.setState({box3})}
           />
         }
-        description="This cannot be undone. By deleting this, you agree that:"
+        description="This cannot be undone. By deleting this account, you agree that:"
         header={
           <>
             <Kb.Avatar size={Styles.isMobile ? 64 : 48} username={this.props.username} style={styles.avatar}>
