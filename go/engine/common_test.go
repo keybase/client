@@ -8,13 +8,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"testing"
+
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
-	"testing"
 )
 
 func SetupEngineTest(tb libkb.TestingTB, name string) libkb.TestContext {
@@ -80,6 +81,16 @@ func (fu FakeUser) UID() keybase1.UID {
 
 func (fu FakeUser) UserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{Uid: fu.UID(), EldestSeqno: 1}
+}
+
+func (fu *FakeUser) ChangeKnownPassphrase() error {
+	buf := make([]byte, 12)
+	if _, err := rand.Read(buf); err != nil {
+		return err
+	}
+	passphrase := hex.EncodeToString(buf)
+	fu.Passphrase = passphrase
+	return nil
 }
 
 func NewFakeUserOrBust(tb libkb.TestingTB, prefix string) (fu *FakeUser) {
