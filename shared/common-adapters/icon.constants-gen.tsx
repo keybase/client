@@ -2500,6 +2500,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-shh-hover-19-16.png'),
   },
+  'icon-skull-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-skull-32.png'),
+  },
   'icon-skull-48': {
     extension: 'png',
     isFont: false,
@@ -3477,6 +3482,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-skull': {
+    charCode: 0xe98c,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-spade': {
     charCode: 0xe979,
     gridSize: 16,
@@ -3558,7 +3568,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-unhide': {
-    charCode: 0xe98c,
+    charCode: 0xe99a,
     gridSize: 16,
     isFont: true,
   },
