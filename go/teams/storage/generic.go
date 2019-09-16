@@ -225,6 +225,10 @@ func (s *memoryStorageGeneric) clear() {
 }
 
 func (s *memoryStorageGeneric) key(teamID keybase1.TeamID, public bool) (key string) {
+	return genericStringKey(teamID, public)
+}
+
+func genericStringKey(teamID keybase1.TeamID, public bool) (key string) {
 	key = fmt.Sprintf("tid:%s", teamID)
 	if public {
 		key = fmt.Sprintf("tid:%s|pub", teamID)
