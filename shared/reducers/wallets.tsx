@@ -126,7 +126,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.pendingPaymentsReceived: {
       const newPending = I.Map(action.payload.pending.map(p => [p.id, Constants.makePayment().merge(p)]))
       return state.updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
-        paymentsMap.filter(p => p.section !== 'pending').merge(newPending)
+        paymentsMap.filter((p: any) => p.section !== 'pending').merge(newPending)
       )
     }
     case WalletsGen.recentPaymentsReceived: {
@@ -474,8 +474,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.updateAirdropBannerState:
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails: {
-      const {details, isPromoted} = action.payload
-      return state.set('airdropDetails', Constants.makeAirdropDetails({details, isPromoted}))
+      const {details, disclaimer, isPromoted} = action.payload
+      return state.set('airdropDetails', Constants.makeStellarDetails({details, disclaimer, isPromoted}))
     }
     case WalletsGen.setTrustlineExpanded:
       return state.update('trustline', trustline =>
@@ -543,6 +543,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         : state.set('builtPaymentAdvanced', action.payload.builtPaymentAdvanced)
     case WalletsGen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
+    case WalletsGen.assetDeposit:
+    case WalletsGen.assetWithdraw:
+      return state.merge({
+        sep6Error: false,
+        sep6Message: '',
+      })
+    case WalletsGen.setSEP6Message:
+      return state.merge({
+        sep6Error: action.payload.error,
+        sep6Message: action.payload.message,
+      })
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

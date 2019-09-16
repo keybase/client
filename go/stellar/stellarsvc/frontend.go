@@ -184,6 +184,10 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 				Desc:                   d.Asset.Desc,
 				InfoUrl:                d.Asset.InfoUrl,
 				InfoUrlText:            d.Asset.InfoUrlText,
+				ShowDepositButton:      d.Asset.ShowDepositButton,
+				DepositButtonText:      d.Asset.DepositButtonText,
+				ShowWithdrawButton:     d.Asset.ShowWithdrawButton,
+				WithdrawButtonText:     d.Asset.WithdrawButtonText,
 			})
 		}
 	}
@@ -753,12 +757,17 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		return res, err
 	}
 
+	var pubMemo *stellarnet.Memo
+	if arg.PublicNote != "" {
+		pubMemo = stellarnet.NewMemoText(arg.PublicNote)
+	}
+
 	sendRes, err := stellar.SendPathPaymentGUI(mctx, s.walletState, stellar.SendPathPaymentArg{
 		From:        arg.Source,
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
+		PublicMemo:  pubMemo,
 		QuickReturn: true,
 	})
 	if err != nil {
@@ -1005,11 +1014,11 @@ func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (resp s
 		return stellar1.AirdropDetails{}, err
 	}
 
-	isPromoted, details, err := remote.AirdropDetails(mctx)
+	isPromoted, details, disclaimer, err := remote.AirdropDetails(mctx)
 	if err != nil {
 		return stellar1.AirdropDetails{}, err
 	}
-	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details}, nil
+	return stellar1.AirdropDetails{IsPromoted: isPromoted, Details: details, Disclaimer: disclaimer}, nil
 
 }
 
@@ -1252,10 +1261,80 @@ func (s *Server) GetStaticConfigLocal(ctx context.Context) (res stellar1.StaticC
 	}, nil
 }
 
-func (s *Server) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (stellar1.AssetActionResultLocal, error) {
-	return stellar1.AssetActionResultLocal{}, errors.New("nyi")
+func (s *Server) AssetDepositLocal(ctx context.Context, arg stellar1.AssetDepositLocalArg) (res stellar1.AssetActionResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AssetDepositLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	ai, err := s.prepareAnchorInteractor(mctx, arg.AccountID, arg.Asset)
+	if err != nil {
+		return res, err
+	}
+
+	return ai.Deposit(mctx)
 }
 
-func (s *Server) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (stellar1.AssetActionResultLocal, error) {
-	return stellar1.AssetActionResultLocal{}, errors.New("nyi")
+func (s *Server) AssetWithdrawLocal(ctx context.Context, arg stellar1.AssetWithdrawLocalArg) (res stellar1.AssetActionResultLocal, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AssetWithdrawLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	ai, err := s.prepareAnchorInteractor(mctx, arg.AccountID, arg.Asset)
+	if err != nil {
+		return res, err
+	}
+
+	return ai.Withdraw(mctx)
+}
+
+func (s *Server) prepareAnchorInteractor(mctx libkb.MetaContext, accountID stellar1.AccountID, asset stellar1.Asset) (*anchorInteractor, error) {
+	// check that the user owns accountID
+	own, _, err := stellar.OwnAccountCached(mctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	if !own {
+		return nil, errors.New("caller doesn't own account")
+	}
+
+	// check that accountID has a trustline to the asset
+	trustlines, err := s.getTrustlinesAccountID(mctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+	var fullAsset stellar1.Asset
+	for _, tl := range trustlines {
+		if tl.Asset.Code == asset.Code && tl.Asset.Issuer == asset.Issuer {
+			fullAsset = tl.Asset
+			break
+		}
+	}
+	if fullAsset.Code == "" || fullAsset.Issuer == "" {
+		return nil, errors.New("caller doesn't have trustline to asset")
+	}
+
+	var seed *stellar1.SecretKey
+	if fullAsset.AuthEndpoint != "" {
+		// get the secret key for account id
+		_, bundle, err := stellar.LookupSender(mctx, accountID)
+		if err != nil {
+			return nil, err
+		}
+		seed = &bundle.Signers[0]
+	}
+
+	// all good from the user's perspective, proceed...
+	return newAnchorInteractor(accountID, seed, fullAsset), nil
 }

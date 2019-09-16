@@ -14,7 +14,7 @@ There's a native storybook UI that controls the selected story. You can also con
 
 #### Android
 
-Storybook can be enabled by going to Build > Select Build Variant and selecting 'storyBook'.
+Storybook can be enabled by going to Build > Select Build Variant and selecting 'storyBook'. You can also run `yarn rn-build-storybook-android && yarn rn-push-storybook-android`.
 
 ```
 # Enable storybook web UI connection

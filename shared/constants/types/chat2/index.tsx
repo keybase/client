@@ -115,6 +115,12 @@ export type UserReacjis = {
   skinTone: number
 }
 
+export type Coordinate = {
+  accuracy: number
+  lat: number
+  lon: number
+}
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -139,6 +145,7 @@ export type _State = {
   explodingModes: I.Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   quote: QuoteInfo | null // last quoted message,
   selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
+  previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
   staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>> // who's typing currently,
   unreadMap: ConversationCountMap // how many unread messages there are,
@@ -164,6 +171,9 @@ export type _State = {
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   userReacjis: UserReacjis
   createConversationError: string | null
+  threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
+  dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
+  lastCoord: Coordinate | null
 }
 
 export type State = I.RecordOf<_State>
@@ -198,6 +208,7 @@ export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel
 export type MentionsChannelName = Message.MentionsChannelName
 export type Message = Message.Message
+export type MessageAttachmentTransferState = Message.MessageAttachmentTransferState
 export type MessageAttachment = Message.MessageAttachment
 export type MessageExplodeDescription = Message.MessageExplodeDescription
 export type MessageID = Message.MessageID
@@ -205,6 +216,7 @@ export type MessageRequestPayment = Message.MessageRequestPayment
 export type MessageSendPayment = Message.MessageSendPayment
 export type MessageSetChannelname = Message.MessageSetChannelname
 export type MessageSetDescription = Message.MessageSetDescription
+export type MessagePin = Message.MessagePin
 export type MessageSystemAddedToTeam = Message.MessageSystemAddedToTeam
 export type MessageSystemChangeRetention = Message.MessageSystemChangeRetention
 export type MessageSystemGitPush = Message.MessageSystemGitPush

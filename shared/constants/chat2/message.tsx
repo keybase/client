@@ -162,6 +162,7 @@ const makeMessageCommon = {
   deviceRevokedAt: null,
   deviceType: 'mobile' as DeviceTypes.DeviceType,
   errorReason: null,
+  errorTyp: null,
   hasBeenEdited: false,
   outboxID: Types.stringToOutboxID(''),
 }
@@ -291,13 +292,13 @@ export const makeMessageSendPayment = I.Record<MessageTypes._MessageSendPayment>
 
 const makeMessageSystemJoined = I.Record<MessageTypes._MessageSystemJoined>({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: I.Map(),
+  joiners: [],
+  leavers: [],
   type: 'systemJoined',
 })
 
 const makeMessageSystemLeft = I.Record<MessageTypes._MessageSystemLeft>({
   ...makeMessageCommonNoDeleteNoEdit,
-  reactions: I.Map(),
   type: 'systemLeft',
 })
 
@@ -330,14 +331,14 @@ const makeMessageSystemSimpleToComplex = I.Record<MessageTypes._MessageSystemSim
   type: 'systemSimpleToComplex',
 })
 
-const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
+export const makeMessageSystemText = I.Record<MessageTypes._MessageSystemText>({
   ...makeMessageCommonNoDeleteNoEdit,
   reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
 
-const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
+export const makeMessageSystemGitPush = I.Record<MessageTypes._MessageSystemGitPush>({
   ...makeMessageCommonNoDeleteNoEdit,
   pushType: 0,
   pusher: '',
@@ -354,6 +355,13 @@ const makeMessageSetDescription = I.Record<MessageTypes._MessageSetDescription>(
   newDescription: new HiddenString(''),
   reactions: I.Map(),
   type: 'setDescription',
+})
+
+const makeMessagePin = I.Record<MessageTypes._MessagePin>({
+  ...makeMessageCommonNoDeleteNoEdit,
+  pinnedMessageID: 0,
+  reactions: I.Map(),
+  type: 'pin',
 })
 
 const makeMessageSetChannelname = I.Record<MessageTypes._MessageSetChannelname>({
@@ -678,6 +686,18 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
   )
 }
 
+export const getMapUnfurl = (message: Types.Message): RPCChatTypes.UnfurlGenericDisplay | null => {
+  const unfurls = message.type === 'text' && message.unfurls.size ? message.unfurls.toList().toArray() : null
+  const mapInfo =
+    !!unfurls &&
+    unfurls[0].unfurl.unfurlType === RPCChatTypes.UnfurlType.generic &&
+    unfurls[0].unfurl.generic &&
+    unfurls[0].unfurl.generic.mapInfo
+      ? unfurls[0].unfurl.generic
+      : null
+  return mapInfo
+}
+
 const validUIMessagetoMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
@@ -838,9 +858,15 @@ const validUIMessagetoMessage = (
       })
     }
     case RPCChatTypes.MessageType.join:
-      return makeMessageSystemJoined({...common, reactions})
+      return makeMessageSystemJoined({
+        ...common,
+        joiners: m.messageBody.join ? m.messageBody.join.joiners || [] : [],
+        leavers: m.messageBody.join ? m.messageBody.join.leavers || [] : [],
+      })
     case RPCChatTypes.MessageType.leave:
-      return makeMessageSystemLeft({...common, reactions})
+      return makeMessageSystemLeft({
+        ...common,
+      })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
         ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
@@ -853,6 +879,12 @@ const validUIMessagetoMessage = (
             reactions,
           })
         : null
+    case RPCChatTypes.MessageType.pin:
+      return makeMessagePin({
+        ...common,
+        pinnedMessageID: m.pinnedMessageID || m.messageID,
+        reactions,
+      })
     case RPCChatTypes.MessageType.metadata:
       return m.messageBody.metadata
         ? makeMessageSetChannelname({
@@ -902,6 +934,8 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
       return 'message already sent'
     case RPCChatTypes.OutboxErrorType.expired:
       return 'took too long to send'
+    case RPCChatTypes.OutboxErrorType.restrictedbot:
+      return 'bot is restricted from sending to this conversation'
     default:
       return `${error.message || ''} (code: ${error.typ})`
   }
@@ -915,6 +949,10 @@ const outboxUIMessagetoMessage = (
   const errorReason =
     o.state && o.state.state === RPCChatTypes.OutboxStateType.error && o.state.error
       ? rpcErrorToString(o.state.error)
+      : null
+  const errorTyp =
+    o.state && o.state.state === RPCChatTypes.OutboxStateType.error && o.state.error
+      ? o.state.error.typ
       : null
 
   switch (o.messageType) {
@@ -943,7 +981,8 @@ const outboxUIMessagetoMessage = (
         pre,
         Types.stringToOutboxID(o.outboxID),
         Types.numberToOrdinal(o.ordinal),
-        errorReason
+        errorReason,
+        errorTyp
       )
     }
     case RPCChatTypes.MessageType.flip:
@@ -955,6 +994,7 @@ const outboxUIMessagetoMessage = (
         deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
+        errorTyp,
         exploding: o.isEphemeral,
         flipGameID: o.flipGameID,
         ordinal: Types.numberToOrdinal(o.ordinal),
@@ -1050,9 +1090,9 @@ export const makePendingTextMessage = (
   // would cause the timer to count down while the message is still pending
   // and probably reset when we get the real message back.
 
-  const lastOrdinal = state.chat2.messageOrdinals
-    .get(conversationIDKey, I.List())
-    .last(Types.numberToOrdinal(0))
+  const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
+    Types.numberToOrdinal(0)
+  )
   const ordinal = nextFractionalOrdinal(lastOrdinal)
 
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
@@ -1082,11 +1122,12 @@ export const makePendingAttachmentMessage = (
   outboxID: Types.OutboxID,
   inOrdinal: Types.Ordinal | null,
   errorReason: string | null,
+  errorTyp: number | null,
   explodeTime?: number
 ) => {
-  const lastOrdinal = state.chat2.messageOrdinals
-    .get(conversationIDKey, I.List())
-    .last(Types.numberToOrdinal(0))
+  const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
+    Types.numberToOrdinal(0)
+  )
   const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
@@ -1098,6 +1139,7 @@ export const makePendingAttachmentMessage = (
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     errorReason: errorReason,
+    errorTyp: errorTyp,
     fileName: fileName,
     id: Types.numberToMessageID(0),
     isCollapsed: false,
@@ -1230,12 +1272,11 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'requestPayment':
     case 'setChannelname':
     case 'setDescription':
+    case 'pin':
     case 'systemAddedToTeam':
     case 'systemChangeRetention':
     case 'systemGitPush':
     case 'systemInviteAccepted':
-    case 'systemJoined':
-    case 'systemLeft':
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
@@ -1262,3 +1303,20 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {seconds: 86400 * 7, text: '7 days'},
   {seconds: 0, text: 'Never explode (turn off)'},
 ].reverse()
+
+export const messageAttachmentTransferStateToProgressLabel = (
+  transferState: Types.MessageAttachmentTransferState
+): string => {
+  switch (transferState) {
+    case 'downloading':
+      return 'Downloading'
+    case 'uploading':
+      return 'Uploading'
+    case 'mobileSaving':
+      return 'Saving...'
+    case 'remoteUploading':
+      return 'waiting...'
+    default:
+      return ''
+  }
+}

@@ -130,7 +130,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("add B to the team so they can load it")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	t.Logf("B's first load at gen 1")
@@ -143,7 +143,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 1, "number of kbfs rkms")
 
 	t.Logf("add C to the team so they can load it")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 
 	t.Logf("C's first load at gen 1")
@@ -156,7 +156,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 1, "number of kbfs rkms")
 
 	t.Logf("add D to the team so they can load it")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_RESTRICTEDBOT)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
 	t.Logf("D's first load at gen 1, expect no secrets")
@@ -167,7 +167,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.NotNil(t, team)
 	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
 	require.Len(t, team.Chain.PerTeamKeys, 1)
-	require.Equal(t, keybase1.Seqno(4), team.Chain.LastSeqno, "chain seqno")
+	require.Equal(t, keybase1.Seqno(5), team.Chain.LastSeqno, "chain seqno")
 	require.Zero(t, len(team.ReaderKeyMasks))
 
 	t.Logf("rotate the key a bunch of times")
@@ -176,7 +176,7 @@ func TestLoaderKeyGen(t *testing.T) {
 		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 
-		_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 
@@ -187,7 +187,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	requireGen(team, 4)
-	require.Equal(t, keybase1.Seqno(10), team.Chain.LastSeqno)
+	require.Equal(t, keybase1.Seqno(11), team.Chain.LastSeqno)
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 
 	t.Logf("B loads and hits its cache")
@@ -211,7 +211,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
 
 	t.Logf("D loads with NeedKeyGeneration and errors out")
-	team, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+	_, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 		ID: teamID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedKeyGeneration: 3,
@@ -227,15 +227,13 @@ func TestLoaderKeyGen(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.NotNil(t, team)
-	require.Equal(t, keybase1.Seqno(10), team.Chain.LastSeqno, "chain seqno")
+	require.Equal(t, keybase1.Seqno(11), team.Chain.LastSeqno, "chain seqno")
 	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
 	require.Len(t, team.Chain.PerTeamKeys, 4)
 	require.Zero(t, len(team.ReaderKeyMasks))
 
-	t.Logf("C becomes a regular bot and gets access")
-	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username)
-	require.NoError(t, err)
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT)
+	t.Logf("D becomes a regular bot and gets access")
+	err = EditMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
 
 	team, _, err = tcs[3].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
@@ -245,8 +243,22 @@ func TestLoaderKeyGen(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requireGen(team, 5)
-	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 5, "number of kbfs rkms")
+	requireGen(team, 4)
+	require.Len(t, team.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 4, "number of kbfs rkms")
+
+	t.Logf("C becomes a restricted bot and has no access")
+	err = EditMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	require.NoError(t, err)
+
+	team, _, err = tcs[2].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, team)
+	require.Zero(t, len(team.PerTeamKeySeedsUnverified))
+	require.Len(t, team.Chain.PerTeamKeys, 4)
+	require.Zero(t, len(team.ReaderKeyMasks))
 }
 
 func TestLoaderKBFSKeyGen(t *testing.T) {
@@ -266,9 +278,9 @@ func TestLoaderKBFSKeyGen(t *testing.T) {
 	require.NoError(t, err)
 
 	tlfID := newImplicitTLFID(false)
-	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+	cryptKeys := []keybase1.CryptKey{{
 		KeyGeneration: 1,
-	}, keybase1.CryptKey{
+	}, {
 		KeyGeneration: 2,
 	}}
 	require.NoError(t, team.AssociateWithTLFKeyset(context.TODO(), tlfID, cryptKeys,
@@ -305,10 +317,10 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 	tlfID := newImplicitTLFID(false)
 	key1 := [32]byte{0, 1}
 	key2 := [32]byte{0, 2}
-	cryptKeys := []keybase1.CryptKey{keybase1.CryptKey{
+	cryptKeys := []keybase1.CryptKey{{
 		KeyGeneration: 1,
 		Key:           key1,
-	}, keybase1.CryptKey{
+	}, {
 		KeyGeneration: 2,
 		Key:           key2,
 	}}
@@ -331,7 +343,7 @@ func TestLoaderKBFSKeyGenOffset(t *testing.T) {
 		ID: team.ID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				3: []keybase1.TeamApplication{keybase1.TeamApplication_KBFS},
+				3: {keybase1.TeamApplication_KBFS},
 			},
 		},
 	})
@@ -365,7 +377,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and caches")
@@ -376,7 +388,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	requireSeqno(team, 2)
 
 	t.Logf("U0 bumps the sigchain (add U3) (3)")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and hits the cache")
@@ -401,7 +413,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	requireSeqno(team, 3, "seqno should advance because wantmembers pre-check fails")
 
 	t.Logf("U0 adds U2 (4)")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads with WantMembers=U2 and it works")
@@ -491,7 +503,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("add U1 to the parent")
-	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the parent")
@@ -503,7 +515,7 @@ func TestLoaderFillStubbed(t *testing.T) {
 	t.Logf("add U1 to the subteam")
 	subteamName, err := parentName.Append("mysubteam")
 	require.NoError(t, err)
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the subteam")
@@ -529,7 +541,7 @@ func TestLoaderNotInParent(t *testing.T) {
 	t.Logf("add U1 to the subteam")
 	subteamName, err := parentName.Append("mysubteam")
 	require.NoError(t, err)
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads the subteam")
@@ -562,7 +574,7 @@ func TestLoaderMultilevel(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("add the other user to the subsubteam")
-	_, err = AddMember(context.TODO(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, expectedSubsubTeamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("load the subteam")
@@ -589,7 +601,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 	teamName, teamID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the team (2)")
-	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and caches")
@@ -600,7 +612,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 	requireSeqno(team, 2)
 
 	t.Logf("U0 bumps the sigchain (add U2) (3)")
-	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads and hits the cache")
@@ -615,7 +627,7 @@ func TestLoaderInferWantMembers(t *testing.T) {
 		team, _, err := tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
 			ID: teamID,
 			Refreshers: keybase1.TeamRefreshers{
-				WantMembers: []keybase1.UserVersion{keybase1.UserVersion{
+				WantMembers: []keybase1.UserVersion{{
 					Uid:         fus[2].GetUID(),
 					EldestSeqno: 0,
 				}},
@@ -636,7 +648,7 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	parentName, _ := createTeam2(*tcs[1])
 
 	t.Logf("U1 adds U2 as an admin")
-	_, err := AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[2].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U2 creates a subteam")
@@ -650,7 +662,7 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	require.Error(t, err, "should not be able to load team when not a member")
 
 	t.Logf("U2 adds U0 to the subteam (as an admin)")
-	_, err = AddMember(context.TODO(), tcs[2].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tcs[2].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err, "adding member to subteam")
 
 	assertImpAdmins := func(as *libkb.GlobalContext, teamID keybase1.TeamID, expectedSet []keybase1.UserVersion) {
@@ -663,7 +675,7 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[1].GetUserVersion(), fus[2].GetUserVersion()})
 
 	t.Logf("U1 adds U0 to the root team")
-	_, err = AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[0].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.TODO(), tcs[1].G, parentName.String(), fus[0].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U0 sees the 3 implicit admins")
@@ -688,7 +700,7 @@ func TestLoaderHiddenSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A as a WRITER")
-	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U0 loads A")
@@ -739,7 +751,7 @@ func testLoaderSubteamHop(t *testing.T, roleInRoot keybase1.TeamRole) {
 
 	if roleInRoot != keybase1.TeamRole_NONE {
 		t.Logf("U0 adds U1 to A")
-		_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, roleInRoot)
+		_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, roleInRoot, nil)
 		require.NoError(t, err, "add member")
 
 		t.Logf("U1 loads and caches A (with A.B's new_subteam link stubbed out)")
@@ -754,7 +766,7 @@ func testLoaderSubteamHop(t *testing.T, roleInRoot keybase1.TeamRole) {
 	subsubteamName, subsubteamID := createSubteam(tcs[0], subteamName, "ccc")
 
 	t.Logf("U0 adds U1 to A.B.C")
-	_, err := AddMember(context.TODO(), tcs[0].G, subsubteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err := AddMember(context.TODO(), tcs[0].G, subsubteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U1 loads A.B.C")
@@ -781,7 +793,7 @@ func TestLoaderCORE_6230(t *testing.T) {
 	rootName, rootID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to A")
-	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U1 loads and caches A")
@@ -795,7 +807,7 @@ func TestLoaderCORE_6230(t *testing.T) {
 	subteamName, subteamID := createSubteam(tcs[0], rootName, "bbb")
 
 	t.Logf("U0 adds U1 to A.B")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U1 loads A.B")
@@ -816,7 +828,7 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 	rootName, rootID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to A")
-	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U1 loads and caches A")
@@ -830,7 +842,7 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 	subteamName, subteamID := createSubteam(tcs[0], rootName, "bbb")
 
 	t.Logf("U0 adds U1 to A.B")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U1 loads A.B")
@@ -848,11 +860,11 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 	require.NoError(t, err, "load team")
 
 	t.Logf("U0 adds a link to A")
-	_, err = AddMember(context.TODO(), tcs[0].G, rootName.String(), "foobar@rooter", keybase1.TeamRole_READER)
+	_, err = AddMember(context.TODO(), tcs[0].G, rootName.String(), "foobar@rooter", keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U0 does an admin action to A.B")
-	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_READER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B")
@@ -876,7 +888,7 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	rootName, rootID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the root")
-	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 creates fennel_network.lair")
@@ -896,7 +908,7 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U2 to chitchat")
-	_, err = AddMember(context.Background(), tcs[0].G, subteamChitchatName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.Background(), tcs[0].G, subteamChitchatName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U2 loads chitchat (thereby loading the root with the new_subteam:lair link stubbed out)")
@@ -915,7 +927,7 @@ func TestInflateAfterPermissionsChange(t *testing.T) {
 	require.True(t, (TeamSigChainState{inner: rootData.Chain}).HasAnyStubbedLinks(), "root team should have a stubbed link")
 
 	t.Logf("U0 adds U2 to lair")
-	_, err = AddMember(context.Background(), tcs[0].G, subteamLairName.String(), fus[2].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.Background(), tcs[0].G, subteamLairName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U2 loads lair (which requires inflating the new_subteam:lair link)")
@@ -935,7 +947,7 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 	rootName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to the root")
-	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U0 creates fennel_network.sub1")
@@ -946,7 +958,7 @@ func TestRotateSubteamByExplicitReader(t *testing.T) {
 
 	t.Logf("U0 adds both users to the subteam as readers")
 	for i := range tcs {
-		_, err := AddMember(context.Background(), tcs[0].G, subteamName.String(), fus[i].Username, keybase1.TeamRole_READER)
+		_, err := AddMember(context.Background(), tcs[0].G, subteamName.String(), fus[i].Username, keybase1.TeamRole_READER, nil)
 		require.NoError(t, err)
 	}
 
@@ -977,7 +989,7 @@ func TestLoaderCORE_7201(t *testing.T) {
 	rootName, rootID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to A")
-	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U0 creates A.B")
@@ -987,7 +999,7 @@ func TestLoaderCORE_7201(t *testing.T) {
 	subCName, subCID := createSubteam(tcs[0], subBName, "ccc")
 
 	t.Logf("U0 adds U1 to A.B.C")
-	_, err = AddMember(context.TODO(), tcs[0].G, subCName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subCName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 	t.Logf("setup complete")
 
@@ -1028,7 +1040,7 @@ func TestLoaderCORE_8445(t *testing.T) {
 	rootName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to A")
-	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U0 creates A.B")
@@ -1042,7 +1054,7 @@ func TestLoaderCORE_8445(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A.B")
-	_, err = AddMember(context.TODO(), tcs[0].G, subBName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, subBName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err, "add member")
 	t.Logf("setup complete")
 
@@ -1065,7 +1077,7 @@ func TestLoaderCORE_8445(t *testing.T) {
 		ID: subBID,
 		Refreshers: keybase1.TeamRefreshers{
 			NeedApplicationsAtGenerations: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(1): []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+				keybase1.PerTeamKeyGeneration(1): {keybase1.TeamApplication_CHAT},
 			},
 		},
 	})
@@ -1119,7 +1131,7 @@ func TestLoaderKBFSWriter(t *testing.T) {
 	rootName, rootID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 as a writer")
-	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 associates a tlf ID")
@@ -1152,7 +1164,7 @@ func TestLoaderCORE_10487(t *testing.T) {
 	rootName, _ := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1 to A")
-	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER, nil)
 	require.NoError(t, err, "add member")
 
 	t.Logf("U0 creates A.B")
@@ -1184,11 +1196,11 @@ func TestLoaderCORE_10487(t *testing.T) {
 	require.Len(t, team.Data.ReaderKeyMasks[keybase1.TeamApplication_KBFS], 0, "missing rkms")
 
 	t.Logf("U1 self-promotes in A.B")
-	_, err = AddMember(context.Background(), tcs[1].G, subBName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.Background(), tcs[1].G, subBName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 self-promotes in A.B.C")
-	_, err = AddMember(context.Background(), tcs[1].G, subsubCName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	_, err = AddMember(context.Background(), tcs[1].G, subsubCName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A.B")
@@ -1209,7 +1221,7 @@ func TestLoaderCORE_10487(t *testing.T) {
 	_, err = LoadTeamPlusApplicationKeys(context.Background(), tcs[1].G, subBID,
 		keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{
 			NeedApplicationsAtGenerationsWithKBFS: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
-				keybase1.PerTeamKeyGeneration(1): []keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(1): {
 					keybase1.TeamApplication_KBFS,
 				},
 			}}, true)
@@ -1238,7 +1250,7 @@ func freezeTest(t *testing.T, freezeAction freezeF, unfreezeAction freezeF) {
 
 	rootName, rootID := createTeam2(*tcs[0])
 
-	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER, nil)
 	require.NoError(t, err)
 
 	// Explicitly load in FTL since AddMember doesn't do it
@@ -1292,7 +1304,7 @@ func freezeTest(t *testing.T, freezeAction freezeF, unfreezeAction freezeF) {
 	})
 	require.NoError(t, err)
 
-	td, frozen, tombstoned = st.Get(mctx, rootID, rootID.IsPublic())
+	td, _, _ = st.Get(mctx, rootID, rootID.IsPublic())
 	require.NotNil(t, td)
 	require.NotNil(t, td.ReaderKeyMasks)
 	require.NotNil(t, td.Chain.UserLog)
@@ -1323,7 +1335,7 @@ func TestFreezeViaLeave(t *testing.T) {
 	freezeTest(t, func(tc *libkb.TestContext, fu *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName, _ *libkb.TestContext) error {
 		return Leave(context.TODO(), tc.G, teamName.String(), false)
 	}, func(tc *libkb.TestContext, fu *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName, otherTc *libkb.TestContext) error {
-		_, err := AddMember(context.TODO(), otherTc.G, teamName.String(), fu.Username, keybase1.TeamRole_READER)
+		_, err := AddMember(context.TODO(), otherTc.G, teamName.String(), fu.Username, keybase1.TeamRole_READER, nil)
 		return err
 	})
 }
@@ -1333,7 +1345,7 @@ func TestTombstoneViaDelete(t *testing.T) {
 	defer cleanup()
 
 	rootName, rootID := createTeam2(*tcs[0])
-	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER)
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_OWNER, nil)
 	require.NoError(t, err)
 
 	// Explicitly load in FTL since AddMember doesn't do it

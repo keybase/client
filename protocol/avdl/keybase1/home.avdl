@@ -17,6 +17,10 @@ protocol home {
     case ANNOUNCEMENT: HomeScreenAnnouncement;
     default: void; // Note, if badged, we should urge an upgrade here.
   }
+  variant HomeScreenItemDataExt switch (HomeScreenItemType t) {
+    case TODO: HomeScreenTodoExt;
+    default: void;
+  }
 
   enum AppLinkType {
     NONE_0,
@@ -80,7 +84,10 @@ protocol home {
     item to tell user to verify their email address will carry that email
     address.
 
-    This data does not come from the server.
+    All new TODO data bundle types should be records rather than single fields
+    to support adding new data to existing TODOs. If a legacy TODO (such as
+    VERIFY_ALL_EMAIL) uses a single field, the "TodoExt" field should be used to
+    introduce more data to the payload.
   */
   variant HomeScreenTodo switch (HomeScreenTodoType t) {
     case VERIFY_ALL_PHONE_NUMBER: PhoneNumber;
@@ -88,10 +95,20 @@ protocol home {
     case LEGACY_EMAIL_VISIBILITY: EmailAddress;
     default: void;
   }
+  variant HomeScreenTodoExt switch (HomeScreenTodoType t) {
+    case VERIFY_ALL_EMAIL: VerifyAllEmailTodoExt;
+    default: void;
+  }
+
+  record VerifyAllEmailTodoExt {
+    UnixTime lastVerifyEmailDate;
+  }
 
   enum HomeScreenPeopleNotificationType {
     FOLLOWED_1,
-    FOLLOWED_MULTI_2
+    FOLLOWED_MULTI_2,
+    CONTACT_3,
+    CONTACT_MULTI_4
   }
 
   record HomeScreenPeopleNotificationFollowed {
@@ -105,14 +122,29 @@ protocol home {
     int numOthers;
   }
 
+  record HomeScreenPeopleNotificationContact {
+    Time resolveTime;
+    string username;
+    string description;
+    string resolvedContactBlob;
+  }
+
+  record HomeScreenPeopleNotificationContactMulti {
+    array<HomeScreenPeopleNotificationContact> contacts;
+    int numOthers;
+  }
+
   variant HomeScreenPeopleNotification switch (HomeScreenPeopleNotificationType t) {
     case FOLLOWED: HomeScreenPeopleNotificationFollowed;
     case FOLLOWED_MULTI: HomeScreenPeopleNotificationFollowedMulti;
+    case CONTACT: HomeScreenPeopleNotificationContact;
+    case CONTACT_MULTI: HomeScreenPeopleNotificationContactMulti;
   }
 
   record HomeScreenItem {
     boolean badged;
     HomeScreenItemData data;
+    HomeScreenItemDataExt dataExt;
   }
 
   record Pics {

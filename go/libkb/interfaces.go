@@ -65,6 +65,7 @@ type configGetter interface {
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
 	GetEKLogFile() string
+	GetGUILogFile() string
 	GetUseDefaultLogFile() (bool, bool)
 	GetUseRootConfigFile() (bool, bool)
 	GetLogPrefix() string
@@ -107,6 +108,7 @@ type configGetter interface {
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
 	GetDisableTeamBoxAuditor() (bool, bool)
+	GetDisableEKBackgroundKeygen() (bool, bool)
 	GetDisableMerkleAuditor() (bool, bool)
 	GetDisableSearchIndexer() (bool, bool)
 	GetDisableBgConvLoader() (bool, bool)
@@ -410,8 +412,9 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
-	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
-	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
+	ChatThreadCached(context.Context, *string) error
+	ChatThreadFull(context.Context, string) error
+	ChatThreadStatus(context.Context, chat1.UIChatThreadStatus) error
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
@@ -432,11 +435,12 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error)
+	ChatWatchPosition(context.Context, chat1.ConversationID, chat1.UIWatchPositionPerm) (chat1.LocationWatchID, error)
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
 		[]chat1.UICommandStatusActionTyp) error
 	ChatBotCommandsUpdateStatus(context.Context, chat1.ConversationID, chat1.UIBotCommandsUpdateStatus) error
+	TriggerContactSync(context.Context) error
 }
 
 type PromptDefault int
@@ -810,7 +814,7 @@ type DeviceEKStorage interface {
 	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
-	// Dangerous! Only for deprovisioning.
+	// Dangerous! Only for deprovisioning or shutdown/logout when in oneshot mode.
 	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(mctx MetaContext) ([]string, error)
@@ -988,6 +992,17 @@ type UIDMapper interface {
 		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
 }
 
+type UserServiceSummary map[string]string // service -> username
+type UserServiceSummaryPackage struct {
+	CachedAt   keybase1.Time
+	ServiceMap UserServiceSummary
+}
+
+type ServiceSummaryMapper interface {
+	MapUIDsToServiceSummaries(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, freshness time.Duration,
+		networkTimeBudget time.Duration) map[keybase1.UID]UserServiceSummaryPackage
+}
+
 type ChatHelper interface {
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
@@ -1094,4 +1109,6 @@ type StandaloneChatConnector interface {
 type SyncedContactListProvider interface {
 	SaveProcessedContacts(MetaContext, []keybase1.ProcessedContact) error
 	RetrieveContacts(MetaContext) ([]keybase1.ProcessedContact, error)
+	RetrieveAssertionToName(MetaContext) (map[string]string, error)
+	UnresolveContactsWithComponent(MetaContext, *keybase1.PhoneNumber, *keybase1.EmailAddress)
 }

@@ -50,7 +50,7 @@ class GiphySearch extends React.Component<Props, State> {
             <Kb.Text
               style={styles.instructions}
               type="BodySmallSecondaryLink"
-              onClickURL={'https://keybase.io/docs/chat/linkpreviews'}
+              onClickURL="https://keybase.io/docs/chat/linkpreviews"
             >
               (More Info)
             </Kb.Text>
@@ -95,61 +95,64 @@ class GiphySearch extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    minHeight: 200,
-  },
-  image: {
-    borderRadius: 0,
-  },
-  imageContainer: {
-    alignSelf: 'flex-start',
-    borderColor: Styles.globalColors.black,
-    borderStyle: 'solid',
-    borderWidth: Styles.globalMargins.xxtiny,
-    margin: -1,
-    overflow: 'hidden',
-  },
-  instructions: Styles.platformStyles({
-    common: {
-      alignSelf: 'center',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      lineHeight: 17,
-    },
-  }),
-  instructionsContainer: {
-    justifyContent: 'center',
-  },
-  loadingContainer: {
-    minHeight: 200,
-  },
-  outerContainer: {
-    marginBottom: Styles.globalMargins.xtiny,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    position: 'relative',
-  },
-  poweredBy: {
-    bottom: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  scrollContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      border: `1px solid ${Styles.globalColors.black_20}`,
-      borderRadius: Styles.borderRadius,
-      maxHeight: 300,
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        minHeight: 200,
+      },
+      image: {
+        borderRadius: 0,
+      },
+      imageContainer: {
+        alignSelf: 'flex-start',
+        borderColor: Styles.globalColors.black,
+        borderStyle: 'solid',
+        borderWidth: Styles.globalMargins.xxtiny,
+        margin: -1,
+        overflow: 'hidden',
+      },
+      instructions: Styles.platformStyles({
+        common: {
+          alignSelf: 'center',
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          lineHeight: 17,
+        },
+      }),
+      instructionsContainer: {
+        justifyContent: 'center',
+      },
+      loadingContainer: {
+        minHeight: 200,
+      },
+      outerContainer: {
+        marginBottom: Styles.globalMargins.xtiny,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+        position: 'relative',
+      },
+      poweredBy: {
+        bottom: 0,
+        position: 'absolute',
+        right: 0,
+      },
+      scrollContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.boxShadow,
+          border: `1px solid ${Styles.globalColors.black_20}`,
+          borderRadius: Styles.borderRadius,
+          maxHeight: 300,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 export default GiphySearch

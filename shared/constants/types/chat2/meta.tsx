@@ -1,6 +1,7 @@
 // Metadata about a conversation.
 import * as I from 'immutable'
 import * as Common from './common'
+import * as Message from './message'
 import * as RPCChatTypes from '../rpc-chat-gen'
 import {RetentionPolicy} from '../retention-policy'
 
@@ -11,6 +12,11 @@ export type TeamType = 'small' | 'big' | 'adhoc'
 export type MetaTrustedState = 'untrusted' | 'requesting' | 'trusted' | 'error'
 export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 
+export type PinnedMessageInfo = {
+  message: Message.Message
+  pinnerUsername: string
+}
+
 export type _ConversationMeta = {
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
@@ -19,8 +25,10 @@ export type _ConversationMeta = {
   conversationIDKey: Common.ConversationIDKey // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing,
   description: string
   descriptionDecorated: string
+  draft: string
   inboxLocalVersion: number
   inboxVersion: number
+  isEmpty: boolean
   isMuted: boolean
   maxMsgID: number
   maxVisibleMsgID: number
@@ -32,6 +40,7 @@ export type _ConversationMeta = {
   offline: boolean
   participantToContactName: I.Map<string, string>
   participants: I.List<string> // was OrderedSet but is quite slow,
+  pinnedMsg: PinnedMessageInfo | null
   readMsgID: number
   rekeyers: I.Set<string>
   resetParticipants: I.Set<string>

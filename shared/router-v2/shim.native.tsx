@@ -2,11 +2,13 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Shared from './shim.shared'
+import * as Container from '../util/container'
 
 export const shim = (routes: any) => Shared.shim(routes, shimNewRoute)
 
 const shimNewRoute = (Original: any) => {
   // Wrap everything in a keyboard avoiding view (maybe this is opt in/out?)
+  // Also light/dark aware
   class ShimmedNew extends React.PureComponent<any, void> {
     static navigationOptions = Original.navigationOptions
     render() {
@@ -14,7 +16,7 @@ const shimNewRoute = (Original: any) => {
         typeof Original.navigationOptions === 'function'
           ? Original.navigationOptions({navigation: this.props.navigation})
           : Original.navigationOptions
-      const body = <Original {...this.props} />
+      const body = <Original {...this.props} key={this.props.isDarkMode ? 'dark' : 'light'} />
       const keyboardBody = (
         <Kb.KeyboardAvoidingView
           style={styles.keyboard}
@@ -37,11 +39,19 @@ const shimNewRoute = (Original: any) => {
       return safeKeyboardBody
     }
   }
-  return ShimmedNew
+  return Container.connect(() => ({isDarkMode: Styles.isDarkMode()}), undefined, (s, _, o) => ({
+    ...s,
+    ...o,
+    // @ts-ignore
+  }))(ShimmedNew)
 }
-const styles = Styles.styleSheetCreate({
-  keyboard: {
-    flexGrow: 1,
-    position: 'relative',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      keyboard: {
+        backgroundColor: Styles.globalColors.white,
+        flexGrow: 1,
+        position: 'relative',
+      },
+    } as const)
+)

@@ -24,6 +24,7 @@ type ContactLookupResults struct {
 	// should are valid for the following amount of time:
 	ResolvedFreshness   time.Duration
 	UnresolvedFreshness time.Duration
+	Token               Token
 }
 
 func NewContactLookupResults() ContactLookupResults {
@@ -36,9 +37,9 @@ func (r *ContactLookupResults) FindComponent(component keybase1.ContactComponent
 	var key ContactLookupKey
 	switch {
 	case component.Email != nil:
-		key = makeEmailLookupKey(*component.Email)
+		key = MakeEmailLookupKey(*component.Email)
 	case component.PhoneNumber != nil:
-		key = makePhoneLookupKey(*component.PhoneNumber)
+		key = MakePhoneLookupKey(*component.PhoneNumber)
 	default:
 		return res, false
 	}
@@ -46,11 +47,11 @@ func (r *ContactLookupResults) FindComponent(component keybase1.ContactComponent
 	return res, found
 }
 
-func makeEmailLookupKey(e keybase1.EmailAddress) ContactLookupKey {
+func MakeEmailLookupKey(e keybase1.EmailAddress) ContactLookupKey {
 	return ContactLookupKey(fmt.Sprintf("e:%s", string(e)))
 }
 
-func makePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
+func MakePhoneLookupKey(p keybase1.RawPhoneNumber) ContactLookupKey {
 	return ContactLookupKey(fmt.Sprintf("p:%s", string(p)))
 }
 
@@ -59,8 +60,14 @@ type ContactUsernameAndFullName struct {
 	Fullname string
 }
 
+type Token string
+
+const NoneToken Token = ""
+
 type ContactsProvider interface {
+	LookupAllWithToken(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode, Token) (ContactLookupResults, error)
 	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupResults, error)
 	FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error)
 	FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error)
+	FindServiceMaps(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error)
 }

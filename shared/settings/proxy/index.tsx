@@ -18,7 +18,9 @@ type State = {
 }
 
 type Props = {
-  allowTlsMitmToggle: boolean
+  _loadProxyData: () => void
+  _resetCertPinningToggle: () => void
+  allowTlsMitmToggle: boolean | null
   onBack: () => void
   onDisableCertPinning: () => void
   onEnableCertPinning: () => void
@@ -45,6 +47,14 @@ class ProxySettings extends React.Component<Props, State> {
       const proxyType = RPCTypes.ProxyType[this.props.proxyData.proxyType]
       this.setState({address, port, proxyType})
     }
+  }
+
+  componentDidMount() {
+    this.props._loadProxyData()
+  }
+
+  componentWillUnmount() {
+    this.props._resetCertPinningToggle()
   }
 
   toggleCertPinning = () => {
@@ -163,7 +173,7 @@ const ProxySettingsPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   divider: {
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',
@@ -201,6 +211,6 @@ const styles = Styles.styleSheetCreate({
       cursor: 'default',
     },
   }),
-})
+}))
 
 export {ProxySettings, ProxySettingsPopup}

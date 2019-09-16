@@ -9,21 +9,24 @@ import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, mapProps, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
-const dataToProps = mapProps(({data}: {data: Types.PinentryState}) => ({
-  cancelLabel: data.cancelLabel,
-  prompt: data.prompt,
-  retryLabel: data.retryLabel,
-  sessionID: data.sessionID,
-  showTyping: data.showTyping,
-  submitLabel: data.submitLabel,
-  submitted: data.submitted,
-  type: data.type,
-  windowComponent: 'pinentry',
-  windowOpts: {height: 210, width: 440},
-  windowParam: String(data.sessionID),
-  windowPositionBottomRight: false,
-  windowTitle: 'Pinentry',
-}))
+const dataToProps = mapProps(
+  ({data, remoteWindowNeedsProps}: {data: Types.PinentryState; remoteWindowNeedsProps: number}) => ({
+    cancelLabel: data.cancelLabel,
+    prompt: data.prompt,
+    remoteWindowNeedsProps,
+    retryLabel: data.retryLabel,
+    sessionID: data.sessionID,
+    showTyping: data.showTyping,
+    submitLabel: data.submitLabel,
+    submitted: data.submitted,
+    type: data.type,
+    windowComponent: 'pinentry',
+    windowOpts: {height: 210, width: 440},
+    windowParam: String(data.sessionID),
+    windowPositionBottomRight: false,
+    windowTitle: 'Pinentry',
+  })
+)
 
 // Actions are handled by remote-container
 const RemotePinentry = compose(
@@ -33,6 +36,7 @@ const RemotePinentry = compose(
 )(NullComponent)
 
 type Props = {
+  remoteWindowNeedsProps?: Map<string, number>
   sessionIDToPinentry: I.Map<number, Types.PinentryState>
 }
 
@@ -40,22 +44,26 @@ class RemotePinentrys extends React.PureComponent<Props> {
   render() {
     return this.props.sessionIDToPinentry.keySeq().reduce((arr, id) => {
       const data = this.props.sessionIDToPinentry.get(id)
+      const remoteWindowNeedsProps =
+        (this.props.remoteWindowNeedsProps && this.props.remoteWindowNeedsProps.get(String(id))) || -1
       if (data) {
-        // @ts-ignore
-        arr.push(<RemotePinentry key={String(id)} data={data} />)
+        arr.push(
+          // @ts-ignore
+          <RemotePinentry key={String(id)} data={data} remoteWindowNeedsProps={remoteWindowNeedsProps} />
+        )
       }
       return arr
     }, [])
   }
 }
 
-const mapStateToProps = state => ({
-  sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
-})
-
 type OwnProps = {}
+
 export default connect(
-  mapStateToProps,
+  state => ({
+    remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.get('pinentry'),
+    sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
+  }),
   () => ({}),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(RemotePinentrys)

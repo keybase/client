@@ -230,7 +230,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		}
 		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
 	}
-	result, err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+	result, err := teams.AddMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role, arg.BotSettings)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -294,13 +294,14 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:
-		switch err := err.Err.(type) {
+		switch e := err.Err.(type) {
 		case libkb.IdentifySummaryError:
 			// Return the IdentifySummaryError, which is exportable.
 			// Frontend presents this error specifically.
+			return e
+		default:
 			return err
 		}
-		return err
 	default:
 		return err
 	}
@@ -369,7 +370,27 @@ func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEdit
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
-	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
+	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role, arg.BotSettings)
+}
+
+func (h *TeamsHandler) TeamSetBotSettings(ctx context.Context, arg keybase1.TeamSetBotSettingsArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamSetBotSettings(%s,%s,%v)", arg.Name, arg.Username, arg.BotSettings),
+		func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	return teams.SetBotSettings(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.BotSettings)
+}
+
+func (h *TeamsHandler) TeamGetBotSettings(ctx context.Context, arg keybase1.TeamGetBotSettingsArg) (res keybase1.TeamBotSettings, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetBotSettings(%s,%s)", arg.Name, arg.Username),
+		func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	return teams.GetBotSettings(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
 func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) (err error) {

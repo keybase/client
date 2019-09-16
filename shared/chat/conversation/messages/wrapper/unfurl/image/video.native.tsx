@@ -17,7 +17,7 @@ export class Video extends React.Component<Props, State> {
       this.props.onClick()
       return
     }
-    this.setState({playingVideo: !this.state.playingVideo})
+    this.setState(s => ({playingVideo: !s.playingVideo}))
   }
 
   render() {
@@ -41,7 +41,7 @@ export class Video extends React.Component<Props, State> {
           onError={e => {
             logger.error(`Error loading vid: ${JSON.stringify(e)}`)
           }}
-          resizeMode="cover"
+          resizeMode="contain"
           style={Styles.collapseStyles([styles.player, this.props.style])}
           repeat={true}
           paused={!this.state.playingVideo}
@@ -56,7 +56,7 @@ export class Video extends React.Component<Props, State> {
           ])}
         >
           {!this.state.playingVideo && (
-            <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
+            <Kb.Icon type="icon-play-64" style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>
       </Kb.ClickableBox>
@@ -64,28 +64,31 @@ export class Video extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  absoluteContainer: {
-    left: 0,
-    position: 'absolute',
-    top: 0,
-  },
-  container: {
-    alignSelf: 'flex-start',
-    position: 'relative',
-  },
-  playButton: {
-    bottom: '50%',
-    left: '50%',
-    marginBottom: -32,
-    marginLeft: -32,
-    marginRight: -32,
-    marginTop: -32,
-    position: 'absolute',
-    right: '50%',
-    top: '50%',
-  },
-  player: {
-    position: 'relative',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      absoluteContainer: {
+        left: 0,
+        position: 'absolute',
+        top: 0,
+      },
+      container: {
+        alignSelf: 'flex-start',
+        position: 'relative',
+      },
+      playButton: {
+        bottom: '50%',
+        left: '50%',
+        marginBottom: -32,
+        marginLeft: -32,
+        marginRight: -32,
+        marginTop: -32,
+        position: 'absolute',
+        right: '50%',
+        top: '50%',
+      },
+      player: {
+        position: 'relative',
+      },
+    } as const)
+)

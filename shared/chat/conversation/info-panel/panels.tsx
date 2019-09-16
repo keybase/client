@@ -93,7 +93,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   divider: {
     marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
@@ -125,4 +125,4 @@ const styles = Styles.styleSheetCreate({
     height: '100%',
     paddingTop: Styles.globalMargins.small,
   },
-})
+}))

@@ -24,7 +24,6 @@ import (
 type CmdChatSearchInbox struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
-	tlfName          string
 	query            string
 	opts             chat1.SearchOpts
 	namesOnly        bool

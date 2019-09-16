@@ -51,6 +51,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSClearConflicts(cl, g),
 			NewCmdSimpleFSFinishResolvingConflicts(cl, g),
 			NewCmdSimpleFSSync(cl, g),
+			NewCmdSimpleFSUploads(cl, g),
 		}, getBuildSpecificFSCommands(cl, g)...),
 	}
 }
@@ -62,7 +63,7 @@ func makeKbfsPath(
 	keybase1.Path, error) {
 	p := path[len(mountDir):]
 	if rev == 0 && timeString == "" && relTimeString == "" {
-		return keybase1.NewPathWithKbfs(p), nil
+		return keybase1.NewPathWithKbfsPath(p), nil
 	} else if rev != 0 {
 		if timeString != "" || relTimeString != "" {
 			return keybase1.Path{}, errors.New(
@@ -167,7 +168,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 	switch pathType {
 	case keybase1.PathType_KBFS, keybase1.PathType_KBFS_ARCHIVED:
 		if pathType == keybase1.PathType_KBFS {
-			pathString = path.Kbfs()
+			pathString = path.Kbfs().Path
 		} else {
 			pathString = path.KbfsArchived().Path
 		}
@@ -197,7 +198,7 @@ func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path ke
 func joinSimpleFSPaths(destType keybase1.PathType, destPathString, srcPathString string) keybase1.Path {
 	newDestString := filepath.ToSlash(filepath.Join(destPathString, filepath.Base(srcPathString)))
 	if destType == keybase1.PathType_KBFS {
-		return keybase1.NewPathWithKbfs(newDestString)
+		return keybase1.NewPathWithKbfsPath(newDestString)
 	}
 	return keybase1.NewPathWithLocal(newDestString)
 }
@@ -214,7 +215,7 @@ func checkElementExists(ctx context.Context, cli keybase1.SimpleFSInterface, des
 			err = ErrTargetFileExists
 		}
 	} else {
-		if exists, _ := libkb.FileExists(dest.Local()); exists == true {
+		if exists, _ := libkb.FileExists(dest.Local()); exists {
 			// we should have already tested whether it's a directory
 			err = ErrTargetFileExists
 		}
@@ -343,7 +344,7 @@ func newPathWithSameType(
 	case keybase1.PathType_LOCAL:
 		return keybase1.NewPathWithLocal(pathString), nil
 	case keybase1.PathType_KBFS:
-		return keybase1.NewPathWithKbfs(pathString), nil
+		return keybase1.NewPathWithKbfsPath(pathString), nil
 	case keybase1.PathType_KBFS_ARCHIVED:
 		return keybase1.NewPathWithKbfsArchived(keybase1.KBFSArchivedPath{
 			Path:          pathString,
@@ -366,7 +367,7 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 
 	g.Log.Debug("doSimpleFSRemoteGlob %s", pathString)
 
-	if strings.ContainsAny(directory, "?*[]") == true {
+	if strings.ContainsAny(directory, "?*[]") {
 		return nil, errors.New("wildcards not supported in parent directories")
 	}
 
@@ -404,7 +405,7 @@ func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keyba
 		}
 		for _, entry := range listResult.Entries {
 			match, err := filepath.Match(base, entry.Name)
-			if err == nil && match == true {
+			if err == nil && match {
 				rp, err := newPathWithSameType(
 					filepath.ToSlash(filepath.Join(directory, entry.Name)),
 					path)
@@ -427,7 +428,7 @@ func doSimpleFSGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.Si
 		}
 
 		pathString := path.String()
-		if strings.ContainsAny(filepath.Base(pathString), "?*[]") == false {
+		if !strings.ContainsAny(filepath.Base(pathString), "?*[]") {
 			returnPaths = append(returnPaths, path)
 			continue
 		}

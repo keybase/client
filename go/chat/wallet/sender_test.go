@@ -35,7 +35,7 @@ func (m *mockInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		})
 	}
 	return types.Inbox{
-		Convs: []chat1.ConversationLocal{chat1.ConversationLocal{
+		Convs: []chat1.ConversationLocal{{
 			Info: chat1.ConversationInfoLocal{
 				MembersType:  m.membersTypFn(),
 				Participants: convParts,
@@ -59,8 +59,7 @@ func (m *mockStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, b
 
 type mockUpakLoader struct {
 	libkb.UPAKLoader
-	usernameFn func(gregor1.UID) string
-	usernames  map[string]string
+	usernames map[string]string
 }
 
 func newMockUpakLoader() *mockUpakLoader {
@@ -149,44 +148,44 @@ func TestStellarSender(t *testing.T) {
 	}
 
 	t.Logf("imp team")
-	testCase("+1XLM", []paymentRes{paymentRes{
+	testCase("+1XLM", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM",
 	}}, mikeUID, mikePatrickFn, nativeFn, successFn(nil, patrickUID))
-	testCase("+1XLM", []paymentRes{paymentRes{
+	testCase("+1XLM", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_ERROR,
 		text:      "+1XLM",
 	}}, mikeUID, mikePatrickFn, nativeFn, successFn(errors.New("NOOOO"), patrickUID))
 	testCase("+1XLM", nil, mikeUID, allFn, nativeFn, successFn(nil))
-	testCase("+1XLM@patrick", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
 	}}, mikeUID, allFn, nativeFn, successFn(nil, patrickUID))
-	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
-	}, paymentRes{
+	}, {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, nativeFn, successFn(nil, patrickUID, maxUID))
 
 	t.Logf("team successes")
 	testCase("+1XLM", nil, mikeUID, mikePatrickFn, teamFn, successFn(nil))
-	testCase("+1XLM@patrick", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
 	}}, mikeUID, mikePatrickFn, teamFn, successFn(nil, patrickUID))
-	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick and also +10USD@max", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
-	}, paymentRes{
+	}, {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID))
-	testCase("+1XLM@patrick and also +10USD@max, and +10cad@karenm", []paymentRes{paymentRes{
+	testCase("+1XLM@patrick and also +10USD@max, and +10cad@karenm", []paymentRes{{
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+1XLM@patrick",
-	}, paymentRes{
+	}, {
 		resultTyp: chat1.TextPaymentResultTyp_SENT,
 		text:      "+10USD@max",
 	}}, mikeUID, allFn, teamFn, successFn(nil, patrickUID, maxUID))

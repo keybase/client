@@ -1,18 +1,11 @@
 import * as React from 'react'
 import Box from './box'
 import Text from './text'
-import {
-  globalColors,
-  globalStyles,
-  platformStyles,
-  collapseStyles,
-  styleSheetCreate,
-  StylesCrossPlatform,
-} from '../styles'
+import * as Styles from '../styles'
 
 type Props = {
   title: string
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
   size?: 'Small'
   color?: string
   backgroundColor: string
@@ -22,7 +15,7 @@ type Props = {
 const Meta = (props: Props) => (
   <Box
     pointerEvents="none"
-    style={collapseStyles([
+    style={Styles.collapseStyles([
       styles.container,
       props.backgroundColor && {backgroundColor: props.backgroundColor},
       props.style,
@@ -31,7 +24,7 @@ const Meta = (props: Props) => (
   >
     <Text
       type="BodyTinyBold"
-      style={collapseStyles([
+      style={Styles.collapseStyles([
         styles.text,
         props.color && {color: props.color},
         props.size === 'Small' && styles.textSmall,
@@ -42,9 +35,9 @@ const Meta = (props: Props) => (
   </Box>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     alignSelf: 'flex-start',
     borderRadius: 2,
@@ -55,9 +48,9 @@ const styles = styleSheetCreate({
     paddingLeft: 2,
     paddingRight: 2,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
-      color: globalColors.white,
+      color: Styles.globalColors.white,
       marginBottom: -1,
       marginTop: -1,
     },
@@ -65,7 +58,7 @@ const styles = styleSheetCreate({
       fontSize: 12,
     },
   }),
-  textSmall: platformStyles({
+  textSmall: Styles.platformStyles({
     isElectron: {
       fontSize: 10,
     },
@@ -73,6 +66,6 @@ const styles = styleSheetCreate({
       fontSize: 11,
     },
   }),
-})
+}))
 
 export default Meta

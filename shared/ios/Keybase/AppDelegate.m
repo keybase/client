@@ -6,10 +6,10 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 #import "AppDelegate.h"
-#import <AVFoundation/AVFoundation.h> 
+#import <AVFoundation/AVFoundation.h>
 #import <React/RCTPushNotificationManager.h>
 #import <React/RCTBundleURLProvider.h>
-#import <React/RCTRootView.h>
+#import "AppearanceRootView.h"
 #import "Engine.h"
 #import "LogSend.h"
 #import <React/RCTLinkingManager.h>
@@ -71,7 +71,7 @@
   self.moduleRegistryAdapter = [[UMModuleRegistryAdapter alloc] initWithModuleRegistryProvider: [[UMModuleRegistryProvider alloc] init]];
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-  RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
+  AppearanceRootView *rootView = [[AppearanceRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Keybase"
                                             initialProperties:nil];
   rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
@@ -141,22 +141,23 @@
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
+  NSString* body = notification[@"m"];
+  int badgeCount = [notification[@"b"] intValue];
+  int unixTime = [notification[@"x"] intValue];
+  NSString* soundName = notification[@"s"];
+  bool displayPlaintext = [notification[@"n"] boolValue];
+  int membersType = [notification[@"t"] intValue];
+  NSString* sender = notification[@"u"];
+  PushNotifier* pusher = [[PushNotifier alloc] init];
   if (type != nil && [type isEqualToString:@"chat.newmessageSilent_2"]) {
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
       NSError* err = nil;
       NSString* convID = notification[@"c"];
-      NSString* body = notification[@"m"];
-      int membersType = [notification[@"t"] intValue];
-      bool displayPlaintext = [notification[@"n"] boolValue];
       int messageID = [notification[@"d"] intValue];
       NSString* pushID = [notification[@"p"] objectAtIndex:0];
-      int badgeCount = [notification[@"b"] intValue];
-      int unixTime = [notification[@"x"] intValue];
-      NSString* soundName = notification[@"s"];
-      PushNotifier* pusher = [[PushNotifier alloc] init];
       // This always tries to unbox the notification and adds a plaintext
       // notification if displayPlaintext is set.
-      KeybaseHandleBackgroundNotification(convID, body, membersType, displayPlaintext,
+      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
             messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
@@ -168,14 +169,14 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
       NSError* err = nil;
       NSString* convID = notification[@"convID"];
-      NSString* body = notification[@"m"];
-      int membersType = [notification[@"t"] intValue];
       int messageID = [notification[@"msgID"] intValue];
-      KeybaseHandleBackgroundNotification(convID, body, membersType, false,
-                                          messageID, @"", 0, 0, @"", nil, &err);
+      KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
+                                          messageID, @"", badgeCount, unixTime, soundName, nil, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
+      completionHandler(UIBackgroundFetchResultNewData);
+      NSLog(@"Remote notification handle finished...");
     });
     [RCTPushNotificationManager didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);

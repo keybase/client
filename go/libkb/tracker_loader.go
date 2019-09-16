@@ -26,8 +26,9 @@ func NewTrackerLoader(g *GlobalContext) *TrackerLoader {
 		shutdownCh:   make(chan struct{}),
 		queueCh:      make(chan keybase1.UID, 100),
 	}
-	g.PushShutdownHook(func() error {
-		<-l.Shutdown(context.Background())
+
+	g.PushShutdownHook(func(mctx MetaContext) error {
+		<-l.Shutdown(mctx.Ctx())
 		return nil
 	})
 	return l
@@ -58,7 +59,7 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 		close(l.shutdownCh)
 		l.started = false
 		go func() {
-			l.eg.Wait()
+			_ = l.eg.Wait()
 			close(ch)
 		}()
 	} else {

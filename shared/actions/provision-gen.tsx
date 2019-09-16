@@ -32,7 +32,7 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
 type _AddNewDevicePayload = {readonly otherDeviceType: 'desktop' | 'mobile'}
-type _ForgotUsernamePayload = {readonly email: string}
+type _ForgotUsernamePayload = {readonly email: string; readonly phone: string}
 type _ForgotUsernameResultPayload = {readonly result: string}
 type _ProvisionErrorPayload = {readonly error: HiddenString | null}
 type _ShowCodePagePayload = {readonly code: HiddenString; readonly error: HiddenString | null}

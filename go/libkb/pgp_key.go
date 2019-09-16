@@ -230,7 +230,7 @@ func (p *PGPFingerprint) MarshalJSON() ([]byte, error) {
 }
 
 func (k PGPKeyBundle) toList() openpgp.EntityList {
-	list := make(openpgp.EntityList, 1, 1)
+	list := make(openpgp.EntityList, 1)
 	list[0] = k.Entity
 	return list
 }
@@ -281,7 +281,7 @@ func (k *PGPKeyBundle) Encode() (ret string, err error) {
 	buf := bytes.Buffer{}
 	err = k.EncodeToStream(NopWriteCloser{&buf}, false)
 	if err == nil {
-		ret = string(buf.Bytes())
+		ret = buf.String()
 		k.ArmoredPublicKey = ret
 	}
 	return
@@ -618,7 +618,7 @@ func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 	// have 9 bytes of header material, to encode a 2-byte frame, rather than
 	// a 1-byte frame.
 	buf := bytes.Buffer{}
-	k.PrimaryKey.Serialize(&buf)
+	_ = k.PrimaryKey.Serialize(&buf)
 	byts := buf.Bytes()
 	hdrBytes := 8
 	if len(byts) >= 193 {

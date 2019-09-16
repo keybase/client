@@ -58,7 +58,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 
 			users := ctc.users()
 			numUsers := 3
-			flip.DefaultCommitmentWindowMsec = 500
+			flip.DefaultCommitmentWindowMsec = 2000
 
 			var ui0, ui1, ui2 *kbtest.ChatUI
 			ui0 = kbtest.NewChatUI()
@@ -419,7 +419,8 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			}
 		}
 		testLoadFlip()
-		tc.Context().ConvSource.Clear(ctx, conv.Id, uid)
+		err = tc.Context().ConvSource.Clear(ctx, conv.Id, uid)
+		require.NoError(t, err)
 		tc.Context().CoinFlipManager.(*FlipManager).clearGameCache()
 		testLoadFlip()
 	})

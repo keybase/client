@@ -45,8 +45,8 @@ const (
 // OuterLink V3 is the third version of Keybase sigchain signatures, it roughly approximates
 // the outer link v2s that we have previously used.
 type OuterLink struct {
-	_struct             bool                `codec:",toarray"`
-	Version             SigVersion          `codec:"version"` // should be 3
+	_struct             bool                `codec:",toarray"` //nolint
+	Version             SigVersion          `codec:"version"`  // should be 3
 	Seqno               Seqno               `codec:"seqno"`
 	Prev                *LinkID             `codec:"prev"`
 	InnerLinkID         LinkID              `codec:"curr"` // hash of the msgpack of the InnerLink
@@ -58,14 +58,14 @@ type OuterLink struct {
 }
 
 type InnerLink struct {
-	Body        interface{} `codec:"b"` // The actual body, which varies based on the type in the outer link
-	Ctime       TimeSec     `codec:"c"` // Seconds since 1970 UTC.
-	Entropy     Entropy     `codec:"e"` // entropy for hiding the value of the inner link
-	ClientInfo  *ClientInfo `codec:"i"` // Optional client type making sig
-	MerkleRoot  MerkleRoot  `codec:"m"` // Optional snapshot of merkle root at time of sig
-	ParentChain Tail        `codec:"p"` // grab of the most-recent chain tail of the corresponding parent chain
-	Signer      Signer      `codec:"s"` // Info on the signer, including UID, KID and eldest
-	Team        *Team       `codec:"t"` // for teams, and null otherwise
+	Body        interface{} `codec:"b"`           // The actual body, which varies based on the type in the outer link
+	Ctime       TimeSec     `codec:"c"`           // Seconds since 1970 UTC.
+	Entropy     Entropy     `codec:"e"`           // entropy for hiding the value of the inner link
+	ClientInfo  *ClientInfo `codec:"i,omitempty"` // Optional client type making sig
+	MerkleRoot  MerkleRoot  `codec:"m"`           // Optional snapshot of merkle root at time of sig
+	ParentChain Tail        `codec:"p"`           // grab of the most-recent chain tail of the corresponding parent chain
+	Signer      Signer      `codec:"s"`           // Info on the signer, including UID, KID and eldest
+	Team        *Team       `codec:"t"`           // for teams, and null otherwise
 }
 
 type Signer struct {

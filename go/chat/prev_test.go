@@ -48,20 +48,20 @@ func threadViewFromDummies(dummies []dummyMessage) chat1.ThreadView {
 
 func TestPrevGood(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:    1,
 			hash:  []byte("placeholder"),
 			prevs: nil,
 		},
-		dummyMessage{
+		{
 			id:   2,
 			hash: []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   1,
 					Hash: []byte("placeholder"),
 				},
-				chat1.MessagePreviousPointer{
+				{
 					Id:   0, // This one won't exist locally.
 					Hash: []byte("nonexistent message hash"),
 				},
@@ -81,12 +81,12 @@ func TestPrevGood(t *testing.T) {
 
 func TestPrevDuplicateID(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:    1,
 			hash:  []byte("placeholder"),
 			prevs: nil,
 		},
-		dummyMessage{
+		{
 			id:   1,
 			hash: []byte("placeholder"),
 		},
@@ -98,11 +98,11 @@ func TestPrevDuplicateID(t *testing.T) {
 
 func TestPrevInconsistentHash(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:   1,
 			hash: []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id: 0,
 					// We don't have the "real" has for this message, but we
 					// can still cause an error by failing to match another
@@ -111,11 +111,11 @@ func TestPrevInconsistentHash(t *testing.T) {
 				},
 			},
 		},
-		dummyMessage{
+		{
 			id:   2,
 			hash: []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   0,
 					Hash: []byte("ANOTHER THING"), // This doesn't match above!
 				},
@@ -129,17 +129,17 @@ func TestPrevInconsistentHash(t *testing.T) {
 
 func TestPrevOutOfOrder(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:   1,
 			hash: []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   2, // Out of order!
 					Hash: []byte("placeholder"),
 				},
 			},
 		},
-		dummyMessage{
+		{
 			id:    2,
 			hash:  []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{},
@@ -152,11 +152,11 @@ func TestPrevOutOfOrder(t *testing.T) {
 
 func TestPrevOutOfOrderEq(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:   1,
 			hash: []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   1, // Points to self!
 					Hash: []byte("placeholder"),
 				},
@@ -170,15 +170,15 @@ func TestPrevOutOfOrderEq(t *testing.T) {
 
 func TestPrevIncorrectHash(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:   1,
 			hash: []byte("placeholder"),
 		},
-		dummyMessage{
+		{
 			id:   2,
 			hash: []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   1,
 					Hash: []byte("THE WRONG THING"), // This doesn't match above!
 				},
@@ -192,27 +192,27 @@ func TestPrevIncorrectHash(t *testing.T) {
 
 func TestPrevExploding(t *testing.T) {
 	thread := threadViewFromDummies([]dummyMessage{
-		dummyMessage{
+		{
 			id:   1,
 			hash: []byte("placeholder"),
 		},
-		dummyMessage{
+		{
 			exploding: true,
 			id:        2,
 			hash:      []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   1,
 					Hash: []byte("placeholder"),
 				},
 			},
 		},
-		dummyMessage{
+		{
 			exploding: true,
 			id:        3,
 			hash:      []byte("placeholder"),
 			prevs: []chat1.MessagePreviousPointer{
-				chat1.MessagePreviousPointer{
+				{
 					Id:   2,
 					Hash: []byte("placeholder"),
 				},

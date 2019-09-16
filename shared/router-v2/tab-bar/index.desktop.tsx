@@ -8,8 +8,9 @@ import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
 import AccountSwitcher from '../account-switcher/container'
+
 export type Props = {
-  badgeNumbers: {[K in string]: number}
+  badgeNumbers: Map<Tabs.Tab, number>
   fullname: string
   isWalletsNew?: boolean
   onAddAccount: () => void
@@ -45,23 +46,23 @@ type State = {
 class TabBar extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
 
-  _attachmentRef = React.createRef<Kb.Box2>()
-  _getAttachmentRef = () => this._attachmentRef.current
-  _showMenu = () => this.setState({showingMenu: true})
-  _hideMenu = () => this.setState({showingMenu: false})
-  _onClickWrapper = () => {
-    this._hideMenu()
+  private attachmentRef = React.createRef<Kb.Box2>()
+  private getAttachmentRef = () => this.attachmentRef.current
+  private showMenu = () => this.setState({showingMenu: true})
+  private hideMenu = () => this.setState({showingMenu: false})
+  private onClickWrapper = () => {
+    this.hideMenu()
     this.props.onProfileClick()
   }
-  _menuHeader = () => ({
+  private menuHeader = () => ({
     onClick: this.props.onProfileClick,
     title: '',
     view: (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={this._onClickWrapper} style={styles.headerBox}>
+        <Kb.ClickableBox onClick={this.onClickWrapper} style={styles.headerBox}>
           <Kb.ConnectedNameWithIcon
             username={this.props.username}
-            onClick={this._onClickWrapper}
+            onClick={this.onClickWrapper}
             metaTwo={
               <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
                 {this.props.fullname}
@@ -73,7 +74,7 @@ class TabBar extends React.PureComponent<Props, State> {
       </Kb.Box2>
     ),
   })
-  _menuItems = (): Kb.MenuItems => [
+  private menuItems = (): Kb.MenuItems => [
     ...(flags.fastAccountSwitch
       ? [
           {onClick: this.props.onAddAccount, title: 'Log in as another user'},
@@ -93,7 +94,7 @@ class TabBar extends React.PureComponent<Props, State> {
         <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
           <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
             <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
-            <Kb.ClickableBox onClick={this._showMenu}>
+            <Kb.ClickableBox onClick={this.showMenu}>
               <Kb.Box2
                 direction="horizontal"
                 gap="tiny"
@@ -101,7 +102,7 @@ class TabBar extends React.PureComponent<Props, State> {
                 fullWidth={true}
                 style={styles.nameContainer}
                 alignItems="center"
-                ref={this._attachmentRef}
+                ref={this.attachmentRef}
               >
                 <Kb.Avatar
                   size={24}
@@ -126,18 +127,18 @@ class TabBar extends React.PureComponent<Props, State> {
             <Kb.FloatingMenu
               position="bottom left"
               containerStyle={styles.menu}
-              header={this._menuHeader()}
+              header={this.menuHeader()}
               closeOnSelect={true}
               visible={this.state.showingMenu}
-              attachTo={this._getAttachmentRef}
-              items={this._menuItems()}
-              onHidden={this._hideMenu}
+              attachTo={this.getAttachmentRef}
+              items={this.menuItems()}
+              onHidden={this.hideMenu}
             />
           </Kb.Box2>
           {tabs.map((t, i) => (
             <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
               <Kb.WithTooltip
-                text={`${data[t].label} (${Platforms.shortcutSymbol}${i + 1})`}
+                tooltip={`${data[t].label} (${Platforms.shortcutSymbol}${i + 1})`}
                 toastClassName="tab-tooltip"
               >
                 <Kb.Box2
@@ -150,17 +151,15 @@ class TabBar extends React.PureComponent<Props, State> {
                   <Kb.Box2 style={styles.iconBox} direction="horizontal">
                     <Kb.Icon className="tab-icon" type={data[t].icon} sizeType="Big" />
                     {p.uploading && t === Tabs.fsTab && (
-                      <Kb.Icon
-                        type={'icon-addon-file-uploading'}
-                        sizeType={'Default'}
-                        style={styles.badgeIcon}
-                      />
+                      <Kb.Icon type="icon-addon-file-uploading" sizeType="Default" style={styles.badgeIcon} />
                     )}
                   </Kb.Box2>
                   <Kb.Text className="tab-label" type="BodySmallSemibold">
                     {data[t].label}
                   </Kb.Text>
-                  {!!p.badgeNumbers[t] && <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers[t]} />}
+                  {!!p.badgeNumbers.get(t) && (
+                    <Kb.Badge className="tab-badge" badgeNumber={p.badgeNumbers.get(t)} />
+                  )}
                 </Kb.Box2>
               </Kb.WithTooltip>
             </Kb.ClickableBox>
@@ -172,41 +171,45 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  avatar: {marginLeft: 14},
-  badgeIcon: {
-    bottom: -4,
-    position: 'absolute',
-    right: 8,
-  },
-  caret: {marginRight: 12},
-  divider: {marginTop: Styles.globalMargins.tiny},
-  fullname: {maxWidth: 180},
-  header: {flexShrink: 0, height: 80, marginBottom: 20},
-  headerBox: {
-    paddingTop: Styles.globalMargins.small,
-  },
-  iconBox: {
-    justifyContent: 'flex-end',
-    position: 'relative',
-  },
-  menu: {marginLeft: Styles.globalMargins.tiny},
-  nameContainer: {height: 24},
-  osButtons: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.windowDragging,
-      flexGrow: 1,
-    },
-  }),
-  tab: {
-    alignItems: 'center',
-    paddingRight: 12,
-    position: 'relative',
-  },
-  username: Styles.platformStyles({
-    isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {marginLeft: 14},
+      badgeIcon: {
+        bottom: -4,
+        position: 'absolute',
+        right: 8,
+      },
+      caret: {marginRight: 12},
+      divider: {marginTop: Styles.globalMargins.tiny},
+      fullname: {maxWidth: 180},
+      header: {flexShrink: 0, height: 80, marginBottom: 20},
+      headerBox: {
+        paddingBottom: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      iconBox: {
+        justifyContent: 'flex-end',
+        position: 'relative',
+      },
+      menu: {marginLeft: Styles.globalMargins.tiny},
+      nameContainer: {height: 24},
+      osButtons: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.windowDragging,
+          flexGrow: 1,
+        },
+      }),
+      tab: {
+        alignItems: 'center',
+        paddingRight: 12,
+        position: 'relative',
+      },
+      username: Styles.platformStyles({
+        isElectron: {color: Styles.globalColors.blueLighter, flexGrow: 1, wordBreak: 'break-all'},
+      }),
+    } as const)
+)
 
 const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
   map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
@@ -217,7 +220,7 @@ const hotkeys = Object.keys(keysMap)
 const InsideHotKeyTabBar = KeyHandler(TabBar)
 
 class HotKeyTabBar extends React.Component<Props> {
-  _onHotkey = cmd => {
+  _onHotkey = (cmd: string) => {
     this.props.onTabClick(keysMap[cmd])
   }
   render() {

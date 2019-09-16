@@ -40,7 +40,6 @@ class InviteCode extends React.Component<Props, State> {
         ) : (
           <>
             <Kb.Text type="Header">Type in your invite code:</Kb.Text>
-            <Kb.Icon type="icon-invite-code-48" />
             <Input
               autoFocus={true}
               value={this.state.inviteCode}
@@ -60,10 +59,10 @@ class InviteCode extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   progress: {
     width: 40,
   },
-})
+}))
 
 export default InviteCode

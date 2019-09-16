@@ -155,6 +155,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_REACTION,
 	MessageType_REQUESTPAYMENT,
 	MessageType_UNFURL,
+	MessageType_PIN,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -178,6 +179,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
 	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
 }
 
 func VisibleChatMessageTypes() []MessageType {
@@ -389,6 +392,13 @@ func (m MessageUnboxed) IsOutbox() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -480,6 +490,14 @@ func (m MessageUnboxed) ChannelMention() ChannelMention {
 	return m.Valid().ChannelMention
 }
 
+func (m MessageUnboxed) SenderIsBot() bool {
+	if m.IsValid() {
+		valid := m.Valid()
+		return gregor1.UIDPtrEq(valid.ClientHeader.BotUID, &valid.ClientHeader.Sender)
+	}
+	return false
+}
+
 func (m *MessageUnboxed) DebugString() string {
 	if m == nil {
 		return "[nil]"
@@ -556,7 +574,7 @@ const (
 // there.
 var MaxMessageBoxedVersion MessageBoxedVersion = MessageBoxedVersion_V4
 var MaxHeaderVersion HeaderPlaintextVersion = HeaderPlaintextVersion_V1
-var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V1
+var MaxBodyVersion BodyPlaintextVersion = BodyPlaintextVersion_V2
 
 // ParseableVersion checks if this error has a version that is now able to be
 // understood by our client.
@@ -629,6 +647,10 @@ func (m *MsgEphemeralMetadata) String() string {
 		explodedBy = *m.ExplodedBy
 	}
 	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
+}
+
+func (m MessagePlaintext) SearchableText() string {
+	return m.MessageBody.SearchableText()
 }
 
 func (m MessagePlaintext) IsEphemeral() bool {
@@ -761,6 +783,13 @@ func (m UIMessage) IsValid() bool {
 func (m UIMessage) IsOutbox() bool {
 	if state, err := m.State(); err == nil {
 		return state == MessageUnboxedState_OUTBOX
+	}
+	return false
+}
+
+func (m UIMessage) IsPlaceholder() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_PLACEHOLDER
 	}
 	return false
 }
@@ -1471,6 +1500,10 @@ func (r *JoinLeaveConversationLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *PreviewConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1720,6 +1753,14 @@ func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *GetAllResetConvMembersRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetAllResetConvMembersRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *LoadFlipRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -1837,6 +1878,14 @@ func (r *JoinLeaveConversationLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *JoinLeaveConversationLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *PreviewConversationLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PreviewConversationLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -2072,6 +2121,14 @@ func (r *ListBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *PinMessageRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *PinMessageRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *ClearBotCommandsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
@@ -2080,12 +2137,45 @@ func (r *ClearBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *ClearBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *ClearBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
 func (r *AdvertiseBotCommandsLocalRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }
 
 func (r *AdvertiseBotCommandsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
+}
+
+func (r *AdvertiseBotCommandsRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *AdvertiseBotCommandsRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
+}
+
+func (r *GetBotInfoRes) GetRateLimit() (res []RateLimit) {
+	if r.RateLimit != nil {
+		res = []RateLimit{*r.RateLimit}
+	}
+	return res
+}
+
+func (r *GetBotInfoRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimit = &rl[0]
 }
 
 func (i EphemeralPurgeInfo) String() string {

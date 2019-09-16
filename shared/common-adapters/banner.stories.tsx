@@ -78,6 +78,36 @@ const load = () => {
             ]}
           />
         </Banner>
+        <Banner key="12" color="red" small={true}>
+          This is a small red banner.
+        </Banner>
+        <Banner key="13" color="blue" small={true}>
+          This is a small blue banner.
+        </Banner>
+        <Banner key="15" color="yellow" small={true}>
+          This is a small yellow banner.
+        </Banner>
+        <Banner key="16" color="green" small={true}>
+          This is a small green banner.
+        </Banner>
+        <Banner key="14" color="grey" small={true}>
+          This is a small grey banner.
+        </Banner>
+        <Banner key="15" color="red" inline={true}>
+          This is an inline red banner.
+        </Banner>
+        <Banner key="16" color="blue" inline={true}>
+          This is an inline blue banner.
+        </Banner>
+        <Banner key="17" color="yellow" inline={true}>
+          This is an inline yellow banner.
+        </Banner>
+        <Banner key="18" color="green" inline={true}>
+          This is an inline green banner.
+        </Banner>
+        <Banner key="19" color="grey" inline={true}>
+          This is an inline grey banner.
+        </Banner>
       </Box2>
     ))
 }

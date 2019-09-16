@@ -128,7 +128,10 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 	default:
 		r.G.UI.GetTerminalUI().Printf(
 			"There are %d conversations. Please choose one:\n", len(conversations))
-		conversationInfoListView(conversations).show(r.G)
+		err := conversationInfoListView(conversations).show(r.G)
+		if err != nil {
+			return nil, false, err
+		}
 		var num int
 		for num = -1; num < 1 || num > len(conversations); {
 			input, err := r.G.UI.GetTerminalUI().Prompt(PromptDescriptorChooseConversation,
@@ -177,6 +180,13 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 	return &ncres.Conv, nil
 }
 
+func formatConversationName(req chatConversationResolvingRequest) string {
+	if req.TopicName != "" {
+		return fmt.Sprintf("%s#%s", req.TlfName, req.TopicName)
+	}
+	return req.TlfName
+}
+
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (
 	conversation *chat1.ConversationLocal, userChosen bool, err error) {
 	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
@@ -197,7 +207,8 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			}
 			return conversation, false, nil
 		}
-		return nil, false, errors.New("no conversation found")
+		convName := formatConversationName(req)
+		return nil, false, fmt.Errorf("no conversation found %s", convName)
 	case 1:
 		conversation := conversations[0]
 		info := conversation.Info

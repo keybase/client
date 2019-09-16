@@ -85,6 +85,14 @@
           "name": "following"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "serviceMap"
+        },
+        {
           "type": "string",
           "name": "assertion"
         },
@@ -137,7 +145,10 @@
           }
         }
       ],
-      "response": null
+      "response": {
+        "type": "array",
+        "items": "ProcessedContact"
+      }
     },
     "lookupSavedContactsList": {
       "request": [

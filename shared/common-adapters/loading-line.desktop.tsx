@@ -24,15 +24,17 @@ const LoadingLine = React.memo<{}>(() => {
   )
 })
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
-    position: 'relative',
+    left: 0,
+    position: 'absolute',
+    top: 0,
+    width: '100%',
   },
   line: {
-    ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.blue,
     height: 1,
   },
-})
+}))
 
 export default LoadingLine

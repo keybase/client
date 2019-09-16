@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
-import MessagePopup from '../messages/message-popup/'
+import MessagePopup from '../messages/message-popup'
 import {Props} from './index.types'
 import RNVideo from 'react-native-video'
 import logger from '../../../logger'
@@ -9,14 +9,17 @@ import logger from '../../../logger'
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
 class AutoMaxSizeImage extends React.Component<
-  any,
+  {
+    source: {uri: string}
+    onLoad: () => void
+    opacity: number
+  },
   {
     width: number
     height: number
-    loaded: boolean
   }
 > {
-  state = {height: 0, loaded: false, width: 0}
+  state = {height: 0, width: 0}
   _mounted: boolean = false
 
   componentWillUnmount() {
@@ -24,14 +27,16 @@ class AutoMaxSizeImage extends React.Component<
   }
   componentDidMount() {
     this._mounted = true
-    Kb.NativeImage.getSize(this.props.source.uri, (width, height) => {
-      if (this._mounted) {
-        this.setState({height, width})
-      }
-    })
+    Kb.NativeImage.getSize(
+      this.props.source.uri,
+      (width, height) => {
+        if (this._mounted) {
+          this.setState({height, width})
+        }
+      },
+      () => {}
+    )
   }
-
-  _setLoaded = () => this.setState({loaded: true})
 
   render() {
     return (
@@ -58,12 +63,7 @@ class AutoMaxSizeImage extends React.Component<
   }
 }
 
-class _Fullscreen extends React.Component<
-  Props & Kb.OverlayParentProps,
-  {
-    loaded: boolean
-  }
-> {
+class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded: boolean}> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
@@ -102,6 +102,7 @@ class _Fullscreen extends React.Component<
                   height: this.props.previewHeight,
                   width: this.props.previewWidth,
                 }}
+                resizeMode="contain"
               />
             </Kb.Box2>
           ) : (
@@ -112,11 +113,15 @@ class _Fullscreen extends React.Component<
             />
           )}
           {!this.state.loaded && (
-            <Kb.ProgressIndicator style={{margin: 'auto', position: 'absolute', width: 48}} white={true} />
+            <Kb.ProgressIndicator
+              style={{alignSelf: 'center', margin: 'auto', position: 'absolute', top: '50%', width: 48}}
+              white={true}
+            />
           )}
         </Kb.Box>
         <Kb.Icon
           type="iconfont-ellipsis"
+          // @ts-ignore TODO fix styles
           style={styleHeaderFooter}
           color={Styles.globalColors.white}
           onClick={this.props.toggleShowingMenu}

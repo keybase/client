@@ -19,29 +19,6 @@ const props = {
   onBack: action('onBack'),
   onChoose: action('onChoose'),
   onRefresh: action('onRefresh'),
-  otherChoices: [
-    {
-      currencyCode: 'BTC',
-      disabledExplanation: '',
-      issuer: 'Stronghold.co',
-      selected: false,
-      type: 'other choice' as const,
-    },
-    {
-      currencyCode: 'KEYZ',
-      disabledExplanation: '',
-      issuer: 'Unknown',
-      selected: false,
-      type: 'other choice' as const,
-    },
-    {
-      currencyCode: 'HUGZ',
-      disabledExplanation: `max doesn't accept HUGZ.`,
-      issuer: 'Jed',
-      selected: false,
-      type: 'other choice' as const,
-    },
-  ],
   selected: 'XLM',
 }
 

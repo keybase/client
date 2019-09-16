@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -27,11 +28,10 @@ import (
 type testUI struct {
 	libkb.Contextified
 	baseNullUI
-	sessionID          int
-	outputDescHook     func(libkb.OutputDescriptor, string) error
-	promptHook         func(libkb.PromptDescriptor, string) (string, error)
-	promptPasswordHook func(libkb.PromptDescriptor, string) (string, error)
-	promptYesNoHook    func(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error)
+	sessionID       int
+	outputDescHook  func(libkb.OutputDescriptor, string) error
+	promptHook      func(libkb.PromptDescriptor, string) (string, error)
+	promptYesNoHook func(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error)
 }
 
 var sessionCounter = 1
@@ -226,7 +226,8 @@ func (s *testDeviceSet) cleanup() {
 		od.tctx.Cleanup()
 		if od.service != nil {
 			od.service.Stop(0)
-			od.stop()
+			err := od.stop()
+			require.NoError(s.t, err)
 		}
 		for _, cl := range od.clones {
 			cl.Cleanup()

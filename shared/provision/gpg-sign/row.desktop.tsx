@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalColors, transition, desktopStyles} from '../../styles'
+import * as Styles from '../../styles'
+
+import './row.css'
 
 type Props = {
   onClick: () => void
@@ -11,34 +13,25 @@ type Props = {
   children?: any
 }
 
-const realCSS = `
-  .register-row { background-color: ${globalColors.white}; }
-  .register-row:hover { background-color: ${globalColors.blueLighter2}; }
-
-  .register-row .register-background {  }
-  .register-row:hover .register-background { opacity: 0 }
-
-  .register-row:hover .register-icon { transform: translateX(15px)}
-
-`
-
-const RowCSS = () => <style>{realCSS}</style>
-
 const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
   return (
-    <div className="register-row" style={{...stylesRowContainer, ...style}} onClick={onClick}>
-      <div style={stylesIconContainer}>
-        <div className="register-background" style={stylesIconBackground} />
+    <div
+      className="register-row"
+      style={Styles.collapseStyles([Styles.desktopStyles.clickable, styles.rowContainer, style])}
+      onClick={onClick}
+    >
+      <div style={styles.iconContainer}>
+        <div className="register-background" style={styles.iconBackground} />
         <Kb.Icon
           className="register-icon"
           type={icon}
-          style={stylesIcon}
-          color={globalColors.black}
+          style={styles.icon}
+          color={Styles.globalColors.black}
           fontSize={35}
         />
       </div>
       <div>
-        <Kb.Text type="Header" style={stylesHeader}>
+        <Kb.Text type="Header" style={styles.header}>
           {title}
         </Kb.Text>
         <Kb.Text type="BodySmall">{subTitle}</Kb.Text>
@@ -48,48 +41,51 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
   )
 }
 
-const stylesRowContainer = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-  maxHeight: 100,
-  minHeight: 100,
-  padding: 20,
-  transition: 'background 0.1s ease-out',
-} as any
-const stylesHeader = {
-  color: globalColors.blueDark,
-}
-const stylesIconContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginRight: 25,
-  maxHeight: 80,
-  maxWidth: 80,
-  minHeight: 80,
-  minWidth: 80,
-  position: 'relative' as const,
-}
-const stylesIcon = {
-  ...transition('transform'),
-  height: 'inherit',
-  textAlign: 'center',
-  width: 'inherit',
-  zIndex: 1,
-} as const
-const stylesIconBackground = {
-  ...transition('opacity'),
-  backgroundColor: globalColors.greyLight,
-  borderRadius: 40,
-  left: 0,
-  maxHeight: 80,
-  maxWidth: 80,
-  minHeight: 80,
-  minWidth: 80,
-  position: 'absolute' as const,
-  top: 0,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      header: {
+        color: Styles.globalColors.blueDark,
+      },
+      icon: {
+        ...Styles.transition('transform'),
+        height: 'inherit',
+        textAlign: 'center',
+        width: 'inherit',
+        zIndex: 1,
+      },
+      iconBackground: {
+        ...Styles.transition('opacity'),
+        backgroundColor: Styles.globalColors.greyLight,
+        borderRadius: 40,
+        left: 0,
+        maxHeight: 80,
+        maxWidth: 80,
+        minHeight: 80,
+        minWidth: 80,
+        position: 'absolute',
+        top: 0,
+      },
+      iconContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 25,
+        maxHeight: 80,
+        maxWidth: 80,
+        minHeight: 80,
+        minWidth: 80,
+        position: 'relative',
+      },
+      rowContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        maxHeight: 100,
+        minHeight: 100,
+        padding: 20,
+        transition: 'background 0.1s ease-out',
+      },
+    } as const)
+)
 
 export default Row
-export {RowCSS}

@@ -12,6 +12,7 @@ import SwipeConvActions from './swipe-conv-actions'
 export type Props = {
   backgroundColor?: string
   channelname?: string
+  draft?: string
   hasBadge: boolean
   hasBottomLine: boolean
   hasResetUsers: boolean
@@ -158,6 +159,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     isSelected={props.isSelected}
                     isDecryptingSnippet={props.isDecryptingSnippet}
                     isTypingSnippet={props.isTypingSnippet}
+                    draft={props.draft}
                   />
                 </Kb.Box>
               )}
@@ -169,7 +171,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {flexShrink: 0, height: RowSizes.smallRowHeight},
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -195,6 +197,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: Styles.desktopStyles.clickable,
   }),
-})
+}))
 
 export {SmallTeam}

@@ -1,65 +1,47 @@
-import * as I from 'immutable'
 import * as RPCTypes from './types/rpc-gen'
-import {_State} from './types/notifications'
 import * as Tabs from './tabs'
-import {isMobile} from './platform'
-import {TypedState} from './reducer'
+import * as Container from '../util/container'
 
-export const badgeStateToBadgeCounts = (
-  bs: RPCTypes.BadgeState,
-  state: TypedState
-): {
-  counts: I.Map<Tabs.Tab, number>
-} | null => {
-  const {
-    homeTodoItems,
-    conversations,
-    newDevices,
-    revokedDevices,
-    newGitRepoGlobalUniqueIDs,
-    deletedTeams,
-    newTeamNames,
-    newTeamAccessRequests,
-    teamsWithResetUsers,
-    inboxVers,
-    unreadWalletAccounts,
-    unverifiedEmails,
-    unverifiedPhones,
-  } = bs
+export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.BadgeState) => {
+  const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
+  const conversations = bs.conversations || []
+  const deletedTeams = bs.deletedTeams || []
+  const newDevices = bs.newDevices || []
+  const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs || []
+  const newTeamAccessRequests = bs.newTeamAccessRequests || []
+  const newTeamNames = bs.newTeamNames || []
+  const revokedDevices = bs.revokedDevices || []
+  const teamsWithResetUsers = bs.teamsWithResetUsers || []
+  const unreadWalletAccounts = bs.unreadWalletAccounts || []
 
   if (state.notifications.badgeVersion >= inboxVers) {
-    return null
+    return undefined
   }
 
-  const deviceType = isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop
-  const allDeviceChanges = I.Set((newDevices || []).concat(revokedDevices || []))
+  const deviceType = String(Container.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
+  const counts = new Map<Tabs.Tab, number>()
+
+  counts.set(Tabs.peopleTab, bs.homeTodoItems)
+
+  const allDeviceChanges = new Set(newDevices)
+  newDevices.forEach(d => allDeviceChanges.add(d))
+  revokedDevices.forEach(d => allDeviceChanges.add(d))
+
   // don't see badges related to this device
-  const deviceChanges = allDeviceChanges.remove(state.config.deviceID).size
-  const totalMessages = (conversations || []).reduce(
-    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
-    0
+  counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(state.config.deviceID) ? 1 : 0))
+  counts.set(
+    Tabs.chatTab,
+    conversations.reduce<number>((total, c) => (c.badgeCounts ? total + c.badgeCounts[deviceType] : total), 0)
   )
-  const totalPayments = (unreadWalletAccounts || []).reduce((total, a) => total + a.numUnread, 0)
+  counts.set(Tabs.walletsTab, unreadWalletAccounts.reduce<number>((total, a) => total + a.numUnread, 0))
+  counts.set(Tabs.gitTab, newGitRepoGlobalUniqueIDs.length)
+  counts.set(
+    Tabs.teamsTab,
+    newTeamNames.length + newTeamAccessRequests.length + teamsWithResetUsers.length + deletedTeams.length
+  )
+  counts.set(Tabs.settingsTab, unverifiedEmails + unverifiedPhones)
 
-  const newGit = (newGitRepoGlobalUniqueIDs || []).length
-  const newTeams =
-    (newTeamNames || []).length +
-    (newTeamAccessRequests || []).length +
-    (teamsWithResetUsers || []).length +
-    (deletedTeams || []).length
-
-  const unverifiedAccSettings = unverifiedEmails + unverifiedPhones
-  return {
-    counts: I.Map([
-      [Tabs.chatTab, totalMessages],
-      [Tabs.gitTab, newGit],
-      [Tabs.teamsTab, newTeams],
-      [Tabs.peopleTab, homeTodoItems],
-      [Tabs.walletsTab, totalPayments],
-      [Tabs.devicesTab, deviceChanges],
-      [Tabs.settingsTab, unverifiedAccSettings],
-    ]),
-  }
+  return counts
 }
 
 let lastFsBadges = {newTlfs: 0, rekeysNeeded: 0}
@@ -69,12 +51,3 @@ export const shouldTriggerTlfLoad = (bs: RPCTypes.BadgeState) => {
   lastFsBadges = {newTlfs, rekeysNeeded}
   return !same
 }
-
-export const makeState = I.Record<_State>({
-  badgeVersion: -1,
-  desktopAppBadgeCount: 0,
-  keyState: I.Map(),
-  mobileAppBadgeCount: 0,
-  navBadges: I.Map(),
-  widgetBadge: 'regular',
-})

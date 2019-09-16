@@ -30,10 +30,10 @@ const Available = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   text: {
     color: Styles.globalColors.redDark,
   },
-})
+}))
 
 export default Available

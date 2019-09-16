@@ -287,17 +287,26 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 
 				if recipient.AccountID != nil {
 					tracer.Stage("offer advanced send")
-					offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, arg.From, stellar1.AccountID(*recipient.AccountID))
-					if err == nil {
-						if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
-							res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-								Level: "info",
-								OfferAdvancedSendForm: offerAdvancedForm,
-							})
+					if fromInfo.available {
+						offerAdvancedForm, err := bpc.ShouldOfferAdvancedSend(mctx, fromInfo.from, stellar1.AccountID(*recipient.AccountID))
+						if err == nil {
+							if offerAdvancedForm != stellar1.AdvancedBanner_NO_BANNER {
+								res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+									Level:                 "info",
+									OfferAdvancedSendForm: offerAdvancedForm,
+								})
+							}
+						} else {
+							log("error determining whether to offer the advanced send page: %v", err)
 						}
 					} else {
-						log("error determining whether to offer the advanced send page: %v", err)
+						log("failed to determine from address while determining whether to offer the advanced send page")
 					}
+				}
+
+				if recipient.HasMemo() {
+					res.PublicMemoOverride = *recipient.PublicMemo
+					log("recipient has federation public memo override: %q", res.PublicMemoOverride)
 				}
 			}
 		}
@@ -698,7 +707,7 @@ func identifyForReview(mctx libkb.MetaContext, assertion string,
 	sendSuccess()
 }
 
-// Whether the logged-in user following the recipient.
+// Whether the logged-in user following the recipient. If the recipient is the logged-in user, returns true.
 // Unresolved assertions will false negative.
 func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing bool, err error) {
 	// The 'following' check blocks sending, and is not that important, so impose a timeout.
@@ -710,7 +719,14 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 		if idTable == nil {
 			return nil
 		}
+
 		targetUsername := libkb.NewNormalizedUsername(assertion)
+		selfUsername := libkb.NewNormalizedUsername(u.GetName())
+		if targetUsername.Eq(selfUsername) {
+			isFollowing = true
+			return nil
+		}
+
 		for _, track := range idTable.GetTrackList() {
 			if trackedUsername, err := track.GetTrackedUsername(); err == nil {
 				if trackedUsername.Eq(targetUsername) {
@@ -725,7 +741,7 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 }
 
 func isKeybaseAssertion(mctx libkb.MetaContext, assertion string) bool {
-	expr, err := externals.AssertionParse(mctx, string(assertion))
+	expr, err := externals.AssertionParse(mctx, assertion)
 	if err != nil {
 		mctx.Debug("error parsing assertion: %s", err)
 		return false

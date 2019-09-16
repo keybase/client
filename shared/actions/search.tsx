@@ -6,22 +6,32 @@ import * as EntitiesGen from './entities-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import * as Selectors from '../constants/selectors'
 import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 import {TypedState} from '../util/container'
+import {ServiceIdWithContact} from '../constants/types/team-building'
 
-function _serviceToApiServiceName(service: Types.Service): string {
+const cachedSearchResults = (
+  {
+    entities: {
+      search: {searchQueryToResult},
+    },
+  }: TypedState,
+  searchQuery: Types.SearchQuery
+) => searchQueryToResult.get(searchQuery)
+const searchResultMapSelector = (state: TypedState) => state.entities.search.searchResults
+
+function _serviceToApiServiceName(service: Types.Service): ServiceIdWithContact | null {
   return (
     {
-      Facebook: 'facebook',
-      GitHub: 'github',
-      'Hacker News': 'hackernews',
-      Keybase: '',
-      Reddit: 'reddit',
-      Twitter: 'twitter',
-    }[service] || ''
+      Facebook: 'facebook' as const,
+      GitHub: 'github' as const,
+      'Hacker News': 'hackernews' as const,
+      Keybase: 'keybase' as const,
+      Reddit: 'reddit' as const,
+      Twitter: 'twitter' as const,
+    }[service] || null
   )
 }
 
@@ -128,7 +138,7 @@ function _parseSuggestion(username: string, fullname: string) {
 
 function callSearch(
   searchTerm: string,
-  service: string = '',
+  service: ServiceIdWithContact,
   limit: number = 20
 ): Promise<Array<RPCTypes.APIUserSearchResult> | null> {
   return RPCTypes.userSearchUserSearchRpcPromise({
@@ -136,13 +146,19 @@ function callSearch(
     includeServicesSummary: false,
     maxResults: limit,
     query: trim(searchTerm),
-    service: service === 'Keybase' ? 'keybase' : service,
+    service,
   })
 }
 
 function* search(state, {payload: {term, service, searchKey}}) {
+  const serviceId = _serviceToApiServiceName(service)
+  if (!serviceId) {
+    logger.warn('Invalid service in search')
+    return
+  }
+
   const searchQuery = _toSearchQuery(service, term)
-  const cachedResults = Selectors.cachedSearchResults(state, searchQuery)
+  const cachedResults = cachedSearchResults(state, searchQuery)
   if (cachedResults) {
     yield Saga.put(
       SearchGen.createFinishedSearch({
@@ -170,10 +186,7 @@ function* search(state, {payload: {term, service, searchKey}}) {
 
   try {
     yield Saga.callUntyped(onIdlePromise, 1e3)
-    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(
-      term,
-      _serviceToApiServiceName(service)
-    )
+    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(term, serviceId)
     const rows = (searchResults || []).map((result: RPCTypes.APIUserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )
@@ -281,7 +294,7 @@ const updateSelectedSearchResult = (_, {payload: {searchKey, id}}) =>
 
 function* addResultsToUserInput(state, {payload: {searchKey, searchResults}}) {
   const oldIds = Constants.getUserInputItemIds(state, searchKey)
-  const searchResultMap = Selectors.searchResultMapSelector(state)
+  const searchResultMap = searchResultMapSelector(state)
   const maybeUpgradedUsers = searchResults.map(u =>
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
@@ -368,13 +381,10 @@ const clearSearchTextInput = (state, {payload: {searchKey}}: SearchGen.UserInput
   })
 }
 
-function* searchSaga(): Saga.SagaGenerator<any, any> {
+function* searchSaga() {
   yield* Saga.chainGenerator<SearchGen.SearchPayload>(SearchGen.search, search)
-  yield* Saga.chainAction<SearchGen.SearchSuggestionsPayload>(SearchGen.searchSuggestions, searchSuggestions)
-  yield* Saga.chainAction<SearchGen.UpdateSelectedSearchResultPayload>(
-    SearchGen.updateSelectedSearchResult,
-    updateSelectedSearchResult
-  )
+  yield* Saga.chainAction2(SearchGen.searchSuggestions, searchSuggestions)
+  yield* Saga.chainAction2(SearchGen.updateSelectedSearchResult, updateSelectedSearchResult)
   yield* Saga.chainGenerator<SearchGen.AddResultsToUserInputPayload>(
     SearchGen.addResultsToUserInput,
     addResultsToUserInput
@@ -387,19 +397,10 @@ function* searchSaga(): Saga.SagaGenerator<any, any> {
     SearchGen.setUserInputItems,
     setUserInputItems
   )
-  yield* Saga.chainAction<SearchGen.ClearSearchResultsPayload>(
-    SearchGen.clearSearchResults,
-    clearSearchResults
-  )
-  yield* Saga.chainAction<SearchGen.FinishedSearchPayload>(SearchGen.finishedSearch, finishedSearch)
-  yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
-    SearchGen.userInputItemsUpdated,
-    clearSearchTextInput
-  )
-  yield* Saga.chainAction<SearchGen.UserInputItemsUpdatedPayload>(
-    SearchGen.userInputItemsUpdated,
-    maybeNewSearch
-  )
+  yield* Saga.chainAction2(SearchGen.clearSearchResults, clearSearchResults)
+  yield* Saga.chainAction2(SearchGen.finishedSearch, finishedSearch)
+  yield* Saga.chainAction2(SearchGen.userInputItemsUpdated, clearSearchTextInput)
+  yield* Saga.chainAction2(SearchGen.userInputItemsUpdated, maybeNewSearch)
 }
 
 export default searchSaga

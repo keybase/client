@@ -40,7 +40,7 @@ export const ExplodingExplainerElement = (props: Props) => (
   </Kb.MaybePopup>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
@@ -92,6 +92,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
     paddingBottom: Styles.globalMargins.xsmall,
   },
-})
+}))
 
 export default Kb.HeaderOnMobile(ExplodingExplainerElement)

@@ -6,6 +6,9 @@ import * as WaitingConstants from './waiting'
 import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
 import {e164ToDisplay} from '../util/phone-numbers'
+import {RPCError} from 'util/errors'
+import {ContactResponse} from 'expo-contacts'
+import {phoneUtil, ValidationResult, PhoneNumberFormat} from '../util/phone-numbers'
 
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
@@ -31,7 +34,7 @@ export const makeEmail = I.Record<Types._EmailState>({
   addedEmail: null,
   addingEmail: null,
   emails: null,
-  error: null,
+  error: '',
   newEmail: '',
 })
 
@@ -39,6 +42,7 @@ export const makeEmailRow = I.Record<Types._EmailRow>({
   email: '',
   isPrimary: false,
   isVerified: false,
+  lastVerifyEmailDate: 0,
   visibility: 0,
 })
 
@@ -81,6 +85,7 @@ export const makePassword = I.Record<Types._PasswordState>({
 })
 
 export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
+  addedPhone: false,
   error: '',
   pendingVerification: '',
   phones: null,
@@ -89,6 +94,7 @@ export const makePhoneNumbers = I.Record<Types._PhoneNumbersState>({
 
 export const makeContacts = I.Record<Types._ContactsState>({
   importEnabled: null,
+  importError: '',
   importPromptDismissed: false,
   importedCount: null,
   permissionStatus: 'unknown',
@@ -100,7 +106,7 @@ export const makeState = I.Record<Types._State>({
   chat: makeChat(),
   checkPasswordIsCorrect: null,
   contacts: makeContacts(),
-  didToggleCertificatePinning: false,
+  didToggleCertificatePinning: null,
   email: makeEmail(),
   feedback: makeFeedback(),
   invites: makeInvites(),
@@ -109,13 +115,11 @@ export const makeState = I.Record<Types._State>({
   password: makePassword(),
   phoneNumbers: makePhoneNumbers(),
   proxyData: null,
-  useNativeFrame: true,
-  waitingForResponse: false,
 })
 
-export const getPushTokenForLogSend = (state: any) => ({pushToken: state.push.token})
+export const getPushTokenForLogSend = (state: TypedState) => ({pushToken: state.push.token})
 
-export const getExtraChatLogsForLogSend = (state: any) => {
+export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
@@ -123,6 +127,7 @@ export const getExtraChatLogsForLogSend = (state: any) => {
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
+      // @ts-ignore
       messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
         a: m.author,
         i: m.id,
@@ -167,32 +172,80 @@ export const getExtraChatLogsForLogSend = (state: any) => {
   return {}
 }
 
+export const makePhoneError = (e: RPCError) => {
+  switch (e.code) {
+    case RPCTypes.StatusCode.scphonenumberwrongverificationcode:
+      return 'Incorrect code, please try again.'
+    case RPCTypes.StatusCode.scphonenumberunknown:
+      return e.desc
+    case RPCTypes.StatusCode.scphonenumberalreadyverified:
+      return 'This phone number is already verified.'
+    case RPCTypes.StatusCode.scphonenumberverificationcodeexpired:
+      return 'Verification code expired, resend and try again.'
+    case RPCTypes.StatusCode.scratelimit:
+      return 'Sorry, tried too many guesses in a short period of time. Please try again later.'
+    default:
+      return e.message
+  }
+}
+
+// Get phone number in e.164, or null if we can't parse it.
+const getE164 = (phoneNumber: string, countryCode?: string) => {
+  try {
+    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
+    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
+    if (reason !== ValidationResult.IS_POSSIBLE) {
+      return null
+    }
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
+  } catch (e) {
+    return null
+  }
+}
+
+export const nativeContactsToContacts = (contacts: ContactResponse, countryCode: string) => {
+  return contacts.data.reduce<Array<RPCTypes.Contact>>((ret, contact) => {
+    const {name, phoneNumbers = [], emails = []} = contact
+
+    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+      const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
+      if (formatted) {
+        res.push({
+          label: pn.label,
+          phoneNumber: formatted,
+        })
+      }
+      return res
+    }, [])
+    components.push(...emails.map(e => ({email: e.email, label: e.label})))
+    if (components.length) {
+      ret.push({components, name})
+    }
+
+    return ret
+  }, [])
+}
+
+export const makeAddEmailError = (err: RPCError): string => {
+  switch (err.code) {
+    case RPCTypes.StatusCode.scratelimit:
+      return "Sorry, you've added too many email addresses lately. Please try again later."
+    case RPCTypes.StatusCode.scemailtaken:
+      return 'This email is already claimed by another user.'
+    case RPCTypes.StatusCode.scemaillimitexceeded:
+      return 'You have too many emails, delete one and try again.'
+    case RPCTypes.StatusCode.scinputerror:
+      return 'Invalid email.'
+  }
+  return err.message
+}
+export const securityGroup = 'security'
 export const traceInProgressKey = 'settings:traceInProgress'
 export const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
 export const processorProfileInProgressKey = 'settings:processorProfileInProgress'
 export const processorProfileInProgress = (state: TypedState) =>
   WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 export const importContactsConfigKey = (username: string) => `ui.importContacts.${username}`
-
-export const aboutTab = 'settingsTabs.aboutTab'
-export const advancedTab = 'settingsTabs.advancedTab'
-export const chatTab = 'settingsTabs.chatTab'
-export const deleteMeTab = 'settingsTabs.deleteMeTab'
-export const devicesTab = 'settingsTabs.devicesTab'
-export const feedbackTab = 'settingsTabs.feedbackTab'
-export const foldersTab = 'settingsTabs.foldersTab'
-export const fsTab = 'settingsTabs.fsTab'
-export const gitTab = 'settingsTabs.gitTab'
-export const invitationsTab = 'settingsTabs.invitationsTab'
-export const accountTab = 'settingsTabs.accountTab'
-export const logOutTab = 'settingsTabs.logOutTab'
-export const notificationsTab = 'settingsTabs.notificationsTab'
-export const passwordTab = 'settingsTabs.password'
-export const screenprotectorTab = 'settingsTabs.screenprotector'
-export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
-export const securityGroup = 'security'
-export const walletsTab = 'settingsTabs.walletsTab'
-export const contactsTab = 'settingsTabs.contactsTab'
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
@@ -207,3 +260,43 @@ export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
 export const addEmailWaitingKey = 'settings:addPhoneNumber'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
+export const settingsWaitingKey = 'settings:generic'
+
+export const aboutTab = 'settingsTabs.aboutTab'
+export const advancedTab = 'settingsTabs.advancedTab'
+export const chatTab = 'settingsTabs.chatTab'
+export const deleteMeTab = 'settingsTabs.deleteMeTab'
+export const devicesTab = 'settingsTabs.devicesTab'
+export const feedbackTab = 'settingsTabs.feedbackTab'
+export const foldersTab = 'settingsTabs.foldersTab'
+export const fsTab = 'settingsTabs.fsTab'
+export const gitTab = 'settingsTabs.gitTab'
+export const invitationsTab = 'settingsTabs.invitationsTab'
+export const accountTab = 'settingsTabs.accountTab'
+export const notificationsTab = 'settingsTabs.notificationsTab'
+export const passwordTab = 'settingsTabs.password'
+export const screenprotectorTab = 'settingsTabs.screenprotector'
+export const logOutTab = 'settingsTabs.logOutTab'
+export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
+export const walletsTab = 'settingsTabs.walletsTab'
+export const contactsTab = 'settingsTabs.contactsTab'
+
+export type SettingsTab =
+  | typeof accountTab
+  | typeof updatePaymentTab
+  | typeof invitationsTab
+  | typeof notificationsTab
+  | typeof advancedTab
+  | typeof deleteMeTab
+  | typeof feedbackTab
+  | typeof aboutTab
+  | typeof devicesTab
+  | typeof gitTab
+  | typeof foldersTab
+  | typeof fsTab
+  | typeof logOutTab
+  | typeof screenprotectorTab
+  | typeof passwordTab
+  | typeof walletsTab
+  | typeof chatTab
+  | typeof contactsTab

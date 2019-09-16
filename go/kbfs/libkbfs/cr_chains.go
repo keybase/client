@@ -348,9 +348,32 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	if !found {
 		// If the node can't be found, then the entry has been removed
 		// already, and there won't be any conflicts to resolve
-		// anyway.  Mark it as deleted and return gracefully.
+		// anyway.  Mark it as deleted.
 		chains.deletedOriginals[cc.original] = true
+
+		// However, we still might be able to determine the type of
+		// the entry via the `rmOp` that actually deleted it.  This
+		// could be important if the entry ends up being recreated due
+		// to a conflict with another branch (e.g. HOTPOT-719).  So we
+		// still want to make an attempt to recover that entry type
+		// from the parent chain.
+		parentChain, ok := chains.byOriginal[parentOriginal]
+		if ok {
+			for _, op := range parentChain.ops {
+				rop, ok := op.(*rmOp)
+				if !ok {
+					continue
+				}
+				unrefs := rop.Unrefs()
+				if len(unrefs) > 0 && unrefs[0] == cc.mostRecent {
+					cc.file = rop.RemovedType == data.File ||
+						rop.RemovedType == data.Exec
+					break
+				}
+			}
+		}
 	}
+
 	return nil
 }
 
@@ -1421,8 +1444,8 @@ func (ccs *crChains) remove(ctx context.Context, log logger.Logger,
 }
 
 func (ccs *crChains) revertRenames(oldOps []op) {
-	for _, op := range oldOps {
-		if rop, ok := op.(*renameOp); ok {
+	for _, oldOp := range oldOps {
+		if rop, ok := oldOp.(*renameOp); ok {
 			// Replace the corresponding createOp, and remove the
 			// rmOp.
 			oldChain, ok := ccs.byMostRecent[rop.OldDir.Ref]
@@ -1454,14 +1477,26 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 				newChain = ccs.byMostRecent[rop.NewDir.Ref]
 			}
 
+			added := false
 			for i, newOp := range newChain.ops {
 				if cop, ok := newOp.(*createOp); ok &&
 					cop.renamed && cop.NewName == rop.NewName {
 					ropCopy := rop.deepCopy()
 					ropCopy.setFinalPath(cop.getFinalPath())
 					newChain.ops[i] = ropCopy
+					added = true
 					break
 				}
+			}
+			if !added {
+				// If we didn't find the create op to replace, then
+				// this node may have been renamed and then removed,
+				// with the create op being eliminated in the process.
+				// We need to keep the rename op there though, so that
+				// any remove operations within the renamed directory
+				// are processed correctly (see HOTPOT-616).
+				ropCopy := rop.deepCopy()
+				newChain.ops = append([]op{ropCopy}, newChain.ops...)
 			}
 		}
 	}

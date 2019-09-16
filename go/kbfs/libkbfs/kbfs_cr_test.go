@@ -2025,3 +2025,101 @@ func TestForceStuckConflict(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, children, 1)
 }
+
+// Tests that if clearing a CR conflict can fast-forward if needed.
+func TestBasicCRFailureClearAndFastForward(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(ctx, t, config1, cancel)
+
+	config2 := ConfigAsUser(config1, userName2)
+	defer CheckConfigAndShutdown(ctx, t, config2)
+
+	// Enable journaling on user 2
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_for_fail_fix")
+	defer os.RemoveAll(tempdir)
+	require.NoError(t, err)
+	err = config2.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config2.EnableJournaling(ctx, tempdir,
+		TLFJournalBackgroundWorkEnabled)
+	require.NoError(t, err)
+	jManager, err := GetJournalManager(config2)
+	require.NoError(t, err)
+	err = jManager.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	name := userName1.String() + "," + userName2.String()
+
+	t.Log("User 1 creates a file a/b.")
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
+
+	kbfsOps1 := config1.KBFSOps()
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, testPPS("a"))
+	require.NoError(t, err)
+	fileB1, _, err := kbfsOps1.CreateFile(
+		ctx, dirA1, testPPS("b"), false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("User 2 looks up the file node.")
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, tlf.Private)
+	kbfsOps2 := config2.KBFSOps()
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, testPPS("a"))
+	require.NoError(t, err)
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, testPPS("b"))
+	require.NoError(t, err)
+
+	t.Log("Force a conflict")
+	tlfID := rootNode2.GetFolderBranch().Tlf
+	err = kbfsOps2.ForceStuckConflictForTesting(ctx, tlfID)
+	require.NoError(t, err)
+
+	t.Log("User 1 updates mod time on a/b.")
+
+	mtime := time.Now()
+	for i := 0; i < fastForwardRevThresh+2; i++ {
+		mtime = mtime.Add(1 * time.Minute)
+		err = kbfsOps1.SetMtime(ctx, fileB1, &mtime)
+		require.NoError(t, err)
+		err = kbfsOps1.SyncAll(ctx, fileB1.GetFolderBranch())
+		require.NoError(t, err)
+	}
+
+	t.Log("Ensure only conflict files are in the conflict view")
+	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
+	require.NoError(t, err)
+	require.Len(t, children, 1+(maxConflictResolutionAttempts+1))
+
+	// Expect updates for each of the unmerged revisions, plus exactly
+	// one for the fast forward (but not more).  However, if the
+	// conflict file nodes haven't been garbage collected yet, we
+	// might get 3x that (one batch for each sync op, one for each
+	// remove op, and one for each resolution op), so allow some
+	// wiggle room.  This still isn't big enough to hold all of the
+	// changes we'd get in a non-fast-forward though.
+	numUpdatesExpected := 3*(maxConflictResolutionAttempts+1) + 1
+	c := make(chan struct{}, numUpdatesExpected)
+	cro := &testCRObserver{c, nil}
+	err = config2.Notifier().RegisterForChanges(
+		[]data.FolderBranch{rootNode2.GetFolderBranch()}, cro)
+	require.NoError(t, err)
+
+	t.Log("Clear the conflict state and re-enable CR.")
+	err = kbfsOps2.ClearConflictView(ctx, tlfID)
+	require.NoError(t, err)
+
+	t.Log("Ensure conflict files are gone")
+	children, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+
+	ei, err := kbfsOps2.Stat(ctx, fileB2)
+	require.NoError(t, err)
+	require.Equal(t, mtime.UnixNano(), ei.Mtime)
+
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch(), nil)
+	require.NoError(t, err)
+}

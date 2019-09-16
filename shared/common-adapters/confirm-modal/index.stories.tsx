@@ -5,13 +5,13 @@ import ConfirmModal from '.'
 import * as Styles from '../../styles'
 import {repeat} from 'lodash-es'
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatarBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     margin: Styles.globalMargins.small,
   },
-})
+}))
 
 const props = {
   description: 'Description - Explain here what are the consequences of tapping the Confirm button.',
@@ -35,13 +35,13 @@ const contentProps = {
           alignSelf: 'center',
           marginRight: Styles.globalMargins.tiny,
         }}
-        username={'steve'}
+        username="steve"
         size={64}
       />
       <Avatar
         style={{alignSelf: 'center', marginLeft: Styles.globalMargins.tiny}}
         isTeam={true}
-        teamname={'keybase'}
+        teamname="keybase"
         size={64}
       />
     </Box>
@@ -55,7 +55,7 @@ const headerProps = {
       <Avatar
         style={{alignSelf: 'center', marginLeft: Styles.globalMargins.tiny}}
         isTeam={true}
-        teamname={'keybase'}
+        teamname="keybase"
         size={64}
       />
     </Box>

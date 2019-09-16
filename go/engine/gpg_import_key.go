@@ -12,6 +12,7 @@ package engine
 
 import (
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -66,9 +67,9 @@ func (e *GPGImportKeyEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *GPGImportKeyEngine) WantsGPG(m libkb.MetaContext) (bool, error) {
+func (e *GPGImportKeyEngine) WantsGPG(mctx libkb.MetaContext) (bool, error) {
 	gpg := e.G().GetGpgClient()
-	canExec, err := gpg.CanExec()
+	canExec, err := gpg.CanExec(mctx)
 	if err != nil {
 		return false, err
 	}
@@ -79,7 +80,7 @@ func (e *GPGImportKeyEngine) WantsGPG(m libkb.MetaContext) (bool, error) {
 	// they have gpg
 
 	// get an index of all the secret keys
-	index, _, err := gpg.Index(true, "")
+	index, _, err := gpg.Index(mctx, true, "")
 	if err != nil {
 		return false, err
 	}
@@ -88,14 +89,14 @@ func (e *GPGImportKeyEngine) WantsGPG(m libkb.MetaContext) (bool, error) {
 		return false, nil
 	}
 
-	res, err := m.UIs().GPGUI.WantToAddGPGKey(m.Ctx(), 0)
+	res, err := mctx.UIs().GPGUI.WantToAddGPGKey(mctx.Ctx(), 0)
 	if err != nil {
 		return false, err
 	}
 	return res, nil
 }
 
-func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
+func (e *GPGImportKeyEngine) Run(mctx libkb.MetaContext) (err error) {
 	gpg := e.G().GetGpgClient()
 
 	me := e.arg.Me
@@ -111,10 +112,10 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	if err = gpg.Configure(); err != nil {
+	if err = gpg.Configure(mctx); err != nil {
 		return err
 	}
-	index, warns, err := gpg.Index(true, e.arg.Query)
+	index, warns, err := gpg.Index(mctx, true, e.arg.Query)
 	if err != nil {
 		return err
 	}
@@ -135,11 +136,11 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		return fmt.Errorf("No PGP keys available to choose from.")
 	}
 
-	res, err := m.UIs().GPGUI.SelectKeyAndPushOption(m.Ctx(), keybase1.SelectKeyAndPushOptionArg{Keys: gks})
+	res, err := mctx.UIs().GPGUI.SelectKeyAndPushOption(mctx.Ctx(), keybase1.SelectKeyAndPushOptionArg{Keys: gks})
 	if err != nil {
 		return err
 	}
-	m.Debug("SelectKey result: %+v", res)
+	mctx.Debug("SelectKey result: %+v", res)
 
 	var selected *libkb.GpgPrimaryKey
 	for _, key := range index.Keys {
@@ -163,7 +164,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 	}
 	if duplicate && !e.arg.OnlyImport {
 		// This key's already been posted to the server.
-		res, err := m.UIs().GPGUI.ConfirmDuplicateKeyChosen(m.Ctx(), 0)
+		res, err := mctx.UIs().GPGUI.ConfirmDuplicateKeyChosen(mctx.Ctx(), 0)
 		if err != nil {
 			return err
 		}
@@ -171,9 +172,9 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 			return libkb.SibkeyAlreadyExistsError{}
 		}
 		// We're sending a key update, then.
-		fp := fmt.Sprintf("%s", *(selected.GetFingerprint()))
+		fp := selected.GetFingerprint().String()
 		eng := NewPGPUpdateEngine(e.G(), []string{fp}, false)
-		err = RunEngine2(m, eng)
+		err = RunEngine2(mctx, eng)
 		e.duplicatedFingerprints = eng.duplicatedFingerprints
 
 		if err != nil {
@@ -183,14 +184,14 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		if !e.arg.SkipImport {
 			// Key is duplicate, but caller wants to import secret
 			// half.
-			res, err := m.UIs().GPGUI.ConfirmImportSecretToExistingKey(m.Ctx(), 0)
+			res, err := mctx.UIs().GPGUI.ConfirmImportSecretToExistingKey(mctx.Ctx(), 0)
 			if err != nil {
 				return err
 			}
 			if !res {
 				// But update itself has finished, so this
 				// cancellation is not an error.
-				m.Info("User cancelled secret key import.")
+				mctx.Info("User cancelled secret key import.")
 				return nil
 			}
 			// Fall through with OnlyImport=true so it skips sig posting
@@ -202,9 +203,9 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	tty, err := m.UIs().GPGUI.GetTTY(m.Ctx())
+	tty, err := mctx.UIs().GPGUI.GetTTY(mctx.Ctx())
 	if err != nil {
-		m.Warning("error getting TTY for GPG: %s", err)
+		mctx.Warning("error getting TTY for GPG: %s", err)
 		err = nil
 	}
 
@@ -214,17 +215,17 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		// If we don't need secret key to save in Keybase keyring,
 		// just import public key and rely on GPG fallback for reverse
 		// signature.
-		bundle, err = gpg.ImportKey(false, *(selected.GetFingerprint()), tty)
+		bundle, err = gpg.ImportKey(mctx, false, *(selected.GetFingerprint()), tty)
 		if err != nil {
 			return fmt.Errorf("ImportKey (secret: false) error: %s", err)
 		}
 	} else {
-		bundle, err = gpg.ImportKey(true, *(selected.GetFingerprint()), tty)
+		bundle, err = gpg.ImportKey(mctx, true, *(selected.GetFingerprint()), tty)
 		if err != nil {
 			return fmt.Errorf("ImportKey (secret: true) error: %s", err)
 		}
 
-		if err := bundle.Unlock(m, "Import of key into Keybase keyring", m.UIs().SecretUI); err != nil {
+		if err := bundle.Unlock(mctx, "Import of key into Keybase keyring", mctx.UIs().SecretUI); err != nil {
 			return err
 		}
 
@@ -242,9 +243,9 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	m.Debug("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
+	mctx.Debug("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
-	eng := NewPGPKeyImportEngine(m.G(), PGPKeyImportEngineArg{
+	eng := NewPGPKeyImportEngine(mctx.G(), PGPKeyImportEngineArg{
 		Pregen:      bundle,
 		SigningKey:  e.arg.Signer,
 		Me:          me,
@@ -255,7 +256,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		GPGFallback: true,
 	})
 
-	if err = RunEngine2(m, eng); err != nil {
+	if err = RunEngine2(mctx, eng); err != nil {
 
 		// It's important to propagate a CanceledError unmolested,
 		// since the UI needs to know that. See:
@@ -266,7 +267,7 @@ func (e *GPGImportKeyEngine) Run(m libkb.MetaContext) (err error) {
 		return
 	}
 
-	m.Debug("Key %s imported", selected.GetFingerprint().ToKeyID())
+	mctx.Debug("Key %s imported", selected.GetFingerprint().ToKeyID())
 
 	e.last = bundle
 

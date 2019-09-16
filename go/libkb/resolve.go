@@ -348,6 +348,8 @@ func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL,
 		m.Debug("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
+	default:
+		// Nothing to do for other codes.
 	}
 
 	var them *jsonw.Wrapper
@@ -436,15 +438,6 @@ type serverTrustUserLookup struct {
 
 func (r *ResolverImpl) resolveServerTrustAssertion(m MetaContext, au AssertionURL, input string) (res ResolveResult) {
 	defer m.Trace(fmt.Sprintf("Resolver#resolveServerTrustAssertion(%q, %q)", au.String(), input), func() error { return res.err })()
-
-	enabled := m.G().FeatureFlags.Enabled(m, FeatureIMPTOFU)
-	if enabled {
-		m.Debug("Resolver: phone number and email proofs enabled")
-	} else {
-		m.Debug("Resolver: phone number and email proofs disabled")
-		res.err = ResolutionError{Input: input, Msg: "Proof type disabled.", Kind: ResolutionErrorInvalidInput}
-		return res
-	}
 
 	key, val, err := au.ToLookup()
 	if err != nil {
@@ -702,7 +695,7 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 	}
 	res.cachedAt = m.G().Clock().Now()
 	res.body = nil // Don't cache body
-	r.cache.Set(key, &res)
+	_ = r.cache.Set(key, &res)
 }
 
 func (r *ResolverImpl) CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName) {
@@ -730,7 +723,10 @@ func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) (err error
 	}
 
 	key := u.CacheKey()
-	r.cache.Delete(key)
+	err = r.cache.Delete(key)
+	if err != nil {
+		return err
+	}
 	// Since we only put to disk cache if it's a Keybase-type assertion, we
 	// only remove it in this case as well.
 	if u.IsKeybase() {

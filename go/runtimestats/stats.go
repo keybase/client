@@ -22,15 +22,14 @@ type Runner struct {
 	started bool
 	stopCh  chan struct{}
 	eg      errgroup.Group
-	sfsCli  keybase1.SimpleFSInterface
 }
 
 func NewRunner(g *globals.Context) *Runner {
 	r := &Runner{
 		Contextified: globals.NewContextified(g),
 	}
-	r.G().PushShutdownHook(func() error {
-		<-r.Stop(context.Background())
+	r.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
+		<-r.Stop(mctx.Ctx())
 		return nil
 	})
 	return r
@@ -66,7 +65,10 @@ func (r *Runner) Stop(ctx context.Context) chan struct{} {
 		close(r.stopCh)
 		r.started = false
 		go func() {
-			r.eg.Wait()
+			err := r.eg.Wait()
+			if err != nil {
+				r.debug(ctx, "Couldn't wait while stopping stats: %+v", err)
+			}
 			close(ch)
 		}()
 	} else {
@@ -141,9 +143,7 @@ func (r *Runner) updateStats(ctx context.Context) {
 		} else {
 			stats.ProcessStats = append(
 				stats.ProcessStats, sfsStats.ProcessStats)
-			for _, s := range sfsStats.RuntimeDbStats {
-				stats.DbStats = append(stats.DbStats, s)
-			}
+			stats.DbStats = append(stats.DbStats, sfsStats.RuntimeDbStats...)
 		}
 	}
 
@@ -170,22 +170,24 @@ func (r statsResult) Export() keybase1.ProcessRuntimeStats {
 }
 
 func (r statsResult) cpuSeverity() keybase1.StatsSeverityLevel {
-	if r.TotalCPU >= 10000 {
+	switch {
+	case r.TotalCPU >= 10000:
 		return keybase1.StatsSeverityLevel_SEVERE
-	} else if r.TotalCPU >= 6000 {
+	case r.TotalCPU >= 6000:
 		return keybase1.StatsSeverityLevel_WARNING
-	} else {
+	default:
 		return keybase1.StatsSeverityLevel_NORMAL
 	}
 }
 
 func (r statsResult) residentSeverity() keybase1.StatsSeverityLevel {
 	val := r.TotalResident / 1e6
-	if val >= 900 {
+	switch {
+	case val >= 900:
 		return keybase1.StatsSeverityLevel_SEVERE
-	} else if val >= 700 {
+	case val >= 700:
 		return keybase1.StatsSeverityLevel_WARNING
-	} else {
+	default:
 		return keybase1.StatsSeverityLevel_NORMAL
 	}
 }

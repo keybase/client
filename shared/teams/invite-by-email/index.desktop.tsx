@@ -110,7 +110,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 floatingContainerStyle={styles.floatingRolePicker}
                 onConfirm={this.onConfirmRolePicker}
                 onCancel={this.onCancelRolePicker}
-                position={'bottom center'}
+                position="bottom center"
                 open={this.state.isRolePickerOpen}
                 disabledRoles={{owner: 'Cannot invite an owner via email.'}}
               >
@@ -189,13 +189,16 @@ const _styleContainer = {
   borderRadius: 5,
 }
 
-const styles = Styles.styleSheetCreate({
-  floatingRolePicker: Styles.platformStyles({
-    isElectron: {
-      position: 'relative',
-      top: -32,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      floatingRolePicker: Styles.platformStyles({
+        isElectron: {
+          position: 'relative',
+          top: -32,
+        },
+      }),
+    } as const)
+)
 
 export {InviteByEmailDesktop}

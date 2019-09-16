@@ -28,10 +28,13 @@ const InfoNote = (props: Props) => (
   </Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  alignCenter: {
-    alignItems: 'center',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignCenter: {
+        alignItems: 'center',
+      },
+    } as const)
+)
 
 export default InfoNote

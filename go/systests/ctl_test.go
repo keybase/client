@@ -39,7 +39,7 @@ type versionUI struct {
 }
 
 func (v *versionUI) checkVersionOutput(t *testing.T) {
-	rx := regexp.MustCompile(":\\s*")
+	rx := regexp.MustCompile(`:\s*`)
 	n := len(v.outbuf)
 	if n < 2 {
 		t.Fatalf("expected >= 2 lines of output; got %d\n", n)
@@ -102,7 +102,8 @@ func TestVersionAndStop(t *testing.T) {
 }
 
 func CtlStop(g *libkb.GlobalContext) error {
-	if err := g.Shutdown(); err != nil {
+	mctx := libkb.NewMetaContextTODO(g)
+	if err := g.Shutdown(mctx); err != nil {
 		return err
 	}
 	cli, err := client.GetCtlClient(g)

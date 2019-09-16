@@ -17,8 +17,6 @@ type CmdListTrackers struct {
 	libkb.Contextified
 	assertion string
 	verbose   bool
-	json      bool
-	headers   bool
 }
 
 // NewCmdListTrackers creates a new cli.Command.

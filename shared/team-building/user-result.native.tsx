@@ -2,17 +2,15 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
-import Flags from '../util/feature-flags'
 import {followingStateToStyle} from '../search/shared'
 import {Props} from './user-result'
-import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
-import LegacyUserResult from './user-result.desktop'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
 // TODO
 // * Use ListItem2
 
 class UserResult extends React.Component<Props> {
-  render = () => {
+  render() {
     const keybaseResult = this.props.resultForService === 'keybase'
     const keybaseUsername: string | null = this.props.services['keybase'] || null
     const serviceUsername = this.props.services[this.props.resultForService]
@@ -66,7 +64,7 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
@@ -88,7 +86,7 @@ const FormatPrettyName = (props: {
   keybaseResult: boolean
   keybaseUsername: string | null
   prettyName: string
-  services: [Types.ServiceIdWithContact]
+  services: Array<Types.ServiceIdWithContact>
 }) =>
   props.keybaseResult ? (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.services}>
@@ -100,7 +98,7 @@ const FormatPrettyName = (props: {
         )
       )}
       {props.services.map(service => (
-        <Kb.WithTooltip key={service} text={service} position="top center">
+        <Kb.WithTooltip key={service} tooltip={service} position="top center">
           <Kb.Icon
             fontSize={14}
             type={serviceIdToIconFont(service)}
@@ -141,17 +139,19 @@ const Username = (props: {
             keybaseResult={props.keybaseResult}
             keybaseUsername={props.keybaseUsername}
             prettyName={props.prettyName}
-            services={
-              Object.keys(props.services).filter(s => s !== 'keybase') as [Types.ServiceIdWithContact]
-            }
+            services={serviceMapToArray(props.services)}
           />
         )}
       </>
     ) : (
       <>
-        <Kb.Text type="BodySemibold">{props.prettyName}</Kb.Text>
+        <Kb.Text type="BodySemibold" lineClamp={2} style={styles.contactName}>
+          {props.prettyName}
+        </Kb.Text>
         {!!props.displayLabel && props.displayLabel !== props.prettyName && (
-          <Kb.Text type="BodySmall">{props.displayLabel}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {props.displayLabel}
+          </Kb.Text>
         )}
       </>
     )}
@@ -188,7 +188,7 @@ const AlreadyAddedIconButton = () => (
 
 const ActionButtonSize = 40
 export const userResultHeight = Styles.globalMargins.xlarge
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionButton: {
     height: ActionButtonSize,
     marginLeft: Styles.globalMargins.tiny,
@@ -199,6 +199,9 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.rounded,
     height: ActionButtonSize,
     width: ActionButtonSize,
+  },
+  contactName: {
+    lineHeight: 22,
   },
   keybaseServiceIcon: {
     marginRight: Styles.globalMargins.xtiny,
@@ -223,6 +226,6 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     marginLeft: Styles.globalMargins.small,
   },
-})
+}))
 
-export default (Flags.sbsContacts ? UserResult : LegacyUserResult)
+export default UserResult

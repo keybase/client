@@ -4,8 +4,8 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SettingsGen from '../../actions/settings-gen'
-import flags from '../../util/feature-flags'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {isMobile} from '../../constants/platform'
 
 // props exported for stories
 export type Props = {
@@ -19,6 +19,7 @@ export type Props = {
   superseded: boolean
   type: 'phone' | 'email'
   verified: boolean
+  lastVerifyEmailDate?: number
 }
 
 const addSpacer = (into: string, add: string) => {
@@ -41,13 +42,24 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     return null
   }
 
+  // less than 30 minutes ago
+  const hasRecentVerifyEmail =
+    props.lastVerifyEmailDate && new Date().getTime() / 1000 - props.lastVerifyEmailDate < 30 * 60
+
   let subtitle = ''
-  if (props.type === 'email' && props.primary) {
-    subtitle = addSpacer(subtitle, 'Primary')
-    // TODO 'Check your inbox' if verification email was just sent
-  }
-  if (!props.searchable && flags.sbsContacts) {
-    subtitle = addSpacer(subtitle, 'Not searchable')
+
+  if (isMobile && hasRecentVerifyEmail && !props.verified) {
+    subtitle = 'Check your inbox'
+  } else {
+    if (hasRecentVerifyEmail && !props.verified) {
+      subtitle = addSpacer(subtitle, 'Check your inbox')
+    }
+    if (props.type === 'email' && props.primary) {
+      subtitle = addSpacer(subtitle, 'Primary')
+    }
+    if (!props.searchable) {
+      subtitle = addSpacer(subtitle, 'Not searchable')
+    }
   }
 
   const menuItems: Kb.MenuItems = []
@@ -65,33 +77,31 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       title: 'Make primary',
     })
   }
-  if (props.verified && flags.sbsContacts) {
+  if (props.verified) {
+    const copyType = props.type === 'email' ? 'email' : 'number'
     menuItems.push({
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
-        ? `Don't let friends find you by this ${props.type}.`
-        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${props.type}.`,
+        ? `Don't let friends find you by this ${copyType}.`
+        : `${Styles.isMobile ? '' : '(Recommended) '}Let friends find you by this ${copyType}.`,
       title: props.searchable ? 'Make unsearchable' : 'Make searchable',
     })
   }
 
-  // TODO: Drop this `if` once Y2K-180 is done.
-  if (!props.primary) {
-    if (menuItems.length > 0) {
-      menuItems.push('Divider')
-    }
-    menuItems.push({
-      danger: true,
-      onClick: props.onDelete,
-      title: 'Delete',
-    })
+  if (menuItems.length > 0) {
+    menuItems.push('Divider')
   }
+  menuItems.push({
+    danger: true,
+    onClick: props.onDelete,
+    title: 'Delete',
+  })
 
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
     gearIconBadge = badge(Styles.globalColors.orange)
-  } else if (!props.searchable && flags.sbsContacts) {
+  } else if (!props.searchable) {
     gearIconBadge = badge(Styles.globalColors.blue)
   }
 
@@ -108,7 +118,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.container}>
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={{...Styles.globalStyles.flexOne}}>
-        <Kb.Text type="BodySemibold" selectable={true}>
+        <Kb.Text type="BodySemibold" selectable={true} lineClamp={1}>
           {props.address}
         </Kb.Text>
         {(!!subtitle || !props.verified) && (
@@ -120,10 +130,19 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
       </Kb.Box2>
       {!!menuItems.length && (
         <>
-          <Kb.Box style={styles.positionRelative}>
-            <Kb.Icon type="iconfont-gear" ref={props.setAttachmentRef} onClick={props.toggleShowingMenu} />
+          <Kb.ClickableBox
+            className="hover_container"
+            onClick={props.toggleShowingMenu}
+            style={styles.gearIconContainer}
+          >
+            <Kb.Icon
+              className="hover_contained_color_black"
+              type="iconfont-gear"
+              ref={props.setAttachmentRef}
+              style={styles.gearIcon}
+            />
             {gearIconBadge}
-          </Kb.Box>
+          </Kb.ClickableBox>
           <Kb.FloatingMenu
             attachTo={props.getAttachmentRef}
             closeText="Cancel"
@@ -142,30 +161,39 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
 }
 const EmailPhoneRow = Kb.OverlayParentHOC(_EmailPhoneRow)
 
-const styles = Styles.styleSheetCreate({
-  badge: {
-    borderRadius: Styles.isMobile ? 5 : 4,
-    height: Styles.isMobile ? 10 : 8,
-    width: Styles.isMobile ? 10 : 8,
-  },
-  badgeGearIcon: {
-    position: 'absolute',
-    right: -3,
-    top: -2,
-  },
-  badgeMenuItem: {
-    alignSelf: 'center',
-    marginLeft: 'auto',
-  },
-  container: {
-    height: Styles.isMobile ? 48 : 40,
-  },
-  menuHeader: {
-    height: 64,
-  },
-  menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
-  positionRelative: {position: 'relative'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: {
+        borderRadius: Styles.isMobile ? 5 : 4,
+        height: Styles.isMobile ? 10 : 8,
+        width: Styles.isMobile ? 10 : 8,
+      },
+      badgeGearIcon: {
+        position: 'absolute',
+        right: 1,
+        top: 3,
+      },
+      badgeMenuItem: {
+        alignSelf: 'center',
+        marginLeft: 'auto',
+      },
+      container: {
+        height: Styles.isMobile ? 48 : 40,
+      },
+      gearIcon: Styles.platformStyles({
+        isElectron: {...Styles.desktopStyles.clickable},
+      }),
+      gearIconContainer: {
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
+      },
+      menuHeader: {
+        height: 64,
+      },
+      menuNoGrow: Styles.platformStyles({isElectron: {width: 220}}),
+    } as const)
+)
 
 // props exported for stories
 export type OwnProps = {
@@ -185,14 +213,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onMakeSearchable: () =>
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
-    _onDelete: (address: string, discoverable: boolean) =>
+    _onDelete: (address: string, searchable: boolean) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
               props: {
                 address,
-                discoverable,
+                searchable,
                 type: 'email',
               },
               selected: 'settingsDeleteAddress',
@@ -205,14 +233,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
   },
   phone: {
-    _onDelete: (address: string, discoverable: boolean) =>
+    _onDelete: (address: string, searchable: boolean) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
               props: {
                 address,
-                discoverable,
+                searchable,
                 type: 'phone',
               },
               selected: 'settingsDeleteAddress',
@@ -253,6 +281,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
       return {
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
+        lastVerifyEmailDate: stateProps._emailRow.lastVerifyEmailDate || undefined,
         onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable),
         onMakePrimary: dispatchProps.email.onMakePrimary,
         onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -19,17 +20,17 @@ type CmdTeamAddMember struct {
 	Email                string
 	Username             string
 	Role                 keybase1.TeamRole
+	BotSettings          *keybase1.TeamBotSettings
 	SkipChatNotification bool
 }
 
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return cli.Command{
+	cmd := cli.Command{
 		Name:         "add-member",
 		ArgumentHelp: "<team name>",
 		Usage:        "Add a user to a team.",
 		Action: func(c *cli.Context) {
-			cmd := NewCmdTeamAddMemberRunner(g)
-			cl.ChooseCommand(cmd, "add-member", c)
+			cl.ChooseCommand(NewCmdTeamAddMemberRunner(g), "add-member", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -41,7 +42,8 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Usage: "email address to invite",
 			},
 			cli.StringFlag{
-				Name:  "r, role",
+				Name: "r, role",
+				// TODO HOTPOT-599 add bot roles
 				Usage: "team role (owner, admin, writer, reader) [required]",
 			},
 			cli.BoolFlag{
@@ -51,6 +53,12 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		},
 		Description: teamAddMemberDoc,
 	}
+
+	// TODO HOTPOT-599 expose publicly
+	if g.Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(g.GetMyUID()) {
+		cmd.Flags = append(cmd.Flags, botSettingsFlags...)
+	}
+	return cmd
 }
 
 func NewCmdTeamAddMemberRunner(g *libkb.GlobalContext) *CmdTeamAddMember {
@@ -84,6 +92,10 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 
 	c.SkipChatNotification = ctx.Bool("skip-chat-message")
 
+	if c.Role.IsRestrictedBot() {
+		c.BotSettings = ParseBotSettings(ctx)
+	}
+
 	return nil
 }
 
@@ -93,11 +105,17 @@ func (c *CmdTeamAddMember) Run() error {
 		return err
 	}
 
+	if err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamAddMemberArg{
 		Name:                 c.Team,
 		Email:                c.Email,
 		Username:             c.Username,
 		Role:                 c.Role,
+		BotSettings:          c.BotSettings,
 		SendChatNotification: !c.SkipChatNotification,
 	}
 

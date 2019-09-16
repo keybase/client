@@ -64,7 +64,7 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ConfirmModal
-        confirmText={`Delete ${this.props.teamname}`}
+        confirmText="Delete team"
         content={
           <Checkboxes
             box1={this.state.box1}
@@ -86,8 +86,11 @@ class _ReallyDeleteTeam extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  headerTeamname: {color: Styles.globalColors.redDark, textDecorationLine: 'line-through'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerTeamname: {color: Styles.globalColors.redDark, textDecorationLine: 'line-through'},
+    } as const)
+)
 
 export default _ReallyDeleteTeam

@@ -7,7 +7,7 @@ import Icon from '../icon'
 import Text from '../text'
 import Modal from '../modal'
 import * as Styles from '../../styles'
-import {IconType} from '../icon.constants'
+import {IconType} from '../icon.constants-gen'
 
 // generally one of icon or header will be given
 export type Props = {
@@ -20,7 +20,7 @@ export type Props = {
   iconColor?: Styles.Color
   onCancel?: () => void
   onConfirm?: () => void
-  prompt: string
+  prompt: React.ReactNode
   waitingKey?: string
 }
 
@@ -100,9 +100,13 @@ class ConfirmModal extends React.PureComponent<Props> {
               {this.props.header}
             </Box2>
           )}
-          <Text center={true} style={styles.text} type="HeaderBig">
-            {this.props.prompt}
-          </Text>
+          {typeof this.props.prompt === 'string' ? (
+            <Text center={true} style={styles.text} type="HeaderBig" lineClamp={2}>
+              {this.props.prompt}
+            </Text>
+          ) : (
+            this.props.prompt
+          )}
           <Text center={true} style={styles.text} type="Body">
             {this.props.description}
           </Text>
@@ -113,7 +117,7 @@ class ConfirmModal extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   button: {
     flex: 1,
   },
@@ -134,6 +138,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black,
     margin: Styles.globalMargins.small,
   },
-})
+}))
 
 export default ConfirmModal

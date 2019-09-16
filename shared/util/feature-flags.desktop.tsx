@@ -2,7 +2,7 @@ import {featureFlagsOverride} from '../local-debug.desktop'
 import {FeatureFlags} from './feature-flags'
 
 if (process.env['KEYBASE_FEATURES']) {
-  console.error('KEYBASE_FEATURES is no longer supported edit the json file instead')
+  console.error('KEYBASE_FEATURES is no longer supported. Edit the "*.app.debug" json file instead')
 }
 
 let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
@@ -11,9 +11,10 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  airdrop: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
+  darkMode: false,
   dbCleanEnabled: false,
   fastAccountSwitch: false,
   foldersInProfileTab: false,
@@ -24,12 +25,11 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  sbsContacts: true,
   stellarExternalPartners: true,
+  wonderland: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
-  airdrop: true,
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
   fastAccountSwitch: true,
@@ -37,7 +37,6 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   moveOrCopy: true,
   outOfDateBanner: true,
   proofProviders: true,
-  sbsContacts: true,
 }
 
 // load overrides

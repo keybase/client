@@ -47,7 +47,6 @@ const Video = (props: Props) => {
             onError={e => {
               logger.error(`Error loading vid: ${JSON.stringify(e)}`)
             }}
-            muted={true}
             controls={true}
             onFullscreenPlayerWillPresent={() => console.log({songgao: 'onFullscreenPlayerWillPresent'})}
             onFullscreenPlayerDidDismiss={() => {
@@ -68,7 +67,7 @@ const Video = (props: Props) => {
 }
 export default Video
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -76,4 +75,4 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
     width: '100%',
   },
-})
+}))

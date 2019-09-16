@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as Kb from '../'
+import * as Kb from '..'
 import {HeaderHocHeader} from '.'
 import {Action} from './types'
 

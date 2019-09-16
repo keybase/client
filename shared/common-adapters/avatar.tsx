@@ -1,13 +1,11 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
 import Avatar from './avatar.render'
-import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
-import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as ConfigGen from '../actions/config-gen'
+import './avatar.css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 type URLType = string
@@ -19,16 +17,16 @@ type DisallowedStyles = {
 export type OwnProps = {
   borderColor?: string
   children?: React.ReactNode
-  clickToProfile?: 'tracker' | 'profile' // If set, go to profile on mobile and tracker/profile on desktop,,,
+  lighterPlaceholders?: boolean
   editable?: boolean
+  imageOverrideUrl?: string
   isTeam?: boolean
   loadingColor?: string
-  onClick?: (e?: React.SyntheticEvent) => void
-  onEditAvatarClick?: (e?: React.SyntheticEvent) => void
+  onClick?: ((e?: React.BaseSyntheticEvent) => void) | 'profile'
+  onEditAvatarClick?: (e?: React.BaseSyntheticEvent) => void
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
   teamname?: string
   username?: string
@@ -36,15 +34,14 @@ export type OwnProps = {
 }
 
 type Props = {
-  askForUserData?: () => void
   borderColor?: string
   children?: React.ReactNode
   editable?: boolean
   followIconSize: number
   followIconType?: IconType
   followIconStyle: IconStyle
+  imageOverride?: string
   isTeam: boolean
-  load: () => void
   loadingColor?: string
   name: string
   onClick?: (e?: React.SyntheticEvent) => void
@@ -52,7 +49,6 @@ type Props = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  skipBackgroundAfterLoaded?: boolean // if we're on a white background we don't need a white back cover,,,
   style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
   teamname?: string
   url: URLType
@@ -63,6 +59,12 @@ const avatarPlaceHolders: {[key: string]: IconType} = {
   '192': 'icon-placeholder-avatar-192',
   '256': 'icon-placeholder-avatar-256',
   '960': 'icon-placeholder-avatar-960',
+}
+
+const avatarLighterPlaceHolders: {[key: string]: IconType} = {
+  '192': 'icon-placeholder-avatar-lighter-192',
+  '256': 'icon-placeholder-avatar-lighter-256',
+  '960': 'icon-placeholder-avatar-lighter-960',
 }
 
 const teamPlaceHolders: {[key: string]: IconType} = {
@@ -92,129 +94,48 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
   }
 }
 
-// We keep one timer for all instances to reduce timer overhead
-class SharedAskForUserData {
-  _cacheTime = 1000 * 60 * 30 // cache for 30 mins
-  _dispatch?: (arg0: any) => void
-  _teamQueue = {}
-  _teamLastReq = {}
-  _userQueue = {}
-  _userLastReq = {}
-  _username = ''
-
-  // call this with the current username
-  _checkLoggedIn = (username: string) => {
-    if (username !== this._username) {
-      console.log('clearing cache due to username change')
-      this._username = username
-      this._teamLastReq = {}
-      this._userLastReq = {}
-    }
-  }
-  _makeCalls = throttle(
-    () => {
-      if (!this._dispatch) {
-        return
-      }
-      const now = Date.now()
-      const oldEnough = now - this._cacheTime
-      const usernames = Object.keys(this._userQueue).filter(k => {
-        const lr = this._userLastReq[k]
-        if (!lr || lr < oldEnough) {
-          this._userLastReq[k] = now
-          return true
-        }
-        return false
-      })
-      const teamnames = Object.keys(this._teamQueue).filter(k => {
-        const lr = this._teamLastReq[k]
-        if (!lr || lr < oldEnough) {
-          this._teamLastReq[k] = now
-          return true
-        }
-        return false
-      })
-      this._teamQueue = {}
-      this._userQueue = {}
-      if (usernames.length || teamnames.length) {
-        requestAnimationFrame(() => {
-          usernames.length && this._dispatch && this._dispatch(ConfigGen.createLoadAvatars({usernames}))
-          teamnames.length && this._dispatch && this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
-        })
-      }
-    },
-    100,
-    {leading: false}
-  )
-  getTeam = (name: string) => {
-    this._teamQueue[name] = true
-    this._makeCalls()
-  }
-  getUser = (name: string) => {
-    this._userQueue[name] = true
-    this._makeCalls()
-  }
-  injectDispatch = (dispatch: Container.TypedDispatch) => (this._dispatch = dispatch)
-}
-const _sharedAskForUserData = new SharedAskForUserData()
-
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const name = ownProps.username || ownProps.teamname
-  _sharedAskForUserData._checkLoggedIn(state.config.username)
-  return {
+const ConnectedAvatar = Container.connect(
+  (state, ownProps: OwnProps) => ({
+    _counter: state.config.avatarRefreshCounter.get(ownProps.username || ownProps.teamname || '') || 0,
     _following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
-    _urlMap: name ? state.config.avatars.get(name) : null,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => {
-  _sharedAskForUserData.injectDispatch(dispatch)
-  return {
-    _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
-      Styles.isMobile || desktopDest === 'profile'
-        ? dispatch(ProfileGen.createShowUserProfile({username}))
-        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-    onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
-  }
-}
-
-const ConnectedAvatar = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+    _httpSrvAddress: state.config.httpSrvAddress,
+    _httpSrvToken: state.config.httpSrvToken,
+  }),
+  dispatch => ({
+    _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {username} = ownProps
     const isTeam = ownProps.isTeam || !!ownProps.teamname
 
-    let onClick = dispatchProps.onClick
-    if (!onClick && ownProps.clickToProfile && ownProps.username) {
-      const u = ownProps.username
-      const desktopDest = ownProps.clickToProfile
-      onClick = () => dispatchProps._goToProfile(u, desktopDest)
-    }
-
-    const style: Styles.StylesCrossPlatform = Styles.isMobile
-      ? ownProps.style
-      : Styles.collapseStyles([
-          ownProps.style,
-          onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
-        ])
-
-    let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
-    let load: (() => void) | undefined
-    if (!url) {
-      url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-      load = isTeam
-        ? () => {
-            ownProps.teamname && _sharedAskForUserData.getTeam(ownProps.teamname)
-          }
-        : () => {
-            ownProps.username && _sharedAskForUserData.getUser(ownProps.username)
-          }
-    }
-
-    const name = isTeam ? ownProps.teamname : ownProps.username
+    const opClick =
+      ownProps.onClick === 'profile'
+        ? username
+          ? () => dispatchProps._goToProfile(username)
+          : undefined
+        : ownProps.onClick
+    const onClick = ownProps.onEditAvatarClick || opClick
+    const name = isTeam ? ownProps.teamname : username
+    const urlMap = [960, 256, 192].reduce((m, size: number) => {
+      m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
+        isTeam ? 'team' : 'user'
+      }&name=${name}&format=square_${size}&token=${stateProps._httpSrvToken}&count=${stateProps._counter}`
+      return m
+    }, {})
+    const url = ownProps.imageOverrideUrl
+      ? `url(${ownProps.imageOverrideUrl})`
+      : stateProps._httpSrvAddress && name
+      ? urlsToImgSet(urlMap, ownProps.size)
+      : iconTypeToImgSet(
+          isTeam
+            ? teamPlaceHolders
+            : ownProps.lighterPlaceholders
+            ? avatarLighterPlaceHolders
+            : avatarPlaceHolders,
+          ownProps.size
+        )
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
-
     return {
       borderColor: ownProps.borderColor,
       children: ownProps.children,
@@ -223,7 +144,6 @@ const ConnectedAvatar = Container.connect(
       followIconStyle: iconInfo.iconStyle,
       followIconType: iconInfo.iconType,
       isTeam,
-      load,
       loadingColor: ownProps.loadingColor,
       name: name || '',
       onClick,
@@ -231,8 +151,7 @@ const ConnectedAvatar = Container.connect(
       opacity: ownProps.opacity,
       size: ownProps.size,
       skipBackground: ownProps.skipBackground,
-      skipBackgroundAfterLoaded: ownProps.skipBackgroundAfterLoaded,
-      style,
+      style: ownProps.style,
       url,
     }
   }
@@ -244,23 +163,17 @@ const mockOwnToViewProps = (
   followers: string[],
   action: (arg0: string) => (...args: any[]) => void
 ): Props => {
-  const following = ownProps.username && follows.includes(ownProps.username)
-  const followsYou = ownProps.username && followers.includes(ownProps.username)
+  const {username} = ownProps
+  const following = username && follows.includes(username)
+  const followsYou = username && followers.includes(username)
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
-  let onClick = ownProps.onClick
-  if (!onClick && ownProps.clickToProfile && ownProps.username) {
-    onClick = action('onClickToProfile')
-  }
+  const opClick =
+    ownProps.onClick === 'profile' ? (username ? action('onClickToProfile') : undefined) : ownProps.onClick
+  const onClick = ownProps.onEditAvatarClick || opClick
 
-  const style = Styles.collapseStyles([
-    ownProps.style,
-    onClick && Styles.platformStyles({isElectron: Styles.desktopStyles.clickable}),
-  ])
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
-
-  const name = isTeam ? ownProps.teamname : ownProps.username
-
+  const name = isTeam ? ownProps.teamname : username
   const iconInfo = followIconHelper(
     ownProps.size,
     !!(ownProps.showFollowingStatus && followsYou),
@@ -273,13 +186,12 @@ const mockOwnToViewProps = (
     followIconStyle: iconInfo.iconStyle,
     followIconType: iconInfo.iconType || undefined,
     isTeam,
-    load: () => {},
     loadingColor: ownProps.loadingColor,
     name: name || '',
     onClick,
     opacity: ownProps.opacity,
     size: ownProps.size,
-    style,
+    style: ownProps.style,
     url,
   }
 }

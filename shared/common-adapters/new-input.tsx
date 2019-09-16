@@ -3,21 +3,16 @@ import PlainInput, {PropsWithInput} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {IconType, castPlatformStyles} from './icon'
 import {getStyle as getTextStyle} from './text'
-import {
-  StylesCrossPlatform,
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+import * as Styles from '../styles'
+import './input.css'
 
 export type _Props = {
-  containerStyle?: StylesCrossPlatform
+  containerStyle?: Styles.StylesCrossPlatform
   decoration?: React.ReactNode
   error?: boolean
   hideBorder?: boolean
   icon?: IconType
+  dummyInput?: boolean
 }
 
 type Props = PropsWithInput<_Props>
@@ -55,7 +50,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
     return (
       <Box2
         direction="horizontal"
-        style={collapseStyles([
+        style={Styles.collapseStyles([
           styles.container,
           this.state.focused && styles.focused,
           this.props.error && styles.error,
@@ -66,7 +61,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
         {!!this.props.icon && (
           <Box style={styles.icon}>
             <Icon
-              color={globalColors.black_20}
+              color={Styles.globalColors.black_20} // not sure how to make this dynamic
               type={this.props.icon}
               fontSize={textStyle.fontSize}
               style={castPlatformStyles(styles.displayFlex)}
@@ -88,35 +83,38 @@ const NewInput = React.forwardRef<PlainInput, Props>((props, ref) => (
   <ReflessNewInput {...props} forwardedRef={ref} />
 ))
 
-const styles = styleSheetCreate({
-  container: platformStyles({
-    common: {
-      alignItems: 'center',
-      backgroundColor: globalColors.white,
-      borderColor: globalColors.black_10,
-      borderRadius: 4,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      margin: 0,
-      padding: globalMargins.xtiny,
-    },
-    isElectron: {width: '100%'},
-  }),
-  displayFlex: {
-    display: 'flex',
-  },
-  error: {
-    borderColor: globalColors.red,
-  },
-  focused: {
-    borderColor: globalColors.blue,
-  },
-  hideBorder: {
-    borderWidth: 0,
-  },
-  icon: {
-    marginRight: globalMargins.xtiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: 4,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          margin: 0,
+          padding: Styles.globalMargins.xtiny,
+        },
+        isElectron: {width: '100%'},
+      }),
+      displayFlex: {
+        display: 'flex',
+      },
+      error: {
+        borderColor: Styles.globalColors.red,
+      },
+      focused: {
+        borderColor: Styles.globalColors.blue,
+      },
+      hideBorder: {
+        borderWidth: 0,
+      },
+      icon: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default NewInput

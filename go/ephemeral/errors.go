@@ -61,7 +61,7 @@ func (e EphemeralKeyError) Error() string {
 func (e EphemeralKeyError) AllowTransient() bool {
 	return (e.EKKind == TeambotEKKind &&
 		e.ErrKind == EphemeralKeyErrorKind_MISSINGBOX &&
-		time.Now().Sub(e.Ctime.Time()) < time.Hour*24)
+		time.Since(e.Ctime.Time()) < time.Hour*24)
 }
 
 func (e EphemeralKeyError) IsPermanent() bool {
@@ -85,6 +85,7 @@ const (
 	DeviceProvisionedAfterContentCreationErrMsg = "this device was created after the message was sent"
 	MemberAddedAfterContentCreationErrMsg       = "you were added to the team after this message was sent"
 	DeviceCloneErrMsg                           = "cloned devices do not support exploding messages"
+	DeviceCloneWithOneshotErrMsg                = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
 )
 
 type IncorrectTeamEphemeralKeyTypeError struct {
@@ -123,7 +124,7 @@ func memberCtime(mctx libkb.MetaContext, tlfID chat1.TLFID) (*keybase1.Time, err
 		return nil, err
 	}
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: keybase1.TeamID(teamID),
+		ID: teamID,
 	})
 	if err != nil {
 		return nil, err
@@ -143,6 +144,11 @@ func newEKUnboxErr(mctx libkb.MetaContext, ekKind EphemeralKeyKind, boxGeneratio
 		humanMsg = DeviceProvisionedAfterContentCreationErrMsg
 	} else if deviceIsCloned(mctx) {
 		humanMsg = DeviceCloneErrMsg
+		if isOneshot, err := mctx.G().IsOneshot(mctx.Ctx()); err != nil {
+			mctx.Debug("unable to check IsOneshot %v", err)
+		} else if isOneshot {
+			humanMsg = DeviceCloneWithOneshotErrMsg
+		}
 	}
 	return newEphemeralKeyError(debugMsg, humanMsg,
 		EphemeralKeyErrorKind_UNBOX, missingKind)
@@ -212,10 +218,9 @@ func newEphemeralKeyErrorFromStatus(e libkb.AppStatusError) EphemeralKeyError {
 }
 
 func errFromAppStatus(e error) error {
-	if e == nil {
-		return nil
-	}
 	switch e := e.(type) {
+	case nil:
+		return nil
 	case libkb.AppStatusError:
 		switch e.Code {
 		case libkb.SCEphemeralDeviceAfterEK,

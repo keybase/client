@@ -23,52 +23,53 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
 
   render() {
     return (
-      <Kb.BoxGrow>
-        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-          <Kbfs.Errs />
-          <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
-            <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
-            {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
-          </Kb.Box2>
-          <Footer />
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <Kbfs.Errs />
+        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
+          <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
+          {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
         </Kb.Box2>
-      </Kb.BoxGrow>
+        <Footer path={this.props.path} />
+      </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  contentContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.globalStyles.flexGrow,
-      height: '100%',
-      width: '100%',
-    },
-    isElectron: {
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
-  }),
-  greyContainer: {
-    backgroundColor: Styles.globalColors.blueLighter3,
-    flex: 1,
-    flexShrink: 1,
-  },
-  loading: Styles.platformStyles({
-    common: {
-      height: 32,
-      width: 32,
-    },
-    isElectron: {
-      left: 40,
-      position: 'absolute',
-      top: 86,
-    },
-    isMobile: {
-      left: 0,
-      position: 'absolute',
-      top: 0,
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      contentContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexGrow,
+          height: '100%',
+          width: '100%',
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.medium,
+          paddingRight: Styles.globalMargins.medium,
+        },
+      }),
+      greyContainer: {
+        backgroundColor: Styles.globalColors.blueLighter3,
+        flex: 1,
+        flexShrink: 1,
+      },
+      loading: Styles.platformStyles({
+        common: {
+          height: 32,
+          width: 32,
+        },
+        isElectron: {
+          left: 40,
+          position: 'absolute',
+          top: 86,
+        },
+        isMobile: {
+          left: 0,
+          position: 'absolute',
+          top: 0,
+        },
+      }),
+    } as const)
+)

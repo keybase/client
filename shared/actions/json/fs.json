@@ -16,7 +16,8 @@
     "unsubscribe": {
       "subscriptionID": "string"
     },
-    "onJournalNotification": {},
+    "pollJournalStatus": {},
+    "getOnlineStatus": {},
     "folderListLoad": {
       "path": "Types.Path"
     },
@@ -228,19 +229,6 @@
       "title": "string"
     },
     "sentAttachmentToChat": {},
-    "initSendLinkToChat": {
-      "path": "Types.Path"
-    },
-    "setSendLinkToChatConvID": {
-      "convID": "ChatTypes.ConversationIDKey"
-    },
-    "setSendLinkToChatChannels": {
-      "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
-    },
-    "triggerSendLinkToChat": {},
-    "sentLinkToChat": {
-      "convID": "ChatTypes.ConversationIDKey"
-    },
 
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
@@ -279,6 +267,11 @@
     },
     "setTlfsAsUnloaded": {},
     "placeholderAction": {},
+    "refreshMountDirsAfter10s": {},
+    "setDirectMountDir": {"directMountDir": "string"},
+    "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
+    "loadPathInfo": {"path": "Types.Path"},
+    "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
     "setDebugLevel": {
       "level": "string"
     }

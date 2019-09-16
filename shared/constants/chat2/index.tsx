@@ -1,8 +1,8 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as TeamBuildingConstants from '../../constants/team-building'
+import * as RPCTypes from '../types/rpc-gen'
+import * as TeamBuildingConstants from '../team-building'
 import {clamp} from 'lodash-es'
 import {chatTab} from '../tabs'
 import {TypedState} from '../reducer'
@@ -33,6 +33,7 @@ export const makeState = I.Record<Types._State>({
   commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),
   createConversationError: null,
+  dismissedInviteBannersMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
@@ -44,6 +45,7 @@ export const makeState = I.Record<Types._State>({
   inboxSearch: null,
   inboxShowNew: false,
   isWalletsNew: true,
+  lastCoord: null,
   maybeMentionMap: I.Map(),
   messageCenterOrdinals: I.Map(),
   messageMap: I.Map(),
@@ -55,12 +57,14 @@ export const makeState = I.Record<Types._State>({
   paymentStatusMap: I.Map(),
   pendingOutboxToOrdinal: I.Map(),
   prependTextMap: I.Map(),
+  previousSelectedConversation: noConversationIDKey,
   quote: null,
   replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
+  threadLoadStatus: I.Map(),
   threadSearchInfoMap: I.Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
@@ -169,6 +173,14 @@ export const getMessage = (
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
 ): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
+  return !(
+    message.type === 'placeholder' ||
+    message.type === 'deleted' ||
+    message.type === 'systemJoined' ||
+    message.type === 'systemLeft'
+  )
+}
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -275,9 +287,11 @@ export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
 export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:unpin:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
-  state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
+  [...state.waiting.counts.keys()].some(k => k.startsWith('chat:'))
 
 /**
  * Gregor key for exploding conversations
@@ -315,6 +329,12 @@ export const makeInboxQuery = (
   return {
     computeActiveList: true,
     convIDs: convIDKeys.map(Types.keyToConversationID),
+    memberStatus: (Object.keys(RPCChatTypes.ConversationMemberStatus)
+      .filter(k => typeof RPCChatTypes.ConversationMemberStatus[k as any] === 'number')
+      .filter(k => !['neverJoined', 'left', 'removed'].includes(k as any))
+      .map(k => RPCChatTypes.ConversationMemberStatus[k as any]) as unknown) as Array<
+      RPCChatTypes.ConversationMemberStatus
+    >,
     readOnly: false,
     status: (Object.keys(RPCChatTypes.ConversationStatus)
       .filter(k => typeof RPCChatTypes.ConversationStatus[k as any] === 'number')
@@ -325,22 +345,6 @@ export const makeInboxQuery = (
     tlfVisibility: RPCTypes.TLFVisibility.private,
     topicType: RPCChatTypes.TopicType.chat,
     unreadOnly: false,
-  }
-}
-
-export const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersType | null => {
-  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
-  switch (membersTypeNumber) {
-    case RPCChatTypes.ConversationMembersType.kbfs:
-      return RPCChatTypes.ConversationMembersType.kbfs
-    case RPCChatTypes.ConversationMembersType.team:
-      return RPCChatTypes.ConversationMembersType.team
-    case RPCChatTypes.ConversationMembersType.impteamnative:
-      return RPCChatTypes.ConversationMembersType.impteamnative
-    case RPCChatTypes.ConversationMembersType.impteamupgrade:
-      return RPCChatTypes.ConversationMembersType.impteamupgrade
-    default:
-      return null
   }
 }
 
@@ -420,6 +424,7 @@ export {
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
+  getMapUnfurl,
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
@@ -435,6 +440,7 @@ export {
   makePendingTextMessage,
   makeReaction,
   messageExplodeDescriptions,
+  messageAttachmentTransferStateToProgressLabel,
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,

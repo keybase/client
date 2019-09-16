@@ -35,8 +35,9 @@ class Engine {
   _hasConnected: boolean = isMobile // mobile is always connected
   // App tells us when the sagas are done loading so we can start emitting events
   _sagasAreReady: boolean = false
-  // So we can dispatch actions
+
   static _dispatch: Dispatch
+
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
 

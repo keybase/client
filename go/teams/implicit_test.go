@@ -251,15 +251,15 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 				Writers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"alice", "bob"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
-						keybase1.SocialAssertion{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
+						{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
+						{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
 					},
 				},
 				Readers: keybase1.ImplicitTeamUserSet{
 					KeybaseUsers: []string{"trust", "worthy"},
 					UnresolvedUsers: []keybase1.SocialAssertion{
-						keybase1.SocialAssertion{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
-						keybase1.SocialAssertion{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
+						{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
+						{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
 					},
 				},
 				ConflictInfo: conflictInfo,
@@ -589,9 +589,9 @@ func TestBotMember(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
-	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_BOT)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_BOT, nil)
 	require.NoError(t, err)
-	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_RESTRICTEDBOT)
+	_, err = AddMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 	team, err := Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
 	require.NoError(t, err)
@@ -612,6 +612,78 @@ func TestBotMember(t *testing.T) {
 	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
 	require.Len(t, members.RestrictedBots, 1)
 	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	kbtest.ResetAccount(*tcs[2], botua)
+	// BOT invites not supported, add support in HOTPOT-460
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.Error(t, err)
+
+	err = botua.Login(tcs[2].G)
+	require.NoError(t, err)
+	err = kbtest.AssertProvisioned(*tcs[2])
+	require.NoError(t, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.NoError(t, err)
+	// Subsequent calls should have UserHasNotResetError
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	team, err = Load(context.Background(), tcs[3].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+
+	kbtest.ResetAccount(*tcs[3], restrictedBotua)
+	team, err = Load(context.Background(), tcs[2].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+
+	members, err = team.Members()
+	require.NoError(t, err)
+	// RESTRICTEDBOT invites not supported
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.Error(t, err)
+
+	err = restrictedBotua.Login(tcs[3].G)
+	require.NoError(t, err)
+	err = kbtest.AssertProvisioned(*tcs[3])
+	require.NoError(t, err)
+
+	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.NoError(t, err)
+
+	// Subsequent calls should have UserHasNotResetError
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, restrictedBotua.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, botua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
+
+	// we can change bot memberships, but cannot have a non-bot like role
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username, keybase1.TeamRole_RESTRICTEDBOT, &keybase1.TeamBotSettings{})
+	require.NoError(t, err)
+
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err)
+
+	err = EditMemberByID(context.TODO(), tcs[0].G, teamObj.ID, restrictedBotua.Username, keybase1.TeamRole_BOT, nil)
+	require.NoError(t, err)
+
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamObj.ID})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.Bots, 1)
+	require.Equal(t, restrictedBotua.User.GetUID(), members.Bots[0].Uid)
+	require.Len(t, members.RestrictedBots, 1)
+	require.Equal(t, botua.User.GetUID(), members.RestrictedBots[0].Uid)
 
 	err = RemoveMemberByID(context.TODO(), tcs[0].G, teamObj.ID, botua.Username)
 	require.NoError(t, err)
@@ -662,7 +734,7 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 			Writers: keybase1.ImplicitTeamUserSet{
 				KeybaseUsers: []string{fus[0].Username},
 				UnresolvedUsers: []keybase1.SocialAssertion{
-					keybase1.SocialAssertion{
+					{
 						User:    bad,
 						Service: keybase1.SocialAssertionService("phone"),
 					},
@@ -683,4 +755,23 @@ func TestInvalidPhoneNumberAssertion(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "Invalid phone number")
 	}
+}
+
+func TestCaseSensitiveDisplayNames(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	upEmail := strings.ToUpper(fus[0].Email)
+	displayNameInput := fmt.Sprintf("%s,[%s]@email", fus[0].Username, upEmail)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), upEmail)
+
+	rooter := fmt.Sprintf("%s@hackernews", strings.ToUpper(fus[0].Username))
+	displayNameInput = fmt.Sprintf("%s,%s", fus[0].Username, rooter)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayNameInput, false /*isPublic*/)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Display name is not normalized")
+	require.Contains(t, err.Error(), rooter)
 }

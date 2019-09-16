@@ -169,12 +169,10 @@ func stringifyAPIResult(list []keybase1.APIUserSearchResult) (res []string) {
 }
 
 type testKeybaseUserSearchData struct {
-	username     string
-	fullName     string
-	serviceMap   map[string]string
-	phoneNumbers []keybase1.PhoneNumber
-	emails       []keybase1.EmailAddress
-	followee     bool
+	username   string
+	fullName   string
+	serviceMap map[string]string
+	followee   bool
 }
 
 type testUserSearchProvider struct {
@@ -251,21 +249,6 @@ func (p *testUserSearchProvider) MakeSearchRequest(mctx libkb.MetaContext, arg k
 	return res, nil
 }
 
-type errorContactsProvider struct{}
-
-func (*errorContactsProvider) LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber,
-	keybase1.RegionCode) (res contacts.ContactLookupResults, err error) {
-	return res, errors.New("unexpected errorContactsProvider call")
-}
-
-func (*errorContactsProvider) FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]contacts.ContactUsernameAndFullName, error) {
-	return nil, errors.New("unexpected errorContactsProvider call")
-}
-
-func (*errorContactsProvider) FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error) {
-	return nil, errors.New("unexpected errorContactsProvider call")
-}
-
 func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearchHandler, searchProv *testUserSearchProvider) {
 	tc = libkb.SetupTest(t, "contacts", 3)
 	tc.G.SyncedContactList = contacts.NewSavedContactsStore(tc.G)
@@ -274,7 +257,9 @@ func setupUserSearchTest(t *testing.T) (tc libkb.TestContext, handler *UserSearc
 	require.NoError(t, err)
 
 	contactsProv := &contacts.CachedContactsProvider{
-		Provider: &errorContactsProvider{},
+		// Usersearch tests will call this provider for imp tofu searches, we
+		// want it to return errors but not fail entire test.
+		Provider: &contacts.ErrorContactsProvider{T: t, NoFail: true},
 		Store:    contacts.NewContactCacheStore(tc.G),
 	}
 	handler = NewUserSearchHandler(nil, tc.G, contactsProv)
@@ -306,13 +291,14 @@ func TestContactSearch(t *testing.T) {
 	searchHandler := NewUserSearchHandler(nil, tc.G, contactsProv)
 	searchHandler.searchProvider = &emptyUserSearchProvider{}
 
+	// Invalid: `IncludeContacts` can only be passed with service="keybase"
+	// (even if query is empty).
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
 		Service:         "",
 		Query:           "",
 	})
-	require.NoError(t, err)
-	require.Empty(t, res)
+	require.Error(t, err)
 
 	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
@@ -328,7 +314,7 @@ func TestContactSearch(t *testing.T) {
 
 	res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
-		Service:         "",
+		Service:         "keybase",
 		Query:           "building",
 	})
 	require.NoError(t, err)
@@ -362,7 +348,7 @@ func TestContactSearchWide(t *testing.T) {
 
 	res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 		IncludeContacts: true,
-		Service:         "",
+		Service:         "keybase",
 		Query:           "高橋",
 	})
 	require.NoError(t, err)
@@ -372,7 +358,7 @@ func TestContactSearchWide(t *testing.T) {
 	for _, v := range []string{"🍜", "🍱", "lunch"} {
 		res, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
-			Service:         "",
+			Service:         "keybase",
 			Query:           v,
 		})
 		require.NoError(t, err)
@@ -429,6 +415,7 @@ func TestUserSearchResolvedUsersShouldGoFirst(t *testing.T) {
 		Query:           "tuser",
 		MaxResults:      50,
 	})
+	require.NoError(t, err)
 	require.Equal(t, searchResultForTest{
 		id:              "tuser1",
 		displayName:     "tuser1",
@@ -479,4 +466,188 @@ func TestSearchContactDeduplicateNameAndLabel(t *testing.T) {
 		require.NotNil(t, res[0].Contact)
 		require.Equal(t, "1555123456@phone", res[0].Contact.Assertion)
 	}
+}
+
+func TestContactSearchMixing(t *testing.T) {
+	tc, searchHandler, searchProv := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactlist := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 0, name: "Isaac Newton", phone: "+1555123456"}),
+		makeContact(makeContactArg{index: 1, name: "Pierre de Fermat", email: "fermatp@keyba.se", username: "pierre"}),
+		makeContact(makeContactArg{index: 2, name: "Gottfried Wilhelm Leibniz", phone: "+1555165432"}),
+	}
+
+	searchProv.addUser(testAddUserArg{username: "pierre"}) // the one we have in contacts
+	for i := 0; i < 5; i++ {
+		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaac%d", i), fmt.Sprintf("The Isaac %d", i)})
+		// Longer names score lower
+		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaac_____%d", i), fmt.Sprintf("The Isaac %d", i)})
+		searchProv.addUser(testAddUserArg{fmt.Sprintf("isaacsxzzz%d", i), fmt.Sprintf("The Isaac %d", i)})
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	require.NoError(t, err)
+
+	{
+		// Expecting to see our contact within the results. All the `isaacX`
+		// users will score higher than our contact, so it will come 6th on the
+		// list.
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "isaac",
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 10)
+		require.NotNil(t, res[5].Contact)
+		require.Equal(t, "1555123456@phone", res[5].Contact.Assertion)
+		require.Equal(t, "Isaac Newton", res[5].Contact.DisplayName)
+	}
+}
+
+func TestContactSearchMobilePhonesGoFirst(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactList := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 0, name: "Isaac Newton", phone: "+1555123456", label: "home"}),
+		makeContact(makeContactArg{index: 1, name: "Isaac Newton", email: "isaac@newt.on"}),
+		makeContact(makeContactArg{index: 2, name: "Isaac Newton", phone: "+1555012345", label: "mobile"}),
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactList)
+	require.NoError(t, err)
+
+	{
+		// We expect to see the "mobile" phone number ranked above the "home" phone
+		// number, and both should rank above email.
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: true,
+			Service:         "keybase",
+			Query:           "isaac",
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		require.Len(t, res, 3)
+		require.Equal(t, "1555012345@phone", res[0].Contact.Assertion)
+		require.Equal(t, "1555123456@phone", res[1].Contact.Assertion)
+		require.Equal(t, "[isaac@newt.on]@email", res[2].Contact.Assertion)
+	}
+}
+
+func TestUserSearchPhoneEmail(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	contactlist := []keybase1.ProcessedContact{
+		makeContact(makeContactArg{index: 1, name: "Pierre de Fermat", email: "fermatp@keyba.se", username: "pierre"}),
+		makeContact(makeContactArg{index: 2, name: "Gottfried Wilhelm Leibniz", phone: "+1555165432", username: "lwg"}),
+	}
+
+	err := tc.G.SyncedContactList.SaveProcessedContacts(tc.MetaContext(), contactlist)
+	require.NoError(t, err)
+
+	doSearch := func(service, query string) []keybase1.APIUserSearchResult {
+		res, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: false,
+			Service:         service,
+			Query:           query,
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		return res
+	}
+
+	{
+		// Imptofu searches (service "phone" or "email") do not search in
+		// synced contacts anymore.
+		query := "+1555165432"
+		res := doSearch("phone", query)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "1555165432@phone", res[0].Imptofu.Assertion)
+	}
+
+	{
+		// Same with e-mail.
+		query := "fermatp@keyba.se"
+		res := doSearch("email", query)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "[fermatp@keyba.se]@email", res[0].Imptofu.Assertion)
+	}
+
+	{
+		// Ask for a different number and get an imptofu result.
+		query := "+1201555201"
+		res := doSearch("phone", query)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Contact)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "1201555201@phone", res[0].Imptofu.Assertion)
+		require.Empty(t, res[0].Imptofu.PrettyName)
+		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "phone", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "1201555201", res[0].Imptofu.AssertionValue)
+	}
+
+	{
+		// Imp tofu email.
+		query := "test@keyba.se"
+		res := doSearch("email", query)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Contact)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
+		require.Empty(t, res[0].Imptofu.PrettyName)
+		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
+	}
+
+	{
+		// Email should be lowercased when returning search result.
+		query := "TEST@keyba.se"
+		res := doSearch("email", query)
+		require.Len(t, res, 1)
+		require.Nil(t, res[0].Contact)
+		require.NotNil(t, res[0].Imptofu)
+		require.Empty(t, res[0].Imptofu.KeybaseUsername)
+		// Assertion should be lowercased for display names.
+		require.Equal(t, "[test@keyba.se]@email", res[0].Imptofu.Assertion)
+		require.Empty(t, res[0].Imptofu.PrettyName)
+		require.Empty(t, res[0].Imptofu.Label)
+		require.Equal(t, "email", res[0].Imptofu.AssertionKey)
+		require.Equal(t, "test@keyba.se", res[0].Imptofu.AssertionValue)
+	}
+}
+
+func TestUserSearchBadArgs(t *testing.T) {
+	tc, searchHandler, _ := setupUserSearchTest(t)
+	defer tc.Cleanup()
+
+	// Invalid empty service name
+	_, err := searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: false,
+		Service:         "",
+		Query:           "test",
+		MaxResults:      10,
+	})
+	require.Error(t, err)
+
+	// IncludeContacts=true with invalid `Service` (only "keybase" is allowed
+	// for IncludeContacts).
+	_, err = searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "twitter",
+		Query:           "test",
+		MaxResults:      10,
+	})
+	require.Error(t, err)
 }

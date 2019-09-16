@@ -6,6 +6,7 @@ import prettierCommands from './prettier'
 import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
+import rimraf from 'rimraf'
 
 const [, , command, ...rest] = process.argv
 
@@ -29,9 +30,41 @@ const commands = {
       // storybook uses react-docgen which really cr*ps itself with flow
       // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire
       makeShims()
+      fixTypes()
+      checkFSEvents()
+      clearTSCache()
     },
     help: '',
   },
+}
+
+const checkFSEvents = () => {
+  if (process.platform === 'darwin') {
+    if (!fs.existsSync(path.resolve(__dirname, '..', '..', 'node_modules', 'fsevents'))) {
+      console.log(
+        `⚠️: You seem to be running OSX and don't have fsevents installed. This can make your hot server slow. Run 'yarn --check-files' once to fix this`
+      )
+    }
+  }
+}
+
+const fixTypes = () => {
+  // couldn't figure out an effective way to patch this file up, so just blowing it away
+  const files = ['@types/react-native/index.d.ts']
+
+  files.forEach(file => {
+    const p = path.resolve(__dirname, '..', '..', 'node_modules', file)
+    try {
+      fs.unlinkSync(p)
+    } catch (_) {}
+  })
+
+  try {
+    fs.copyFileSync(
+      path.resolve(__dirname, '..', '..', 'override-d.ts', 'react-native', 'kb-custom'),
+      path.resolve(__dirname, '..', '..', 'node_modules', '@types', 'react-native', 'index.d.ts')
+    )
+  } catch (_) {}
 }
 
 function makeShims() {
@@ -48,7 +81,14 @@ function makeShims() {
 }
 
 function exec(command, env, options) {
-  console.log(execSync(command, {encoding: 'utf8', env: env || process.env, stdio: 'inherit', ...options}))
+  console.log(
+    execSync(command, {
+      encoding: 'utf8',
+      env: env || process.env,
+      stdio: 'inherit',
+      ...options,
+    })
+  )
 }
 
 const decorateInfo = info => {
@@ -69,6 +109,12 @@ const decorateInfo = info => {
   }
 
   return temp
+}
+
+const warnFail = err => console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
+const clearTSCache = () => {
+  const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
+  rimraf(glob, {}, warnFail)
 }
 
 function main() {

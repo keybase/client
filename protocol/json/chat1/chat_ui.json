@@ -2,17 +2,17 @@
   "protocol": "chatUi",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "path": "../stellar1",
       "type": "idl",
       "import_as": "stellar1"
     },
@@ -187,6 +187,13 @@
         {
           "type": [
             null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": [
+            null,
             "ConversationFinalizeInfo"
           ],
           "name": "finalizeInfo"
@@ -275,6 +282,20 @@
     },
     {
       "type": "record",
+      "name": "UIPinnedMessage",
+      "fields": [
+        {
+          "type": "UIMessage",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "InboxUIItem",
       "fields": [
         {
@@ -316,6 +337,13 @@
         {
           "type": "string",
           "name": "headlineDecorated"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         },
         {
           "type": "keybase1.TLFVisibility",
@@ -438,6 +466,13 @@
         {
           "type": "ConversationCommandGroups",
           "name": "botCommands"
+        },
+        {
+          "type": [
+            null,
+            "UIPinnedMessage"
+          ],
+          "name": "pinnedMsg"
         }
       ]
     },
@@ -835,6 +870,20 @@
             "UIMessage"
           ],
           "name": "replyTo"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "pinnedMessageID"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "botUID"
         }
       ]
     },
@@ -1027,7 +1076,8 @@
         "CHANNELNAMEMENTION_2",
         "MAYBEMENTION_3",
         "LINK_4",
-        "MAILTO_5"
+        "MAILTO_5",
+        "KBFSPATH_6"
       ]
     },
     {
@@ -1141,6 +1191,61 @@
             "def": false
           },
           "body": "UILinkDecoration"
+        },
+        {
+          "label": {
+            "name": "KBFSPATH",
+            "def": false
+          },
+          "body": "KBFSPath"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UIChatThreadStatusTyp",
+      "symbols": [
+        "NONE_0",
+        "SERVER_1",
+        "VALIDATING_2",
+        "VALIDATED_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIChatThreadStatus",
+      "switch": {
+        "type": "UIChatThreadStatusTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NONE",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "SERVER",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "VALIDATING",
+            "def": false
+          },
+          "body": "int"
+        },
+        {
+          "label": {
+            "name": "VALIDATED",
+            "def": false
+          },
+          "body": null
         }
       ]
     },
@@ -1588,6 +1693,14 @@
     },
     {
       "type": "enum",
+      "name": "UIWatchPositionPerm",
+      "symbols": [
+        "BASE_0",
+        "ALWAYS_1"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "UICommandStatusDisplayTyp",
       "symbols": [
         "STATUS_0",
@@ -1707,8 +1820,7 @@
           ]
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatThreadFull": {
       "request": [
@@ -1721,8 +1833,20 @@
           "type": "string"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
+    },
+    "chatThreadStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "status",
+          "type": "UIChatThreadStatus"
+        }
+      ],
+      "response": null
     },
     "chatSearchHit": {
       "request": [
@@ -2002,6 +2126,10 @@
         {
           "name": "convID",
           "type": "ConversationID"
+        },
+        {
+          "name": "perm",
+          "type": "UIWatchPositionPerm"
         }
       ],
       "response": "LocationWatchID"
@@ -2060,6 +2188,15 @@
         {
           "name": "status",
           "type": "UIBotCommandsUpdateStatus"
+        }
+      ],
+      "response": null
+    },
+    "triggerContactSync": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": null

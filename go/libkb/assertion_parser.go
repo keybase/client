@@ -334,7 +334,8 @@ func checkAssertionListItem(expr AssertionExpression) error {
 	case AssertionOr:
 		// this should never happen
 		return fmt.Errorf("assertion parse fault: unexpected OR")
+	default:
+		// Anything else is allowed.
+		return nil
 	}
-	// Anything else is allowed.
-	return nil
 }

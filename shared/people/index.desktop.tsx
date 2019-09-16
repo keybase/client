@@ -18,7 +18,7 @@ const People = (props: Props) => (
   </Kb.ScrollView>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {...Styles.globalStyles.fullHeight},
   header: {flexGrow: 1},
   progress: {
@@ -30,6 +30,6 @@ const styles = Styles.styleSheetCreate({
   },
   searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
   sectionTitle: {flexGrow: 1},
-})
+}))
 
 export default People

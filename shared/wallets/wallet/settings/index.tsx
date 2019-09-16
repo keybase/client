@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 import {AccountPageHeader} from '../../common'
 import DisplayCurrencyDropdown from './display-currency-dropdown'
-import {IconType} from '../../../common-adapters/icon.constants'
+import {IconType} from '../../../common-adapters/icon.constants-gen'
 import WalletSettingTrustline from './trustline/container'
 import openUrl from '../../../util/open-url'
 
@@ -25,8 +25,8 @@ export type SettingsProps = {
   mobileOnlyWaiting: boolean
   onBack: () => void
   onDelete: () => void
-  onLoadSecretKey: () => void
-  onSecretKeySeen: () => void
+  onLoadSecretKey?: () => void
+  onSecretKeySeen?: () => void
   onSetDefault: () => void
   onEditName: () => void
   onSetupInflation: () => void
@@ -56,7 +56,12 @@ type PartnerRowProps = {
 }
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-    <Kb.Icon type={props.iconFilename} style={styles.partnerIcon} />
+    <Kb.Icon
+      type={props.iconFilename}
+      colorOverride={Styles.globalColors.black}
+      fontSize={32}
+      style={styles.partnerIcon}
+    />
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.yesShrink}>
       <Kb.ClickableBox
         className="hover-underline-container"
@@ -77,16 +82,20 @@ const PartnerRow = (props: PartnerRowProps) => (
 class AccountSettings extends React.Component<SettingsProps> {
   componentDidMount() {
     this.props.refresh()
-    this.props.onLoadSecretKey()
   }
   componentWillUnmount() {
-    this.props.onSecretKeySeen()
+    this.clearKey()
+  }
+
+  private clearKey = () => {
+    this.props.onSecretKeySeen && this.props.onSecretKeySeen()
   }
 
   render() {
     const props = this.props
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        {Styles.isMobile && <Kb.NavigationEvents onWillBlur={this.clearKey} />}
         <Kb.HeaderHocHeader
           customComponent={<AccountPageHeader accountName={props.name} title="Settings" />}
           onBack={props.onBack}
@@ -121,29 +130,29 @@ class AccountSettings extends React.Component<SettingsProps> {
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
               <Kb.Text type="BodySmallSemibold">Secret Key</Kb.Text>
-              <Kb.Banner color="yellow" inline={true}>
-                Only paste your secret key in 100% safe places. Anyone with this key could steal your
-                Stellar&nbsp;account.
-              </Kb.Banner>
-              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
-                <Kb.CopyText
-                  containerStyle={styles.copyTextContainer}
-                  multiline={true}
-                  withReveal={true}
-                  text={this.props.secretKey}
-                />
-                {!this.props.secretKey && (
-                  <Kb.Box2
-                    direction="horizontal"
-                    gap="tiny"
-                    fullWidth={true}
-                    style={styles.progressContainer}
-                  >
-                    <Kb.ProgressIndicator style={styles.progressIndicator} type="Small" />
-                    <Kb.Text type="BodySmall">fetching and decrypting secret key...</Kb.Text>
+              {!props.thisDeviceIsLockedOut ? (
+                <>
+                  <Kb.Banner color="yellow" inline={true}>
+                    Only paste your secret key in 100% safe places. Anyone with this key could steal your
+                    Stellar&nbsp;account.
+                  </Kb.Banner>
+                  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
+                    <Kb.CopyText
+                      containerStyle={styles.copyTextContainer}
+                      multiline={true}
+                      withReveal={true}
+                      onReveal={() => this.props.onLoadSecretKey && this.props.onLoadSecretKey()}
+                      hideOnCopy={true}
+                      onCopy={this.clearKey}
+                      text={this.props.secretKey || 'fetching and decrypting secret key...'}
+                    />
                   </Kb.Box2>
-                )}
-              </Kb.Box2>
+                </>
+              ) : (
+                <Kb.Text type="Body">
+                  You can only view your secret key on mobile devices because this is a mobile-only account.
+                </Kb.Text>
+              )}
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" style={styles.section} fullWidth={true}>
@@ -273,7 +282,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>
                 {!Styles.isMobile && (
                   <Kb.WithTooltip
-                    text="Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets it."
+                    tooltip="Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets it."
                     multiline={true}
                   >
                     <Kb.Icon type="iconfont-question-mark" sizeType="Small" />
@@ -341,120 +350,124 @@ class AccountSettings extends React.Component<SettingsProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  alignSelfFlexStart: {alignSelf: 'flex-start'},
-  copyTextContainer: {
-    alignSelf: 'flex-start',
-    maxWidth: '100%',
-  },
-  deleteOpacity: {opacity: 0.3},
-  divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  header: {
-    ...(!Styles.isMobile ? {minHeight: 48} : {}),
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-  },
-  icon: {marginLeft: Styles.globalMargins.xtiny},
-  identity: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  identityBox: {
-    flexGrow: 1,
-    flexShrink: 1,
-  },
-  mobileOnlySpinner: {
-    backgroundColor: Styles.globalColors.white_90,
-  },
-  noShrink: {flexShrink: 0},
-  openIcon: Styles.platformStyles({
-    common: {
-      left: Styles.globalMargins.xtiny,
-      position: 'relative',
-    },
-    isElectron: {
-      top: Styles.globalMargins.xtiny,
-    },
-  }),
-  partnerDivider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginLeft: 40,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  partnerIcon: {flexShrink: 0, height: 32, width: 32},
-  partnerLink: {color: Styles.globalColors.black},
-  partnerLinkContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignSelf: 'flex-start',
-  },
-  progressContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.fillAbsolute,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white_90,
-      display: 'flex',
-      justifyContent: 'center',
-    },
-  }),
-  progressIndicator: Styles.platformStyles({
-    isElectron: {
-      height: 17,
-      width: 17,
-    },
-    isMobile: {
-      height: 22,
-      width: 22,
-    },
-  }),
-  red: {color: Styles.globalColors.redDark},
-  remove: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  removeContainer: Styles.platformStyles({
-    isElectron: {marginTop: 'auto'},
-    isMobile: {marginTop: Styles.globalMargins.medium},
-  }),
-  removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
-  rightMargin: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  scrollView: {
-    display: 'flex',
-    flexGrow: 1,
-    paddingTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
-    width: '100%',
-  },
-  secretKeyContainer: {
-    position: 'relative',
-  },
-  section: {
-    alignItems: 'flex-start',
-    flexShrink: 0,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  sectionLabel: {
-    alignSelf: 'flex-start',
-    marginBottom: Styles.globalMargins.tiny,
-  },
-  setAsDefaultError: {
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  settingsPage: {
-    alignSelf: 'flex-start',
-    backgroundColor: Styles.globalColors.white,
-    flexShrink: 0,
-    paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
-  },
-  setupInflation: {
-    alignSelf: 'flex-start',
-  },
-  yesShrink: {flexShrink: 1},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignSelfFlexStart: {alignSelf: 'flex-start'},
+      copyTextContainer: {
+        alignSelf: 'flex-start',
+        maxWidth: '100%',
+      },
+      deleteOpacity: {opacity: 0.3},
+      divider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      header: {
+        ...(!Styles.isMobile ? {minHeight: 48} : {}),
+        borderBottomColor: Styles.globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+      },
+      icon: {marginLeft: Styles.globalMargins.xtiny},
+      identity: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      identityBox: {
+        flexGrow: 1,
+        flexShrink: 1,
+      },
+      mobileOnlySpinner: {
+        backgroundColor: Styles.globalColors.white_90,
+      },
+      noShrink: {flexShrink: 0},
+      openIcon: Styles.platformStyles({
+        common: {
+          left: Styles.globalMargins.xtiny,
+          position: 'relative',
+        },
+        isElectron: {
+          top: Styles.globalMargins.xtiny,
+        },
+      }),
+      partnerDivider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginLeft: 40,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      partnerIcon: {flexShrink: 0, height: 32, width: 32},
+      partnerLink: {color: Styles.globalColors.black},
+      partnerLinkContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignSelf: 'flex-start',
+      },
+      progressContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.fillAbsolute,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white_90,
+          display: 'flex',
+          justifyContent: 'center',
+        },
+      }),
+      progressIndicator: Styles.platformStyles({
+        isElectron: {
+          height: 17,
+          width: 17,
+        },
+        isMobile: {
+          height: 22,
+          width: 22,
+        },
+      }),
+      red: {color: Styles.globalColors.redDark},
+      remove: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      removeContainer: Styles.platformStyles({
+        isElectron: {marginTop: 'auto'},
+        isMobile: {marginTop: Styles.globalMargins.medium},
+      }),
+      removeContentContainer: {...Styles.padding(0, Styles.globalMargins.small)},
+      rightMargin: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      scrollView: {
+        display: 'flex',
+        flexGrow: 1,
+        paddingTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
+        width: '100%',
+      },
+      secretKeyContainer: {
+        marginTop: Styles.globalMargins.tiny,
+        position: 'relative',
+      },
+      section: {
+        alignItems: 'flex-start',
+        flexShrink: 0,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      sectionLabel: {
+        alignSelf: 'flex-start',
+        marginBottom: Styles.globalMargins.tiny,
+      },
+      setAsDefaultError: {
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      settingsPage: {
+        alignSelf: 'flex-start',
+        backgroundColor: Styles.globalColors.white,
+        flexShrink: 0,
+        paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
+      },
+      setupInflation: {
+        alignSelf: 'flex-start',
+      },
+      yesShrink: {flexShrink: 1},
+    } as const)
+)
 
 export default AccountSettings

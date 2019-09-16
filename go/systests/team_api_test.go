@@ -28,9 +28,9 @@ func TestTeamAPI(t *testing.T) {
 	teamName, err := libkb.RandHexString("t", 6)
 	require.NoError(t, err)
 
-	assertTeamAPIOutput(t, tt.users[0],
+	assertTeamAPIOutputRegexp(t, tt.users[0],
 		`{"method": "create-team", "params": {"options": {"team": "`+teamName+`"}}}`,
-		`{"result":{"chatSent":true,"creatorAdded":true}}`)
+		`{"result":{"teamID":"[a-z0-9]{32}","chatSent":true,"creatorAdded":true}}`)
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[1].username+`", "role": "reader"}]}}}`,
@@ -38,13 +38,14 @@ func TestTeamAPI(t *testing.T) {
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[2].username+`", "role": "bot"}]}}}`,
 		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[2].uid.String()+`","username":"`+tt.users[2].username+`"},"emailSent":false,"chatSending":false}]}`)
-	assertTeamAPIOutput(t, tt.users[0],
-		`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[3].username+`", "role": "restrictedbot"}]}}}`,
-		`{"result":[{"invited":false,"user":{"uid":"`+tt.users[3].uid.String()+`","username":"`+tt.users[3].username+`"},"emailSent":false,"chatSending":false}]}`)
+	// TODO HOTPOT-227 reenable
+	//assertTeamAPIOutput(t, tt.users[0],
+	//	`{"method": "add-members", "params": {"options": {"team": "`+teamName+`", "usernames": [{"username": "`+tt.users[3].username+`", "role": "restrictedbot"}]}}}`,
+	//	`{"result":[{"invited":false,"user":{"uid":"`+tt.users[3].uid.String()+`","username":"`+tt.users[3].username+`"},"emailSent":false,"chatSending":false}]}`)
 
-	assertTeamAPIOutput(t, tt.users[0],
+	assertTeamAPIOutputRegexp(t, tt.users[0],
 		`{"method": "create-team", "params": {"options": {"team": "`+teamName+`.sub"}}}`,
-		`{"result":{"chatSent":true,"creatorAdded":false}}`)
+		`{"result":{"teamID":"[a-z0-9]{32}","chatSent":true,"creatorAdded":false}}`)
 
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "rename-subteam", "params": {"options": {"team": "`+teamName+`.sub", "new-team-name": "`+teamName+`.sub2"}}}`,
@@ -60,9 +61,19 @@ func TestTeamAPI(t *testing.T) {
 	assertTeamAPIOutput(t, tt.users[0],
 		`{"method": "remove-member", "params": {"options": {"team": "`+teamName+`", "username": "`+tt.users[2].username+`"}}}`,
 		`{}`)
-	assertTeamAPIOutput(t, tt.users[0],
-		`{"method": "remove-member", "params": {"options": {"team": "`+teamName+`", "username": "`+tt.users[3].username+`"}}}`,
-		`{}`)
+	// TODO HOTPOT-227 reenable
+	//assertTeamAPIOutput(t, tt.users[0],
+	//	`{"method": "remove-member", "params": {"options": {"team": "`+teamName+`", "username": "`+tt.users[3].username+`"}}}`,
+	//	`{}`)
+}
+
+// Compares `in` to `expectedOut`, treating `expectedOut` as a regex to match.
+func assertTeamAPIOutputRegexp(t *testing.T, u *userPlusDevice, in, expectedOut string) {
+	out, err := runTeamAPI(t, u, in)
+	require.NoError(t, err)
+
+	out = strings.TrimSpace(out)
+	require.Regexp(t, expectedOut, out)
 }
 
 func assertTeamAPIOutput(t *testing.T, u *userPlusDevice, in, expectedOut string) {

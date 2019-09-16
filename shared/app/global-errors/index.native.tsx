@@ -8,7 +8,6 @@ type Size = 'Closed' | 'Small' | 'Big'
 
 type State = {
   size: Size
-  cachedSummary?: string
   cachedDetails?: string
 }
 
@@ -22,7 +21,6 @@ class GlobalError extends React.Component<Props, State> {
 
     this.state = {
       cachedDetails: this._detailsForError(props.error),
-      cachedSummary: this._summaryForError(props.error),
       size: 'Closed',
     }
   }
@@ -42,10 +40,6 @@ class GlobalError extends React.Component<Props, State> {
     }
   }
 
-  _summaryForError(err: null | Error | RPCError) {
-    return err ? err.message : undefined
-  }
-
   _detailsForError(err: null | Error | RPCError) {
     return err ? err.stack : undefined
   }
@@ -56,7 +50,6 @@ class GlobalError extends React.Component<Props, State> {
         () => {
           this.setState({
             cachedDetails: this._detailsForError(this.props.error),
-            cachedSummary: this._summaryForError(this.props.error),
           })
         },
         this.props.error ? 0 : 7000
@@ -67,7 +60,11 @@ class GlobalError extends React.Component<Props, State> {
 
   _renderItem = (index: number, item: string) => {
     return (
-      <Kb.Text key={String(index)} type="BodySmall" style={{color: 'white', fontSize: 8, lineHeight: 8}}>
+      <Kb.Text
+        key={String(index)}
+        type="BodySmall"
+        style={{color: Styles.globalColors.white, fontSize: 8, lineHeight: 8}}
+      >
         {item}
         {'\n'}
       </Kb.Text>
@@ -142,13 +139,13 @@ class GlobalError extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     backgroundColor: Styles.globalColors.black,
     position: 'absolute',
     top: 0,
   },
-})
+}))
 
 const summaryRowStyle = {
   ...Styles.globalStyles.flexBoxRow,

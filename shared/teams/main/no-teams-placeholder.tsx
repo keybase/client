@@ -17,7 +17,7 @@ const NoTeamsPlaceholder = () => {
       {isLoadingTeams ? (
         <Kb.ProgressIndicator type="Large" />
       ) : (
-        <React.Fragment>
+        <>
           <Kb.Text type="BodySmall">You are not a part of any teams.</Kb.Text>
           <Kb.Text type="BodySmall">
             <Kb.Text type="BodySmallPrimaryLink" onClick={onCreateTeam}>
@@ -28,19 +28,19 @@ const NoTeamsPlaceholder = () => {
               join a team you know.
             </Kb.Text>
           </Kb.Text>
-        </React.Fragment>
+        </>
       )}
     </Kb.Box2>
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     paddingBottom: Styles.globalMargins.large,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.large,
   },
-})
+}))
 
 export default NoTeamsPlaceholder

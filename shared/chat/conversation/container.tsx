@@ -41,14 +41,14 @@ class Conversation extends React.PureComponent<SwitchProps> {
       case 'error':
         return <Error conversationIDKey={this.props.conversationIDKey} />
       case 'noConvo':
-        // When navigating back to the inbox on mobile, we delelect
+        // When navigating back to the inbox on mobile, we deselect
         // conversationIDKey by called mobileChangeSelection. This results in
         // the conversation view rendering "NoConversation" as it is
         // transitioning back the the inbox.
-        // On android this is very noticable because transitions fade between
+        // On android this is very noticeable because transitions fade between
         // screens, so "NoConversation" will appear on top of the inbox for
         // approximately 150ms.
-        // On iOS it is less noticable because screen transitions slide away to
+        // On iOS it is less noticeable because screen transitions slide away to
         // the right, though it is visible for a small amount of time.
         // To solve this we render a blank screen on mobile conversation views with "noConvo"
         return Container.isMobile ? null : <NoConversation />

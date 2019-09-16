@@ -37,7 +37,7 @@ const Header = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   header: Styles.platformStyles({
     common: {
       alignSelf: 'flex-end',
@@ -79,6 +79,6 @@ const styles = Styles.styleSheetCreate({
       borderBottomWidth: '1px',
     },
   }),
-})
+}))
 
 export default Header

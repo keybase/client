@@ -6,7 +6,7 @@ apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 import com.android.build.OutputFile
 
 // KB: app version
-def VERSION_NAME = "4.3.0"
+def VERSION_NAME = "4.5.0"
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -131,8 +131,6 @@ android {
         versionCode timestamp()
     // KB:
         versionName VERSION_NAME
-    // KB: for react native camera
-        missingDimensionStrategy 'react-native-camera', 'general'
     // KB: our binary is too big
         multiDexEnabled true
     }
@@ -212,7 +210,7 @@ android {
 
 // KB:
 play {
-    track = 'alpha'
+    track = 'internal'
     serviceAccountCredentials = file(KB_SERVICE_ACCT_JSON)
 }
 
@@ -228,7 +226,6 @@ dependencies {
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
     implementation project(':react-native-push-notification')
-    implementation project(':react-native-camera')
     implementation project(':react-native-fetch-blob')
     implementation project(':react-native-contacts')
     implementation project(':react-native-fast-image')

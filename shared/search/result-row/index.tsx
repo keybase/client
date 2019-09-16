@@ -1,63 +1,46 @@
 import * as Types from '../../constants/types/search'
 import * as React from 'react'
-import {Box, Icon, ClickableBox, Divider, Text} from '../../common-adapters/index'
-import {
-  collapseStyles,
-  globalColors,
-  globalStyles,
-  globalMargins,
-  hairlineWidth,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../styles'
+import * as Kb from '../../common-adapters/index'
+import * as Styles from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 
 const Left = ({leftService, leftIcon, leftIconOpaque, leftUsername, leftFollowingState, leftFullname}) => {
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flex: 1,
-        height: '100%',
-        paddingLeft: globalMargins.tiny,
-      }}
-    >
-      <Box style={{...globalStyles.flexBoxCenter, width: isMobile ? 48 : 32}}>
+    <Kb.Box style={styles.container}>
+      <Kb.Box style={styles.leftBox}>
         <IconOrAvatar
           service={leftService}
           username={leftUsername}
           icon={leftIcon}
-          avatarSize={isMobile ? 48 : 32}
+          avatarSize={Styles.isMobile ? 48 : 32}
           opacity={leftIconOpaque ? 1 : 0.3}
         />
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-        <Text
+      </Kb.Box>
+      <Kb.Box style={styles.rightBox}>
+        <Kb.Text
           type="BodySemibold"
-          style={collapseStyles([followingStateToStyle(leftFollowingState), {letterSpacing: 0.2}])}
+          style={Styles.collapseStyles([followingStateToStyle(leftFollowingState), {letterSpacing: 0.2}])}
         >
           {leftUsername}
-        </Text>
-        {!!leftFullname && <Text type="BodySmall">{leftFullname}</Text>}
-      </Box>
-    </Box>
+        </Kb.Text>
+        {!!leftFullname && <Kb.Text type="BodySmall">{leftFullname}</Kb.Text>}
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
 const Middle = ({rightService, rightIcon, rightIconOpaque, rightUsername, rightFollowingState}) => {
   return (
-    <Box
+    <Kb.Box
       style={{
-        ...globalStyles.flexBoxColumn,
+        ...Styles.globalStyles.flexBoxColumn,
         height: '100%',
         justifyContent: 'center',
-        width: isMobile ? 100 : 120,
+        width: Styles.isMobile ? 100 : 120,
       }}
     >
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'flex-start'}}>
         <IconOrAvatar
           service={rightService}
           username={rightUsername}
@@ -65,74 +48,49 @@ const Middle = ({rightService, rightIcon, rightIconOpaque, rightUsername, rightF
           opacity={rightIconOpaque ? 1 : 0.3}
           fontSize={16}
           avatarSize={16}
-          style={{
-            ...globalStyles.flexBoxColumn,
-            height: 16,
-            marginRight: globalMargins.xtiny,
-            marginTop: isMobile ? 1 : 0,
-            width: 16,
-          }}
+          style={styles.avatar}
         />
         {!!rightUsername && (
-          <Text
+          <Kb.Text
             type="BodySmallSemibold"
-            style={platformStyles({
-              common: {
-                ...followingStateToStyle(rightFollowingState),
-                flex: 1,
-                overflow: 'hidden',
-              },
-              isElectron: {
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-              },
-            })}
+            lineClamp={1}
+            style={Styles.collapseStyles([styles.rightUsername, followingStateToStyle(rightFollowingState)])}
           >
             {rightUsername}
-          </Text>
+          </Kb.Text>
         )}
-      </Box>
-    </Box>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
 const Right = ({onShowTracker}) => {
   return onShowTracker ? (
-    <Icon
+    <Kb.Icon
       type="iconfont-usercard"
       onClick={onShowTracker}
-      style={{
-        marginLeft: globalMargins.small,
-        marginRight: globalMargins.small,
-      }}
-      fontSize={isMobile ? 22 : 16}
+      style={styles.icon}
+      fontSize={Styles.isMobile ? 22 : 16}
     />
   ) : null
 }
 
 const RightEdge = ({showCheckmark}) => {
   return showCheckmark ? (
-    <Icon
-      type="iconfont-check"
-      style={{
-        marginLeft: globalMargins.small,
-        marginRight: globalMargins.small,
-      }}
-      color={globalColors.blue}
-    />
+    <Kb.Icon type="iconfont-check" style={styles.icon} color={Styles.globalColors.blue} />
   ) : null
 }
 
 export type Props = Types.RowProps
 
 const SearchResultRow = (props: Props) => (
-  <ClickableBox
-    style={_clickableBoxStyle[(!!props.selected && props.leftIconOpaque).toString()]}
-    underlayColor={globalColors.blueLighter2}
+  <Kb.ClickableBox
+    style={!!props.selected && props.leftIconOpaque ? styles.boxSelected : styles.boxNotSelected}
+    underlayColor={Styles.globalColors.blueLighter2}
     onClick={props.userIsSelectable ? props.onClick : undefined}
     onMouseOver={props.onMouseOver}
   >
-    <Box style={_rowStyle}>
+    <Kb.Box style={styles.row}>
       <Left
         leftFollowingState={props.leftFollowingState}
         leftIcon={props.leftIcon}
@@ -150,16 +108,16 @@ const SearchResultRow = (props: Props) => (
       />
       <Right onShowTracker={props.onShowTracker} />
       <RightEdge showCheckmark={props.userAlreadySelected} />
-      <Divider style={styles.divider} />
-    </Box>
-  </ClickableBox>
+      <Kb.Divider style={styles.divider} />
+    </Kb.Box>
+  </Kb.ClickableBox>
 )
 
-const _clickableBoxStyleCommon = {
-  ...globalStyles.flexBoxRow,
+const boxStyle = {
+  ...Styles.globalStyles.flexBoxRow,
   flex: 1,
   width: '100%',
-  ...(isMobile
+  ...(Styles.isMobile
     ? {
         maxHeight: 56,
         minHeight: 56,
@@ -170,29 +128,63 @@ const _clickableBoxStyleCommon = {
       }),
 }
 
-const _clickableBoxStyle = {
-  false: _clickableBoxStyleCommon,
-  true: {
-    ..._clickableBoxStyleCommon,
-    backgroundColor: globalColors.blueLighter2,
+const styles = Styles.styleSheetCreate(() => ({
+  avatar: {
+    ...Styles.globalStyles.flexBoxColumn,
+    height: 16,
+    marginRight: Styles.globalMargins.xtiny,
+    marginTop: Styles.isMobile ? 1 : 0,
+    width: 16,
   },
-}
-
-const _rowStyle = {
-  ..._clickableBoxStyleCommon,
-  alignItems: 'center',
-  justifyContent: 'flex-start',
-  position: 'relative',
-}
-
-const styles = styleSheetCreate({
+  boxNotSelected: {
+    ...boxStyle,
+  },
+  boxSelected: {
+    ...boxStyle,
+    backgroundColor: Styles.globalColors.blueLighter2,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flex: 1,
+    height: '100%',
+    paddingLeft: Styles.globalMargins.tiny,
+  },
   divider: {
-    ...globalStyles.fillAbsolute,
-    left: isMobile ? 68 : 56,
-    maxHeight: hairlineWidth,
-    minHeight: hairlineWidth,
+    ...Styles.globalStyles.fillAbsolute,
+    left: Styles.isMobile ? 68 : 56,
+    maxHeight: Styles.hairlineWidth,
+    minHeight: Styles.hairlineWidth,
     top: undefined,
   },
-})
+  icon: {
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+  },
+  leftBox: {
+    ...Styles.globalStyles.flexBoxCenter,
+    width: Styles.isMobile ? 48 : 32,
+  },
+  rightBox: {
+    ...Styles.globalStyles.flexBoxColumn,
+    marginLeft: Styles.globalMargins.small,
+  },
+  rightUsername: Styles.platformStyles({
+    common: {
+      flex: 1,
+      overflow: 'hidden',
+    },
+    isElectron: {
+      whiteSpace: 'pre-wrap',
+      wordWrap: 'break-word',
+    },
+  }),
+  row: {
+    ...boxStyle,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    position: 'relative',
+  },
+}))
 
 export default SearchResultRow

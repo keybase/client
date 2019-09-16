@@ -7,7 +7,7 @@ import * as Styles from '../styles'
 import {Props} from './back-button'
 
 export default class BackButton extends Component<Props> {
-  onClick(event: React.SyntheticEvent) {
+  onClick(event: React.BaseSyntheticEvent) {
     event && event.preventDefault && event.preventDefault()
     event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {
@@ -32,7 +32,7 @@ export default class BackButton extends Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   arrow: {marginRight: -3, marginTop: 2},
   container: {
     ...Styles.globalStyles.flexBoxRow,
@@ -42,6 +42,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small - 4,
     paddingRight: Styles.globalMargins.small,
   },
-})
+}))
 
 const iconFontSize = 24

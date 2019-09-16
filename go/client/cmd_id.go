@@ -85,7 +85,7 @@ func (v *CmdID) Run() error {
 You can either specify a user to id: keybase id <username>
 Or log in once on this device and run "keybase id" again.
 `
-		v.G().UI.GetDumbOutputUI().PrintfStderr(msg)
+		_, _ = v.G().UI.GetDumbOutputUI().PrintfStderr(msg)
 		return nil
 	}
 	return err

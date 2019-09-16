@@ -46,17 +46,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       const {username, usernameTaken = '', error: usernameError} = action.payload
       return username === state.username ? state.merge({usernameError, usernameTaken}) : state
     }
-    case SignupGen.checkEmail: {
-      const {email, allowSearch} = action.payload
-      const emailVisible = allowSearch
-      const emailError = isValidEmail(email)
-      return state.merge({
-        email,
-        emailError,
-        emailVisible,
-        justSignedUpEmail: email,
-      })
-    }
     case SignupGen.requestInvite: {
       const {email, name} = action.payload
       const emailError = isValidEmail(email)
@@ -102,12 +91,16 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
         : state
     case SignupGen.signedup:
-      return state.merge({signupError: actionHasError(action) ? action.payload.error : null})
+      return state.merge({
+        signupError: actionHasError(action) ? action.payload.error : null,
+      })
+    case SignupGen.setJustSignedUpEmail:
+      return state.merge({
+        justSignedUpEmail: action.payload.email,
+      })
     case SignupGen.clearJustSignedUpEmail:
     case EngineGen.keybase1NotifyEmailAddressEmailAddressVerified:
-      return state.merge({
-        justSignedUpEmail: '',
-      })
+      return state.merge({justSignedUpEmail: ''})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state

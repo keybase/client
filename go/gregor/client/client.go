@@ -165,7 +165,10 @@ func (c *Client) Stop() chan struct{} {
 	ch := make(chan struct{})
 	close(c.stopCh)
 	go func() {
-		c.eg.Wait()
+		err := c.eg.Wait()
+		if err != nil {
+			c.Log.CDebugf(context.TODO(), "Error waiting during Stop: %+v", err)
+		}
 		close(ch)
 	}()
 	return ch
@@ -206,7 +209,10 @@ func (c *Client) SyncFromTime(ctx context.Context, cli gregor1.IncomingInterface
 		c.Log.CDebugf(ctx, "Sync(): consuming msgid: %s", ibm.Metadata().MsgID())
 		m := gregor1.Message{Ibm_: &ibm}
 		msgs = append(msgs, ibm)
-		c.Sm.ConsumeMessage(ctx, m)
+		_, err := c.Sm.ConsumeMessage(ctx, m)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Check to make sure the server state is legit
@@ -251,7 +257,9 @@ func (c *Client) freshSync(ctx context.Context, cli gregor1.IncomingInterface, s
 	if msgs, err = c.InBandMessagesFromState(*state); err != nil {
 		return msgs, err
 	}
-	c.Sm.Clear()
+	if err = c.Sm.Clear(); err != nil {
+		return msgs, err
+	}
 	if err = c.Sm.InitState(*state); err != nil {
 		return msgs, err
 	}
@@ -434,7 +442,10 @@ func (c *Client) applyOutboxMessages(ctx context.Context, state gregor.State, t 
 	}
 	c.Log.CDebugf(ctx, "applyOutboxMessages: applying %d outbox messages", len(msgs))
 	sm := c.createSm()
-	sm.InitState(state)
+	err = sm.InitState(state)
+	if err != nil {
+		c.Log.CDebugf(ctx, "error initing state machine: %+v", err)
+	}
 	for _, m := range msgs {
 		if _, err := sm.ConsumeMessage(ctx, m); err != nil {
 			c.Log.CDebugf(ctx, "applyOutboxMessages: failed to consume message: %s", err)
@@ -495,7 +506,10 @@ func (c *Client) outboxSend() {
 			c.Log.Debug("outboxSend: failed to consume message: %s", err)
 			break
 		}
-		c.Sm.RemoveFromOutbox(ctx, c.User, ibm.Metadata().MsgID())
+		err := c.Sm.RemoveFromOutbox(ctx, c.User, ibm.Metadata().MsgID())
+		if err != nil {
+			c.Log.Debug("outboxSend: error removing from outbox: %+v", err)
+		}
 		if c.TestingEvents != nil {
 			c.TestingEvents.OutboxSend <- m.(gregor1.Message)
 		}

@@ -16,7 +16,6 @@ import {BotCommandUpdateStatus} from './shared'
 
 type State = {
   emojiPickerOpen: boolean
-  hasText: boolean
 }
 
 class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> {
@@ -25,7 +24,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   _fileInput: HTMLInputElement | null = null
   state = {
     emojiPickerOpen: false,
-    hasText: false,
   }
 
   _inputSetRef = (ref: null | Kb.PlainInput) => {
@@ -96,7 +94,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 
   _onChangeText = (text: string) => {
-    this.setState({hasText: !!text})
     this._lastText = text
     this.props.onChangeText(text)
   }
@@ -171,7 +168,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     this.props.toggleShowingMenu()
   }
 
-  render = () => {
+  render() {
     let hintText = 'Write a message'
     if (this.props.isExploding) {
       hintText = 'Write an exploding message'
@@ -252,7 +249,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputBox}>
               <Kb.PlainInput
-                className={'mousetrap' /* className needed so key handler doesn't ignore hotkeys */}
+                className="mousetrap"
                 disabled={
                   // Auto generated from flowToTs. Please clean me!
                   this.props.cannotWrite !== null && this.props.cannotWrite !== undefined
@@ -262,7 +259,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 autoFocus={false}
                 ref={this._inputSetRef}
                 placeholder={hintText}
-                style={styles.input}
+                style={Styles.collapseStyles([styles.input, this.props.isEditing && styles.inputEditing])}
                 onChangeText={this._onChangeText}
                 multiline={true}
                 rowsMin={1}
@@ -328,8 +325,8 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
         <Picker
           autoFocus={true}
           onClick={onClick}
-          emoji={'ghost'}
-          title={'emojibase'}
+          emoji="ghost"
+          title="emojibase"
           backgroundImageFn={backgroundImageFn}
         />
       </Kb.Box>
@@ -337,152 +334,158 @@ const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
-  accessory: {
-    bottom: 1,
-    display: 'flex',
-    left: 0,
-    position: 'absolute',
-    right: 0,
-  },
-  accessoryContainer: {
-    position: 'relative',
-    width: '100%',
-  },
-  boomIcon: Styles.platformStyles({
-    common: {
-      left: 231,
-      marginTop: -30,
-      position: 'absolute',
-    },
-    isElectron: {
-      cursor: 'text',
-    },
-  }),
-  cancelEditing: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.black,
-      borderRadius: 2,
-      justifyContent: 'center',
-      margin: 2,
-      marginRight: 0,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.clickable,
-    },
-  }),
-  cancelEditingText: {
-    color: Styles.globalColors.white,
-  },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.white,
-    width: '100%',
-  },
-  emojiPickerContainer: Styles.platformStyles({
-    common: {
-      borderRadius: 4,
-      bottom: 34,
-      position: 'absolute',
-      right: -22,
-    },
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-    },
-  }),
-  emojiPickerContainerWrapper: {
-    ...Styles.globalStyles.fillAbsolute,
-  },
-  emojiPickerRelative: {
-    position: 'relative',
-  },
-  explodingIconContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      borderBottomLeftRadius: 3,
-      borderTopLeftRadius: 3,
-      justifyContent: 'center',
-      textAlign: 'center',
-      width: 32,
-    },
-    isElectron: {
-      borderRight: `1px solid ${Styles.globalColors.black_20}`,
-    },
-  }),
-  explodingIconContainerClickable: Styles.platformStyles({
-    isElectron: {...Styles.desktopStyles.clickable},
-  }),
-  footer: {
-    alignSelf: 'flex-end',
-    color: Styles.globalColors.black_20,
-    marginBottom: Styles.globalMargins.xtiny,
-    marginRight: Styles.globalMargins.medium + 2,
-    marginTop: 2,
-    textAlign: 'right',
-  },
-  footerContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  hidden: {
-    display: 'none',
-  },
-  icon: {
-    bottom: 6,
-    marginRight: Styles.globalMargins.tiny,
-    position: 'relative',
-  },
-  input: {
-    backgroundColor: Styles.globalColors.transparent,
-    height: 21,
-    minHeight: 21,
-  },
-  inputBox: {
-    flex: 1,
-    paddingBottom: Styles.globalMargins.xxtiny,
-    paddingLeft: 6,
-    paddingRight: 6,
-    paddingTop: Styles.globalMargins.tiny,
-    textAlign: 'left',
-  },
-  inputWrapper: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-end',
-    borderRadius: 4,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-  mentionCatcher: {
-    ...Styles.globalStyles.fillAbsolute,
-    backgroundColor: Styles.globalColors.transparent,
-  },
-  mentionHud: Styles.platformStyles({
-    common: {
-      borderRadius: 4,
-      height: 224,
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-    },
-  }),
-  walletsIcon: {
-    alignSelf: 'flex-end',
-    marginBottom: 6,
-    marginRight: Styles.globalMargins.tiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      accessory: {
+        bottom: 1,
+        display: 'flex',
+        left: 0,
+        position: 'absolute',
+        right: 0,
+      },
+      accessoryContainer: {
+        position: 'relative',
+        width: '100%',
+      },
+      boomIcon: Styles.platformStyles({
+        common: {
+          left: 231,
+          marginTop: -30,
+          position: 'absolute',
+        },
+        isElectron: {
+          cursor: 'text',
+        },
+      }),
+      cancelEditing: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignSelf: 'stretch',
+          backgroundColor: Styles.globalColors.blackOrWhite,
+          borderRadius: 2,
+          justifyContent: 'center',
+          margin: 2,
+          marginRight: 0,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
+      cancelEditingText: {
+        color: Styles.globalColors.whiteOrBlack,
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Styles.globalColors.white,
+        width: '100%',
+      },
+      emojiPickerContainer: Styles.platformStyles({
+        common: {
+          borderRadius: 4,
+          bottom: 34,
+          position: 'absolute',
+          right: -22,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.boxShadow,
+        },
+      }),
+      emojiPickerContainerWrapper: {
+        ...Styles.globalStyles.fillAbsolute,
+      },
+      emojiPickerRelative: {
+        position: 'relative',
+      },
+      explodingIconContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          alignSelf: 'stretch',
+          borderBottomLeftRadius: 3,
+          borderTopLeftRadius: 3,
+          justifyContent: 'center',
+          textAlign: 'center',
+          width: 32,
+        },
+        isElectron: {
+          borderRight: `1px solid ${Styles.globalColors.black_20}`,
+        },
+      }),
+      explodingIconContainerClickable: Styles.platformStyles({
+        isElectron: {...Styles.desktopStyles.clickable},
+      }),
+      footer: {
+        alignSelf: 'flex-end',
+        color: Styles.globalColors.black_20,
+        marginBottom: Styles.globalMargins.xtiny,
+        marginRight: Styles.globalMargins.medium + 2,
+        marginTop: 2,
+        textAlign: 'right',
+      },
+      footerContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+      },
+      hidden: {
+        display: 'none',
+      },
+      icon: {
+        bottom: 6,
+        marginRight: Styles.globalMargins.tiny,
+        position: 'relative',
+      },
+      input: {
+        backgroundColor: Styles.globalColors.transparent,
+        height: 21,
+        minHeight: 21,
+      },
+      inputBox: {
+        flex: 1,
+        paddingBottom: Styles.globalMargins.xxtiny,
+        paddingLeft: 6,
+        paddingRight: 6,
+        paddingTop: Styles.globalMargins.tiny,
+        textAlign: 'left',
+      },
+      inputEditing: {
+        color: Styles.globalColors.blackOrBlack,
+      },
+      inputWrapper: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-end',
+        borderRadius: 4,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
+      mentionCatcher: {
+        ...Styles.globalStyles.fillAbsolute,
+        backgroundColor: Styles.globalColors.transparent,
+      },
+      mentionHud: Styles.platformStyles({
+        common: {
+          borderRadius: 4,
+          height: 224,
+          marginLeft: Styles.globalMargins.small,
+          marginRight: Styles.globalMargins.small,
+          width: '100%',
+        },
+        isElectron: {
+          ...Styles.desktopStyles.boxShadow,
+        },
+      }),
+      walletsIcon: {
+        alignSelf: 'flex-end',
+        marginBottom: 6,
+        marginRight: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {

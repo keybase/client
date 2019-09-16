@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/contacts"
@@ -15,15 +16,24 @@ import (
 	"golang.org/x/net/context"
 )
 
-type bulkLookupContactsProvider struct{}
+type bulkLookupContactsProvider struct {
+	serviceMapper libkb.ServiceSummaryMapper
+}
 
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
+
+func (c *bulkLookupContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, token contacts.Token) (contacts.ContactLookupResults, error) {
+	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAllWithToken(len=%d)", len(emails)+len(numbers)),
+		func() error { return nil })()
+	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion, token)
+}
 
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
 	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupResults, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
-	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion)
+	return c.LookupAllWithToken(mctx, emails, numbers, userRegion, contacts.NoneToken)
 }
 
 func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
@@ -32,7 +42,7 @@ func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
 		func() error { return nil })()
 
 	const fullnameFreshness = 10 * time.Minute
-	const networkTimeBudget = 0
+	const networkTimeBudget = uidmap.DefaultNetworkBudget
 	const forceNetworkForFullNames = true
 
 	nameMap, err := uidmap.MapUIDsReturnMapMctx(mctx, uids, fullnameFreshness, networkTimeBudget, forceNetworkForFullNames)
@@ -102,6 +112,24 @@ func (c *bulkLookupContactsProvider) FindFollowing(mctx libkb.MetaContext,
 	return res, nil
 }
 
+func (c *bulkLookupContactsProvider) FindServiceMaps(mctx libkb.MetaContext,
+	uids []keybase1.UID) (res map[keybase1.UID]libkb.UserServiceSummary, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#FindServiceMaps(len=%d)", len(uids)),
+		func() error { return err })()
+
+	const serviceMapFreshness = 12 * time.Hour
+	const networkTimeBudget = uidmap.DefaultNetworkBudget
+	pkgs := c.serviceMapper.MapUIDsToServiceSummaries(mctx.Ctx(), mctx.G(),
+		uids, serviceMapFreshness, networkTimeBudget)
+	res = make(map[keybase1.UID]libkb.UserServiceSummary, len(pkgs))
+	for uid, pkg := range pkgs {
+		if pkg.ServiceMap != nil {
+			res[uid] = pkg.ServiceMap
+		}
+	}
+	return res, nil
+}
+
 type ContactsHandler struct {
 	libkb.Contextified
 	*BaseHandler
@@ -111,8 +139,10 @@ type ContactsHandler struct {
 
 func NewCachedContactsProvider(g *libkb.GlobalContext) *contacts.CachedContactsProvider {
 	return &contacts.CachedContactsProvider{
-		Provider: &bulkLookupContactsProvider{},
-		Store:    contacts.NewContactCacheStore(g),
+		Provider: &bulkLookupContactsProvider{
+			serviceMapper: uidmap.NewServiceSummaryMap(500),
+		},
+		Store: contacts.NewContactCacheStore(g),
 	}
 }
 
@@ -134,7 +164,7 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts, arg.UserRegionCode)
 }
 
-func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (err error) {
+func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res []keybase1.ProcessedContact, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SAVECON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#SaveContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
@@ -215,6 +245,10 @@ func (h *ContactsHandler) GetContactsForUserRecommendations(ctx context.Context,
 			}
 		}
 	}
+
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].DisplayName < res[j].DisplayName
+	})
 
 	return res, nil
 }

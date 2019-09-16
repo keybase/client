@@ -8,19 +8,21 @@ import {parseUri, launchImageLibraryAsync} from '../../util/expo-image-picker'
 import {makeRetriableErrorHandler} from './shared'
 import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 
-const pickAndUploadToPromise = (_: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
-  launchImageLibraryAsync(action.payload.type)
-    .then(result =>
-      result.cancelled === true
-        ? null
-        : FsGen.createUpload({
-            localPath: parseUri(result),
-            parentPath: action.payload.parentPath,
-          })
-    )
-    .catch(makeRetriableErrorHandler(action))
+const pickAndUploadToPromise = async (_: TypedState, action: FsGen.PickAndUploadPayload) => {
+  try {
+    const result = await launchImageLibraryAsync(action.payload.type)
+    return result.cancelled === true
+      ? null
+      : FsGen.createUpload({
+          localPath: parseUri(result),
+          parentPath: action.payload.parentPath,
+        })
+  } catch (e) {
+    return makeRetriableErrorHandler(action)(e)
+  }
+}
 
-const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
+const downloadSuccess = async (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {
@@ -30,14 +32,20 @@ const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload
   const {intent, localPath} = download.meta as Types.DownloadMeta
   switch (intent) {
     case Types.DownloadIntent.CameraRoll:
-      return saveAttachmentDialog(localPath)
-        .then(() => FsGen.createDismissDownload({key}))
-        .catch(makeRetriableErrorHandler(action))
+      try {
+        await saveAttachmentDialog(localPath)
+        return FsGen.createDismissDownload({key})
+      } catch (e) {
+        return makeRetriableErrorHandler(action)(e)
+      }
     case Types.DownloadIntent.Share:
       // @ts-ignore codemod-issue probably a real issue
-      return showShareActionSheetFromURL({mimeType, url: localPath})
-        .then(() => FsGen.createDismissDownload({key}))
-        .catch(makeRetriableErrorHandler(action))
+      try {
+        await showShareActionSheetFromURL({mimeType, url: localPath})
+        return FsGen.createDismissDownload({key})
+      } catch (e) {
+        return makeRetriableErrorHandler(action)(e)
+      }
     case Types.DownloadIntent.None:
       return
     default:
@@ -46,7 +54,7 @@ const downloadSuccess = (state: TypedState, action: FsGen.DownloadSuccessPayload
   }
 }
 
-export default function* nativeSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield* Saga.chainAction<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccess)
+export default function* nativeSaga() {
+  yield* Saga.chainAction2(FsGen.pickAndUpload, pickAndUploadToPromise)
+  yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccess)
 }

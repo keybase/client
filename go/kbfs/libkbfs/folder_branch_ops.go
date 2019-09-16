@@ -87,6 +87,9 @@ const (
 	markAndSweepPeriod = 1 * time.Hour
 	// A hard-coded reason used to derive the log obfuscator secret.
 	obfuscatorDerivationString = "Keybase-Derived-KBFS-Log-Obfuscator-1"
+	// How long do we skip identifies after seeing one with a broken
+	// proof warning?
+	cacheBrokenProofIdentifiesDuration = 5 * time.Minute
 )
 
 // ErrStillStagedAfterCR indicates that conflict resolution failed to take
@@ -310,9 +313,10 @@ type folderBranchOps struct {
 	nodeCache NodeCache
 
 	// Whether we've identified this TLF or not.
-	identifyLock sync.Mutex
-	identifyDone bool
-	identifyTime time.Time
+	identifyLock            sync.Mutex
+	identifyDone            bool
+	identifyTime            time.Time
+	identifyDoneWithWarning bool
 
 	// The current status summary for this folder
 	status *folderBranchStatusKeeper
@@ -1175,6 +1179,15 @@ pathLoop:
 			case nil:
 			default:
 				return err
+			}
+
+			if currNode == nil {
+				// This can happen if an old bug (HOTPOT-616) kept a
+				// deleted path in the history that has since been
+				// changed into a symlink.
+				fbo.vlog.CLogf(
+					ctx, libkb.VLog1, "Ignoring symlink path %s", p)
+				continue pathLoop
 			}
 
 			// Use `PrefetchTail` for directories, to make sure that
@@ -2166,10 +2179,15 @@ func (fbo *folderBranchOps) identifyOnce(
 	defer fbo.identifyLock.Unlock()
 
 	ei := tlfhandle.GetExtendedIdentify(ctx)
-	if fbo.identifyDone && !ei.Behavior.AlwaysRunIdentify() {
-		// TODO: provide a way for the service to break this cache when identify
-		// state changes on a TLF. For now, we do it this way to make chat work.
-		return nil
+	if !ei.Behavior.AlwaysRunIdentify() {
+		if fbo.identifyDone ||
+			(fbo.identifyDoneWithWarning &&
+				ei.Behavior.WarningInsteadOfErrorOnBrokenTracks()) {
+			// TODO: provide a way for the service to break this cache
+			// when identify state changes on a TLF. For now, we do it
+			// this way to make chat work.
+			return nil
+		}
 	}
 
 	h := md.GetTlfHandle()
@@ -2186,8 +2204,38 @@ func (fbo *folderBranchOps) identifyOnce(
 	switch {
 	case ei.Behavior.WarningInsteadOfErrorOnBrokenTracks() &&
 		len(ei.GetTlfBreakAndClose().Breaks) > 0:
+		// In the (currently unused) condition that we get here when
+		// `ei.Behavior.AlwaysRunIdentify()` is true, avoid setting
+		// multiple timers.
+		if fbo.identifyDoneWithWarning {
+			break
+		}
+
+		// In this case, the caller has explicitly requested that we
+		// treat proof failures as warnings, instead of errors.  For
+		// example, the GUI does this and shows a warning banner but
+		// still allows access to the files.  Identifies are
+		// expensive, so in this case we skip future identifies that
+		// also have this behavior for a short time period.
 		fbo.log.CDebugf(ctx,
-			"Identify finished with no error but broken proof warnings")
+			"Identify finished with no error but broken proof warnings; "+
+				"caching result for %d", cacheBrokenProofIdentifiesDuration)
+		fbo.identifyDoneWithWarning = true
+		timer := time.NewTimer(cacheBrokenProofIdentifiesDuration)
+		fbo.goTracked(func() {
+			select {
+			case <-timer.C:
+				fbo.identifyLock.Lock()
+				defer fbo.identifyLock.Unlock()
+				fbo.vlog.CLogf(
+					context.TODO(), libkb.VLog1,
+					"Expiring cached identify with broken proofs")
+				fbo.identifyDoneWithWarning = false
+			case <-fbo.shutdownChan:
+				timer.Stop()
+			}
+		})
+
 	case ei.Behavior == keybase1.TLFIdentifyBehavior_CHAT_SKIP:
 		fbo.log.CDebugf(ctx, "Identify skipped")
 	default:
@@ -3738,6 +3786,20 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		// Make sure the ops are in increasing order by path length,
 		// so e.g. file creates come before file modifies.
 		sort.Sort(ops)
+
+		for _, op := range ops {
+			// Temporary debugging for the case where an op has an
+			// invalid path (HOTPOT-803).  Just printing something
+			// here (before falling through to the more extension
+			// debug statement below) to make it clear that we did go
+			// through chain population.
+			if !op.getFinalPath().IsValid() {
+				fbo.log.CDebugf(
+					ctx, "HOTPOT-803: Op %s missing path after populating "+
+						"chain paths", op)
+				break
+			}
+		}
 	}
 
 	rev := rmd.Revision()
@@ -3748,6 +3810,17 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	}
 
 	for _, op := range ops {
+		// Temporary debugging for the case where an op has an invalid
+		// path (HOTPOT-803).
+		if !op.getFinalPath().IsValid() {
+			fbo.log.CDebugf(
+				ctx, "HOTPOT-803: Op %s has no valid path; "+
+					"rev=%d, all ops=%v", rmd.Revision(), op, ops)
+			if fbo.config.Mode().IsTestMode() {
+				panic("Op missing path")
+			}
+		}
+
 		edit := op.ToEditNotification(
 			rev, revTime, rmd.lastWriterVerifyingKey,
 			rmd.LastModifyingWriter(), fbo.id())
@@ -7026,11 +7099,23 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 		}
 	}
 
-	// now go forward in time, if possible
-	err = fbo.getAndApplyMDUpdates(ctx, lState, nil,
-		fbo.applyMDUpdatesLocked)
+	currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
 	if err != nil {
 		return err
+	}
+
+	ffDone, err := fbo.maybeFastForwardLocked(ctx, lState, currHead)
+	if err != nil {
+		return err
+	}
+
+	if !ffDone {
+		// now go forward in time, if possible
+		err = fbo.getAndApplyMDUpdates(ctx, lState, nil,
+			fbo.applyMDUpdatesLocked)
+		if err != nil {
+			return err
+		}
 	}
 
 	md, err := fbo.getSuccessorMDForWriteLocked(ctx, lState)
@@ -7524,6 +7609,34 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) maybeFastForwardLocked(
+	ctx context.Context, lState *kbfssync.LockState,
+	currHead ImmutableRootMetadata) (fastForwardDone bool, err error) {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	// Kick off partial prefetching once the latest merged
+	// revision is set.
+	defer func() {
+		if err == nil {
+			fbo.kickOffPartialSyncIfNeeded(ctx, lState, currHead)
+		}
+	}()
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	if currHead.Revision() < fbo.latestMergedRevision+fastForwardRevThresh {
+		// Might as well fetch all the revisions.
+		return false, nil
+	}
+
+	err = fbo.doFastForwardLocked(ctx, lState, currHead)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 	lState *kbfssync.LockState, lastUpdate time.Time, currUpdate time.Time) (
 	fastForwardDone bool, err error) {
@@ -7566,27 +7679,7 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 		return false, nil
 	}
 
-	// Kick off partial prefetching once the latest merged
-	// revision is set.
-	defer func() {
-		if err == nil {
-			fbo.kickOffPartialSyncIfNeeded(ctx, lState, currHead)
-		}
-	}()
-
-	fbo.headLock.Lock(lState)
-	defer fbo.headLock.Unlock(lState)
-
-	if currHead.Revision() < fbo.latestMergedRevision+fastForwardRevThresh {
-		// Might as well fetch all the revisions.
-		return false, nil
-	}
-
-	err = fbo.doFastForwardLocked(ctx, lState, currHead)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	return fbo.maybeFastForwardLocked(ctx, lState, currHead)
 }
 
 func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
@@ -8352,6 +8445,17 @@ func (fbo *folderBranchOps) getMDForMigrationLocked(
 	}
 
 	return md, nil
+}
+
+// CheckMigrationPerms implements the KBFSOps interface for folderBranchOps.
+func (fbo *folderBranchOps) CheckMigrationPerms(
+	ctx context.Context, id tlf.ID) (err error) {
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	_, err = fbo.getMDForMigrationLocked(ctx, lState)
+	return err
 }
 
 // MigrateToImplicitTeam implements the KBFSOps interface for folderBranchOps.

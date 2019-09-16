@@ -5,6 +5,7 @@ import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import uuidv1 from 'uuid/v1'
+import flags from '../../util/feature-flags'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -17,10 +18,21 @@ const useDispatchWhenConnected = () => {
   return kbfsDaemonConnected ? dispatch : noop
 }
 
+const useDispatchWhenConnectedAndOnline = flags.kbfsOfflineMode
+  ? () => {
+      const kbfsDaemonStatus = Container.useSelector(state => state.fs.kbfsDaemonStatus)
+      const dispatch = Container.useDispatch()
+      return kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+        kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online
+        ? dispatch
+        : noop
+    }
+  : useDispatchWhenConnected
+
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
-    if (!isPathItem(path)) {
+    if (Types.getPathLevel(path) < 3) {
       return () => {}
     }
 
@@ -41,7 +53,7 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
   }, [dispatch, path])
@@ -49,7 +61,7 @@ export const useFsPathMetadata = (path: Types.Path) => {
 
 export const useFsChildren = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = useDispatchWhenConnectedAndOnline()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createFolderListLoad({path}))
   }, [dispatch, path])
@@ -63,5 +75,39 @@ export const useFsTlfs = () => {
   }, [dispatch])
 }
 
-export const useFsJournalStatus = () =>
+export const useFsJournalStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createPollJournalStatus())
+  }, [dispatch])
+}
+
+export const useFsOnlineStatus = () => {
+  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createGetOnlineStatus())
+  }, [dispatch])
+}
+
+export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
+  const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path, Constants.emptyPathInfo))
+  const dispatch = useDispatchWhenConnected()
+  const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
+  React.useEffect(() => {
+    if (alreadyKnown) {
+      dispatch(FsGen.createLoadedPathInfo({path, pathInfo: knownPathInfo}))
+    } else if (pathInfo === Constants.emptyPathInfo) {
+      // We only need to load if it's empty. This never changes once we have
+      // it.
+      dispatch(FsGen.createLoadPathInfo({path}))
+    }
+  }, [path, alreadyKnown, knownPathInfo, pathInfo, dispatch])
+  return alreadyKnown ? knownPathInfo : pathInfo
+}
+
+export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
+  const softErrors = Container.useSelector(state => state.fs.softErrors)
+  return Constants.getSoftError(softErrors, path)
+}

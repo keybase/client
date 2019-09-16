@@ -9,6 +9,9 @@
   font-family: Keybase;
   font-weight: 700;
 }
+.darkMode .text_HeaderBig {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 .text_HeaderBigExtrabold {
   font-size: 24px;
@@ -19,6 +22,9 @@
   font-family: Keybase;
   font-weight: 800;
 }
+.darkMode .text_HeaderBigExtrabold {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 .text_Header {
   font-size: 18px;
@@ -28,6 +34,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 700;
+}
+.darkMode .text_Header {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .text_HeaderItalic {
@@ -40,6 +49,9 @@
   font-weight: 700;
   font-style: italic;
 }
+.darkMode .text_HeaderItalic {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 .text_HeaderExtrabold {
   font-size: 18px;
@@ -49,6 +61,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 800;
+}
+.darkMode .text_HeaderExtrabold {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .text_HeaderLink {
@@ -61,6 +76,9 @@
   font-family: Keybase;
   font-weight: 700;
 }
+.darkMode .text_HeaderLink {
+  color: rgba(24, 45, 110, 0.5);
+}
 
 .text_BodyBig {
   font-size: 15px;
@@ -71,6 +89,9 @@
   font-family: Keybase;
   font-weight: 600;
 }
+.darkMode .text_BodyBig {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 .text_BodyBigExtrabold {
   font-size: 15px;
@@ -80,6 +101,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 800;
+}
+.darkMode .text_BodyBigExtrabold {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyBigLink {
@@ -102,6 +126,9 @@
   font-family: Keybase;
   font-weight: 400;
 }
+.darkMode .text_Body {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 .text_BodyItalic {
   font-size: 14px;
@@ -113,6 +140,9 @@
   font-weight: 400;
   font-style: italic;
 }
+.darkMode .text_BodyItalic {
+  color: rgba(255, 255, 255, 0.85);
+}
 
 .text_BodySemibold {
   font-size: 14px;
@@ -122,6 +152,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
+}
+.darkMode .text_BodySemibold {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodySemiboldItalic {
@@ -133,6 +166,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
+}
+.darkMode .text_BodySemiboldItalic {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodySemiboldLink {
@@ -153,6 +189,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 800;
+}
+.darkMode .text_BodyExtrabold {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .text_BodyPrimaryLink {
@@ -176,6 +215,9 @@
   font-family: Keybase;
   font-weight: 400;
 }
+.darkMode .text_BodySecondaryLink {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmall {
   font-size: 13px;
@@ -185,6 +227,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 400;
+}
+.darkMode .text_BodySmall {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallBold {
@@ -196,6 +241,9 @@
   font-family: Keybase;
   font-weight: 700;
 }
+.darkMode .text_BodySmallBold {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmallItalic {
   font-size: 13px;
@@ -206,6 +254,9 @@
   font-family: Keybase;
   font-weight: 400;
   font-style: italic;
+}
+.darkMode .text_BodySmallItalic {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallPrimaryLink {
@@ -228,6 +279,9 @@
   font-family: Keybase;
   font-weight: 800;
 }
+.darkMode .text_BodySmallExtrabold {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmallSemiboldItalic {
   font-size: 13px;
@@ -238,6 +292,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
+}
+.darkMode .text_BodySmallSemiboldItalic {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallSemiboldPrimaryLink {
@@ -261,6 +318,9 @@
   font-family: Keybase;
   font-weight: 600;
 }
+.darkMode .text_BodySmallSemiboldSecondaryLink {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmallSecondaryLink {
   font-size: 13px;
@@ -272,6 +332,9 @@
   font-family: Keybase;
   font-weight: 400;
 }
+.darkMode .text_BodySmallSecondaryLink {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmallExtraboldSecondaryLink {
   font-size: 13px;
@@ -282,6 +345,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 800;
+}
+.darkMode .text_BodySmallExtraboldSecondaryLink {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodySmallError {
@@ -323,6 +389,9 @@
   font-family: Keybase;
   font-weight: 400;
 }
+.darkMode .text_BodyTiny {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodyTinyLink {
   font-size: 12px;
@@ -334,6 +403,9 @@
   font-family: Keybase;
   font-weight: 400;
 }
+.darkMode .text_BodyTinyLink {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodyTinyBold {
   font-size: 12px;
@@ -343,6 +415,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 700;
+}
+.darkMode .text_BodyTinyBold {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinyExtrabold {
@@ -354,6 +429,9 @@
   font-family: Keybase;
   font-weight: 800;
 }
+.darkMode .text_BodyTinyExtrabold {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodyTinySemibold {
   font-size: 12px;
@@ -363,6 +441,9 @@
   text-rendering: optimizeLegibility;
   font-family: Keybase;
   font-weight: 600;
+}
+.darkMode .text_BodyTinySemibold {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .text_BodyTinySemiboldItalic {
@@ -375,6 +456,9 @@
   font-weight: 600;
   font-style: italic;
 }
+.darkMode .text_BodyTinySemiboldItalic {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_BodySmallSemibold {
   font-size: 13px;
@@ -385,6 +469,9 @@
   font-family: Keybase;
   font-weight: 600;
 }
+.darkMode .text_BodySmallSemibold {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 .text_Terminal {
   font-size: 13px;
@@ -393,6 +480,9 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Source Code Pro;
+}
+.darkMode .text_Terminal {
+  color: #4c8eff;
 }
 
 .text_TerminalComment {
@@ -426,6 +516,9 @@
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
+}
+.darkMode .text_TerminalInline {
+  color: #f00;
 }
 
 .text_center {

@@ -31,6 +31,9 @@
         "chat1ChatUiChatThreadFull": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadFull']['outParam']) => void}"
         },
+        "chat1ChatUiChatThreadStatus": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatThreadStatus']['outParam']) => void}"
+        },
         "chat1ChatUiChatSearchHit": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchHit']['outParam']) => void}"
         },
@@ -99,6 +102,9 @@
         },
         "chat1ChatUiChatBotCommandsUpdateStatus": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatBotCommandsUpdateStatus']['outParam']) => void}"
+        },
+        "chat1ChatUiTriggerContactSync": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.triggerContactSync']['outParam']) => void}"
         },
         "chat1NotifyChatNewChatActivity": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.NewChatActivity']['inParam'] & {sessionID: number}"
@@ -376,6 +382,9 @@
         "keybase1NotifyRuntimeStatsRuntimeStatsUpdate": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']) => void}"
         },
+        "keybase1NotifyServiceHTTPSrvInfoUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']) => void}"
+        },
         "keybase1NotifyServiceShutdown": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}"
         },
@@ -429,6 +438,9 @@
         },
         "keybase1NotifyUsersPasswordChanged": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.passwordChanged']['outParam']) => void}"
+        },
+        "keybase1NotifyUsersIdentifyUpdate": {
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void}"
         },
         "keybase1PgpUiOutputSignatureSuccess": {
             "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void}"

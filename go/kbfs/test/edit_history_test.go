@@ -515,3 +515,90 @@ func TestEditHistoryRenameParentAcrossDirs(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for HOTPOT-616.
+func TestEditHistoryRenameDirAndReuseNameForFile(t *testing.T) {
+	// Alice creates a dir and puts files in it, creates a file,
+	// renames the dir to something new, renames the file to
+	// the old dir name, and then nukes the old directory.
+	expectedEdits := []expectedEdit{
+		{
+			"alice",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			[]string{"/keybase/private/alice/a"},
+			[]string{
+				"/keybase/private/alice/b/c/d",
+				"/keybase/private/alice/b/b",
+			},
+		},
+	}
+
+	test(t, batchSize(20),
+		users("alice"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", ""),
+			pwriteBSSync("a/b", []byte("hello"), 0, false),
+			mkdir("a/c"),
+			mkfile("a/c/d", ""),
+			pwriteBSSync("a/c/d", []byte("hello"), 0, false),
+		),
+		as(alice,
+			mkfile("e", ""),
+			pwriteBSSync("e", []byte("world"), 0, false),
+			rename("a", "b"),
+			rename("e", "a"),
+			rm("b/c/d"),
+			rmdir("b/c"),
+			rm("b/b"),
+			rmdir("b"),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits),
+		),
+	)
+}
+
+// Regression test for https://github.com/keybase/client/issues/19151.
+func TestEditHistoryRenameDirAndReuseNameForLink(t *testing.T) {
+	// Alice creates a dir and puts files in it, renames the dir to
+	// something new and then removes it, and makes a symlink using
+	// the old name to the new name.
+	expectedEdits := []expectedEdit{
+		{
+			"alice",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			nil,
+			[]string{
+				"/keybase/private/alice/b/c/d",
+				"/keybase/private/alice/b/b",
+			},
+		},
+	}
+
+	test(t, batchSize(20),
+		users("alice"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", ""),
+			pwriteBSSync("a/b", []byte("hello"), 0, false),
+			mkdir("a/c"),
+			mkfile("a/c/d", ""),
+			pwriteBSSync("a/c/d", []byte("hello"), 0, false),
+		),
+		as(alice,
+			rename("a", "b"),
+			rm("b/c/d"),
+			rmdir("b/c"),
+			rm("b/b"),
+			rmdir("b"),
+			mkdir("e"),
+			link("a", "e"),
+		),
+		as(alice,
+			checkUserEditHistory(expectedEdits),
+		),
+	)
+}

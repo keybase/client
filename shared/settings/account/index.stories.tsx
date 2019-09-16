@@ -7,16 +7,21 @@ import * as I from 'immutable'
 
 const props = {
   addedEmail: null,
+  addedPhone: false,
   contactKeys: I.List(),
   hasPassword: false,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
   onClearAddedEmail: Sb.action('onClearAddedEmail'),
+  onClearAddedPhone: Sb.action('onClearAddedPhone'),
   onClearSupersededPhoneNumber: Sb.action('onClearSupersededPhoneNumber'),
   onDeleteAccount: Sb.action('onDeleteAccount'),
   onManageContacts: Sb.action('onManageContacts'),
   onReload: Sb.action('onReload'),
   onSetPassword: Sb.action('onSetPassword'),
+  onStartPhoneConversation: Sb.action('onStartPhoneConversation'),
+  tooManyEmails: false,
+  tooManyPhones: false,
   waiting: false,
 }
 

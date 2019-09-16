@@ -2,7 +2,7 @@
   "protocol": "NotifyChat",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     }
@@ -32,8 +32,7 @@
         "EXPUNGE_9",
         "EPHEMERAL_PURGE_10",
         "REACTION_UPDATE_11",
-        "MESSAGES_UPDATED_12",
-        "CONVS_UPDATED_13"
+        "MESSAGES_UPDATED_12"
       ]
     },
     {
@@ -232,13 +231,6 @@
         {
           "type": "Expunge",
           "name": "expunge"
-        },
-        {
-          "type": [
-            null,
-            "InboxUIItem"
-          ],
-          "name": "conv"
         }
       ]
     },
@@ -308,19 +300,6 @@
             "items": "UIMessage"
           },
           "name": "updates"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConvsUpdated",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "InboxUIItem"
-          },
-          "name": "items"
         }
       ]
     },
@@ -415,13 +394,6 @@
             "def": false
           },
           "body": "MessagesUpdated"
-        },
-        {
-          "label": {
-            "name": "CONVS_UPDATED",
-            "def": false
-          },
-          "body": "ConvsUpdated"
         }
       ]
     },

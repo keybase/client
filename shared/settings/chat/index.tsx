@@ -49,12 +49,12 @@ class Chat extends React.Component<Props, State> {
     this.setState({unfurlSelected: mode})
   }
   _toggleUnfurlWhitelist(domain: string) {
-    this.setState({
+    this.setState(s => ({
       unfurlWhitelistRemoved: {
-        ...this.state.unfurlWhitelistRemoved,
-        [domain]: !this.state.unfurlWhitelistRemoved[domain],
+        ...s.unfurlWhitelistRemoved,
+        [domain]: !s.unfurlWhitelistRemoved[domain],
       },
-    })
+    }))
   }
   _isUnfurlWhitelistRemoved(domain: string) {
     return this.state.unfurlWhitelistRemoved[domain]
@@ -149,7 +149,7 @@ class Chat extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
       marginLeft: 28,
@@ -194,6 +194,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.xtiny,
   },
-})
+}))
 
 export default Kb.HeaderHoc(Chat)

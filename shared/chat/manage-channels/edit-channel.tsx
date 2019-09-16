@@ -110,7 +110,7 @@ class _EditChannel extends React.Component<Props, State> {
             value={this.state.newTopic}
             multiline={true}
             rowsMin={1}
-            rowsMax={isMobile ? 4 : 10}
+            rowsMax={isMobile ? 2 : 10}
             autoCorrect={true}
             autoCapitalize="sentences"
             // From go/chat/msgchecker/constants.go#HeadlineMaxLength

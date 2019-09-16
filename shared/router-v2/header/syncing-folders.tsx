@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
 import {namedConnect} from '../../util/typed-connect'
 import PieSlice from '../../fs/common/pie-slice'
 
@@ -16,7 +17,7 @@ type Props = {
 
 const SyncingFolders = (props: Props) =>
   props.show && props.progress !== 1.0 ? (
-    <Kb.WithTooltip text={props.tooltip}>
+    <Kb.WithTooltip tooltip={props.tooltip}>
       <Kb.Box2 direction="horizontal" alignItems="center">
         <PieSlice degrees={props.progress * 360} animated={true} negative={props.negative} />
         <Kb.Text type="BodyTiny" negative={props.negative} style={{marginLeft: 5}}>
@@ -28,7 +29,7 @@ const SyncingFolders = (props: Props) =>
 
 const mapStateToProps = state => ({
   _syncingFoldersProgress: state.fs.overallSyncStatus.syncingFoldersProgress,
-  online: state.fs.kbfsDaemonStatus.online,
+  online: state.fs.kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,
 })
 
 const mapDispatchToProps = () => ({})

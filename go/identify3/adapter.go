@@ -148,6 +148,13 @@ func (i *UIAdapter) priority(key string) int {
 	return p
 }
 
+func (i *UIAdapter) getColorForValid(following bool) keybase1.Identify3RowColor {
+	if following {
+		return keybase1.Identify3RowColor_GREEN
+	}
+	return keybase1.Identify3RowColor_BLUE
+}
+
 // return true if we need an upgrade
 func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
@@ -156,10 +163,9 @@ func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3
 		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
 
 	switch {
-
 	// The proof worked, and either we tracked it as working, or we didn't track it at all.
 	case (lcr.ProofResult.State == keybase1.ProofState_OK && (lcr.RemoteDiff == nil || lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE)):
-		arg.Color = keybase1.Identify3RowColor_GREEN
+		arg.Color = i.getColorForValid(lcr.RemoteDiff != nil)
 		arg.State = keybase1.Identify3RowState_VALID
 
 	// The proof worked, and it's new to us.
@@ -359,7 +365,7 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 	switch {
 	case key.TrackDiff == nil || key.TrackDiff.Type == keybase1.TrackDiffType_NONE:
 		arg.State = keybase1.Identify3RowState_VALID
-		arg.Color = keybase1.Identify3RowColor_GREEN
+		arg.Color = i.getColorForValid(key.TrackDiff != nil)
 	case key.TrackDiff != nil && (key.TrackDiff.Type == keybase1.TrackDiffType_REVOKED || key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST):
 		arg.State = keybase1.Identify3RowState_REVOKED
 		arg.Color = keybase1.Identify3RowColor_RED
@@ -406,14 +412,13 @@ func (i *UIAdapter) plumbUncheckedProof(mctx libkb.MetaContext, row keybase1.Ide
 	i.updateRow(mctx, arg)
 }
 
-func (i *UIAdapter) updateRow(mctx libkb.MetaContext, arg keybase1.Identify3Row) error {
+func (i *UIAdapter) updateRow(mctx libkb.MetaContext, arg keybase1.Identify3Row) {
 	arg.GuiID = i.session.ID()
 	err := i.ui.Identify3UpdateRow(mctx.Ctx(), arg)
 	mctx.Debug("update row %+v", arg)
 	if err != nil {
 		mctx.Debug("Failed to send update row (%+v): %s", arg, err)
 	}
-	return err
 }
 
 func (i *UIAdapter) shouldSkipSendResult() bool {
@@ -483,7 +488,7 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 		Value:        crypto.Address,
 		Priority:     i.priority(key),
 		State:        keybase1.Identify3RowState_VALID,
-		Color:        keybase1.Identify3RowColor_GREEN,
+		Color:        i.getColorForValid(i.iFollowThem),
 		SigID:        crypto.SigID,
 		Ctime:        0,
 		SiteURL:      i.makeSigchainViewURL(mctx, crypto.SigID),
@@ -499,7 +504,7 @@ func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.Ste
 		Value:        str.FederationAddress,
 		Priority:     i.priority("stellar"),
 		State:        keybase1.Identify3RowState_VALID,
-		Color:        keybase1.Identify3RowColor_GREEN,
+		Color:        i.getColorForValid(i.iFollowThem),
 		SigID:        str.SigID,
 		Ctime:        0,
 		SiteURL:      i.makeSigchainViewURL(mctx, str.SigID),
@@ -570,12 +575,12 @@ func (i *UIAdapter) ReportTrackToken(mctx libkb.MetaContext, token keybase1.Trac
 }
 
 func (i *UIAdapter) Cancel(mctx libkb.MetaContext) error {
-	i.sendResult(mctx, keybase1.Identify3ResultType_CANCELED)
+	_ = i.sendResult(mctx, keybase1.Identify3ResultType_CANCELED)
 	return nil
 }
 
 func (i *UIAdapter) Finish(mctx libkb.MetaContext) error {
-	i.sendResult(mctx, i.session.ResultType())
+	_ = i.sendResult(mctx, i.session.ResultType())
 	return nil
 }
 func (i *UIAdapter) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {

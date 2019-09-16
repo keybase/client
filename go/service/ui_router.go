@@ -14,26 +14,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type transporterAndConnectionID struct {
-	transporter  rpc.Transporter
-	connectionID libkb.ConnectionID
-}
-
-type getObj struct {
-	ui    libkb.UIKind
-	retCh chan<- transporterAndConnectionID
-}
-
-type uiWrapper struct {
-	cid       libkb.ConnectionID
-	sessionID int
-}
-
-type setObj struct {
-	cid libkb.ConnectionID
-	ui  libkb.UIKind
-}
-
 type UIRouter struct {
 	sync.Mutex
 	libkb.Contextified

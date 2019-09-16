@@ -133,16 +133,6 @@ func (s *Syncer) sendNotificationLoop() {
 	}
 }
 
-func (s *Syncer) getUpdates(convs []chat1.Conversation) (res []chat1.ConversationStaleUpdate) {
-	for _, conv := range convs {
-		res = append(res, chat1.ConversationStaleUpdate{
-			ConvID:     conv.GetConvID(),
-			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
-		})
-	}
-	return res
-}
-
 func (s *Syncer) SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 	updates []chat1.ConversationStaleUpdate, immediate bool) {
 	if len(updates) == 0 {
@@ -195,9 +185,7 @@ func (s *Syncer) Connected(ctx context.Context, cli chat1.RemoteInterface, uid g
 	}
 
 	// Run sync against the server
-	s.sync(ctx, cli, uid, syncRes)
-
-	return nil
+	return s.sync(ctx, cli, uid, syncRes)
 }
 
 func (s *Syncer) Disconnected(ctx context.Context) {
@@ -250,7 +238,10 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	// Clear caches from members type changed convos
 	for _, convID := range convIDs {
 		s.Debug(ctx, "handleMembersTypeChanged: clearing message cache: %s", convID)
-		s.G().ConvSource.Clear(ctx, convID, uid)
+		err := s.G().ConvSource.Clear(ctx, convID, uid)
+		if err != nil {
+			s.Debug(ctx, "handleMembersTypeChanged: erroring clearing conv: %+v", err)
+		}
 	}
 }
 
@@ -265,7 +256,10 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 		if !fmap[sconv.GetConvID().String()] {
 			s.Debug(ctx, "handleFilteredConvs: conv filtered from inbox, removing cache: convID: %s memberStatus: %v existence: %v",
 				sconv.GetConvID(), sconv.ReaderInfo.Status, sconv.Metadata.Existence)
-			s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			err := s.G().ConvSource.Clear(ctx, sconv.GetConvID(), uid)
+			if err != nil {
+				s.Debug(ctx, "handleFilteredCovs: erroring clearing conv: %+v", err)
+			}
 		}
 	}
 }
@@ -511,8 +505,8 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			if expunge, ok := expunges[conv.GetConvID().String()]; ok {
 				// Run expunges on the background loader
 				s.Debug(ctx, "Sync: queueing expunge background loader job: convID: %s", conv.GetConvID())
-				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: num},
-					types.ConvLoaderPriorityHighest,
+				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: num},
+					types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
 					func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 						s.Debug(ctx, "Sync: executing expunge from a sync run: convID: %s", conv.GetConvID())
 						err := s.G().ConvSource.Expunge(ctx, conv.GetConvID(), uid, expunge)
@@ -531,8 +525,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 				}
 				s.Debug(ctx, "Sync: queueing background loader job: convID: %s", conv.GetConvID())
 				// Everything else just queue up here
-				job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: num},
-					types.ConvLoaderPriorityHigh, newConvLoaderPagebackHook(s.G(), 0, pageBack))
+				job := types.NewConvLoaderJob(conv.GetConvID(), &chat1.Pagination{Num: num},
+					types.ConvLoaderPriorityHigh, types.ConvLoaderGeneric,
+					newConvLoaderPagebackHook(s.G(), 0, pageBack))
 				if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 					s.Debug(ctx, "Sync: failed to queue conversation load: %s", err)
 				}

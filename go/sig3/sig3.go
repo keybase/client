@@ -50,8 +50,14 @@ type RotateKey struct {
 	Base
 }
 
+// LinkFromFuture is a sig3 link type that we don't know how to decode, but it's ok to ignore.
+type LinkFromFuture struct {
+	Base
+}
+
 var _ Generic = (*Base)(nil)
 var _ Generic = (*RotateKey)(nil)
+var _ Generic = (*LinkFromFuture)(nil)
 
 // NewRotateKey makes a new rotate key given sig3 skeletons (Outer and Inner) and
 // also the PTKs that are going to be advertised in the sig3 link.
@@ -227,7 +233,7 @@ func (r RotateKey) verifyReverseSig() (err error) {
 }
 
 func hash(b []byte) LinkID {
-	return LinkID(sha256.Sum256(b[:]))
+	return LinkID(sha256.Sum256(b))
 }
 
 func (l LinkID) eq(m LinkID) bool {
@@ -292,7 +298,7 @@ func (s *ExportJSON) parseInner(in Base) (Generic, error) {
 	var out Generic
 
 	if (s.Inner == "") != (in.sig == nil) {
-		return nil, newParseError("need a sig and an inner, or neither, but not one without the other (sig: %v, inner: %v)", (s.Inner != ""), (in.sig != nil))
+		return nil, newParseError("need a sig and an inner, or neither, but not one without the other (sig: %v, inner: %v)", (in.sig != nil), (s.Inner != ""))
 	}
 
 	if s.Inner == "" {
@@ -315,8 +321,13 @@ func (s *ExportJSON) parseInner(in Base) (Generic, error) {
 		in.inner.Body = &rkb
 		out = &RotateKey{Base: in}
 	default:
-		return nil, newParseError("unknown link type %d", in.outer.LinkType)
+		if !in.outer.IgnoreIfUnsupported {
+			return nil, newParseError("unknown link type %d", in.outer.LinkType)
+		}
+		// Make it seem like a stubbed link
+		out = &LinkFromFuture{Base: in}
 	}
+
 	err = msgpack.Decode(in.inner, b)
 	if err != nil {
 		return nil, err
@@ -385,8 +396,8 @@ func NewKeyPair(priv kbcrypto.NaclSigningKeyPrivate, pub KID) *KeyPair {
 }
 
 func genRandomBytes(i int) ([]byte, error) {
-	ret := make([]byte, i, i)
-	n, err := rand.Read(ret[:])
+	ret := make([]byte, i)
+	n, err := rand.Read(ret)
 	if err != nil {
 		return nil, err
 	}

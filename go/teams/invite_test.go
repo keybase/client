@@ -24,7 +24,7 @@ func TestObsoletingInvites1(t *testing.T) {
 	// person but does not complete the invite. 2 is canceled by
 	// "invite" link. 3 should be still active when the chain is done
 	// replaying.
-	team := runUnitFromFilename(t, "invite_obsolete.json")
+	team, _ := runUnitFromFilename(t, "invite_obsolete.json")
 
 	require.Equal(t, 1, team.NumActiveInvites())
 
@@ -63,7 +63,7 @@ func TestObsoletingInvites2(t *testing.T) {
 	// This chain is a backwards-compatibility test to see if even if
 	// someone got tricked into accepting obsolete invite, such chain
 	// should still play and result in predictable end state.
-	team := runUnitFromFilename(t, "invite_obsolete_trick.json")
+	team, _ := runUnitFromFilename(t, "invite_obsolete_trick.json")
 	require.Equal(t, 0, len(team.chain().inner.ActiveInvites))
 	require.True(t, team.IsMember(context.Background(), keybase1.UserVersion{Uid: "579651b0d574971040b531b66efbc519", EldestSeqno: 1}))
 }
@@ -80,7 +80,8 @@ func setupPuklessInviteTest(t *testing.T) (tc libkb.TestContext, owner, other *k
 	tc.Tp.SkipSendingSystemChatMessages = true
 	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 
 	tc.Tp.DisableUpgradePerUserKey = false
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -100,12 +101,13 @@ func TestKeybaseInviteAfterReset(t *testing.T) {
 	defer tc.Cleanup()
 
 	// Add member - should be added as keybase-type invite with name "uid%1".
-	res, err := AddMember(context.Background(), tc.G, teamname, other.Username, keybase1.TeamRole_READER)
+	res, err := AddMember(context.Background(), tc.G, teamname, other.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 	require.True(t, res.Invited)
 
 	// Reset account, should now have EldestSeqno=0
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	require.NoError(t, other.Login(tc.G))
 	kbtest.ResetAccount(tc, other)
 

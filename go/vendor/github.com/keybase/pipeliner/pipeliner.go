@@ -1,8 +1,9 @@
 package pipeliner
 
 import (
-	"golang.org/x/net/context"
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 // Pipeliner coordinates a flow of parallel requests, rate-limiting so that
@@ -107,7 +108,7 @@ func (p *Pipeliner) wait(ctx context.Context) {
 	}
 }
 
-// Flush any oustanding requests, blocking until the last completes.
+// Flush any outstanding requests, blocking until the last completes.
 // Returns an error set by CompleteOne, or a context-based error
 // if any request was canceled mid-flight.
 func (p *Pipeliner) Flush(ctx context.Context) error {

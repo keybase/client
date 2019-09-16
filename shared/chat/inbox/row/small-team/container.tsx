@@ -22,7 +22,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
   return {
     _meta,
-    _username: state.config.username || '',
+    _username: state.config.username,
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
     isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
@@ -58,6 +58,10 @@ export default Container.namedConnect(
       backgroundColor: styles.backgroundColor,
       channelname: undefined,
       conversationIDKey: stateProps._meta.conversationIDKey,
+      draft:
+        stateProps._meta.draft && !stateProps.isSelected && !stateProps.hasUnread
+          ? stateProps._meta.draft
+          : undefined,
       hasBadge: stateProps.hasBadge,
       hasBottomLine:
         stateProps.youAreReset ||

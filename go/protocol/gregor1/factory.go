@@ -19,17 +19,6 @@ func (o ObjFactory) MakeBody(b []byte) (gregor.Body, error)         { return Bod
 func (o ObjFactory) MakeSystem(s string) (gregor.System, error)     { return System(s), nil }
 func (o ObjFactory) MakeCategory(s string) (gregor.Category, error) { return Category(s), nil }
 
-func castMsgID(msgid gregor.MsgID) (ret MsgID, err error) {
-	if msgid == nil {
-		return nil, nil
-	}
-	ret, ok := msgid.(MsgID)
-	if !ok {
-		return nil, errors.New("bad Msg ID; wrong type")
-	}
-	return ret, nil
-}
-
 func castUID(uid gregor.UID) (ret UID, err error) {
 	if uid == nil {
 		return

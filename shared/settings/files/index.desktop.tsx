@@ -125,44 +125,47 @@ export default (props: Props) => (
   </>
 )
 
-const styles = Styles.styleSheetCreate({
-  actionNeededBox: {
-    marginLeft: Styles.globalMargins.medium,
-  },
-  actionNeededText: {
-    color: Styles.globalColors.redDark,
-  },
-  contentHeader: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
-  divider: {
-    marginTop: Styles.globalMargins.medium,
-  },
-  finderIntegrationContent: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.medium,
-  },
-  spinner: {
-    height: 16,
-    width: 16,
-  },
-  syncContent: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.medium,
-  },
-  syncNotificationCheckbox: {
-    alignItems: 'center',
-  },
-  syncNotificationDropdownItem: {
-    alignItems: 'center',
-    paddingLeft: Styles.globalMargins.small,
-  },
-  syncNotificationDropdownOverlay: {
-    width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
-  },
-  syncNotificationSettingDropdown: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-    width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionNeededBox: {
+        marginLeft: Styles.globalMargins.medium,
+      },
+      actionNeededText: {
+        color: Styles.globalColors.redDark,
+      },
+      contentHeader: {
+        paddingBottom: Styles.globalMargins.tiny,
+      },
+      divider: {
+        marginTop: Styles.globalMargins.medium,
+      },
+      finderIntegrationContent: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.medium,
+      },
+      spinner: {
+        height: 16,
+        width: 16,
+      },
+      syncContent: {
+        paddingLeft: Styles.globalMargins.xsmall,
+        paddingTop: Styles.globalMargins.medium,
+      },
+      syncNotificationCheckbox: {
+        alignItems: 'center',
+      },
+      syncNotificationDropdownItem: {
+        alignItems: 'center',
+        paddingLeft: Styles.globalMargins.small,
+      },
+      syncNotificationDropdownOverlay: {
+        width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
+      },
+      syncNotificationSettingDropdown: {
+        marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
+        width: Styles.globalMargins.xlarge + Styles.globalMargins.medium,
+      },
+    } as const)
+)

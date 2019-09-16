@@ -7,21 +7,6 @@ import {Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, commonTlds} from './emoji-gen'
 import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles, serviceOnlyOutput} from './react'
 
-function createKbfsPathRegex(): RegExp | null {
-  const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
-  const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
-  const user = `(?:(?:${username})|(?:${socialAssertion}))`
-  const usernames = `${user}(?:,${user})*`
-  const teamName = `${username}(?:\\.${username})*`
-  const tlfType = `/(?:private|public|team)`
-  const tlf = `/(?:(?:private|public)/${usernames}(#${usernames})?|team/${teamName})`
-  const inTlf = `/(?:\\\\\\\\|\\\\ |\\S)+`
-  const specialFiles = `/(?:.kbfs_.+)`
-  return new RegExp(`^(/keybase(?:(?:${tlf}(${inTlf})?)|(?:${tlfType})|(?:${specialFiles}))?/?)(?=\\s|$)`)
-}
-
-const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
-
 const serviceBeginDecorationTag = '\\$\\>kb\\$'
 const serviceEndDecorationTag = '\\$\\<kb\\$'
 function createServiceDecorationRegex(): RegExp | null {
@@ -164,21 +149,6 @@ const rules = {
     // ours: only allow a single backtick
     match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*(?!`)([\s\S]*?[^`\n])\s*\1(?!`)/),
   },
-  kbfsPath: {
-    match: (source, state, lookBehind) => {
-      const matches = kbfsPathMatcher(source, state, lookBehind)
-      // Also check that the lookBehind is not text
-      if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
-        return matches
-      }
-      return null
-    }, // lower than mention
-    order: SimpleMarkdown.defaultRules.autolink.order - 0.1,
-    parse: capture => ({
-      content: capture[1],
-      type: 'kbfsPath',
-    }),
-  },
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
     ...SimpleMarkdown.defaultRules.newline,
@@ -317,7 +287,7 @@ class SimpleMarkdownComponent extends PureComponent<
         ? serviceOnlyOutput(parseTree, state)
         : this.props.preview
         ? previewOutput(parseTree)
-        : isAllEmoji(parseTree) && !this.props.smallStandaloneEmoji
+        : !this.props.smallStandaloneEmoji && isAllEmoji(parseTree)
         ? bigEmojiOutput(parseTree, state)
         : reactOutput(parseTree, state)
     } catch (e) {
@@ -330,7 +300,7 @@ class SimpleMarkdownComponent extends PureComponent<
       )
     }
     const inner = this.props.serviceOnly ? (
-      <Text type="Body" style={this.props.style}>
+      <Text type="Body" style={this.props.style} lineClamp={this.props.lineClamp}>
         {output}
       </Text>
     ) : this.props.preview ? (
@@ -365,12 +335,12 @@ class SimpleMarkdownComponent extends PureComponent<
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   rootWrapper: Styles.platformStyles({
     isElectron: {
       whiteSpace: 'pre',
     },
   }),
-})
+}))
 
 export {SimpleMarkdownComponent, simpleMarkdownParser}

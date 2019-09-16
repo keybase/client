@@ -25,7 +25,7 @@ import {reduxSagaLogger} from '../local-debug'
 import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
-function* mainSaga(): Saga.SagaGenerator<any, any> {
+function* mainSaga() {
   yield Saga.spawn(chat2Saga)
   yield Saga.spawn(configSaga)
   yield Saga.spawn(deeplinksSaga)

@@ -80,7 +80,7 @@ const _Dropdown = ({
   showingMenu,
   toggleShowingMenu,
 }: DropdownProps) => (
-  <React.Fragment>
+  <>
     <Kb.ClickableBox
       style={styles.dropdown}
       ref={Style.isMobile ? null : setAttachmentRef}
@@ -107,7 +107,7 @@ const _Dropdown = ({
       minSavingTimeMs={300}
       savedTimeoutMs={2500}
     />
-  </React.Fragment>
+  </>
 )
 const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 
@@ -118,7 +118,7 @@ const Display = ({minWriterRole}) => (
   </Kb.Text>
 )
 
-const styles = Style.styleSheetCreate({
+const styles = Style.styleSheetCreate(() => ({
   container: {
     paddingLeft: Style.globalMargins.small,
     paddingRight: Style.globalMargins.small,
@@ -156,6 +156,6 @@ const styles = Style.styleSheetCreate({
       height: Style.globalMargins.medium,
     },
   }),
-})
+}))
 
 export default MinWriterRole

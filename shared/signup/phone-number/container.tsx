@@ -47,13 +47,17 @@ const ConnectedEnterPhoneNumber = Container.namedConnect(
   }),
   dispatch => ({
     onClear: () => dispatch(SettingsGen.createClearPhoneNumberErrors()),
-    onContinue: (phoneNumber: string, allowSearch: boolean) =>
-      dispatch(SettingsGen.createAddPhoneNumber({allowSearch, phoneNumber})),
+    onContinue: (phoneNumber: string, searchable: boolean) =>
+      dispatch(SettingsGen.createAddPhoneNumber({phoneNumber, searchable})),
     onGoToVerify: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['signupVerifyPhoneNumber']})),
     onSkip: () => {
       dispatch(SettingsGen.createClearPhoneNumberAdd())
-      dispatch(RouteTreeGen.createClearModals())
-      // TODO route to add-email
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: ['signupEnterEmail'],
+          replace: true,
+        })
+      )
     },
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d}),

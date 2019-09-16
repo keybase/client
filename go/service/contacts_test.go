@@ -2,11 +2,13 @@ package service
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/contacts"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -54,16 +56,17 @@ func setupContactSyncTest(t *testing.T) (tc libkb.TestContext, test contactSyncT
 }
 
 func (c *contactSyncTest) clearCache(mctx libkb.MetaContext) error {
-	return c.contactsCache.CleanCache(mctx)
+	return c.contactsCache.Store.ClearCache(mctx)
 }
 
 func TestContactSyncAndSearch(t *testing.T) {
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
-	all.searchMock.addUser(testAddUserArg{username: "alice2"})
+	clock := clockwork.NewFakeClock()
+	tc.G.SetClock(clock)
 
-	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	all.searchMock.addUser(testAddUserArg{username: "alice2"})
 
 	rawContacts := []keybase1.Contact{
 		contacts.MakeContact("Alice A",
@@ -76,10 +79,22 @@ func TestContactSyncAndSearch(t *testing.T) {
 	// will not. We are expecting to be able to search for both, but not see
 	// both in user recommendations.
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
+
+	// bust cache, new resolution should be returned
+	clock.Advance(72 * time.Hour)
+	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+	require.Len(t, newlyResolved, 1)
+	require.Equal(t, newlyResolved[0].ContactName, "Alice A")
+	require.Equal(t, newlyResolved[0].Username, "alice")
+	require.Equal(t, newlyResolved[0].Assertion, "48111222333@phone")
 
 	{
 		// Try raw contact list lookup.
@@ -103,8 +118,13 @@ func TestContactSyncAndSearch(t *testing.T) {
 	}
 
 	{
-		// When searching for "alice" in contacts, Keybase user comes first.
-		// Contacts results are sorted separately and appended to result list.
+		// When searching for "alice" in contacts, contact comes first because
+		// it's a better match than `alice2` user.
+
+		// NOTE: This test is very unrealistic because contact resolves to user
+		// `alice` but that user is not provided by mocked search provider. If
+		// it was, Keybase result would have precedence, and the first result
+		// would not be SBS contact result.
 		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
 			IncludeContacts: true,
 			Service:         "keybase",
@@ -114,10 +134,10 @@ func TestContactSyncAndSearch(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, res, 2)
 		pres := pluckAllSearchResultForTest(res)
-		require.Equal(t, "alice2", pres[0].id)
-		require.Equal(t, "alice2", pres[0].keybaseUsername)
-		require.Equal(t, "48111222333@phone", pres[1].id)
-		require.Equal(t, "alice", pres[1].keybaseUsername)
+		require.Equal(t, "48111222333@phone", pres[0].id)
+		require.Equal(t, "alice", pres[0].keybaseUsername)
+		require.Equal(t, "alice2", pres[1].id)
+		require.Equal(t, "alice2", pres[1].keybaseUsername)
 	}
 
 	{
@@ -172,7 +192,7 @@ func TestContactShouldFilterOutSelf(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -201,7 +221,7 @@ func TestRecommendationsPreferEmail(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -227,7 +247,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		),
 	}
 
-	err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
@@ -256,7 +276,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "A. Alice")
 
 		require.NoError(t, all.clearCache(tc.MetaContext()))
-		err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 			Contacts: rawContacts,
 		})
 		require.NoError(t, err)
@@ -288,5 +308,94 @@ func TestDuplicateContactAssertions(t *testing.T) {
 		require.Equal(t, "alice", pres.displayName)
 		// Selecting query match to display label is still at play here.
 		require.Equal(t, "+48111222333", pres.displayLabel)
+	}
+}
+
+func TestSyncContactsWithServiceSummary(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	aliceMock := contacts.MakeMockLookupUser("alice", "Alice Keybase")
+	aliceMock.ServiceMap = make(libkb.UserServiceSummary)
+	aliceMock.ServiceMap["rooter"] = "alice123"
+	aliceMock.ServiceMap["twitter"] = "tacovontaco"
+
+	all.contactsMock.Emails["alice@keyba.se"] = aliceMock
+	all.contactsMock.Emails["bob@keyba.se"] = contacts.MakeMockLookupUser("bob", "Bob Keybase")
+
+	rawContacts := []keybase1.Contact{
+		contacts.MakeContact("Alice",
+			contacts.MakeEmailComponent("email", "alice@keyba.se"),
+		),
+		contacts.MakeContact("Bob",
+			contacts.MakeEmailComponent("email", "bob@keyba.se"),
+		),
+	}
+
+	_, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
+		Contacts: rawContacts,
+	})
+	require.NoError(t, err)
+
+	res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+		IncludeContacts: true,
+		Service:         "keybase",
+		Query:           "keyba.se",
+		MaxResults:      50,
+	})
+	require.NoError(t, err)
+	require.Len(t, res, 2)
+	// Bob (no service map because provider returned no services)
+	require.NotNil(t, res[0].Contact)
+	require.Equal(t, "Bob", res[0].Contact.ContactName)
+	require.Nil(t, res[0].Contact.ServiceMap)
+	// Alice (with service map)
+	require.NotNil(t, res[1].Contact)
+	require.Equal(t, "Alice", res[1].Contact.ContactName)
+	require.NotNil(t, res[1].Contact.ServiceMap)
+	require.Len(t, res[1].Contact.ServiceMap, 2)
+	require.Equal(t, "alice123", res[1].Contact.ServiceMap["rooter"])
+	require.Equal(t, "tacovontaco", res[1].Contact.ServiceMap["twitter"])
+}
+
+func TestUserSearchPhoneEmailWithResults(t *testing.T) {
+	tc, all := setupContactSyncTest(t)
+	defer tc.Cleanup()
+
+	all.contactsMock.Emails["fermatp@keyba.se"] = contacts.MakeMockLookupUser("pierre", "Pierre de Fermat")
+	all.contactsMock.PhoneNumbers["+1555165432"] = contacts.MakeMockLookupUser("lwg", "Gottfried Wilhelm Leibniz")
+
+	doSearch := func(service, query string) []keybase1.APIUserSearchResult {
+		res, err := all.searchHandler.UserSearch(context.Background(), keybase1.UserSearchArg{
+			IncludeContacts: false,
+			Service:         service,
+			Query:           query,
+			MaxResults:      10,
+		})
+		require.NoError(t, err)
+		return res
+	}
+
+	// Do imptofu queries such that they will resolve when looked up by
+	// contacts provider.
+
+	{
+		query := "+1555165432"
+		res := doSearch("phone", query)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Imptofu)
+		require.Equal(t, "1555165432@phone", res[0].Imptofu.Assertion)
+		require.Equal(t, "lwg", res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "Gottfried Wilhelm Leibniz", res[0].Imptofu.PrettyName)
+	}
+
+	{
+		query := "fermatp@keyba.se"
+		res := doSearch("email", query)
+		require.Len(t, res, 1)
+		require.NotNil(t, res[0].Imptofu)
+		require.Equal(t, "[fermatp@keyba.se]@email", res[0].Imptofu.Assertion)
+		require.Equal(t, "pierre", res[0].Imptofu.KeybaseUsername)
+		require.Equal(t, "Pierre de Fermat", res[0].Imptofu.PrettyName)
 	}
 }

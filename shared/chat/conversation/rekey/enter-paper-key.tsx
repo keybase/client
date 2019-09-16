@@ -9,7 +9,7 @@ export default Container.connect(
   () => ({
     error: '',
     hint: '',
-    waitingForResponse: false,
+    waiting: false,
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),

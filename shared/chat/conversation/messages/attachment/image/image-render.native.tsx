@@ -47,7 +47,7 @@ export class ImageRender extends React.Component<Props, State> {
                 logger.error(`Error loading vid: ${JSON.stringify(e)}`)
               }}
               style={Styles.collapseStyles([styles.video, {height, width}])}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <Kb.NativeFastImage
@@ -71,11 +71,11 @@ export class ImageRender extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {position: 'relative'},
   poster: {...Styles.globalStyles.fillAbsolute, borderRadius: Styles.borderRadius},
   video: {borderRadius: Styles.borderRadius},
-})
+}))
 
 export function imgMaxWidth() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
@@ -85,4 +85,9 @@ export function imgMaxWidth() {
 export function imgMaxWidthRaw() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
   return maxWidth
+}
+
+export function imgMaxHeightRaw() {
+  const {height: maxHeight} = Kb.NativeDimensions.get('window')
+  return maxHeight
 }

@@ -4,6 +4,8 @@ import * as Kb from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as FsGen from '../../../actions/fs-gen'
 
 /*
  * This banner is used as part of a list in folder view and it's important to
@@ -22,16 +24,16 @@ type Props = {
 }
 
 enum Background {
-  Blue = 1,
-  Green,
-  Yellow,
-  Black,
+  Blue = 'blue',
+  Green = 'green',
+  Yellow = 'yellow',
+  Black = 'black',
 }
 
 type BannerProps = {
   background: Background
   okIcon: boolean
-  onDismiss?: (() => void)| null
+  onDismiss?: (() => void) | null
   title: string
   body?: string | null
   button?: {
@@ -110,6 +112,7 @@ const Banner = (props: BannerProps) => (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Button
             type="Success"
+            backgroundColor={props.background}
             label={props.button.buttonText}
             onClick={props.button.action}
             waiting={props.button.inProgress}
@@ -171,12 +174,33 @@ const Enabled = (props: Props) => {
       <Banner background={Background.Blue} okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
     )
   }
+  return <JustEnabled onDismiss={props.alwaysShow ? null : props.onDismiss} />
+}
+
+type JustEnabledProps = {onDismiss: null | (() => void)}
+const JustEnabled = ({onDismiss}: JustEnabledProps) => {
+  const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
+  const displayingMountDir = preferredMountDirs.get(0) || ''
+  const dispatch = Container.useDispatch()
+  const open = displayingMountDir
+    ? () => dispatch(FsGen.createOpenPathInSystemFileManager({path: displayingMountDir}))
+    : undefined
   return (
     <Banner
       background={Background.Green}
       okIcon={true}
       title={`Keybase is enabled in your ${fileUIName}.`}
-      onDismiss={props.alwaysShow ? null : props.onDismiss}
+      body={displayingMountDir ? `Your files are accessible at ${displayingMountDir}.` : undefined}
+      onDismiss={onDismiss}
+      button={
+        open
+          ? {
+              action: open,
+              buttonText: `Open in ${fileUIName}`,
+              inProgress: false,
+            }
+          : undefined
+      }
     />
   )
 }
@@ -217,30 +241,33 @@ export default (props: Props) => {
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  bodyContainer: {
-    maxWidth: Styles.globalMargins.large * 10 + Styles.globalMargins.mediumLarge * 2,
-    padding: Styles.globalMargins.mediumLarge,
-  },
-  container: {
-    height,
-    maxHeight: height,
-    minHeight: height,
-  },
-  dismissIcon: Styles.platformStyles({
-    isElectron: {
-      display: 'block',
-      padding: Styles.globalMargins.tiny,
-    },
-  }),
-  fancyIcon: {
-    paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small,
-  },
-  textBrown: {
-    color: Styles.globalColors.brown_75,
-  },
-  textWhite: {
-    color: Styles.globalColors.white,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bodyContainer: {
+        maxWidth: Styles.globalMargins.large * 10 + Styles.globalMargins.mediumLarge * 2,
+        padding: Styles.globalMargins.mediumLarge,
+      },
+      container: {
+        height,
+        maxHeight: height,
+        minHeight: height,
+      },
+      dismissIcon: Styles.platformStyles({
+        isElectron: {
+          display: 'block',
+          padding: Styles.globalMargins.tiny,
+        },
+      }),
+      fancyIcon: {
+        paddingLeft: Styles.globalMargins.large + Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.small,
+      },
+      textBrown: {
+        color: Styles.globalColors.brown_75,
+      },
+      textWhite: {
+        color: Styles.globalColors.white,
+      },
+    } as const)
+)

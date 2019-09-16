@@ -1,49 +1,80 @@
-import Avatar from './avatar'
 import * as React from 'react'
+import * as Styles from '../styles'
+import Avatar from './avatar'
 import Box from './box'
-import {globalStyles, globalColors} from '../styles'
 
 import {Props} from './user-card'
 
-const avatarSize = 96
-
-const UserCard = ({outerStyle, onAvatarClicked, username, style, children}: Props) => (
-  <Box style={{...styleContainer, ...outerStyle}}>
-    <Box style={styleAvatar}>
-      <Box style={styleAvatarBackground} />
-      <Avatar size={avatarSize} onClick={onAvatarClicked} username={username} />
-    </Box>
-    <Box style={{...styleInside, ...style}}>{children}</Box>
-  </Box>
-)
-
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
+const Kb = {
+  Avatar,
+  Box,
 }
 
-const styleInside = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  backgroundColor: globalColors.white,
-  justifyContent: 'flex-start',
-  padding: 16,
+const UserCard = ({
+  avatarBackgroundStyle,
+  avatarSize,
+  outerStyle,
+  onAvatarClicked,
+  username,
+  style,
+  children,
+  lighterPlaceholders,
+}: Props) => {
+  return (
+    <Kb.Box style={Styles.collapseStyles([styles.container, outerStyle])}>
+      <Kb.Box style={styles.avatar}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.avatarBackground,
+            {
+              height: avatarSize / 2,
+              top: avatarSize / 2,
+            },
+            avatarBackgroundStyle,
+          ])}
+        />
+        <Kb.Avatar
+          size={avatarSize}
+          onClick={onAvatarClicked}
+          username={username}
+          lighterPlaceholders={lighterPlaceholders}
+        />
+      </Kb.Box>
+      <Kb.Box style={Styles.collapseStyles([styles.inside, style])}>{children}</Kb.Box>
+    </Kb.Box>
+  )
 }
 
-const styleAvatar = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  marginTop: 0,
+UserCard.defaultProps = {
+  avatarSize: 96,
 }
 
-const styleAvatarBackground = {
-  backgroundColor: globalColors.white,
-  height: avatarSize / 2,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: avatarSize / 2,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  avatar: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    marginTop: 0,
+  },
+  avatarBackground: {
+    backgroundColor: Styles.globalColors.white,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    width: '100%',
+  },
+  inside: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    backgroundColor: Styles.globalColors.white,
+    justifyContent: 'flex-start',
+    padding: 16,
+    width: '100%',
+  },
+}))
 
 export default UserCard

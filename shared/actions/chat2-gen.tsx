@@ -35,11 +35,13 @@ export const conversationErrored = 'chat2:conversationErrored'
 export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
+export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const hideConversation = 'chat2:hideConversation'
+export const ignorePinnedMessage = 'chat2:ignorePinnedMessage'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
@@ -89,6 +91,7 @@ export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
+export const pinMessage = 'chat2:pinMessage'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const replyJump = 'chat2:replyJump'
@@ -112,6 +115,7 @@ export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setPrependText = 'chat2:setPrependText'
+export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
@@ -132,10 +136,12 @@ export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unhideConversation = 'chat2:unhideConversation'
+export const unpinMessage = 'chat2:unpinMessage'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
 export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
+export const updateLastCoord = 'chat2:updateLastCoord'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
@@ -211,6 +217,7 @@ type _DesktopNotificationPayload = {
   readonly author: string
   readonly body: string
 }
+type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -223,6 +230,7 @@ type _GiphyToggleWindowPayload = {
 }
 type _HandleSeeingWalletsPayload = void
 type _HideConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _IgnorePinnedMessagePayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _InboxRefreshPayload = {
   readonly reason:
     | 'bootstrap'
@@ -233,6 +241,7 @@ type _InboxRefreshPayload = {
     | 'joinedAConversation'
     | 'leftAConversation'
     | 'teamTypeChanged'
+    | 'maybeKickedFromTeam'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -367,6 +376,7 @@ type _MetaReceivedErrorPayload = {
 }
 type _MetaRequestTrustedPayload = {
   readonly force?: boolean
+  readonly noWaiting?: boolean
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
 type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.ConversationIDKey>}
@@ -376,7 +386,6 @@ type _MetasReceivedPayload = {
   readonly neverCreate?: boolean
   readonly clearExistingMetas?: boolean
   readonly clearExistingMessages?: boolean
-  readonly fromExpunge?: boolean
   readonly fromInboxRefresh?: boolean
   readonly initialTrustedLoad?: boolean
 }
@@ -401,6 +410,10 @@ type _PendingMessageWasEditedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly ordinal: Types.Ordinal
   readonly text: HiddenString
+}
+type _PinMessagePayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly messageID: Types.MessageID
 }
 type _PrepareFulfillRequestFormPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -524,6 +537,10 @@ type _SetPrependTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString | null
 }
+type _SetThreadLoadStatusPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly status: RPCChatTypes.UIChatThreadStatus
+}
 type _SetThreadSearchQueryPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly query: HiddenString
@@ -589,6 +606,7 @@ type _UnfurlTogglePromptPayload = {
   readonly show: boolean
 }
 type _UnhideConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _UnpinMessagePayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _UnsentTextChangedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString
@@ -597,7 +615,8 @@ type _UpdateCoinFlipStatusPayload = {readonly statuses: Array<RPCChatTypes.UICoi
 type _UpdateConvExplodingModesPayload = {
   readonly modes: Array<{conversationIDKey: Types.ConversationIDKey; seconds: number}>
 }
-type _UpdateConvRetentionPolicyPayload = {readonly conv: RPCChatTypes.InboxUIItem}
+type _UpdateConvRetentionPolicyPayload = {readonly meta: Types.ConversationMeta}
+type _UpdateLastCoordPayload = {readonly coord: Types.Coordinate}
 type _UpdateMessagesPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messages: Array<{messageID: Types.MessageID; message: Types.Message}>
@@ -616,7 +635,7 @@ type _UpdateReactionsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly updates: Array<{targetMsgID: RPCChatTypes.MessageID; reactions: Types.Reactions}>
 }
-type _UpdateTeamRetentionPolicyPayload = {readonly convs: Array<RPCChatTypes.InboxUIItem>}
+type _UpdateTeamRetentionPolicyPayload = {readonly metas: Array<Types.ConversationMeta>}
 type _UpdateUnreadlinePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -720,6 +739,12 @@ export const createUpdateConvExplodingModes = (
   payload: _UpdateConvExplodingModesPayload
 ): UpdateConvExplodingModesPayload => ({payload, type: updateConvExplodingModes})
 /**
+ * Ignore pinned message
+ */
+export const createIgnorePinnedMessage = (
+  payload: _IgnorePinnedMessagePayload
+): IgnorePinnedMessagePayload => ({payload, type: ignorePinnedMessage})
+/**
  * Inbox search has started
  */
 export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload): InboxSearchStartedPayload => ({
@@ -769,6 +794,13 @@ export const createThreadSearch = (payload: _ThreadSearchPayload): ThreadSearchP
 export const createInboxSearch = (payload: _InboxSearchPayload): InboxSearchPayload => ({
   payload,
   type: inboxSearch,
+})
+/**
+ * Pin a message
+ */
+export const createPinMessage = (payload: _PinMessagePayload): PinMessagePayload => ({
+  payload,
+  type: pinMessage,
 })
 /**
  * Prime data to fulfill this message's request and navigate to the send form.
@@ -865,6 +897,12 @@ export const createSetWalletsOld = (payload: _SetWalletsOldPayload): SetWalletsO
   type: setWalletsOld,
 })
 /**
+ * Set the bottom banner on a new conversation as dismissed
+ */
+export const createDismissBottomBanner = (
+  payload: _DismissBottomBannerPayload
+): DismissBottomBannerPayload => ({payload, type: dismissBottomBanner})
+/**
  * Set the collapse status of a message
  */
 export const createToggleMessageCollapse = (
@@ -904,6 +942,12 @@ export const createSetThreadSearchStatus = (
 export const createInboxSearchSetTextStatus = (
   payload: _InboxSearchSetTextStatusPayload
 ): InboxSearchSetTextStatusPayload => ({payload, type: inboxSearchSetTextStatus})
+/**
+ * Set thread load status
+ */
+export const createSetThreadLoadStatus = (
+  payload: _SetThreadLoadStatusPayload
+): SetThreadLoadStatusPayload => ({payload, type: setThreadLoadStatus})
 /**
  * Set thread search query (used from inbox search to initialize it)
  */
@@ -977,11 +1021,25 @@ export const createToggleThreadSearch = (payload: _ToggleThreadSearchPayload): T
   type: toggleThreadSearch,
 })
 /**
+ * Unpin a message
+ */
+export const createUnpinMessage = (payload: _UnpinMessagePayload): UnpinMessagePayload => ({
+  payload,
+  type: unpinMessage,
+})
+/**
  * Unsent text changed
  */
 export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload): UnsentTextChangedPayload => ({
   payload,
   type: unsentTextChanged,
+})
+/**
+ * Update last known coordinate
+ */
+export const createUpdateLastCoord = (payload: _UpdateLastCoordPayload): UpdateLastCoordPayload => ({
+  payload,
+  type: updateLastCoord,
 })
 /**
  * Update messages that we might have in the store
@@ -1391,6 +1449,10 @@ export type DesktopNotificationPayload = {
   readonly payload: _DesktopNotificationPayload
   readonly type: typeof desktopNotification
 }
+export type DismissBottomBannerPayload = {
+  readonly payload: _DismissBottomBannerPayload
+  readonly type: typeof dismissBottomBanner
+}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -1407,6 +1469,10 @@ export type HandleSeeingWalletsPayload = {
 export type HideConversationPayload = {
   readonly payload: _HideConversationPayload
   readonly type: typeof hideConversation
+}
+export type IgnorePinnedMessagePayload = {
+  readonly payload: _IgnorePinnedMessagePayload
+  readonly type: typeof ignorePinnedMessage
 }
 export type InboxRefreshPayload = {readonly payload: _InboxRefreshPayload; readonly type: typeof inboxRefresh}
 export type InboxSearchMoveSelectedIndexPayload = {
@@ -1577,6 +1643,7 @@ export type PendingMessageWasEditedPayload = {
   readonly payload: _PendingMessageWasEditedPayload
   readonly type: typeof pendingMessageWasEdited
 }
+export type PinMessagePayload = {readonly payload: _PinMessagePayload; readonly type: typeof pinMessage}
 export type PrepareFulfillRequestFormPayload = {
   readonly payload: _PrepareFulfillRequestFormPayload
   readonly type: typeof prepareFulfillRequestForm
@@ -1668,6 +1735,10 @@ export type SetPrependTextPayload = {
   readonly payload: _SetPrependTextPayload
   readonly type: typeof setPrependText
 }
+export type SetThreadLoadStatusPayload = {
+  readonly payload: _SetThreadLoadStatusPayload
+  readonly type: typeof setThreadLoadStatus
+}
 export type SetThreadSearchQueryPayload = {
   readonly payload: _SetThreadSearchQueryPayload
   readonly type: typeof setThreadSearchQuery
@@ -1739,6 +1810,7 @@ export type UnhideConversationPayload = {
   readonly payload: _UnhideConversationPayload
   readonly type: typeof unhideConversation
 }
+export type UnpinMessagePayload = {readonly payload: _UnpinMessagePayload; readonly type: typeof unpinMessage}
 export type UnsentTextChangedPayload = {
   readonly payload: _UnsentTextChangedPayload
   readonly type: typeof unsentTextChanged
@@ -1754,6 +1826,10 @@ export type UpdateConvExplodingModesPayload = {
 export type UpdateConvRetentionPolicyPayload = {
   readonly payload: _UpdateConvRetentionPolicyPayload
   readonly type: typeof updateConvRetentionPolicy
+}
+export type UpdateLastCoordPayload = {
+  readonly payload: _UpdateLastCoordPayload
+  readonly type: typeof updateLastCoord
 }
 export type UpdateMessagesPayload = {
   readonly payload: _UpdateMessagesPayload
@@ -1813,11 +1889,13 @@ export type Actions =
   | CreateConversationPayload
   | DeselectConversationPayload
   | DesktopNotificationPayload
+  | DismissBottomBannerPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
   | HandleSeeingWalletsPayload
   | HideConversationPayload
+  | IgnorePinnedMessagePayload
   | InboxRefreshPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
@@ -1867,6 +1945,7 @@ export type Actions =
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
   | PendingMessageWasEditedPayload
+  | PinMessagePayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | ReplyJumpPayload
@@ -1891,6 +1970,7 @@ export type Actions =
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError
   | SetPrependTextPayload
+  | SetThreadLoadStatusPayload
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
@@ -1911,10 +1991,12 @@ export type Actions =
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
   | UnhideConversationPayload
+  | UnpinMessagePayload
   | UnsentTextChangedPayload
   | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
+  | UpdateLastCoordPayload
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload

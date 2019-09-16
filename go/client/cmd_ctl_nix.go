@@ -207,8 +207,8 @@ func redirectorPerm(toggleOn bool) uint32 {
 }
 
 func (c *CmdCtlRedirector) createMount() error {
-	rootMountPerm := os.FileMode(0755 | os.ModeDir)
-	mountedPerm := os.FileMode(0555 | os.ModeDir) // permissions different when mounted
+	rootMountPerm := 0755 | os.ModeDir
+	mountedPerm := 0555 | os.ModeDir // permissions different when mounted
 	fileInfo, err := os.Stat(c.RootRedirectorMount)
 	switch {
 	case os.IsNotExist(err):
@@ -271,8 +271,8 @@ func (c *CmdCtlRedirector) tryAtomicallySetConfigAndChmodRedirector(originallyEn
 	defer func() {
 		// Don't check if err != nil here, since we want this to run even if, e.g.,
 		// the syscall.Chmod call failed.
-		os.Chmod(c.RootConfigDirectory, 0755|os.ModeDir)
-		os.Chmod(c.RootConfigFilename, 0644)
+		_ = os.Chmod(c.RootConfigDirectory, 0755|os.ModeDir)
+		_ = os.Chmod(c.RootConfigFilename, 0644)
 	}()
 
 	err := configWriter.SetBoolAtPath(libkb.DisableRootRedirectorConfigKey, !c.ToggleOn)
@@ -435,7 +435,7 @@ func (c *CmdCtlInit) Envs() []EnvSetting {
 	return []EnvSetting{
 		// This is for the system tray icon in new versions of Ubuntu that do not use Unity.
 		// See https://github.com/electron/electron/issues/10887.
-		EnvSetting{Name: "XDG_CURRENT_DESKTOP", Value: strPtr("Unity")},
+		{Name: "XDG_CURRENT_DESKTOP", Value: strPtr("Unity")},
 
 		// * This section is for the Keybase GUI.
 		// Some older distros (e.g. Ubuntu 16.04) don't make X session variables
@@ -445,31 +445,31 @@ func (c *CmdCtlInit) Envs() []EnvSetting {
 		// passwords or keys. Hopefully this section won't be needed someday.
 		// (Arch Linux doesn't need it today.)
 		// See: graphical-session.target.
-		EnvSetting{Name: "DISPLAY", Value: nil},
-		EnvSetting{Name: "XAUTHORITY", Value: nil},
+		{Name: "DISPLAY", Value: nil},
+		{Name: "XAUTHORITY", Value: nil},
 
 		// * This section is for the Keybase GUI.
 		// The following enable CJK and other alternative input methods.
 		// See https://github.com/keybase/client/issues/9861.
-		EnvSetting{Name: "CLUTTER_IM_MODULE", Value: nil},
-		EnvSetting{Name: "GTK_IM_MODULE", Value: nil},
-		EnvSetting{Name: "QT_IM_MODULE", Value: nil},
-		EnvSetting{Name: "QT4_IM_MODULE", Value: nil},
-		EnvSetting{Name: "XMODIFIERS", Value: nil},
+		{Name: "CLUTTER_IM_MODULE", Value: nil},
+		{Name: "GTK_IM_MODULE", Value: nil},
+		{Name: "QT_IM_MODULE", Value: nil},
+		{Name: "QT4_IM_MODULE", Value: nil},
+		{Name: "XMODIFIERS", Value: nil},
 
 		// * This section is for the Keybase GUI.
 		// Arbitrary environment variables from bashrc and similar aren't
 		// automatically available in the systemd session, and users probably
 		// didn't use pam to define their XDG directories. Export them just in
 		// case.
-		EnvSetting{Name: "XDG_DOWNLOAD_DIR", Value: nil},
+		{Name: "XDG_DOWNLOAD_DIR", Value: nil},
 
 		// * This section is for the service, KBFS, and the Keybase GUI.
-		EnvSetting{Name: "XDG_CACHE_HOME", Value: nil},
-		EnvSetting{Name: "XDG_CONFIG_HOME", Value: nil},
-		EnvSetting{Name: "XDG_DATA_HOME", Value: nil},
-		EnvSetting{Name: "XDG_RUNTIME_DIR", Value: nil},
-		EnvSetting{Name: "DBUS_SESSION_BUS_ADDRESS", Value: nil},
+		{Name: "XDG_CACHE_HOME", Value: nil},
+		{Name: "XDG_CONFIG_HOME", Value: nil},
+		{Name: "XDG_DATA_HOME", Value: nil},
+		{Name: "XDG_RUNTIME_DIR", Value: nil},
+		{Name: "DBUS_SESSION_BUS_ADDRESS", Value: nil},
 	}
 }
 

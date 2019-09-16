@@ -44,7 +44,7 @@ func TestLookupEmptyList(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookupContacts", 1)
 	defer tc.Cleanup()
 
-	provider := &ErrorContactsProvider{t}
+	provider := &ErrorContactsProvider{T: t}
 	contactList := []keybase1.Contact{}
 
 	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
@@ -57,7 +57,7 @@ func TestLookupContacts(t *testing.T) {
 	defer tc.Cleanup()
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
+		{
 			Name: "Joe",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("Home", "+1111222"),
@@ -168,20 +168,20 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 	defer tc.Cleanup()
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
+		{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("Home", "+1111222"),
 				MakePhoneComponent("Work", "+199123"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "Bob",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("Home", "+123456"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "Charlie",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("E-mail", "charlie+test@keyba.se"),
@@ -232,7 +232,7 @@ func TestEmptyComponentLabels(t *testing.T) {
 	defer tc.Cleanup()
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
+		{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("", "+1111222"),
@@ -279,25 +279,25 @@ func TestFollowing(t *testing.T) {
 	defer tc.Cleanup()
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
+		{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("", "+1111222"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "Bob",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("", "bob+test@keyba.se"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "Charlie",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("", "charlie+test@keyba.se"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("", "doug+test@keyba.se"),
@@ -332,14 +332,14 @@ func TestErrorsInResolution(t *testing.T) {
 	defer tc.Cleanup()
 
 	contactList := []keybase1.Contact{
-		keybase1.Contact{
+		{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("home", "+1111222"),
 				MakePhoneComponent("work", "444"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "Bob",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("", "bob+test@keyba.se"),
@@ -382,7 +382,7 @@ func TestDuplicateEntries(t *testing.T) {
 
 	contactList := []keybase1.Contact{
 		// Contact with multiple components that will yield the same assertion.
-		keybase1.Contact{
+		{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("home", "+1111222"),
@@ -391,7 +391,7 @@ func TestDuplicateEntries(t *testing.T) {
 			},
 		},
 		// "Duplicated" contacts with the same name and same component.
-		keybase1.Contact{
+		{
 			Name: "Alice",
 			Components: []keybase1.ContactComponent{
 				MakePhoneComponent("home", "+1111222"),
@@ -399,13 +399,13 @@ func TestDuplicateEntries(t *testing.T) {
 		},
 		// Two contacts with same component that's going to get resolved -
 		// resolution should appear only once in results.
-		keybase1.Contact{
+		{
 			Name: "Bob",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("email", "bob+test@keyba.se"),
 			},
 		},
-		keybase1.Contact{
+		{
 			Name: "Robert B.",
 			Components: []keybase1.ContactComponent{
 				MakeEmailComponent("E-Mail", "bob+test@keyba.se"),

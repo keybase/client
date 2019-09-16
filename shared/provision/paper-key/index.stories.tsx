@@ -9,6 +9,7 @@ const props = {
   onChangePaperKey: Sb.action('onChangePaperKey'),
   onSubmit: Sb.action('onSubmit'),
   paperKey: '',
+  waiting: false,
   waitingForResponse: false,
 }
 

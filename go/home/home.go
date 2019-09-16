@@ -6,6 +6,7 @@ package home
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/keybase/client/go/contacts"
 	"math/rand"
 	"strings"
 	"sync"
@@ -56,6 +57,65 @@ func homeRetry(a libkb.APIArg) libkb.APIArg {
 	return a
 }
 
+func decodeContactNotifications(mctx libkb.MetaContext, home keybase1.
+	HomeScreen) (decoded keybase1.HomeScreen, err error) {
+	items := home.Items
+	for i, item := range items {
+		t, err := item.Data.T()
+		if err != nil {
+			mctx.Warning("Could not determine home screen item type %v: %v",
+				item, err)
+			continue
+		}
+		if t == keybase1.HomeScreenItemType_PEOPLE {
+			peopleItem := item.Data.People()
+			innerT, err := peopleItem.T()
+			if err != nil {
+				mctx.Warning(
+					"Could not determine home screen inner item type %v: %v",
+					item, err)
+				continue
+			}
+			if innerT == keybase1.HomeScreenPeopleNotificationType_CONTACT {
+				contact := peopleItem.Contact()
+				decryptedContact,
+					err := contacts.DecryptContactBlob(mctx,
+					contact.ResolvedContactBlob)
+				if err != nil {
+					return home, err
+				}
+
+				contact.Username = decryptedContact.ResolvedUser.Username
+				contact.Description = decryptedContact.Description
+				item.Data = keybase1.NewHomeScreenItemDataWithPeople(
+					keybase1.NewHomeScreenPeopleNotificationWithContact(contact))
+				items[i] = item
+			} else if innerT == keybase1.HomeScreenPeopleNotificationType_CONTACT_MULTI {
+				contactMulti := peopleItem.ContactMulti()
+				contactList := contactMulti.Contacts
+				for i, contact := range contactList {
+					decryptedContact,
+						err := contacts.DecryptContactBlob(mctx,
+						contact.ResolvedContactBlob)
+					if err != nil {
+						return home, err
+					}
+
+					contactList[i].Username = decryptedContact.ResolvedUser.Username
+					contactList[i].Description = decryptedContact.Description
+				}
+				item.Data = keybase1.NewHomeScreenItemDataWithPeople(
+					keybase1.NewHomeScreenPeopleNotificationWithContactMulti(
+						contactMulti))
+				items[i] = item
+			}
+		}
+	}
+
+	home.Items = items
+	return home, nil
+}
+
 func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWanted int, skipPeople bool) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("Home#getToCache", func() error { return err })()
@@ -77,7 +137,10 @@ func (h *Home) getToCache(ctx context.Context, markedViewed bool, numPeopleWante
 	if err = mctx.G().API.GetDecode(mctx, homeRetry(arg), &raw); err != nil {
 		return err
 	}
-	home := raw.Home
+	home, err := decodeContactNotifications(mctx, raw.Home)
+	if err != nil {
+		return err
+	}
 
 	newPeopleCache := &peopleCache{
 		all: home.FollowSuggestions,
@@ -117,7 +180,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	}
 
 	if useCache && markViewed {
-		h.bustHomeCacheIfBadgedFollowers(ctx)
+		err := h.bustHomeCacheIfBadgedFollowers(ctx)
+		if err != nil {
+			return ret, err
+		}
 		useCache = h.homeCache != nil
 		// If we blew up our cache, get out of here and refetch, proceed with
 		// marking the view.
@@ -145,7 +211,10 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	if people != nil {
 		tmp.FollowSuggestions = people
 	} else {
-		h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
+		err := h.peopleCache.loadInto(ctx, h.G(), &tmp, numPeopleWanted)
+		if err != nil {
+			return ret, err
+		}
 	}
 
 	// Return a deep copy of the tmp object, so that the caller can't
@@ -292,7 +361,10 @@ func (h *Home) MarkViewed(ctx context.Context) (err error) {
 
 func (h *Home) markViewedWithLock(ctx context.Context) (err error) {
 	defer h.G().CTraceTimed(ctx, "Home#markViewedWithLock", func() error { return err })()
-	h.bustHomeCacheIfBadgedFollowers(ctx)
+	err = h.bustHomeCacheIfBadgedFollowers(ctx)
+	if err != nil {
+		return err
+	}
 	return h.markViewedAPICall(ctx)
 }
 
@@ -372,7 +444,7 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 	}
 
 	// Ignore the error code...
-	h.updateUI(ctx)
+	_ = h.updateUI(ctx)
 	return nil
 }
 

@@ -2,7 +2,6 @@ import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'
-import KbfsPath from './kbfs-path-container'
 import {MarkdownMeta, StyleOverride} from '.'
 import Box from '../box'
 import Emoji, {Props as EmojiProps} from '../emoji'
@@ -13,7 +12,7 @@ const wrapStyle = Styles.platformStyles({
   isElectron: {
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
-  },
+  } as const,
 })
 
 const bigTextBlockStyle = Styles.platformStyles({
@@ -247,16 +246,6 @@ const reactComponentsForMarkdownType = {
       </Text>
     )
   },
-  kbfsPath: (node, _, state) => {
-    return (
-      <KbfsPath
-        escapedPath={node.content}
-        key={state.key}
-        allowFontScaling={state.allowFontScaling}
-        style={state.styleOverride.kbfsPath}
-      />
-    )
-  },
   newline: (_, __, state) =>
     !Styles.isMobile || state.inParagraph ? (
       '\n'
@@ -367,9 +356,20 @@ const previewOutput = SimpleMarkdown.reactFor(
       case 'newline':
         return ' '
       case 'blockQuote':
-        return '> ' + output(ast.content, state)
+        return (
+          <>
+            {output([{content: '> ', type: 'text'}], state)}
+            {output(ast.content, state)}
+          </>
+        )
       case 'codeBlock':
-        return ' ' + output(ast.content, state)
+        return (
+          <>
+            {output([{content: ' ', type: 'text'}], state)}
+            {output(ast.content, state)}
+          </>
+        )
+
       default:
         return output(ast.content, state)
     }
@@ -383,6 +383,8 @@ const serviceOnlyOutput = SimpleMarkdown.reactFor(
       return ast
     }
     switch (ast.type) {
+      case 'emoji':
+        return reactComponentsForMarkdownType.emoji(ast, output, state)
       case 'serviceDecoration':
         return (
           <ServiceDecoration

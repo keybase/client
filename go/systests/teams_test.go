@@ -265,7 +265,8 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
 
-	g.ConfigureConfig()
+	err = g.ConfigureConfig()
+	require.NoError(tt.t, err)
 
 	devices, backups := u.device.loadEncryptionKIDs()
 	require.Len(tt.t, devices, 1, "devices")
@@ -289,7 +290,8 @@ func (tt *teamTester) cleanup() {
 		if u.device.service != nil {
 			u.tc.T.Logf("in teamTester cleanup, stopping test user's service")
 			u.device.service.Stop(0)
-			u.device.stop()
+			err := u.device.stop()
+			require.NoError(u.tc.T, err)
 			u.tc.T.Logf("in teamTester cleanup, stopped test user's service")
 		}
 	}
@@ -369,15 +371,28 @@ func (u *userPlusDevice) teamGetDetails(teamName string) keybase1.TeamDetails {
 	return res
 }
 
+func (u *userPlusDevice) addRestrictedBotTeamMember(team, username string, botSettings keybase1.TeamBotSettings) {
+	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
+	add.Team = team
+	add.Username = username
+	add.Role = keybase1.TeamRole_RESTRICTEDBOT
+	add.BotSettings = &botSettings
+	add.SkipChatNotification = u.suppressTeamChatAnnounce
+	err := add.Run()
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
+	if role.IsRestrictedBot() {
+		require.Fail(u.tc.T, "use addRestrictedBotTeamMember instead")
+	}
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team
 	add.Username = username
 	add.Role = role
 	add.SkipChatNotification = u.suppressTeamChatAnnounce
-	if err := add.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := add.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) removeTeamMember(team, username string) {
@@ -385,9 +400,8 @@ func (u *userPlusDevice) removeTeamMember(team, username string) {
 	rm.Team = team
 	rm.Username = username
 	rm.Force = true
-	if err := rm.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := rm.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) leave(team string) {
@@ -402,9 +416,8 @@ func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.T
 	change.Team = team
 	change.Username = username
 	change.Role = keybase1.TeamRole_OWNER
-	if err := change.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := change.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
@@ -412,9 +425,8 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	add.Team = team
 	add.Email = email
 	add.Role = role
-	if err := add.Run(); err != nil {
-		u.tc.T.Fatal(err)
-	}
+	err := add.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) reAddUserAfterReset(team keybase1.TeamID, w *userPlusDevice) {
@@ -495,15 +507,6 @@ func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeam
 	cli := u.teamsClient
 	res, err := cli.TeamListUnverified(context.TODO(), keybase1.TeamListUnverifiedArg{
 		UserAssertion:        userAssertion,
-		IncludeImplicitTeams: includeImplicitTeams,
-	})
-	require.NoError(u.tc.T, err)
-	return res
-}
-
-func (u *userPlusDevice) teamListTeammates(includeImplicitTeams bool) keybase1.AnnotatedTeamList {
-	cli := u.teamsClient
-	res, err := cli.TeamListTeammates(context.TODO(), keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: includeImplicitTeams,
 	})
 	require.NoError(u.tc.T, err)
@@ -747,16 +750,6 @@ func (u *userPlusDevice) untrack(username string) {
 	require.NoError(u.tc.T, err)
 }
 
-func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
-	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      teamID.IsPublic(),
-		ForceRepoll: true,
-	})
-	require.NoError(u.tc.T, err)
-	return team.CurrentSeqno()
-}
-
 func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }
@@ -902,7 +895,8 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	// the protocols in the genericUI below. If we reuse the previous
 	// socket, then the RPC protocols will not update, and we'll wind
 	// up reusing the old device name.
-	g.ResetSocket(true)
+	_, _, _, err := g.ResetSocket(true)
+	require.NoError(t, err)
 
 	devName := randomDevice()
 	g.Log.Debug("loginAfterResetHelper: new device name is %q", devName)
@@ -916,7 +910,7 @@ func (u *userPlusDevice) loginAfterResetHelper(puk bool) {
 	g.SetUI(&ui)
 	loginCmd := client.NewCmdLoginRunner(g)
 	loginCmd.Username = u.username
-	err := loginCmd.Run()
+	err = loginCmd.Run()
 	require.NoError(t, err, "login after reset")
 }
 
@@ -995,19 +989,6 @@ func enableOpenSweepForTeam(g *libkb.GlobalContext, t libkb.TestingTB, teamID ke
 	t.Logf("Calling team_enable_open_sweep for team ID: %s", teamID)
 
 	_, err := g.API.Post(libkb.NewMetaContextTODO(g), apiArg)
-	require.NoError(t, err)
-}
-
-func clearServerUIDMapCache(g *libkb.GlobalContext, t libkb.TestingTB, uids []keybase1.UID) {
-	arg := libkb.NewAPIArg("user/names")
-	arg.SessionType = libkb.APISessionTypeNONE
-	arg.Args = libkb.HTTPArgs{
-		"uids":     libkb.S{Val: libkb.UidsToString(uids)},
-		"no_cache": libkb.B{Val: true},
-	}
-	t.Logf("Calling user/names with uids: %v and no_cache: true to clear serverside uidmap cache", uids)
-	mctx := libkb.NewMetaContextTODO(g)
-	_, err := g.API.Post(mctx, arg)
 	require.NoError(t, err)
 }
 
@@ -1336,7 +1317,8 @@ func TestImpTeamLookupWithTrackingFailure(t *testing.T) {
 
 	t.Logf("make rooter unreachable")
 	g.XAPI = &flakeyRooterAPI{orig: g.XAPI, hardFail: true, G: g}
-	g.ProofCache.Reset()
+	err = g.ProofCache.Reset()
+	require.NoError(t, err)
 
 	t.Logf("lookup the implicit team while full identify is failing")
 	team2, err := alice.lookupImplicitTeam(true /*create*/, iTeamNameCreate, false /*isPublic*/)
@@ -1606,7 +1588,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
 		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
 		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
-		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT},
+		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
 	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
 	require.NoError(t, err)

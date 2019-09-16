@@ -73,20 +73,23 @@ const Teams = (p: Props) =>
     </Kb.Box2>
   ) : null
 
-const styles = Styles.styleSheetCreate({
-  link: {color: Styles.globalColors.black},
-  placeholderTeam: {borderRadius: Styles.borderRadius},
-  showcase: {alignItems: 'center'},
-  showcases: {
-    alignItems: 'flex-start',
-    flexShrink: 0,
-    paddingBottom: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  youPublishTeam: {
-    alignSelf: 'center',
-    color: Styles.globalColors.black_50,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      link: {color: Styles.globalColors.black},
+      placeholderTeam: {borderRadius: Styles.borderRadius},
+      showcase: {alignItems: 'center'},
+      showcases: {
+        alignItems: 'flex-start',
+        flexShrink: 0,
+        paddingBottom: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      youPublishTeam: {
+        alignSelf: 'center',
+        color: Styles.globalColors.black_50,
+      },
+    } as const)
+)
 
 export default Teams

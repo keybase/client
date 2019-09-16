@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -64,16 +63,16 @@ func (h *Location) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	toks := strings.Split(text, " ")
 	if h.isStop(toks) {
 		h.G().LiveLocationTracker.StopAllTracking(ctx)
-		h.getChatUI().ChatCommandStatus(ctx, convID, "All location tracking stopped",
+		err := h.getChatUI().ChatCommandStatus(ctx, convID, "All location tracking stopped",
 			chat1.UICommandStatusDisplayTyp_STATUS, nil)
+		if err != nil {
+			h.Debug(ctx, "Execute: error with command status: %+v", err)
+		}
 		return nil
 	}
 	var liveLocation chat1.LiveLocation
 	liveLocationEndTime := h.isLiveLocation(toks)
 	if liveLocationEndTime != nil {
-		statusStr := fmt.Sprintf("Sharing location until %s. Keybase will try to use your location when the app is not in use.", humanize.Time(gregor1.FromTime(*liveLocationEndTime)))
-		h.getChatUI().ChatCommandStatus(ctx, convID, statusStr, chat1.UICommandStatusDisplayTyp_STATUS,
-			[]chat1.UICommandStatusActionTyp{chat1.UICommandStatusActionTyp_APPSETTINGS})
 		liveLocation.EndTime = *liveLocationEndTime
 	}
 	if _, err := h.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, tlfName,
@@ -93,16 +92,22 @@ func (h *Location) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	defer h.Trace(ctx, func() error { return nil }, "Preview")()
 	if !h.Match(ctx, text) {
 		if h.displayed {
-			h.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+			err := h.getChatUI().ChatCommandMarkdown(ctx, convID, nil)
+			if err != nil {
+				h.Debug(ctx, "Preview: error with markdown: %+v", err)
+			}
 			h.displayed = false
 		}
 		return
 	}
 	usage := fmt.Sprintf(locationUsage, "```", "```")
-	h.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
+	err := h.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
 		Body:  utils.DecorateWithLinks(ctx, utils.EscapeForDecorate(ctx, usage)),
 		Title: &locationTitle,
 	})
+	if err != nil {
+		h.Debug(ctx, "Preview: error with markdown: %+v", err)
+	}
 	h.displayed = true
 }
 

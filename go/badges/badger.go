@@ -37,7 +37,6 @@ type Badger struct {
 	iboxVersSource InboxVersionSource
 	notifyCh       chan keybase1.BadgeState
 	shutdownCh     chan struct{}
-	running        bool
 }
 
 func NewBadger(g *libkb.GlobalContext) *Badger {
@@ -49,7 +48,7 @@ func NewBadger(g *libkb.GlobalContext) *Badger {
 		shutdownCh:     make(chan struct{}),
 	}
 	go b.notifyLoop()
-	g.PushShutdownHook(func() error {
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 		close(b.shutdownCh)
 		return nil
 	})
@@ -101,16 +100,6 @@ func (b *Badger) PushChatFullUpdate(ctx context.Context, update chat1.UnreadUpda
 	}
 }
 
-func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
-	uid := b.G().Env.GetUID()
-	vers, err := b.iboxVersSource.GetInboxVersion(ctx, uid.ToBytes())
-	if err != nil {
-		b.G().Log.CDebugf(ctx, "Badger: inboxVersion error: %s", err.Error())
-		return chat1.InboxVers(0)
-	}
-	return vers
-}
-
 func (b *Badger) GetInboxVersionForTest(ctx context.Context) (chat1.InboxVers, error) {
 	uid := b.G().Env.GetUID()
 	return b.iboxVersSource.GetInboxVersion(ctx, uid.ToBytes())
@@ -151,8 +140,7 @@ func (b *Badger) State() *BadgeState {
 
 // Log a copy of the badgestate with some zeros stripped off for brevity.
 func (b *Badger) log(ctx context.Context, state1 keybase1.BadgeState) {
-	var state2 keybase1.BadgeState
-	state2 = state1
+	state2 := state1
 	state2.Conversations = nil
 	for _, c1 := range state1.Conversations {
 		if c1.UnreadMessages == 0 {

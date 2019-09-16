@@ -708,6 +708,13 @@
         {
           "type": "UserReacjis",
           "name": "userReacjis"
+        },
+        {
+          "type": [
+            null,
+            "HttpSrvInfo"
+          ],
+          "name": "httpSrvInfo"
         }
       ]
     },
@@ -1074,6 +1081,15 @@
     },
     "toggleRuntimeStats": {
       "request": [],
+      "response": null
+    },
+    "appendGUILogs": {
+      "request": [
+        {
+          "name": "content",
+          "type": "string"
+        }
+      ],
       "response": null
     }
   },

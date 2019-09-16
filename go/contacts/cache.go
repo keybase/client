@@ -59,6 +59,7 @@ type cachedLookupResult struct {
 
 type lookupResultCache struct {
 	Lookups map[ContactLookupKey]cachedLookupResult
+	Token   Token
 	Version struct {
 		Major int
 		Minor int
@@ -122,18 +123,19 @@ func (c *lookupResultCache) cleanup(mctx libkb.MetaContext) {
 	}
 }
 
-func (c *CachedContactsProvider) getCache(mctx libkb.MetaContext) lookupResultCache {
+func (s *ContactCacheStore) getCache(mctx libkb.MetaContext) (obj lookupResultCache, created bool) {
 	var conCache lookupResultCache
 	var createCache bool
-	cacheKey := c.Store.dbKey(mctx.CurrentUID())
-	found, err := c.Store.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
-	if err != nil {
+	cacheKey := s.dbKey(mctx.CurrentUID())
+	found, err := s.encryptedDB.Get(mctx.Ctx(), cacheKey, &conCache)
+	switch {
+	case err != nil:
 		mctx.Warning("Unable to pull contact lookup cache: %s", err)
 		createCache = true
-	} else if !found {
+	case !found:
 		mctx.Debug("No contact lookup cache found, creating new cache object")
 		createCache = true
-	} else if conCache.Version.Major != cacheCurrentMajorVersion {
+	case conCache.Version.Major != cacheCurrentMajorVersion:
 		mctx.Debug("Found contact cache object but major version is %d (need %d)", conCache.Version.Major, cacheCurrentMajorVersion)
 		createCache = true
 	}
@@ -143,12 +145,22 @@ func (c *CachedContactsProvider) getCache(mctx libkb.MetaContext) lookupResultCa
 	if createCache {
 		conCache = newLookupResultCache()
 	}
-	return conCache
+	return conCache, createCache
 }
 
-func (c *CachedContactsProvider) CleanCache(mctx libkb.MetaContext) error {
-	cacheKey := c.Store.dbKey(mctx.CurrentUID())
-	return c.Store.encryptedDB.Delete(mctx.Ctx(), cacheKey)
+func (s *ContactCacheStore) putCache(mctx libkb.MetaContext, cacheObj lookupResultCache) error {
+	cacheKey := s.dbKey(mctx.CurrentUID())
+	return s.encryptedDB.Put(mctx.Ctx(), cacheKey, cacheObj)
+}
+
+func (s *ContactCacheStore) ClearCache(mctx libkb.MetaContext) error {
+	cacheKey := s.dbKey(mctx.CurrentUID())
+	return s.encryptedDB.Delete(mctx.Ctx(), cacheKey)
+}
+
+func (c *CachedContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
+	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (res ContactLookupResults, err error) {
+	return c.LookupAll(mctx, emails, numbers, userRegion)
 }
 
 func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
@@ -171,7 +183,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	conCache := c.getCache(mctx)
+	conCache, _ := c.Store.getCache(mctx)
 
 	var remainingEmails []keybase1.EmailAddress
 	var remainingNumbers []keybase1.RawPhoneNumber
@@ -183,7 +195,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	newCacheEntries := make([]ContactLookupKey, 0, len(remainingEmails)+len(remainingNumbers))
 
 	for _, email := range emails {
-		key := makeEmailLookupKey(email)
+		key := MakeEmailLookupKey(email)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later.
@@ -196,7 +208,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	}
 
 	for _, number := range numbers {
-		key := makePhoneLookupKey(number)
+		key := MakePhoneLookupKey(number)
 		cache, stale, found := conCache.findFreshOrSetEmpty(mctx, key)
 		if found && cache.Resolved {
 			// Store result even if stale, but may be overwritten by API query later.
@@ -211,8 +223,10 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 	mctx.Debug("After checking cache, %d emails and %d numbers left to be looked up", len(remainingEmails), len(remainingNumbers))
 
 	if len(remainingEmails)+len(remainingNumbers) > 0 {
-		apiRes, err := c.Provider.LookupAll(mctx, remainingEmails, remainingNumbers, userRegion)
+		apiRes, err := c.Provider.LookupAllWithToken(mctx, remainingEmails, remainingNumbers, userRegion, conCache.Token)
 		if err == nil {
+			conCache.Token = apiRes.Token
+
 			now := mctx.G().Clock().Now()
 			expiresAt := now.Add(apiRes.ResolvedFreshness)
 			for k, v := range apiRes.Results {
@@ -234,9 +248,7 @@ func (c *CachedContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keyb
 		}
 
 		conCache.cleanup(mctx)
-
-		cacheKey := c.Store.dbKey(mctx.CurrentUID())
-		cerr := c.Store.encryptedDB.Put(mctx.Ctx(), cacheKey, conCache)
+		cerr := c.Store.putCache(mctx, conCache)
 		if cerr != nil {
 			mctx.Warning("Unable to update cache: %s", cerr)
 		}
@@ -251,4 +263,33 @@ func (c *CachedContactsProvider) FindUsernames(mctx libkb.MetaContext, uids []ke
 
 func (c *CachedContactsProvider) FindFollowing(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]bool, error) {
 	return c.Provider.FindFollowing(mctx, uids)
+}
+
+func (c *CachedContactsProvider) FindServiceMaps(mctx libkb.MetaContext, uids []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error) {
+	return c.Provider.FindServiceMaps(mctx, uids)
+}
+
+// RemoveContactsCachePhoneEntry removes cached lookup for phone number.
+func (s *ContactCacheStore) RemoveContactsCacheEntries(mctx libkb.MetaContext,
+	phone *keybase1.PhoneNumber, email *keybase1.EmailAddress) {
+	// TODO: Use a phoneNumber | email variant instead of two pointers.
+	cacheObj, created := s.getCache(mctx)
+	if created {
+		// There was no cache.
+		return
+	}
+	if phone != nil {
+		// TODO: this type conversion shouldn't have to be here,
+		//  since this cache should take `PhoneNumber`s.
+		delete(cacheObj.Lookups, MakePhoneLookupKey(keybase1.RawPhoneNumber(*phone)))
+		mctx.Debug("ContactCacheStore: Removing phone number %q from lookup cache", *phone)
+	}
+	if email != nil {
+		delete(cacheObj.Lookups, MakeEmailLookupKey(*email))
+		mctx.Debug("ContactCacheStore: Removing email %q from lookup cache", *email)
+	}
+	err := s.putCache(mctx, cacheObj)
+	if err != nil {
+		mctx.Warning("ContactCacheStore: Unable to update cache: %s", err)
+	}
 }

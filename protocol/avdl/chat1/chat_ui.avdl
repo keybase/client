@@ -2,9 +2,9 @@
 
 protocol chatUi {
 
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
-  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
-  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
+  import idl "../keybase1" as keybase1;
+  import idl "../gregor1" as gregor1;
+  import idl "../stellar1" as stellar1;
   import idl "common.avdl";
   import idl "unfurl.avdl";
   import idl "commands.avdl";
@@ -46,6 +46,7 @@ protocol chatUi {
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
+    union { null, string } draft;
 
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
@@ -74,6 +75,11 @@ protocol chatUi {
     union { null, string } contactName; // if set this is an imptofu conversation with someone in our contacts
   }
 
+  record UIPinnedMessage {
+    UIMessage message;
+    string pinnerUsername;
+  }
+
   record InboxUIItem {
     string convID;
     TopicType topicType;
@@ -85,6 +91,7 @@ protocol chatUi {
     string channel;
     string headline;
     string headlineDecorated;
+    union { null, string } draft;
     keybase1.TLFVisibility visibility;
     array<UIParticipant> participants;
     array<string> resetParticipants;
@@ -112,6 +119,9 @@ protocol chatUi {
     // Command support
     ConversationCommandGroups commands;
     ConversationCommandGroups botCommands;
+
+    // Pinned message
+    union { null, UIPinnedMessage} pinnedMsg;
   }
 
   record InboxUIItemError {
@@ -212,6 +222,9 @@ protocol chatUi {
     boolean isDeleteable;
     boolean isEditable;
     union { null, UIMessage } replyTo;
+    union { null, MessageID} pinnedMessageID;
+    // TODO HOTPOT-330 convert to bot username
+    union { null, gregor1.UID } botUID;
   }
 
   record UIMessageOutbox {
@@ -266,7 +279,8 @@ protocol chatUi {
     CHANNELNAMEMENTION_2,
     MAYBEMENTION_3,
     LINK_4,
-    MAILTO_5
+    MAILTO_5,
+    KBFSPATH_6
   }
 
   enum UIMaybeMentionStatus {
@@ -295,6 +309,7 @@ protocol chatUi {
     case MAYBEMENTION: MaybeMention;
     case LINK: UILinkDecoration;
     case MAILTO: UILinkDecoration;
+    case KBFSPATH: KBFSPath;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
@@ -305,8 +320,21 @@ protocol chatUi {
   void chatInboxConversation(int sessionID, string conv);
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
-  void chatThreadCached(int sessionID, union { null, string } thread) oneway;
-  void chatThreadFull(int sessionID, string thread) oneway;
+  enum UIChatThreadStatusTyp {
+    NONE_0,
+    SERVER_1,
+    VALIDATING_2,
+    VALIDATED_3
+  }
+  variant UIChatThreadStatus switch (UIChatThreadStatusTyp typ) {
+    case NONE: void;
+    case SERVER: void;
+    case VALIDATING: int;
+    case VALIDATED: void;
+  }
+  void chatThreadCached(int sessionID, union { null, string } thread);
+  void chatThreadFull(int sessionID, string thread);
+  void chatThreadStatus(int sessionID, UIChatThreadStatus status);
 
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
@@ -447,7 +475,11 @@ protocol chatUi {
 
   // Location support
   @typedef("uint64") @lint("ignore") record LocationWatchID {}
-  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID);
+  enum UIWatchPositionPerm {
+    BASE_0,
+    ALWAYS_1
+  }
+  LocationWatchID chatWatchPosition(int sessionID, ConversationID convID, UIWatchPositionPerm perm);
   void chatClearWatch(int sessionID, LocationWatchID id);
 
   // Slash command feedback
@@ -466,5 +498,7 @@ protocol chatUi {
     FAILED_2,
     BLANK_3
   }
-  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status); 
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status);
+
+  void triggerContactSync(int sessionID);
 }

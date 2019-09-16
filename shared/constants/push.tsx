@@ -1,32 +1,44 @@
-import * as I from 'immutable'
 import * as Types from './types/push'
-import * as ChatConstants from './chat2'
+import * as RPCTypes from './types/rpc-gen'
+import * as RPCChatTypes from './types/rpc-chat-gen'
 import * as ChatTypes from './types/chat2'
-import {isIOS} from '../constants/platform'
+import {isIOS} from './platform'
 import {isDevApplePushToken} from '../local-debug'
 import logger from '../logger'
+import {pluralize} from '../util/string'
 
 export const tokenType = isIOS ? (isDevApplePushToken ? 'appledev' : 'apple') : 'androidplay'
 export const androidSenderID = '9603251415'
 export const permissionsRequestingWaitingKey = 'push:permissionsRequesting'
 
-export const makeInitialState = I.Record<Types._State>({
-  hasPermissions: true,
-  showPushPrompt: false,
-  token: '',
-})
+const anyToConversationMembersType = (a: any): RPCChatTypes.ConversationMembersType | undefined => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.ConversationMembersType.kbfs:
+      return RPCChatTypes.ConversationMembersType.kbfs
+    case RPCChatTypes.ConversationMembersType.team:
+      return RPCChatTypes.ConversationMembersType.team
+    case RPCChatTypes.ConversationMembersType.impteamnative:
+      return RPCChatTypes.ConversationMembersType.impteamnative
+    case RPCChatTypes.ConversationMembersType.impteamupgrade:
+      return RPCChatTypes.ConversationMembersType.impteamupgrade
+    default:
+      return undefined
+  }
+}
 
-export const normalizePush = (n: any): Types.PushNotification | null => {
+export const normalizePush = (n: any): Types.PushNotification | undefined => {
   try {
     if (!n) {
-      return null
+      return undefined
     }
 
     const userInteraction = !!n.userInteraction
     const data = isIOS ? n.data || n._data : n
+    const message = n.message
 
     if (!data) {
-      return null
+      return undefined
     }
 
     if (data.type === 'chat.readmessage') {
@@ -38,13 +50,13 @@ export const normalizePush = (n: any): Types.PushNotification | null => {
     } else if (data.type === 'chat.newmessage' && data.convID) {
       return {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
-        membersType: ChatConstants.anyToConversationMembersType(data.t),
+        membersType: anyToConversationMembersType(data.t),
         type: 'chat.newmessage',
         unboxPayload: n.m || '',
         userInteraction,
       }
     } else if (data.type === 'chat.newmessageSilent_2' && data.c) {
-      const membersType = ChatConstants.anyToConversationMembersType(data.t)
+      const membersType = anyToConversationMembersType(data.t)
       if (membersType) {
         return {
           conversationIDKey: ChatTypes.stringToConversationIDKey(data.c),
@@ -64,11 +76,36 @@ export const normalizePush = (n: any): Types.PushNotification | null => {
         conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
         type: 'chat.extension',
       }
+    } else if (typeof message === 'string' && message.startsWith('Your contact') && userInteraction) {
+      return {
+        type: 'settings.contacts',
+      }
     }
 
-    return null
+    return undefined
   } catch (e) {
     logger.error('Error handling push', e)
-    return null
+    return undefined
+  }
+}
+
+// When the notif is tapped we are only passed the message, use this as a marker
+// so we can handle it correctly.
+const contactNotifMarker = 'Your contact'
+export const makeContactsResolvedMessage = (cts: Array<RPCTypes.ProcessedContact>) => {
+  if (cts.length === 0) {
+    return ''
+  }
+  switch (cts.length) {
+    case 1:
+      return `${contactNotifMarker} ${cts[0].contactName} joined Keybase!`
+    case 2:
+      return `${contactNotifMarker}s ${cts[0].contactName} and ${cts[1].contactName} joined Keybase!`
+    default: {
+      const lenMinusTwo = cts.length - 2
+      return `${contactNotifMarker}s ${cts[0].contactName}, ${
+        cts[1].contactName
+      }, and ${lenMinusTwo} ${pluralize('other', lenMinusTwo)} joined Keybase!`
+    }
   }
 }

@@ -1,11 +1,15 @@
 import logger from '../logger'
 import * as React from 'react'
+import * as Styles from '../styles'
 import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM from 'react-dom'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
-import {StylesCrossPlatform, collapseStyles} from '../styles'
 import {Position} from './relative-popup-hoc.types'
+
+const Kb = {
+  Box,
+}
 
 const getModalRoot = () => document.getElementById('modal-root')
 class Modal extends React.Component<{
@@ -257,7 +261,7 @@ type ModalPositionRelativeProps<PP> = {
   matchDimension?: boolean
   onClosePopup: () => void
   propagateOutsideClicks?: boolean
-  style?: StylesCrossPlatform
+  style?: Styles.StylesCrossPlatform
 } & PP
 
 function ModalPositionRelative<PP>(
@@ -287,7 +291,7 @@ function ModalPositionRelative<PP>(
         return
       }
 
-      const style = collapseStyles([
+      const style = Styles.collapseStyles([
         computePopupStyle(
           this.props.position,
           targetRect,
@@ -343,13 +347,17 @@ function ModalPositionRelative<PP>(
     )
 
     componentDidMount() {
-      document.body && document.body.addEventListener('click', this._handleClick)
-      document.body && document.body.addEventListener('scroll', this._handleScroll, true)
+      const node = document.body
+      if (!__STORYBOOK__ && node) {
+        node.addEventListener('click', this._handleClick, false)
+      }
     }
 
     componentWillUnmount() {
-      document.body && document.body.removeEventListener('click', this._handleClick)
-      document.body && document.body.removeEventListener('scroll', this._handleScroll, true)
+      const node = document.body
+      if (!__STORYBOOK__ && node) {
+        node.removeEventListener('click', this._handleClick, false)
+      }
     }
 
     _setRef = r => {
@@ -361,14 +369,14 @@ function ModalPositionRelative<PP>(
     render() {
       return (
         <Modal setNode={this._setRef}>
-          <Box style={this.state.style}>
+          <Kb.Box style={this.state.style}>
             {this.props.onClosePopup && (
               <EscapeHandler onESC={this.props.onClosePopup}>
                 <WrappedComponent {...this.props as PP} />
               </EscapeHandler>
             )}
             {!this.props.onClosePopup && <WrappedComponent {...this.props as PP} />}
-          </Box>
+          </Kb.Box>
         </Modal>
       )
     }

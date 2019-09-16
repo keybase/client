@@ -6,9 +6,11 @@ import Upload, {UploadProps} from './upload'
 import UploadCountdownHOC, {UploadCountdownHOCProps} from './upload-countdown-hoc'
 import {unknownPathItem} from '../../constants/fs'
 import * as Kbfs from '../common'
+import flags from '../../util/feature-flags'
 
 const mapStateToProps = state => ({
   _edits: state.fs.edits,
+  _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItems: state.fs.pathItems,
   _uploads: state.fs.uploads,
 })
@@ -42,7 +44,7 @@ export const uploadsToUploadCountdownHOCProps = (
   edits: Types.Edits,
   pathItems: Types.PathItems,
   uploads: Types.Uploads
-): UploadCountdownHOCProps => {
+) => {
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
   // flakes on our perception of overall upload status.
@@ -68,16 +70,21 @@ export const uploadsToUploadCountdownHOCProps = (
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
-    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
+    fileName:
+      filePaths.size === 1
+        ? Types.getPathName((filePaths.first() as Types.Path) || Types.stringToPath(''))
+        : null,
     files: filePaths.size,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
 }
 
-const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
+const mergeProps = ({_edits, _kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}) =>
   ({
     ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
     debugToggleShow,
+    isOnline:
+      !flags.kbfsOfflineMode || _kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,
   } as UploadCountdownHOCProps)
 
 export default compose(

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {ReAnimated, ReAnimatedEasing} from './mobile.native'
-import {globalColors, styleSheetCreate} from '../styles'
+import * as Styles from '../styles'
 import {Props} from './loading-line'
 
 const R = ReAnimated
@@ -53,13 +53,16 @@ class LoadingLine extends React.Component<Props> {
   }
 }
 
-const styles = styleSheetCreate({
-  line: {
-    backgroundColor: globalColors.blue,
-    height: 1,
-    position: 'relative',
-    width: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      line: {
+        backgroundColor: Styles.globalColors.blue,
+        height: 1,
+        position: 'absolute',
+        width: '100%',
+      },
+    } as const)
+)
 
 export default LoadingLine

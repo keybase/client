@@ -100,7 +100,8 @@ func TestStorageLogout(t *testing.T) {
 		require.True(t, res == &obj, "should be the same obj from mem")
 
 		t.Logf("logout")
-		tc.G.Logout(context.TODO())
+		err = tc.G.Logout(context.TODO())
+		require.NoError(t, err)
 
 		require.Equal(t, 0, st.MemSize(), "mem cache still populated")
 

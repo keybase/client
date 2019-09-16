@@ -448,8 +448,9 @@
         },
         {
           "type": {
-            "type": "array",
-            "items": "UserVersion"
+            "type": "map",
+            "values": "TeamBotSettings",
+            "keys": "UserVersion"
           },
           "name": "restrictedBots"
         },
@@ -2096,6 +2097,10 @@
         {
           "type": "boolean",
           "name": "skipAudit"
+        },
+        {
+          "type": "boolean",
+          "name": "skipNeedHiddenRotateCheck"
         }
       ]
     },
@@ -2591,6 +2596,13 @@
         {
           "type": "TeamRole",
           "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "TeamBotSettings"
+          ],
+          "name": "botSettings"
         }
       ]
     },
@@ -2800,6 +2812,10 @@
         {
           "type": "boolean",
           "name": "deleteTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "pinMessage"
         }
       ]
     },
@@ -2847,6 +2863,34 @@
         {
           "type": "string",
           "name": "disabledReason"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberEmail",
+      "fields": [
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "string",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberUsername",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "role"
         }
       ]
     }
@@ -3039,6 +3083,13 @@
           "type": "TeamRole"
         },
         {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
+        },
+        {
           "name": "sendChatNotification",
           "type": "boolean"
         }
@@ -3065,6 +3116,13 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
         },
         {
           "name": "sendChatNotification",
@@ -3156,6 +3214,51 @@
         {
           "name": "role",
           "type": "TeamRole"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "TeamBotSettings"
+          ]
+        }
+      ],
+      "response": null
+    },
+    "teamGetBotSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "TeamBotSettings"
+    },
+    "teamSetBotSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": "TeamBotSettings"
         }
       ],
       "response": null

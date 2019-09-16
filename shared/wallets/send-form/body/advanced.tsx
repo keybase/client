@@ -46,13 +46,13 @@ const SecretNoteAndPublicMemo = () => {
         secretNote={secretNote}
         onChangeSecretNote={onChangeSecretNote}
         toSelf={buildingAdvanced.recipientType === 'otherAccount'}
-        secretNoteError={'' /* TODO PICNIC-142 */}
+        secretNoteError=""
         maxLength={secretNoteMaxLength}
       />
       <PublicMemo
         publicMemo={publicMemo}
         onChangePublicMemo={onChangePublicMemo}
-        publicMemoError={'' /* TODO PICNIC-142 */}
+        publicMemoError=""
         maxLength={publicMemoMaxLength}
       />
     </>

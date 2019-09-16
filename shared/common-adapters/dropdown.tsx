@@ -15,7 +15,7 @@ type DropdownButtonProps = {
   selectedBoxStyle?: Styles.StylesCrossPlatform
   style?: Styles.StylesCrossPlatform
   setAttachmentRef?: (arg0: React.Component<any> | null) => void
-  toggleOpen: (e: React.MouseEvent) => void
+  toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
@@ -56,7 +56,7 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
     disabled: false,
   }
 
-  _toggleOpen = (evt?: React.SyntheticEvent) => {
+  _toggleOpen = (evt?: React.BaseSyntheticEvent) => {
     evt && evt.stopPropagation && evt.stopPropagation()
     evt && evt.preventDefault && evt.preventDefault()
     this.setState(prevState => ({
@@ -89,7 +89,7 @@ class Dropdown<N extends React.ReactNode> extends React.Component<Props<N> & Ove
             {this.props.items.map((i: N, idx) => (
               <ClickableBox
                 key={idx}
-                onClick={(evt: React.SyntheticEvent) => {
+                onClick={evt => {
                   evt.stopPropagation && evt.stopPropagation()
                   evt.preventDefault && evt.preventDefault()
                   // Bug in flow that doesn't let us just call this function
@@ -136,7 +136,7 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   inlineDropdown: {
     paddingRight: Styles.globalMargins.tiny,
   },
@@ -192,7 +192,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {minHeight: 32},
     isMobile: {minHeight: 48},
   }),
-})
+}))
 
 const ItemBox = Styles.styled(Box)({
   ...Styles.globalStyles.flexBoxRow,

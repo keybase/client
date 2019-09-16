@@ -79,7 +79,7 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 	msg := "this message will be encrypted for a team"
 
 	_, teamName := createTeam(tc)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	trackUI := &kbtest.FakeIdentifyUI{
@@ -113,7 +113,8 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 
 	// switch to another team member and decrypt
 	kbtest.Logout(tc)
-	u1.Login(tc.G)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI(), SaltpackUI: fakeSaltpackUI{}}
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 

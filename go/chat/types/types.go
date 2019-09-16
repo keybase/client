@@ -90,6 +90,7 @@ type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
+	LocalDraft     *string                     `codec:"d"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
@@ -149,6 +150,23 @@ func (rc RemoteConversation) IsLocallyRead() bool {
 	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
+type UnboxMode int
+
+const (
+	UnboxModeFull UnboxMode = iota
+	UnboxModeQuick
+)
+
+func (m UnboxMode) ShouldCache() bool {
+	switch m {
+	case UnboxModeFull:
+		return true
+	case UnboxModeQuick:
+		return false
+	}
+	return true
+}
+
 type Inbox struct {
 	Version         chat1.InboxVers
 	ConvsUnverified []RemoteConversation
@@ -170,11 +188,18 @@ func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
 	return int(c) > int(c2)
 }
 
+type ConvLoaderUniqueness int
+
+const (
+	ConvLoaderUnique ConvLoaderUniqueness = iota
+	ConvLoaderGeneric
+)
+
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
-	Query        *chat1.GetThreadQuery
 	Pagination   *chat1.Pagination
 	Priority     ConvLoaderPriority
+	Uniqueness   ConvLoaderUniqueness
 	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
 }
 
@@ -183,23 +208,22 @@ func (j ConvLoaderJob) HigherPriorityThan(j2 ConvLoaderJob) bool {
 }
 
 func (j ConvLoaderJob) String() string {
-	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
+	return fmt.Sprintf("[convID: %s pagination: %s unique: %v]", j.ConvID, j.Pagination, j.Uniqueness)
 }
 
-func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination, priority ConvLoaderPriority,
-	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
+func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
+	uniqueness ConvLoaderUniqueness, postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
-		Query:        query,
 		Pagination:   pagination,
 		Priority:     priority,
+		Uniqueness:   uniqueness,
 		PostLoadHook: postLoadHook,
 	}
 }
 
 type AsyncInboxResult struct {
-	Conv      chat1.Conversation
+	Conv      RemoteConversation
 	ConvLocal chat1.ConversationLocal
 	InboxRes  *Inbox // set if we are returning the whole inbox
 }

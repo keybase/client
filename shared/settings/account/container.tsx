@@ -1,4 +1,5 @@
 import * as Constants from '../../constants/settings'
+import * as Tabs from '../../constants/tabs'
 import * as I from 'immutable'
 import * as SettingsGen from '../../actions/settings-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
@@ -8,24 +9,15 @@ import AccountSettings from '.'
 import {isMobile} from '../../styles'
 
 type OwnProps = {}
-const mapStateToProps = (state: TypedState) => {
-  const supersededPhoneNumberRecord =
-    state.settings.phoneNumbers.phones &&
-    state.settings.phoneNumbers.phones.find(phoneNumber => phoneNumber.superseded)
-
-  return {
-    _emails: state.settings.email.emails,
-    _phones: state.settings.phoneNumbers.phones,
-    _supersededPhoneNumberKey: supersededPhoneNumberRecord && supersededPhoneNumberRecord.e164,
-    addedEmail: state.settings.email.addedEmail,
-    bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
-    hasPassword: !state.settings.password.randomPW,
-    supersededPhoneNumber: supersededPhoneNumberRecord
-      ? supersededPhoneNumberRecord.displayNumber
-      : undefined,
-    waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
-  }
-}
+const mapStateToProps = (state: TypedState) => ({
+  _emails: state.settings.email.emails,
+  _phones: state.settings.phoneNumbers.phones,
+  addedEmail: state.settings.email.addedEmail,
+  addedPhone: state.settings.phoneNumbers.addedPhone,
+  bootstrapDone: state.settings.email.emails !== null && state.settings.phoneNumbers.phones !== null,
+  hasPassword: !state.settings.password.randomPW,
+  waiting: anyWaiting(state, Constants.loadSettingsWaitingKey),
+})
 
 const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   _onClearSupersededPhoneNumber: phone => dispatch(SettingsGen.createEditPhone({delete: true, phone})),
@@ -33,6 +25,7 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
   onAddPhone: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})),
   onBack: isMobile ? () => dispatch(RouteTreeGen.createNavigateUp()) : undefined,
   onClearAddedEmail: () => dispatch(SettingsGen.createClearAddedEmail()),
+  onClearAddedPhone: () => dispatch(SettingsGen.createClearAddedPhone()),
   onDeleteAccount: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['deleteConfirm']})),
   onReload: () => {
     dispatch(SettingsGen.createLoadSettings())
@@ -43,24 +36,39 @@ const mapDispatchToProps = (dispatch: TypedDispatch) => ({
     dispatch(
       RouteTreeGen.createNavigateAppend({path: isMobile ? [Constants.passwordTab] : ['changePassword']})
     ),
+  onStartPhoneConversation: () => {
+    dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.chatTab}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [Constants.chatTab, {props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
+      })
+    )
+    dispatch(SettingsGen.createClearAddedPhone())
+  },
 })
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    ...dispatchProps,
-    addedEmail: stateProps.addedEmail,
-    contactKeys: I.List([
-      ...(stateProps._emails ? stateProps._emails.keys() : []),
-      ...(stateProps._phones ? stateProps._phones.keys() : []),
-    ]),
-    hasPassword: stateProps.hasPassword,
-    onClearSupersededPhoneNumber: () =>
-      stateProps._supersededPhoneNumberKey &&
-      dispatchProps._onClearSupersededPhoneNumber(stateProps._supersededPhoneNumberKey),
-    supersededPhoneNumber: stateProps.supersededPhoneNumber,
-    title: 'Your account',
-    waiting: stateProps.waiting,
-  })
+  (stateProps, dispatchProps, _: OwnProps) => {
+    const supersededPhoneNumber = stateProps._phones && stateProps._phones.find(p => p.superseded)
+    const supersededKey = supersededPhoneNumber && supersededPhoneNumber.e164
+    return {
+      ...dispatchProps,
+      addedEmail: stateProps.addedEmail,
+      addedPhone: stateProps.addedPhone,
+      contactKeys: I.List([
+        ...(stateProps._emails ? stateProps._emails.keys() : []),
+        ...(stateProps._phones ? stateProps._phones.keys() : []),
+      ]),
+      hasPassword: stateProps.hasPassword,
+      onClearSupersededPhoneNumber: () =>
+        supersededKey && dispatchProps._onClearSupersededPhoneNumber(supersededKey),
+      supersededPhoneNumber: supersededPhoneNumber ? supersededPhoneNumber.displayNumber : undefined,
+      title: 'Your account',
+      tooManyEmails: !!stateProps._emails && stateProps._emails.size >= 10, // If you change this, also change in keybase/config/prod/email.iced
+      tooManyPhones: !!stateProps._phones && stateProps._phones.size >= 10, // If you change this, also change in keybase/config/prod/phone_numbers.iced
+      waiting: stateProps.waiting,
+    }
+  }
 )(AccountSettings)

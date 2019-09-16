@@ -60,7 +60,7 @@ const SetDefaultAccountPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   avatar: Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {
@@ -97,6 +97,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
-})
+}))
 
 export default SetDefaultAccountPopup

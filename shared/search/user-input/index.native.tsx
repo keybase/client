@@ -6,7 +6,7 @@ import {globalColors, globalMargins, globalStyles, platformStyles} from '../../s
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
-import {UserDetails, Props} from './'
+import {UserDetails, Props} from '.'
 
 type UserItemProps = UserDetails & {
   onRemoveUser: (id: string) => void
@@ -118,7 +118,7 @@ type State = {
 const ZERO_WIDTH_SPACE = '\u200B'
 
 class UserInput extends Component<Props, State> {
-  _textInput: TextInput
+  _textInput: TextInput | null = null
 
   state = {
     isFocused: false,
@@ -139,7 +139,7 @@ class UserInput extends Component<Props, State> {
     this.setState({isFocused: false})
   }
 
-  _onChangeText = text => {
+  _onChangeText = (text: string) => {
     if (text.charAt(0) !== ZERO_WIDTH_SPACE && this.props.userItems.length) {
       // Backspace key detected when the zero width space is removed (we use
       // this hack because detecting soft backspace is really tricky on
@@ -184,7 +184,7 @@ class UserInput extends Component<Props, State> {
     // include the zero width space.
     const clampedSelection =
       selectionStart === null
-        ? null
+        ? undefined
         : {end: Math.max(1, selectionEnd || 1), start: Math.max(1, selectionStart || 1)}
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
@@ -214,7 +214,7 @@ class UserInput extends Component<Props, State> {
             <TextInput
               autoFocus={autoFocus}
               autoCorrect={false}
-              autoCapitalize={'none'}
+              autoCapitalize="none"
               ref={el => {
                 this._textInput = el
               }}

@@ -45,10 +45,7 @@ const actionTransformMap = {
   [EntitiesGen.subtractEntity]: entityTransformer,
 
   _loadAvatarHelper: nullTransform,
-  [ConfigGen.loadAvatars]: nullTransform,
   [ConfigGen.daemonHandshakeWait]: fullOutput,
-  [ConfigGen.loadTeamAvatars]: nullTransform,
-  [ConfigGen.loadedAvatars]: nullTransform,
   [GregorGen.pushOOBM]: nullTransform,
   [ConfigGen.changedFocus]: nullTransform,
   [EngineGen.chat1NotifyChatChatTypingUpdate]: nullTransform,

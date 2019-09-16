@@ -167,7 +167,10 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-		OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime)
+		err = OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -227,7 +230,10 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-		OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime)
+		err = OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

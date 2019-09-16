@@ -40,8 +40,6 @@ const getIconSizeString = (size: Size): RealSizeString => {
   }
 }
 
-const UnknownIcon = (_: Props) => <Kb.Icon type="icon-folder-16" />
-
 const icons = {
   file: {
     '16': 'icon-file-16',
@@ -86,7 +84,7 @@ const IconOnly = (props: Props) => {
   const parsedPath = Constants.parsePath(props.path)
 
   if (parsedPath === Constants.parsedPathRoot) {
-    return <UnknownIcon {...props} />
+    return <Kb.Icon type={icons['file'][getIconSizeString(props.size)]} />
   }
 
   switch (parsedPath) {
@@ -127,7 +125,7 @@ const IconOnly = (props: Props) => {
     case Types.PathKind.InTeamTlf:
       return <Kb.Icon type={icons[iconPathType][getIconSizeString(props.size)]} />
     default:
-      return <UnknownIcon {...props} />
+      return <Kb.Icon type={icons['file'][getIconSizeString(props.size)]} />
   }
 }
 
@@ -168,61 +166,70 @@ export default (props: Props) => (
   </Kb.Box>
 )
 
-const styles = Styles.styleSheetCreate({
-  badgeContainer: {
-    // 1) Make position 'relative' so it's "positioned",
-    //    and that the badge inside can just use 'absolute' relative to this
-    //    container.
-    // 2) Make width/height explicit 0 so they don't affect nearby stuff.
-    height: 0,
-    position: 'relative',
-    width: 0,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badgeContainer: {
+        // 1) Make position 'relative' so it's "positioned",
+        //    and that the badge inside can just use 'absolute' relative to this
+        //    container.
+        // 2) Make width/height explicit 0 so they don't affect nearby stuff.
+        height: 0,
+        position: 'relative',
+        width: 0,
+      },
+    } as const)
+)
 
 const badgeStyles = {
-  '32': Styles.styleSheetCreate({
-    newBadge: {
-      left: 16,
-      position: 'absolute',
-      top: -36,
-    },
-    numberBadge: {
-      left: 20,
-      position: 'absolute',
-      top: -36,
-    },
-    rekeyBadge: {
-      left: 14,
-      position: 'absolute',
-      top: -36,
-    },
-    rightBottomBadge: {
-      left: 20,
-      position: 'absolute',
-      top: -14,
-    },
-  }),
-  '48': Styles.styleSheetCreate({
-    newBadge: {
-      left: 32,
-      position: 'absolute',
-      top: -48,
-    },
-    numberBadge: {
-      left: 36,
-      position: 'absolute',
-      top: -48,
-    },
-    rekeyBadge: {
-      left: 28,
-      position: 'absolute',
-      top: -48,
-    },
-    rightBottomBadge: {
-      left: 32,
-      position: 'absolute',
-      top: -18,
-    },
-  }),
+  '32': Styles.styleSheetCreate(
+    () =>
+      ({
+        newBadge: {
+          left: 16,
+          position: 'absolute',
+          top: -36,
+        },
+        numberBadge: {
+          left: 20,
+          position: 'absolute',
+          top: -36,
+        },
+        rekeyBadge: {
+          left: 14,
+          position: 'absolute',
+          top: -36,
+        },
+        rightBottomBadge: {
+          left: 20,
+          position: 'absolute',
+          top: -14,
+        },
+      } as const)
+  ),
+  '48': Styles.styleSheetCreate(
+    () =>
+      ({
+        newBadge: {
+          left: 32,
+          position: 'absolute',
+          top: -48,
+        },
+        numberBadge: {
+          left: 36,
+          position: 'absolute',
+          top: -48,
+        },
+        rekeyBadge: {
+          left: 28,
+          position: 'absolute',
+          top: -48,
+        },
+        rightBottomBadge: {
+          left: 32,
+          position: 'absolute',
+          top: -18,
+        },
+      } as const)
+  ),
 }

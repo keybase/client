@@ -2,17 +2,17 @@
   "protocol": "local",
   "imports": [
     {
-      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "path": "../gregor1",
       "type": "idl",
       "import_as": "gregor1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "path": "../keybase1",
       "type": "idl",
       "import_as": "keybase1"
     },
     {
-      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "path": "../stellar1",
       "type": "idl",
       "import_as": "stellar1"
     },
@@ -183,6 +183,13 @@
           "name": "replyTo"
         },
         {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "replyToUID"
+        },
+        {
           "type": {
             "type": "array",
             "items": "KnownUserMention"
@@ -295,6 +302,16 @@
             "items": "KnownTeamMention"
           },
           "name": "teamMentions"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessagePin",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
         }
       ]
     },
@@ -648,7 +665,22 @@
     {
       "type": "record",
       "name": "MessageJoin",
-      "fields": []
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "joiners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "leavers"
+        }
+      ]
     },
     {
       "type": "record",
@@ -830,6 +862,13 @@
             "def": false
           },
           "body": "MessageFlip"
+        },
+        {
+          "label": {
+            "name": "PIN",
+            "def": false
+          },
+          "body": "MessagePin"
         }
       ]
     },
@@ -883,7 +922,8 @@
         "EXPIRED_5",
         "TOOMANYATTEMPTS_6",
         "ALREADY_DELETED_7",
-        "UPLOADFAILED_8"
+        "UPLOADFAILED_8",
+        "RESTRICTEDBOT_9"
       ]
     },
     {
@@ -1244,6 +1284,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "BodyPlaintextV2",
+      "fields": [
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "BodyPlaintextMetaInfo",
+          "name": "mi"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "BodyPlaintext",
       "switch": {
@@ -1263,7 +1317,7 @@
             "name": "V2",
             "def": false
           },
-          "body": "BodyPlaintextUnsupported"
+          "body": "BodyPlaintextV2"
         },
         {
           "label": {
@@ -1631,6 +1685,20 @@
     },
     {
       "type": "record",
+      "name": "ConversationPinnedMessage",
+      "fields": [
+        {
+          "type": "MessageUnboxed",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "pinnerUsername"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -1659,6 +1727,20 @@
             "MessageUnboxed"
           ],
           "name": "snippetMsg"
+        },
+        {
+          "type": [
+            null,
+            "ConversationPinnedMessage"
+          ],
+          "name": "pinnedMsg"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
         },
         {
           "type": "keybase1.TLFVisibility",
@@ -2452,6 +2534,13 @@
           "name": "status"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        },
+        {
           "type": "boolean",
           "name": "unreadFirst"
         },
@@ -2865,6 +2954,27 @@
     },
     {
       "type": "record",
+      "name": "PreviewConversationLocalRes",
+      "fields": [
+        {
+          "type": "InboxUIItem",
+          "name": "conv"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DeleteConversationLocalRes",
       "fields": [
         {
@@ -2936,6 +3046,44 @@
         {
           "type": "boolean",
           "name": "enabled"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetConvMember",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "conv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetAllResetConvMembersRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetConvMember"
+          },
+          "name": "members"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -3349,6 +3497,19 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PinMessageRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -3560,6 +3721,10 @@
     },
     "postLocal": {
       "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
         {
           "name": "conversationID",
           "type": "ConversationID"
@@ -4390,15 +4555,6 @@
       ],
       "response": "JoinLeaveConversationLocalRes"
     },
-    "previewConversationByIDLocal": {
-      "request": [
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": "JoinLeaveConversationLocalRes"
-    },
     "leaveConversationLocal": {
       "request": [
         {
@@ -4407,6 +4563,15 @@
         }
       ],
       "response": "JoinLeaveConversationLocalRes"
+    },
+    "previewConversationByIDLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PreviewConversationLocalRes"
     },
     "deleteConversationLocal": {
       "request": [
@@ -4523,6 +4688,10 @@
         }
       ],
       "response": null
+    },
+    "getAllResetConvMembers": {
+      "request": [],
+      "response": "GetAllResetConvMembersRes"
     },
     "setConvRetentionLocal": {
       "request": [
@@ -4809,15 +4978,6 @@
       ],
       "response": null
     },
-    "locationDenied": {
-      "request": [
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": null
-    },
     "advertiseBotCommandsLocal": {
       "request": [
         {
@@ -4849,6 +5009,168 @@
     "clearBotCommandsLocal": {
       "request": [],
       "response": "ClearBotCommandsLocalRes"
+    },
+    "pinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "unpinMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "PinMessageRes"
+    },
+    "ignorePinnedMessage": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null
+    },
+    "addBotMember": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "keybase1.TeamBotSettings"
+          ]
+        },
+        {
+          "name": "role",
+          "type": "keybase1.TeamRole"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "editBotMember": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "keybase1.TeamBotSettings"
+          ]
+        },
+        {
+          "name": "role",
+          "type": "keybase1.TeamRole"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "removeBotMember": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "setBotMemberSettings": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": "keybase1.TeamBotSettings"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getBotMemberSettings": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "keybase1.TeamBotSettings"
     }
   },
   "namespace": "chat.1"

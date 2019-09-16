@@ -60,14 +60,17 @@ const Browser = (props: Props) =>
       ) : (
         <WithContent {...props} />
       )}
-      <Footer />
+      <Footer path={props.path} />
     </Kb.Box2>
   )
 
-const styles = Styles.styleSheetCreate({
-  contentContainer: {
-    flex: 1,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      contentContainer: {
+        flex: 1,
+      },
+    } as const)
+)
 
 export default Browser

@@ -269,8 +269,7 @@ func TestDeviceEKStorageDeleteExpiredKeys(t *testing.T) {
 
 	// Test empty
 	expired := s.getExpiredGenerations(mctx, make(keyExpiryMap), now)
-	var expected []keybase1.EkGeneration
-	expected = nil
+	expected := []keybase1.EkGeneration(nil)
 	require.Equal(t, expected, expired)
 
 	// Test with a single key that is not expired

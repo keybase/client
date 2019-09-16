@@ -199,6 +199,20 @@ helpers.rootLinuxNode(env, {
                   fetchChangeTarget()
                 }
                 parallel (
+                  test_xcompilation: { withEnv([
+                    "PATH=${env.PATH}:${env.GOPATH}/bin",
+                  ]) {
+                    if (hasGoChanges) {
+                      def platforms = ["freebsd", "netbsd", "openbsd"]
+                      for (platform in platforms) {
+                          withEnv(["GOOS=${platform}"]) {
+                              println "Testing compilation on ${platform}"
+                              sh "go build -tags production github.com/keybase/client/go/keybase"
+                              println "End testing compilation on ${platform}"
+                          }
+                      }
+                    }
+                  }},
                   test_linux_go: { withEnv([
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
@@ -208,6 +222,9 @@ helpers.rootLinuxNode(env, {
                     if (hasGoChanges) {
                       dir("go/keybase") {
                         sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
+                      }
+                      dir("go/fuzz") {
+                        sh "go build -tags gofuzz ./..."
                       }
                       testGo("test_linux_go_", packagesToTest)
                     }
@@ -392,13 +409,21 @@ def fetchChangeTarget() {
   }
 }
 
+def getBaseCommitHash() {
+    return sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
+}
+
+def getDiffFileList() {
+    def BASE_COMMIT_HASH = getBaseCommitHash()
+    return sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
+}
+
 def getPackagesToTest(dependencyFiles) {
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET) {
       fetchChangeTarget()
-      def BASE_COMMIT_HASH = sh(returnStdout: true, script: "git rev-parse origin/${env.CHANGE_TARGET}").trim()
-      def diffFileList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; git merge-tree \$(git merge-base ${BASE_COMMIT_HASH} HEAD) ${BASE_COMMIT_HASH} HEAD | grep '[0-9]\\+\\s[0-9a-f]\\{40\\}' | awk '{print \\\$4}'\"").trim()
+      def diffFileList = getDiffFileList()
       if (!diffFileList.contains('Jenkinsfile')) {
         // The Jenkinsfile hasn't changed, so we try to run a minimal set of
         // tests to capture the changes in this PR.
@@ -454,17 +479,47 @@ def testGo(prefix, packagesToTest) {
       }
     }
 
-    println "Running golangci-lint"
+    println "Installing golangci-lint"
     dir("..") {
       retry(5) {
         sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
       }
     }
-    dir('kbfs') {
-      retry(5) {
-        timeout(activity: true, time: 180, unit: 'SECONDS') {
-        // Ignore the `dokan` directory since it contains lots of c code.
-        sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+
+
+    def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
+    if (hasKBFSChanges) {
+      println "Running golangci-lint on KBFS"
+      dir('kbfs') {
+        retry(5) {
+          timeout(activity: true, time: 180, unit: 'SECONDS') {
+          // Ignore the `dokan` directory since it contains lots of c code.
+          // Ignore the `protocol` directory, autogeneration has some critques
+          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+          }
+        }
+      }
+    }
+
+    if (env.CHANGE_TARGET) {
+      println("Running golangci-lint on new code")
+      fetchChangeTarget()
+      def BASE_COMMIT_HASH = getBaseCommitHash()
+      timeout(activity: true, time: 360, unit: 'SECONDS') {
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
+      }
+
+      println("Running golangci-lint for dead code")
+      timeout(activity: true, time: 360, unit: 'SECONDS') {
+        def diffFileList = getDiffFileList()
+        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | { grep '^go\\/' || true; } | { grep -v 'go/revision' || true; } | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
+        diffPackageList.each { pkg ->
+          dir(pkg) {
+            // Ignore the exit code 5, which indicates that there were
+            // no files to analyze -- that's expected if the files were
+            // all tagged for a different platform.
+            sh 'golangci-lint run --no-config --disable-all --enable=deadcode --deadline 5m0s || test $? -eq 5'
+          }
         }
       }
     }

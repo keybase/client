@@ -35,12 +35,14 @@ type memberSet struct {
 	// the per-user-keys of everyone in the lists above
 	recipients              MemberMap
 	restrictedBotRecipients MemberMap
+	restrictedBotSettings   map[keybase1.UserVersion]keybase1.TeamBotSettings
 }
 
 func newMemberSet() *memberSet {
 	return &memberSet{
 		recipients:              make(MemberMap),
 		restrictedBotRecipients: make(MemberMap),
+		restrictedBotSettings:   make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 	}
 }
 
@@ -66,6 +68,9 @@ func newMemberSetChange(ctx context.Context, g *libkb.GlobalContext, req keybase
 	set := newMemberSet()
 	if err := set.loadMembers(ctx, g, req, true /* forcePoll*/); err != nil {
 		return nil, err
+	}
+	for uv, settings := range req.RestrictedBots {
+		set.restrictedBotSettings[uv] = settings
 	}
 	return set, nil
 }
@@ -100,6 +105,9 @@ func (m *memberSet) appendMemberSet(other *memberSet) {
 	}
 	for k, v := range other.restrictedBotRecipients {
 		m.restrictedBotRecipients[k] = v
+	}
+	for k, v := range other.restrictedBotSettings {
+		m.restrictedBotSettings[k] = v
 	}
 }
 
@@ -147,7 +155,7 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 		return err
 	}
 	// restricted bots are not recipients of of the PTK
-	m.RestrictedBots, err = m.loadGroup(ctx, g, req.RestrictedBots, storeMemberKindRestrictedBotRecipient, forcePoll)
+	m.RestrictedBots, err = m.loadGroup(ctx, g, req.RestrictedBotUVs(), storeMemberKindRestrictedBotRecipient, forcePoll)
 	if err != nil {
 		return err
 	}
@@ -260,17 +268,25 @@ func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv k
 
 type MemberChecker interface {
 	IsMember(context.Context, keybase1.UserVersion) bool
+	MemberRole(context.Context, keybase1.UserVersion) (keybase1.TeamRole, error)
 }
 
 func (m *memberSet) removeExistingMembers(ctx context.Context, checker MemberChecker) {
-	for k := range m.recipients {
-		if checker.IsMember(ctx, k) {
-			delete(m.recipients, k)
+	for uv := range m.recipients {
+		if checker.IsMember(ctx, uv) {
+			existingRole, err := checker.MemberRole(ctx, uv)
+			// If we were previously a RESTRICTEDBOT, we now need to be boxed
+			// for the PTK so we skip removal.
+			if err == nil && existingRole.IsRestrictedBot() {
+				continue
+			}
+			delete(m.recipients, uv)
 		}
 	}
-	for k := range m.restrictedBotRecipients {
-		if checker.IsMember(ctx, k) {
-			delete(m.restrictedBotRecipients, k)
+	for uv := range m.restrictedBotRecipients {
+		if checker.IsMember(ctx, uv) {
+			delete(m.restrictedBotRecipients, uv)
+			delete(m.restrictedBotSettings, uv)
 		}
 	}
 }

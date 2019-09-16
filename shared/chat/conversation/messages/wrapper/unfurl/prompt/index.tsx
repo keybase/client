@@ -18,7 +18,7 @@ const promptIcon = Styles.isMobile
 class UnfurlPrompt extends React.PureComponent<Props> {
   render() {
     return (
-      <Kb.Box2 direction="horizontal" style={styles.container}>
+      <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
         {!Styles.isMobile && <Kb.Icon type={promptIcon} style={Kb.iconCastPlatformStyles(styles.icon)} />}
         <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
           <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -42,14 +42,14 @@ class UnfurlPrompt extends React.PureComponent<Props> {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-          <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} fontSize={16} />
+          <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} fontSize={16} padding="xtiny" />
         </Kb.Box2>
       </Kb.Box2>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   choiceContainer: Styles.platformStyles({
     isElectron: {
       width: 370,
@@ -70,8 +70,8 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'flex-start',
       backgroundColor: Styles.globalColors.blueLighter3,
       borderRadius: Styles.borderRadius,
-      paddingBottom: 8,
-      paddingTop: 8,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
       maxWidth: 600,
@@ -80,10 +80,10 @@ const styles = Styles.styleSheetCreate({
   icon: Styles.platformStyles({
     isElectron: {
       alignSelf: 'center',
-      marginLeft: 16,
-      marginRight: 16,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
     },
   }),
-})
+}))
 
 export default UnfurlPrompt

@@ -114,9 +114,11 @@ const Body = (props: BodyProps) => {
         <>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
             <Kb.SearchFilter
+              size="full-width"
               icon="iconfont-search"
-              fullWidth={true}
               placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
+              placeholderCentered={true}
+              mobileCancelButton={true}
               hotkey="f"
               onChange={props.onSearchChange}
               onFocus={onFocusChange ? () => onFocusChange(true) : null}
@@ -203,7 +205,7 @@ const Trustline = Styles.isMobile
 
 export default Trustline
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   body: {
     ...Styles.globalStyles.flexGrow,
   },
@@ -234,4 +236,4 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.tiny,
     },
   }),
-})
+}))

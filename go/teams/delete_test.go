@@ -41,7 +41,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, root, admin.Username, keybase1.TeamRole_ADMIN)
 
-	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN)
+	_, err := AddMember(context.TODO(), tc.G, sub, admin.Username, keybase1.TeamRole_ADMIN, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,8 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_ADMIN)
 
 	// switch to `admin` user
-	tc.G.Logout(context.TODO())
+	err = tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +83,8 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 	assertRole(tc, sub, admin.Username, keybase1.TeamRole_NONE)
 
 	// switch to `admin` user
-	tc.G.Logout(context.TODO())
+	err := tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +94,7 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
+	_, err = GetTeamByNameForTest(context.Background(), tc.G, sub, false, false)
 	if err == nil {
 		t.Fatal("no error getting deleted team")
 	}
@@ -110,7 +112,8 @@ func TestRecreateSubteam(t *testing.T) {
 	defer tc.Cleanup()
 
 	// switch to `admin` user
-	tc.G.Logout(context.TODO())
+	err := tc.G.Logout(context.TODO())
+	require.NoError(t, err)
 	if err := admin.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +170,7 @@ func TestDeleteTwoSubteams(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 adds U1 to A")
-	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads A")

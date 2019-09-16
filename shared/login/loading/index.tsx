@@ -2,15 +2,11 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
-type Props = Kb.PropsWithTimer<{
+type Props = {
   failed: string
   status: string
   onRetry: (() => void) | null
   onFeedback: (() => void) | null
-}>
-
-type State = {
-  showFeedback: boolean
 }
 
 const Feedback = ({onFeedback}) =>
@@ -28,45 +24,40 @@ const Feedback = ({onFeedback}) =>
     </Kb.Text>
   )
 
-class Splash extends React.Component<Props, State> {
-  state = {
-    showFeedback: false,
-  }
-
-  componentDidMount() {
+const Splash = (props: Props) => {
+  const [showFeedback, setShowFeedback] = React.useState(false)
+  const setShowFeedbackTrueLater = Kb.useTimeout(() => setShowFeedback(true), 7000)
+  React.useEffect(() => {
     if (!__STORYBOOK__) {
-      this.props.setTimeout(() => {
-        this.setState({showFeedback: true})
-      }, 7000)
+      setShowFeedbackTrueLater()
     }
-  }
-
-  render() {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
-        <Kb.Icon type={this.props.onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
-        <Kb.Icon type="icon-keybase-wordmark-128-48" />
-        {!!this.props.status && <Kb.Text type="BodySmall">{this.props.status}</Kb.Text>}
-        {!!this.props.failed && (
-          <Kb.Text type="BodySmall">
-            Oops, we had a problem communicating with our services. This might be because you lost
-            connectivity.
-          </Kb.Text>
-        )}
-        {!!this.props.failed && <Kb.Text type="BodySmall">({this.props.failed})</Kb.Text>}
-        {this.props.onRetry && (
-          <Kb.ButtonBar>
-            <Kb.Button label="Reload" onClick={this.props.onRetry} />
-          </Kb.ButtonBar>
-        )}
-        {(this.props.onRetry || this.state.showFeedback) && <Feedback onFeedback={this.props.onFeedback} />}
-      </Kb.Box2>
-    )
-  }
+  }, [])
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
+      <Kb.Icon type={props.onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
+      <Kb.Icon type="icon-keybase-wordmark-128-48" />
+      {!!props.status && <Kb.Text type="BodySmall">{props.status}</Kb.Text>}
+      {!!props.failed && (
+        <Kb.Text type="BodySmall">
+          Oops, we had a problem communicating with our services. This might be because you lost connectivity.
+        </Kb.Text>
+      )}
+      {!!props.failed && <Kb.Text type="BodySmall">({props.failed})</Kb.Text>}
+      {props.onRetry && (
+        <Kb.ButtonBar>
+          <Kb.Button label="Reload" onClick={props.onRetry} />
+        </Kb.ButtonBar>
+      )}
+      {(props.onRetry || showFeedback) && <Feedback onFeedback={props.onFeedback} />}
+    </Kb.Box2>
+  )
 }
 
-const styles = Styles.styleSheetCreate({
-  container: {alignItems: 'center', justifyContent: 'center'},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {alignItems: 'center', justifyContent: 'center'},
+    } as const)
+)
 
-export default Kb.HOCTimers(Splash)
+export default Splash

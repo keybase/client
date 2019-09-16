@@ -729,6 +729,14 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	return child, nil
 }
 
+var _ fs.NodeLinker = (*Dir)(nil)
+
+// Link implements the fs.NodeLinker interface for Dir.
+func (d *Dir) Link(
+	_ context.Context, _ *fuse.LinkRequest, _ fs.Node) (fs.Node, error) {
+	return nil, fuse.ENOTSUP
+}
+
 // Rename implements the fs.NodeRenamer interface for Dir.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) (err error) {

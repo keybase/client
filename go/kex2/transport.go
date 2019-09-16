@@ -107,8 +107,11 @@ const sessionIDText = "Kex v2 Session ID"
 // their connection. Will communicate with the other end via the given message router.
 // You can specify an optional timeout to cancel any reads longer than that timeout.
 func NewConn(ctx context.Context, lctx LogContext, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
-	mac := hmac.New(sha256.New, []byte(s[:]))
-	mac.Write([]byte(sessionIDText))
+	mac := hmac.New(sha256.New, s[:])
+	_, err = mac.Write([]byte(sessionIDText))
+	if err != nil {
+		return nil, err
+	}
 	tmp := mac.Sum(nil)
 	var sessionID SessionID
 	copy(sessionID[:], tmp)
@@ -247,15 +250,8 @@ func (c *Conn) setPollLoopRunning(b bool) {
 	c.pollLoopRunningMutex.Unlock()
 }
 
-func (c *Conn) getPollLoopRunning() bool {
-	c.pollLoopRunningMutex.Lock()
-	ret := c.pollLoopRunning
-	c.pollLoopRunningMutex.Unlock()
-	return ret
-}
-
 type outerMsg struct {
-	_struct   bool      `codec:",toarray"`
+	_struct   bool      `codec:",toarray"` //nolint
 	SenderID  DeviceID  `codec:"senderID"`
 	SessionID SessionID `codec:"sessionID"`
 	Seqno     Seqno     `codec:"seqno"`
@@ -264,7 +260,7 @@ type outerMsg struct {
 }
 
 type innerMsg struct {
-	_struct   bool      `codec:",toarray"`
+	_struct   bool      `codec:",toarray"` //nolint
 	SenderID  DeviceID  `codec:"senderID"`
 	SessionID SessionID `codec:"sessionID"`
 	Seqno     Seqno     `codec:"seqno"`
@@ -370,7 +366,7 @@ func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 					c.bufferedMsgs[0] = front
 				}
 			} else {
-				copy(out[p:(p+n)], front[:])
+				copy(out[p:(p+n)], front)
 				c.bufferedMsgs = c.bufferedMsgs[1:]
 			}
 
@@ -429,7 +425,7 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 
 	var poll time.Duration
 	if !c.readDeadline.IsZero() {
-		poll = c.readDeadline.Sub(time.Now())
+		poll = time.Until(c.readDeadline)
 		if poll.Nanoseconds() < 0 {
 			return 0, c.setReadError(ErrTimedOut)
 		}
@@ -565,7 +561,7 @@ func (c *Conn) Close() error {
 	}
 
 	// All subsequent writes should fail.
-	c.setWriteError(io.EOF)
+	_ = c.setWriteError(io.EOF)
 
 	return nil
 }

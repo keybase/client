@@ -13,7 +13,7 @@ type OwnProps = {
 
 const OpenChat = props =>
   props.onChat && (
-    <Kb.WithTooltip text={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
+    <Kb.WithTooltip tooltip={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
       <Kb.Icon
         type="iconfont-chat"
         color={Styles.globalColors.black_50}
@@ -24,11 +24,14 @@ const OpenChat = props =>
     </Kb.WithTooltip>
   )
 
-const styles = Styles.styleSheetCreate({
-  headerIcon: {
-    padding: Styles.globalMargins.tiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerIcon: {
+        padding: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   isTeam: Constants.isTeamPath(path),

@@ -23,7 +23,7 @@ func TestTeambotNewTeambotKeyNotif(t *testing.T) {
 	mctx := libkb.NewMetaContextForTest(*user1.tc)
 
 	teamID, teamName := user1.createTeam2()
-	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
+	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})
 
 	teambot.ServiceInit(mctx)
 	memberKeyer := user1.tc.G.GetTeambotMemberKeyer()
@@ -54,7 +54,7 @@ func checkNewTeambotKeyNotifications(tc *libkb.TestContext, notifications *teamN
 	case arg := <-notifications.newTeambotKeyCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on newTeambotKey")
 	}
 }
@@ -65,7 +65,7 @@ func checkTeambotKeyNeededNotifications(tc *libkb.TestContext, notifications *te
 	case arg := <-notifications.teambotKeyNeededCh:
 		require.Equal(tc.T, expectedArg, arg)
 		return
-	case <-time.After(500 * time.Millisecond * libkb.CITimeMultiplier(tc.G)):
+	case <-time.After(time.Second * libkb.CITimeMultiplier(tc.G)):
 		require.Fail(tc.T, "no notification on teambotKeyNeeded")
 	}
 }
@@ -106,7 +106,7 @@ func TestTeambotKey(t *testing.T) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
-	user1.addTeamMember(teamName.String(), botua.username, keybase1.TeamRole_RESTRICTEDBOT)
+	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})
 
 	// bot gets a key on addition to the team
 	newKeyArg := keybase1.NewTeambotKeyArg{
@@ -194,7 +194,8 @@ func TestTeambotKey(t *testing.T) {
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
 	key := teambot.TeambotKeyWrongKIDCacheKey(teamID, botua.uid, teambotKey2.Metadata.Generation)
 	expired := keybase1.ToTime(fc.Now())
-	mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	err = mctx3.G().GetKVStore().PutObj(key, nil, expired)
+	require.NoError(t, err)
 	permitted, ctime, err := teambot.TeambotKeyWrongKIDPermitted(mctx3, teamID, botua.uid,
 		teambotKey2.Metadata.Generation, keybase1.ToTime(fc.Now()))
 	require.NoError(t, err)
@@ -268,6 +269,7 @@ func TestTeambotKey(t *testing.T) {
 		ID:          teamID,
 		ForceRepoll: true,
 	})
+	require.NoError(t, err)
 	appKey2, err := team.ApplicationKey(mctx1.Ctx(), keybase1.TeamApplication_CHAT)
 	require.NoError(t, err)
 	teambotKey, _, err = memberKeyer1.GetOrCreateTeambotKey(mctx1, teamID, botuaUID, appKey2)

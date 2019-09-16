@@ -10,7 +10,7 @@ type Props = {
 const NoteAndMemo = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {!!props.encryptedNote && (
-      <React.Fragment>
+      <>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
@@ -20,28 +20,28 @@ const NoteAndMemo = (props: Props) => (
             {props.encryptedNote}
           </Kb.Text>
         </Kb.Box2>
-      </React.Fragment>
+      </>
     )}
     {!!props.publicMemo && (
-      <React.Fragment>
+      <>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Public note
+            Public memo
           </Kb.Text>
           <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.publicMemo}
           </Kb.Text>
         </Kb.Box2>
-      </React.Fragment>
+      </>
     )}
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: Styles.platformStyles({
     common: {color: Styles.globalColors.black},
-    isElectron: {wordBreak: 'break-word'},
+    isElectron: {wordBreak: 'break-word'} as const,
   }),
   headingText: {
     color: Styles.globalColors.blueDark,
@@ -53,6 +53,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default NoteAndMemo

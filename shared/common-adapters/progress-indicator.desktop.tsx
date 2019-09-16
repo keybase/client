@@ -15,7 +15,7 @@ const ProgressIndicator = ({white, style, type}: Props) => (
   />
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   huge: {
     height: Styles.globalMargins.xlarge,
     width: Styles.globalMargins.xlarge,
@@ -28,6 +28,6 @@ const styles = Styles.styleSheetCreate({
     height: Styles.globalMargins.medium,
     width: Styles.globalMargins.medium,
   },
-})
+}))
 
 export default ProgressIndicator

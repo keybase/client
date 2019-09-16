@@ -3,7 +3,7 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/wallets'
-import {IconType} from '../../../common-adapters/icon.constants'
+import {IconType} from '../../../common-adapters/icon.constants-gen'
 import * as IconUtils from '../../../common-adapters/icon.shared'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -22,7 +22,7 @@ const toIconType = (iconFilename: string): IconType => {
   if (IconUtils.isValidIconType(iconType)) {
     return iconType
   } else {
-    return 'icon-stellar-logo-grey-32'
+    return 'iconfont-identity-stellar'
   }
 }
 
@@ -58,11 +58,11 @@ const mapStateToProps = (state: Container.TypedState) => {
     Constants.getDisplayCurrencyWaitingKey(accountID)
   )
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
-  const secretKey = Constants.getSecretKey(state, accountID).stringValue()
+  const thisDeviceIsLockedOut = account.deviceReadOnly
+  const secretKey = !thisDeviceIsLockedOut ? Constants.getSecretKey(state, accountID).stringValue() : ''
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
   const canSubmitTx = account.canSubmitTx
-  const thisDeviceIsLockedOut = account.deviceReadOnly
   const inflationDest = Constants.getInflationDestination(state, accountID)
   const externalPartners = Constants.getExternalPartners(state)
   return {
@@ -136,10 +136,14 @@ export default Container.compose(
         dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
       onDelete: () => dispatchProps._onDelete(stateProps.accountID),
       onEditName: () => dispatchProps._onEditName(stateProps.accountID),
-      onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
+      onLoadSecretKey: !stateProps.thisDeviceIsLockedOut
+        ? () => dispatchProps._onLoadSecretKey(stateProps.accountID)
+        : undefined,
       onMobileOnlyModeChange: (enabled: boolean) =>
         dispatchProps._onChangeMobileOnlyMode(stateProps.accountID, enabled),
-      onSecretKeySeen: () => dispatchProps._onSecretKeySeen(stateProps.accountID),
+      onSecretKeySeen: !stateProps.thisDeviceIsLockedOut
+        ? () => dispatchProps._onSecretKeySeen(stateProps.accountID)
+        : undefined,
       onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
       onSetupInflation: () => dispatchProps._onSetupInflation(stateProps.accountID),
       refresh: () => dispatchProps._refresh(stateProps.accountID),

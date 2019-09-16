@@ -46,6 +46,11 @@ protocol local {
     string desc;
     string infoUrl;                 // 'https://...' or empty
     string infoUrlText;             // the text to use in the infoUrl link
+
+    boolean showDepositButton; // if true, show a deposit button
+    string depositButtonText; // the text to show in the deposit button, most likely "Deposit"
+    boolean showWithdrawButton; // if true, show a withdraw button
+    string withdrawButtonText; // the text to show in the withdraw button, most likely "Withdraw"
   }
   array<AccountAssetLocal> getAccountAssetsLocal(int sessionID, AccountID accountID);
 
@@ -298,6 +303,9 @@ protocol local {
     // Example: "Public memo is too long"
     string publicMemoErrMsg;
 
+    // Optional.  Public memo override (if federation lookup returned one).
+    string publicMemoOverride;
+
     // All these worth fields are pretty confusing.
     // Leaving them in, but adding fields below to simplify, then
     // perhaps we can clean some of these out.
@@ -499,11 +507,12 @@ protocol local {
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // airdropDetailsLocal returns a json blob of details about the current
-  // airdrop.  If the current airdrop has expired, it will return an
-  // expired error.
+  // airdrop and a json blob of content of the wallet disclaimer.  If the
+  // current airdrop has expired, it will return an expired error.
   record AirdropDetails {
     boolean isPromoted;
     string details;
+    string disclaimer;
   }
   AirdropDetails airdropDetailsLocal(int sessionID);
 
@@ -580,6 +589,7 @@ protocol local {
                                   string publicNote, AccountID fromAccountID);
 
   SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+  TransactionID accountMergeCLILocal(AccountID fromAccountID, union { null, SecretKey } fromSecretKey, string to);
 
   // Claim a relay payment
   // `txID` is the kbTxID of the relay payment. Can also be the txID of the funding tx.
@@ -755,6 +765,9 @@ protocol local {
     string displayAmountFiat; // "$1.23 USD" (the worth of amount in user's display currency if asset being sent is XLM)
     string availableToSendNative;
     string availableToSendFiat;
+
+    // Whether or not the URI was signed (used for displaying a warning banner in app)
+    boolean signed;
   }
 
   ValidateStellarURIResultLocal validateStellarURILocal(int sessionID, string inputURI);

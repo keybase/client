@@ -5,9 +5,9 @@
 	<key>BuildVersion</key>
 	<string>1</string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.8.3</string>
+	<string>3.10.0</string>
 	<key>CFBundleVersion</key>
-	<string>3.8.3</string>
+	<string>3.10.0</string>
 	<key>ProjectName</key>
 	<string>KBFUSE</string>
 	<key>SourceVersion</key>

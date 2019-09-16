@@ -82,7 +82,7 @@ type ConversationSource interface {
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, bool, error)
 	PushUnboxed(ctx context.Context, convID chat1.ConversationID,
-		uid gregor1.UID, msg chat1.MessageUnboxed) (continuousUpdate bool, err error)
+		uid gregor1.UID, msg []chat1.MessageUnboxed) error
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
 		query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
@@ -97,7 +97,8 @@ type ConversationSource interface {
 		readMsgID chat1.MessageID) (*chat1.MessageID, error)
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
-		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+		msgs []chat1.MessageUnboxed, q *chat1.GetThreadQuery, superXform SupersedesTransform,
+		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
 	ClearFromDelete(ctx context.Context, uid gregor1.UID,
@@ -171,6 +172,9 @@ type InboxSource interface {
 		status chat1.ConversationStatus) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
 	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
+	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
+	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
+	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -244,8 +248,8 @@ type FetchRetrier interface {
 	Offlinable
 	Resumable
 
-	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
-	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
+	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription)
+	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription)
 	Force(ctx context.Context)
 	Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
 		public bool)
@@ -520,6 +524,7 @@ type LiveLocationTracker interface {
 	StartTracking(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, endTime time.Time)
 	LocationUpdate(ctx context.Context, coord chat1.Coordinate)
 	GetCoordinates(ctx context.Context, key LiveLocationKey) []chat1.Coordinate
+	GetEndTime(ctx context.Context, key LiveLocationKey) *time.Time
 	ActivelyTracking(ctx context.Context) bool
 	StopAllTracking(ctx context.Context)
 }
@@ -530,6 +535,16 @@ type BotCommandManager interface {
 	Clear(ctx context.Context) error
 	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
+}
+
+type SupersedesTransform interface {
+	Run(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID,
+		originalMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
+}
+
+type ReplyFiller interface {
+	Fill(ctx context.Context, uid gregor1.UID, conv UnboxConversationInfo,
+		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
 type InternalError interface {

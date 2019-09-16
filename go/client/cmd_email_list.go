@@ -73,7 +73,7 @@ func (c *CmdListEmails) Run() error {
 	}
 
 	if len(resp) == 0 {
-		c.G().UI.GetDumbOutputUI().PrintfStderr(
+		_, _ = c.G().UI.GetDumbOutputUI().PrintfStderr(
 			"You have no email addresses set. You should add one using `keybase email add` command.\n")
 	}
 	return nil

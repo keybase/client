@@ -24,12 +24,20 @@ type Props = {
   isSelected: boolean
   isDecryptingSnippet: boolean
   isTypingSnippet: boolean
+  draft?: string
 }
 
 class BottomLine extends PureComponent<Props> {
   render() {
     let content
-
+    const style = collapseStyles([
+      styles.bottomLine,
+      {
+        color: this.props.subColor,
+        ...(this.props.showBold ? globalStyles.fontBold : {}),
+      },
+      this.props.isTypingSnippet ? styles.typingSnippet : null,
+    ])
     if (this.props.youNeedToRekey) {
       content = null
     } else if (this.props.youAreReset) {
@@ -53,18 +61,26 @@ class BottomLine extends PureComponent<Props> {
           Waiting for participants to rekey...
         </Text>
       )
+    } else if (this.props.draft) {
+      content = (
+        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+          <Text
+            type="BodySmall"
+            style={collapseStyles([
+              styles.draftLabel,
+              this.props.isSelected ? {color: globalColors.white} : null,
+            ])}
+          >
+            Draft:
+          </Text>
+          <Markdown preview={true} style={style}>
+            {this.props.draft}
+          </Markdown>
+        </Box2>
+      )
     } else if (this.props.isDecryptingSnippet) {
       content = <Meta title="decrypting..." style={styles.alertMeta} backgroundColor={globalColors.blue} />
     } else if (this.props.snippet) {
-      const style = collapseStyles([
-        styles.bottomLine,
-        {
-          color: this.props.subColor,
-          ...(this.props.showBold ? globalStyles.fontBold : {}),
-        },
-        this.props.isTypingSnippet ? styles.typingSnippet : null,
-      ])
-
       let snippetDecoration
       let exploded = false
 
@@ -135,85 +151,91 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-const styles = styleSheetCreate({
-  alertMeta: platformStyles({
-    common: {
-      alignSelf: 'center',
-      marginRight: 6,
-    },
-    isMobile: {
-      marginTop: 2,
-    },
-  }),
-  bottomLine: platformStyles({
-    isAndroid: {
-      lineHeight: undefined,
-    },
-    isElectron: {
-      color: globalColors.black_50,
-      display: 'block',
-      minHeight: 16,
-      overflow: 'hidden',
-      paddingRight: 10,
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '100%',
-    },
-    isMobile: {
-      backgroundColor: globalColors.fastBlank,
-      color: globalColors.black_50,
-      flex: 1,
-      fontSize: 15,
-      lineHeight: 19,
-      paddingRight: 40,
-      paddingTop: 2, // so the tops of emoji aren't chopped off
-    },
-  }),
-  contentBox: {
-    ...globalStyles.fillAbsolute,
-    alignItems: 'center',
-    width: '100%',
-  },
-  innerBox: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexGrow: 1,
-    height: isMobile ? 21 : 17,
-    position: 'relative',
-  },
-  outerBox: {
-    ...globalStyles.flexBoxRow,
-  },
-  rekeyNeededContainer: {
-    alignSelf: 'center',
-    backgroundColor: globalColors.red,
-    borderRadius: 2,
-    paddingLeft: globalMargins.xtiny,
-    paddingRight: globalMargins.xtiny,
-  },
-  rekeyNeededText: platformStyles({
-    common: {
-      color: globalColors.white,
-    },
-    isElectron: {
-      fontSize: 11,
-      lineHeight: 13,
-    },
-    isMobile: {
-      fontSize: 12,
-      lineHeight: 14,
-    },
-  }),
-  typingSnippet: {},
-  youAreResetText: platformStyles({
-    isElectron: {
-      fontSize: 12,
-      lineHeight: 13,
-    },
-    isMobile: {
-      fontSize: 14,
-      lineHeight: 19,
-    },
-  }),
-})
+const styles = styleSheetCreate(
+  () =>
+    ({
+      alertMeta: platformStyles({
+        common: {
+          alignSelf: 'center',
+          marginRight: 6,
+        },
+        isMobile: {
+          marginTop: 2,
+        },
+      }),
+      bottomLine: platformStyles({
+        isAndroid: {
+          lineHeight: undefined,
+        },
+        isElectron: {
+          color: globalColors.black_50,
+          display: 'block',
+          minHeight: 16,
+          overflow: 'hidden',
+          paddingRight: 10,
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          width: '100%',
+        },
+        isMobile: {
+          backgroundColor: globalColors.fastBlank,
+          color: globalColors.black_50,
+          flex: 1,
+          fontSize: 15,
+          lineHeight: 19,
+          paddingRight: 40,
+          paddingTop: 2, // so the tops of emoji aren't chopped off
+        },
+      }),
+      contentBox: {
+        ...globalStyles.fillAbsolute,
+        alignItems: 'center',
+        width: '100%',
+      },
+      draftLabel: {
+        color: globalColors.orange,
+      },
+      innerBox: {
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        flexGrow: 1,
+        height: isMobile ? 21 : 17,
+        position: 'relative',
+      },
+      outerBox: {
+        ...globalStyles.flexBoxRow,
+      },
+      rekeyNeededContainer: {
+        alignSelf: 'center',
+        backgroundColor: globalColors.red,
+        borderRadius: 2,
+        paddingLeft: globalMargins.xtiny,
+        paddingRight: globalMargins.xtiny,
+      },
+      rekeyNeededText: platformStyles({
+        common: {
+          color: globalColors.white,
+        },
+        isElectron: {
+          fontSize: 11,
+          lineHeight: 13,
+        },
+        isMobile: {
+          fontSize: 12,
+          lineHeight: 14,
+        },
+      }),
+      typingSnippet: {},
+      youAreResetText: platformStyles({
+        isElectron: {
+          fontSize: 12,
+          lineHeight: 13,
+        },
+        isMobile: {
+          fontSize: 14,
+          lineHeight: 19,
+        },
+      }),
+    } as const)
+)
 export {BottomLine}

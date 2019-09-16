@@ -1,10 +1,17 @@
 import * as React from 'react'
-import {KeyboardAvoidingView as RnKBAV, EmitterListener, StatusBarIOS, NativeModules} from 'react-native'
+import {
+  KeyboardAvoidingView as RnKBAV,
+  EmitterSubscription,
+  StatusBarIOS,
+  NativeModules,
+  KeyboardAvoidingViewProps,
+} from 'react-native'
 import {isIPhoneX, isIOS} from '../constants/platform'
+
 const {StatusBarManager} = NativeModules
 
-class KeyboardAvoidingView extends React.Component<React.ComponentProps<RnKBAV>, {verticalOffset: number}> {
-  _listener: EmitterListener
+class KeyboardAvoidingView extends React.Component<KeyboardAvoidingViewProps, {verticalOffset: number}> {
+  _listener?: EmitterSubscription
   _mounted = true
   state = {verticalOffset: 0}
 

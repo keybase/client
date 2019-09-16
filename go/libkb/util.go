@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"math"
 	"math/big"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
@@ -30,6 +31,7 @@ import (
 	"unicode"
 
 	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -130,6 +132,10 @@ func NameCmp(n1, n2 string) bool {
 	return NameTrim(n1) == NameTrim(n2)
 }
 
+func IsLowercase(s string) bool {
+	return strings.ToLower(s) == s
+}
+
 func PickFirstError(errors ...error) error {
 	for _, e := range errors {
 		if e != nil {
@@ -196,7 +202,7 @@ func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err
 	}
 	g.Debug("| Temporary file generated: %s", tmpfn)
 	defer tmp.Close()
-	defer ShredFile(tmpfn)
+	defer func() { _ = ShredFile(tmpfn) }()
 
 	g.Debug("| WriteTo %s", tmpfn)
 	n, err := t.WriteTo(tmp)
@@ -295,10 +301,7 @@ func IsValidHostname(s string) bool {
 		}
 	}
 	// TLDs must be >=2 chars
-	if len(parts[len(parts)-1]) < 2 {
-		return false
-	}
-	return true
+	return len(parts[len(parts)-1]) >= 2
 }
 
 var phoneAssertionRE = regexp.MustCompile(`^[1-9]\d{1,14}$`)
@@ -749,6 +752,17 @@ func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline 
 	}
 }
 
+func Sleep(ctx context.Context, duration time.Duration) error {
+	timer := time.NewTimer(duration)
+	select {
+	case <-ctx.Done():
+		timer.Stop()
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 func UseCITime(g *GlobalContext) bool {
 	return g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn()
 }
@@ -1022,4 +1036,87 @@ func execToString(bin string, args []string) (string, error) {
 		return "", fmt.Errorf("Nil result")
 	}
 	return strings.TrimSpace(string(result)), nil
+}
+
+var preferredKBFSMountDirs = func() []string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return []string{"/keybase"}
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		return []string{"/keybase", "/Volumes/Keybase"}
+	default:
+		return []string{}
+	}
+}()
+
+func FindPreferredKBFSMountDirs() (mountDirs []string) {
+	for _, mountDir := range preferredKBFSMountDirs {
+		fi, err := os.Lstat(filepath.Join(mountDir, "private"))
+		if err != nil {
+			continue
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			mountDirs = append(mountDirs, mountDir)
+		}
+	}
+	return mountDirs
+}
+
+var kbfsPathInnerRegExp = func() *regexp.Regexp {
+	const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
+	const usernames = user + `(?:,` + user + `)*`
+	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
+	const tlfType = "/(?:private|public|team)$"
+	// TODO support name suffix e.g. conflict
+	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
+	const specialFiles = "/(?:.kbfs_.+)"
+	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
+}()
+
+// IsKBFSAfterKeybasePath returns true if afterKeybase, after prefixed by
+// /keybase, is a valid KBFS path.
+func IsKBFSAfterKeybasePath(afterKeybase string) bool {
+	return len(afterKeybase) == 0 || kbfsPathInnerRegExp.MatchString(afterKeybase)
+}
+
+func getKBFSAfterMountPath(afterKeybase string, backslash bool) string {
+	afterMount := afterKeybase
+	if len(afterMount) == 0 {
+		afterMount = "/"
+	}
+	if backslash {
+		return strings.Replace(afterMount, "/", `\`, -1)
+	}
+	return afterMount
+}
+
+func getKBFSDeeplinkPath(afterKeybase string) string {
+	if len(afterKeybase) == 0 {
+		return ""
+	}
+	var segments []string
+	for _, segment := range strings.Split(afterKeybase, "/") {
+		segments = append(segments, url.PathEscape(segment))
+	}
+	return "keybase:/" + strings.Join(segments, "/")
+}
+
+func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err error) {
+	const slashKeybase = "/keybase"
+	if !strings.HasPrefix(standardPath, slashKeybase) {
+		return keybase1.KBFSPathInfo{}, errors.New("not a KBFS path")
+	}
+
+	afterKeybase := standardPath[len(slashKeybase):]
+
+	if !IsKBFSAfterKeybasePath(afterKeybase) {
+		return keybase1.KBFSPathInfo{}, errors.New("not a KBFS path")
+	}
+
+	return keybase1.KBFSPathInfo{
+		StandardPath:           standardPath,
+		DeeplinkPath:           getKBFSDeeplinkPath(afterKeybase),
+		PlatformAfterMountPath: getKBFSAfterMountPath(afterKeybase, RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE),
+	}, nil
 }

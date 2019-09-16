@@ -9,7 +9,7 @@ import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
 import {OwnProps as ExplodingMetaOwnProps} from '../../messages/wrapper/exploding-meta/container'
-import {_Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta/'
+import {_Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
@@ -24,7 +24,7 @@ const makeMoreOrdinals = (
   num = __STORYSHOT__ ? 10 : 100
 ): I.List<Types.Ordinal> => {
   if (direction === 'prepend') {
-    const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
+    const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first() as Types.Ordinal) : firstOrdinal
     const start = Math.max(0, oldStart - num)
     const end = oldStart
     const newOrdinals: Array<Types.Ordinal> = []
@@ -33,7 +33,7 @@ const makeMoreOrdinals = (
     }
     return ordinals.unshift(...newOrdinals)
   } else {
-    const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) + 1 : firstOrdinal
+    const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last() as Types.Ordinal) + 1 : firstOrdinal
     const start = oldEnd
     const end = oldEnd + num
     const newOrdinals: Array<Types.Ordinal> = []
@@ -308,7 +308,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       : 'Enable message injection'
     const loadMoreLabel = this.state.loadMoreEnabled ? 'Disable load more' : 'Enable load more'
     return (
-      <React.Fragment>
+      <>
         <ButtonBar direction="row" align="flex-start">
           <Button label={injectLabel} onClick={this._toggleInjectMessages} />
           <Button label={loadMoreLabel} onClick={this._toggleLoadMore} />
@@ -328,9 +328,8 @@ class ThreadWrapper extends React.Component<Props, State> {
           scrollListUpCounter={this.state.scrollListUpCounter}
           scrollListToBottomCounter={this.state.scrollListToBottomCounter}
           scrollListDownCounter={this.state.scrollListDownCounter}
-          showThreadSearch={false}
         />
-      </React.Fragment>
+      </>
     )
   }
 }
@@ -366,7 +365,7 @@ const load = () => {
 
   Sb.storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(providerTopMessage)
-    .add('Error top bar', () => <SpecialTopMessage />)
+    .add('Error top bar', () => <SpecialTopMessage conversationIDKey="1" measure={null} />)
 }
 
 export default load

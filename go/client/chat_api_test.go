@@ -33,12 +33,15 @@ type handlerTracker struct {
 	listConvsOnNameV1   int
 	joinV1              int
 	leaveV1             int
+	addToChannelV1      int
 	loadFlipV1          int
 	getUnfurlSettingsV1 int
 	setUnfurlSettingsV1 int
 	advertiseCommandsV1 int
 	clearCommandsV1     int
 	listCommandsV1      int
+	pinV1               int
+	unpinV1             int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -126,6 +129,11 @@ func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) AddToChannelV1(context.Context, Call, io.Writer) error {
+	h.addToChannelV1++
+	return nil
+}
+
 func (h *handlerTracker) LoadFlipV1(context.Context, Call, io.Writer) error {
 	h.loadFlipV1++
 	return nil
@@ -153,6 +161,24 @@ func (h *handlerTracker) ClearCommandsV1(context.Context, Call, io.Writer) error
 
 func (h *handlerTracker) ListCommandsV1(context.Context, Call, io.Writer) error {
 	h.listCommandsV1++
+	return nil
+}
+
+func (h *handlerTracker) PinV1(context.Context, Call, io.Writer) error {
+	h.pinV1++
+	return nil
+}
+
+func (h *handlerTracker) UnpinV1(context.Context, Call, io.Writer) error {
+	h.unpinV1++
+	return nil
+}
+
+func (h *handlerTracker) GetResetConvMembersV1(context.Context, Call, io.Writer) error {
+	return nil
+}
+
+func (h *handlerTracker) AddResetConvMemberV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
@@ -233,6 +259,10 @@ func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) AddToChannelV1(context.Context, addToChannelOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) LoadFlipV1(context.Context, loadFlipOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
@@ -252,7 +282,24 @@ func (c *chatEcho) AdvertiseCommandsV1(context.Context, advertiseCommandsOptions
 func (c *chatEcho) ClearCommandsV1(context.Context) Reply {
 	return Reply{Result: echoOK}
 }
+
 func (c *chatEcho) ListCommandsV1(context.Context, listCommandsOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) PinV1(context.Context, pinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) UnpinV1(context.Context, unpinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetResetConvMembersV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -272,7 +319,10 @@ type topTest struct {
 	searchRegexpV1    int
 	joinV1            int
 	leaveV1           int
+	addToChannelV1    int
 	listConvsOnNameV1 int
+	pinV1             int
+	unpinV1           int
 }
 
 var topTests = []topTest{
@@ -302,6 +352,8 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "join", "params":{"version": 1}}`, joinV1: 1},
 	{input: `{"id": 39, "method": "leave", "params":{"version": 1}}`, leaveV1: 1},
 	{input: `{"id": 39, "method": "listconvsonname", "params":{"version": 1}}`, listConvsOnNameV1: 1},
+	{input: `{"id": 39, "method": "pin", "params":{"version": 1}}`, pinV1: 1},
+	{input: `{"id": 39, "method": "unpin", "params":{"version": 1}}`, unpinV1: 1},
 }
 
 // TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
@@ -361,9 +413,20 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.leaveV1 != test.leaveV1 {
 			t.Errorf("test %d: input %s => leaveV1 = %d, expected %d", i, test.input, h.leaveV1, test.leaveV1)
 		}
+		if h.addToChannelV1 != test.addToChannelV1 {
+			t.Errorf("test %d: input %s => addToChannelV1 = %d, expected %d", i, test.input, h.addToChannelV1, test.addToChannelV1)
+		}
 		if h.listConvsOnNameV1 != test.listConvsOnNameV1 {
 			t.Errorf("test %d: input %s => listConvsOnNameV1 = %d, expected %d",
 				i, test.input, h.listConvsOnNameV1, test.listConvsOnNameV1)
+		}
+		if h.pinV1 != test.pinV1 {
+			t.Errorf("test %d: input %s => pinV1 = %d, expected %d",
+				i, test.input, h.pinV1, test.pinV1)
+		}
+		if h.unpinV1 != test.unpinV1 {
+			t.Errorf("test %d: input %s => unpinV1 = %d, expected %d",
+				i, test.input, h.unpinV1, test.unpinV1)
 		}
 	}
 }
@@ -620,6 +683,20 @@ var optTests = []optTest{
 	{
 		input: `{"method": "listconvsonname", "params":{"version": 1, "options": {"name": "alice,bob"}}}`,
 	},
+	{
+		input: `{"method": "pin", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "pin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob", "message_id": 1}}}}`,
+	},
+	{
+		input: `{"method": "unpin", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
 }
 
 // TestChatAPIVersionHandlerOptions tests the option decoding.
@@ -736,6 +813,14 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "listconvsonname", "params":{"version": 1, "options": {"name":"alice,bob"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "pin", "params":{"version": 1, "options": {"channel": {"name":"alice,bob", "message_id": 1}}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name":"alice,bob"}}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }

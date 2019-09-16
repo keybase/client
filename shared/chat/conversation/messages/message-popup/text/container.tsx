@@ -9,6 +9,7 @@ import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
+import openURL from '../../../../../util/open-url'
 import Text from '.'
 
 type OwnProps = {
@@ -26,10 +27,15 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+  let _canPinMessage = message.type === 'text'
+  if (_canPinMessage && meta.teamname) {
+    _canPinMessage = yourOperations && yourOperations.pinMessage
+  }
   const _participantsCount = meta.participants.count()
   return {
     _canAdminDelete,
     _canDeleteHistory,
+    _canPinMessage,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
     _participantsCount,
@@ -75,6 +81,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onPinMessage: (message: Types.Message) => {
+    dispatch(
+      Chat2Gen.createPinMessage({
+        conversationIDKey: message.conversationIDKey,
+        messageID: message.id,
+      })
+    )
+  },
   _onReply: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createToggleReplyToMessage({
@@ -102,6 +116,8 @@ export default Container.namedConnect(
     const yourMessage = message.author === stateProps._you
     const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
     const isEditable = stateProps._isEditable && yourMessage
+    const mapUnfurl = Constants.getMapUnfurl(message)
+    const onViewMap = mapUnfurl ? () => openURL(mapUnfurl.url) : undefined
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -118,11 +134,13 @@ export default Container.namedConnect(
         : undefined,
       onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
       onHidden: () => ownProps.onHidden(),
+      onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
         message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
           ? () => dispatchProps._onReplyPrivately(message)
           : undefined,
+      onViewMap,
       onViewProfile:
         message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,
       position: ownProps.position,

@@ -2,68 +2,123 @@ const timeToConsiderActiveForAwhile = 300000
 const timeToConsiderInactive = 60000
 
 type NotifyActiveFunction = (isActive: boolean) => void
-// 5 minutes after being active, consider us inactive after
-// an additional minute of no input
-// for the purpose of marking chat messages read
+type Reason = 'blur' | 'focus' | 'mouseKeyboard' | 'timeout'
+type State = 'appActive' | 'afterActiveCheck' | 'appInactive' | 'blurred' | 'focused'
+// State machine
+// appActive: User is active. Tell redux we're active. In 5 minutes go to 'afterActiveCheck'. If blur go 'appInactive' immediately
+// afterActiveCheck: User was 'appActive', in a window of 1 minute see if any keyboard / mouse happens. If so go to 'appInactive', else go appActive
+// appInactive: Wait for focus or keyboard/mouse, then go to 'appActive'. Tell redux we're inactive
+// blurred: App in background, wait for focus. Tell redux we're inactive
+// focused: App in foreground but no input yet, wait for keyboard/mouse
+
 class InputMonitor {
-  active = true
-  notifyActive: NotifyActiveFunction
-  activeTimeoutID?: number
-  inactiveTimeoutID?: number
+  notifyActive?: NotifyActiveFunction
+  private state: State
+  private timeoutID?: NodeJS.Timeout
 
-  constructor(notifyActive: NotifyActiveFunction) {
-    this.notifyActive = notifyActive
-    // go into listening mode again
-    window.addEventListener('focus', this.goListening)
-    window.addEventListener('blur', this.goInactive)
-    this.goListening()
+  constructor() {
+    window.addEventListener('focus', this.onFocus)
+    window.addEventListener('blur', this.onBlur)
+    this.state = 'appInactive'
+    this.transition('focus')
   }
 
-  _clearTimers = () => {
-    this.activeTimeoutID && window.clearTimeout(this.activeTimeoutID)
-    this.activeTimeoutID = undefined
-
-    this.inactiveTimeoutID && window.clearTimeout(this.inactiveTimeoutID)
-    this.inactiveTimeoutID = undefined
-  }
-
-  resetInactiveTimer = () => {
-    console.log('InputMonitor received input! Going back active')
-    this.goActive()
-  }
-
-  goInactive = () => {
-    console.log('InputMonitor going inactive due to 1 minute of no input')
-    this._clearTimers()
-    if (this.active) {
-      this.active = false
-      this.notifyActive(false)
+  private nextState = (reason: Reason) => {
+    switch (reason) {
+      case 'blur':
+        return 'blurred'
+      case 'focus':
+        return 'focused'
+      case 'mouseKeyboard':
+        return 'appActive'
+      case 'timeout':
+        return this.state === 'appActive' ? 'afterActiveCheck' : 'appInactive'
     }
   }
 
-  goListening = () => {
-    console.log('InputMonitor adding input listeners after 5 active minutes')
-    this._clearTimers()
-
-    window.addEventListener('mousemove', this.resetInactiveTimer, true)
-    window.addEventListener('keypress', this.resetInactiveTimer, true)
-
-    // wait 1 minute before calling goInactive
-    this.inactiveTimeoutID = window.setTimeout(this.goInactive, timeToConsiderInactive)
+  private exitState = (next: State) => {
+    switch (next) {
+      case 'focused':
+        this.unlistenForMouseKeyboard()
+        break
+      case 'afterActiveCheck':
+        this.unlistenForMouseKeyboard()
+        break
+      case 'appInactive':
+        this.unlistenForMouseKeyboard()
+        break
+    }
+  }
+  private enterState = (next: State) => {
+    switch (next) {
+      case 'focused':
+        this.listenForMouseKeyboard()
+        break
+      case 'blurred':
+        this.notifyActive && this.notifyActive(false)
+        break
+      case 'appActive':
+        this.notifyActive && this.notifyActive(true)
+        console.log('InputMonitor: 5 minute timeout')
+        this.timeoutID = setTimeout(() => this.transition('timeout'), timeToConsiderActiveForAwhile)
+        break
+      case 'afterActiveCheck':
+        this.listenForMouseKeyboard()
+        console.log('InputMonitor: 1 minute timeout')
+        this.timeoutID = setTimeout(() => this.transition('timeout'), timeToConsiderInactive)
+        break
+      case 'appInactive':
+        console.log('InputMonitor: Inactive')
+        this.listenForMouseKeyboard()
+        this.notifyActive && this.notifyActive(false)
+        break
+    }
   }
 
-  goActive = () => {
-    this._clearTimers()
-    window.removeEventListener('mousemove', this.resetInactiveTimer, true)
-    window.removeEventListener('keypress', this.resetInactiveTimer, true)
-    if (!this.active) {
-      console.log('InputMonitor going active')
-      this.active = true
-      this.notifyActive(true)
-    }
-    // wait 5 minutes before adding listeners
-    this._clearTimers()
-    this.activeTimeoutID = window.setTimeout(this.goListening, timeToConsiderActiveForAwhile)
+  private clearTimers = () => {
+    // always kill timers
+    this.timeoutID && clearTimeout(this.timeoutID)
+    this.timeoutID = undefined
+    console.log('InputMonitor: Timer cleared')
+  }
+
+  private listenerOptions = {
+    capture: true,
+    passive: true,
+  }
+
+  private listenForMouseKeyboard = () => {
+    this.unlistenForMouseKeyboard()
+    console.log('InputMonitor: adding mouseKeyboard events')
+    window.addEventListener('mousemove', this.onMouseKeyboard, this.listenerOptions)
+    window.addEventListener('keypress', this.onMouseKeyboard, this.listenerOptions)
+  }
+
+  private unlistenForMouseKeyboard = () => {
+    console.log('InputMonitor: removing mouseKeyboard events')
+    window.removeEventListener('mousemove', this.onMouseKeyboard, this.listenerOptions)
+    window.removeEventListener('keypress', this.onMouseKeyboard, this.listenerOptions)
+  }
+
+  private transition = (reason: Reason) => {
+    this.clearTimers()
+
+    const nextState = this.nextState(reason)
+    console.log('InputMonitor: transition', this.state, nextState)
+    if (nextState === this.state) return
+    this.exitState(this.state)
+    this.enterState(nextState)
+    this.state = nextState
+  }
+
+  private onBlur = () => {
+    this.transition('blur')
+  }
+  private onFocus = () => {
+    this.transition('focus')
+  }
+  private onMouseKeyboard = () => {
+    this.transition('mouseKeyboard')
   }
 }
 

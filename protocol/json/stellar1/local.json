@@ -123,6 +123,22 @@
         {
           "type": "string",
           "name": "infoUrlText"
+        },
+        {
+          "type": "boolean",
+          "name": "showDepositButton"
+        },
+        {
+          "type": "string",
+          "name": "depositButtonText"
+        },
+        {
+          "type": "boolean",
+          "name": "showWithdrawButton"
+        },
+        {
+          "type": "string",
+          "name": "withdrawButtonText"
         }
       ]
     },
@@ -525,6 +541,10 @@
         },
         {
           "type": "string",
+          "name": "publicMemoOverride"
+        },
+        {
+          "type": "string",
           "name": "worthDescription"
         },
         {
@@ -789,6 +809,10 @@
         {
           "type": "string",
           "name": "details"
+        },
+        {
+          "type": "string",
+          "name": "disclaimer"
         }
       ]
     },
@@ -1377,6 +1401,10 @@
         {
           "type": "string",
           "name": "availableToSendFiat"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
         }
       ]
     },
@@ -2457,6 +2485,26 @@
         }
       ],
       "response": "SendResultCLILocal"
+    },
+    "accountMergeCLILocal": {
+      "request": [
+        {
+          "name": "fromAccountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "fromSecretKey",
+          "type": [
+            null,
+            "SecretKey"
+          ]
+        },
+        {
+          "name": "to",
+          "type": "string"
+        }
+      ],
+      "response": "TransactionID"
     },
     "claimCLILocal": {
       "request": [

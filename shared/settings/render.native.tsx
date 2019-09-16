@@ -23,4 +23,9 @@ const SettingsRender = (props: Props) => {
   )
 }
 
+SettingsRender.navigationOptions = {
+  header: undefined,
+  title: 'More',
+}
+
 export default SettingsRender

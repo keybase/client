@@ -9,7 +9,7 @@ import {UserTeamShowcase} from '../../constants/types/rpc-gen'
 import {connect, compose, lifecycle} from '../../util/container'
 
 type OwnProps = {
-  attachTo?: () => React.Component<any>| null
+  attachTo?: () => React.Component<any> | null
   onHidden: () => void
   team: UserTeamShowcase
   visible: boolean
@@ -17,7 +17,7 @@ type OwnProps = {
 
 const mapStateToProps = (state, {team}: OwnProps) => {
   const username = state.config.username
-  const following = state.config.following.toObject()
+  const following = state.config.following
   if (!username || !following) {
     throw new Error('Not logged in')
   }
@@ -57,7 +57,7 @@ const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
     _onSetTeamJoinSuccess: (success: boolean) =>
       dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    onUserClick: username => {
+    onUserClick: (username: string) => {
       dispatch(ProfileGen.createShowUserProfile({username}))
     },
   }

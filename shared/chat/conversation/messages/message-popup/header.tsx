@@ -17,11 +17,13 @@ const iconNameForDeviceType = Styles.isMobile
             : 'icon-fancy-encrypted-computer-mobile-226-96'
       }
     }
-  : (deviceType: string, isRevoked: boolean): Kb.IconType => {
+  : (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked
             ? 'icon-fancy-revoked-phone-desktop-150-72'
+            : isLocation
+            ? 'icon-fancy-encrypted-location-phone-desktop-150-72'
             : 'icon-fancy-encrypted-phone-desktop-150-72'
         default:
           return isRevoked
@@ -38,11 +40,12 @@ const MessagePopupHeader = (props: {
   deviceRevokedAt?: number
   deviceType: DeviceType
   isLast?: boolean
+  isLocation: boolean
   timestamp: number
   yourMessage: boolean
 }) => {
-  const {author, deviceName, deviceRevokedAt, deviceType, isLast, timestamp, yourMessage} = props
-  const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt)
+  const {author, deviceName, deviceRevokedAt, deviceType, isLast, isLocation, timestamp, yourMessage} = props
+  const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt, isLocation)
   const whoRevoked = yourMessage ? 'You' : author
   return (
     <Kb.Box style={styles.headerContainer}>
@@ -66,7 +69,7 @@ const MessagePopupHeader = (props: {
           by
         </Kb.Text>
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
-          <Kb.Avatar username={author} size={16} clickToProfile="tracker" />
+          <Kb.Avatar username={author} size={16} onClick="profile" />
           <Kb.ConnectedUsernames
             onUsernameClicked="profile"
             colorFollowing={true}
@@ -103,47 +106,50 @@ const MessagePopupHeader = (props: {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  alignItemsCenter: {alignItems: 'center'},
-  colorBlack40: {color: Styles.globalColors.black_50},
-  headerContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      width: '100%',
-    },
-    isElectron: {
-      maxWidth: 240,
-      minWidth: 200,
-      paddingTop: Styles.globalMargins.small,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.medium,
-    },
-  }),
-  headerDetailsContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  headerIcon: Styles.platformStyles({
-    common: {
-      height: headerIconHeight,
-      marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
-    },
-    isElectron: {marginTop: Styles.globalMargins.tiny},
-    isMobile: {
-      marginTop: Styles.globalMargins.small,
-    },
-  }),
-  revokedAtContainerLast: {
-    borderBottomLeftRadius: 3,
-    borderBottomRightRadius: 3,
-    marginBottom: -Styles.globalMargins.small,
-    overflow: 'hidden',
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {alignItems: 'center'},
+      colorBlack40: {color: Styles.globalColors.black_50},
+      headerContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          width: '100%',
+        },
+        isElectron: {
+          maxWidth: 240,
+          minWidth: 200,
+          paddingTop: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.medium,
+          paddingTop: Styles.globalMargins.medium,
+        },
+      }),
+      headerDetailsContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      headerIcon: Styles.platformStyles({
+        common: {
+          height: headerIconHeight,
+          marginBottom: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.small,
+        },
+        isElectron: {marginTop: Styles.globalMargins.tiny},
+        isMobile: {
+          marginTop: Styles.globalMargins.small,
+        },
+      }),
+      revokedAtContainerLast: {
+        borderBottomLeftRadius: 3,
+        borderBottomRightRadius: 3,
+        marginBottom: -Styles.globalMargins.small,
+        overflow: 'hidden',
+      },
+    } as const)
+)
 
 export default MessagePopupHeader

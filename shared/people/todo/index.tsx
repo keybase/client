@@ -10,6 +10,7 @@ export type TaskButton = {
   onClick: () => void
   type?: ButtonProps['type']
   mode?: ButtonProps['mode']
+  waiting?: ButtonProps['waiting']
 }
 
 export type Props = {
@@ -33,7 +34,7 @@ export const Task = (props: Props) => (
   </PeopleItem>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actionContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -49,4 +50,4 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xsmall,
     marginTop: Styles.globalMargins.xsmall,
   },
-})
+}))

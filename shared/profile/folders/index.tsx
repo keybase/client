@@ -42,7 +42,7 @@ class Folders extends React.PureComponent<Props, State> {
   }
   render() {
     return (
-      <React.Fragment>
+      <>
         {(this.state.expanded ? this.props.tlfs : this.props.tlfs.slice(0, numFoldersShown)).map(tlf => (
           <Tlf {...tlf} key={tlf.text} />
         ))}
@@ -54,29 +54,32 @@ class Folders extends React.PureComponent<Props, State> {
             </Kb.Text>
           </Kb.ClickableBox>
         )}
-      </React.Fragment>
+      </>
     )
   }
 }
 
-const styles = Styles.styleSheetCreate({
-  itemContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    paddingBottom: 4,
-    paddingLeft: 8,
-    paddingTop: 4,
-  },
-  itemText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_50,
-      marginLeft: Styles.globalMargins.tiny,
-      overflow: 'hidden',
-    },
-    isElectron: {
-      wordWrap: 'break-word',
-    },
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      itemContainer: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-start',
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingTop: 4,
+      },
+      itemText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black_50,
+          marginLeft: Styles.globalMargins.tiny,
+          overflow: 'hidden',
+        },
+        isElectron: {
+          wordWrap: 'break-word',
+        },
+      }),
+    } as const)
+)
 
 export default Folders

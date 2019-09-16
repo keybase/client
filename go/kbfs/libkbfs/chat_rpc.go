@@ -382,6 +382,21 @@ func (c *ChatRPC) getLastSelfWrittenHandles(
 
 			tlfName := selfMessage.Folder.Name
 			tlfType := tlf.TypeFromFolderType(selfMessage.Folder.FolderType)
+
+			// Before doing the work of creating a full TLF handle, do
+			// a quick check to see if we've parsed it already (since
+			// the same conversation can show up multiple times in the
+			// self-write list if they are interspersed with writes to
+			// other conversations).  Most of the time `tlfName`
+			// should already be canonicalized, so this shouldn't
+			// result in too many false negatives (and won't result in
+			// any false positives).
+			quickPath := tlfhandle.BuildCanonicalPathForTlfName(
+				tlfType, tlf.CanonicalName(tlfName))
+			if seen[quickPath] {
+				continue
+			}
+
 			h, err := GetHandleFromFolderNameAndType(
 				ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
 				tlfName, tlfType)
@@ -461,6 +476,19 @@ func (c *ChatRPC) GetGroupedInbox(
 
 		tlfIsFavorite := favMap[favorites.Folder{Name: info.TlfName, Type: tlfType}]
 		if !tlfIsFavorite {
+			continue
+		}
+
+		// Before doing the work of creating a full TLF handle, do a
+		// quick check to see if we've parsed it already (since
+		// multiple conversations can belong to the same TLF due to
+		// multiple writers in that TLF).  Most of the time
+		// `info.TlfName` should already be canonicalized, so this
+		// shouldn't result in too many false negatives (and won't
+		// result in any false positives).
+		quickPath := tlfhandle.BuildCanonicalPathForTlfName(
+			tlfType, tlf.CanonicalName(info.TlfName))
+		if seen[quickPath] {
 			continue
 		}
 

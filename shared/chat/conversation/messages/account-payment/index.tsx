@@ -75,7 +75,7 @@ const AccountPayment = (props: Props) => {
           >
             {props.action}{' '}
             <Kb.Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
-              {`${props.amount}${props.sourceAmount ? ` (by converting ${props.sourceAmount})` : ''}`}
+              {props.amount}
             </Kb.Text>
             {props.approxWorth && (
               <Kb.Text type="BodySmall" style={styles.purple}>
@@ -127,47 +127,50 @@ const AccountPayment = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
-  alignItemsCenter: {
-    alignItems: 'center',
-  },
-  amountContainer: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      marginLeft: 'auto',
-    },
-    isMobile: {
-      justifyContent: 'space-between',
-    },
-  }),
-  button: {
-    alignSelf: 'flex-start',
-    marginTop: Styles.globalMargins.xtiny,
-  },
-  buttonText: {
-    color: Styles.globalColors.white,
-  },
-  flexWrap: {
-    flexWrap: 'wrap',
-  },
-  lineThrough: {
-    textDecorationLine: 'line-through',
-  },
-  progressIndicator: Styles.platformStyles({
-    // Match height of a line of text
-    isElectron: {
-      height: 17,
-      width: 17,
-    },
-    isMobile: {
-      height: 22,
-      width: 22,
-    },
-  }),
-  purple: {color: Styles.globalColors.purpleDark},
-  tooltipText: Styles.platformStyles({
-    isElectron: {wordBreak: 'normal'},
-  }),
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      alignItemsCenter: {
+        alignItems: 'center',
+      },
+      amountContainer: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'center',
+          marginLeft: 'auto',
+        },
+        isMobile: {
+          justifyContent: 'space-between',
+        },
+      }),
+      button: {
+        alignSelf: 'flex-start',
+        marginTop: Styles.globalMargins.xtiny,
+      },
+      buttonText: {
+        color: Styles.globalColors.white,
+      },
+      flexWrap: {
+        flexWrap: 'wrap',
+      },
+      lineThrough: {
+        textDecorationLine: 'line-through',
+      },
+      progressIndicator: Styles.platformStyles({
+        // Match height of a line of text
+        isElectron: {
+          height: 17,
+          width: 17,
+        },
+        isMobile: {
+          height: 22,
+          width: 22,
+        },
+      }),
+      purple: {color: Styles.globalColors.purpleDark},
+      tooltipText: Styles.platformStyles({
+        isElectron: {wordBreak: 'normal'},
+      }),
+    } as const)
+)
 
 export default AccountPayment

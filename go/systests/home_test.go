@@ -140,7 +140,7 @@ func pollForTrue(t *testing.T, g *libkb.GlobalContext, poller func(i int) bool) 
 		}
 		g.Log.Debug("Didn't get an update; waiting %s more", wait)
 		time.Sleep(wait)
-		wait = wait * 2
+		wait *= 2
 	}
 	require.True(t, found, "whether condition was satisfied after polling ended")
 }

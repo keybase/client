@@ -127,7 +127,7 @@ func findRows(t *testing.T, haystack []keybase1.Identify3Row, needles []keybase1
 			return
 		}
 	}
-	t.Fatalf("didn't find all wanted rows")
+	require.Fail(t, "didn't find all wanted rows")
 }
 
 func addBTCAddr(tc libkb.TestContext, u *kbtest.FakeUser, addr string) {
@@ -151,19 +151,34 @@ func TestCryptocurrency(t *testing.T) {
 	addr := "1HUCBSJeHnkhzrVKVjaVmWg2QtZS1mdfaz"
 	addBTCAddr(tc, alice, addr)
 	require.NoError(t, err)
-	_, err = kbtest.CreateAndSignupFakeUser("bob", tc.G)
+	bob, err := kbtest.CreateAndSignupFakeUser("bob", tc.G)
 	require.NoError(t, err)
+
+	assertTrackResult := func(res id3results, green bool) {
+		require.False(t, res.userWasReset)
+
+		// We get one row of results, just the cryptocurrency row.
+		require.Equal(t, 1, len(res.rows))
+		require.Equal(t, "btc", res.rows[0].Key)
+		require.Equal(t, addr, res.rows[0].Value)
+		if green {
+			require.Equal(t, keybase1.Identify3RowColor_GREEN, res.rows[0].Color)
+		} else {
+			require.Equal(t, keybase1.Identify3RowColor_BLUE, res.rows[0].Color)
+		}
+		require.Equal(t, keybase1.Identify3RowState_VALID, res.rows[0].State)
+	}
 
 	mctx := libkb.NewMetaContextForTest(tc)
 	res := runID3(t, mctx, alice.Username, true)
-	require.False(t, res.userWasReset)
+	// Row color should be blue because we are not tracking.
+	assertTrackResult(res, false /* green */)
 
-	// We get one row of results, just the cryptocurrency row.
-	require.Equal(t, 1, len(res.rows))
-	require.Equal(t, "btc", res.rows[0].Key)
-	require.Equal(t, addr, res.rows[0].Value)
-	require.Equal(t, keybase1.Identify3RowColor_GREEN, res.rows[0].Color)
-	require.Equal(t, keybase1.Identify3RowState_VALID, res.rows[0].State)
+	_, err = kbtest.RunTrack(tc, bob, alice.Username)
+	require.NoError(t, err)
+
+	res = runID3(t, mctx, alice.Username, true)
+	assertTrackResult(res, true /* green */)
 }
 
 func TestFollowUnfollowTracy(t *testing.T) {
@@ -173,56 +188,56 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.NoError(t, err)
 
 	mctx := libkb.NewMetaContextForTest(tc)
-	res := runID3(t, mctx, "t_tracy", true)
+	res := runID3(t, mctx, "t_tracy", true /* follow */)
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
 	require.False(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_VALID,
-			Color: keybase1.Identify3RowColor_GREEN,
+			Color: keybase1.Identify3RowColor_BLUE,
 		},
 	})
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
 			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "unreachable"}},
+			Metas: []keybase1.Identify3RowMeta{{Color: keybase1.Identify3RowColor_ORANGE, Label: "unreachable"}},
 		},
 	})
 
-	res = runID3(t, mctx, "t_tracy", false)
+	res = runID3(t, mctx, "t_tracy", false /* follow */)
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
 	require.True(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_VALID,
@@ -230,18 +245,18 @@ func TestFollowUnfollowTracy(t *testing.T) {
 		},
 	})
 	findRows(t, res.rows, []keybase1.Identify3Row{
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3Row{
+		{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
 			Color: keybase1.Identify3RowColor_GREEN,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
+			Metas: []keybase1.Identify3RowMeta{{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
 		},
 	})
 }
@@ -287,10 +302,12 @@ func TestFollowResetFollow(t *testing.T) {
 
 	kbtest.Logout(tc)
 	kbtest.ResetAccount(tc, alice)
-	alice.Login(tc.G)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
 	kbtest.Logout(tc)
 
-	bob.Login(tc.G)
+	err = bob.Login(tc.G)
+	require.NoError(t, err)
 	res = runID3(t, mctx, alice.Username, true)
 	require.True(t, res.userWasReset)
 	res = runID3(t, mctx, alice.Username, true)

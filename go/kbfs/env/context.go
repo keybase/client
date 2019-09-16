@@ -93,7 +93,7 @@ func NewContext() *KBFSContext {
 	if err != nil {
 		panic(err)
 	}
-	err = g.ConfigureLogging()
+	err = g.ConfigureLogging(nil)
 	if err != nil {
 		panic(err)
 	}

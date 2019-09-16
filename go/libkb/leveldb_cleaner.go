@@ -43,10 +43,7 @@ var DefaultMobileDbCleanerConfig = DbCleanerConfig{
 	CleanInterval: time.Hour,
 	CacheCapacity: 100000,
 	MinCacheSize:  10000,
-	// On mobile we only run when in the BACKGROUNDACTIVE mode, this is limited
-	// to ~10s of runtime by the OS, we don't want to sleep if we need to get a
-	// clean done.
-	SleepInterval: 0,
+	SleepInterval: 10 * time.Millisecond,
 }
 
 var DefaultDesktopDbCleanerConfig = DbCleanerConfig{
@@ -129,8 +126,6 @@ func (c *levelDbCleaner) monitorAppState() {
 		case state = <-c.G().MobileAppState.NextUpdate(&state):
 			switch state {
 			case keybase1.MobileAppState_BACKGROUNDACTIVE:
-				c.log("monitorAppState: attempting clean")
-				c.clean(false)
 			default:
 				c.log("monitorAppState: attempting cancel, state: %v", state)
 				c.Lock()
@@ -173,9 +168,6 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 		return true
 	}
 	validCache := c.cache.Len() >= c.config.MinCacheSize
-	if c.isMobile {
-		return validCache && c.G().MobileAppState.State() == keybase1.MobileAppState_BACKGROUNDACTIVE
-	}
 	return validCache &&
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }

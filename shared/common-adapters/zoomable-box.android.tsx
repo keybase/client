@@ -1,31 +1,19 @@
 import * as React from 'react'
-import {PanResponder as NativePanResponder} from 'react-native'
+import {
+  PanResponder as NativePanResponder,
+  PanResponderInstance as NativePanResponderInstance,
+  NativeTouchEvent,
+  PanResponderGestureState,
+} from 'react-native'
 import Box from './box'
 import {clamp} from 'lodash-es'
 import {Props} from './zoomable-box'
 
-type Touch = {
-  identifier: number
-  locationX: number
-  locationY: number
-  pageX: number
-  pageY: number
+const Kb = {
+  Box,
 }
 
-type GestureState = {
-  stateID: number
-  moveX: number
-  moveY: number
-  x0: number
-  y0: number
-  dx: number
-  dy: number
-  vx: number
-  vy: number
-  numberActiveTouches: number
-}
-
-const distance = (a: Touch, b: Touch): number => {
+const distance = (a: NativeTouchEvent, b: NativeTouchEvent): number => {
   return Math.sqrt(Math.pow(a.pageX - b.pageX, 2) + Math.pow(a.pageY - b.pageY, 2))
 }
 
@@ -33,30 +21,30 @@ const distance = (a: Touch, b: Touch): number => {
 // and decompose to individual components (transformation matrices
 // are deprecated in RN)
 class PanZoomCalculator {
-  initialTouch1: Touch | null = null
-  touch1: Touch | null = null
-  initialTouch2: Touch | null = null
-  touch2: Touch | null = null
-  gestureState: GestureState | null = null
+  initialTouch1?: NativeTouchEvent
+  touch1?: NativeTouchEvent
+  initialTouch2?: NativeTouchEvent
+  touch2?: NativeTouchEvent
+  gestureState?: PanResponderGestureState
 
   _scaleOffset: number = 1
 
   releaseTouches = () => {
-    this.initialTouch1 = null
-    this.touch1 = null
-    this.initialTouch2 = null
-    this.touch2 = null
+    this.initialTouch1 = undefined
+    this.touch1 = undefined
+    this.initialTouch2 = undefined
+    this.touch2 = undefined
     this._scaleOffset = 1
   }
 
-  updateTouches = (touches: Touch[]) => {
+  updateTouches = (touches: NativeTouchEvent[]) => {
     if (touches.length < 2) {
-      this.touch2 = null
-      this.initialTouch2 = null
+      this.touch2 = undefined
+      this.initialTouch2 = undefined
     }
     if (touches.length < 1) {
-      this.touch1 = null
-      this.initialTouch1 = null
+      this.touch1 = undefined
+      this.initialTouch1 = undefined
     }
     for (const touch of touches) {
       if (this.initialTouch1 && this.initialTouch1.identifier === touch.identifier) {
@@ -74,17 +62,14 @@ class PanZoomCalculator {
   }
 
   releaseGestureState = () => {
-    this.gestureState = null
+    this.gestureState = undefined
   }
 
-  updateGestureState = (gestureState: GestureState) => {
+  updateGestureState = (gestureState: PanResponderGestureState) => {
     this.gestureState = gestureState
   }
 
-  panOffset = (): {
-    x: number
-    y: number
-  } => {
+  panOffset = () => {
     if (this.gestureState) {
       return {x: this.gestureState.dx, y: this.gestureState.dy}
     }
@@ -94,7 +79,6 @@ class PanZoomCalculator {
   scaleOffset = (): number => {
     if (this.touch1 && this.initialTouch1 && this.touch2 && this.initialTouch2) {
       const initialDistance = distance(this.initialTouch1, this.initialTouch2)
-      // $FlowIssue loses the refinement
       const currentDistance = distance(this.touch1, this.touch2)
       this._scaleOffset = currentDistance / initialDistance
     }
@@ -115,15 +99,13 @@ type State = {
   }
   scale: number
   scaleOffset: number
-  translateX: number
-  translateY: number
 }
 
 class ZoomableBox extends React.Component<Props, State> {
   static defaultProps = {
     maxZoom: 3,
   }
-  _panResponder: NativePanResponder
+  _panResponder?: NativePanResponderInstance
   _panZoomCalculator: PanZoomCalculator = new PanZoomCalculator()
   state = {
     layoutHeight: 0,
@@ -132,8 +114,6 @@ class ZoomableBox extends React.Component<Props, State> {
     panOffset: {x: 0, y: 0},
     scale: 1,
     scaleOffset: 1,
-    translateX: 0,
-    translateY: 0,
   }
 
   componentDidMount() {
@@ -224,7 +204,7 @@ class ZoomableBox extends React.Component<Props, State> {
   render() {
     const panHandlers = this._panResponder ? this._panResponder.panHandlers : {}
     return (
-      <Box
+      <Kb.Box
         {...this.props}
         {...panHandlers}
         onLayout={this._onLayout}

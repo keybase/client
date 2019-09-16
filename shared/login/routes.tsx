@@ -22,20 +22,21 @@ const _RootLogin = ({showLoading, showRelogin}: Props) => {
   return <JoinOrLogin />
 }
 
+_RootLogin.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+}
+
 const RootLogin = Container.connect(
   state => {
     const showLoading = state.config.daemonHandshakeState !== 'done'
-    const showRelogin = !showLoading && state.config.configuredAccounts.size > 0
+    const showRelogin = !showLoading && state.config.configuredAccounts.length > 0
     return {showLoading, showRelogin}
   },
   () => ({}),
   (s, d, _: OwnProps) => ({...s, ...d})
 )(_RootLogin)
-
-// @ts-ignore
-RootLogin.navigationOptions = {
-  header: null,
-}
 
 export const newRoutes = {
   feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},

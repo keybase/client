@@ -70,9 +70,8 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 }
 
 // Shutdown terminates any background operations and cleans up.
-func (w *WalletState) Shutdown() error {
+func (w *WalletState) Shutdown(mctx libkb.MetaContext) error {
 	w.shutdownOnce.Do(func() {
-		mctx := libkb.NewMetaContextBackground(w.G())
 		mctx.Debug("WalletState shutting down")
 		w.Lock()
 		w.resetWithLock(mctx)
@@ -435,11 +434,12 @@ func (w *WalletState) PendingPayments(ctx context.Context, accountID stellar1.Ac
 // RecentPayments is an override of remoter's RecentPayments that uses stored data.
 func (w *WalletState) RecentPayments(ctx context.Context, arg remote.RecentPaymentsArg) (stellar1.PaymentsPage, error) {
 	useAccountState := true
-	if arg.Limit != 0 && arg.Limit != 50 {
+	switch {
+	case arg.Limit != 0 && arg.Limit != 50:
 		useAccountState = false
-	} else if arg.Cursor != nil {
+	case arg.Cursor != nil:
 		useAccountState = false
-	} else if !arg.SkipPending {
+	case !arg.SkipPending:
 		useAccountState = false
 	}
 
