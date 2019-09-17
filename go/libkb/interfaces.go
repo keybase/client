@@ -748,7 +748,7 @@ type HiddenTeamChainManager interface {
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, justCreated bool) (err error)
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error)
 }
 
 type TeamBoxAuditor interface {
@@ -814,7 +814,7 @@ type DeviceEKStorage interface {
 	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
-	// Dangerous! Only for deprovisioning.
+	// Dangerous! Only for deprovisioning or shutdown/logout when in oneshot mode.
 	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(mctx MetaContext) ([]string, error)

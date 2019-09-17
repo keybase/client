@@ -40,6 +40,9 @@ export declare const globalStyles: {
   flexOne: {
     flex: 1
   }
+  flexWrap: {
+    flexWrap: 'wrap'
+  }
   fontBold: {
     fontFamily: 'Keybase'
     fontWeight: '700'

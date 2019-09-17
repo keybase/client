@@ -86,11 +86,11 @@ func (b *BackgroundTLFUpdater) runAll() {
 	}
 }
 
-func (b *BackgroundTLFUpdater) Shutdown() error {
+func (b *BackgroundTLFUpdater) Shutdown(mctx libkb.MetaContext) error {
 	b.Lock()
 	defer b.Unlock()
 	if b.running {
-		b.debug(context.Background(), "shutting down")
+		b.debug(mctx.Ctx(), "shutting down")
 		b.running = false
 		close(b.shutdownCh)
 	}
@@ -98,19 +98,19 @@ func (b *BackgroundTLFUpdater) Shutdown() error {
 }
 
 func (b *BackgroundTLFUpdater) monitorAppState() {
-	ctx := context.Background()
-	b.debug(ctx, "monitorAppState: starting up")
+	mctx := libkb.NewMetaContextBackground(b.G())
+	b.debug(mctx.Ctx(), "monitorAppState: starting up")
 	state := keybase1.MobileAppState_FOREGROUND
 	for {
 		state = <-b.G().MobileAppState.NextUpdate(&state)
 		switch state {
 		case keybase1.MobileAppState_FOREGROUND:
-			b.debug(ctx, "monitorAppState: foregrounded, running all after: %v", b.initialWait)
+			b.debug(mctx.Ctx(), "monitorAppState: foregrounded, running all after: %v", b.initialWait)
 			b.runAll()
 		case keybase1.MobileAppState_BACKGROUND:
-			b.debug(ctx, "monitorAppState: backgrounded, suspending upgrade thread")
-			if err := b.Shutdown(); err != nil {
-				b.debug(ctx, "unable to shut down %v", err)
+			b.debug(mctx.Ctx(), "monitorAppState: backgrounded, suspending upgrade thread")
+			if err := b.Shutdown(mctx); err != nil {
+				b.debug(mctx.Ctx(), "unable to shut down %v", err)
 			}
 		}
 	}

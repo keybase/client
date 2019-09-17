@@ -404,6 +404,14 @@
           "name": "channelNameMentions",
           "jsonkey": "channel_name_mentions",
           "optional": true
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "botUID",
+          "jsonkey": "bot_uid"
         }
       ]
     },
@@ -830,6 +838,40 @@
           "name": "teamName",
           "optional": true,
           "jsonkey": "team_name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetConvMemberAPI",
+      "fields": [
+        {
+          "type": "string",
+          "name": "conversationID"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetResetConvMembersRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetConvMemberAPI"
+          },
+          "name": "members"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimitRes"
+          },
+          "name": "rateLimits"
         }
       ]
     }

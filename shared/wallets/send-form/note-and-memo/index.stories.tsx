@@ -43,6 +43,9 @@ const load = () => {
         publicMemoError="Memo is too long"
       />
     ))
+    .add('Public memo override from a federated address', () => (
+      <PublicMemo {...commonProps} maxLength={28} publicMemoOverride="Ref #1234567890" />
+    ))
 }
 
 export default load

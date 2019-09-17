@@ -12,7 +12,7 @@
       "includeContacts": "boolean",
       "namespace": "Types.AllowedNamespace",
       "query": "string",
-      "service": "Types.ServiceId",
+      "service": "Types.ServiceIdWithContact",
       "limit?": "number"
     },
     "addUsersToTeamSoFar": {"namespace": "Types.AllowedNamespace", "users": "Array<Types.User>"},

@@ -10,6 +10,7 @@ import {keyBy, trim} from 'lodash-es'
 import {onIdlePromise} from '../util/idle-callback'
 import {serviceIdToIcon, serviceIdToLogo24, serviceIdFromString} from '../util/platforms'
 import {TypedState} from '../util/container'
+import {ServiceIdWithContact} from '../constants/types/team-building'
 
 const cachedSearchResults = (
   {
@@ -21,16 +22,16 @@ const cachedSearchResults = (
 ) => searchQueryToResult.get(searchQuery)
 const searchResultMapSelector = (state: TypedState) => state.entities.search.searchResults
 
-function _serviceToApiServiceName(service: Types.Service): string {
+function _serviceToApiServiceName(service: Types.Service): ServiceIdWithContact | null {
   return (
     {
-      Facebook: 'facebook',
-      GitHub: 'github',
-      'Hacker News': 'hackernews',
-      Keybase: '',
-      Reddit: 'reddit',
-      Twitter: 'twitter',
-    }[service] || ''
+      Facebook: 'facebook' as const,
+      GitHub: 'github' as const,
+      'Hacker News': 'hackernews' as const,
+      Keybase: 'keybase' as const,
+      Reddit: 'reddit' as const,
+      Twitter: 'twitter' as const,
+    }[service] || null
   )
 }
 
@@ -137,7 +138,7 @@ function _parseSuggestion(username: string, fullname: string) {
 
 function callSearch(
   searchTerm: string,
-  service: string = '',
+  service: ServiceIdWithContact,
   limit: number = 20
 ): Promise<Array<RPCTypes.APIUserSearchResult> | null> {
   return RPCTypes.userSearchUserSearchRpcPromise({
@@ -145,11 +146,17 @@ function callSearch(
     includeServicesSummary: false,
     maxResults: limit,
     query: trim(searchTerm),
-    service: service === 'Keybase' ? 'keybase' : service,
+    service,
   })
 }
 
 function* search(state, {payload: {term, service, searchKey}}) {
+  const serviceId = _serviceToApiServiceName(service)
+  if (!serviceId) {
+    logger.warn('Invalid service in search')
+    return
+  }
+
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = cachedSearchResults(state, searchQuery)
   if (cachedResults) {
@@ -179,10 +186,7 @@ function* search(state, {payload: {term, service, searchKey}}) {
 
   try {
     yield Saga.callUntyped(onIdlePromise, 1e3)
-    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(
-      term,
-      _serviceToApiServiceName(service)
-    )
+    const searchResults: Saga.RPCPromiseType<typeof callSearch> = yield callSearch(term, serviceId)
     const rows = (searchResults || []).map((result: RPCTypes.APIUserSearchResult) =>
       Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
     )

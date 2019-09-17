@@ -38,6 +38,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AuditMode",
+      "symbols": [
+        "STANDARD_0",
+        "JUST_CREATED_1",
+        "SKIP_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "PerTeamKeyGeneration",
       "fields": [],
@@ -2096,11 +2105,11 @@
         },
         {
           "type": "boolean",
-          "name": "skipAudit"
+          "name": "skipNeedHiddenRotateCheck"
         },
         {
-          "type": "boolean",
-          "name": "skipNeedHiddenRotateCheck"
+          "type": "AuditMode",
+          "name": "auditMode"
         }
       ]
     },
@@ -3221,6 +3230,44 @@
             null,
             "TeamBotSettings"
           ]
+        }
+      ],
+      "response": null
+    },
+    "teamGetBotSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "TeamBotSettings"
+    },
+    "teamSetBotSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": "TeamBotSettings"
         }
       ],
       "response": null

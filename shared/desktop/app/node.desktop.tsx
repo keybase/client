@@ -142,7 +142,11 @@ const handleCrashes = () => {
   })
 }
 
-const handleActivate = () => mainWindow && mainWindow.show()
+const handleActivate = () => {
+  mainWindow && mainWindow.show()
+  const dock = Electron.app.dock
+  dock.show()
+}
 
 const handleQuitting = (event: Electron.Event) => {
   console.log('Quit through before-quit')

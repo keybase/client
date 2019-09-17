@@ -48,6 +48,7 @@ type KBFSOpsStandard struct {
 	// Closing this channel will shutdown the reidentification
 	// watcher.
 	reIdentifyControlChan chan chan<- struct{}
+	initDoneCh            <-chan struct{}
 
 	favs *Favorites
 
@@ -77,7 +78,11 @@ type ctxKBFSOpsSkipEditHistoryBlockType int
 const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
-func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBFSOpsStandard {
+// `initDone` should be closed when the rest of initialization (such
+// as journal initialization) has completed.
+func NewKBFSOpsStandard(
+	appStateUpdater env.AppStateUpdater, config Config,
+	initDoneCh <-chan struct{}) *KBFSOpsStandard {
 	log := config.MakeLogger("")
 	quLog := config.MakeLogger(QuotaUsageLogModule("KBFSOps"))
 	kops := &KBFSOpsStandard{
@@ -88,6 +93,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
+		initDoneCh:            initDoneCh,
 		favs:                  NewFavorites(config),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
@@ -1932,6 +1938,12 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 	defer cancel()
 	defer close(doneChan)
 
+	select {
+	case <-fs.initDoneCh:
+	case <-ctx.Done():
+		return
+	}
+
 	doBlock := fs.config.Mode().BlockTLFEditHistoryIntialization()
 	if doBlock {
 		fs.log.CDebugf(ctx, "Waiting for a TLF edit history request")
@@ -2011,6 +2023,12 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 
 	ctx, cancel := fs.startInitSync()
 	defer cancel()
+
+	select {
+	case <-fs.initDoneCh:
+	case <-ctx.Done():
+		return
+	}
 
 	time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
 

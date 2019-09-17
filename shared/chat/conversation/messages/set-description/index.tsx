@@ -20,6 +20,9 @@ export default (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  text: {flexGrow: 1},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      text: {flexGrow: 1},
+    } as const)
+)

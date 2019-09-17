@@ -31,7 +31,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		Common: Common{
 			Version: Version1Str,
 		},
-		ACLs: map[string]AccessControlV1{
+		PerPathConfigs: map[string]PerPathConfigV1{
 			"/": {
 				WhitelistAdditionalPermissions: map[string]string{
 					"alice": PermRead,
@@ -46,7 +46,7 @@ func TestConfigV1Invalid(t *testing.T) {
 		Common: Common{
 			Version: Version1Str,
 		},
-		ACLs: map[string]AccessControlV1{
+		PerPathConfigs: map[string]PerPathConfigV1{
 			"/": {
 				AnonymousPermissions: "",
 			},
@@ -56,13 +56,13 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 	}).EnsureInit()
 	require.Error(t, err)
-	require.IsType(t, ErrDuplicateAccessControlPath{}, err)
+	require.IsType(t, ErrDuplicatePerPathConfigPath{}, err)
 
 	err = (&V1{
 		Common: Common{
 			Version: Version1Str,
 		},
-		ACLs: map[string]AccessControlV1{
+		PerPathConfigs: map[string]PerPathConfigV1{
 			"/foo": {
 				AnonymousPermissions: "",
 			},
@@ -72,13 +72,13 @@ func TestConfigV1Invalid(t *testing.T) {
 		},
 	}).EnsureInit()
 	require.Error(t, err)
-	require.IsType(t, ErrDuplicateAccessControlPath{}, err)
+	require.IsType(t, ErrDuplicatePerPathConfigPath{}, err)
 
 	err = (&V1{
 		Common: Common{
 			Version: Version1Str,
 		},
-		ACLs: map[string]AccessControlV1{
+		PerPathConfigs: map[string]PerPathConfigV1{
 			"/": {
 				AnonymousPermissions: "huh?",
 			},
@@ -97,7 +97,7 @@ func TestConfigV1Full(t *testing.T) {
 			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
 			"bob":   generateSHA256PasswordHashForTestOrBust(t, "54321"),
 		},
-		ACLs: map[string]AccessControlV1{
+		PerPathConfigs: map[string]PerPathConfigV1{
 			"/": {
 				AnonymousPermissions: "read,list",
 			},
@@ -348,7 +348,43 @@ func TestV1EncodeObjectKeyOrder(t *testing.T) {
 	err := v1.Encode(buf, false)
 	require.NoError(t, err)
 	const expectedJSON = `{"version":"v1","users":null,` +
-		`"acls":{"/":{"whitelist_additional_permissions":null,` +
+		`"per_path_configs":{"/":{"whitelist_additional_permissions":null,` +
 		`"anonymous_permissions":"read,list"}}}`
 	require.Equal(t, expectedJSON, strings.TrimSpace(buf.String()))
+}
+
+func TestV1DeprecatingACLsField(t *testing.T) {
+	perPathConfigs := map[string]PerPathConfigV1{
+		"/": {
+			WhitelistAdditionalPermissions: map[string]string{
+				"alice": PermRead,
+			},
+		},
+	}
+
+	configWithDeprecatedACLs := &V1{
+		Common: Common{
+			Version: Version1Str,
+		},
+		Users: map[string]string{
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
+		},
+		ACLs: perPathConfigs,
+	}
+	err := (configWithDeprecatedACLs).EnsureInit()
+	require.NoError(t, err)
+	require.Nil(t, configWithDeprecatedACLs.ACLs)
+	require.Equal(t, perPathConfigs, configWithDeprecatedACLs.PerPathConfigs)
+
+	err = (&V1{
+		Common: Common{
+			Version: Version1Str,
+		},
+		Users: map[string]string{
+			"alice": generateBcryptPasswordHashForTestOrBust(t, "12345"),
+		},
+		ACLs:           perPathConfigs,
+		PerPathConfigs: perPathConfigs,
+	}).EnsureInit()
+	require.IsType(t, ErrACLsPerPathConfigsBothPresent{}, err)
 }

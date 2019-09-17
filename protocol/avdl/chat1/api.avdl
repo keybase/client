@@ -160,6 +160,8 @@ protocol api {
     @jsonkey("channel_name_mentions")
     @optional(true)
     array<UIChannelNameMention> channelNameMentions;
+    @jsonkey("bot_uid")
+    union { null, string } botUID;
   }
 
 
@@ -318,5 +320,15 @@ protocol api {
     @optional(true)
     @jsonkey("team_name")
     string teamName;
+  }
+
+  record ResetConvMemberAPI {
+    string conversationID;
+    string username;
+  }
+
+  record GetResetConvMembersRes {
+    array<ResetConvMemberAPI> members;
+    array<RateLimitRes> rateLimits;
   }
 }

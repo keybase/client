@@ -10,14 +10,14 @@ import {validateEmailAddress} from '../../util/email-address'
 import {UserMatchMention} from '../phone-search'
 import ContinueButton from '../continue-button'
 
-type EmailInputProps = {
+type EmailSearchProps = {
   continueLabel: string
   namespace: AllowedNamespace
   search: (query: string, service: 'email') => void
   teamBuildingSearchResults: {[query: string]: {[service in Types.ServiceIdWithContact]: Array<Types.User>}}
 }
 
-const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailInputProps) => {
+const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResults}: EmailSearchProps) => {
   const [isEmailValid, setEmailValidity] = React.useState(false)
   const [emailString, setEmailString] = React.useState('')
   const waiting = Container.useAnyWaiting(Constants.searchWaitingKey)
@@ -27,28 +27,25 @@ const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults
   if (
     teamBuildingSearchResults &&
     teamBuildingSearchResults[emailString] &&
-    teamBuildingSearchResults[emailString].keybase &&
-    teamBuildingSearchResults[emailString].keybase[0]
+    teamBuildingSearchResults[emailString].email &&
+    teamBuildingSearchResults[emailString].email[0]
   ) {
-    user = teamBuildingSearchResults[emailString].keybase[0]
+    user = teamBuildingSearchResults[emailString].email[0]
   }
   const canSubmit = !!user && !waiting && isEmailValid
-  const emailHasKeybaseAccount = user && user.serviceMap.keybase !== ''
 
   const onChange = React.useCallback(
     text => {
       // Remove leading or trailing whitespace
       text = text.trim()
       setEmailString(text)
-      const isNewInputValid = validateEmailAddress(text)
-      if (isNewInputValid !== isEmailValid) {
-        setEmailValidity(isNewInputValid)
-      }
-      if (isNewInputValid) {
+      const valid = validateEmailAddress(text)
+      setEmailValidity(valid)
+      if (valid) {
         search(text, 'email')
       }
     },
-    [isEmailValid, search]
+    [search]
   )
 
   const onSubmit = React.useCallback(() => {
@@ -79,7 +76,7 @@ const EmailInput = ({continueLabel, namespace, search, teamBuildingSearchResults
             <Kb.ProgressIndicator type="Small" />
           </Kb.Box2>
         )}
-        {!!user && canSubmit && emailHasKeybaseAccount && user.serviceMap.keybase && (
+        {!!user && canSubmit && !!user.serviceMap.keybase && (
           <UserMatchMention username={user.serviceMap.keybase} />
         )}
         {/* TODO: add support for multiple emails  */}
@@ -127,4 +124,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default EmailInput
+export default EmailSearch

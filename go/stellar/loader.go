@@ -77,7 +77,7 @@ func DefaultLoader(g *libkb.GlobalContext) *Loader {
 
 	if defaultLoader == nil {
 		defaultLoader = NewLoader(g)
-		g.PushShutdownHook(func() error {
+		g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 			defaultLock.Lock()
 			err := defaultLoader.Shutdown()
 			defaultLoader = nil

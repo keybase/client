@@ -55,31 +55,34 @@ const CoinFlipParticipants = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xsmall,
-    },
-  }),
-  partContainer: {
-    maxHeight: 200,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  participants: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  title: Styles.platformStyles({
-    isElectron: {
-      paddingTop: Styles.globalMargins.xtiny,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xsmall,
+        },
+      }),
+      partContainer: {
+        maxHeight: 200,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      participants: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      title: Styles.platformStyles({
+        isElectron: {
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+      }),
+    } as const)
+)
 
 export default CoinFlipParticipants

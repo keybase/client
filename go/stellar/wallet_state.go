@@ -70,9 +70,8 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 }
 
 // Shutdown terminates any background operations and cleans up.
-func (w *WalletState) Shutdown() error {
+func (w *WalletState) Shutdown(mctx libkb.MetaContext) error {
 	w.shutdownOnce.Do(func() {
-		mctx := libkb.NewMetaContextBackground(w.G())
 		mctx.Debug("WalletState shutting down")
 		w.Lock()
 		w.resetWithLock(mctx)

@@ -303,6 +303,9 @@ protocol local {
     // Example: "Public memo is too long"
     string publicMemoErrMsg;
 
+    // Optional.  Public memo override (if federation lookup returned one).
+    string publicMemoOverride;
+
     // All these worth fields are pretty confusing.
     // Leaving them in, but adding fields below to simplify, then
     // perhaps we can clean some of these out.

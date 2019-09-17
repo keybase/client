@@ -10,19 +10,24 @@ const YouAreReset = () => (
       <Icon type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
       <Icon type="icon-access-denied-266" />
     </Box>
-    <Box
-      style={{
-        ...Styles.globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        backgroundColor: Styles.globalColors.red,
-        padding: Styles.globalMargins.small,
-      }}
-    >
+    <Box style={styles.box}>
       <Text type="BodySemibold" negative={true} style={{textAlign: 'center' as const}}>
         Since you reset your account, participants have to accept to let you back in.
       </Text>
     </Box>
   </Box>
+)
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.red,
+        padding: Styles.globalMargins.small,
+      },
+    } as const)
 )
 
 export default YouAreReset

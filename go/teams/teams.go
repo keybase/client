@@ -250,10 +250,7 @@ func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 		t.G().Log.CDebugf(ctx, "error getting user role: %s", err)
 		return false
 	}
-	if role == keybase1.TeamRole_NONE {
-		return false
-	}
-	return true
+	return role != keybase1.TeamRole_NONE
 }
 
 func (t *Team) MemberCtime(ctx context.Context, uv keybase1.UserVersion) *keybase1.Time {

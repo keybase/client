@@ -133,6 +133,7 @@ func TestConvLoaderAppState(t *testing.T) {
 
 	clock := clockwork.NewFakeClock()
 	appStateCh := make(chan struct{})
+	tc.ChatG.ConvLoader.(*BackgroundConvLoader).loadWait = 0
 	tc.ChatG.ConvLoader.(*BackgroundConvLoader).clock = clock
 	tc.ChatG.ConvLoader.(*BackgroundConvLoader).appStateCh = appStateCh
 	ri := tc.ChatG.ConvSource.(*HybridConversationSource).ri

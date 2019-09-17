@@ -79,7 +79,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetCodec(kbfscodec.NewMsgpack())
 	blockops := &CheckBlockOps{config.mockBops, ctr}
 	config.SetBlockOps(blockops)
-	kbfsops := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config)
+	kbfsops := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config, nil)
 	config.SetKBFSOps(kbfsops)
 	config.SetNotifier(kbfsops)
 

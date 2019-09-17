@@ -40,6 +40,7 @@ export const PublicMemo = namedConnect(
       maxLength,
       publicMemo: building.publicMemo.stringValue(),
       publicMemoError: built.publicMemoErrMsg.stringValue(),
+      publicMemoOverride: built.publicMemoOverride.stringValue(),
     }
   },
   dispatch => ({

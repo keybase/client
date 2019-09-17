@@ -32,6 +32,9 @@ const Pin = (props: Props) => {
 
 export default Pin
 
-const styles = Styles.styleSheetCreate(() => ({
-  text: {flexGrow: 1},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      text: {flexGrow: 1},
+    } as const)
+)

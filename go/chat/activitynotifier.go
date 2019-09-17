@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -28,7 +29,7 @@ func NewNotifyRouterActivityRouter(g *globals.Context) *NotifyRouterActivityRout
 		shutdownCh:   make(chan struct{}),
 	}
 	go n.notifyLoop()
-	g.PushShutdownHook(func() error {
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 		close(n.shutdownCh)
 		return nil
 	})

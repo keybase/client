@@ -1,3 +1,4 @@
+import autoresetSaga from '../actions/autoreset'
 import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
@@ -26,6 +27,7 @@ import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga() {
+  yield Saga.spawn(autoresetSaga)
   yield Saga.spawn(chat2Saga)
   yield Saga.spawn(configSaga)
   yield Saga.spawn(deeplinksSaga)
