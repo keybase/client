@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import * as ProvisionTypes from '../../../constants/types/provision'
 import {globalMargins, styleSheetCreate, platformStyles, isMobile} from '../../../styles'
-import {SignupScreen} from '../../../signup/common'
+import {SignupScreen, InfoIcon} from '../../../signup/common'
 
 type ItemProps = {
   index: number
@@ -83,7 +84,7 @@ const DeviceSelector = (props: Props) => {
     },
   ]
   return (
-    <SignupScreen banners={[]} buttons={[]} onBack={props.onBack} title="Recover password">
+    <SignupScreen onBack={props.onBack} title="Recover password">
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true}>
         <Kb.Text type="Body">Which do you have handy?</Kb.Text>
         <Kb.Box2
@@ -91,7 +92,7 @@ const DeviceSelector = (props: Props) => {
           fullWidth={true}
           fullHeight={true}
           style={styles.contentBox}
-          gap={'medium'}
+          gap="medium"
         >
           <Kb.List
             style={styles.list}
@@ -125,5 +126,19 @@ const styles = styleSheetCreate(() => ({
     flexGrow: 1,
   },
 }))
+
+DeviceSelector.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
+}
 
 export default DeviceSelector

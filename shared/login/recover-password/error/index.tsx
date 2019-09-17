@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {SignupScreen} from '../../../signup/common'
+import * as Styles from '../../../styles'
+import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
 type Props = {
@@ -29,5 +30,19 @@ const Error = (props: Props) => (
     </Kb.Text>
   </SignupScreen>
 )
+
+Error.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
+}
 
 export default Error

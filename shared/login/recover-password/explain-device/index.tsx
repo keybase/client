@@ -1,22 +1,23 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {globalColors} from '../../../styles'
-import {SignupScreen} from '../../../signup/common'
+import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
 export type Props = {
   deviceName: string
-  deviceType: string
+  deviceType?: RPCTypes.DeviceType
   onBack: () => void
   onComplete: () => void
 }
 
 const ExplainDevice = (props: Props) => {
-  const isMobile = props.deviceType === 'mobile'
+  const explainingMobile = props.deviceType === RPCTypes.DeviceType.mobile
 
   return (
     <SignupScreen
-      banners={[]}
       buttons={[
         {
           label: 'Got it',
@@ -24,17 +25,18 @@ const ExplainDevice = (props: Props) => {
           type: 'Default' as ButtonType,
         },
       ]}
+      noBackground={true}
       onBack={props.onBack}
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="small">
-        <Kb.Icon type={isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Icon type={explainingMobile ? 'icon-phone-96' : 'icon-computer-96'} />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">
             On <Kb.Text type="BodySemiboldItalic">{props.deviceName}</Kb.Text>, go to
           </Kb.Text>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-            {isMobile ? (
+            {explainingMobile ? (
               <Kb.Icon type="iconfont-nav-more" color={globalColors.black} />
             ) : (
               <Kb.Text type="Body">Settings</Kb.Text>
@@ -46,6 +48,20 @@ const ExplainDevice = (props: Props) => {
       </Kb.Box2>
     </SignupScreen>
   )
+}
+
+ExplainDevice.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
 }
 
 export default ExplainDevice

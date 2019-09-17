@@ -1,5 +1,6 @@
 import * as I from 'immutable'
 import * as ProvisionTypes from './provision'
+import * as RPCTypes from './rpc-gen'
 import HiddenString from '../../util/hidden-string'
 
 export type _State = {
@@ -7,7 +8,7 @@ export type _State = {
   error: HiddenString
   explainedDevice?: {
     name: string
-    type: string
+    type: RPCTypes.DeviceType
   }
   paperKeyError: HiddenString
   username: string

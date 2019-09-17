@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {SignupScreen} from '../../../signup/common'
+import * as Styles from '../../../styles'
+import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
 export type Props = {
@@ -31,6 +32,20 @@ const PromptReset = (props: Props) => {
       </Kb.Box2>
     </SignupScreen>
   )
+}
+
+PromptReset.navigationOptions = {
+  header: null,
+  headerBottomStyle: {height: undefined},
+  headerLeft: null, // no back button
+  headerRightActions: () => (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+    >
+      <InfoIcon />
+    </Kb.Box2>
+  ),
 }
 
 export default PromptReset

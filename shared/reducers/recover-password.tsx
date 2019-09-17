@@ -15,7 +15,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         paperKeyError: new HiddenString(''),
         username: action.payload.username,
       })
-    case RecoverPasswordGen.showDeviceListPage:
+    case RecoverPasswordGen.displayDeviceSelect:
       return state.merge({
         devices: I.List(action.payload.devices),
       })
