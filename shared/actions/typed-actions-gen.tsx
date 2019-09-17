@@ -1002,4 +1002,5 @@ export type TypedActionsMap = {
   'wallets:setTrustlineExpanded': wallets.SetTrustlineExpandedPayload
   'wallets:staticConfigLoaded': wallets.StaticConfigLoadedPayload
   'wallets:setSEP6Message': wallets.SetSEP6MessagePayload
+  'common:resetStore': {type: 'common:resetStore'; payload: {}}
 }
