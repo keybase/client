@@ -7,7 +7,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
 import {namedConnect} from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
-import Input, {Props} from '.'
+import Input from '.'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -197,7 +197,7 @@ export default namedConnect(
       if (stateProps._editOrdinal) {
         dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
       } else {
-        dispatchProps._onPostMessage(stateProps.conversationIDKey, text, stateProps._replyTo)
+        dispatchProps._onPostMessage(stateProps.conversationIDKey, text, stateProps._replyTo || null)
       }
       if (stateProps._containsLatestMessage) {
         ownProps.onRequestScrollToBottom()
