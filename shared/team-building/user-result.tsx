@@ -5,15 +5,6 @@ import * as Types from '../constants/types/team-building'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
-/*
- * User Result can be in several layout states depending on the context in which it is rendered
- *
- * 1. Team Building > "A Keybase User" (desktop) or Team Building > "Keybase & Contacts" (mobile)
- *    State 1: The user is a keybase user
- *    State 2:
- *
- * 2. Team Building > Any other service tab
- */
 export type Props = {
   // They are already a member in the actual team, not this temporary set.
   isPreExistingTeamMember: boolean
