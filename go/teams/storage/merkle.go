@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -52,7 +53,7 @@ func (s *Merkle) Put(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool
 		Version:  merkleDiskStorageVersion,
 		PolledAt: time,
 	}
-	mctx.VLogf(libkb.VLog0, "team/storage.Merkle#Put(%s) -> %s", teamID, time)
+	mctx.VLogf(libkb.VLog0, "teams/storage.Merkle#Put(%s) <- %d", teamID, time)
 	err := mctx.G().LocalDb.PutObj(key, nil, obj)
 	if err != nil {
 		mctx.Warning("teams/storage.Merkle: Failed to put key %+v: %s", key, err.Error())
@@ -64,15 +65,19 @@ func (s *Merkle) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool
 	defer s.Unlock()
 	key := merkleKey(teamID, public)
 
-	report := func(res string) {
-		mctx.VLogf(libkb.VLog0, "teams/storage.Merkle#Get(%s): %s", teamID, res)
+	report := func(res string, ret *keybase1.Time) {
+		var s string
+		if ret != nil {
+			s = fmt.Sprintf(" -> %d", *ret)
+		}
+		mctx.VLogf(libkb.VLog0, "teams/storage.Merkle#Get(%s) -> %s%s", teamID, res, s)
 	}
 
 	untyped, ok := s.lru.Get(key.Key)
 	if ok {
 		ret, ok := untyped.(keybase1.Time)
 		if ok {
-			report("hit mem")
+			report("hit mem", &ret)
 			return &ret
 		}
 		mctx.Warning("teams/storage.Merkle: Pulled object at %+v of wrong type: %T", key, untyped)
@@ -80,7 +85,7 @@ func (s *Merkle) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool
 	var tmp merkleDiskStorageItem
 	found, err := mctx.G().LocalDb.GetInto(&tmp, key)
 	if !found {
-		report("missed")
+		report("missed", nil)
 		return nil
 	}
 	if err != nil {
@@ -90,6 +95,6 @@ func (s *Merkle) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public bool
 		mctx.Debug("teams/storage.Merkle: skipping old version %d for key %+v", tmp.Version, key)
 		return nil
 	}
-	report("hit disk")
+	report("hit disk", &tmp.PolledAt)
 	return &tmp.PolledAt
 }

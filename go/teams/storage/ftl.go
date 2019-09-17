@@ -38,7 +38,7 @@ func (d *ftlDiskStorageItem) setVersion(i int) {
 func (d *ftlDiskStorageItem) setValue(v teamDataGeneric) error {
 	typed, ok := v.(*keybase1.FastTeamData)
 	if !ok {
-		return fmt.Errorf("teams.FTLStorage#Put: Bad object for setValue; got type %T", v)
+		return fmt.Errorf("teams/storage.FTL#Put: Bad object for setValue; got type %T", v)
 	}
 	d.State = typed
 	return nil
@@ -61,7 +61,7 @@ func (s *FTLStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, public 
 	}
 	ret, ok := vp.(*keybase1.FastTeamData)
 	if !ok {
-		mctx.Debug("teams.FTLStorage#Get cast error: %T is wrong type", vp)
+		mctx.Debug("teams/storage.FTL#Get cast error: %T is wrong type", vp)
 		return nil, false, false
 	}
 
