@@ -444,7 +444,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
 	g.uri = uri
-	go g.pushStateThread(g.shutdownCh)
+	go g.pushStateNewDataDebouncer(g.shutdownCh)
 	if uri.UseTLS() {
 		err = g.connectTLS()
 	} else {
@@ -523,7 +523,7 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 	g.firehoseHandlers = freshHandlers
 }
 
-func (g *gregorHandler) pushStateThread(shutdownCh chan struct{}) {
+func (g *gregorHandler) pushStateNewDataDebouncer(shutdownCh chan struct{}) {
 	shouldSend := false
 	var lastTime time.Time
 	dur := time.Second
