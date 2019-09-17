@@ -9,7 +9,7 @@ import {
   Icon,
   Usernames,
 } from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, isMobile} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
 import {isLargeScreen} from '../../../../constants/platform'
 import {BoolTypeMap, MemberStatus, TeamRoleType} from '../../../../constants/types/teams'
@@ -50,7 +50,7 @@ export const TeamMemberRow = (props: Props) => {
       <Icon
         type={('iconfont-crown-' + props.roleType) as any}
         style={{
-          marginRight: globalMargins.xtiny,
+          marginRight: Styles.globalMargins.xtiny,
         }}
         fontSize={10}
       />
@@ -58,7 +58,7 @@ export const TeamMemberRow = (props: Props) => {
   }
   if (props.fullName && active) {
     fullNameLabel = (
-      <Text style={{marginRight: globalMargins.xtiny}} type="BodySmall">
+      <Text style={{marginRight: Styles.globalMargins.xtiny}} type="BodySmall">
         {props.fullName} •
       </Text>
     )
@@ -73,28 +73,28 @@ export const TeamMemberRow = (props: Props) => {
   }
 
   return (
-    <Box style={active ? stylesContainer : stylesContainerReset}>
+    <Box style={Styles.collapseStyles([styles.container, active && styles.containerReset])}>
       <Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           flexShrink: 0,
-          height: isMobile ? 56 : 48,
-          padding: globalMargins.tiny,
+          height: Styles.isMobile ? 56 : 48,
+          padding: Styles.globalMargins.tiny,
           width: '100%',
         }}
       >
         <ClickableBox
           style={{
-            ...globalStyles.flexBoxRow,
+            ...Styles.globalStyles.flexBoxRow,
             alignItems: 'center',
             flexGrow: 1,
           }}
           onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
         >
-          <Avatar username={props.username} size={isMobile ? 48 : 32} />
-          <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-            <Box style={globalStyles.flexBoxRow}>
+          <Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+          <Box style={{...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small}}>
+            <Box style={Styles.globalStyles.flexBoxRow}>
               <Usernames
                 type="BodySemibold"
                 colorFollowing={true}
@@ -103,19 +103,19 @@ export const TeamMemberRow = (props: Props) => {
                 ]}
               />
             </Box>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
               {fullNameLabel}
               {crown}
               {!active && (
                 <Text
                   type="BodySmall"
                   style={{
-                    ...globalStyles.fontBold,
-                    backgroundColor: globalColors.red,
-                    color: globalColors.white,
-                    marginRight: globalMargins.xtiny,
-                    paddingLeft: globalMargins.xtiny,
-                    paddingRight: globalMargins.xtiny,
+                    ...Styles.globalStyles.fontBold,
+                    backgroundColor: Styles.globalColors.red,
+                    color: Styles.globalColors.white,
+                    marginRight: Styles.globalMargins.xtiny,
+                    paddingLeft: Styles.globalMargins.xtiny,
+                    paddingRight: Styles.globalMargins.xtiny,
                   }}
                 >
                   {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
@@ -128,8 +128,8 @@ export const TeamMemberRow = (props: Props) => {
             </Box>
           </Box>
         </ClickableBox>
-        {!active && !isMobile && props.youCanManageMembers && (
-          <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+        {!active && !Styles.isMobile && props.youCanManageMembers && (
+          <Box style={{...Styles.globalStyles.flexBoxRow, flexShrink: 1}}>
             <ButtonBar>
               {props.status !== 'deleted' && (
                 <Button
@@ -152,21 +152,25 @@ export const TeamMemberRow = (props: Props) => {
             </ButtonBar>
           </Box>
         )}
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 1, height: '100%'}}>
+        <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', flexShrink: 1, height: '100%'}}>
           {(active || isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
             <Icon
               onClick={props.onChat}
-              style={isMobile ? stylesChatButtonMobile(active) : stylesChatButtonDesktop}
-              fontSize={isMobile ? 20 : 16}
+              style={
+                Styles.isMobile
+                  ? Styles.collapseStyles([styles.chatButtonMobile, styles.chatButtonMobileSmallTop])
+                  : styles.chatButtonDesktop
+              }
+              fontSize={Styles.isMobile ? 20 : 16}
               type="iconfont-chat"
             />
           )}
         </Box>
       </Box>
-      {!active && isMobile && props.youCanManageMembers && (
-        <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
+      {!active && Styles.isMobile && props.youCanManageMembers && (
+        <Box style={{...Styles.globalStyles.flexBoxRow, flexShrink: 1}}>
           <ButtonBar direction="row">
             {props.status !== 'deleted' && (
               <Button
@@ -192,7 +196,10 @@ export const TeamMemberRow = (props: Props) => {
             // display next to reset / deleted controls
             <Icon
               onClick={props.onChat}
-              style={stylesChatButtonMobile(active)}
+              style={Styles.collapseStyles([
+                styles.chatButtonMobile,
+                active && styles.chatButtonMobileSmallTop,
+              ])}
               fontSize={20}
               type="iconfont-chat"
             />
@@ -203,29 +210,29 @@ export const TeamMemberRow = (props: Props) => {
   )
 }
 
-const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  flex: 1,
-  height: '100%',
-  position: 'relative',
-  width: '100%',
-}
-
-const stylesContainerReset = {
-  ...stylesContainer,
-  backgroundColor: globalColors.blueLighter2,
-}
-
-const stylesChatButtonDesktop = {
-  marginLeft: globalMargins.small,
-  marginRight: globalMargins.tiny,
-  padding: globalMargins.tiny,
-}
-
-const stylesChatButtonMobile = (active: boolean) =>
-  ({
+const styles = Styles.styleSheetCreate(() => ({
+  chatButtonDesktop: {
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
+  },
+  chatButtonMobile: {
     position: 'absolute',
     right: 16,
-    top: isLargeScreen || active ? 12 : 24,
-  } as const)
+    top: 24,
+  },
+  chatButtonMobileSmallTop: {
+    top: 12,
+  },
+  container: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    height: '100%',
+    position: 'relative',
+    width: '100%',
+  },
+  containerReset: {
+    backgroundColor: Styles.globalColors.blueLighter2,
+  },
+}))
