@@ -36,13 +36,11 @@ export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
 export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
 
-export type _ThreadSearchInfo = {
+export type ThreadSearchInfo = {
   status: ThreadSearchStatus
-  hits: I.List<Message.Message>
+  hits: Array<Message.Message>
   visible: boolean
 }
-
-export type ThreadSearchInfo = I.RecordOf<_ThreadSearchInfo>
 
 export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
