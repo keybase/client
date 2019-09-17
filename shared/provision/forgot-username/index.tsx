@@ -66,7 +66,6 @@ const ForgotUsername = (props: Props) => {
         {emailSelected && (
           <Kb.LabeledInput
             autoFocus={true}
-            style={styles.emailInput}
             placeholder="Email address"
             onEnterKeyDown={_onSubmit}
             onChangeText={setEmail}
@@ -105,11 +104,6 @@ ForgotUsername.navigationOptions = {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  emailInput: Styles.platformStyles({
-    isMobile: {
-      flexGrow: 1,
-    },
-  }),
   phoneInput: Styles.platformStyles({
     isElectron: {
       height: 38,

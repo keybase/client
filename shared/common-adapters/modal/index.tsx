@@ -91,6 +91,7 @@ const Header = (props: HeaderProps) => {
     },
     [measured, widerWidth]
   )
+  const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
   const showTitle = measured || !Styles.isMobile
@@ -115,10 +116,7 @@ const Header = (props: HeaderProps) => {
         {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([
-            styles.headerLeft,
-            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
-          ])}
+          style={Styles.collapseStyles([styles.headerLeft, useMeasuredStyles && {flex: 0, width: sideWidth}])}
         >
           <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
             {!!props.leftButton && props.leftButton}
@@ -139,7 +137,7 @@ const Header = (props: HeaderProps) => {
           direction="horizontal"
           style={Styles.collapseStyles([
             styles.headerRight,
-            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
+            useMeasuredStyles && {flex: 0, width: sideWidth},
           ])}
         >
           <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
@@ -166,6 +164,13 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
     {props.content}
   </Kb.Box2>
 )
+
+// These must match the `sideWidth` calculation above
+const headerSidePadding = Styles.globalMargins.xsmall
+const headerPadding = {
+  paddingLeft: headerSidePadding,
+  paddingRight: headerSidePadding,
+}
 
 const styles = Styles.styleSheetCreate(() => {
   const headerCommon = {
@@ -202,16 +207,14 @@ const styles = Styles.styleSheetCreate(() => {
       borderBottomWidth: 0,
     },
     headerLeft: {
+      ...headerPadding,
       flex: 1,
       justifyContent: 'flex-start',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
     },
     headerRight: {
+      ...headerPadding,
       flex: 1,
       justifyContent: 'flex-end',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
     },
     headerWithIcon: {
       ...headerCommon,
