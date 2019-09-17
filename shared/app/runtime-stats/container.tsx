@@ -1,20 +1,31 @@
-import {connect, TypedState} from '../../util/container'
+import * as Container from '../../util/container'
 import RuntimeStats from '.'
 
 const blank = {
+  _dbStats: [],
+  _processStats: [],
   convLoaderActive: false,
   hasData: false,
-  processStats: [],
   selectiveSyncActive: false,
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const rs = state.config.runtimeStats
-  if (!rs) {
-    return blank
-  }
-  const processStats = (rs.processStats || []).map(stats => {
+export default Container.connect(
+  state => {
+    const rs = state.config.runtimeStats
+    if (!rs) {
+      return blank
+    }
     return {
+      _dbStats: rs.dbStats,
+      _processStats: rs.processStats,
+      convLoaderActive: rs.convLoaderActive,
+      hasData: true,
+      selectiveSyncActive: rs.selectiveSyncActive,
+    }
+  },
+  () => ({}),
+  stateProps => {
+    const processStats = (stateProps._processStats || []).map(stats => ({
       cpu: stats.cpu,
       cpuSeverity: stats.cpuSeverity,
       free: stats.free,
@@ -25,26 +36,18 @@ const mapStateToProps = (state: TypedState) => {
       residentSeverity: stats.residentSeverity,
       type: stats.type,
       virt: stats.virt,
-    }
-  })
-  const dbStats = (rs.dbStats || []).map(stats => {
-    return {
+    }))
+    const dbStats = (stateProps._dbStats || []).map(stats => ({
       memCompaction: stats.memCompActive,
       tableCompaction: stats.tableCompActive,
       type: stats.type,
+    }))
+    return {
+      convLoaderActive: stateProps.convLoaderActive,
+      dbStats,
+      hasData: stateProps.hasData,
+      processStats,
+      selectiveSyncActive: stateProps.selectiveSyncActive,
     }
-  })
-  return {
-    convLoaderActive: rs.convLoaderActive,
-    dbStats,
-    hasData: true,
-    processStats,
-    selectiveSyncActive: rs.selectiveSyncActive,
   }
-}
-
-export default connect(
-  mapStateToProps,
-  () => ({}),
-  s => ({...s})
 )(RuntimeStats)

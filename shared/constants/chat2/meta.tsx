@@ -433,11 +433,22 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
     .toList()
 }
 
-export const getAllChannels = (state: TypedState) => {
-  return state.chat2.metaMap
+let _getAllChannelsRet: I.List<{channelname: string; teamname: string}> = I.List()
+// TODO why do this for all teams?
+const _getAllChannelsMemo = memoize((mm: TypedState['chat2']['metaMap']) =>
+  mm
     .filter(v => v.teamname && v.channelname && v.teamType === 'big')
     .map(({channelname, teamname}) => ({channelname, teamname}))
     .toList()
+)
+export const getAllChannels = (state: TypedState) => {
+  const ret = _getAllChannelsMemo(state.chat2.metaMap)
+
+  if (ret.equals(_getAllChannelsRet)) {
+    return _getAllChannelsRet
+  }
+  _getAllChannelsRet = ret
+  return _getAllChannelsRet
 }
 
 export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
