@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {Props, RowProps} from './index.types'
+import {Props, RowProps} from './index'
 import {pluralize} from '../../util/string'
 
 const HoverBox = Styles.styled(Kb.Box)({

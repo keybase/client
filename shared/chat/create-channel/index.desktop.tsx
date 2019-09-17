@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {Props} from './index.types'
+import {Props} from './index'
 
 const CreateChannel = (props: Props) => (
   <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>

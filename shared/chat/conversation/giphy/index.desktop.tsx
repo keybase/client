@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
 import {getMargins, scaledWidth} from './width'
-import {Props} from './index.types'
+import {Props} from '.'
 
 const gridHeight = 100
 
