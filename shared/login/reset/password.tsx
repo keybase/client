@@ -11,7 +11,7 @@ const KnowPassword = () => (
     noBackground={true}
     onBack={todo}
     leftActionText="Cancel"
-    buttons={[{label: 'Yes', type: 'Success', onClick: todo}, {label: 'No', type: 'Dim', onClick: todo}]}
+    buttons={[{label: 'Yes', onClick: todo, type: 'Success'}, {label: 'No', onClick: todo, type: 'Dim'}]}
   >
     <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} fullHeight={true} centerChildren={true}>
       <Kb.Icon type="iconfont-password" color={Styles.globalColors.black} fontSize={24} />
