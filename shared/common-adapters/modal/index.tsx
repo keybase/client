@@ -53,7 +53,9 @@ const ModalInner = (props: Props) => (
     >
       {props.children}
     </Kb.ScrollView>
-    {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
+    {!!props.footer && (
+      <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
+    )}
   </>
 )
 const Modal = (props: Props) =>
@@ -150,7 +152,7 @@ const Header = (props: HeaderProps) => {
   )
 }
 
-const Footer = (props: FooterProps & {wide: boolean}) => (
+const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
   <Kb.Box2
     centerChildren={true}
     direction="vertical"
@@ -158,6 +160,7 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
     style={Styles.collapseStyles([
       styles.footer,
       props.wide && !Styles.isMobile && styles.footerWide,
+      props.fullscreen && !Styles.isMobile && styles.footerFullscreen,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
@@ -196,6 +199,9 @@ const styles = Styles.styleSheetCreate(() => {
       borderStyle: 'solid',
       borderTopColor: Styles.globalColors.black_10,
       borderTopWidth: 1,
+    },
+    footerFullscreen: {
+      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small, Styles.globalMargins.xlarge),
     },
     footerWide: {
       ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),

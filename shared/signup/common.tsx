@@ -60,21 +60,30 @@ export const InfoIcon = Container.namedConnect(
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
-const BackButton = (props: {negative?: boolean; onBack: () => void}) => (
-  <Kb.ClickableBox onClick={props.onBack}>
-    <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-      <Kb.Icon
-        type="iconfont-arrow-left"
-        color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
-        sizeType="Small"
-        style={styles.fixIconAlignment}
-      />
-      <Kb.Text type="Body" style={props.negative ? undefined : styles.backText} negative={props.negative}>
-        Back
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
+const BackButton = (props: {negative?: boolean; onBack: () => void}) => {
+  if (!Styles.isMobile) {
+    return (
+      <Kb.ClickableBox onClick={props.onBack}>
+        <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+          <Kb.Icon
+            type="iconfont-arrow-left"
+            color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
+            sizeType="Small"
+            style={styles.fixIconAlignment}
+          />
+          <Kb.Text type="Body" style={props.negative ? undefined : styles.backText} negative={props.negative}>
+            Back
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox>
+    )
+  }
+  return (
+    <Kb.Text type="BodyBigLink" negative={props.negative} onClick={props.onBack}>
+      Back
+    </Kb.Text>
+  )
+}
 
 type ButtonMeta = {
   disabled?: boolean
@@ -111,6 +120,21 @@ type SignupScreenProps = {
 export const SignupScreen = (props: SignupScreenProps) => (
   <Kb.Modal
     fullscreen={true}
+    footer={
+      props.buttons
+        ? {
+            content: (
+              <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+                {props.buttons.map(b => (
+                  <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+                ))}
+              </Kb.ButtonBar>
+            ),
+            hideBorder: true,
+            style: props.noBackground ? styles.whiteBackground : styles.blueBackground,
+          }
+        : undefined
+    }
     header={{
       hideBorder: !props.noBackground,
       leftButton: props.onBack && <BackButton onBack={props.onBack} negative={!!props.negativeHeader} />,
@@ -149,13 +173,6 @@ export const SignupScreen = (props: SignupScreenProps) => (
       </Kb.Box2>
       {/* Banners after children so they go on top */}
       {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
-      {!!props.buttons && (
-        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-          {props.buttons.map(b => (
-            <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
-          ))}
-        </Kb.ButtonBar>
-      )}
     </Kb.Box2>
   </Kb.Modal>
 )
@@ -210,11 +227,11 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       buttonBar: Styles.platformStyles({
-        isElectron: {
-          paddingBottom: Styles.globalMargins.xlarge - Styles.globalMargins.tiny, // tiny added inside buttonbar
+        common: {
+          marginBottom: -Styles.globalMargins.tiny, // tiny added inside buttonbar
         },
         isMobile: {
-          ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
+          ...Styles.padding(0),
         },
       }),
       fixIconAlignment: {
