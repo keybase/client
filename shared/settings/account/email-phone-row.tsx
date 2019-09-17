@@ -20,6 +20,7 @@ export type Props = {
   type: 'phone' | 'email'
   verified: boolean
   lastVerifyEmailDate?: number
+  moreThanOneEmail?: boolean
 }
 
 const addSpacer = (into: string, add: string) => {
@@ -92,11 +93,17 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   if (menuItems.length > 0) {
     menuItems.push('Divider')
   }
-  menuItems.push({
-    danger: true,
-    onClick: props.onDelete,
-    title: 'Delete',
-  })
+  const isUndeletableEmail = props.type === 'email' && props.moreThanOneEmail && props.primary
+  const deleteItem = isUndeletableEmail
+    ? {
+        disabled: true,
+        onClick: null,
+        subTitle:
+          'You need to delete your other emails, or make another one primary, before you can delete this email.',
+        title: 'Delete',
+      }
+    : {danger: true, onClick: props.onDelete, title: 'Delete'}
+  menuItems.push(deleteItem)
 
   let gearIconBadge: React.ReactNode | null = null
   if (!props.verified) {
@@ -205,6 +212,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
   _phoneRow:
     (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
     null,
+  moreThanOneEmail: state.settings.email.emails && state.settings.email.emails.size > 1,
 })
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
@@ -213,13 +221,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   _onMakeSearchable: () =>
     dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
   email: {
-    _onDelete: (address: string, searchable: boolean) =>
+    _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
               props: {
                 address,
+                lastEmail,
                 searchable,
                 type: 'email',
               },
@@ -282,7 +291,9 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         ...dispatchProps.email,
         address: stateProps._emailRow.email,
         lastVerifyEmailDate: stateProps._emailRow.lastVerifyEmailDate || undefined,
-        onDelete: () => dispatchProps.email._onDelete(ownProps.contactKey, searchable),
+        moreThanOneEmail: stateProps.moreThanOneEmail,
+        onDelete: () =>
+          dispatchProps.email._onDelete(ownProps.contactKey, searchable, !stateProps.moreThanOneEmail),
         onMakePrimary: dispatchProps.email.onMakePrimary,
         onToggleSearchable: searchable ? dispatchProps._onMakeNotSearchable : dispatchProps._onMakeSearchable,
         onVerify: dispatchProps.email.onVerify,
