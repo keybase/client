@@ -541,7 +541,12 @@ const showPaperkeyPage = (state: Container.TypedState) =>
 
 const showFinalErrorPage = (state: Container.TypedState, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
-  return RouteTreeGen.createNavigateAppend({path: [...parentPath, 'error'], replace: false})
+  const replace = !action.payload.fromDeviceAdd
+  const path = ['error']
+  return [
+    ...(action.payload.fromDeviceAdd ? [RouteTreeGen.createClearModals()] : []),
+    RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace}),
+  ]
 }
 
 const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
