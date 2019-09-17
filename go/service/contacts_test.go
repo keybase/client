@@ -73,6 +73,9 @@ func TestContactSyncAndSearch(t *testing.T) {
 			contacts.MakePhoneComponent("mobile", "+48111222333"),
 			contacts.MakeEmailComponent("email", "alice@example.org"),
 		),
+		contacts.MakeContact("Alice A",
+			contacts.MakePhoneComponent("mobile", "+48111222334"),
+		),
 	}
 
 	// Phone component from rawContacts will resolve to user `alice` but e-mail
@@ -87,11 +90,12 @@ func TestContactSyncAndSearch(t *testing.T) {
 	// bust cache, new resolution should be returned
 	clock.Advance(72 * time.Hour)
 	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
+	all.contactsMock.PhoneNumbers["+48111222334"] = contacts.MakeMockLookupUser("alice", "")
 	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
-	require.Len(t, newlyResolved, 1)
+	require.Len(t, newlyResolved, 2)
 	require.Equal(t, newlyResolved[0].ContactName, "Alice A")
 	require.Equal(t, newlyResolved[0].Username, "alice")
 	require.Equal(t, newlyResolved[0].Assertion, "48111222333@phone")
@@ -100,21 +104,26 @@ func TestContactSyncAndSearch(t *testing.T) {
 		// Try raw contact list lookup.
 		list, err := all.contactsHandler.LookupSavedContactsList(context.Background(), 0)
 		require.NoError(t, err)
-		// We have one contact with two components
-		require.Len(t, list, 2)
+		// We have two contacts with three components between them
+		require.Len(t, list, 3)
 	}
 
 	{
-		// We expect "Alice A" contact to only show up as only the resolved
-		// component
+		// We expect two "Alice A" contacts to show up as resolved.
 		list, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
 		require.NoError(t, err)
-		require.Len(t, list, 1)
+		require.Len(t, list, 2)
 		require.Equal(t, "alice", list[0].DisplayName)
 		require.Equal(t, "Alice A", list[0].DisplayLabel)
 		require.Equal(t, "alice", list[0].Username)
 		require.NotNil(t, list[0].Component.PhoneNumber)
 		require.Equal(t, "48111222333@phone", list[0].Assertion)
+
+		require.Equal(t, "alice", list[1].DisplayName)
+		require.Equal(t, "Alice A", list[1].DisplayLabel)
+		require.Equal(t, "alice", list[1].Username)
+		require.NotNil(t, list[1].Component.PhoneNumber)
+		require.Equal(t, "48111222334@phone", list[1].Assertion)
 	}
 
 	{
