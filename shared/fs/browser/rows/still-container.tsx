@@ -13,8 +13,8 @@ type OwnProps = {
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
   _downloads: state.fs.downloads,
-  _pathItemActionMenu: state.fs.pathItemActionMenu,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _pathItemActionMenu: state.fs.pathItemActionMenu,
 })
 
 const getDownloadIntent = (
