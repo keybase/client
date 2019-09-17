@@ -127,7 +127,6 @@ class CodePage2 extends React.Component<Props, State> {
         fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
-        {/*<Kb.NavigationEvents onDidBlur={this.props.onClose} />*/}
         <Kb.Box2
           direction="vertical"
           fullHeight={true}

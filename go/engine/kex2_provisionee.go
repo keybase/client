@@ -134,8 +134,7 @@ func (e *Kex2Provisionee) Run(m libkb.MetaContext) error {
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
 		SecretChannel: e.secretCh,
-		//Timeout:       60 * time.Minute,
-		Timeout: 6 * time.Second,
+		Timeout:       60 * time.Minute,
 	}
 	parg := kex2.ProvisioneeArg{
 		KexBaseArg:  karg,
