@@ -6,7 +6,7 @@ import * as Sb from '../../stories/storybook'
 import {isDarwin} from '../../constants/platform'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 import Inbox from '.'
-import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index.types'
+import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './index'
 
 /*
  * Rows
