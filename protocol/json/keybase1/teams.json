@@ -38,6 +38,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AuditMode",
+      "symbols": [
+        "STANDARD_0",
+        "JUST_CREATED_1",
+        "SKIP_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "PerTeamKeyGeneration",
       "fields": [],
@@ -2096,11 +2105,11 @@
         },
         {
           "type": "boolean",
-          "name": "skipAudit"
+          "name": "skipNeedHiddenRotateCheck"
         },
         {
-          "type": "boolean",
-          "name": "skipNeedHiddenRotateCheck"
+          "type": "AuditMode",
+          "name": "auditMode"
         }
       ]
     },

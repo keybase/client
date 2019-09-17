@@ -98,80 +98,83 @@ class UnfurlGeneric extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bottomImage: Styles.platformStyles({
-    common: {
-      marginTop: Styles.globalMargins.xtiny,
-    },
-    isMobile: {
-      alignSelf: 'center',
-    },
-  }),
-  closeBox: Styles.platformStyles({
-    isElectron: {
-      alignSelf: 'flex-start',
-      marginLeft: 'auto',
-    },
-  }),
-  collapseBox: Styles.platformStyles({
-    isElectron: {
-      display: 'inline',
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-    },
-    isElectron: {
-      maxWidth: 500,
-    },
-  }),
-  favicon: Styles.platformStyles({
-    common: {
-      borderRadius: Styles.borderRadius,
-      height: 16,
-      width: 16,
-    },
-  }),
-  innerContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      minWidth: 150,
-    },
-    isMobile: {
-      borderColor: Styles.globalColors.grey,
-      borderRadius: Styles.borderRadius,
-      borderWidth: 1,
-      padding: Styles.globalMargins.xtiny,
-    },
-  }),
-  quoteContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.grey,
-      paddingLeft: Styles.globalMargins.xtiny,
-    },
-  }),
-  sideImage: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 80,
-      maxWidth: 80,
-    },
-  }),
-  siteNameContainer: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-    },
-    isElectron: {
-      minHeight: 16,
-    },
-    isMobile: {
-      minHeight: 21,
-    },
-  }),
-  url: {
-    ...Styles.globalStyles.fontSemibold,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bottomImage: Styles.platformStyles({
+        common: {
+          marginTop: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          alignSelf: 'center',
+        },
+      }),
+      closeBox: Styles.platformStyles({
+        isElectron: {
+          alignSelf: 'flex-start',
+          marginLeft: 'auto',
+        },
+      }),
+      collapseBox: Styles.platformStyles({
+        isElectron: {
+          display: 'inline',
+        },
+      }),
+      container: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          maxWidth: 500,
+        },
+      }),
+      favicon: Styles.platformStyles({
+        common: {
+          borderRadius: Styles.borderRadius,
+          height: 16,
+          width: 16,
+        },
+      }),
+      innerContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          minWidth: 150,
+        },
+        isMobile: {
+          borderColor: Styles.globalColors.grey,
+          borderRadius: Styles.borderRadius,
+          borderWidth: 1,
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      quoteContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'stretch',
+          backgroundColor: Styles.globalColors.grey,
+          paddingLeft: Styles.globalMargins.xtiny,
+        },
+      }),
+      sideImage: Styles.platformStyles({
+        isElectron: {
+          maxHeight: 80,
+          maxWidth: 80,
+        },
+      }),
+      siteNameContainer: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          minHeight: 16,
+        },
+        isMobile: {
+          minHeight: 21,
+        },
+      }),
+      url: {
+        ...Styles.globalStyles.fontSemibold,
+      },
+    } as const)
+)
 
 export default UnfurlGeneric

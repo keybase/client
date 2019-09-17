@@ -1,5 +1,6 @@
 import recoverPassword from './recover-password/index.stories'
 import relogin from './relogin/index.stories'
+import resetModal from './reset-modal/index.stories'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {storyDecorator} from '../signup/common-stories'
@@ -30,6 +31,7 @@ const loadingProps = {
 const load = () => {
   recoverPassword()
   relogin()
+  resetModal()
 
   Sb.storiesOf('Login/JoinOrLogin', module)
     .addDecorator(storyDecorator)

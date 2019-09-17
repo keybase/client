@@ -76,8 +76,11 @@ const OthersAdded = (props: OthersAddedProps) => (
   </Kb.Text>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  text: {flexGrow: 1},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      text: {flexGrow: 1},
+    } as const)
+)
 
 export {OthersAdded, YouAdded}

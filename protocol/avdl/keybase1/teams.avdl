@@ -31,6 +31,12 @@ protocol teams {
     ABANDONED_3
   }
 
+  enum AuditMode {
+    STANDARD_0,
+    JUST_CREATED_1,
+    SKIP_2
+  }
+
   // PerTeamKeyGeneration describes the generation of the secret.
   // The sequence starts at 1.
   @typedef("int")
@@ -943,8 +949,8 @@ protocol teams {
     boolean forceRepoll;               // Force a sync with merkle.
     boolean staleOK;                   // If a very stale cache hit is OK.
     boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
-    boolean skipAudit;                 // don't run the stochastic team audit
     boolean skipNeedHiddenRotateCheck; // don't check the last hidden rotator for device revoke
+    AuditMode auditMode;               // don't run the stochastic team audit
   }
 
   record FastTeamLoadArg {

@@ -1,12 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import * as Styles from '../../styles'
 import {Props, RowProps} from './index.types'
 import {pluralize} from '../../util/string'
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <Kb.ClickableBox style={style} onClick={onClick}>
-    <Kb.Icon style={{marginRight: globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
+    <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
   </Kb.ClickableBox>
 )
@@ -29,11 +29,11 @@ const Row = (
       label=""
       onCheck={props.onToggle}
     />
-    <Kb.Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
       <Kb.Text
         type="BodySemiboldLink"
         onClick={props.onClickChannel}
-        style={{color: globalColors.blueDark, maxWidth: '100%'}}
+        style={{color: Styles.globalColors.blueDark, maxWidth: '100%'}}
         lineClamp={1}
       >
         #{props.name}
@@ -52,7 +52,7 @@ const Row = (
     {props.showEdit && props.canEditChannels && (
       <Edit
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
           justifyContent: 'flex-end',
         }}
@@ -63,25 +63,25 @@ const Row = (
 )
 
 const _rowBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
-  paddingBottom: globalMargins.small,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
+  paddingBottom: Styles.globalMargins.small,
+  paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
   width: '100%',
 }
 
 const ManageChannels = (props: Props) => (
-  <Kb.Box style={_boxStyle}>
+  <Kb.Box style={styles.box}>
     <Kb.ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       {props.canCreateChannels && (
-        <Kb.Box style={_createStyle}>
+        <Kb.Box style={styles.create}>
           <Kb.Icon
-            style={_createIcon}
+            style={styles.createIcon}
             type="iconfont-new"
             onClick={props.onCreate}
-            color={globalColors.blue}
+            color={Styles.globalColors.blue}
           />
           <Kb.Text type="BodyBigLink" onClick={props.onCreate}>
             New chat channel
@@ -105,17 +105,8 @@ const ManageChannels = (props: Props) => (
         />
       ))}
     </Kb.ScrollView>
-    <Kb.Box
-      style={{
-        borderStyle: 'solid',
-        borderTopColor: globalColors.black_10,
-        borderTopWidth: 1,
-        ...globalStyles.flexBoxColumn,
-        justifyContent: 'flex-end',
-        padding: globalMargins.small,
-      }}
-    >
-      <Kb.Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
+    <Kb.Box style={styles.waitingBox}>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
         <Kb.WaitingButton
           fullWidth={true}
           label={props.unsavedSubscriptions ? 'Save' : 'Saved'}
@@ -128,24 +119,35 @@ const ManageChannels = (props: Props) => (
   </Kb.Box>
 )
 
-const _boxStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  height: '100%',
-  width: '100%',
-}
-
-const _createStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  alignSelf: 'stretch',
-  height: 56,
-  justifyContent: 'center',
-}
-
-const _createIcon = {
-  marginRight: globalMargins.xtiny,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {
+        ...Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Styles.globalColors.white,
+        height: '100%',
+        width: '100%',
+      },
+      create: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        height: 56,
+        justifyContent: 'center',
+      },
+      createIcon: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+      waitingBox: {
+        borderStyle: 'solid',
+        borderTopColor: Styles.globalColors.black_10,
+        borderTopWidth: 1,
+        ...Styles.globalStyles.flexBoxColumn,
+        justifyContent: 'flex-end',
+        padding: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 const Wrapper = (p: Props) => <ManageChannels {...p} onClose={undefined} />
 
