@@ -190,7 +190,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
   brown_75_on_white: 'rgb(117,87,78)',
-  fastBlank: undefined,
+  fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
   greenDark: '#189e7a',
   greenDarker: '#12785d',
