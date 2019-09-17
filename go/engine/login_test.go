@@ -2554,6 +2554,35 @@ func TestResetAccount(t *testing.T) {
 	testUserHasDeviceKey(tc)
 }
 
+// create a standard user with device keys, reset account, login with different passphrase.
+func TestResetAccountNewPassphrase(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+	ResetAccount(tc, u)
+
+	// user forgot passphrase
+	if err := u.ChangeKnownPassphrase(); err != nil {
+		t.Fatal(err)
+	}
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tc)
+}
+
 // create a standard user with device keys, reset account (but don't logout), login.
 func TestResetAccountNoLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
