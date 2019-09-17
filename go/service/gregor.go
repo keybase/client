@@ -221,7 +221,7 @@ type gregorHandler struct {
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
 	replayCh    chan replayThreadArg
-	pushStateCh chan func()
+	pushStateCh chan struct{}
 
 	// Testing
 	testingEvents       *testingEvents
@@ -242,7 +242,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		forceSessionCheck: false,
 		connectHappened:   make(chan struct{}),
 		replayCh:          make(chan replayThreadArg, 10),
-		pushStateCh:       make(chan func(), 100),
+		pushStateCh:       make(chan struct{}, 100),
 	}
 	return gh
 }
@@ -524,20 +524,20 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 }
 
 func (g *gregorHandler) pushStateThread(shutdownCh chan struct{}) {
-	var lastPush func()
+	shouldSend := false
 	var lastTime time.Time
 	dur := time.Second
 	trigger := func() {
-		if lastPush != nil {
-			go lastPush()
-			lastPush = nil
+		if shouldSend {
+			go g.pushStateOnce(keybase1.PushReason_NEW_DATA)
+			shouldSend = false
 			lastTime = time.Now()
 		}
 	}
 	for {
 		select {
-		case push := <-g.pushStateCh:
-			lastPush = push
+		case <-g.pushStateCh:
+			shouldSend = true
 			if time.Since(lastTime) > dur {
 				trigger()
 			}
@@ -549,22 +549,29 @@ func (g *gregorHandler) pushStateThread(shutdownCh chan struct{}) {
 	}
 }
 
-func (g *gregorHandler) pushState(r keybase1.PushReason) {
+func (g *gregorHandler) pushStateOnce(r keybase1.PushReason) {
 	s, err := g.getState(context.Background())
 	if err != nil {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
 		return
 	}
-	g.pushStateCh <- func() {
-		g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) {
-			g.Debug(context.Background(), "pushState: pushing state with %d items", len(s.Items_))
-			h.PushState(s, r)
-		})
-		// Only send this state update on reception of new data, not a reconnect since we will
-		// be sending that on a different code path altogether (see OnConnect).
-		if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
-			g.badger.PushState(context.Background(), s)
-		}
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) {
+		g.Debug(context.Background(), "pushState: pushing state with %d items", len(s.Items_))
+		h.PushState(s, r)
+	})
+	// Only send this state update on reception of new data, not a reconnect since we will
+	// be sending that on a different code path altogether (see OnConnect).
+	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
+		g.badger.PushState(context.Background(), s)
+	}
+}
+
+func (g *gregorHandler) pushState(r keybase1.PushReason) {
+	switch r {
+	case keybase1.PushReason_RECONNECTED, keybase1.PushReason_NONE:
+		g.pushStateOnce(r)
+	default:
+		g.pushStateCh <- struct{}{}
 	}
 }
 
@@ -1327,7 +1334,6 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown()
 	g.setFirstConnect(true)
 	g.shutdownGregorClient(context.TODO())
-	g.pushStateCh <- nil // clear any pending push state calls
 	return nil
 }
 
