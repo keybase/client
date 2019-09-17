@@ -235,6 +235,7 @@ func TestRecommendationsPreferEmail(t *testing.T) {
 }
 
 func TestDuplicateContactAssertions(t *testing.T) {
+	t.Skip()
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
@@ -312,6 +313,7 @@ func TestDuplicateContactAssertions(t *testing.T) {
 }
 
 func TestSyncContactsWithServiceSummary(t *testing.T) {
+	t.Skip()
 	tc, all := setupContactSyncTest(t)
 	defer tc.Cleanup()
 
