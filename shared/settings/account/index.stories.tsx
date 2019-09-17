@@ -10,6 +10,7 @@ const props = {
   addedPhone: false,
   contactKeys: I.List(),
   hasPassword: false,
+  moreThanOneEmail: true,
   onAddEmail: Sb.action('onAddEmail'),
   onAddPhone: Sb.action('onAddPhone'),
   onClearAddedEmail: Sb.action('onClearAddedEmail'),
@@ -47,6 +48,7 @@ const contacts: {
 }
 
 const confirmDeleteProps = {
+  lastEmail: false,
   onCancel: Sb.action('onCancel'),
   onConfirm: Sb.action('onConfirm'),
 }
@@ -73,6 +75,7 @@ const load = () => {
         address="cecile@keyba.se"
         searchable={true}
         type="email"
+        lastEmail={false}
       />
     ))
     .add('Confirm delete email not searchable', () => (
@@ -81,6 +84,7 @@ const load = () => {
         address="cecile@keyba.se"
         searchable={false}
         type="email"
+        lastEmail={false}
       />
     ))
     .add('Confirm delete phone searchable', () => (
@@ -89,6 +93,7 @@ const load = () => {
         address="+33 6 76 38 86 97"
         searchable={true}
         type="phone"
+        lastEmail={false}
       />
     ))
     .add('Confirm delete phone not searchable', () => (
@@ -97,6 +102,7 @@ const load = () => {
         address="+33 6 76 38 86 97"
         searchable={false}
         type="phone"
+        lastEmail={false}
       />
     ))
 }

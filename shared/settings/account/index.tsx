@@ -23,6 +23,7 @@ export type Props = {
   supersededPhoneNumber?: string
   tooManyEmails: boolean
   tooManyPhones: boolean
+  moreThanOneEmail: boolean
   waiting: boolean
 } & HeaderHocProps
 

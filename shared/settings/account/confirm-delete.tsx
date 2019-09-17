@@ -8,6 +8,7 @@ import * as PhoneUtil from '../../util/phone-numbers'
 type Props = {
   address: string
   searchable: boolean
+  lastEmail: boolean
   onCancel: () => void
   onConfirm: () => void
   type: 'email' | 'phone'
@@ -32,24 +33,40 @@ const getPrompt = (props: Props) =>
     </Kb.Box2>
   )
 
+const getDescription = (props: Props) => {
+  return [
+    ...(props.lastEmail
+      ? [
+          `Since you'll have deleted all email addresses, you won't get email notifications from Keybase anymore.`,
+        ]
+      : []),
+    ...(props.searchable
+      ? [
+          `Your friends will no longer be able to find you by this ${
+            props.type === 'email' ? 'email address' : 'number'
+          }.`,
+        ]
+      : []),
+  ].join(' ')
+}
+
 const ConfirmDeleteAddress = (props: Props) => (
   <Kb.ConfirmModal
     icon={getIcon(props)}
     prompt={getPrompt(props)}
-    description={
-      props.searchable
-        ? `Your friends will no longer be able to find you by this ${
-            props.type === 'email' ? 'email address' : 'number'
-          }.`
-        : ''
-    }
+    description={getDescription(props)}
     onCancel={props.onCancel}
     onConfirm={props.onConfirm}
     confirmText="Yes, delete"
   />
 )
 
-type OwnProps = Container.RouteProps<{address: string; searchable: boolean; type: 'email' | 'phone'}>
+type OwnProps = Container.RouteProps<{
+  address: string
+  searchable: boolean
+  type: 'email' | 'phone'
+  lastEmail?: boolean
+}>
 
 const DeleteModal = (props: OwnProps) => {
   const dispatch = Container.useDispatch()
@@ -58,6 +75,7 @@ const DeleteModal = (props: OwnProps) => {
   const itemAddress = Container.getRouteProps(props, 'address', '')
   const itemType = Container.getRouteProps(props, 'type', 'email')
   const itemSearchable = Container.getRouteProps(props, 'searchable', false)
+  const lastEmail = Container.getRouteProps(props, 'lastEmail', false)
 
   const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onConfirm = React.useCallback(() => {
@@ -74,6 +92,7 @@ const DeleteModal = (props: OwnProps) => {
     <ConfirmDeleteAddress
       address={itemAddress}
       searchable={itemSearchable}
+      lastEmail={!!lastEmail}
       type={itemType}
       onCancel={onCancel}
       onConfirm={onConfirm}
