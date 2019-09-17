@@ -100,7 +100,7 @@ const UserResult = (props: Props) => {
             </>
           ) : (
             <>
-              <Kb.Text type="BodySemibold" lineClamp={2} style={styles.contactName}>
+              <Kb.Text type="BodySemibold" lineClamp={2}>
                 {props.prettyName}
               </Kb.Text>
               {!!props.displayLabel && props.displayLabel !== props.prettyName && (

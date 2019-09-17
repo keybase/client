@@ -857,21 +857,38 @@ const load = () => {
       </>
     ))
     .add('Keybase/Contact Tab - Contacts', () => (
-      <UserResult
-        username="+18885125555"
-        prettyName="Max Krohn"
-        displayLabel="+1 (888) 555-5555 (work)"
-        resultForService="keybase"
-        services={{
-          keybase: '',
-        }}
-        followingState={'NotFollowing' as const}
-        highlight={false}
-        inTeam={false}
-        isPreExistingTeamMember={false}
-        onAdd={Sb.action('onAdd')}
-        onRemove={Sb.action('onRemove')}
-      />
+      <>
+        <UserResult
+          username="+18885125555"
+          prettyName="Max Krohn"
+          displayLabel="+1 (888) 555-5555 (work)"
+          resultForService="keybase"
+          services={{
+            keybase: '',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="maxwellkrohn@keybase.io"
+          prettyName="Max Krohn"
+          displayLabel="maxwellkrohn@keybase.io"
+          resultForService="keybase"
+          services={{
+            keybase: '',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
     ))
     .add('Service Tab - Also Keybse User', () => (
       <>
