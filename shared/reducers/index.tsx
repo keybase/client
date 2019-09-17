@@ -1,3 +1,4 @@
+import autoreset from './autoreset'
 import chat2 from './chat2'
 import config from './config'
 import deeplinks from './deeplinks'
@@ -24,6 +25,7 @@ import wallets from './wallets'
 import {combineReducers} from 'redux'
 
 const reducers = {
+  autoreset,
   chat2,
   config,
   deeplinks,

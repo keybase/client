@@ -930,6 +930,7 @@ func TestSyncerSortAndLimit(t *testing.T) {
 	t.Logf("bigconv: %s", bigConv.GetConvID())
 
 	bgLoads := make(chan chat1.ConversationID, 10)
+	tc.Context().ConvLoader.(*BackgroundConvLoader).loadWait = 0
 	tc.Context().ConvLoader.(*BackgroundConvLoader).loads = bgLoads
 	tc.Context().ConvLoader.Start(ctx, uid)
 	tc.Context().Syncer.(*Syncer).isConnected = true

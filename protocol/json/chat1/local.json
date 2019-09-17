@@ -922,7 +922,8 @@
         "EXPIRED_5",
         "TOOMANYATTEMPTS_6",
         "ALREADY_DELETED_7",
-        "UPLOADFAILED_8"
+        "UPLOADFAILED_8",
+        "RESTRICTEDBOT_9"
       ]
     },
     {
@@ -2533,6 +2534,13 @@
           "name": "status"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        },
+        {
           "type": "boolean",
           "name": "unreadFirst"
         },
@@ -3038,6 +3046,44 @@
         {
           "type": "boolean",
           "name": "enabled"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetConvMember",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "ConversationID",
+          "name": "conv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetAllResetConvMembersRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetConvMember"
+          },
+          "name": "members"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -4643,6 +4689,10 @@
       ],
       "response": null
     },
+    "getAllResetConvMembers": {
+      "request": [],
+      "response": "GetAllResetConvMembersRes"
+    },
     "setConvRetentionLocal": {
       "request": [
         {
@@ -4990,6 +5040,137 @@
         }
       ],
       "response": null
+    },
+    "addBotMember": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "keybase1.TeamBotSettings"
+          ]
+        },
+        {
+          "name": "role",
+          "type": "keybase1.TeamRole"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "editBotMember": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": [
+            null,
+            "keybase1.TeamBotSettings"
+          ]
+        },
+        {
+          "name": "role",
+          "type": "keybase1.TeamRole"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "removeBotMember": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "setBotMemberSettings": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "botSettings",
+          "type": "keybase1.TeamBotSettings"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getBotMemberSettings": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "keybase1.TeamBotSettings"
     }
   },
   "namespace": "chat.1"

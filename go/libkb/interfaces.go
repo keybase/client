@@ -814,7 +814,7 @@ type DeviceEKStorage interface {
 	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
-	// Dangerous! Only for deprovisioning.
+	// Dangerous! Only for deprovisioning or shutdown/logout when in oneshot mode.
 	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(mctx MetaContext) ([]string, error)

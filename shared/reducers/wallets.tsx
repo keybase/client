@@ -320,7 +320,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       const {sendAssetChoices} = action.payload
       return state.merge({
         building: state.get('building').merge({sendAssetChoices}),
-        builtPayment: Constants.makeBuiltPayment(),
       })
     }
     case WalletsGen.buildingPaymentIDReceived: {

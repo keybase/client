@@ -596,8 +596,9 @@ func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uid g
 	}
 	extG := s.G().ExternalG()
 	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
+		ID:        teamID,
+		Public:    conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
+		SkipAudit: true,
 	})
 	if err != nil {
 		return nil, err

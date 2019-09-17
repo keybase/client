@@ -8,7 +8,7 @@ type Props = {}
 const NewCard = (_: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-      <Kb.Text type="BodySemibold" style={styles.header} negative={true}>
+      <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
         This conversation is end-to-end encrypted.
       </Kb.Text>
       <Kb.ClickableBox onClick={() => openUrl('https://keybase.io/docs/chat/crypto')}>
@@ -20,7 +20,7 @@ const NewCard = (_: Props) => (
           gap="xtiny"
         >
           <Kb.Text
-            type="BodyPrimaryLink"
+            type="BodySmallSemiboldPrimaryLink"
             style={styles.link}
             className="color_blueLighter hover_contained_color_white"
           >
@@ -28,6 +28,7 @@ const NewCard = (_: Props) => (
           </Kb.Text>
           <Kb.Icon
             color={Styles.globalColors.blueLighter}
+            sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"
             style={Kb.iconCastPlatformStyles(styles.icon)}
@@ -63,7 +64,6 @@ const styles = Styles.styleSheetCreate(
         maxWidth: Styles.isMobile ? 126 : undefined,
       },
       icon: Styles.platformStyles({
-        common: {fontSize: 12},
         isElectron: {
           display: 'block',
           marginTop: 4,

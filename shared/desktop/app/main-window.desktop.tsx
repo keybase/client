@@ -6,7 +6,7 @@ import menuHelper from './menu-helper.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
-import {dataRoot, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
 import {debounce} from 'lodash-es'
@@ -51,7 +51,7 @@ const windowState = {...defaultWindowState}
 
 const setupWindowEvents = (win: Electron.BrowserWindow) => {
   const saveWindowState = debounce(() => {
-    let winBounds = win.getNormalBounds()
+    const winBounds = win.getNormalBounds()
     windowState.x = winBounds.x
     windowState.y = winBounds.y
     windowState.width = winBounds.width
@@ -92,10 +92,6 @@ const changeDock = (show: boolean) => {
   const dock = Electron.app.dock
   if (!dock) return
 
-  if (show === dock.isVisible()) {
-    return
-  }
-
   if (show) {
     dock.show()
   } else {
@@ -116,11 +112,9 @@ let useNativeFrame = defaultUseNativeFrame
  * node never writes to it, only the renderer does
  */
 const loadWindowState = () => {
-  const filename = dataRoot + 'gui_config.json'
-
   let openAtLogin = true
   try {
-    const s = fs.readFileSync(filename, {encoding: 'utf8'})
+    const s = fs.readFileSync(guiConfigFilename, {encoding: 'utf8'})
     const guiConfig = JSON.parse(s)
 
     if (guiConfig.openAtLogin !== undefined) {
@@ -160,7 +154,7 @@ const loadWindowState = () => {
       windowState.y = defaultWindowState.y
     }
   } catch (e) {
-    logger.info(`Couldn't load`, filename, ' continuing...')
+    logger.info(`Couldn't load`, guiConfigFilename, ' continuing...')
   }
 
   if ((isDarwin || isWindows) && Electron.app.getLoginItemSettings().openAtLogin !== openAtLogin) {

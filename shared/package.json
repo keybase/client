@@ -291,7 +291,7 @@
   },
   "optionalDependencies": {
     "regedit": "2.2.7",
-    "webfonts-generator": "0.4.0"
+    "webfonts-generator": "^0.4.0"
   },
   "resolutions": {
     "**/lottie-react-web/**/minimatch": "3.0.4",
@@ -319,6 +319,7 @@
     "**/@babel/traverse": "7.4.5",
     "**/@babel/types": "7.4.4",
     "**/@types/react-native": "0.60.9",
+    "**/lodash.template": "4.5.0",
     "babel-core": "7.0.0-bridge.0",
     "**/node-gyp/tar": "4.4.8",
     "react-native-screens": "git://github.com/keybase/react-native-screens#danny/fix-textinput-blur"

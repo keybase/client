@@ -196,7 +196,7 @@ const makeDebouncedSearch = (time: number) =>
       dispatch: Container.TypedDispatch,
       namespace: Types.AllowedNamespace,
       query: string,
-      service: Types.ServiceId,
+      service: Types.ServiceIdWithContact,
       includeContacts: boolean,
       limit?: number
     ) =>
@@ -215,7 +215,7 @@ const makeDebouncedSearch = (time: number) =>
   )
 
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
-const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase / contact searches
+const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
   _onAdd: (user: Types.User) =>
@@ -226,12 +226,8 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
-    let serviceToSearch = service
-    if (Types.isContactServiceId(serviceToSearch)) {
-      serviceToSearch = 'keybase'
-    }
-    const func = serviceToSearch === 'keybase' ? debouncedSearchKeybase : debouncedSearch
-    return func(dispatch, namespace, query, serviceToSearch, namespace === 'chat2', limit)
+    const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
+    return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
   },
   fetchUserRecs: () =>
     dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
@@ -545,7 +541,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = rolePickerProps ? 'Add people' : 'New chat'
+  const title = rolePickerProps ? `Add to ${ownProps.teamname}` : 'New chat'
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
@@ -589,7 +585,6 @@ const mergeProps = (
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
     onAdd,
-    onAddRaw: dispatchProps._onAdd,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: deriveOnChangeService(
       ownProps.onChangeService,
@@ -624,6 +619,7 @@ const mergeProps = (
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamBuildingSearchResults: stateProps.teamBuildingSearchResults.toJS(),
     teamSoFar,
+    teamname: ownProps.teamname,
     title,
     waitingForCreate,
   }
@@ -635,7 +631,7 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
   Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname: string | null}>
+type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname?: string}>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
@@ -669,7 +665,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
     return (
       <Connected
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
-        teamname={Container.getRouteProps(this.props, 'teamname', null)}
+        teamname={Container.getRouteProps(this.props, 'teamname', undefined)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}

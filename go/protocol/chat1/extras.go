@@ -1753,6 +1753,14 @@ func (r *GetInboxAndUnboxLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
+func (r *GetAllResetConvMembersRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetAllResetConvMembersRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
 func (r *LoadFlipRes) GetRateLimit() []RateLimit {
 	return r.RateLimits
 }

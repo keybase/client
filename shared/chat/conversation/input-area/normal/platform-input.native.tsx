@@ -301,7 +301,7 @@ const styles = Styles.styleSheetCreate(
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
         flexShrink: 0,
-        minHeight: 48,
+        minHeight: 50,
         overflow: 'hidden',
         paddingRight: containerPadding,
       },
@@ -326,11 +326,19 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-end',
         paddingBottom: isIOS ? 7 : 10,
       },
-      input: {
-        flex: 1,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-      },
+      input: Styles.platformStyles({
+        common: {
+          flex: 1,
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isAndroid: {
+          // This is to counteract some intrinsic margins the android view has
+          marginTop: -8,
+        },
+      }),
       marginRightSmall: {
         marginRight: Styles.globalMargins.small,
       },

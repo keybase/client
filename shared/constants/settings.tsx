@@ -7,6 +7,8 @@ import {getMeta} from './chat2/meta'
 import * as RPCTypes from './types/rpc-gen'
 import {e164ToDisplay} from '../util/phone-numbers'
 import {RPCError} from 'util/errors'
+import {ContactResponse} from 'expo-contacts'
+import {phoneUtil, ValidationResult, PhoneNumberFormat} from '../util/phone-numbers'
 
 export const makeNotificationsGroup = I.Record<Types._NotificationsGroupState>({
   settings: I.List(),
@@ -185,6 +187,43 @@ export const makePhoneError = (e: RPCError) => {
     default:
       return e.message
   }
+}
+
+// Get phone number in e.164, or null if we can't parse it.
+const getE164 = (phoneNumber: string, countryCode?: string) => {
+  try {
+    const parsed = countryCode ? phoneUtil.parse(phoneNumber, countryCode) : phoneUtil.parse(phoneNumber)
+    const reason = phoneUtil.isPossibleNumberWithReason(parsed)
+    if (reason !== ValidationResult.IS_POSSIBLE) {
+      return null
+    }
+    return phoneUtil.format(parsed, PhoneNumberFormat.E164) as string
+  } catch (e) {
+    return null
+  }
+}
+
+export const nativeContactsToContacts = (contacts: ContactResponse, countryCode: string) => {
+  return contacts.data.reduce<Array<RPCTypes.Contact>>((ret, contact) => {
+    const {name, phoneNumbers = [], emails = []} = contact
+
+    const components = phoneNumbers.reduce<RPCTypes.ContactComponent[]>((res, pn) => {
+      const formatted = getE164(pn.number || '', pn.countryCode || countryCode)
+      if (formatted) {
+        res.push({
+          label: pn.label,
+          phoneNumber: formatted,
+        })
+      }
+      return res
+    }, [])
+    components.push(...emails.map(e => ({email: e.email, label: e.label})))
+    if (components.length) {
+      ret.push({components, name})
+    }
+
+    return ret
+  }, [])
 }
 
 export const makeAddEmailError = (err: RPCError): string => {

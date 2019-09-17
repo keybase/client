@@ -28,8 +28,8 @@ func NewRunner(g *globals.Context) *Runner {
 	r := &Runner{
 		Contextified: globals.NewContextified(g),
 	}
-	r.G().PushShutdownHook(func() error {
-		<-r.Stop(context.Background())
+	r.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
+		<-r.Stop(mctx.Ctx())
 		return nil
 	})
 	return r

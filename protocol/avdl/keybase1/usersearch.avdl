@@ -4,7 +4,7 @@ protocol userSearch {
     import idl "contacts.avdl";
 
     @typedef("string")
-    record APIUserServiceIDWithContact {}
+    record APIUserServiceID {}
 
     record APIUserKeybaseResult {
         string username;
@@ -22,7 +22,7 @@ protocol userSearch {
 
     record APIUserServiceResult {
         @jsonkey("service_name")
-        APIUserServiceIDWithContact serviceName;
+        APIUserServiceID serviceName;
         string username;
         @jsonkey("picture_url")
         string pictureUrl;
@@ -35,7 +35,7 @@ protocol userSearch {
 
     record APIUserServiceSummary {
         @jsonkey("service_name")
-        APIUserServiceIDWithContact serviceName;
+        APIUserServiceID serviceName;
         string username;
     }
 
@@ -55,7 +55,7 @@ protocol userSearch {
         union { null, ProcessedContact } contact;
         union { null, ImpTofuSearchResult } imptofu;
         @jsonkey("services_summary")
-        map<APIUserServiceIDWithContact, APIUserServiceSummary> servicesSummary;
+        map<APIUserServiceID, APIUserServiceSummary> servicesSummary;
         double rawScore;
     }
 
@@ -71,17 +71,6 @@ protocol userSearch {
     }
     NonUserDetails getNonUserDetails(int sessionID, string assertion);
 
-    enum ImpTofuSearchType {
-        PHONE_0,
-        EMAIL_1
-    }
-
-    variant ImpTofuQuery switch (ImpTofuSearchType t) {
-        case PHONE: PhoneNumber;
-        case EMAIL: EmailAddress;
-    }
-
     array<APIUserSearchResult> userSearch(string query, string service, int maxResults,
-        boolean includeServicesSummary, boolean includeContacts,
-        union { null, ImpTofuQuery } impTofuQuery);
+        boolean includeServicesSummary, boolean includeContacts);
 }

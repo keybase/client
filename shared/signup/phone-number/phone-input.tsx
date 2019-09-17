@@ -108,6 +108,7 @@ const menuItems = memoize((countryData, filter, onClick) => {
       return a.name.localeCompare(b.name)
     })
     .map((cd: CountryData) => ({
+      alpha2: cd.alpha2,
       onClick: () => onClick(cd.alpha2),
       title: cd.pickerText,
       view: <MenuItem emoji={cd.emojiText} text={cd.pickerText} />,
@@ -141,21 +142,34 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     filter: '',
     selected: this.props.selected,
   }
+  private desktopItems:
+    | Array<{alpha2: string; onClick: () => void; title: string; view: React.ReactNode}>
+    | undefined
+  private mobileItems: Array<{label: string; value: string}> | undefined
 
   componentDidUpdate(prevProps: CountrySelectorProps) {
     if (this.props.selected !== prevProps.selected) {
-      this._onSelect(this.props.selected)
+      this.onSelect(this.props.selected)
     }
   }
 
-  _onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
 
-  _onCancel = () => {
-    this._onSelect(this.props.selected)
+  private onSelectFirst = () => {
+    if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
+      this.onSelectMenu(this.mobileItems[0].value)
+    } else if (this.desktopItems && this.desktopItems[0]) {
+      this.onSelectMenu(this.desktopItems[0].alpha2)
+    }
     this.props.onHidden()
   }
 
-  _onDone = () => {
+  private onCancel = () => {
+    this.onSelect(this.props.selected)
+    this.props.onHidden()
+  }
+
+  private onDone = () => {
     this.props.onSelect(this.state.selected)
     this.props.onHidden()
   }
@@ -164,14 +178,15 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onSelect(selected)
   }
 
-  _onChangeFilter = filter => this.setState(() => ({filter}))
+  private onChangeFilter = filter => this.setState(() => ({filter}))
 
   clearFilter() {
-    this._onChangeFilter('')
+    this.onChangeFilter('')
   }
 
   render() {
     if (!Styles.isMobile) {
+      this.desktopItems = menuItems(countryData, this.state.filter, this.onSelectMenu)
       return (
         <Kb.FloatingMenu
           closeOnSelect={true}
@@ -185,14 +200,15 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
                   icon="iconfont-search"
                   placeholderCentered={true}
                   mobileCancelButton={true}
-                  onChange={this._onChangeFilter}
+                  onChange={this.onChangeFilter}
                   placeholderText="Search"
                   focusOnMount={true}
+                  onEnterKeyDown={this.onSelectFirst}
                 />
               </Kb.Box2>
             ),
           }}
-          items={menuItems(countryData, this.state.filter, this.onSelectMenu)}
+          items={this.desktopItems}
           listStyle={styles.countryList}
           onHidden={this.props.onHidden}
           visible={this.props.visible}
@@ -200,13 +216,14 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
         />
       )
     }
+    this.mobileItems = pickerItems(countryData)
     return (
       <Kb.FloatingPicker
-        items={pickerItems(countryData)}
-        onSelect={this._onSelect}
-        onHidden={this._onCancel}
-        onCancel={this._onCancel}
-        onDone={this._onDone}
+        items={this.mobileItems}
+        onSelect={this.onSelect}
+        onHidden={this.onCancel}
+        onCancel={this.onCancel}
+        onDone={this.onDone}
         selectedValue={this.state.selected}
         visible={this.props.visible}
       />
@@ -236,17 +253,17 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     formatted: '',
     prefix: getCallingCode(this.props.defaultCountry || defaultCountry).slice(1),
   }
-  _formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
-  _countrySelectorRef = React.createRef<CountrySelector>()
-  _phoneInputRef = React.createRef<Kb.PlainInput>()
+  private formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
+  private countrySelectorRef = React.createRef<CountrySelector>()
+  private phoneInputRef = React.createRef<Kb.PlainInput>()
 
-  _setFormattedPhoneNumber = formatted =>
+  private setFormattedPhoneNumber = formatted =>
     this.setState(s => {
       if (s.formatted === formatted) {
         return null
       }
       return {formatted}
-    }, this._updateParent)
+    }, this.updateParent)
 
   // AsYouTypeFormatter doesn't support backspace
   // To get around this, on every text change:
@@ -254,18 +271,18 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   // 2. Remove any non-numerics from the text
   // 3. Feed the new text into the formatter char by char
   // 4. Set the value of the input to the new formatted
-  _reformatPhoneNumber = (_newText, skipCountry) => {
-    this._formatter.clear()
+  private reformatPhoneNumber = (_newText, skipCountry) => {
+    this.formatter.clear()
     const newText = filterNumeric(_newText)
     if (newText.trim().length === 0) {
-      this._setFormattedPhoneNumber('')
+      this.setFormattedPhoneNumber('')
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
-      this._formatter.inputDigit(newText[i])
+      this.formatter.inputDigit(newText[i])
     }
-    const formatted = this._formatter.inputDigit(newText[newText.length - 1])
-    this._setFormattedPhoneNumber(formatted)
+    const formatted = this.formatter.inputDigit(newText[newText.length - 1])
+    this.setFormattedPhoneNumber(formatted)
 
     // Special case for NA area
     if (this.state.prefix === '1' && !skipCountry) {
@@ -280,28 +297,28 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         // First look it up against the table
         const possibleMatch = codeToCountry[extPrefix]
         if (possibleMatch) {
-          this._setCountry(possibleMatch, false)
+          this.setCountry(possibleMatch, false)
         } else {
           // Otherwise determine the country using the hardcoded ranges
           if (areaCodeIsCanadian(areaCode)) {
-            this._setCountry('CA', true)
+            this.setCountry('CA', true)
           } else {
-            this._setCountry('US', true)
+            this.setCountry('US', true)
           }
         }
       }
     }
   }
 
-  _reformatPrefix = (_newText, skipCountry) => {
+  private reformatPrefix = (_newText, skipCountry) => {
     let newText = filterNumeric(_newText)
     if (!skipCountry) {
       const matchedCountry = codeToCountry[newText]
       if (matchedCountry) {
-        this._setCountry(matchedCountry, false)
+        this.setCountry(matchedCountry, false)
       } else {
         // Invalid country
-        this._setCountry('', false)
+        this.setCountry('', false)
       }
     }
 
@@ -314,44 +331,44 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     })
   }
 
-  _updateParent = () => {
+  private updateParent = () => {
     const validation = validateNumber(this.state.formatted, this.state.country)
     this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
-  _setCountry = (country, keepPrefix) => {
+  private setCountry = (country, keepPrefix) => {
     if (this.state.country !== country) {
       country = normalizeCountryCode(country)
 
       this.setState({country})
       if (country !== '') {
-        this._formatter = new AsYouTypeFormatter(country)
+        this.formatter = new AsYouTypeFormatter(country)
       }
 
       // Special behaviour for NA numbers
       if (getCallingCode(country).length === 6) {
-        this._reformatPhoneNumber(getCallingCode(country).slice(-3), true)
+        this.reformatPhoneNumber(getCallingCode(country).slice(-3), true)
       } else if (!keepPrefix) {
-        this._reformatPhoneNumber('', true)
+        this.reformatPhoneNumber('', true)
       }
-      this._reformatPrefix(getCallingCode(country).slice(1), true)
+      this.reformatPrefix(getCallingCode(country).slice(1), true)
     }
   }
 
-  _toggleShowingMenu = () => {
+  private toggleShowingMenu = () => {
     if (this.state.country === '') {
-      this._countrySelectorRef.current &&
-        this._countrySelectorRef.current.onSelectMenu(this.props.defaultCountry || defaultCountry)
+      this.countrySelectorRef.current &&
+        this.countrySelectorRef.current.onSelectMenu(this.props.defaultCountry || defaultCountry)
     }
-    this._countrySelectorRef.current && this._countrySelectorRef.current.clearFilter()
+    this.countrySelectorRef.current && this.countrySelectorRef.current.clearFilter()
     this.props.toggleShowingMenu()
   }
 
-  _onPrefixEnter = () => {
-    this._phoneInputRef.current && this._phoneInputRef.current.focus()
+  private onPrefixEnter = () => {
+    this.phoneInputRef.current && this.phoneInputRef.current.focus()
   }
 
-  _renderCountrySelector = () => {
+  private renderCountrySelector = () => {
     if (Styles.isMobile) {
       return (
         <Kb.Text type="BodySemibold" style={styles.countrySelector}>
@@ -376,6 +393,11 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     )
   }
 
+  private onSelectCountry = (code: string) => {
+    this.setCountry(code, false)
+    this.phoneInputRef.current && this.phoneInputRef.current.focus()
+  }
+
   render() {
     return (
       <Kb.Box2
@@ -387,7 +409,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
           direction="horizontal"
           style={Styles.collapseStyles([styles.countrySelectorRow, styles.fakeInput])}
         >
-          <Kb.ClickableBox onClick={this._toggleShowingMenu} style={styles.fullWidth}>
+          <Kb.ClickableBox onClick={this.toggleShowingMenu} style={styles.fullWidth}>
             <Kb.Box2
               direction="horizontal"
               style={styles.countrySelectorContainer}
@@ -395,7 +417,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               gap="xtiny"
               ref={this.props.setAttachmentRef}
             >
-              {this._renderCountrySelector()}
+              {this.renderCountrySelector()}
               <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
@@ -414,9 +436,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
                 style={Styles.collapseStyles([styles.plainInput, styles.prefixInput])}
                 flexable={true}
                 keyboardType={isIOS ? 'number-pad' : 'numeric'}
-                onChangeText={x => this._reformatPrefix(x, false)}
+                onChangeText={x => this.reformatPrefix(x, false)}
                 maxLength={3}
-                onEnterKeyDown={this._onPrefixEnter}
+                onEnterKeyDown={this.onPrefixEnter}
                 returnKeyType="next"
                 value={this.state.prefix}
               />
@@ -437,13 +459,13 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               flexable={true}
               keyboardType={isIOS ? 'number-pad' : 'numeric'}
               placeholder={getPlaceholder(this.state.country)}
-              onChangeText={x => this._reformatPhoneNumber(x, false)}
+              onChangeText={x => this.reformatPhoneNumber(x, false)}
               onEnterKeyDown={this.props.onEnterKeyDown}
               onFocus={() => this.setState({focused: true})}
               onBlur={() => this.setState({focused: false})}
               value={this.state.formatted}
               disabled={this.state.country === ''}
-              ref={this._phoneInputRef}
+              ref={this.phoneInputRef}
               maxLength={17}
               textContentType="telephoneNumber"
             />
@@ -451,11 +473,11 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         </Kb.Box2>
         <CountrySelector
           attachTo={this.props.getAttachmentRef}
-          onSelect={x => this._setCountry(x, false)}
-          onHidden={this._toggleShowingMenu}
+          onSelect={this.onSelectCountry}
+          onHidden={this.toggleShowingMenu}
           selected={this.state.country}
           visible={this.props.showingMenu}
-          ref={this._countrySelectorRef}
+          ref={this.countrySelectorRef}
         />
       </Kb.Box2>
     )

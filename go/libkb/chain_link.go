@@ -622,7 +622,7 @@ func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSki
 
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte, linkID LinkID) error {
 
-	if !msgpack.IsJSONObject(payload) {
+	if !isJSONObject(payload, linkID) {
 		return ChainLinkError{"chain link is not a valid JSON object as expected; found leading junk"}
 	}
 
@@ -1118,14 +1118,43 @@ func fixAndHashPayload(g *GlobalContext, payload []byte, linkID LinkID) []byte {
 	return ret[:]
 }
 
-func inferSigVersion(payload []byte) SigVersion {
+// two chainlinks in the database have leading padding via space characters
+// or newline characters. In these two cases, we strip off leading space
+// before checking if they are JSON objects. In all other cases, the first
+// character must be '{'
+var paddedChainLinks = map[keybase1.LinkID]bool{
+	"ebcf3fab043970beee1198f16098f411331b7dbaa865a285908d82fc58df1577": true,
+	"c094f59c77da5e7d4023025744f8c533a098b2136f2113dc02b0745568c2faa3": true,
+}
+
+func stripPadding(in []byte) []byte {
+	for i, b := range in {
+		if b != ' ' && b != '\n' {
+			return in[i:]
+		}
+	}
+	return []byte{}
+}
+
+func isPadded(in []byte) bool {
+	return len(in) > 0 && (in[0] == ' ' || in[0] == '\n')
+}
+
+func isJSONObject(payload []byte, linkID LinkID) bool {
+	if isPadded(payload) && paddedChainLinks[linkID.Export()] {
+		payload = stripPadding(payload)
+	}
+	return msgpack.IsJSONObject(payload)
+}
+
+func inferSigVersion(payload []byte, linkID LinkID) SigVersion {
 
 	// Version 1 payloads are JSON and must start with an opening '{'
-	if msgpack.IsJSONObject(payload) {
+	if isJSONObject(payload, linkID) {
 		return KeybaseSignatureV1
 	}
 
-	// Version 2 payloads are Msgpack and must arrays, so they must
+	// Version 2 payloads are Msgpack and must be arrays, so they must
 	// fit the following requirements. The case where b == 0xdc or
 	// b = 0xdd are far-fetched, since that would mean a large or very
 	// large packing. But still, allow any valid array up front.
@@ -1137,8 +1166,8 @@ func inferSigVersion(payload []byte) SigVersion {
 	return KeybaseNullSigVersion
 }
 
-func assertCorrectSigVersion(expected SigVersion, payload []byte) error {
-	vInferred := inferSigVersion(payload)
+func assertCorrectSigVersion(expected SigVersion, payload []byte, linkID LinkID) error {
+	vInferred := inferSigVersion(payload, linkID)
 	if vInferred != expected {
 		return ChainLinkError{msg: fmt.Sprintf("chainlink in wrong format; expected version=%d but payload was %d", expected, vInferred)}
 	}
@@ -1160,7 +1189,7 @@ func (c *ChainLink) getSigPayload() ([]byte, error) {
 		return nil, ChainLinkError{msg: fmt.Sprintf("unexpected signature version: %d", c.unpacked.sigVersion)}
 	}
 
-	err := assertCorrectSigVersion(v, ret)
+	err := assertCorrectSigVersion(v, ret, c.id)
 	if err != nil {
 		return nil, err
 	}

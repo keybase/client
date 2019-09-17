@@ -389,6 +389,9 @@ func Version() string {
 }
 
 func IsAppStateForeground() bool {
+	if !isInited() {
+		return false
+	}
 	return kbCtx.MobileAppState.State() == keybase1.MobileAppState_FOREGROUND
 }
 

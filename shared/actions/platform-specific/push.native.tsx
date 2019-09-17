@@ -13,6 +13,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Tabs from '../../constants/tabs'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -156,7 +157,7 @@ function* handleLoudMessage(notification: Types.PushNotification) {
 }
 
 // on iOS the go side handles a lot of push details
-function* handlePush(_: Container.TypedState, action: PushGen.NotificationPayload) {
+function* handlePush(state: Container.TypedState, action: PushGen.NotificationPayload) {
   try {
     const notification = action.payload.notification
     logger.info('[Push]: ' + notification.type || 'unknown')
@@ -186,6 +187,12 @@ function* handlePush(_: Container.TypedState, action: PushGen.NotificationPayloa
         {
           const {conversationIDKey} = notification
           yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+        }
+        break
+      case 'settings.contacts':
+        if (state.config.loggedIn) {
+          yield Saga.put(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+          yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'peopleRoot'}))
         }
         break
     }
