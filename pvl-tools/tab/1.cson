@@ -55,70 +55,40 @@ services:
       , b: "username_service"
       , error: ["BAD_API_URL", "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"] } },
 
-    # Create the desktop url using the validated username and (not validated) post id.
+    # Create the mobile url using the validated username and (not validated) post id.
     { fill: {
-      , with: "https://www.facebook.com/%{username_from_url}/posts/%{post_id}"
+      , with: "https://m.facebook.com/%{username_from_url}/posts/%{post_id}"
       , into: "our_url" } },
     { fetch: {
       , kind: "html"
       , from: "our_url" } },
 
-    # Get the contents of the first (only) comment inside the first <code>
-    # block. Believe it or not, this comment contains the post markup below.
     { selector_css: {
-      , selectors: ["code", 0, {contents: true}, 0]
-      , into: "first_code_comment"
-      , data: true
-      , error: ["FAILED_PARSE", "Could not find proof markup comment in Facebook's response"] } },
-
-    # Facebook escapes "--" as "-\-\" and "\" as "\\" when inserting text into
-    # comments. Unescape these.
-    { replace_all: {
-      , old: "-\\-\\"
-      , new: "--"
-      , from: "first_code_comment"
-      , into: "fcc2" } },
-    { replace_all: {
-      , old: "\\\\"
-      , new: "\\"
-      , from: "fcc2"
-      , into: "fcc3" } },
-
-    # Load the de-escaped comment as html
-    { parse_html: {
-      , from: "fcc3"
-      , error: ["FAILED_PARSE", "Failed to parse proof markup comment in Facebook post: %{fcc3}"] } },
-
-    # This query operates on the newly extractaparsed comment, not the original page load
-    # This is the selector for the post attachment links, which contains the
-    # proof text. It's the second <a> tag inside the div that's the immediate
-    # *sibling* of the 'userContet' div. That <a> tags contains the proof text.
-    { selector_css: {
-      , selectors: ["div.userContent+div a", 1]
-      , into: "link_text"
-      , error: ["FAILED_PARSE", "Could not find link text in Facebook's response"] } },
+      , selectors: ["#m_story_permalink_view", "h3.by.bz.ca", 0]
+      , into: "post_text"
+      , error: ["FAILED_PARSE", "Could not find post text in Facebook's response"] } },
     { whitespace_normalize: {
-      , from: "link_text"
-      , into: "link_text_nw" } },
+      , from: "post_text"
+      , into: "post_text_nw" } },
 
-    # Check the link text for username and sig
+    # Check the post text for username and sig
     { regex_capture: {
       , pattern: "^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$"
-      , from: "link_text_nw"
-      , into: ["username_from_link", "sig_from_link"]
+      , from: "post_text_nw"
+      , into: ["username_from_post", "sig_from_post"]
       , error: ["TEXT_NOT_FOUND", "Could not find Verifying myself: I am %{username_keybase} on Keybase.io. (%{sig_id_medium})"] } },
-    # Check username in link text
+    # Check username in post text
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "username_from_link"
+      , a: "username_from_post"
       , b: "username_keybase"
-      , error: ["BAD_USERNAME", "Wrong keybase username in post '%{username_from_link}' should be '%{username_keybase}'"] } },
-    # Check the sig id in the link text
+      , error: ["BAD_USERNAME", "Wrong keybase username in post '%{username_from_post}' should be '%{username_keybase}'"] } },
+    # Check the sig id in the post text
     { assert_compare: {
       , cmp: "exact"
       , a: "sig_id_medium"
-      , b: "sig_from_link"
-      , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_link}' != '%{sig_id_medium}'"] } },
+      , b: "sig_from_post"
+      , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_post}' != '%{sig_id_medium}'"] } },
   ]]
   github: [[
     # validate url and extract username
