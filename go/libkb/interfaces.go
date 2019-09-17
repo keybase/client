@@ -748,7 +748,7 @@ type HiddenTeamChainManager interface {
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, justCreated bool) (err error)
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error)
 }
 
 type TeamBoxAuditor interface {
