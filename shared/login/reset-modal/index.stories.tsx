@@ -7,12 +7,7 @@ const load = () => {
     <ResetModal
       onCancelReset={Sb.action('onCancelReset')}
       timeLeft="2 days"
-      coord={{
-        lat: 10,
-        lon: 10,
-      }}
-      httpSrvAddress="asd"
-      httpSrvToken="asd"
+      mapURL="https://i.imgur.com/XwTVNzr.png"
     />
   ))
 }

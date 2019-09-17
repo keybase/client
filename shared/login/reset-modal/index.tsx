@@ -4,12 +4,7 @@ import * as Styles from '../../styles'
 import {Props} from '.'
 
 export type Props = {
-  httpSrvAddress: string
-  httpSrvToken: string
-  coord: {
-    lat: number
-    lon: number
-  }
+  mapURL: string
   timeLeft: string
   onCancelReset: () => void
 }
@@ -28,12 +23,12 @@ const ResetModal = (props: Props) => {
           style={styles.textContainer}
           centerChildren={true}
         >
-          <Kb.Icon type="iconfont-shh" color={Styles.globalColors.black_20} fontSize={48} />
+          <Kb.Icon type="iconfont-skull" color={Styles.globalColors.black_20} fontSize={48} />
           <Kb.Text type="Body">This account will reset in {props.timeLeft}.</Kb.Text>
           <Kb.Text type="Body">Explanation goes here.</Kb.Text>
           <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.deviceContainer}>
-            <Kb.Image src="https://i.imgur.com/XwTVNzr.png" style={{height: 100, width: 100}} />
+            <Kb.Image src={props.mapURL} style={{height: 100, width: 100}} />
             <Kb.Box2 direction="vertical">
               <Kb.Text type="BodySmallExtrabold">iPhone in New York, NY, US</Kb.Text>
               <Kb.Text type="BodySmall">Verified using the password</Kb.Text>
