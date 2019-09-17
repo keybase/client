@@ -469,7 +469,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             }
           )
           draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(conversationIDKey)
-          draftState.threadLoadStatus = draftState.threadLoadStatus.delete(conversationIDKey)
+          const threadLoadStatus = new Map(draftState.threadLoadStatus)
+          threadLoadStatus.delete(conversationIDKey)
+          draftState.threadLoadStatus = threadLoadStatus
           draftState.containsLatestMessageMap = draftState.containsLatestMessageMap.set(
             conversationIDKey,
             true
@@ -525,12 +527,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         return
       }
-      case Chat2Gen.setThreadLoadStatus:
-        draftState.threadLoadStatus = draftState.threadLoadStatus.set(
-          action.payload.conversationIDKey,
-          action.payload.status
-        )
+      case Chat2Gen.setThreadLoadStatus: {
+        const threadLoadStatus = new Map(draftState.threadLoadStatus)
+        threadLoadStatus.set(action.payload.conversationIDKey, action.payload.status)
+        draftState.threadLoadStatus = threadLoadStatus
         return
+      }
       case Chat2Gen.setCommandStatusInfo:
         draftState.commandStatusMap = draftState.commandStatusMap.set(
           action.payload.conversationIDKey,
@@ -940,9 +942,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       case EngineGen.chat1NotifyChatChatTypingUpdate: {
         const {typingUpdates} = action.payload.params
-        const typingMap = I.Map(
-          (typingUpdates || []).reduce<Array<[string, I.Set<string>]>>((arr, u) => {
-            arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+        const typingMap = new Map(
+          (typingUpdates || []).reduce<Array<[string, Set<string>]>>((arr, u) => {
+            arr.push([Types.conversationIDToKey(u.convID), new Set((u.typers || []).map(t => t.username))])
             return arr
           }, [])
         )
@@ -1206,12 +1208,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.threadSearchInfoMap = threadSearchInfoMap
         return
       }
-      case Chat2Gen.setThreadSearchQuery:
-        draftState.threadSearchQueryMap = draftState.threadSearchQueryMap.set(
-          action.payload.conversationIDKey,
-          action.payload.query
-        )
+      case Chat2Gen.setThreadSearchQuery: {
+        const threadSearchQueryMap = new Map(draftState.threadSearchQueryMap)
+        threadSearchQueryMap.set(action.payload.conversationIDKey, action.payload.query)
+        draftState.threadSearchQueryMap = threadSearchQueryMap
         return
+      }
       case Chat2Gen.inboxSearchSetTextStatus:
         draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
           textStatus: action.payload.status,

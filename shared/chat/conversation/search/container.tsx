@@ -23,7 +23,7 @@ export default Container.namedConnect(
     const info = Constants.getThreadSearchInfo(state, conversationIDKey)
     return {
       _hits: info.hits,
-      initialText: state.chat2.threadSearchQueryMap.get(conversationIDKey) || undefined,
+      initialText: state.chat2.threadSearchQueryMap.get(conversationIDKey),
       status: info.status,
     }
   },

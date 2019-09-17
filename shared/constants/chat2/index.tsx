@@ -23,6 +23,7 @@ export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasse
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 const emptyArray = []
+const emptySet = new Set()
 
 export const makeState = (): Types.State => ({
   accountsInfoMap: I.Map(),
@@ -65,11 +66,11 @@ export const makeState = (): Types.State => ({
   smallTeamsExpanded: false,
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  threadLoadStatus: I.Map(),
+  threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
-  threadSearchQueryMap: I.Map(),
+  threadSearchQueryMap: new Map(),
   trustedInboxHasLoaded: false,
-  typingMap: I.Map(), // who's typing currently,
+  typingMap: new Map(), // who's typing currently,
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
   unsentTextMap: I.Map(),
@@ -229,7 +230,7 @@ export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => 
 }
 
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.typingMap.get(id, I.Set())
+  state.chat2.typingMap.get(id) || (emptySet as Set<string>)
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 export const isUserActivelyLookingAtThisThread = (
   state: TypedState,
