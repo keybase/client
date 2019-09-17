@@ -4,10 +4,10 @@ import * as Styles from '../../styles'
 import {Props, RowProps} from './index'
 import {pluralize} from '../../util/string'
 
-const HoverBox = Styles.styled(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)(() => ({
   '.channel-row:hover &': {opacity: 1},
   opacity: 0,
-})
+}))
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <HoverBox style={style} onClick={onClick}>
