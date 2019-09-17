@@ -53,7 +53,8 @@ const Intro = (props: IntroProps) => {
 const bodyOverride = {
   paragraph: {
     color: Styles.globalColors.white,
-    fontSize: Styles.isMobile ? 16 : 13,
+    fontSize: Styles.isMobile ? 16 : 14,
+    fontWeight: 600,
     textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: Styles.globalStyles.fontExtrabold,
@@ -62,7 +63,11 @@ const bodyOverride = {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
+      bodyText: {
+        color: Styles.globalColors.white,
+        marginBottom: Styles.globalMargins.xsmall,
+        marginTop: Styles.globalMargins.small,
+      },
       buttonLabelStyle: {color: Styles.globalColors.purpleDark},
       buttonStyle: {width: '100%'},
       container: {backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.medium},
