@@ -298,7 +298,10 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
         draftState.appOutOfDateStatus = action.payload.status
         return
       case EngineGen.keybase1NotifyRuntimeStatsRuntimeStatsUpdate:
-        draftState.runtimeStats = action.payload.params.stats || undefined
+        draftState.runtimeStats = {
+          ...draftState.runtimeStats,
+          ...action.payload.params.stats,
+        } as Types.State['runtimeStats']
         return
       case ConfigGen.updateHTTPSrvInfo:
         draftState.httpSrvAddress = action.payload.address
