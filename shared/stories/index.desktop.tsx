@@ -87,7 +87,7 @@ const RootWrapper = ({children}) => {
             }
           }}
         >
-          {/* `${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}` */}
+          {`${darkMode ? 'Dark Mode' : 'Light Mode'}${autoSwap ? '-auto' : ''}`}
         </div>
       </>
     )
