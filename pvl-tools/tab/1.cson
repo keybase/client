@@ -62,7 +62,7 @@ services:
       , from: "our_url" } },
 
     { selector_css: {
-      , selectors: ["#m_story_permalink_view", "h3.by.bz.ca", 0]
+      , selectors: ["#m_story_permalink_view", "h3.by.bz", 0]
       , into: "post_text"
       , error: ["FAILED_PARSE", "Could not find post text in Facebook's response"] } },
     { whitespace_normalize: {
