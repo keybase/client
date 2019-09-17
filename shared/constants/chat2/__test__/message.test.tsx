@@ -21,6 +21,7 @@ const cases = [
       'systemChangeRetention',
       'systemGitPush',
       'systemInviteAccepted',
+      'systemSBSResolved',
       'systemSimpleToComplex',
       'systemText',
       'systemUsersAddedToConversation',
