@@ -389,44 +389,15 @@ func (s subscriber) Unsubscribe(ctx context.Context, sid SubscriptionID) {
 
 var _ SubscriptionManagerPublisher = (*subscriptionManager)(nil)
 
-func (sm *subscriptionManager) downloadStatusChangedLocked() {
-	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_DOWNLOAD_STATUS] == nil {
-		return
-	}
-	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_DOWNLOAD_STATUS] {
-		notifier.notify()
-	}
-}
-
-func (sm *subscriptionManager) favoritesChangedLocked() {
-	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_FAVORITES] == nil {
-		return
-	}
-	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_FAVORITES] {
-		notifier.notify()
-	}
-}
-
-func (sm *subscriptionManager) journalStatusChangedLocked() {
-	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] == nil {
-		return
-	}
-	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] {
-		notifier.notify()
-	}
-}
-
 // PublishChange implements the SubscriptionManagerPublisher interface.
 func (sm *subscriptionManager) PublishChange(topic keybase1.SubscriptionTopic) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
-	switch topic {
-	case keybase1.SubscriptionTopic_FAVORITES:
-		sm.favoritesChangedLocked()
-	case keybase1.SubscriptionTopic_JOURNAL_STATUS:
-		sm.journalStatusChangedLocked()
-	case keybase1.SubscriptionTopic_DOWNLOAD_STATUS:
-		sm.downloadStatusChangedLocked()
+	if sm.nonPathSubscriptions[topic] == nil {
+		return
+	}
+	for _, notifier := range sm.nonPathSubscriptions[topic] {
+		notifier.notify()
 	}
 }
 

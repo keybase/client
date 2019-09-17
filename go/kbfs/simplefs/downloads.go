@@ -47,8 +47,8 @@ type download struct {
 //
 // We have regular downloads which are tracked in the app visually, and are
 // moved into a "Downloads" folder after they're done, and non-regular
-// downloads which are for "Save" and "Send to other apps" on mobile. When user
-// chooses to save a photo or a video, or share a file to another app, we
+// downloads which are for "Save" and "Send to other apps" on mobile. When the
+// user chooses to save a photo or a video, or share a file to another app, we
 // download to a cache folder and have GUI call some APIs to actually add them
 // to the photo library or send to other apps.
 type downloadManager struct {
@@ -108,7 +108,7 @@ func (m *downloadManager) monitorDownload(
 		select {
 		case <-ticker.C:
 			resp, err := m.k.SimpleFSCheck(ctx, opid)
-			switch err {
+			switch errors.Cause(err) {
 			case nil:
 				if err := m.updateDownload(downloadID, func(d download) download {
 					d.state.EndEstimate = resp.EndEstimate
@@ -181,7 +181,7 @@ func (m *downloadManager) moveToDownloadFolder(
 		}
 		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
 	}
-	// could race but it should be rare enough so fine
+	// Could race but it should be rare enough so fine.
 
 	err = os.Rename(srcPath, destPath)
 	switch er := err.(type) {
@@ -230,7 +230,9 @@ func (m *downloadManager) waitForDownload(ctx context.Context,
 
 	var localPath string
 	if d.info.IsRegularDownload {
-		if localPath, err = m.moveToDownloadFolder(ctx, downloadPath, d.info.Filename); err != nil {
+		localPath, err = m.moveToDownloadFolder(
+			ctx, downloadPath, d.info.Filename)
+		if err != nil {
 			done(err)
 			return
 		}
