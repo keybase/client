@@ -12,7 +12,7 @@ const Names = (props: Props) => {
 
   switch (names.length) {
     case 0:
-      return <>''</>
+      return <></>
     case 1:
       return (
         <>
@@ -41,7 +41,7 @@ const Names = (props: Props) => {
         </>
       )
     default:
-      return <>'multiple people are typing'</>
+      return <>multiple people are typing</>
   }
 }
 
