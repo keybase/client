@@ -36,8 +36,9 @@ type Props = {
   banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
-  onClose?: () => void
+  onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
+  fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'Wide'
 }
 
@@ -56,7 +57,7 @@ const ModalInner = (props: Props) => (
   </>
 )
 const Modal = (props: Props) =>
-  Styles.isMobile ? (
+  Styles.isMobile || props.fullscreen ? (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <ModalInner {...props} />
     </Kb.Box2>

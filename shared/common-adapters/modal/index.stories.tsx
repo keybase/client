@@ -176,6 +176,11 @@ const load = () => {
         {filler}
       </Modal>
     ))
+    .add('Fullscreen', () => (
+      <Modal header={{title: "I'm way up here"}} fullscreen={true}>
+        {filler}
+      </Modal>
+    ))
 }
 
 const generateColorFromSeed = s => `rgba(${s * 4}, ${s * 4}, ${s * 4}, 0.7)`
