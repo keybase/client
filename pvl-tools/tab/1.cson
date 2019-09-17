@@ -88,27 +88,27 @@ services:
       , b: "sig_from_post"
       , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_post}' != '%{sig_id_medium}'"] } },
 
-    # xxx this didn't work since some users don't have a linkified "Foo Barzum"
-    # Check the username in the "Foo Barzum shared a link." text.
+
+    # Check the username in the href of the "Join" button under "Foo Barzum is on Facebook. To connect with Foo, join Facebook today."
     # Checking for the correct username is essential here. We rely on this
     # check to prove that the user in question actually wrote the post. (Note
     # that the m-site does *not* enforce this part of the URL. Only the
     # desktop site does.)
     { selector_css: {
-      , selectors: ["#m_story_permalink_view", "h3.bl.bm.bn.bo", 0, "a", 0]
+      , selectors: ["#mobile_login_bar", 0, "div.u", 0, "a", 0]
       , attr: "href"
-      , into: "shared_href"
-      , error: ["FAILED_PARSE", "Could not find 'shared a link' link"] } },
+      , into: "join_href"
+      , error: ["CONTENT_FAILURE", "Could not find 'Join' link"] } },
     # The href once looked like this for the facebook username "mike.maxim":
-    # /mike.maxim?fref=nf&_ft_=mf_story_key.10154017925505382%3Atop_level_post_id.10154017925505382%3Atl_objid.10154017925505382%3Acontent_owner_id_new.654595381%3Athrowback_story_fbid.10154017925505382%3Astory_location.9%3Astory_attachment_style.share&__tn__=C-R
+    # /r.php?next=https%3A%2F%2Fm.facebook.com%2Fmike.maxim%2Fposts%2F10154017925505382&cid=104&rs=10&rid=654595381
     { regex_capture: {
-      , pattern: "^/([^/]*)\\?.*$"
-      , from: "shared_href"
-      , into: ["username_from_shared_href"]
-      , error: ["FAILED_PARSE", "Could not interpret 'shared a link' link"] } },
+      , pattern: "^/r\\.php\\?next=https.*facebook.com%2F([^/]*)%2Fposts.*$"
+      , from: "join_href"
+      , into: ["username_from_join_href"]
+      , error: ["FAILED_PARSE", "Could not interpret 'Join' link"] } },
     { assert_compare: {
       , cmp: "stripdots-then-cicmp"
-      , a: "username_from_shared_href"
+      , a: "username_from_join_href"
       , b: "username_service"
       , error: ["CONTENT_FAILURE", "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"] } },
   ]]
