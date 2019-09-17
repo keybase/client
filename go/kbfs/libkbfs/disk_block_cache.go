@@ -405,7 +405,9 @@ func (cache *DiskBlockCacheLocal) addCurrBytes(b uint64) {
 func (cache *DiskBlockCacheLocal) subCurrBytes(b uint64) {
 	cache.currBytesLock.Lock()
 	defer cache.currBytesLock.Unlock()
-	cache.currBytes -= b
+	if b <= cache.currBytes {
+		cache.currBytes -= b
+	}
 }
 
 // WaitUntilStarted waits until this cache has started.
@@ -811,6 +813,26 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md, metered)
 }
 
+func (cache *DiskBlockCacheLocal) decCacheCountsLocked(
+	tlfID tlf.ID, numBlocks int, totalSize uint64) {
+	if numBlocks <= cache.tlfCounts[tlfID] {
+		cache.tlfCounts[tlfID] -= numBlocks
+	}
+	if numBlocks <= cache.priorityBlockCounts[cache.homeDirs[tlfID]] {
+		cache.priorityBlockCounts[cache.homeDirs[tlfID]] -= numBlocks
+	}
+	if numBlocks <= cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID] {
+		cache.priorityTlfMap[cache.homeDirs[tlfID]][tlfID] -= numBlocks
+	}
+	if numBlocks <= cache.numBlocks {
+		cache.numBlocks -= numBlocks
+	}
+	if totalSize <= cache.tlfSizes[tlfID] {
+		cache.tlfSizes[tlfID] -= totalSize
+	}
+	cache.subCurrBytes(totalSize)
+}
+
 // deleteLocked deletes a set of blocks from the disk block cache.
 func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64,
@@ -864,16 +886,11 @@ func (cache *DiskBlockCacheLocal) deleteLocked(ctx context.Context,
 
 	// Update the cache's totals.
 	for k, v := range removalCounts {
-		cache.tlfCounts[k] -= v
-		cache.priorityBlockCounts[cache.homeDirs[k]] -= v
-		cache.priorityTlfMap[cache.homeDirs[k]][k] -= v
-		cache.numBlocks -= v
-		cache.tlfSizes[k] -= removalSizes[k]
-		cache.subCurrBytes(removalSizes[k])
+		cache.decCacheCountsLocked(k, v, removalSizes[k])
 	}
 	if cache.useLimiter() {
-		cache.config.DiskLimiter().release(ctx, cache.cacheType,
-			sizeRemoved, 0)
+		cache.config.DiskLimiter().release(
+			ctx, cache.cacheType, sizeRemoved, 0)
 	}
 
 	return numRemoved, sizeRemoved, nil
@@ -949,6 +966,47 @@ func (cache *DiskBlockCacheLocal) evictSomeBlocks(ctx context.Context,
 	return cache.deleteLocked(ctx, blocksToDelete)
 }
 
+func (cache *DiskBlockCacheLocal) removeBrokenBlock(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) int64 {
+	cache.log.CDebugf(ctx, "Removing broken block %s from the cache", blockID)
+	blockKey := blockID.Bytes()
+	entry, err := cache.blockDb.Get(blockKey, nil)
+	if err != nil {
+		cache.log.CDebugf(ctx, "Couldn't get %s: %+v", blockID, err)
+		return 0
+	}
+
+	err = cache.blockDb.Delete(blockKey, nil)
+	if err != nil {
+		cache.log.CDebugf(ctx, "Couldn't delete %s from block cache: %+v",
+			blockID, err)
+		return 0
+	}
+
+	tlfKey := cache.tlfKey(tlfID, blockKey)
+	err = cache.tlfDb.Delete(tlfKey, nil)
+	if err != nil {
+		cache.log.CWarningf(ctx,
+			"Couldn't delete from TLF cache database: %+v", err)
+	}
+
+	size := int64(len(entry))
+	// It's tough to know whether the block actually made it into the
+	// block stats or not.  If the block was added during this run of
+	// KBFS, it will be in there; if it was loaded from disk, it
+	// probably won't be in there, since the stats are loaded by
+	// iterating over the metadata db.  So it's very possible that
+	// this will make the stats incorrect. ‾\_(ツ)_/‾.
+	cache.decCacheCountsLocked(tlfID, 1, uint64(size))
+	if cache.useLimiter() {
+		cache.config.DiskLimiter().release(ctx, cache.cacheType, size, 0)
+	}
+
+	// Attempt to clean up corrupted metadata, if any.
+	_ = cache.metaDb.Delete(blockKey, nil)
+	return size
+}
+
 // evictFromTLFLocked evicts a number of blocks from the cache for a given TLF.
 // We choose a pivot variable b randomly. Then begin an iterator into
 // cache.tlfDb.Range(tlfID + b, tlfID + MaxBlockID) and iterate from there to
@@ -971,6 +1029,7 @@ func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 	defer iter.Release()
 
 	blockIDs := make(blockIDsByTime, 0, numElements)
+	var brokenIDs []kbfsblock.ID
 
 	for i := 0; i < numElements; i++ {
 		if !iter.Next() {
@@ -981,19 +1040,37 @@ func (cache *DiskBlockCacheLocal) evictFromTLFLocked(ctx context.Context,
 		blockIDBytes := key[len(tlfBytes):]
 		blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
 		if err != nil {
-			cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
+			cache.log.CWarningf(
+				ctx, "Error decoding block ID %x: %+v", blockIDBytes, err)
+			brokenIDs = append(brokenIDs, blockID)
 			continue
 		}
 		lru, err := cache.getLRULocked(blockID)
 		if err != nil {
-			cache.log.CWarningf(ctx, "Error decoding LRU time for block %s",
-				blockID)
+			cache.log.CWarningf(
+				ctx, "Error decoding LRU time for block %s: %+v", blockID, err)
+			brokenIDs = append(brokenIDs, blockID)
 			continue
 		}
 		blockIDs = append(blockIDs, lruEntry{blockID, lru})
 	}
 
-	return cache.evictSomeBlocks(ctx, numBlocks, blockIDs)
+	numRemoved, sizeRemoved, err = cache.evictSomeBlocks(
+		ctx, numBlocks, blockIDs)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	for _, id := range brokenIDs {
+		// Assume that a block that is in `tlfDB`, but for which the
+		// metadata is missing or busted,
+		size := cache.removeBrokenBlock(ctx, tlfID, id)
+		if size > 0 {
+			numRemoved++
+			sizeRemoved += size
+		}
+	}
+	return numRemoved, sizeRemoved, nil
 }
 
 // weightedByCount is used to shuffle TLF IDs, weighting by per-TLF block count.
@@ -1076,6 +1153,7 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 				iter := cache.tlfDb.NewIterator(rng, nil)
 				defer iter.Release()
 
+				var brokenIDs []kbfsblock.ID
 				for i := 0; i < numElements; i++ {
 					if !iter.Next() {
 						break
@@ -1085,16 +1163,30 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 					blockIDBytes := key[len(tlfBytes):]
 					blockID, err := kbfsblock.IDFromBytes(blockIDBytes)
 					if err != nil {
-						cache.log.CWarningf(ctx, "Error decoding block ID %x", blockIDBytes)
+						cache.log.CWarningf(
+							ctx, "Error decoding block ID %x", blockIDBytes)
+						brokenIDs = append(brokenIDs, blockID)
 						continue
 					}
 					lru, err := cache.getLRULocked(blockID)
 					if err != nil {
-						cache.log.CWarningf(ctx, "Error decoding LRU time for block %s",
+						cache.log.CWarningf(
+							ctx, "Error decoding LRU time for block %s",
 							blockID)
+						brokenIDs = append(brokenIDs, blockID)
 						continue
 					}
 					blockIDs = append(blockIDs, lruEntry{blockID, lru})
+				}
+
+				for _, id := range brokenIDs {
+					// Assume that a block that is in `tlfDB`, but for which the
+					// metadata is missing or busted,
+					size := cache.removeBrokenBlock(ctx, tlfID, id)
+					if size > 0 {
+						numRemoved++
+						sizeRemoved += size
+					}
 				}
 			}()
 			if len(blockIDs) == numElements {
