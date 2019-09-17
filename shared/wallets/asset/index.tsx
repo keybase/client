@@ -169,7 +169,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
           </Kb.Text>
           {reserve.description === 'account' && (
             <Kb.WithTooltip
-              text="Minimum balances help protect the network from the creation of spam accounts."
+              tooltip="Minimum balances help protect the network from the creation of spam accounts."
               multiline={true}
             >
               <Kb.Icon

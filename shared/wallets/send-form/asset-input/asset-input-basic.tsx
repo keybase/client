@@ -75,7 +75,7 @@ const AssetInputBasic = (props: Props) => (
 
 export default AssetInputBasic
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   labelMargin: {marginLeft: 1},
   topLabel: {color: Styles.globalColors.blueDark},
-})
+}))

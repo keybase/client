@@ -1,4 +1,4 @@
-// Auto-generated types and interfaces using avdl-compiler v1.4.1 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/local.avdl
 
 package chat1
@@ -1659,6 +1659,7 @@ const (
 	OutboxErrorType_TOOMANYATTEMPTS OutboxErrorType = 6
 	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 	OutboxErrorType_UPLOADFAILED    OutboxErrorType = 8
+	OutboxErrorType_RESTRICTEDBOT   OutboxErrorType = 9
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1673,6 +1674,7 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"TOOMANYATTEMPTS": 6,
 	"ALREADY_DELETED": 7,
 	"UPLOADFAILED":    8,
+	"RESTRICTEDBOT":   9,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
@@ -1685,6 +1687,7 @@ var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
 	6: "TOOMANYATTEMPTS",
 	7: "ALREADY_DELETED",
 	8: "UPLOADFAILED",
+	9: "RESTRICTEDBOT",
 }
 
 func (e OutboxErrorType) String() string {
@@ -4187,6 +4190,7 @@ type GetInboxSummaryForCLILocalQuery struct {
 	Before              string                 `codec:"before" json:"before"`
 	Visibility          keybase1.TLFVisibility `codec:"visibility" json:"visibility"`
 	Status              []ConversationStatus   `codec:"status" json:"status"`
+	ConvIDs             []ConversationID       `codec:"convIDs" json:"convIDs"`
 	UnreadFirst         bool                   `codec:"unreadFirst" json:"unreadFirst"`
 	UnreadFirstLimit    UnreadFirstNumLimit    `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
 	ActivitySortedLimit int                    `codec:"activitySortedLimit" json:"activitySortedLimit"`
@@ -4209,6 +4213,17 @@ func (o GetInboxSummaryForCLILocalQuery) DeepCopy() GetInboxSummaryForCLILocalQu
 			}
 			return ret
 		})(o.Status),
+		ConvIDs: (func(x []ConversationID) []ConversationID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ConvIDs),
 		UnreadFirst:         o.UnreadFirst,
 		UnreadFirstLimit:    o.UnreadFirstLimit.DeepCopy(),
 		ActivitySortedLimit: o.ActivitySortedLimit,
@@ -4921,6 +4936,52 @@ func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
 		DeviceType: o.DeviceType.DeepCopy(),
 		Kind:       o.Kind.DeepCopy(),
 		Enabled:    o.Enabled,
+	}
+}
+
+type ResetConvMember struct {
+	Username string         `codec:"username" json:"username"`
+	Uid      gregor1.UID    `codec:"uid" json:"uid"`
+	Conv     ConversationID `codec:"conv" json:"conv"`
+}
+
+func (o ResetConvMember) DeepCopy() ResetConvMember {
+	return ResetConvMember{
+		Username: o.Username,
+		Uid:      o.Uid.DeepCopy(),
+		Conv:     o.Conv.DeepCopy(),
+	}
+}
+
+type GetAllResetConvMembersRes struct {
+	Members    []ResetConvMember `codec:"members" json:"members"`
+	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetAllResetConvMembersRes) DeepCopy() GetAllResetConvMembersRes {
+	return GetAllResetConvMembersRes{
+		Members: (func(x []ResetConvMember) []ResetConvMember {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ResetConvMember, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Members),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
 	}
 }
 
@@ -5872,6 +5933,9 @@ type AddTeamMemberAfterResetArg struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 }
 
+type GetAllResetConvMembersArg struct {
+}
+
 type SetConvRetentionLocalArg struct {
 	ConvID ConversationID  `codec:"convID" json:"convID"`
 	Policy RetentionPolicy `codec:"policy" json:"policy"`
@@ -5977,10 +6041,6 @@ type LocationUpdateArg struct {
 	Coord Coordinate `codec:"coord" json:"coord"`
 }
 
-type LocationDeniedArg struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-}
-
 type AdvertiseBotCommandsLocalArg struct {
 	Alias          *string                  `codec:"alias,omitempty" json:"alias,omitempty"`
 	Advertisements []AdvertiseCommandsParam `codec:"advertisements" json:"advertisements"`
@@ -6004,6 +6064,46 @@ type UnpinMessageArg struct {
 
 type IgnorePinnedMessageArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+type AddBotMemberArg struct {
+	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	Username    string                    `codec:"username" json:"username"`
+	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	Role        keybase1.TeamRole         `codec:"role" json:"role"`
+	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
+}
+
+type EditBotMemberArg struct {
+	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	Username    string                    `codec:"username" json:"username"`
+	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
+	Role        keybase1.TeamRole         `codec:"role" json:"role"`
+	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
+}
+
+type RemoveBotMemberArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	Username    string                  `codec:"username" json:"username"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+}
+
+type SetBotMemberSettingsArg struct {
+	TlfName     string                   `codec:"tlfName" json:"tlfName"`
+	Username    string                   `codec:"username" json:"username"`
+	BotSettings keybase1.TeamBotSettings `codec:"botSettings" json:"botSettings"`
+	MembersType ConversationMembersType  `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                     `codec:"tlfPublic" json:"tlfPublic"`
+}
+
+type GetBotMemberSettingsArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	Username    string                  `codec:"username" json:"username"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type LocalInterface interface {
@@ -6058,6 +6158,7 @@ type LocalInterface interface {
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
 	UnboxMobilePushNotification(context.Context, UnboxMobilePushNotificationArg) (string, error)
 	AddTeamMemberAfterReset(context.Context, AddTeamMemberAfterResetArg) error
+	GetAllResetConvMembers(context.Context) (GetAllResetConvMembersRes, error)
 	SetConvRetentionLocal(context.Context, SetConvRetentionLocalArg) error
 	SetTeamRetentionLocal(context.Context, SetTeamRetentionLocalArg) error
 	GetTeamRetentionLocal(context.Context, keybase1.TeamID) (*RetentionPolicy, error)
@@ -6079,13 +6180,17 @@ type LocalInterface interface {
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
 	LoadFlip(context.Context, LoadFlipArg) (LoadFlipRes, error)
 	LocationUpdate(context.Context, Coordinate) error
-	LocationDenied(context.Context, ConversationID) error
 	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
 	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
 	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
 	PinMessage(context.Context, PinMessageArg) (PinMessageRes, error)
 	UnpinMessage(context.Context, ConversationID) (PinMessageRes, error)
 	IgnorePinnedMessage(context.Context, ConversationID) error
+	AddBotMember(context.Context, AddBotMemberArg) error
+	EditBotMember(context.Context, EditBotMemberArg) error
+	RemoveBotMember(context.Context, RemoveBotMemberArg) error
+	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
+	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6847,6 +6952,16 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getAllResetConvMembers": {
+				MakeArg: func() interface{} {
+					var ret [1]GetAllResetConvMembersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetAllResetConvMembers(ctx)
+					return
+				},
+			},
 			"setConvRetentionLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]SetConvRetentionLocalArg
@@ -7142,21 +7257,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"locationDenied": {
-				MakeArg: func() interface{} {
-					var ret [1]LocationDeniedArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]LocationDeniedArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]LocationDeniedArg)(nil), args)
-						return
-					}
-					err = i.LocationDenied(ctx, typedArgs[0].ConvID)
-					return
-				},
-			},
 			"advertiseBotCommandsLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]AdvertiseBotCommandsLocalArg
@@ -7239,6 +7339,81 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.IgnorePinnedMessage(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
+			"addBotMember": {
+				MakeArg: func() interface{} {
+					var ret [1]AddBotMemberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddBotMemberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddBotMemberArg)(nil), args)
+						return
+					}
+					err = i.AddBotMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"editBotMember": {
+				MakeArg: func() interface{} {
+					var ret [1]EditBotMemberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]EditBotMemberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]EditBotMemberArg)(nil), args)
+						return
+					}
+					err = i.EditBotMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"removeBotMember": {
+				MakeArg: func() interface{} {
+					var ret [1]RemoveBotMemberArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RemoveBotMemberArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RemoveBotMemberArg)(nil), args)
+						return
+					}
+					err = i.RemoveBotMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"setBotMemberSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]SetBotMemberSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetBotMemberSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetBotMemberSettingsArg)(nil), args)
+						return
+					}
+					err = i.SetBotMemberSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getBotMemberSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]GetBotMemberSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetBotMemberSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetBotMemberSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetBotMemberSettings(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7512,6 +7687,11 @@ func (c LocalClient) AddTeamMemberAfterReset(ctx context.Context, __arg AddTeamM
 	return
 }
 
+func (c LocalClient) GetAllResetConvMembers(ctx context.Context) (res GetAllResetConvMembersRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getAllResetConvMembers", []interface{}{GetAllResetConvMembersArg{}}, &res)
+	return
+}
+
 func (c LocalClient) SetConvRetentionLocal(ctx context.Context, __arg SetConvRetentionLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setConvRetentionLocal", []interface{}{__arg}, nil)
 	return
@@ -7623,12 +7803,6 @@ func (c LocalClient) LocationUpdate(ctx context.Context, coord Coordinate) (err 
 	return
 }
 
-func (c LocalClient) LocationDenied(ctx context.Context, convID ConversationID) (err error) {
-	__arg := LocationDeniedArg{ConvID: convID}
-	err = c.Cli.Call(ctx, "chat.1.local.locationDenied", []interface{}{__arg}, nil)
-	return
-}
-
 func (c LocalClient) AdvertiseBotCommandsLocal(ctx context.Context, __arg AdvertiseBotCommandsLocalArg) (res AdvertiseBotCommandsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.advertiseBotCommandsLocal", []interface{}{__arg}, &res)
 	return
@@ -7659,5 +7833,30 @@ func (c LocalClient) UnpinMessage(ctx context.Context, convID ConversationID) (r
 func (c LocalClient) IgnorePinnedMessage(ctx context.Context, convID ConversationID) (err error) {
 	__arg := IgnorePinnedMessageArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.ignorePinnedMessage", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) AddBotMember(ctx context.Context, __arg AddBotMemberArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.addBotMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) EditBotMember(ctx context.Context, __arg EditBotMemberArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.editBotMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) RemoveBotMember(ctx context.Context, __arg RemoveBotMemberArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.removeBotMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) SetBotMemberSettings(ctx context.Context, __arg SetBotMemberSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setBotMemberSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getBotMemberSettings", []interface{}{__arg}, &res)
 	return
 }

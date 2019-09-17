@@ -42,7 +42,9 @@ const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; on
     />
   )
   return props.disabled ? (
-    <Kb.WithTooltip text={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}>
+    <Kb.WithTooltip
+      tooltip={`You have the maximum number of ${props.kind}s. To add another, first remove one.`}
+    >
       {btn}
     </Kb.WithTooltip>
   ) : (

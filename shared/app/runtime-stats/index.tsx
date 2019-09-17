@@ -275,7 +275,7 @@ const RuntimeStatsMobile = (props: Props) => {
 
 const RuntimeStats = Styles.isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black,
@@ -321,6 +321,6 @@ const styles = Styles.styleSheetCreate({
   statWarning: {
     color: Styles.globalColors.yellow,
   },
-})
+}))
 
 export default RuntimeStats

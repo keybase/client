@@ -28,6 +28,7 @@ import (
 
 const (
 	quotaUsageStaleTolerance = 10 * time.Second
+	initEditBlockTimeout     = 500 * time.Millisecond
 )
 
 // KBFSOpsStandard implements the KBFSOps interface, and is go-routine
@@ -47,6 +48,7 @@ type KBFSOpsStandard struct {
 	// Closing this channel will shutdown the reidentification
 	// watcher.
 	reIdentifyControlChan chan chan<- struct{}
+	initDoneCh            <-chan struct{}
 
 	favs *Favorites
 
@@ -60,6 +62,8 @@ type KBFSOpsStandard struct {
 
 	initLock       sync.Mutex
 	initEditCancel context.CancelFunc
+	initEditReq    chan struct{}
+	initEditDone   chan struct{}
 	initSyncCancel context.CancelFunc
 }
 
@@ -67,8 +71,18 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 
 const longOperationDebugDumpDuration = time.Minute
 
+type ctxKBFSOpsSkipEditHistoryBlockType int
+
+// This context key indicates that we should not block on TLF edit
+// history initialization, as it would cause a deadlock.
+const ctxKBFSOpsSkipEditHistoryBlock ctxKBFSOpsSkipEditHistoryBlockType = 1
+
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
-func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBFSOpsStandard {
+// `initDone` should be closed when the rest of initialization (such
+// as journal initialization) has completed.
+func NewKBFSOpsStandard(
+	appStateUpdater env.AppStateUpdater, config Config,
+	initDoneCh <-chan struct{}) *KBFSOpsStandard {
 	log := config.MakeLogger("")
 	quLog := config.MakeLogger(QuotaUsageLogModule("KBFSOps"))
 	kops := &KBFSOpsStandard{
@@ -79,6 +93,7 @@ func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBF
 		ops:                   make(map[data.FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[favorites.Folder]*folderBranchOps),
 		reIdentifyControlChan: make(chan chan<- struct{}),
+		initDoneCh:            initDoneCh,
 		favs:                  NewFavorites(config),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
@@ -263,12 +278,60 @@ func (fs *KBFSOpsStandard) InvalidateNodeAndChildren(
 	return ops.InvalidateNodeAndChildren(ctx, node)
 }
 
+func (fs *KBFSOpsStandard) waitForEditHistoryInitialization(
+	ctx context.Context) {
+	if !fs.config.Mode().TLFEditHistoryEnabled() ||
+		ctx.Value(ctxKBFSOpsSkipEditHistoryBlock) != nil {
+		return
+	}
+
+	reqChan, doneChan := func() (chan<- struct{}, <-chan struct{}) {
+		fs.initLock.Lock()
+		defer fs.initLock.Unlock()
+		return fs.initEditReq, fs.initEditDone
+	}()
+	// There hasn't been a logged-in event yet, so don't wait for the
+	// edit history to be initialized.
+	if reqChan == nil {
+		return
+	}
+
+	// Send a request to unblock, if needed.
+	select {
+	case reqChan <- struct{}{}:
+	default:
+	}
+
+	select {
+	case <-doneChan:
+		// Avoid printing the log message if we don't need to wait at all.
+		return
+	default:
+	}
+
+	fs.log.CDebugf(ctx, "Waiting for the edit history to initialize")
+
+	// Don't wait too long for the edit history to be initialized, in
+	// case we are offline and someone is just trying to get the
+	// cached favorites.
+	ctx, cancel := context.WithTimeout(ctx, initEditBlockTimeout)
+	defer cancel()
+
+	// Wait for the initialization to complete.
+	select {
+	case <-doneChan:
+	case <-ctx.Done():
+	}
+}
+
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	[]favorites.Folder, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
+
+	fs.waitForEditHistoryInitialization(ctx)
 
 	favs, err := fs.favs.Get(ctx)
 	if err != nil {
@@ -302,6 +365,8 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
+
+	fs.waitForEditHistoryInitialization(ctx)
 
 	favs, err := fs.favs.GetAll(ctx)
 	if err != nil {
@@ -1837,17 +1902,21 @@ func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid kbfsmd.BranchID,
 }
 
 func (fs *KBFSOpsStandard) startInitEdit() (
-	context.Context, context.CancelFunc) {
+	ctx context.Context, cancel context.CancelFunc,
+	reqChan <-chan struct{}, doneChan chan<- struct{}) {
 	fs.initLock.Lock()
 	defer fs.initLock.Unlock()
-	ctx := CtxWithRandomIDReplayable(
+	ctx = CtxWithRandomIDReplayable(
 		context.Background(), CtxFBOIDKey, CtxFBOOpID, fs.log)
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel = context.WithCancel(ctx)
+	ctx = context.WithValue(ctx, ctxKBFSOpsSkipEditHistoryBlock, struct{}{})
 	if fs.initEditCancel != nil {
 		fs.initEditCancel()
 	}
 	fs.initEditCancel = cancel
-	return ctx, cancel
+	fs.initEditReq = make(chan struct{}, 1)
+	fs.initEditDone = make(chan struct{})
+	return ctx, cancel, fs.initEditReq, fs.initEditDone
 }
 
 func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
@@ -1865,15 +1934,31 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 		return
 	}
 
-	ctx, cancel := fs.startInitEdit()
+	ctx, cancel, reqChan, doneChan := fs.startInitEdit()
 	defer cancel()
-
-	time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
+	defer close(doneChan)
 
 	select {
+	case <-fs.initDoneCh:
 	case <-ctx.Done():
 		return
-	default:
+	}
+
+	doBlock := fs.config.Mode().BlockTLFEditHistoryIntialization()
+	if doBlock {
+		fs.log.CDebugf(ctx, "Waiting for a TLF edit history request")
+		select {
+		case <-reqChan:
+		case <-ctx.Done():
+			return
+		}
+	} else {
+		time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 	}
 
 	fs.log.CDebugf(ctx, "Querying the kbfs-edits inbox for new TLFs")
@@ -1906,7 +1991,9 @@ func (fs *KBFSOpsStandard) initTlfsForEditHistories() {
 				"Handle %s for existing folder unexpectedly has no TLF ID",
 				h.GetCanonicalName())
 		}
-		time.Sleep(fs.config.Mode().BackgroundWorkPeriod())
+		if !doBlock {
+			time.Sleep(fs.config.Mode().BackgroundWorkPeriod())
+		}
 	}
 }
 
@@ -1936,6 +2023,12 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 
 	ctx, cancel := fs.startInitSync()
 	defer cancel()
+
+	select {
+	case <-fs.initDoneCh:
+	case <-ctx.Done():
+		return
+	}
 
 	time.Sleep(fs.config.Mode().InitialDelayForBackgroundWork())
 

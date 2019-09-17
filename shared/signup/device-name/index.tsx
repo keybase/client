@@ -70,7 +70,7 @@ EnterDevicename.navigationOptions = {
   ),
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   input: Styles.platformStyles({
     common: {},
     isElectron: {
@@ -92,6 +92,6 @@ const styles = Styles.styleSheetCreate({
   inputSub: {
     marginLeft: 2,
   },
-})
+}))
 
 export default EnterDevicename

@@ -1233,6 +1233,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 			newPath := make([]data.PathNode, len(p.Path)+len(mergedPath.Path))
 			copy(newPath[:len(p.Path)], p.Path)
 			copy(newPath[len(p.Path):], mergedPath.Path)
+			mergedPath.FolderBranch = cr.fbo.folderBranch
 			mergedPath.Path = newPath
 			mergedPaths[unmergedMostRecent] = mergedPath
 

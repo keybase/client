@@ -3406,3 +3406,7 @@ func (r APIUserSearchResult) GetStringIDForCompare() string {
 func NewPathWithKbfsPath(path string) Path {
 	return NewPathWithKbfs(KBFSPath{Path: path})
 }
+
+func (p PerTeamKey) Equal(q PerTeamKey) bool {
+	return p.EncKID.Equal(q.EncKID) && p.SigKID.Equal(q.SigKID)
+}

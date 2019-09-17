@@ -131,7 +131,7 @@ const Asset = (props: Props) => {
           {props.expanded ? bodyExpanded(props) : bodyCollapsed(props)}
           <Kb.Box2 direction="vertical" style={styles.actions} centerChildren={true}>
             {props.thisDeviceIsLockedOut ? (
-              <Kb.WithTooltip text="You can only send from a mobile device more than 7 days old.">
+              <Kb.WithTooltip tooltip="You can only send from a mobile device more than 7 days old.">
                 {button}
               </Kb.WithTooltip>
             ) : (
@@ -150,7 +150,7 @@ const expandedHeight = Styles.isMobile ? 160 : 140
 
 export const getHeight = (props: Props): number => (props.expanded ? expandedHeight : nonExpandedHeight)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   actions: Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -180,6 +180,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   textUnknown: {color: Styles.globalColors.redDark},
-})
+}))
 
 export default Asset

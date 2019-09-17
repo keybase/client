@@ -149,7 +149,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
         width: '100%',
-        zIndex: 10,
+        zIndex: 0,
       },
       inputSmall: {
         paddingTop: 0,
@@ -158,7 +158,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'flex-start',
         paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.xsmall,
-        zIndex: 1,
+        zIndex: 0,
       },
       labelFocused: {
         color: Styles.globalColors.blueDark,

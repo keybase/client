@@ -63,7 +63,7 @@ const Header = (p: Props) => {
   }
   if (p.isTeam && p.desc && p.canEditDesc) {
     description = (
-      <Kb.WithTooltip position="bottom left" text="Set the description using the /headline command.">
+      <Kb.WithTooltip position="bottom left" tooltip="Set the description using the /headline command.">
         {description}
       </Kb.WithTooltip>
     )
@@ -133,13 +133,13 @@ const Header = (p: Props) => {
             alignSelf="flex-end"
             style={styles.actionIcons}
           >
-            <Kb.WithTooltip text={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
+            <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
               <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={p.onToggleThreadSearch} />
             </Kb.WithTooltip>
-            <Kb.WithTooltip text="Open folder">
+            <Kb.WithTooltip tooltip="Open folder">
               <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={p.onOpenFolder} />
             </Kb.WithTooltip>
-            <Kb.WithTooltip text="Chat info & settings">
+            <Kb.WithTooltip tooltip="Chat info & settings">
               <Kb.Icon
                 style={styles.clickable}
                 type="iconfont-info"

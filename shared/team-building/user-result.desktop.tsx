@@ -96,7 +96,7 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
@@ -163,7 +163,7 @@ const Services = ({
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
         {services.map(service => (
-          <Kb.WithTooltip key={service} text={services[service]} position="top center">
+          <Kb.WithTooltip key={service} tooltip={services[service]} position="top center">
             <Kb.Icon
               type={serviceIdToIconFont(service as Types.ServiceIdWithContact)}
               style={Kb.iconCastPlatformStyles(styles.serviceIcon)}

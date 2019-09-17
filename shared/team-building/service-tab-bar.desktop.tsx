@@ -39,26 +39,25 @@ const ServiceIcon = (props: IconProps) => {
               />
             )}
             <Kb.Icon
+              color={color}
               fontSize={16}
               type={serviceIdToIconFont(props.service)}
-              style={Styles.collapseStyles([styles.serviceIcon, {color}])}
               boxStyle={styles.serviceIconBox}
             />
           </Kb.Box2>
-          <Kb.Text
-            type="BodyTiny"
-            center={true}
-            lineClamp={2}
-            style={Styles.collapseStyles([styles.label, {color}])}
-          >
-            {props.label}
-            {serviceIdToWonderland(props.service) && (
-              <Kb.Text type="Body" style={styles.wonderland}>
-                {' '}
-                <Kb.Emoji size={16} emojiName=":rabbit2:" />
+          <Kb.Box2 direction="vertical" style={styles.label}>
+            {props.label.map((label, i) => (
+              <Kb.Text
+                key={i}
+                center={true}
+                type="BodyTiny"
+                // @ts-ignore: we need to allow any color here for various services
+                style={{color}}
+              >
+                {label}
               </Kb.Text>
-            )}
-          </Kb.Text>
+            ))}
+          </Kb.Box2>
           {!!props.showCount &&
             (props.count !== null ? (
               <Kb.Text type="BodyTinySemibold">
@@ -101,7 +100,7 @@ const MoreNetworksButton = Kb.OverlayParentHOC(
           centerChildren={true}
           ref={props.setAttachmentRef}
         >
-          <Kb.WithTooltip text="More networks" containerStyle={styles.moreNetworks2}>
+          <Kb.WithTooltip tooltip="More networks" containerStyle={styles.moreNetworks2}>
             <Kb.ClickableBox onClick={props.toggleShowingMenu} style={styles.moreNetworks3}>
               <Kb.Text type="BodyBigExtrabold" style={styles.moreText}>
                 •••
@@ -133,7 +132,7 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
       color={serviceIdToAccentColor(props.service)}
       type={serviceIdToIconFont(props.service)}
     />
-    <Kb.Text type="Body">{serviceIdToLongLabel(props.service)}</Kb.Text>
+    <Kb.Text type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text>
   </Kb.Box2>
 )
 
@@ -250,9 +249,6 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
       },
       pendingIcon: {height: 10, width: 10},
-      serviceIcon: {
-        marginRight: Styles.globalMargins.xtiny,
-      },
       serviceIconBox: {
         marginTop: 14,
       },

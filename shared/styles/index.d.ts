@@ -40,6 +40,9 @@ export declare const globalStyles: {
   flexOne: {
     flex: 1
   }
+  flexWrap: {
+    flexWrap: 'wrap'
+  }
   fontBold: {
     fontFamily: 'Keybase'
     fontWeight: '700'
@@ -84,7 +87,6 @@ export declare function backgroundURL(...path: Array<string>): string
 type NamedStyles<T> = {[P in keyof T]: CSS._StylesDesktop | CSS._StylesMobile}
 // order important!
 export declare function styleSheetCreate<T extends () => NamedStyles<T>>(styles: T): ReturnType<T>
-export declare function styleSheetCreate<T extends NamedStyles<T>>(styles: T): T
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,

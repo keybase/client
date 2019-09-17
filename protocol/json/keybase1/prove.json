@@ -98,6 +98,13 @@
       ],
       "response": "CheckProofStatus"
     },
+    "listSomeProofServices": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
     "listProofServices": {
       "request": [],
       "response": {

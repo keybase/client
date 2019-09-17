@@ -301,6 +301,7 @@ const styles = Styles.styleSheetCreate(
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
         flexShrink: 0,
+        minHeight: 50,
         overflow: 'hidden',
         paddingRight: containerPadding,
       },
@@ -318,20 +319,26 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.globalMargins.mediumLarge / 2,
         height: Styles.globalMargins.mediumLarge,
         marginLeft: Styles.globalMargins.tiny,
+        marginRight: Styles.globalMargins.tiny,
         width: Styles.globalMargins.mediumLarge,
       },
       explodingOuterContainer: {
-        alignSelf: isIOS ? 'flex-end' : 'center',
-        paddingBottom: 7,
+        alignSelf: 'flex-end',
+        paddingBottom: isIOS ? 7 : 10,
       },
-      input: {
-        flex: 1,
-        fontSize: 17, // Override Body's font size with BodyBig.
-        marginBottom: Styles.globalMargins.xsmall,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-        marginTop: Styles.globalMargins.xsmall,
-      },
+      input: Styles.platformStyles({
+        common: {
+          flex: 1,
+          marginLeft: Styles.globalMargins.tiny,
+          marginRight: Styles.globalMargins.tiny,
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isAndroid: {
+          // This is to counteract some intrinsic margins the android view has
+          marginTop: -8,
+        },
+      }),
       marginRightSmall: {
         marginRight: Styles.globalMargins.small,
       },
@@ -348,8 +355,9 @@ const styles = Styles.styleSheetCreate(
         paddingRight: 7,
       },
       send: {
-        alignSelf: isIOS ? 'flex-end' : 'center',
+        alignSelf: 'flex-end',
         marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
       },
       smallGap: {
         height: Styles.globalMargins.small,

@@ -13,7 +13,7 @@
   "types": [
     {
       "type": "record",
-      "name": "APIUserServiceIDWithContact",
+      "name": "APIUserServiceID",
       "fields": [],
       "typedef": "string"
     },
@@ -69,7 +69,7 @@
       "name": "APIUserServiceResult",
       "fields": [
         {
-          "type": "APIUserServiceIDWithContact",
+          "type": "APIUserServiceID",
           "name": "serviceName",
           "jsonkey": "service_name"
         },
@@ -109,7 +109,7 @@
       "name": "APIUserServiceSummary",
       "fields": [
         {
-          "type": "APIUserServiceIDWithContact",
+          "type": "APIUserServiceID",
           "name": "serviceName",
           "jsonkey": "service_name"
         },
@@ -189,7 +189,7 @@
           "type": {
             "type": "map",
             "values": "APIUserServiceSummary",
-            "keys": "APIUserServiceIDWithContact"
+            "keys": "APIUserServiceID"
           },
           "name": "servicesSummary",
           "jsonkey": "services_summary"
@@ -249,38 +249,6 @@
           "name": "siteIconFull"
         }
       ]
-    },
-    {
-      "type": "enum",
-      "name": "ImpTofuSearchType",
-      "symbols": [
-        "PHONE_0",
-        "EMAIL_1"
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "ImpTofuQuery",
-      "switch": {
-        "type": "ImpTofuSearchType",
-        "name": "t"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "PHONE",
-            "def": false
-          },
-          "body": "PhoneNumber"
-        },
-        {
-          "label": {
-            "name": "EMAIL",
-            "def": false
-          },
-          "body": "EmailAddress"
-        }
-      ]
     }
   ],
   "messages": {
@@ -318,13 +286,6 @@
         {
           "name": "includeContacts",
           "type": "boolean"
-        },
-        {
-          "name": "impTofuQuery",
-          "type": [
-            null,
-            "ImpTofuQuery"
-          ]
         }
       ],
       "response": {

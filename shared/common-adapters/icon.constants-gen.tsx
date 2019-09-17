@@ -4,7 +4,9 @@ type IconMeta = {
   gridSize?: number
   extension?: string
   charCode?: number
+  nameDark?: string
   require?: string
+  requireDark?: string
 }
 
 const iconMeta_ = {
@@ -2498,6 +2500,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-shh-hover-19-16.png'),
   },
+  'icon-skull-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-skull-32.png'),
+  },
   'icon-skull-48': {
     extension: 'png',
     isFont: false,
@@ -2591,7 +2598,9 @@ const iconMeta_ = {
   'icon-team-git-16': {
     extension: 'png',
     isFont: false,
+    nameDark: 'iconDark-team-git-16',
     require: require('../images/icons/icon-team-git-16.png'),
+    requireDark: require('../images/icons/iconDark-team-git-16.png'),
   },
   'icon-team-leave-28': {
     extension: 'png',
@@ -2844,7 +2853,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-app-un-maximize': {
-    charCode: 0xe98d,
+    charCode: 0xe999,
     gridSize: 16,
     isFont: true,
   },
@@ -3363,6 +3372,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-password': {
+    charCode: 0xe98d,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-people': {
     charCode: 0xe94a,
     gridSize: 16,
@@ -3400,6 +3414,16 @@ const iconMeta_ = {
   },
   'iconfont-question-mark': {
     charCode: 0xe950,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-radio': {
+    charCode: 0xe997,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-radio-update': {
+    charCode: 0xe998,
     gridSize: 16,
     isFont: true,
   },
@@ -3456,6 +3480,11 @@ const iconMeta_ = {
   'iconfont-shh': {
     charCode: 0xe959,
     gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-skull': {
+    charCode: 0xe98c,
+    gridSize: 24,
     isFont: true,
   },
   'iconfont-spade': {
@@ -3539,7 +3568,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-unhide': {
-    charCode: 0xe98c,
+    charCode: 0xe99a,
     gridSize: 16,
     isFont: true,
   },

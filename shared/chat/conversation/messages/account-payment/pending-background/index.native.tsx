@@ -42,7 +42,7 @@ class PendingBackground extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   image: {
     bottom: -80,
     height: 'auto',
@@ -52,6 +52,6 @@ const styles = Styles.styleSheetCreate({
     top: 0,
     width: 'auto',
   },
-})
+}))
 
 export default PendingBackground

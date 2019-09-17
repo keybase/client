@@ -235,7 +235,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   active: {
     backgroundColor: Styles.globalColors.blueLighter2,
     borderColor: Styles.globalColors.blue,
@@ -293,6 +293,6 @@ const styles = Styles.styleSheetCreate({
       overflow: 'hidden',
     },
   }),
-})
+}))
 
 export default ReactButton

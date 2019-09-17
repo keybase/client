@@ -180,6 +180,13 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 	return &ncres.Conv, nil
 }
 
+func formatConversationName(req chatConversationResolvingRequest) string {
+	if req.TopicName != "" {
+		return fmt.Sprintf("%s#%s", req.TlfName, req.TopicName)
+	}
+	return req.TlfName
+}
+
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (
 	conversation *chat1.ConversationLocal, userChosen bool, err error) {
 	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
@@ -200,7 +207,8 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 			}
 			return conversation, false, nil
 		}
-		return nil, false, errors.New("no conversation found")
+		convName := formatConversationName(req)
+		return nil, false, fmt.Errorf("no conversation found %s", convName)
 	case 1:
 		conversation := conversations[0]
 		info := conversation.Info

@@ -57,7 +57,7 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
 
 export default Kb.OverlayParentHOC(ChooseConversation)
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   dropdownButton: {
     width: 300,
   },
@@ -66,4 +66,4 @@ const styles = Styles.styleSheetCreate({
     height: 360,
     width: 300,
   },
-})
+}))

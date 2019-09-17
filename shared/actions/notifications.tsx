@@ -83,7 +83,7 @@ const receivedBoxAuditError = (
     ),
   })
 
-function* notificationsSaga(): Saga.SagaGenerator<any, any> {
+function* notificationsSaga() {
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyAuditRootAuditError, receivedRootAuditError)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyAuditBoxAuditError, receivedBoxAuditError)

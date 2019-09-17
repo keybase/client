@@ -32,7 +32,7 @@ function pathToURL(p: string): string {
   return encodeURI('file://' + goodPath).replace(/#/g, '%23')
 }
 
-function openInDefaultDirectory(openPath: string): Promise<void> {
+const openInDefaultDirectory = (openPath: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     // Paths in directories might be symlinks, so resolve using
     // realpath.
@@ -98,13 +98,17 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
       : reject(new Error('unable to open item in folder'))
   )
 
-const openLocalPathInSystemFileManager = (
+const openLocalPathInSystemFileManager = async (
   _: TypedState,
   action: FsGen.OpenLocalPathInSystemFileManagerPayload
-) =>
-  getPathType(action.payload.localPath)
-    .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
-    .catch(makeUnretriableErrorHandler(action, null))
+) => {
+  try {
+    const pathType = await getPathType(action.payload.localPath)
+    return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
+  } catch (e) {
+    return makeUnretriableErrorHandler(action, null)(e)
+  }
+}
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
   path.resolve(
@@ -198,7 +202,7 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
       ]
 }
 
-const windowsCheckMountFromOtherDokanInstall = status =>
+const windowsCheckMountFromOtherDokanInstall = (status: RPCTypes.FuseStatus) =>
   RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
     mountPoint
       ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
@@ -215,19 +219,22 @@ const windowsCheckMountFromOtherDokanInstall = status =>
       : status
   )
 
-const refreshDriverStatus = (
+const refreshDriverStatus = async (
   state: TypedState,
   action: FsGen.KbfsDaemonRpcStatusChangedPayload | FsGen.RefreshDriverStatusPayload
-) =>
-  (action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
-    action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) &&
-  RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
-    .then(status =>
-      isWindows && status.installStatus !== RPCTypes.InstallStatus.installed
-        ? windowsCheckMountFromOtherDokanInstall(status)
-        : Promise.resolve(status)
-    )
-    .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
+) => {
+  if (
+    action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
+    action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
+  ) {
+    let status = await RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
+    if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
+      status = await windowsCheckMountFromOtherDokanInstall(status)
+    }
+    return fuseStatusToActions(state.fs.sfmi.driverStatus.type)(status)
+  }
+  return false
+}
 
 const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult): boolean =>
   !!result &&
@@ -368,18 +375,20 @@ const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayloa
     )
   )
 
-const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
-  openAndUploadToPromise(state, action).then((localPaths: Array<string>) =>
-    localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
-  )
+const openAndUpload = async (state: TypedState, action: FsGen.OpenAndUploadPayload) => {
+  const localPaths = await openAndUploadToPromise(state, action)
+  return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+}
 
-const loadUserFileEdits = state =>
-  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
-  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits =>
-    FsGen.createUserFileEditsLoaded({
+const loadUserFileEdits = async (state: TypedState) => {
+  if (state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected) {
+    const writerEdits = await RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+    return FsGen.createUserFileEditsLoaded({
       tlfUpdates: Constants.userTlfHistoryRPCToState(writerEdits || []),
     })
-  )
+  }
+  return false
+}
 
 const openFilesFromWidget = (_: TypedState, {payload: {path}}) => [
   ConfigGen.createShowMain(),
@@ -417,7 +426,7 @@ const refreshMountDirs = async (
   ]
 }
 
-function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {

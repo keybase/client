@@ -7,48 +7,46 @@ import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
 import nativeSaga from './common.native'
 
-function copyToDownloadDir(path: string, mimeType: string) {
+const copyToDownloadDir = async (path: string, mimeType: string) => {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   let stage = 'permission' // additional debug message for KBFS-4080
-  return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-    buttonNegative: 'Cancel',
-    buttonNeutral: 'Ask me later',
-    buttonPositive: 'OK',
-    message: 'Keybase needs access to your storage so we can download a file to it',
-    title: 'Keybase Storage Permission',
-  })
-    .then(permissionStatus => {
-      if (permissionStatus !== 'granted') {
-        throw new Error('Unable to acquire storage permissions')
+  try {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        buttonNegative: 'Cancel',
+        buttonNeutral: 'Ask me later',
+        buttonPositive: 'OK',
+        message: 'Keybase needs access to your storage so we can download a file to it',
+        title: 'Keybase Storage Permission',
       }
-      stage = 'copy'
-      return copy(path, downloadPath)
+    )
+    if (permissionStatus !== 'granted') {
+      throw new Error('Unable to acquire storage permissions')
+    }
+    stage = 'copy'
+    await copy(path, downloadPath)
+    stage = 'unlink'
+    await unlink(path)
+    stage = 'addCompleteDownload'
+    // @ts-ignore codemod-issue
+    return RNFetchBlob.android.addCompleteDownload({
+      description: `Keybase downloaded ${fileName}`,
+      mime: mimeType,
+      path: downloadPath,
+      showNotification: true,
+      title: fileName,
     })
-    .then(() => {
-      stage = 'unlink'
-      return unlink(path)
+  } catch (err) {
+    logger.error('Error completing download', {
+      cacheDir: RNFetchBlob.fs.dirs.CacheDir,
+      downloadDir: RNFetchBlob.fs.dirs.DownloadDir,
+      hasNumberSuffix: !!path.match(/\(\d\)/),
+      stage,
     })
-    .then(() => {
-      stage = 'addCompleteDownload'
-      // @ts-ignore codemod-issue
-      return RNFetchBlob.android.addCompleteDownload({
-        description: `Keybase downloaded ${fileName}`,
-        mime: mimeType,
-        path: downloadPath,
-        showNotification: true,
-        title: fileName,
-      })
-    })
-    .catch(err => {
-      logger.error('Error completing download', {
-        cacheDir: RNFetchBlob.fs.dirs.CacheDir,
-        downloadDir: RNFetchBlob.fs.dirs.DownloadDir,
-        hasNumberSuffix: !!path.match(/\(\d\)/),
-        stage,
-      })
-      throw err
-    })
+    throw err
+  }
 }
 
 const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => {
@@ -65,7 +63,7 @@ const downloadSuccessAndroid = (state, action: FsGen.DownloadSuccessPayload) => 
   return copyToDownloadDir(localPath, mimeType)
 }
 
-export default function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+export default function* platformSpecificSaga() {
   yield Saga.spawn(nativeSaga)
   yield* Saga.chainAction2(FsGen.downloadSuccess, downloadSuccessAndroid)
 }

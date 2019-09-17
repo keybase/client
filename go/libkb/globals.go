@@ -31,7 +31,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type ShutdownHook func() error
+type ShutdownHook func(mctx MetaContext) error
 
 type LoginHook interface {
 	OnLogin(mctx MetaContext) error
@@ -391,6 +391,8 @@ func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username 
 	return nil
 }
 
+// ConfigureLogging should be given non-nil Usage if called by the main
+// service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
@@ -812,7 +814,7 @@ func (g *GlobalContext) ConfigureExportedStreams() error {
 
 // Shutdown is called exactly once per-process and does whatever
 // cleanup is necessary to shut down the server.
-func (g *GlobalContext) Shutdown() error {
+func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 	var err error
 	didShutdown := false
 
@@ -852,7 +854,7 @@ func (g *GlobalContext) Shutdown() error {
 		}
 
 		for _, hook := range g.ShutdownHooks {
-			epick.Push(hook())
+			epick.Push(hook(mctx))
 		}
 
 		// shutdown the databases after the shutdown hooks run, we may want to

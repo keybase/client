@@ -77,7 +77,7 @@ func DefaultLoader(g *libkb.GlobalContext) *Loader {
 
 	if defaultLoader == nil {
 		defaultLoader = NewLoader(g)
-		g.PushShutdownHook(func() error {
+		g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 			defaultLock.Lock()
 			err := defaultLoader.Shutdown()
 			defaultLoader = nil
@@ -90,6 +90,12 @@ func DefaultLoader(g *libkb.GlobalContext) *Loader {
 }
 
 func (p *Loader) GetPaymentLocal(ctx context.Context, paymentID stellar1.PaymentID) (*stellar1.PaymentLocal, bool) {
+	p.Lock()
+	defer p.Unlock()
+	return p.getPaymentLocalLocked(ctx, paymentID)
+}
+
+func (p *Loader) getPaymentLocalLocked(ctx context.Context, paymentID stellar1.PaymentID) (*stellar1.PaymentLocal, bool) {
 	pmt, ok := p.payments[paymentID]
 	return pmt, ok
 }
@@ -125,7 +131,7 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		m.Warning("existing payment message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
 	}
 
-	payment, ok := p.GetPaymentLocal(ctx, paymentID)
+	payment, ok := p.getPaymentLocalLocked(ctx, paymentID)
 	if ok {
 		info := p.uiPaymentInfo(m, payment, msg)
 		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), p.G().ActiveDevice.UID(), convID, msgID, *info)

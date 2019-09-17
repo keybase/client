@@ -30,9 +30,9 @@ export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => Re
           todoType={item.todoType}
         />
       )
-    case 'notification':
+    case 'follow':
+    case 'contact':
       return (
-        // @ts-ignore not sure why this is being weird w/ records
         <FollowNotification
           type={item.type}
           newFollows={item.newFollows}

@@ -874,6 +874,13 @@
         {
           "type": [
             null,
+            "MessageID"
+          ],
+          "name": "pinnedMessageID"
+        },
+        {
+          "type": [
+            null,
             "gregor1.UID"
           ],
           "name": "botUID"
@@ -1686,6 +1693,14 @@
     },
     {
       "type": "enum",
+      "name": "UIWatchPositionPerm",
+      "symbols": [
+        "BASE_0",
+        "ALWAYS_1"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "UICommandStatusDisplayTyp",
       "symbols": [
         "STATUS_0",
@@ -2111,6 +2126,10 @@
         {
           "name": "convID",
           "type": "ConversationID"
+        },
+        {
+          "name": "perm",
+          "type": "UIWatchPositionPerm"
         }
       ],
       "response": "LocationWatchID"

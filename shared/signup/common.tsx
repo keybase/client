@@ -131,6 +131,7 @@ type SignupScreenProps = {
   skipMobileHeader?: boolean
   headerStyle?: Styles.StylesCrossPlatform
   containerStyle?: Styles.StylesCrossPlatform
+  contentContainerStyle?: Styles.StylesCrossPlatform
   title?: string
   titleComponent?: React.ReactNode
   header?: React.ReactNode
@@ -159,15 +160,23 @@ export const SignupScreen = (props: SignupScreenProps) => (
       />
     )}
     {Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.HeaderHocHeader
-        headerStyle={props.headerStyle}
-        title={props.title}
-        titleComponent={props.titleComponent}
-        rightActionLabel={props.rightActionLabel}
-        onRightAction={props.onRightAction}
-        leftAction={props.leftAction}
-        leftActionText={props.leftActionText}
-        onBack={props.onBack}
+      <Kb.ModalHeader
+        leftButton={
+          props.leftAction ? (
+            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
+              {props.leftActionText || props.leftAction}
+            </Kb.Text>
+          ) : null
+        }
+        rightButton={
+          props.onRightAction ? (
+            <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
+              {props.rightActionLabel || props.rightActionComponent}
+            </Kb.Text>
+          ) : null
+        }
+        style={props.headerStyle}
+        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
       />
     )}
     {Styles.isMobile && props.header}
@@ -181,7 +190,12 @@ export const SignupScreen = (props: SignupScreenProps) => (
       ])}
       fullWidth={true}
     >
-      <Kb.Box2 alignItems="center" direction="vertical" style={styles.body} fullWidth={true}>
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+        fullWidth={true}
+      >
         {props.children}
       </Kb.Box2>
       {/* Banners after children so they go on top */}
@@ -243,9 +257,11 @@ const styles = Styles.styleSheetCreate(
       },
       button: Styles.platformStyles({
         isElectron: {
+          height: 32,
           width: 368,
         },
         isMobile: {
+          height: 40,
           width: '100%',
         },
       }),

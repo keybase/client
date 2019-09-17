@@ -7,7 +7,7 @@ import * as Container from '../util/container'
 import {SelectedUser} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
-import {formatPhoneNumber} from '../util/phone-numbers'
+import {e164ToDisplay} from '../util/phone-numbers'
 import {RolePickerProps} from '.'
 
 type Props = {
@@ -28,12 +28,14 @@ const formatNameForUserBubble = (u: SelectedUser) => {
   let displayName: string
   switch (u.service) {
     case 'keybase':
-    case 'contact': // do not display "michal@keyba.se on email" or similar
     case 'email':
       displayName = u.username
       break
     case 'phone':
-      displayName = formatPhoneNumber(u.username)
+      // Username is the assertion username here (E164 without '+'), add '+' to
+      // obtain a valid number for formatting. Do not append prettyName, because
+      // it's likely just the same phone number but not formated.
+      displayName = e164ToDisplay('+' + u.username)
       break
     default:
       displayName = `${u.username} on ${u.service}`

@@ -27,7 +27,7 @@ const NoteAndMemo = (props: Props) => (
         <Kb.Divider />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.memoContainer}>
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
-            Public note
+            Public memo
           </Kb.Text>
           <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.publicMemo}
@@ -38,7 +38,7 @@ const NoteAndMemo = (props: Props) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   bodyText: Styles.platformStyles({
     common: {color: Styles.globalColors.black},
     isElectron: {wordBreak: 'break-word'} as const,
@@ -53,6 +53,6 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default NoteAndMemo

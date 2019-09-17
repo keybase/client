@@ -1,5 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,no-use-before-define */
+import * as autoreset from './autoreset-gen'
 import * as chat2 from './chat2-gen'
 import * as config from './config-gen'
 import * as deeplinks from './deeplinks-gen'
@@ -30,6 +31,7 @@ import * as waiting from './waiting-gen'
 import * as wallets from './wallets-gen'
 
 export type TypedActions =
+  | autoreset.Actions
   | chat2.Actions
   | config.Actions
   | deeplinks.Actions
@@ -60,6 +62,7 @@ export type TypedActions =
   | wallets.Actions
 
 export type TypedActionsMap = {
+  'autoreset:dummy': autoreset.DummyPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -769,11 +772,9 @@ export type TypedActionsMap = {
   'team-building:finishedTeamBuilding': teambuilding.FinishedTeamBuildingPayload
   'team-building:cancelTeamBuilding': teambuilding.CancelTeamBuildingPayload
   'team-building:search': teambuilding.SearchPayload
-  'team-building:searchEmailAddress': teambuilding.SearchEmailAddressPayload
   'team-building:addUsersToTeamSoFar': teambuilding.AddUsersToTeamSoFarPayload
   'team-building:removeUsersFromTeamSoFar': teambuilding.RemoveUsersFromTeamSoFarPayload
   'team-building:searchResultsLoaded': teambuilding.SearchResultsLoadedPayload
-  'team-building:searchEmailAddressResultLoaded': teambuilding.SearchEmailAddressResultLoadedPayload
   'team-building:selectRole': teambuilding.SelectRolePayload
   'team-building:changeSendNotification': teambuilding.ChangeSendNotificationPayload
   'team-building:labelsSeen': teambuilding.LabelsSeenPayload

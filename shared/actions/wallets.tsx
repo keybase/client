@@ -13,7 +13,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Flow from '../util/flow'
 import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
-import logger from '../logger'
+import _logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
@@ -35,7 +35,7 @@ const buildErrCatcher = (err: any) => {
   if (err instanceof RPCError && err.code === RPCTypes.StatusCode.sccanceled) {
     // ignore cancellation
   } else {
-    logger.error(`buildPayment error: ${err.message}`)
+    _logger.error(`buildPayment error: ${err.message}`)
     throw err
   }
 }
@@ -219,7 +219,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
     )
   } catch (err) {
     buildErrCatcher(err)
-    return null
+    return false
   }
   if (!buildRes.readyToRequest) {
     logger.warn(
@@ -233,7 +233,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
         forBuildCounter: state.wallets.buildCounter,
       })
     )
-    return null
+    return false
   }
 
   const kbRqID: Saga.RPCPromiseType<
@@ -263,6 +263,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
       })
     ),
   ])
+  return false
 }
 
 const startPayment = async (state: TypedState) => {
@@ -420,9 +421,9 @@ const handleSelectAccountError = (action, msg, err) => {
     action.payload.reason === 'auto-selected'
   ) {
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(errMsg)
+    _logger.warn(errMsg)
   } else {
-    logger.error(errMsg)
+    _logger.error(errMsg)
     throw err
   }
 }
@@ -561,7 +562,7 @@ const loadSendAssetChoices = async (_: TypedState, action: WalletsGen.LoadSendAs
     // The result is dropped here. See PICNIC-84 for fixing it.
     return res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})
   } catch (err) {
-    logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${err.desc}`)
     return false
   }
 }
@@ -689,7 +690,7 @@ const setAccountAsDefault = async (_: TypedState, action: WalletsGen.SetAccountA
   return WalletsGen.createDidSetAccountAsDefault({
     accounts: (accountsAfterUpdate || []).map(account => {
       if (!account.accountID) {
-        logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
+        _logger.error(`Found empty accountID, name: ${account.name} isDefault: ${String(account.isDefault)}`)
       }
       return Constants.accountResultToAccount(account)
     }),
@@ -1059,29 +1060,38 @@ const acceptDisclaimer = (_: TypedState) =>
     }
   )
 
-const checkDisclaimer = (_: TypedState, action: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) =>
-  RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
-    .then(accepted => {
-      const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
-      if (accepted) {
-        // in new nav we could be in a modal anywhere in the app right now
-        actions.push(RouteTreeGen.createClearModals())
-        actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
-        if (isMobile) {
-          if (action.payload.nextScreen === 'airdrop') {
-            actions.push(
-              RouteTreeGen.createNavigateAppend({
-                path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
-              })
-            )
-          } else {
-            actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
-          }
-        }
-      }
+const checkDisclaimer = async (
+  _: TypedState,
+  action: WalletsGen.CheckDisclaimerPayload,
+  logger: Saga.SagaLogger
+) => {
+  try {
+    const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
+    const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
+    if (!accepted) {
       return actions
-    })
-    .catch(err => logger.error(`Error checking wallet disclaimer: ${err.message}`))
+    }
+
+    // in new nav we could be in a modal anywhere in the app right now
+    actions.push(RouteTreeGen.createClearModals())
+    actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
+    if (isMobile) {
+      if (action.payload.nextScreen === 'airdrop') {
+        actions.push(
+          RouteTreeGen.createNavigateAppend({
+            path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
+          })
+        )
+      } else {
+        actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
+      }
+    }
+    return actions
+  } catch (err) {
+    logger.error(`Error checking wallet disclaimer: ${err.message}`)
+    return false
+  }
+}
 
 const rejectDisclaimer = (_: TypedState, __: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
@@ -1170,10 +1180,22 @@ const exitFailedPayment = (state: TypedState, _: WalletsGen.ExitFailedPaymentPay
 }
 
 const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayload) => {
-  await RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
-    {register: action.payload.accept},
-    Constants.airdropWaitingKey
-  )
+  try {
+    await RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
+      {register: action.payload.accept},
+      Constants.airdropWaitingKey
+    )
+  } catch (err) {
+    switch (err.code) {
+      case RPCTypes.StatusCode.scinputerror:
+      case RPCTypes.StatusCode.scduplicate:
+        // If you're already out of (inputerror) or in (duplicate) the airdrop,
+        // ignore those errors and we'll fix it when we refresh status below.
+        break
+      default:
+        throw err
+    }
+  }
   return WalletsGen.createUpdateAirdropState() // reload
 }
 
@@ -1393,7 +1415,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
     )
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
-    logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${err.desc}`)
     return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
   }
 }
@@ -1414,7 +1436,7 @@ const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}
     )
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
-    logger.warn(`Error: ${err.desc}`)
+    _logger.warn(`Error: ${err.desc}`)
     return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
   }
 }
@@ -1643,25 +1665,29 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
       version: action.payload.version,
     })
   )
-  const loadAction = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise().then(res =>
-    WalletsGen.createStaticConfigLoaded({
-      staticConfig: I.Record(res)(),
-    })
-  )
 
-  if (loadAction) {
-    yield Saga.put(loadAction)
+  try {
+    const res: Saga.RPCPromiseType<
+      typeof RPCStellarTypes.localGetStaticConfigLocalRpcPromise
+    > = yield RPCStellarTypes.localGetStaticConfigLocalRpcPromise()
+    yield Saga.put(
+      WalletsGen.createStaticConfigLoaded({
+        staticConfig: I.Record(res)(),
+      })
+    )
+  } finally {
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'wallets.loadStatic',
+        version: action.payload.version,
+      })
+    )
   }
-  yield Saga.put(
-    ConfigGen.createDaemonHandshakeWait({
-      increment: false,
-      name: 'wallets.loadStatic',
-      version: action.payload.version,
-    })
-  )
+  return false
 }
 
-function* walletsSaga(): Saga.SagaGenerator<any, any> {
+function* walletsSaga() {
   yield* Saga.chainAction2(WalletsGen.createNewAccount, createNewAccount, 'createNewAccount')
   yield* Saga.chainAction2(
     [

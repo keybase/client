@@ -10,7 +10,7 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
-  darkMode: false || __STORYBOOK__,
+  darkMode: true,
   dbCleanEnabled: false,
   fastAccountSwitch: false,
   foldersInProfileTab: false,
@@ -22,7 +22,7 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   proofProviders: true,
   stellarExternalPartners: true,
-  wonderland: true,
+  wonderland: false,
 }
 
 // load overrides

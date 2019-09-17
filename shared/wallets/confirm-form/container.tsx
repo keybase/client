@@ -22,7 +22,7 @@ const mapStateToProps = state => {
     displayAmountFiat: _built.displayAmountFiat,
     displayAmountXLM: _built.displayAmountXLM,
     encryptedNote: build.secretNote.stringValue(),
-    publicMemo: build.publicMemo.stringValue(),
+    publicMemo: _built.publicMemoOverride.stringValue() || build.publicMemo.stringValue(),
     readyToSend: _built.readyToSend,
     sendingIntentionXLM: _built.sendingIntentionXLM,
     to: build.to,

@@ -19,4 +19,5 @@ export {
   useFsJournalStatus,
   useFsOnlineStatus,
   useFsPathInfo,
+  useFsSoftError,
 } from './hooks'

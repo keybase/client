@@ -3,28 +3,27 @@ import openURL from '../util/open-url'
 import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
-import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
+import {NativeClipboard, NativeText, NativeAlert} from './native-wrappers.native'
 import {Props, TextType} from './text'
 
 const modes = ['positive', 'negative']
 
-const styleMap = Object.keys(metaData()).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
-  (map, type) => {
-    const meta = metaData()[type as TextType]
-    modes.forEach(mode => {
-      map[`${type}:${mode}`] = {
-        ...fontSizeToSizeStyle(meta.fontSize),
-        color: meta.colorForBackground[mode] || Styles.globalColors.black,
-        ...meta.styleOverride,
-      }
-    })
-    return map
-  },
-  {center: {textAlign: 'center'}}
+const styles = Styles.styleSheetCreate(() =>
+  Object.keys(metaData()).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
+    (map, type) => {
+      const meta = metaData()[type as TextType]
+      modes.forEach(mode => {
+        map[`${type}:${mode}`] = {
+          ...fontSizeToSizeStyle(meta.fontSize),
+          color: meta.colorForBackground[mode] || Styles.globalColors.black,
+          ...meta.styleOverride,
+        }
+      })
+      return map
+    },
+    {center: {textAlign: 'center'}}
+  )
 )
-
-// @ts-ignore TODO fix styles
-const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
 

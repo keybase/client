@@ -30,21 +30,20 @@ const PathInfo_ = (props: PathInfoProps) => {
     <Kb.Box2 direction="vertical" style={props.containerStyle} fullWidth={true}>
       <Kb.Text type="BodySmallSemibold">Universal path:</Kb.Text>
       <Kb.CopyText
-        containerStyle={styles.headerCopyUniversalPath}
+        containerStyle={styles.copyPath}
         multiline={Styles.isMobile ? 3 : 4}
         text={pathInfo.deeplinkPath}
       />
       {mountPointPath ? (
         <>
-          <Kb.Text type="BodySmall" style={styles.headerMountPointTip}>
-            You personally can access this file at
+          <Kb.Text type="BodySmallSemibold" style={styles.localPath}>
+            Local path:
           </Kb.Text>
-          <Kb.Text type="BodySmall">
-            <Kb.Text type="BodySmall" selectable={true} style={styles.headerLocalPath}>
-              {mountPointPath}
-            </Kb.Text>
-            .
-          </Kb.Text>
+          <Kb.CopyText
+            containerStyle={styles.copyPath}
+            multiline={Styles.isMobile ? 3 : 4}
+            text={mountPointPath}
+          />
         </>
       ) : null}
     </Kb.Box2>
@@ -53,19 +52,14 @@ const PathInfo_ = (props: PathInfoProps) => {
 
 export default PathInfo_
 
-const styles = Styles.styleSheetCreate(() => ({
-  headerCopyUniversalPath: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  headerLocalPath: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blueLighter3,
-    },
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
-  headerMountPointTip: {
-    marginTop: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      copyPath: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      localPath: {
+        marginTop: Styles.globalMargins.small,
+      },
+    } as const)
+)

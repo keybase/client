@@ -31,12 +31,12 @@ const DefaultView = (props: DefaultViewProps) => (
       <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
       {isMobile && <LastModifiedLine path={props.path} mode="default" />}
       {props.pathItem.type === Types.PathType.Symlink && (
-        <Kb.Text type="BodySmall" style={stylesSymlink}>
+        <Kb.Text type="BodySmall" style={styles.symlink}>
           {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
         </Kb.Text>
       )}
       {isMobile && (
-        <Kb.Text center={true} type="BodySmall" style={stylesNoOpenMobile}>
+        <Kb.Text center={true} type="BodySmall" style={styles.noOpenMobile}>
           This document can not be opened on mobile. You can still interact with it using the ••• menu.
         </Kb.Text>
       )}
@@ -79,37 +79,42 @@ const DefaultView = (props: DefaultViewProps) => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      padding: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      paddingTop: Styles.globalMargins.mediumLarge,
-    },
-  }),
-  filename: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.small,
-  },
-  innerContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      ...Styles.globalStyles.flexGrow,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.white,
-      flex: 1,
-      justifyContent: 'center',
-    },
-    isMobile: {
-      paddingLeft: Styles.globalMargins.large,
-      paddingRight: Styles.globalMargins.large,
-    },
-  }),
-})
-
-const stylesSymlink = {marginTop: Styles.globalMargins.medium}
-
-const stylesNoOpenMobile = {marginTop: Styles.globalMargins.medium}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        isElectron: {
+          padding: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          paddingTop: Styles.globalMargins.mediumLarge,
+        },
+      }),
+      filename: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.small,
+      },
+      innerContainer: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexGrow,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.white,
+          flex: 1,
+          justifyContent: 'center',
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.large,
+          paddingRight: Styles.globalMargins.large,
+        },
+      }),
+      noOpenMobile: {
+        marginTop: Styles.globalMargins.medium,
+      },
+      symlink: {
+        marginTop: Styles.globalMargins.medium,
+      },
+    } as const)
+)
 
 export default DefaultView

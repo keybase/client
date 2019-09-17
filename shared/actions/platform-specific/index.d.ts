@@ -1,4 +1,5 @@
 import * as Saga from '../../util/saga'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 type NextURI = string
 
@@ -14,7 +15,7 @@ export declare function showShareActionSheetFromURL(options: {
 export declare function showShareActionSheetFromFile(fileURL: string): Promise<void>
 export declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
-export declare function requestLocationPermission(): Promise<void>
+export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
 
 export declare function displayNewMessageNotification(
   text: string,
@@ -36,4 +37,4 @@ export declare function getContentTypeFromURL(
   }) => Promise<string> | void
 )
 
-export declare function platformConfigSaga(): Saga.SagaGenerator<any, any>
+export declare function platformConfigSaga()

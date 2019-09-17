@@ -541,6 +541,10 @@
         },
         {
           "type": "string",
+          "name": "publicMemoOverride"
+        },
+        {
+          "type": "string",
           "name": "worthDescription"
         },
         {

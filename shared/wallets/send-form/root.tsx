@@ -43,7 +43,7 @@ const Root = (props: Props) => {
   return <Kb.MaybePopup onClose={props.onClose}>{child}</Kb.MaybePopup>
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   backgroundColorBlue5: {backgroundColor: Styles.globalColors.blueLighter3},
   backgroundColorPurple: {backgroundColor: Styles.globalColors.purpleDark},
   container: Styles.platformStyles({
@@ -69,6 +69,6 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
   }),
-})
+}))
 
 export default Root

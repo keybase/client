@@ -59,7 +59,7 @@ gpg_tempfile="$gpg_tempdir/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Make sure the Docker image is built.
-image=keybase_packaging_v22
+image=keybase_packaging_v23
 if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
@@ -91,6 +91,7 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -e NOWAIT \
   -e KEYBASE_DRY_RUN \
   -e KEYBASE_NIGHTLY \
+  -e KEYBASE_TEST \
   --rm \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

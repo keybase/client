@@ -42,7 +42,7 @@ const FooterAdvanced = () => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   buttonBox: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blueLighter3,
@@ -56,6 +56,6 @@ const styles = Styles.styleSheetCreate({
   icon: {
     marginRight: Styles.globalMargins.tiny,
   },
-})
+}))
 
 export default FooterAdvanced

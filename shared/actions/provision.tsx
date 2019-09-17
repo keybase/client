@@ -495,44 +495,48 @@ const showPaperkeyPage = (state: Container.TypedState) =>
 const showFinalErrorPage = (state: Container.TypedState, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
   let path: Array<string>
+  let replace = true
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     path = ['error']
+    replace = false // can't replace with a modal!
   } else {
     path = []
   }
 
-  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace: true})
+  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace})
 }
 
 const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
 
-const forgotUsername = (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
+const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {
-    return RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
-      {email: action.payload.email},
-      Constants.forgotUsernameWaitingKey
-    )
-      .then(() => ProvisionGen.createForgotUsernameResult({result: 'success'}))
-      .catch(error =>
-        ProvisionGen.createForgotUsernameResult({
-          result: Constants.decodeForgotUsernameError(error),
-        })
+    try {
+      await RPCTypes.accountRecoverUsernameWithEmailRpcPromise(
+        {email: action.payload.email},
+        Constants.forgotUsernameWaitingKey
       )
+      return ProvisionGen.createForgotUsernameResult({result: 'success'})
+    } catch (error) {
+      return ProvisionGen.createForgotUsernameResult({
+        result: Constants.decodeForgotUsernameError(error),
+      })
+    }
   } else {
-    return RPCTypes.accountRecoverUsernameWithPhoneRpcPromise(
-      {phone: action.payload.phone},
-      Constants.forgotUsernameWaitingKey
-    )
-      .then(() => ProvisionGen.createForgotUsernameResult({result: 'success'}))
-      .catch(error =>
-        ProvisionGen.createForgotUsernameResult({
-          result: Constants.decodeForgotUsernameError(error),
-        })
+    try {
+      await RPCTypes.accountRecoverUsernameWithPhoneRpcPromise(
+        {phone: action.payload.phone},
+        Constants.forgotUsernameWaitingKey
       )
+      return ProvisionGen.createForgotUsernameResult({result: 'success'})
+    } catch (error) {
+      return ProvisionGen.createForgotUsernameResult({
+        result: Constants.decodeForgotUsernameError(error),
+      })
+    }
   }
 }
 
-function* provisionSaga(): Saga.SagaGenerator<any, any> {
+function* provisionSaga() {
   // Always ensure we have one live
   makeProvisioningManager(false)
 

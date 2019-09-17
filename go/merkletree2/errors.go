@@ -27,3 +27,59 @@ func (e InvalidKeyError) Error() string {
 func NewInvalidKeyError() InvalidKeyError {
 	return InvalidKeyError{}
 }
+
+// ProofVerificationFailedError is returned when a merkle tree proof verification fails.
+type ProofVerificationFailedError struct {
+	reason error
+}
+
+func (e ProofVerificationFailedError) Error() string {
+	return fmt.Sprintf("Proof Verification Error: %s", e.reason)
+}
+
+// NewProofVerificationFailedError returns a new error
+func NewProofVerificationFailedError(reason error) ProofVerificationFailedError {
+	return ProofVerificationFailedError{reason: reason}
+}
+
+// KeyNotFoundError is returned when trying to fetch a key which is not part of
+// the tree at a specific Seqno.
+type KeyNotFoundError struct{}
+
+func (e KeyNotFoundError) Error() string {
+	return fmt.Sprintf("Key not found.")
+}
+
+// NewKeyNotFoundError returns a new error
+func NewKeyNotFoundError() KeyNotFoundError {
+	return KeyNotFoundError{}
+}
+
+// NoLatestRootFoundError is returned when trying to fetch the latest root from
+// an empty tree.
+type NoLatestRootFoundError struct{}
+
+func (e NoLatestRootFoundError) Error() string {
+	return fmt.Sprintf("No latest root was found.")
+}
+
+// NewNoLatestRootFoundError returns a new error
+func NewNoLatestRootFoundError() NoLatestRootFoundError {
+	return NoLatestRootFoundError{}
+}
+
+// InvalidSeqnoError is returned when trying to lookup a record with an invalid
+// Seqno
+type InvalidSeqnoError struct {
+	s      Seqno
+	reason error
+}
+
+func (e InvalidSeqnoError) Error() string {
+	return fmt.Sprintf("Invalid Seqno Error (Seqno: %v): %s", e.s, e.reason)
+}
+
+// NewInvalidConfigError returns a new error
+func NewInvalidSeqnoError(s Seqno, reason error) InvalidSeqnoError {
+	return InvalidSeqnoError{s: s, reason: reason}
+}

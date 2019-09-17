@@ -56,7 +56,7 @@ const RemoveAccountPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   flexOne: {flex: 1},
   header: {borderBottomWidth: 0},
   icon: Styles.platformStyles({
@@ -75,6 +75,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
-})
+}))
 
 export default RemoveAccountPopup

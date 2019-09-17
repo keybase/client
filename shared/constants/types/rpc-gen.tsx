@@ -1308,7 +1308,7 @@ export type MessageTypes = {
     outParam: NonUserDetails
   }
   'keybase.1.userSearch.userSearch': {
-    inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean; readonly impTofuQuery?: ImpTofuQuery | null}
+    inParam: {readonly query: String; readonly service: String; readonly maxResults: Int; readonly includeServicesSummary: Boolean; readonly includeContacts: Boolean}
     outParam: Array<APIUserSearchResult> | null
   }
 }
@@ -1545,6 +1545,8 @@ export enum HomeScreenItemType {
 export enum HomeScreenPeopleNotificationType {
   followed = 1,
   followedMulti = 2,
+  contact = 3,
+  contactMulti = 4,
 }
 
 export enum HomeScreenTodoType {
@@ -1608,11 +1610,6 @@ export enum IdentifyReasonType {
 export enum IdentityVisibility {
   private = 0,
   public = 1,
-}
-
-export enum ImpTofuSearchType {
-  phone = 0,
-  email = 1,
 }
 
 export enum InstallAction {
@@ -1976,6 +1973,7 @@ export enum StatusCode {
   scbademail = 472,
   scratelimit = 602,
   scbadsignupusernametaken = 701,
+  scduplicate = 706,
   scbadinvitationcode = 707,
   scbadsignupteamname = 711,
   scfeatureflag = 712,
@@ -2012,6 +2010,7 @@ export enum StatusCode {
   scsigbadtotalorder = 1022,
   scbadtracksession = 1301,
   scdevicebadname = 1404,
+  scdevicebadstatus = 1405,
   scdevicenameinuse = 1408,
   scdevicenotfound = 1409,
   scdevicemismatch = 1410,
@@ -2312,9 +2311,9 @@ export enum UserOrTeamResult {
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
-export type APIUserServiceIDWithContact = String
-export type APIUserServiceResult = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
-export type APIUserServiceSummary = {readonly serviceName: APIUserServiceIDWithContact; readonly username: String}
+export type APIUserServiceID = String
+export type APIUserServiceResult = {readonly serviceName: APIUserServiceID; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
+export type APIUserServiceSummary = {readonly serviceName: APIUserServiceID; readonly username: String}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
 export type AnnotatedTeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly uv: UserVersion; readonly inviter: UserVersion; readonly inviterUsername: String; readonly teamName: String; readonly status: TeamMemberStatus}
@@ -2467,7 +2466,9 @@ export type HomeScreenItem = {readonly badged: Boolean; readonly data: HomeScree
 export type HomeScreenItemData = {t: HomeScreenItemType.todo; todo: HomeScreenTodo | null} | {t: HomeScreenItemType.people; people: HomeScreenPeopleNotification | null} | {t: HomeScreenItemType.announcement; announcement: HomeScreenAnnouncement | null}
 export type HomeScreenItemDataExt = {t: HomeScreenItemType.todo; todo: HomeScreenTodoExt | null} | {t: HomeScreenItemType.people} | {t: HomeScreenItemType.announcement}
 export type HomeScreenItemID = String
-export type HomeScreenPeopleNotification = {t: HomeScreenPeopleNotificationType.followed; followed: HomeScreenPeopleNotificationFollowed | null} | {t: HomeScreenPeopleNotificationType.followedMulti; followedMulti: HomeScreenPeopleNotificationFollowedMulti | null}
+export type HomeScreenPeopleNotification = {t: HomeScreenPeopleNotificationType.followed; followed: HomeScreenPeopleNotificationFollowed | null} | {t: HomeScreenPeopleNotificationType.followedMulti; followedMulti: HomeScreenPeopleNotificationFollowedMulti | null} | {t: HomeScreenPeopleNotificationType.contact; contact: HomeScreenPeopleNotificationContact | null} | {t: HomeScreenPeopleNotificationType.contactMulti; contactMulti: HomeScreenPeopleNotificationContactMulti | null}
+export type HomeScreenPeopleNotificationContact = {readonly resolveTime: Time; readonly username: String; readonly description: String; readonly resolvedContactBlob: String}
+export type HomeScreenPeopleNotificationContactMulti = {readonly contacts?: Array<HomeScreenPeopleNotificationContact> | null; readonly numOthers: Int}
 export type HomeScreenPeopleNotificationFollowed = {readonly followTime: Time; readonly followedBack: Boolean; readonly user: UserSummary}
 export type HomeScreenPeopleNotificationFollowedMulti = {readonly followers?: Array<HomeScreenPeopleNotificationFollowed> | null; readonly numOthers: Int}
 export type HomeScreenTodo = {t: HomeScreenTodoType.verifyAllPhoneNumber; verifyAllPhoneNumber: PhoneNumber | null} | {t: HomeScreenTodoType.verifyAllEmail; verifyAllEmail: EmailAddress | null} | {t: HomeScreenTodoType.legacyEmailVisibility; legacyEmailVisibility: EmailAddress | null} | {t: HomeScreenTodoType.none} | {t: HomeScreenTodoType.bio} | {t: HomeScreenTodoType.proof} | {t: HomeScreenTodoType.device} | {t: HomeScreenTodoType.follow} | {t: HomeScreenTodoType.chat} | {t: HomeScreenTodoType.paperkey} | {t: HomeScreenTodoType.team} | {t: HomeScreenTodoType.folder} | {t: HomeScreenTodoType.gitRepo} | {t: HomeScreenTodoType.teamShowcase} | {t: HomeScreenTodoType.avatarUser} | {t: HomeScreenTodoType.avatarTeam} | {t: HomeScreenTodoType.addPhoneNumber} | {t: HomeScreenTodoType.addEmail} | {t: HomeScreenTodoType.annoncementPlaceholder}
@@ -2489,7 +2490,6 @@ export type IdentifyRow = {readonly rowId: Int; readonly proof: RemoteProof; rea
 export type IdentifyTrackBreaks = {readonly keys?: Array<IdentifyKey> | null; readonly proofs?: Array<IdentifyProofBreak> | null}
 export type Identity = {readonly status?: Status | null; readonly whenLastTracked: Time; readonly proofs?: Array<IdentifyRow> | null; readonly cryptocurrency?: Array<Cryptocurrency> | null; readonly revoked?: Array<TrackDiff> | null; readonly revokedDetails?: Array<RevokedProof> | null; readonly breaksTracking: Boolean}
 export type ImageCropRect = {readonly x0: Int; readonly y0: Int; readonly x1: Int; readonly y1: Int}
-export type ImpTofuQuery = {t: ImpTofuSearchType.phone; phone: PhoneNumber | null} | {t: ImpTofuSearchType.email; email: EmailAddress | null}
 export type ImpTofuSearchResult = {readonly assertion: String; readonly assertionValue: String; readonly assertionKey: String; readonly label: String; readonly prettyName: String; readonly keybaseUsername: String}
 export type ImplicitRole = {readonly role: TeamRole; readonly ancestor: TeamID}
 export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration; readonly time: Time}
@@ -3527,6 +3527,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.phoneNumbers.setVisibilityAllPhoneNumber'
 // 'keybase.1.pprof.processorProfile'
 // 'keybase.1.pprof.trace'
+// 'keybase.1.prove.listSomeProofServices'
 // 'keybase.1.prove.listProofServices'
 // 'keybase.1.prove.validateUsername'
 // 'keybase.1.proveUi.promptOverwrite'
@@ -3602,6 +3603,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.teams.teamListSubteamsRecursive'
 // 'keybase.1.teams.teamChangeMembership'
 // 'keybase.1.teams.teamAddMembersMultiRole'
+// 'keybase.1.teams.teamGetBotSettings'
+// 'keybase.1.teams.teamSetBotSettings'
 // 'keybase.1.teams.teamAcceptInvite'
 // 'keybase.1.teams.teamRequestAccess'
 // 'keybase.1.teams.teamTree'

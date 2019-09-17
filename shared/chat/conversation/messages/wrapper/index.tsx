@@ -156,7 +156,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 onUsernameClicked={this._onAuthorClick}
               />
               {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-                <Kb.WithTooltip text={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
+                <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
                   <Kb.Icon
                     color={
                       this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
@@ -457,7 +457,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <SetDescription key="setDescription" message={message} />
         break
       case 'pin':
-        child = <Pin key="pin" />
+        child = (
+          <Pin key="pin" conversationIDKey={message.conversationIDKey} messageID={message.pinnedMessageID} />
+        )
         break
       case 'setChannelname':
         child = <SetChannelname key="setChannelname" message={message} />

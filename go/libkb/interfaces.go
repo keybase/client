@@ -435,7 +435,7 @@ type ChatUI interface {
 	ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error
 	ChatMaybeMentionUpdate(context.Context, string, string, chat1.UIMaybeMentionInfo) error
 	ChatLoadGalleryHit(context.Context, chat1.UIMessage) error
-	ChatWatchPosition(context.Context, chat1.ConversationID) (chat1.LocationWatchID, error)
+	ChatWatchPosition(context.Context, chat1.ConversationID, chat1.UIWatchPositionPerm) (chat1.LocationWatchID, error)
 	ChatClearWatch(context.Context, chat1.LocationWatchID) error
 	ChatCommandStatus(context.Context, chat1.ConversationID, string, chat1.UICommandStatusDisplayTyp,
 		[]chat1.UICommandStatusActionTyp) error
@@ -814,7 +814,7 @@ type DeviceEKStorage interface {
 	MaxGeneration(mctx MetaContext, includeErrs bool) (keybase1.EkGeneration, error)
 	DeleteExpired(mctx MetaContext, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
-	// Dangerous! Only for deprovisioning.
+	// Dangerous! Only for deprovisioning or shutdown/logout when in oneshot mode.
 	ForceDeleteAll(mctx MetaContext, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(mctx MetaContext) ([]string, error)

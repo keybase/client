@@ -137,7 +137,10 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		return log
 	})
 
-	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config)
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(
+		env.EmptyAppStateUpdater{}, config, initDoneCh)
+	defer close(initDoneCh)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 
@@ -252,7 +255,9 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
 
-	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, c)
+	initDoneCh := make(chan struct{})
+	kbfsOps := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, c, initDoneCh)
+	defer close(initDoneCh)
 	c.SetKBFSOps(kbfsOps)
 	c.SetNotifier(kbfsOps)
 

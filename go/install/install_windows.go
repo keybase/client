@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -32,13 +31,6 @@ import (
 // Install only handles the driver part on Windows
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	return keybase1.InstallResult{}
-}
-
-func componentResult(name string, err error) keybase1.ComponentResult {
-	if err != nil {
-		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
-	}
-	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }
 
 // AutoInstall is not supported on Windows
@@ -302,41 +294,6 @@ func IsInUse(mountDir string, log Log) bool {
 	}
 
 	return false
-}
-
-func getCachedPackageModifyString(log Log) (string, error) {
-
-	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Keybase\Keybase\`, registry.READ|registry.WOW64_64KEY)
-	defer k.Close()
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't open SOFTWARE\\Keybase\\Keybase\\")
-		return "", err
-	}
-	bundleKey, _, err := k.GetStringValue("BUNDLEKEY")
-	if err != nil || bundleKey == "" {
-		log.Debug("getCachedPackageModifyString: can't read SOFTWARE\\Keybase\\Keybase\\BUNDLEKEY")
-		return "", err
-	}
-
-	k2, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall`+bundleKey, registry.QUERY_VALUE|registry.WOW64_64KEY)
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't read " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
-		return "", err
-	}
-	displayName, _, err := k2.GetStringValue("DisplayName")
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't read DisplayName of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
-	}
-	publisher, _, err := k2.GetStringValue("Publisher")
-	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't read publisher of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
-	}
-	if displayName == "Keybase" && publisher == "Keybase, Inc." {
-		modify, _, err := k2.GetStringValue("ModifyPath")
-		return modify, err
-	}
-	log.Debug("getCachedPackageModifyString: " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey + "displayName " + displayName + ", publisher " + publisher)
-	return "", errors.New("no cached package path found")
 }
 
 // StartUpdateIfNeeded starts to update the app if there's one available. It

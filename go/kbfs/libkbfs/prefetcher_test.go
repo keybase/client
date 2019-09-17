@@ -131,7 +131,17 @@ func testPrefetcherCheckGet(
 		err := dbcw.waitForDeletes(context.Background())
 		require.NoError(t, err)
 	}
-	require.Equal(t, expectedBlock, block)
+	if expectedFB, ok := expectedBlock.(*data.FileBlock); ok &&
+		!expectedFB.IsIndirect() {
+		fb, ok := block.(*data.FileBlock)
+		require.True(t, ok)
+		// For direct file blocks, the unexported hash pointer might
+		// differ between two instances of the same block, so just
+		// check the contents explicitly.
+		require.Equal(t, expectedFB.Contents, fb.Contents)
+	} else {
+		require.Equal(t, expectedBlock, block)
+	}
 	prefetchStatus, err := dcache.GetPrefetchStatus(
 		context.Background(), tlfID, ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
@@ -1847,6 +1857,13 @@ func TestPrefetcherReschedules(t *testing.T) {
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	kmd := makeKMD()
+
+	// Declare and defer the close of this channel before the defer of
+	// the prefetcher shutdown, to avoid data races where the
+	// prefetcher could send to the channel after it's closed.
+	prefetchDoneCh := make(chan struct{})
+	defer close(prefetchDoneCh)
+
 	prefetchSyncCh := make(chan struct{})
 	defer shutdownPrefetcherTest(t, q, prefetchSyncCh)
 	q.TogglePrefetcher(true, prefetchSyncCh, nil)
@@ -1913,7 +1930,6 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// prefetcher operation.  If we do, we introduce racy behavior
 	// where sometimes the prefetcher will be able to write stuff to
 	// the cache, and sometimes not.
-	prefetchDoneCh := make(chan struct{})
 	q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
 		return &backoff.ZeroBackOff{}
@@ -1990,8 +2006,8 @@ func TestPrefetcherReschedules(t *testing.T) {
 	// We can't close the done channel right away since the prefetcher
 	// still needs to send on it for every remaining operation it
 	// processes, so just spawn a goroutine to drain it, and close the
-	// channel when the test is over.
-	defer close(prefetchDoneCh)
+	// channel when the test is over. (The defered close is at the top
+	// of this function.)
 	go func() {
 		for range prefetchDoneCh {
 		}

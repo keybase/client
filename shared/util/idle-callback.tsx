@@ -7,11 +7,13 @@ type TimeoutInfo = {
 
 function immediateCallback(cb: (info: TimeoutInfo) => void): NodeJS.Immediate {
   cb({didTimeout: true, timeRemaining: () => 0})
-  return {
+  const r = {
     _onImmediate: () => {},
-    ref: () => {},
-    unref: () => {},
+    hasRef: () => false,
+    ref: () => r,
+    unref: () => r,
   }
+  return r
 }
 
 function timeoutFallback(cb: (info: TimeoutInfo) => void): NodeJS.Timer {

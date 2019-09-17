@@ -114,7 +114,7 @@ const Bio = (p: Props) => (
         p.airdropIsLive &&
         p.registeredForAirdrop &&
         (p.youAreInAirdrop ? (
-          <Kb.WithTooltip text="Lucky airdropee">
+          <Kb.WithTooltip tooltip="Lucky airdropee">
             <Kb.Icon
               color={Styles.globalColors.yellowDark}
               type="iconfont-identity-stellar"

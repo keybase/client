@@ -13,6 +13,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Tabs from '../../constants/tabs'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS, isAndroid} from '../../constants/platform'
@@ -156,7 +157,7 @@ function* handleLoudMessage(notification: Types.PushNotification) {
 }
 
 // on iOS the go side handles a lot of push details
-function* handlePush(_: Container.TypedState, action: PushGen.NotificationPayload) {
+function* handlePush(state: Container.TypedState, action: PushGen.NotificationPayload) {
   try {
     const notification = action.payload.notification
     logger.info('[Push]: ' + notification.type || 'unknown')
@@ -186,6 +187,12 @@ function* handlePush(_: Container.TypedState, action: PushGen.NotificationPayloa
         {
           const {conversationIDKey} = notification
           yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
+        }
+        break
+      case 'settings.contacts':
+        if (state.config.loggedIn) {
+          yield Saga.put(RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}))
+          yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'peopleRoot'}))
         }
         break
     }
@@ -274,7 +281,7 @@ const neverShowMonsterAgain = async (state: Container.TypedState) => {
 
 function* requestPermissions() {
   if (isIOS) {
-    const shownPushPrompt = yield* Saga.callPromise(askNativeIfSystemPushPromptHasBeenShown)
+    const shownPushPrompt = yield askNativeIfSystemPushPromptHasBeenShown()
     if (shownPushPrompt) {
       // we've already shown the prompt, take them to settings
       yield Saga.put(ConfigGen.createOpenAppSettings())
@@ -285,7 +292,7 @@ function* requestPermissions() {
   try {
     yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
     logger.info('[PushRequesting] asking native')
-    const permissions = yield* Saga.callPromise(requestPermissionsFromNative)
+    const permissions = yield requestPermissionsFromNative()
     logger.info('[PushRequesting] after prompt:', permissions)
     if (permissions && (permissions.alert || permissions.badge)) {
       logger.info('[PushRequesting] enabled')
@@ -300,18 +307,21 @@ function* requestPermissions() {
   }
 }
 
-function* initialPermissionsCheck(): Saga.SagaGenerator<any, any> {
+function* initialPermissionsCheck() {
   const hasPermissions = yield _checkPermissions(null)
   if (hasPermissions) {
     // Get the token
     yield Saga.spawn(requestPermissionsFromNative)
   } else {
     const shownNativePushPromptTask = yield Saga._fork(askNativeIfSystemPushPromptHasBeenShown)
-    const shownMonsterPushPromptTask = yield Saga._fork(() =>
-      RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-        .then(v => !!v.b)
-        .catch(() => false)
-    )
+    const shownMonsterPushPromptTask = yield Saga._fork(async () => {
+      try {
+        const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
+        return !!v.b
+      } catch (_) {
+        return false
+      }
+    })
     const [shownNativePushPrompt, shownMonsterPushPrompt] = yield Saga.join(
       shownNativePushPromptTask,
       shownMonsterPushPromptTask
@@ -341,13 +351,13 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 
   logger.debug(`[PushCheck] checking ${action ? 'on foreground' : 'on startup'}`)
-  const permissions = yield* Saga.callPromise(checkPermissionsFromNative)
+  const permissions = yield checkPermissionsFromNative()
   if (permissions.alert || permissions.badge) {
     const state: Container.TypedState = yield* Saga.selectState()
     if (!state.push.hasPermissions) {
       logger.info('[PushCheck] enabled: getting token')
       yield Saga.put(PushGen.createUpdateHasPermissions({hasPermissions: true}))
-      yield* Saga.callPromise(requestPermissionsFromNative)
+      yield requestPermissionsFromNative()
     } else {
       logger.info('[PushCheck] enabled already')
     }
@@ -361,7 +371,7 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
-    push: Saga.callPromise(isAndroid ? getInitialPushAndroid : getInitialPushiOS),
+    push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
     pushTimeout: Saga.delay(10),
   })
   if (pushTimeout || !push) {
@@ -382,13 +392,13 @@ function* getStartupDetailsFromInitialPush() {
   return null
 }
 
-const getInitialPushAndroid = (): Promise<PushGen.NotificationPayload | null> =>
-  NativeModules.KeybaseEngine.getInitialIntent().then(n => {
-    let notification = n && Constants.normalizePush(n)
-    return notification && PushGen.createNotification({notification})
-  })
+const getInitialPushAndroid = async () => {
+  const n = await NativeModules.KeybaseEngine.getInitialIntent()
+  const notification = n && Constants.normalizePush(n)
+  return notification && PushGen.createNotification({notification})
+}
 
-const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
+const getInitialPushiOS = () =>
   new Promise(resolve =>
     PushNotifications.popInitialNotification(n => {
       const notification = Constants.normalizePush(n)
@@ -399,7 +409,7 @@ const getInitialPushiOS = (): Promise<PushGen.NotificationPayload | null> =>
     })
   )
 
-function* pushSaga(): Saga.SagaGenerator<any, any> {
+function* pushSaga() {
   // Permissions
   yield* Saga.chainGenerator<PushGen.RequestPermissionsPayload>(
     PushGen.requestPermissions,

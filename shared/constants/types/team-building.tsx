@@ -4,8 +4,14 @@ import {ServiceId} from '../../util/platforms'
 
 export type AllowedNamespace = 'chat2' | 'teams'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
+export type ServiceId = ServiceId
 
-export type ServiceIdWithContact = ServiceId | 'contact'
+export type ContactServiceId = 'email' | 'phone'
+// These are the possible tabs in team building, and also consts that can be
+// passed as `service` to search RPC (`userSearch.UserSearch`).
+export type ServiceIdWithContact = ServiceId | ContactServiceId
+
+export const isContactServiceId = (id: string): id is ContactServiceId => id === 'email' || id === 'phone'
 
 export type SearchString = string
 type UsernameOnService = string
@@ -34,9 +40,6 @@ export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact,
 
 // TODO remove teamBuilding prefix
 export type _TeamBuildingSubState = {
-  teamBuildingEmailSearchQuery: Query
-  teamBuildingEmailIsSearching: boolean
-  teamBuildingEmailResult: User | null
   teamBuildingTeamSoFar: I.OrderedSet<User>
   teamBuildingSearchResults: SearchResults
   teamBuildingServiceResultCount: ServiceResultCount

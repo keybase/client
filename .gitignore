@@ -65,3 +65,6 @@ shared/android/app/local.properties
 browser/node_modules
 browser/js/bundle.js
 go/.go_package_deps*
+
+# Files used during the Docker build
+.docker

@@ -375,7 +375,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       cancelEditingText: {
-        color: Styles.globalColors.blackOrBlack,
+        color: Styles.globalColors.whiteOrBlack,
       },
       container: {
         ...Styles.globalStyles.flexBoxColumn,
@@ -452,7 +452,7 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'left',
       },
       inputEditing: {
-        color: Styles.globalColors.blackOrWhite,
+        color: Styles.globalColors.blackOrBlack,
       },
       inputWrapper: {
         ...Styles.globalStyles.flexBoxRow,

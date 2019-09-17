@@ -64,7 +64,7 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || resultForService === 'contact') {
+  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
     return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
   }
 
@@ -98,7 +98,7 @@ const FormatPrettyName = (props: {
         )
       )}
       {props.services.map(service => (
-        <Kb.WithTooltip key={service} text={service} position="top center">
+        <Kb.WithTooltip key={service} tooltip={service} position="top center">
           <Kb.Icon
             fontSize={14}
             type={serviceIdToIconFont(service)}

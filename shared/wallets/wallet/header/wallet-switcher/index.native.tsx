@@ -69,7 +69,7 @@ export const WalletSwitcher = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   infoText: {
     color: Styles.globalColors.black_50,
     paddingLeft: Styles.globalMargins.tiny,
@@ -80,4 +80,4 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.small,
     width: '100%',
   },
-})
+}))

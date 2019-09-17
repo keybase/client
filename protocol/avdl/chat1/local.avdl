@@ -263,7 +263,8 @@ protocol local {
     EXPIRED_5,
     TOOMANYATTEMPTS_6,
     ALREADY_DELETED_7,
-    UPLOADFAILED_8
+    UPLOADFAILED_8,
+    RESTRICTEDBOT_9
   }
 
   record OutboxStateError {
@@ -819,6 +820,7 @@ protocol local {
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
+    array<ConversationID> convIDs;
 
     boolean unreadFirst;
     UnreadFirstNumLimit unreadFirstLimit;
@@ -1003,6 +1005,16 @@ protocol local {
 
   // Convenience interface for adding someone back to a reset team convo
   void addTeamMemberAfterReset(string username, ConversationID convID);
+  record ResetConvMember {
+    string username;
+    gregor1.UID uid;
+    ConversationID conv;
+  }
+  record GetAllResetConvMembersRes {
+    array<ResetConvMember> members;
+    array<RateLimit> rateLimits;
+  }
+  GetAllResetConvMembersRes getAllResetConvMembers();
 
   void setConvRetentionLocal(ConversationID convID, RetentionPolicy policy);
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
@@ -1119,7 +1131,6 @@ protocol local {
 
   // Location updates
   void locationUpdate(Coordinate coord);
-  void locationDenied(ConversationID convID);
 
   // Bot commands
   record UserBotExtendedDescription {
@@ -1171,4 +1182,10 @@ protocol local {
   PinMessageRes pinMessage(ConversationID convID, MessageID msgID);
   PinMessageRes unpinMessage(ConversationID convID);
   void ignorePinnedMessage(ConversationID convID);
+
+  void addBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
+  void editBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
+  void removeBotMember(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
+  void setBotMemberSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
+  keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
 }

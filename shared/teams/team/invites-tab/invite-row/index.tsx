@@ -36,7 +36,7 @@ export const TeamInviteRow = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
     padding: Styles.globalMargins.tiny,
   },
@@ -44,4 +44,4 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
     marginLeft: Styles.globalMargins.small,
   },
-})
+}))

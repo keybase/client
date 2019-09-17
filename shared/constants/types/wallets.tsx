@@ -139,6 +139,7 @@ export type _BuiltPayment = {
   builtBanners: Array<StellarRPCTypes.SendBannerLocal> | null
   from: AccountID
   publicMemoErrMsg: HiddenString
+  publicMemoOverride: HiddenString
   readyToReview: boolean
   readyToSend: string
   secretNoteErrMsg: HiddenString

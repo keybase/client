@@ -1,5 +1,5 @@
-FROM debian
-MAINTAINER Keybase <admin@keybase.io>
+FROM debian:stretch
+LABEL maintainer="Keybase <admin@keybase.io>"
 
 # Install dependencies from the standard repos.
 #   - Debian build requires 'fakeroot' and 'reprepro' (and 'dpkg-deb', but
@@ -20,7 +20,7 @@ RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
 RUN pip install s3cmd
 
 # Install nodejs and yarn. (Note that this depends on curl above.)
-RUN curl -sL https://deb.nodesource.com/setup_9.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" > /etc/apt/sources.list.d/yarn.list
 RUN apt-get update
@@ -30,9 +30,9 @@ RUN apt-get install -y nodejs yarn
 # When updating the version, remember to bump keybase_packaging_v# in docker_build.sh.
 # Copy over the new hash when upgrading version. But if not upgrading version,
 # the check should not ever fail.
-ENV GOLANG_VERSION 1.12.9
+ENV GOLANG_VERSION 1.13
 ENV GOLANG_DOWNLOAD_URL https://golang.org/dl/go$GOLANG_VERSION.linux-amd64.tar.gz
-ENV GOLANG_DOWNLOAD_SHA256 ac2a6efcc1f5ec8bdc0db0a988bb1d301d64b6d61b7e8d9e42f662fbb75a2b9b
+ENV GOLANG_DOWNLOAD_SHA256 68a2297eb099d1a76097905a2ce334e3155004ec08cdea85f24527be3c48e856
 
 RUN wget "$GOLANG_DOWNLOAD_URL" -O /root/go.tar.gz
 RUN echo "$GOLANG_DOWNLOAD_SHA256 /root/go.tar.gz" | sha256sum --check --status --strict -

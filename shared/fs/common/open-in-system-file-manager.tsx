@@ -20,7 +20,7 @@ type Props = {
 }
 
 const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
-  <WithTooltip text={`Show in ${fileUIName}`}>
+  <WithTooltip tooltip={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
       padding="tiny"
@@ -33,7 +33,7 @@ const OpenInSystemFileManager = ({openInSystemFileManager}: Props) => (
 
 const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
   <>
-    <WithTooltip text={`Show in ${fileUIName}`}>
+    <WithTooltip tooltip={`Show in ${fileUIName}`}>
       <Icon
         type="iconfont-finder"
         padding="tiny"
@@ -71,34 +71,37 @@ const FinderPopup = OverlayParentHOC((props: Props & OverlayParentProps) => (
 export default (props: Props) =>
   props.driverEnabled ? <OpenInSystemFileManager {...props} /> : <FinderPopup {...props} />
 
-const styles = Styles.styleSheetCreate({
-  buttonBox: {
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
-  },
-  fancyFinderIcon: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.medium,
-  },
-  header: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    paddingBottom: Styles.globalMargins.small,
-    textAlign: 'center',
-    width: '100%',
-  },
-  popup: {
-    backgroundColor: Styles.globalColors.white,
-    marginTop: Styles.globalMargins.tiny,
-    overflow: 'visible',
-    width: 220,
-  },
-  text: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      buttonBox: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.small,
+      },
+      fancyFinderIcon: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.medium,
+      },
+      header: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        paddingBottom: Styles.globalMargins.small,
+        textAlign: 'center',
+        width: '100%',
+      },
+      popup: {
+        backgroundColor: Styles.globalColors.white,
+        marginTop: Styles.globalMargins.tiny,
+        overflow: 'visible',
+        width: 220,
+      },
+      text: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+    } as const)
+)

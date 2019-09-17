@@ -614,6 +614,8 @@ func (g *gregorHandler) IsConnected() bool {
 func (g *gregorHandler) syncReplayThread() {
 	for rarg := range g.replayCh {
 		var trr testingReplayRes
+		now := time.Now()
+		g.Debug(rarg.ctx, "serverSync: starting replay thread")
 		replayedMsgs, err := g.replayInBandMessages(rarg.ctx, rarg.cli, rarg.t, nil)
 		if err != nil {
 			g.Debug(rarg.ctx, "serverSync: replayThread: replay messages failed: %s", err)
@@ -625,6 +627,7 @@ func (g *gregorHandler) syncReplayThread() {
 		if g.testingEvents != nil {
 			g.testingEvents.replayThreadCh <- trr
 		}
+		g.Debug(rarg.ctx, "serverSync: syncReplayThread complete: %v", time.Since(now))
 	}
 }
 

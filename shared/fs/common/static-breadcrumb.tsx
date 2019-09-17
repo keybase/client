@@ -1,9 +1,9 @@
 import * as React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Icon, Text, IconType} from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import CommaSeparatedName from './comma-separated-name'
 
-const getIcon = (tlfType: string): IconType => {
+const getIcon = (tlfType: string): Kb.IconType => {
   switch (tlfType) {
     case 'private':
       return 'icon-folder-private-16'
@@ -23,50 +23,53 @@ type Props = {
 }
 
 const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) => (
-  <Box style={stylesBox}>
+  <Kb.Box style={styles.box}>
     {[
       showTlfTypeIcon && (
-        <Icon
+        <Kb.Icon
           type={getIcon(pathElements[1])}
-          color={globalColors.blueDark}
-          style={stylesIconFolderType}
+          color={Styles.globalColors.blueDark}
+          style={styles.iconFolderType}
           key="icon"
         />
       ),
-      <Text key="text" type="BodySmallSemibold">
+      <Kb.Text key="text" type="BodySmallSemibold">
         {pathElements[1]}
-      </Text>,
+      </Kb.Text>,
       ...pathElements
         .slice(2, includeLast ? undefined : pathElements.length - 1)
         .map((elem, idx) => [
-          <Icon
+          <Kb.Icon
             key={`icon-${idx}`}
             type="iconfont-arrow-right"
-            style={stylesIconArrow}
-            color={globalColors.black_20}
+            style={styles.iconArrow}
+            color={Styles.globalColors.black_20}
             fontSize={12}
           />,
           <CommaSeparatedName key={`name-${idx}`} type="BodySmallSemibold" name={elem} />,
         ]),
     ]}
-  </Box>
+  </Kb.Box>
 )
 
-const stylesBox = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  justifyContent: 'center',
-}
-
-const stylesIconFolderType = {
-  marginRight: globalMargins.xtiny,
-}
-
-const stylesIconArrow = {
-  alignSelf: 'flex-end',
-  paddingLeft: 2,
-  paddingRight: 2,
-} as const
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+      },
+      iconArrow: {
+        alignSelf: 'flex-end',
+        paddingLeft: 2,
+        paddingRight: 2,
+      },
+      iconFolderType: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default StaticBreadcrumb

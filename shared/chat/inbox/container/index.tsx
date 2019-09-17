@@ -136,7 +136,7 @@ class InboxWrapper extends React.PureComponent<Props> {
   static navigationOptions = {
     header: undefined,
     headerRight: <HeaderNewChatButton />,
-    headerTitle: (
+    headerTitle: () => (
       <Kb.Text type="BodyBig" lineClamp={1}>
         {' '}
         Chats{' '}

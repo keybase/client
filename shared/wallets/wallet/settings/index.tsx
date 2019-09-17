@@ -282,7 +282,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                 <Kb.Text type="BodySmallSemibold">Inflation destination</Kb.Text>
                 {!Styles.isMobile && (
                   <Kb.WithTooltip
-                    text="Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets it."
+                    tooltip="Every year, the total Lumens grows by 1% due to inflation, and you can cast a vote for who gets it."
                     multiline={true}
                   >
                     <Kb.Icon type="iconfont-question-mark" sizeType="Small" />

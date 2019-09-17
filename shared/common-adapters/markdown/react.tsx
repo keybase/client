@@ -383,6 +383,8 @@ const serviceOnlyOutput = SimpleMarkdown.reactFor(
       return ast
     }
     switch (ast.type) {
+      case 'emoji':
+        return reactComponentsForMarkdownType.emoji(ast, output, state)
       case 'serviceDecoration':
         return (
           <ServiceDecoration
