@@ -192,7 +192,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       ashBox: {
-        backgroundColor: Styles.globalColors.fastBlank, // exploded messages don't have hover effects and we need to cover the message
+        backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
         backgroundImage: explodedIllustrationUrl,
         backgroundRepeat: 'repeat',
         backgroundSize: '400px 68px',
