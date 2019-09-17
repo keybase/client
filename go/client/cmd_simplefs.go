@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,7 +66,14 @@ func makeKbfsPath(
 	path string, rev int64, timeString, relTimeString string) (
 	keybase1.Path, error) {
 	p := strings.TrimPrefix(path, mountDir)
-	p = strings.TrimPrefix(p, protPrefix)
+	if strings.HasPrefix(p, protPrefix) {
+		var err error
+		p, err = url.PathUnescape(p)
+		if err != nil {
+			return keybase1.Path{}, err
+		}
+		p = strings.TrimPrefix(p, protPrefix)
+	}
 	if rev == 0 && timeString == "" && relTimeString == "" {
 		return keybase1.NewPathWithKbfsPath(p), nil
 	} else if rev != 0 {
