@@ -777,13 +777,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
 		return fmt.Errorf("error registering protocol: %s", err)
 	}
- go func() {
-               for {
-                       g.badger.Send(context.Background())
-                       time.Sleep(100 * time.Millisecond)
-               }
-       }()
-
 
 	uid, deviceID, token, nist, err := g.authParams(ctx)
 	if err != nil {
