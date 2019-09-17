@@ -9,6 +9,7 @@ const decoratorStyle = Styles.platformStyles({
     borderRadius: Styles.borderRadius,
     height: '500px',
     margin: Styles.globalMargins.tiny,
+    overflow: 'hidden',
     width: '500px',
   },
   isMobile: {

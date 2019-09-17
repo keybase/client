@@ -48,7 +48,7 @@ const ModalInner = (props: Props) => (
     {!!props.banners && props.banners}
     <Kb.ScrollView
       alwaysBounceVertical={false}
-      style={props.mode === 'Wide' ? styles.scrollWide : undefined}
+      style={styles.scroll}
       contentContainerStyle={styles.scrollContentContainer}
     >
       {props.children}
@@ -240,10 +240,10 @@ const styles = Styles.styleSheetCreate(() => {
         width: 560,
       },
     }),
-    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
-    scrollWide: Styles.platformStyles({
+    scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
     }),
+    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
   }
 })
 

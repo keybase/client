@@ -60,57 +60,20 @@ export const InfoIcon = Container.namedConnect(
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
-type HeaderProps = {
-  onBack?: (() => void) | null
-  title?: string
-  titleComponent?: React.ReactNode
-  showInfoIcon: boolean
-  showInfoIconRow: boolean
-  style: Styles.StylesCrossPlatform
-  negative: boolean
-  rightActionComponent?: React.ReactNode
-}
-
-// Only used on desktop
-const Header = (props: HeaderProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    style={Styles.collapseStyles([styles.headerContainer, props.style])}
-  >
-    {(props.showInfoIcon || props.showInfoIconRow) && (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.infoIconContainer}>
-        <InfoIcon invisible={(props.negative as boolean) || (props.showInfoIconRow && !props.showInfoIcon)} />
-      </Kb.Box2>
-    )}
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.titleContainer} fullWidth={true}>
-      {props.onBack && (
-        <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
-            <Kb.Icon
-              type="iconfont-arrow-left"
-              color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
-              sizeType="Small"
-              style={styles.fixIconAlignment}
-            />
-            <Kb.Text
-              type="Body"
-              style={props.negative ? undefined : styles.backText}
-              negative={props.negative}
-            >
-              Back
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.ClickableBox>
-      )}
-      {props.titleComponent || <Kb.Text type="Header">{props.title}</Kb.Text>}
-      {props.rightActionComponent && (
-        <Kb.Box2 direction="horizontal" style={styles.rightAction}>
-          {props.rightActionComponent}
-        </Kb.Box2>
-      )}
+const BackButton = (props: {negative?: boolean; onBack: () => void}) => (
+  <Kb.ClickableBox onClick={props.onBack}>
+    <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
+      <Kb.Icon
+        type="iconfont-arrow-left"
+        color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
+        sizeType="Small"
+        style={styles.fixIconAlignment}
+      />
+      <Kb.Text type="Body" style={props.negative ? undefined : styles.backText} negative={props.negative}>
+        Back
+      </Kb.Text>
     </Kb.Box2>
-  </Kb.Box2>
+  </Kb.ClickableBox>
 )
 
 type ButtonMeta = {
@@ -146,39 +109,25 @@ type SignupScreenProps = {
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 export const SignupScreen = (props: SignupScreenProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
-    {!Styles.isMobile && (
-      <Header
-        onBack={props.onBack}
-        title={props.title}
-        titleComponent={props.titleComponent}
-        showInfoIcon={!!props.showHeaderInfoicon}
-        showInfoIconRow={!!props.showHeaderInfoiconRow}
-        style={Styles.collapseStyles([props.noBackground && styles.whiteHeaderContainer, props.headerStyle])}
-        negative={!!props.negativeHeader}
-        rightActionComponent={props.rightActionComponent}
-      />
-    )}
-    {Styles.isMobile && !props.skipMobileHeader && (
-      <Kb.ModalHeader
-        leftButton={
-          props.leftAction ? (
-            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-              {props.leftActionText || props.leftAction}
-            </Kb.Text>
-          ) : null
-        }
-        rightButton={
-          props.onRightAction ? (
+  <Kb.Modal
+    fullscreen={true}
+    header={{
+      hideBorder: !props.noBackground,
+      leftButton: props.onBack && <BackButton onBack={props.onBack} negative={!!props.negativeHeader} />,
+      rightButton:
+        props.onRightAction || props.rightActionComponent ? (
+          props.rightActionLabel ? (
             <Kb.Text type="BodyBigLink" onClick={props.onRightAction}>
-              {props.rightActionLabel || props.rightActionComponent}
+              {props.rightActionLabel}
             </Kb.Text>
-          ) : null
-        }
-        style={props.headerStyle}
-        title={props.title ? <Kb.Text type="BodyBig">{props.title}</Kb.Text> : props.titleComponent}
-      />
-    )}
+          ) : (
+            props.rightActionComponent
+          )
+        ) : null,
+      style: props.headerStyle,
+      title: props.title || props.titleComponent,
+    }}
+  >
     {Styles.isMobile && props.header}
     <Kb.Box2
       alignItems="center"
@@ -208,7 +157,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
         </Kb.ButtonBar>
       )}
     </Kb.Box2>
-  </Kb.Box2>
+  </Kb.Modal>
 )
 SignupScreen.defaultProps = {
   leftAction: 'cancel',
@@ -227,11 +176,6 @@ export const errorBanner = (error: string) =>
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      backButton: {
-        bottom: Styles.globalMargins.small,
-        left: Styles.globalMargins.small,
-        position: 'absolute',
-      },
       backText: {
         color: Styles.globalColors.black_50,
       },
