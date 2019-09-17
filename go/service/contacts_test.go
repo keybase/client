@@ -89,13 +89,14 @@ func TestContactSyncAndSearch(t *testing.T) {
 
 	// bust cache, new resolution should be returned
 	clock.Advance(72 * time.Hour)
+	all.contactsMock.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "")
 	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
-	all.contactsMock.PhoneNumbers["+48111222334"] = contacts.MakeMockLookupUser("alice", "")
 	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
-	require.Len(t, newlyResolved, 2)
+	// We should only have 1 resolved, since we dedupe.
+	require.Len(t, newlyResolved, 1)
 	require.Equal(t, newlyResolved[0].ContactName, "Alice A")
 	require.Equal(t, newlyResolved[0].Username, "alice")
 	require.Equal(t, newlyResolved[0].Assertion, "48111222333@phone")
@@ -117,13 +118,13 @@ func TestContactSyncAndSearch(t *testing.T) {
 		require.Equal(t, "Alice A", list[0].DisplayLabel)
 		require.Equal(t, "alice", list[0].Username)
 		require.NotNil(t, list[0].Component.PhoneNumber)
-		require.Equal(t, "48111222333@phone", list[0].Assertion)
+		require.Equal(t, "48111222332@phone", list[0].Assertion)
 
 		require.Equal(t, "alice", list[1].DisplayName)
 		require.Equal(t, "Alice A", list[1].DisplayLabel)
 		require.Equal(t, "alice", list[1].Username)
 		require.NotNil(t, list[1].Component.PhoneNumber)
-		require.Equal(t, "48111222334@phone", list[1].Assertion)
+		require.Equal(t, "48111222333@phone", list[1].Assertion)
 	}
 
 	{
