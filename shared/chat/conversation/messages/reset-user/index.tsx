@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Text, Icon, Button} from '../../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 
 type Props = {
@@ -12,84 +12,87 @@ type Props = {
 }
 
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
-  <Box style={containerStyle}>
-    <Icon
+  <Kb.Box style={styles.container}>
+    <Kb.Icon
       type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-      style={{height: 64, margin: globalMargins.medium}}
+      style={{height: 64, margin: Styles.globalMargins.medium}}
     />
-    <Box style={textContainerStyle}>
-      <Text center={true} type="BodySemibold" negative={true}>
-        <Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
+    <Kb.Box style={styles.textContainer}>
+      <Kb.Text center={true} type="BodySemibold" negative={true}>
+        <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
           {username}{' '}
-        </Text>
-        <Text type="BodySemibold" negative={true}>
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" negative={true}>
           lost all their devices and this account has new keys. If you want to let them into this chat and
           folder's history, you should either:
-        </Text>
-      </Text>
-      <Box style={bulletStyle}>
-        <Text type="BodySemibold" negative={true} style={{marginTop: globalMargins.tiny}}>
+        </Kb.Text>
+      </Kb.Text>
+      <Kb.Box style={styles.bullet}>
+        <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
           1. Be satisfied with their new proofs, or
-        </Text>
-        <Text type="BodySemibold" negative={true} style={{marginTop: globalMargins.tiny}}>
+        </Kb.Text>
+        <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
           2. Know them outside Keybase and have gotten a thumbs up from them.
-        </Text>
-      </Box>
-      <Text type="BodySemibold" negative={true} style={{marginTop: globalMargins.tiny}}>
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Text type="BodySemibold" negative={true} style={{marginTop: Styles.globalMargins.tiny}}>
         Don't let them in until one of those is true.
-      </Text>
-      <Box
+      </Kb.Text>
+      <Kb.Box
         style={{
-          marginBottom: globalMargins.medium,
-          marginTop: globalMargins.medium,
-          ...globalStyles.flexBoxRow,
+          marginBottom: Styles.globalMargins.medium,
+          marginTop: Styles.globalMargins.medium,
+          ...Styles.globalStyles.flexBoxRow,
         }}
       >
-        <Button
+        <Kb.Button
           type="Dim"
           backgroundColor="red"
           onClick={viewProfile}
           label="View profile"
           style={{marginRight: 8}}
         />
-        <Button
+        <Kb.Button
           type="Dim"
           backgroundColor="red"
           onClick={letThemIn}
           label="Let them in"
-          labelStyle={{color: globalColors.redDark}}
-          style={{backgroundColor: globalColors.white}}
+          labelStyle={{color: Styles.globalColors.redDark}}
+          style={{backgroundColor: Styles.globalColors.white}}
         />
-      </Box>
+      </Kb.Box>
       {allowChatWithoutThem && (
-        <Text type="BodySemibold" negative={true}>
+        <Kb.Text type="BodySemibold" negative={true}>
           Or until you’re sure,{' '}
-          <Text type="BodySemiboldLink" negative={true} onClick={chatWithoutThem}>
+          <Kb.Text type="BodySemiboldLink" negative={true} onClick={chatWithoutThem}>
             chat without them
-          </Text>
-        </Text>
+          </Kb.Text>
+        </Kb.Text>
       )}
-    </Box>
-  </Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: globalColors.red,
-  padding: globalMargins.small,
-}
-
-const textContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  paddingLeft: 64,
-  paddingRight: 64,
-}
-
-const bulletStyle = {
-  ...globalStyles.flexBoxColumn,
-  maxWidth: 250,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bullet: {
+        ...Styles.globalStyles.flexBoxColumn,
+        maxWidth: 250,
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.red,
+        padding: Styles.globalMargins.small,
+      },
+      textContainer: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        paddingLeft: 64,
+        paddingRight: 64,
+      },
+    } as const)
+)
 
 export default ResetUser

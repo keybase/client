@@ -1,33 +1,44 @@
 import * as React from 'react'
-import {Box, Button, Text, ButtonBar} from '../../../common-adapters'
-import {globalColors, globalStyles} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {Props} from './you-rekey.types'
 
 const YouRekey = ({onRekey}: Props) => {
   return (
-    <Box style={containerStyle}>
-      <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
-        <Text
+    <Kb.Box style={styles.container}>
+      <Kb.Box
+        style={{
+          ...Styles.globalStyles.flexBoxRow,
+          backgroundColor: Styles.globalColors.red,
+          justifyContent: 'center',
+        }}
+      >
+        <Kb.Text
           negative={true}
           style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
           type="BodySemibold"
         >
           This conversation needs to be rekeyed.
-        </Text>
-      </Box>
-      <ButtonBar>
-        <Button backgroundColor="blue" onClick={onRekey} label="Rekey" />
-      </ButtonBar>
-    </Box>
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.ButtonBar>
+        <Kb.Button backgroundColor="blue" onClick={onRekey} label="Rekey" />
+      </Kb.ButtonBar>
+    </Kb.Box>
   )
 }
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  backgroundColor: globalColors.blueDarker2,
-  flex: 1,
-  justifyContent: 'flex-start',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+        backgroundColor: Styles.globalColors.blueDarker2,
+        flex: 1,
+        justifyContent: 'flex-start',
+      },
+    } as const)
+)
 
 export default YouRekey

@@ -1,40 +1,45 @@
 import React from 'react'
-import {Box, Text} from '../../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {
   onShowNewTeamDialog: () => void
 }
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
-  <Box style={stylesContainer}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Text center={true} type="BodySmallSemibold" negative={true}>
+  <Kb.Box style={styles.container}>
+    <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
         Create a team? You’ll be able to add and remove members as you wish.{' '}
-      </Text>
-      <Text
+      </Kb.Text>
+      <Kb.Text
         type="BodySmallSemiboldPrimaryLink"
-        style={{color: globalColors.white}}
+        style={{color: Styles.globalColors.white}}
         onClick={onShowNewTeamDialog}
         underline={true}
         className="underline"
         negative={true}
       >
         Enter a team name
-      </Text>
-    </Box>
-  </Box>
+      </Kb.Text>
+    </Kb.Box>
+  </Kb.Box>
 )
 
-const stylesContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.blue,
-  justifyContent: 'center',
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  paddingTop: globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.blue,
+        justifyContent: 'center',
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default CreateTeamHeader

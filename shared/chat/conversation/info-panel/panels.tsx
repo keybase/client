@@ -93,36 +93,39 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  divider: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-  membersContainer: {
-    flex: 1,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  retentionContainerStyle: Styles.platformStyles({
-    common: {
-      paddingLeft: 16,
-      paddingRight: 16,
-    },
-    isMobile: {
-      marginRight: 16,
-    },
-  }),
-  retentionDropdownStyle: Styles.platformStyles({
-    isElectron: {
-      marginRight: 45 - 16,
-      width: 'auto',
-    },
-    isMobile: {
-      width: '100%',
-    },
-  }),
-  settingsContainer: {
-    flex: 1,
-    height: '100%',
-    paddingTop: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      divider: {
+        marginBottom: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.tiny,
+      },
+      membersContainer: {
+        flex: 1,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      retentionContainerStyle: Styles.platformStyles({
+        common: {
+          paddingLeft: 16,
+          paddingRight: 16,
+        },
+        isMobile: {
+          marginRight: 16,
+        },
+      }),
+      retentionDropdownStyle: Styles.platformStyles({
+        isElectron: {
+          marginRight: 45 - 16,
+          width: 'auto',
+        },
+        isMobile: {
+          width: '100%',
+        },
+      }),
+      settingsContainer: {
+        flex: 1,
+        height: '100%',
+        paddingTop: Styles.globalMargins.small,
+      },
+    } as const)
+)

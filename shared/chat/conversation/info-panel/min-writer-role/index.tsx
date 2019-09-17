@@ -118,44 +118,47 @@ const Display = ({minWriterRole}) => (
   </Kb.Text>
 )
 
-const styles = Style.styleSheetCreate(() => ({
-  container: {
-    paddingLeft: Style.globalMargins.small,
-    paddingRight: Style.globalMargins.small,
-  },
-  dropdown: Style.platformStyles({
-    common: {
-      ...Style.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      borderColor: Style.globalColors.grey,
-      borderRadius: Style.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      minWidth: 220,
-      paddingRight: Style.globalMargins.small,
-    },
-    isElectron: {
-      marginRight: 45 - 16,
-      width: 'auto',
-    },
-  }),
-  label: {
-    ...Style.globalStyles.flexBoxCenter,
-    minHeight: Style.isMobile ? 40 : 32,
-    width: '100%',
-  },
-  saveIndicator: Style.platformStyles({
-    common: {
-      ...Style.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      height: 17,
-      justifyContent: 'center',
-      marginTop: Style.globalMargins.tiny,
-    },
-    isMobile: {
-      height: Style.globalMargins.medium,
-    },
-  }),
-}))
+const styles = Style.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        paddingLeft: Style.globalMargins.small,
+        paddingRight: Style.globalMargins.small,
+      },
+      dropdown: Style.platformStyles({
+        common: {
+          ...Style.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          borderColor: Style.globalColors.grey,
+          borderRadius: Style.borderRadius,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          minWidth: 220,
+          paddingRight: Style.globalMargins.small,
+        },
+        isElectron: {
+          marginRight: 45 - 16,
+          width: 'auto',
+        },
+      }),
+      label: {
+        ...Style.globalStyles.flexBoxCenter,
+        minHeight: Style.isMobile ? 40 : 32,
+        width: '100%',
+      },
+      saveIndicator: Style.platformStyles({
+        common: {
+          ...Style.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          height: 17,
+          justifyContent: 'center',
+          marginTop: Style.globalMargins.tiny,
+        },
+        isMobile: {
+          height: Style.globalMargins.medium,
+        },
+      }),
+    } as const)
+)
 
 export default MinWriterRole

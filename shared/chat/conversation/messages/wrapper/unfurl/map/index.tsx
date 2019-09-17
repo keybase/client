@@ -131,15 +131,18 @@ const LiveDuration = (props: DurationProps) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  liveLocation: {
-    backgroundColor: Styles.globalColors.blueGrey,
-    borderBottomLeftRadius: Styles.borderRadius,
-    borderBottomRightRadius: Styles.borderRadius,
-    justifyContent: 'space-between',
-    marginTop: -2,
-    padding: Styles.globalMargins.tiny,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      liveLocation: {
+        backgroundColor: Styles.globalColors.blueGrey,
+        borderBottomLeftRadius: Styles.borderRadius,
+        borderBottomRightRadius: Styles.borderRadius,
+        justifyContent: 'space-between',
+        marginTop: -2,
+        padding: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default UnfurlMap

@@ -235,64 +235,67 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  active: {
-    backgroundColor: Styles.globalColors.blueLighter2,
-    borderColor: Styles.globalColors.blue,
-  },
-  borderBase: {
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-  },
-  buttonBox: {
-    backgroundColor: Styles.globalColors.white,
-    borderWidth: 1,
-    height: Styles.isMobile ? 30 : 24,
-    ...Styles.transition('border-color', 'background-color', 'box-shadow'),
-  },
-  container: Styles.platformStyles({
-    common: {
-      paddingLeft: 6,
-      paddingRight: 6,
-    },
-    isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
-    },
-  }),
-  count: {
-    color: Styles.globalColors.black_50,
-    position: 'relative',
-    top: 1,
-  },
-  countActive: {
-    color: Styles.globalColors.blueDark,
-  },
-  emojiContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      borderRadius: 4,
-      marginRight: Styles.globalMargins.small,
-    },
-  }),
-  emojiIconWrapper: Styles.platformStyles({
-    isElectron: {
-      position: 'absolute',
-    },
-    isMobile: {marginTop: 2},
-  }),
-  emojiWrapper: Styles.platformStyles({
-    isMobile: {marginTop: -2},
-  }),
-  newReactionButtonBox: Styles.platformStyles({
-    common: {
-      width: 37,
-    },
-    isElectron: {
-      minHeight: 18,
-      overflow: 'hidden',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      active: {
+        backgroundColor: Styles.globalColors.blueLighter2,
+        borderColor: Styles.globalColors.blue,
+      },
+      borderBase: {
+        borderRadius: Styles.borderRadius,
+        borderStyle: 'solid',
+      },
+      buttonBox: {
+        backgroundColor: Styles.globalColors.white,
+        borderWidth: 1,
+        height: Styles.isMobile ? 30 : 24,
+        ...Styles.transition('border-color', 'background-color', 'box-shadow'),
+      },
+      container: Styles.platformStyles({
+        common: {
+          paddingLeft: 6,
+          paddingRight: 6,
+        },
+        isElectron: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      count: {
+        color: Styles.globalColors.black_50,
+        position: 'relative',
+        top: 1,
+      },
+      countActive: {
+        color: Styles.globalColors.blueDark,
+      },
+      emojiContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.boxShadow,
+          borderRadius: 4,
+          marginRight: Styles.globalMargins.small,
+        },
+      }),
+      emojiIconWrapper: Styles.platformStyles({
+        isElectron: {
+          position: 'absolute',
+        },
+        isMobile: {marginTop: 2},
+      }),
+      emojiWrapper: Styles.platformStyles({
+        isMobile: {marginTop: -2},
+      }),
+      newReactionButtonBox: Styles.platformStyles({
+        common: {
+          width: 37,
+        },
+        isElectron: {
+          minHeight: 18,
+          overflow: 'hidden',
+        },
+      }),
+    } as const)
+)
 
 export default ReactButton
