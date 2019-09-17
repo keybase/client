@@ -308,7 +308,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		forceRepoll:                           mungedForceRepoll,
 		staleOK:                               lArg.StaleOK,
 		public:                                lArg.Public,
-		skipAudit:                             lArg.SkipAudit,
+		auditMode:                             lArg.AuditMode,
 		skipNeedHiddenRotateCheck:             lArg.SkipNeedHiddenRotateCheck,
 
 		needSeqnos:    nil,
@@ -404,9 +404,10 @@ type load2ArgT struct {
 	forceRepoll               bool
 	staleOK                   bool
 	public                    bool
-	skipAudit                 bool
 	skipNeedHiddenRotateCheck bool
 	skipSeedCheck             bool
+
+	auditMode keybase1.AuditMode
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -900,7 +901,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	ret.LatestSeqnoHint = 0
 
 	tracer.Stage("audit")
-	err = l.audit(ctx, readSubteamID, &ret.Chain, arg.skipAudit)
+	err = l.audit(ctx, readSubteamID, &ret.Chain, arg.auditMode)
 	if err != nil {
 		return nil, err
 	}
@@ -1898,7 +1899,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	return headMerkle.Seqno, nil
 }
 
-func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, skipAudit bool) (err error) {
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, auditMode keybase1.AuditMode) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
@@ -1911,7 +1912,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 		return err
 	}
 
-	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, skipAudit)
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, auditMode)
 	return err
 }
 
