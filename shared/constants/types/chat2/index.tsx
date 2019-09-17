@@ -164,7 +164,7 @@ export type State = Readonly<{
   staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
-  threadSearchInfoMap: I.Map<Common.ConversationIDKey, ThreadSearchInfo>
+  threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>> // who's typing currently,

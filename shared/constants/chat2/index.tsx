@@ -22,6 +22,7 @@ import HiddenString from '../../util/hidden-string'
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
+const emptyArray = []
 
 export const makeState = (): Types.State => ({
   accountsInfoMap: I.Map(),
@@ -65,7 +66,7 @@ export const makeState = (): Types.State => ({
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
   threadLoadStatus: I.Map(),
-  threadSearchInfoMap: I.Map(),
+  threadSearchInfoMap: new Map(),
   threadSearchQueryMap: I.Map(),
   trustedInboxHasLoaded: false,
   typingMap: I.Map(), // who's typing currently,
@@ -84,17 +85,17 @@ export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
 
 export const makeStaticConfig = I.Record<Types._StaticConfig>({
   builtinCommands: {
-    [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+    [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.none]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: emptyArray,
   },
   deletableByDeleteHistory: I.Set(),
 })
 
-export const makeThreadSearchInfo = I.Record<Types._ThreadSearchInfo>({
-  hits: I.List(),
+export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
+  hits: emptyArray,
   status: 'initial',
   visible: false,
 })
@@ -162,7 +163,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 }
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
+  state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
