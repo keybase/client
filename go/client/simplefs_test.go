@@ -325,6 +325,36 @@ func (s SimpleFSMock) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.Simp
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSStartDownload(
+	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (downloadID string, err error) {
+	return "", nil
+}
+
+func (s SimpleFSMock) SimpleFSGetDownloadStatus(ctx context.Context) (
+	status keybase1.DownloadStatus, err error) {
+	return keybase1.DownloadStatus{}, nil
+}
+
+func (s SimpleFSMock) SimpleFSDismissDownload(
+	ctx context.Context, downloadID string) (err error) {
+	return nil
+}
+
+func (s SimpleFSMock) SimpleFSCancelDownload(
+	ctx context.Context, downloadID string) (err error) {
+	return nil
+}
+
+func (s SimpleFSMock) SimpleFSGetDownloadInfo(
+	ctx context.Context, downloadID string) (downloadInfo keybase1.DownloadInfo, err error) {
+	return keybase1.DownloadInfo{}, nil
+}
+
+func (s SimpleFSMock) SimpleFSConfigureDownload(
+	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
+	return nil
+}
+
 /*
  file source cases:
  1. file

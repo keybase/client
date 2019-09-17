@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
 import Upload from './upload-container'
-import Downloads from './downloads-container'
+import Downloads from './downloads'
 import ProofBroken from './proof-broken'
 
 type Props = {
