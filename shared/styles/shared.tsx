@@ -17,24 +17,29 @@ export const globalMargins = {
 }
 /* eslint-enable sort-keys */
 
-const _backgroundModeToColor = {
-  Announcements: 'blue',
-  Documentation: 'blueDarker',
-  HighRisk: 'red',
-  Information: 'yellow',
-  Normal: 'white',
-  Success: 'green',
-  Terminal: 'blueDarker2',
+export const backgroundModeToColor = {
+  get Announcements() {
+    return globalColors.blue
+  },
+  get Documentation() {
+    return globalColors.blueDarker
+  },
+  get HighRisk() {
+    return globalColors.red
+  },
+  get Information() {
+    return globalColors.yellow
+  },
+  get Normal() {
+    return globalColors.white
+  },
+  get Success() {
+    return globalColors.green
+  },
+  get Terminal() {
+    return globalColors.blueDarker2
+  },
 }
-
-export const backgroundModeToColor = new Proxy(
-  {},
-  {
-    get: function(_: unknown, prop: string) {
-      return globalColors[_backgroundModeToColor[prop]]
-    },
-  }
-)
 
 export const backgroundModeToTextColor = (backgroundMode: Background) => {
   switch (backgroundMode) {
