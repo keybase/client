@@ -5,10 +5,10 @@ import {SignupScreen} from '../../signup/common'
 
 type Props =
   | {
-      hasPW: false
+      pipelineStarted: false
     }
   | {
-      hasPW: true
+      pipelineStarted: true
       time: string
     }
 const todo = () => console.log('TODO')
@@ -20,17 +20,17 @@ const Waiting = (props: Props) => (
   >
     <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} fullHeight={true} centerChildren={true}>
       <Kb.Icon
-        type={props.hasPW ? 'iconfont-wave-2' : 'iconfont-mailbox'}
+        type={props.pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
         color={Styles.globalColors.black}
         fontSize={24}
       />
       <Kb.Box2 direction="vertical" centerChildren={true} gap="small">
         <Kb.Text type="Header" center={true}>
-          {props.hasPW ? `Check back in ${props.time}` : 'Check your email or phone.'}
+          {props.pipelineStarted ? `Check back in ${props.time}` : 'Check your email or phone.'}
         </Kb.Text>
-        {props.hasPW ? (
+        {props.pipelineStarted ? (
           <Kb.Box2 direction="vertical" centerChildren={true}>
-            <Kb.Text type="Body" style={styles.mainText}>
+            <Kb.Text type="Body" style={styles.mainText} center={true}>
               The reset has been initiated. For security reasons, nothing will happen in the next 7 days. We
               will notify you once you can proceed with the reset.
             </Kb.Text>
@@ -41,7 +41,7 @@ const Waiting = (props: Props) => (
           </Kb.Box2>
         ) : (
           <Kb.Box2 direction="vertical" centerChildren={true}>
-            <Kb.Text type="Body" style={styles.mainText}>
+            <Kb.Text type="Body" style={styles.mainText} center={true}>
               We are sending instructions to your email address or phone number.
             </Kb.Text>
             <Kb.Text type="BodyPrimaryLink" onClick={todo}>
@@ -58,6 +58,5 @@ export default Waiting
 const styles = Styles.styleSheetCreate(() => ({
   mainText: {
     ...Styles.padding(0, Styles.globalMargins.xsmall),
-    textAlign: 'center',
   },
 }))
