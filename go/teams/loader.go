@@ -62,8 +62,9 @@ func Load(ctx context.Context, g *libkb.GlobalContext, lArg keybase1.LoadTeamArg
 // Threadsafe.
 type TeamLoader struct {
 	libkb.Contextified
-	world   LoaderContext
-	storage *storage.Storage
+	world         LoaderContext
+	storage       *storage.Storage
+	merkleStorage *storage.Merkle
 	// Single-flight locks per team ID.
 	// (Private and public loads of the same ID will block each other, should be fine)
 	locktab *libkb.LockTable
@@ -82,11 +83,12 @@ type TeamLoader struct {
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
 
-func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *storage.Storage) *TeamLoader {
+func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *storage.Storage, merkleStorage *storage.Merkle) *TeamLoader {
 	return &TeamLoader{
 		Contextified:         libkb.NewContextified(g),
 		world:                world,
 		storage:              storage,
+		merkleStorage:        merkleStorage,
 		nameLookupBurstCache: libkb.NewBurstCache(g, 100, 10*time.Second, "SubteamNameToID"),
 		locktab:              libkb.NewLockTable(),
 	}
@@ -96,7 +98,8 @@ func NewTeamLoader(g *libkb.GlobalContext, world LoaderContext, storage *storage
 func NewTeamLoaderAndInstall(g *libkb.GlobalContext) *TeamLoader {
 	world := NewLoaderContextFromG(g)
 	st := storage.NewStorage(g)
-	l := NewTeamLoader(g, world, st)
+	mst := storage.NewMerkle()
+	l := NewTeamLoader(g, world, st, mst)
 	g.SetTeamLoader(l)
 	g.AddLogoutHook(l, "teamLoader")
 	g.AddDbNukeHook(l, "teamLoader")
@@ -515,6 +518,9 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, NewTeamTombstonedError()
 	}
 
+	// Fetch last polled time from merkle cache
+	merklePolledAt := l.merkleStorage.Get(mctx, arg.teamID, arg.public)
+
 	var ret *keybase1.TeamData
 	if !frozen && !arg.forceFullReload {
 		// Load from cache
@@ -544,7 +550,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	}
 
 	// Determine whether to repoll merkle.
-	discardCache, repoll := l.load2DecideRepoll(mctx, arg, teamShim())
+	discardCache, repoll := l.load2DecideRepoll(mctx, arg, teamShim(), merklePolledAt)
 	if discardCache {
 		ret = nil
 		repoll = true
@@ -600,12 +606,14 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	// Backfill stubbed links that need to be filled now.
 	tracer.Stage("backfill")
+	var filledInStubbedLinks bool
 	if ret != nil && len(arg.needSeqnos) > 0 {
 		ret, proofSet, parentChildOperations, err = l.fillInStubbedLinks(
 			ctx, arg.me, arg.teamID, ret, arg.needSeqnos, readSubteamID, proofSet, parentChildOperations, lkc)
 		if err != nil {
 			return nil, err
 		}
+		filledInStubbedLinks = true
 	}
 
 	tracer.Stage("pre-fetch")
@@ -906,9 +914,17 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, err
 	}
 
-	// Cache the validated result
-	tracer.Stage("put")
-	l.storage.Put(mctx, ret)
+	// Cache the validated result if it was actually updated via the team/get endpoint. In many cases, we're not
+	// actually mutating the teams. Also, if we wound up filling in stubbed links, let's also restore the cache.
+	if teamUpdate != nil || filledInStubbedLinks {
+		tracer.Stage("put")
+		l.storage.Put(mctx, ret)
+	}
+
+	// If we wound up repolling the merkle tree for this team, say that we did.
+	if didRepoll {
+		l.merkleStorage.Put(mctx, arg.teamID, arg.public, keybase1.ToTime(mctx.G().Clock().Now()))
+	}
 
 	tracer.Stage("notify")
 	if cachedName != nil && !cachedName.Eq(newName) {
@@ -1190,7 +1206,7 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - JustUpdated
 // - If this user is in global "force repoll" mode, where it would be too spammy to
 //   push out individual team changed notifications, so all team loads need a repoll.
-func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fromCache Teamer) (discardCache bool, repoll bool) {
+func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fromCache Teamer, cachedPolledAt *keybase1.Time) (discardCache bool, repoll bool) {
 	var reason string
 	defer func() {
 		if discardCache || repoll || reason != "" {
@@ -1279,7 +1295,12 @@ func (l *TeamLoader) load2DecideRepoll(mctx libkb.MetaContext, arg load2ArgT, fr
 		return false, true
 	}
 
-	cacheIsOld := !l.isFresh(mctx, fromCache.MainChain().CachedAt)
+	cachedAt := fromCache.MainChain().CachedAt
+	if cachedPolledAt != nil && *cachedPolledAt > cachedAt {
+		cachedAt = *cachedPolledAt
+	}
+
+	cacheIsOld := !l.isFresh(mctx, cachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
 		reason = "cacheIsOld"
