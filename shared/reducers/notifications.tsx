@@ -53,7 +53,7 @@ export default (state: Types.State = initialState, action: NotificationsGen.Acti
           draftState.desktopAppBadgeCount
         )
 
-        draftState.navBadges = counts
+        draftState.navBadges = new Map([...draftState.navBadges, ...counts])
         updateWidgetBadge(draftState)
         return
       }
