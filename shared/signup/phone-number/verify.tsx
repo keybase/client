@@ -39,6 +39,7 @@ const VerifyPhoneNumber = (props: Props) => {
       }
       containerStyle={styles.container}
       headerStyle={styles.container}
+      footerStyle={styles.container}
       header={
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.headerContainer}>
           <Kb.Text type="BodyBigLink" style={styles.backButton} onClick={props.onBack}>

@@ -102,6 +102,7 @@ type SignupScreenProps = {
   onBack?: () => void
   skipMobileHeader?: boolean
   headerStyle?: Styles.StylesCrossPlatform
+  footerStyle?: Styles.StylesCrossPlatform
   containerStyle?: Styles.StylesCrossPlatform
   contentContainerStyle?: Styles.StylesCrossPlatform
   title?: string
@@ -131,7 +132,10 @@ export const SignupScreen = (props: SignupScreenProps) => (
               </Kb.ButtonBar>
             ),
             hideBorder: true,
-            style: props.noBackground ? styles.whiteBackground : styles.blueBackground,
+            style: Styles.collapseStyles([
+              props.noBackground ? styles.whiteBackground : styles.blueBackground,
+              props.footerStyle,
+            ]),
           }
         : undefined
     }
