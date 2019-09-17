@@ -539,7 +539,7 @@ const showPaperkeyPage = (state: Container.TypedState) =>
   !state.provision.error.stringValue() &&
   RouteTreeGen.createNavigateAppend({path: ['paperkey'], replace: true})
 
-const showFinalErrorPage = (state: Container.TypedState, action: ProvisionGen.ShowFinalErrorPagePayload) => {
+const showFinalErrorPage = (_: Container.TypedState, action: ProvisionGen.ShowFinalErrorPagePayload) => {
   const parentPath = action.payload.fromDeviceAdd ? devicesRoot : ['login']
   const replace = !action.payload.fromDeviceAdd
   const path = ['error']
