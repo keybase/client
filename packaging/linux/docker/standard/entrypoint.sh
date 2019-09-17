@@ -46,7 +46,7 @@ fi
 
 # Run the main command in foreground if one was passed
 if [ "$#" -gt 1 ]; then
-    $@ &
+    "$@" &
 fi
 
 wait -n

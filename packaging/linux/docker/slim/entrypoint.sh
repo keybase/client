@@ -26,7 +26,6 @@ until keybase --no-auto-fork status &> /dev/null; do
     sleep 1
 done
 
-
 # Possibly run oneshot if it was requested by the user
 if [[ -v KEYBASE_USERNAME ]] -a [[ -v KEYBASE_PAPERKEY ]]; then
     keybase --no-auto-fork oneshot
@@ -34,7 +33,7 @@ fi
 
 # Run the main command in foreground if one was passed
 if [ "$#" -gt 1 ]; then
-    $@ &
+    "$@" &
 fi
 
 wait -n
