@@ -1,9 +1,10 @@
-// TODO remove Container
-import Container from '../../login/forms/container'
+// TODO remove PlatformContainer
+import PlatformContainer from '../../login/forms/container'
 import * as React from 'react'
+import * as Container from '../../util/container'
 import {RPCError} from '../../util/errors'
 import {StatusCode} from '../../constants/types/rpc-gen'
-import {Box2, Text, Markdown} from '../../common-adapters'
+import {Box2, Text, Markdown, Modal} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
@@ -20,16 +21,39 @@ const List = p => (
   </Box2>
 )
 
-const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
-  <Container onBack={p.onBack}>
-    <Text type="Header" style={styles.header}>
-      There was an error provisioning
-    </Text>
-    <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
-      {p.children}
-    </Box2>
-  </Container>
-)
+const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => {
+  const loggedIn = Container.useSelector(s => s.config.loggedIn)
+  const content = (
+    <>
+      <Text type="Header" style={styles.header}>
+        There was an error provisioning
+      </Text>
+      <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+        {p.children}
+      </Box2>
+    </>
+  )
+  return loggedIn ? (
+    <Modal
+      onClose={p.onBack}
+      header={
+        isMobile
+          ? {
+              leftButton: (
+                <Text type="BodySemiboldLink" onClick={p.onBack}>
+                  Back
+                </Text>
+              ),
+            }
+          : undefined
+      }
+    >
+      {content}
+    </Modal>
+  ) : (
+    <PlatformContainer onBack={p.onBack}>{content}</PlatformContainer>
+  )
+}
 
 const rewriteErrorDesc = {
   'Provisioner is a different user than we wanted.':
