@@ -97,7 +97,7 @@ const LeftBlock = (_: EmptyProps) => {
               </Kb.Text>
             </>
           ))}
-        {!!builtPaymentAdvanced.amountError ? (
+        {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
           </Kb.Text>
@@ -119,7 +119,7 @@ const LeftBlock = (_: EmptyProps) => {
         {!!buildingAdvanced.recipientAsset && (
           <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
         )}
-        {!!builtPaymentAdvanced.amountError ? (
+        {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
           </Kb.Text>
