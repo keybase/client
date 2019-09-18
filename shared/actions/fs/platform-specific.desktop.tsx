@@ -249,7 +249,7 @@ const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload
 
 const uninstallKBFSConfirm = async () => {
   const action = await new Promise<TypedActions | false>(resolve =>
-    SafeElectron.getDialog().showMessageBox(
+    KB.showMessageBox(
       {
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -354,10 +354,8 @@ const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
 
 const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
   new Promise(resolve =>
-    SafeElectron.getDialog().showOpenDialog(
-      SafeElectron.getCurrentWindowFromRemote(),
+    KB.showOpenDialog(
       {
-        // @ts-ignore codemod-issue
         properties: [
           'multiSelections',
           ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),

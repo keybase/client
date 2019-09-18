@@ -92,6 +92,19 @@ const unhandleDarkModeChanged = (id: undefined | number) => {
   }
 }
 
+const showMessageBox = (options: any, cb: (r: number) => void) => {
+  if (isRenderer) {
+    Electron.remote.dialog.showMessageBox(options, cb)
+  } else {
+    Electron.dialog.showMessageBox(options, cb)
+  }
+}
+
+const showOpenDialog = (options: any, cb: (filePaths: Array<string>) => void) => {
+  const w = Electron.remote.getCurrentWindow()
+  Electron.remote.dialog.showOpenDialog(w, options, cb)
+}
+
 target.KB = {
   __child_process: child_process,
   __dirname: __dirname,
@@ -113,6 +126,8 @@ target.KB = {
   purepack,
   renderToMain,
   rendererToMainMenu,
+  showMessageBox,
+  showOpenDialog,
   unhandleDarkModeChanged,
 }
 
