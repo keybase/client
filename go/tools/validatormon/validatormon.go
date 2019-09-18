@@ -95,7 +95,7 @@ func parseFlags() {
 	flag.StringVar(&shkey, "shkey", "", "StatHat ezkey")
 	flag.Parse()
 	if shkey == "" {
-		log.Printf("no shkey provided, proceeding but not stats will be reported")
+		log.Printf("no shkey provided, proceeding but no stats will be reported")
 	}
 }
 
