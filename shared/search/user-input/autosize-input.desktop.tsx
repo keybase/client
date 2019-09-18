@@ -99,22 +99,25 @@ class AutosizeInput extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-  },
-  div: {
-    left: -9999,
-    position: 'absolute' as const,
-    top: -9999,
-    whiteSpace: 'pre',
-  },
-  reset: {
-    ...getTextStyle('Body'),
-    border: 'none',
-    padding: 0,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+      },
+      div: {
+        left: -9999,
+        position: 'absolute' as const,
+        top: -9999,
+        whiteSpace: 'pre',
+      },
+      reset: {
+        ...getTextStyle('Body'),
+        border: 'none',
+        padding: 0,
+      },
+    } as const)
+)
 
 export default AutosizeInput
