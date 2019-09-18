@@ -2484,3 +2484,12 @@ func DedupStringLists(lists ...[]string) (res []string) {
 	}
 	return res
 }
+
+func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
+	if a.GetMtime() > b.GetMtime() {
+		return true
+	} else if a.GetMtime() < b.GetMtime() {
+		return false
+	}
+	return !(a.GetConvID().Eq(b.GetConvID()) || a.GetConvID().Less(b.GetConvID()))
+}
