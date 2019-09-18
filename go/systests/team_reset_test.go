@@ -710,6 +710,8 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 }
 
 func TestResetInOpenTeam(t *testing.T) {
+	t.Skip("TRIAGE-813")
+
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
