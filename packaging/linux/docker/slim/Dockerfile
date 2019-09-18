@@ -1,8 +1,8 @@
-ARG SERVICE_IMAGE=keybaseio/service:latest
+ARG BASE_IMAGE=keybaseio/client:latest
 
-FROM $SERVICE_IMAGE AS base
+FROM $BASE_IMAGE AS base
 
-FROM debian:stretch
+FROM debian:stretch-slim
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
@@ -18,12 +18,13 @@ RUN gpg --import /tini_key.asc \
     && gpg --batch --verify /tini.asc /tini \
     && chmod +x /tini
 
+COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
+
 RUN useradd --create-home --shell /bin/bash keybase
 USER keybase
+VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.local/share/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
-COPY --from=base /usr/bin/kbfsfuse /usr/bin/kbfsfuse
-COPY --from=base /usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
 
-ENTRYPOINT ["/tini", "--"]
-CMD ["keybase status"]
+ENTRYPOINT ["/tini", "--", "entrypoint.sh"]
