@@ -1,6 +1,6 @@
 // Entrypoint for the menubar node part
 import menubar from 'menubar'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -68,9 +68,9 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
           icon = action.payload.icon
           selectedIcon = action.payload.iconSelected
           updateIcon(false)
-          const dock = SafeElectron.getApp().dock
+          const dock = Electron.app.dock
           if (dock && dock.isVisible()) {
-            SafeElectron.getApp().setBadgeCount(action.payload.desktopAppBadgeCount)
+            Electron.app.setBadgeCount(action.payload.desktopAppBadgeCount)
           }
           break
         }
@@ -107,8 +107,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       if (!isWindows || !mb.window || !mb.tray) {
         return
       }
-      const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
-      const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
+      const cursorPoint = Electron.screen.getCursorScreenPoint()
+      const screenSize = Electron.screen.getDisplayNearestPoint(cursorPoint).workArea
       const menuBounds = mb.window.getBounds()
       logger.info('Showing menu:', cursorPoint, screenSize)
       let iconBounds = mb.tray.getBounds()
