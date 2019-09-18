@@ -73,7 +73,7 @@ export const makeState = (): Types.State => ({
   typingMap: new Map(), // who's typing currently,
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
-  unsentTextMap: I.Map(),
+  unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
 })
 

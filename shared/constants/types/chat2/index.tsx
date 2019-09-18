@@ -170,7 +170,7 @@ export type State = Readonly<{
   typingMap: Map<Common.ConversationIDKey, Set<string>> // who's typing currently,
   unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>
   unreadMap: ConversationCountMap // how many unread messages there are,
-  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   userReacjis: UserReacjis
 }>
 

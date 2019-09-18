@@ -549,7 +549,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           draftState.giphyResultMap = draftState.giphyResultMap.set(conversationIDKey, null)
         }
         if (action.payload.clearInput) {
-          draftState.unsentTextMap = draftState.unsentTextMap.set(conversationIDKey, new HiddenString(''))
+          const unsentTextMap = new Map(draftState.unsentTextMap)
+          unsentTextMap.delete(conversationIDKey)
+          draftState.unsentTextMap = unsentTextMap
         }
         return
       }
@@ -1126,17 +1128,15 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.giphySend: {
         draftState.giphyWindowMap = draftState.giphyWindowMap.set(action.payload.conversationIDKey, false)
-        draftState.unsentTextMap = draftState.unsentTextMap.set(
-          action.payload.conversationIDKey,
-          new HiddenString('')
-        )
+        const unsentTextMap = new Map(draftState.unsentTextMap)
+        unsentTextMap.delete(action.payload.conversationIDKey)
+        draftState.unsentTextMap = unsentTextMap
         return
       }
       case Chat2Gen.setUnsentText:
-        draftState.unsentTextMap = draftState.unsentTextMap.set(
-          action.payload.conversationIDKey,
-          action.payload.text
-        )
+        const unsentTextMap = new Map(draftState.unsentTextMap)
+        unsentTextMap.set(action.payload.conversationIDKey, action.payload.text)
+        draftState.unsentTextMap = unsentTextMap
         return
       case Chat2Gen.setPrependText:
         draftState.prependTextMap = draftState.prependTextMap.set(
