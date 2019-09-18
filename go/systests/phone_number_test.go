@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTeamWithPhoneNumber(t *testing.T) {
+func TestImpTeamWithPhoneNumber(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 

@@ -291,20 +291,6 @@ func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, userna
 
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string,
 	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (res keybase1.TeamAddMemberResult, err error) {
-	var inviteRequired bool
-	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username, true /* useTracking */)
-	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
-	if err != nil {
-		if err == errInviteRequired {
-			inviteRequired = true
-		} else if _, ok := err.(libkb.NotFoundError); ok {
-			return keybase1.TeamAddMemberResult{}, libkb.NotFoundError{
-				Msg: fmt.Sprintf("User not found: %v", username),
-			}
-		} else {
-			return keybase1.TeamAddMemberResult{}, err
-		}
-	}
 
 	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
@@ -320,26 +306,22 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return fmt.Errorf("Cannot add owner to team as an admin")
 		}
 
-		if inviteRequired && !uv.Uid.Exists() {
-			// Handle social invites without transactions.
-			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
-			return err
-		}
-
 		tx := CreateAddMemberTx(t)
-		err = tx.AddMemberByUsername(ctx, resolvedUsername.String(), role, botSettings)
+		resolvedUsername, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, username, role, botSettings)
 		if err != nil {
 			return err
 		}
 
-		// Try to mark completed any invites for the user's social assertions.
-		// This can be a time-intensive process since it involves checking proofs.
-		// It is limited to a few seconds and failure is non-fatal.
-		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
-			g.Log.CDebugf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+		if !uv.IsNil() {
+			// Try to mark completed any invites for the user's social assertions.
+			// This can be a time-intensive process since it involves checking proofs.
+			// It is limited to a few seconds and failure is non-fatal.
+			timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+			if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
+				g.Log.CDebugf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+			}
+			timeoutCancel()
 		}
-		timeoutCancel()
 
 		err = tx.Post(libkb.NewMetaContext(ctx, g))
 		if err != nil {
@@ -349,7 +331,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		// return value assign to escape closure
 		res = keybase1.TeamAddMemberResult{
 			User:    &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()},
-			Invited: inviteRequired,
+			Invited: invite,
 		}
 		return nil
 	})

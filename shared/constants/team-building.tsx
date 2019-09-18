@@ -18,18 +18,6 @@ export const allServices: Array<Types.ServiceIdWithContact> = [
   'email',
   ...searchServices.slice(1),
 ]
-const searchServicesWithEmail: Array<Types.ServiceIdWithContact> = [
-  ...searchServices.slice(0, 1),
-  'email',
-  ...searchServices.slice(1),
-]
-
-export function servicesForNamespace(namespace: Types.AllowedNamespace): Array<Types.ServiceIdWithContact> {
-  if (namespace === 'teams') {
-    return searchServicesWithEmail
-  }
-  return allServices
-}
 
 function isKeybaseUserId(userId: string) {
   // Only keybase user id's do not have
