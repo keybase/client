@@ -28,7 +28,7 @@ class FloatingBox extends React.Component<Props, State> {
         return attachTo.getBoundingClientRect()
       }
       if (attachTo) {
-        console.warn('Non html element passed to floating box', attachTo)
+        console.warn('Non html element passed to floating box, deprecate this soon', attachTo)
         let node
         try {
           // @ts-ignore this is fine

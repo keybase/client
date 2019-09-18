@@ -155,12 +155,11 @@ const _Button = (props: Props, ref: React.Ref<ClickableBox>) => {
   )
 }
 
-_Button.defaultProps = {
+const Button = React.forwardRef<ClickableBox, Props>(_Button)
+Button.defaultProps = {
   mode: 'Primary',
   type: 'Default',
 }
-
-const Button = React.forwardRef<ClickableBox, Props>(_Button)
 
 const typeToColorName = {
   Default: 'blue',
