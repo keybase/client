@@ -35,7 +35,7 @@ function SyncPropsFactory(serializer: Serializer) {
           // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
           // the data a lot
           if (Object.keys(props).length) {
-            KB.__electronAppEmit('KBkeybase', '', {
+            KB.renderToMain({
               payload: {
                 propsStr: JSON.stringify(props),
                 windowComponent,

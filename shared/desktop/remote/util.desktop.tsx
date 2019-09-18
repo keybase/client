@@ -61,7 +61,3 @@ export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
   )
   return w || null
 }
-
-export const mainWindowDispatch = (action: TypedActions): void => {
-  SafeElectron.getApp().emit('KBdispatchAction', '', action)
-}

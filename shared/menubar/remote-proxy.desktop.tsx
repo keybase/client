@@ -55,7 +55,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     subscriptionId: number | null = null
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
-      SafeElectron.getApp().emit('KBmenu', '', {
+      KB.rendererToMainMenu({
         payload: {
           desktopAppBadgeCount: this.props.desktopAppBadgeCount,
           icon,

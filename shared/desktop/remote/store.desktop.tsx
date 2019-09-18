@@ -3,7 +3,6 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {mainWindowDispatch} from './util.desktop'
 import {createStore, applyMiddleware, Store} from 'redux'
 import {TypedActions} from '../../actions/typed-actions-gen'
 import * as ConfigGen from '../../actions/config-gen'
@@ -76,7 +75,7 @@ class RemoteStore {
     }
 
     // Search for the main window and ask it directly for our props
-    mainWindowDispatch(
+    KB.anyToMainDispatchAction(
       ConfigGen.createRemoteWindowWantsProps({
         component: props.windowComponent,
         param: props.windowParam,
@@ -94,7 +93,7 @@ const sendToRemoteMiddleware = () => (next: (action: TypedActions | UpdateStoreA
     // Don't forward our internal updateStore call
     return next(action)
   } else {
-    mainWindowDispatch(action)
+    KB.anyToMainDispatchAction(action)
   }
   return next(action)
 }

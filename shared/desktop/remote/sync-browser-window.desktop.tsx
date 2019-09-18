@@ -15,7 +15,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
     React.useEffect(() => {
       const {windowOpts, windowComponent, windowParam, windowPositionBottomRight} = props
 
-      KB.__electronAppEmit('KBkeybase', '', {
+      KB.renderToMain({
         payload: {
           windowComponent,
           windowOpts,
@@ -25,7 +25,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
         type: 'makeRenderer',
       })
       return () => {
-        KB.__electronAppEmit('KBkeybase', '', {
+        KB.renderToMain({
           payload: {
             windowComponent,
             windowParam,

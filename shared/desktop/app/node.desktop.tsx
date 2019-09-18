@@ -11,7 +11,6 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
-import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
@@ -81,7 +80,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
     // invocations (used in the Arch community packages).
     for (let link of commandLine.slice(1, 3)) {
       if (isRelevantDeepLink(link)) {
-        mainWindowDispatch(DeeplinksGen.createLink({link}))
+        KB.anyToMainDispatchAction(DeeplinksGen.createLink({link}))
         return
       }
     }
@@ -155,7 +154,7 @@ const willFinishLaunching = () => {
     if (!appStartedUp) {
       startupURL = link
     } else {
-      mainWindowDispatch(DeeplinksGen.createLink({link}))
+      KB.anyToMainDispatchAction(DeeplinksGen.createLink({link}))
     }
   })
 }
@@ -206,17 +205,17 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
 }
 
 const plumbEvents = () => {
-  KB.__electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
+  KB.handleRenderToMain((action: Action) => {
     switch (action.type) {
       case 'appStartedUp':
         appStartedUp = true
         if (menubarWindowID) {
-          mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
+          KB.anyToMainDispatchAction(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
         }
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
           // stash a startupURL to be dispatched when we're ready for it.
-          mainWindowDispatch(DeeplinksGen.createLink({link: startupURL}))
+          KB.anyToMainDispatchAction(DeeplinksGen.createLink({link: startupURL}))
           startupURL = null
         } else if (!isDarwin) {
           // Windows and Linux instead store a launch URL in argv.
@@ -227,14 +226,14 @@ const plumbEvents = () => {
             link = KB.__process.argv[2]
           }
           if (link) {
-            mainWindowDispatch(DeeplinksGen.createLink({link}))
+            KB.anyToMainDispatchAction(DeeplinksGen.createLink({link}))
           }
         }
 
         // run installer
         installer(err => {
           err && console.log('Error: ', err)
-          mainWindowDispatch(ConfigGen.createInstallerRan())
+          KB.anyToMainDispatchAction(ConfigGen.createInstallerRan())
         })
         break
       case 'requestStartService':

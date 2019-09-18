@@ -8,8 +8,11 @@ import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
-let icon = ''
-let selectedIcon = ''
+// start with some kind of default
+let icon = isWindows
+  ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
+  : 'icon-keybase-menubar-regular-white-22@2x.png'
+let selectedIcon = icon
 
 type Bounds = {
   x: number
@@ -45,7 +48,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   })
 
   const updateIcon = (selected: boolean) => {
-    mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
+    const image = resolveImage('menubarIcon', selected ? selectedIcon : icon)
+    mb.tray.setImage(image)
   }
 
   type Action = {
@@ -58,7 +62,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   }
 
   mb.on('ready', () => {
-    SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
+    KB.handleRendererToMainMenu((action: Action) => {
       switch (action.type) {
         case 'showTray': {
           icon = action.payload.icon

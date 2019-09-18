@@ -29,7 +29,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  KB.__electronAppEmit('KBkeybase', '', {type: 'showMainWindow'})
+  KB.renderToMain({type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
@@ -249,7 +249,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
+      KB.renderToMain({type: 'requestStartService'}) 
   }
 }
 

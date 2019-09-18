@@ -57,7 +57,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
     windowState.height = winBounds.height
     windowState.isFullScreen = win.isFullScreen()
     windowState.windowHidden = !win.isVisible()
-    mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
+    KB.anyToMainDispatchAction(ConfigGen.createUpdateWindowState({windowState}))
   }, 5000)
 
   win.on('show', saveWindowState)
@@ -74,7 +74,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   win.on('close', hideInsteadOfClose)
 
   type IPCPayload = {type: 'showMainWindow'} | {type: 'closeWindows'}
-  KB.__electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
+  KB.handleRenderToMain((payload: IPCPayload) => {
     switch (payload.type) {
       case 'showMainWindow':
         win.show()
@@ -102,7 +102,7 @@ const changeDock = (show: boolean) => {
   }
 
   windowState.dockHidden = !show
-  mainWindowDispatch(ConfigGen.createUpdateWindowState({windowState}))
+  KB.anyToMainDispatchAction(ConfigGen.createUpdateWindowState({windowState}))
 }
 
 export const showDockIcon = () => changeDock(true)
