@@ -29,6 +29,7 @@ import (
 	"syscall"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kbun"
@@ -1119,4 +1120,23 @@ func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err e
 		DeeplinkPath:           getKBFSDeeplinkPath(afterKeybase),
 		PlatformAfterMountPath: getKBFSAfterMountPath(afterKeybase, RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE),
 	}, nil
+}
+
+func GetSafeFilename(filename string) (safeFilename string) {
+	if !utf8.ValidString(filename) {
+		return url.PathEscape(filename)
+	}
+	for _, r := range filename {
+		if unicode.Is(unicode.C, r) {
+			safeFilename += url.PathEscape(string(r))
+		} else {
+			safeFilename += string(r)
+		}
+	}
+	return safeFilename
+}
+
+func GetSafePath(path string) (safePath string) {
+	dir, file := filepath.Split(path)
+	return filepath.Join(dir, GetSafeFilename(file))
 }

@@ -2120,7 +2120,7 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
         },
       }
     )
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filename}))
     return rpcRes.filename
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
