@@ -1,8 +1,8 @@
 // The filter bar for search. Lets you select a search provider
 import * as Types from '../../constants/types/search'
 import React, {Component} from 'react'
-import {Box, Icon, ClickableBox, Text, IconType} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, transition, isMobile, platformStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {
   // eslint-disable-next-line
@@ -14,46 +14,48 @@ const bubbleColors = {
   Facebook: '#3B5998',
   GitHub: '#333333',
   'Hacker News': '#FF6600',
-  Keybase: globalColors.blue,
+  Keybase: Styles.globalColors.blue,
   Reddit: '#CEE3F8',
   Twitter: '#1DA1F2',
 }
 
 const servicesOrder = ['Keybase', 'Twitter', 'Facebook', 'GitHub', 'Reddit', 'Hacker News']
 
-const selectedIconMap: {[K in Types.Service]: IconType} = {
-  Facebook: isMobile ? 'icon-search-facebook-active-40' : 'icon-search-facebook-active-32',
-  GitHub: isMobile ? 'icon-search-github-active-40' : 'icon-search-github-active-32',
-  'Hacker News': isMobile ? 'icon-search-hacker-news-active-40' : 'icon-search-hacker-news-active-32',
-  Keybase: isMobile ? 'icon-search-keybase-active-40' : 'icon-search-keybase-active-32',
-  Reddit: isMobile ? 'icon-search-reddit-active-40' : 'icon-search-reddit-active-32',
-  Twitter: isMobile ? 'icon-search-twitter-active-40' : 'icon-search-twitter-active-32',
+const selectedIconMap: {[K in Types.Service]: Kb.IconType} = {
+  Facebook: Styles.isMobile ? 'icon-search-facebook-active-40' : 'icon-search-facebook-active-32',
+  GitHub: Styles.isMobile ? 'icon-search-github-active-40' : 'icon-search-github-active-32',
+  'Hacker News': Styles.isMobile ? 'icon-search-hacker-news-active-40' : 'icon-search-hacker-news-active-32',
+  Keybase: Styles.isMobile ? 'icon-search-keybase-active-40' : 'icon-search-keybase-active-32',
+  Reddit: Styles.isMobile ? 'icon-search-reddit-active-40' : 'icon-search-reddit-active-32',
+  Twitter: Styles.isMobile ? 'icon-search-twitter-active-40' : 'icon-search-twitter-active-32',
 }
 
-const unselectedIconMap: {[K in Types.Service]: IconType} = {
-  Facebook: isMobile ? 'icon-search-facebook-inactive-40' : 'icon-search-facebook-inactive-32',
-  GitHub: isMobile ? 'icon-search-github-inactive-40' : 'icon-search-github-inactive-32',
-  'Hacker News': isMobile ? 'icon-search-hacker-news-inactive-40' : 'icon-search-hacker-news-inactive-32',
-  Keybase: isMobile ? 'icon-search-keybase-inactive-40' : 'icon-search-keybase-inactive-32',
-  Reddit: isMobile ? 'icon-search-reddit-inactive-40' : 'icon-search-reddit-inactive-32',
-  Twitter: isMobile ? 'icon-search-twitter-inactive-40' : 'icon-search-twitter-inactive-32',
+const unselectedIconMap: {[K in Types.Service]: Kb.IconType} = {
+  Facebook: Styles.isMobile ? 'icon-search-facebook-inactive-40' : 'icon-search-facebook-inactive-32',
+  GitHub: Styles.isMobile ? 'icon-search-github-inactive-40' : 'icon-search-github-inactive-32',
+  'Hacker News': Styles.isMobile
+    ? 'icon-search-hacker-news-inactive-40'
+    : 'icon-search-hacker-news-inactive-32',
+  Keybase: Styles.isMobile ? 'icon-search-keybase-inactive-40' : 'icon-search-keybase-inactive-32',
+  Reddit: Styles.isMobile ? 'icon-search-reddit-inactive-40' : 'icon-search-reddit-inactive-32',
+  Twitter: Styles.isMobile ? 'icon-search-twitter-inactive-40' : 'icon-search-twitter-inactive-32',
 }
 
 const Service = ({service, selected, hovering, onHover, onSelect}) => {
   let backgroundColor: string | undefined
 
   if (hovering && !selected) {
-    backgroundColor = globalColors.blueLighter2
+    backgroundColor = Styles.globalColors.blueLighter2
   } else if (selected) {
     backgroundColor = bubbleColors[service]
   }
 
-  const boxProps = isMobile
+  const boxProps = Styles.isMobile
     ? {
         onPressIn: () => onHover(service, true),
         onPressOut: () => onHover(service, false),
         style: {
-          ...globalStyles.flexBoxCenter,
+          ...Styles.globalStyles.flexBoxCenter,
           backgroundColor,
           borderRadius: 20,
           height: 40,
@@ -64,7 +66,7 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
         onMouseEnter: () => onHover(service, true),
         onMouseLeave: () => onHover(service, false),
         style: {
-          ...globalStyles.flexBoxCenter,
+          ...Styles.globalStyles.flexBoxCenter,
           backgroundColor,
           borderRadius: 16,
           height: 32,
@@ -77,21 +79,21 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
     : {opacity: 0, pointerEvents: 'none'}
 
   return (
-    <ClickableBox key={service} onClick={() => onSelect(service)} {...boxProps}>
-      <Icon type={selected ? selectedIconMap[service] : unselectedIconMap[service]} />
-      {!isMobile && (
-        <Box
+    <Kb.ClickableBox key={service} onClick={() => onSelect(service)} {...boxProps}>
+      <Kb.Icon type={selected ? selectedIconMap[service] : unselectedIconMap[service]} />
+      {!Styles.isMobile && (
+        <Kb.Box
           style={{
-            ...serviceTooltipStyle,
+            ...styles.serviceTooltip,
             ...tooltipStyleHovering,
           }}
         >
-          <Text type="BodySmall" style={{color: globalColors.white}}>
+          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.white}}>
             {service}
-          </Text>
-        </Box>
+          </Kb.Text>
+        </Kb.Box>
       )}
-    </ClickableBox>
+    </Kb.ClickableBox>
   )
 }
 
@@ -120,7 +122,7 @@ class Filter extends Component<
 
   render() {
     return (
-      <Box style={styleServices}>
+      <Kb.Box style={styles.services}>
         {servicesOrder.map(service => (
           <Service
             key={service}
@@ -131,43 +133,46 @@ class Filter extends Component<
             onSelect={this._selectService}
           />
         ))}
-      </Box>
+      </Kb.Box>
     )
   }
 }
-const styleServices = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 48,
-  justifyContent: 'center',
-}
 
-const serviceTooltipPlatformStyle = platformStyles({
-  isElectron: {
-    ...transition('opacity'),
-    cursor: 'default',
-    height: 22,
-    lineHeight: '22px',
-    top: -28,
-    width: 90,
-  },
-  isMobile: {
-    height: 26,
-    paddingBottom: globalMargins.xtiny,
-    paddingTop: globalMargins.xtiny,
-    top: -32,
-    width: 100,
-  },
-})
-
-const serviceTooltipStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  backgroundColor: globalColors.black_50,
-  borderRadius: 20,
-  justifyContent: 'center',
-  position: 'absolute',
-  ...serviceTooltipPlatformStyle,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      serviceTooltip: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.black_50,
+          borderRadius: 20,
+          justifyContent: 'center',
+          position: 'absolute',
+        },
+        isElectron: {
+          ...Styles.transition('opacity'),
+          cursor: 'default',
+          height: 22,
+          lineHeight: '22px',
+          top: -28,
+          width: 90,
+        },
+        isMobile: {
+          height: 26,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+          top: -32,
+          width: 100,
+        },
+      }),
+      services: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: 48,
+        justifyContent: 'center',
+      },
+    } as const)
+)
 
 export default Filter
