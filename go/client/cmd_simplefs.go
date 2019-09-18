@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,12 +57,23 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-const mountDir = "/keybase"
+const (
+	mountDir   = "/keybase"
+	protPrefix = "keybase://"
+)
 
 func makeKbfsPath(
 	path string, rev int64, timeString, relTimeString string) (
 	keybase1.Path, error) {
-	p := path[len(mountDir):]
+	p := strings.TrimPrefix(path, mountDir)
+	if strings.HasPrefix(p, protPrefix) {
+		var err error
+		p, err = url.PathUnescape(p)
+		if err != nil {
+			return keybase1.Path{}, err
+		}
+		p = strings.TrimPrefix(p, protPrefix)
+	}
 	if rev == 0 && timeString == "" && relTimeString == "" {
 		return keybase1.NewPathWithKbfsPath(p), nil
 	} else if rev != 0 {
@@ -105,7 +117,8 @@ func makeSimpleFSPathWithArchiveParams(
 
 	// Test for the special mount dir prefix before the absolute test.
 	// Otherwise the current dir will be prepended, below.
-	if strings.HasPrefix(path, mountDir) {
+	if strings.HasPrefix(path, mountDir) ||
+		strings.HasPrefix(path, protPrefix) {
 		return makeKbfsPath(path, rev, timeString, relTimeString)
 	}
 

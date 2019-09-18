@@ -953,3 +953,39 @@ func TestDiskBlockCacheMark(t *testing.T) {
 	_, _, _, err = cache.Get(ctx, tlfID, ids[4], DiskBlockAnyCache)
 	require.EqualError(t, err, data.NoSuchBlockError{ID: ids[4]}.Error())
 }
+
+func TestDiskBlockCacheRemoveBrokenBlocks(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that blocks with corrupt metadata are removed.")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+	wsCache := cache.workingSetCache
+	ctx := context.Background()
+
+	t.Log("Add one block, then corrupt its metadata.")
+	tlfID := tlf.FakeID(1, tlf.Private)
+	blockPtr1, _, blockEncoded1, serverHalf1 := setupBlockForDiskCache(
+		t, config)
+	err := cache.Put(
+		ctx, tlfID, blockPtr1.ID, blockEncoded1, serverHalf1,
+		DiskBlockWorkingSetCache)
+	require.NoError(t, err)
+	require.Equal(t, 1, wsCache.numBlocks)
+
+	err = wsCache.metaDb.Delete(blockPtr1.ID.Bytes(), nil)
+	require.NoError(t, err)
+
+	t.Log("Make the cache full, and put a new block, which should succeed " +
+		"and will remove the broken block.")
+	currBytes := int64(cache.workingSetCache.currBytes)
+	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
+	limiter.diskCacheByteTracker.limit = currBytes
+
+	blockPtr2, _, blockEncoded2, serverHalf2 := setupBlockForDiskCache(
+		t, config)
+	err = cache.Put(
+		ctx, tlfID, blockPtr2.ID, blockEncoded2, serverHalf2,
+		DiskBlockWorkingSetCache)
+	require.NoError(t, err)
+	require.Equal(t, 1, wsCache.numBlocks)
+}

@@ -196,3 +196,78 @@ func TestPukRollNewUserEK(t *testing.T) {
 	merkleRoot := *merkleRootPtr
 	publishAndVerifyUserEK(mctx, t, merkleRoot, uid)
 }
+
+func TestDeprovision(t *testing.T) {
+	tc, mctx, user := ephemeralKeyTestSetup(t)
+	defer tc.Cleanup()
+
+	// Confirm that the user has a userEK.
+	uid := tc.G.Env.GetUID()
+	uids := []keybase1.UID{uid}
+	statements, err := fetchUserEKStatements(mctx, uids)
+	require.NoError(t, err)
+	firstStatement, ok := statements[uid]
+	require.True(t, ok)
+	require.EqualValues(t, firstStatement.CurrentUserEkMetadata.Generation, 1, "should start at userEK gen 1")
+
+	// make a paper key to log back in with
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := engine.NewPaperKey(tc.G)
+	mctx = mctx.WithUIs(uis)
+	err = engine.RunEngine2(mctx, eng)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, len(eng.Passphrase()), "empty passphrase")
+
+	// self provision to have a device to create the userEK for
+	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
+	uis = libkb.UIs{
+		ProvisionUI: &kbtest.TestProvisionUI{},
+		LogUI:       tc.G.Log,
+		SecretUI:    user.NewSecretUI(),
+		LoginUI:     provLoginUI,
+	}
+	mctx = mctx.WithUIs(uis)
+	libkb.CreateClonedDevice(tc, mctx)
+	newName := "uncloneme"
+	eng1 := engine.NewSelfProvisionEngine(tc.G, newName)
+	err = engine.RunEngine2(mctx, eng1)
+	require.NoError(t, err)
+	require.Equal(t, mctx.ActiveDevice().Name(), newName)
+
+	eng2 := engine.NewDeprovisionEngine(tc.G, user.Username, true /* doRevoke */)
+	uis = libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: user.NewSecretUI(),
+	}
+	mctx = mctx.WithUIs(uis)
+	err = engine.RunEngine2(mctx, eng2)
+	require.NoError(t, err)
+
+	// log back in
+	secretUI := user.NewSecretUI()
+	secretUI.Passphrase = eng.Passphrase()
+	provisionUI := &kbtest.TestProvisionUI{}
+	provisionUI.DeviceType = "backup"
+	uis = libkb.UIs{
+		ProvisionUI: provisionUI,
+		LogUI:       tc.G.UI.GetLogUI(),
+		GPGUI:       &kbtest.GPGTestUI{},
+		SecretUI:    secretUI,
+		LoginUI:     &libkb.TestLoginUI{Username: user.Username},
+	}
+	eng3 := engine.NewLogin(tc.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
+	mctx = mctx.WithUIs(uis)
+	err = engine.RunEngine2(mctx, eng3)
+	require.NoError(t, err)
+
+	// Finally, confirm that the deprovision above also created a new userEK.
+	statements, err = fetchUserEKStatements(mctx, uids)
+	require.NoError(t, err)
+	secondStatement, ok := statements[uid]
+	require.True(t, ok)
+	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
+}

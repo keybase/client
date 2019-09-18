@@ -11,11 +11,11 @@ const _renderRightActions = () => {
 }
 
 // See '.js.flow' for explanation
-const LongPressable = (props: {children: React.ElementType; onSwipeLeft: () => void}) => {
+const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => void}) => {
   const {children, ...rest} = props
   const swipeable = React.useRef<Kb.Swipeable>(null)
   const onRightOpen = () => {
-    props.onSwipeLeft()
+    props.onSwipeLeft && props.onSwipeLeft()
     swipeable.current && swipeable.current.close()
   }
   return (

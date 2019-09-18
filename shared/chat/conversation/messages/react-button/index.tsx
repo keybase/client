@@ -124,8 +124,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this.props.onShowPicker && this.props.onShowPicker(showingPicker)
   }
 
-  _onAddReaction = ({colons}: {colons: string}, evt: Event) => {
-    evt.stopPropagation()
+  _onAddReaction = ({colons}: {colons: string}) => {
     this.props.onAddReaction(colons)
     this._setShowingPicker(false)
     this._stopCycle()

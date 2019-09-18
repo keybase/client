@@ -1155,6 +1155,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-illustration-teams-216.png'),
   },
+  'icon-illustration-zen-240-180': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-zen-240-180.png'),
+  },
   'icon-invite-link-48': {
     extension: 'png',
     isFont: false,

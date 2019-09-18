@@ -49,23 +49,18 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		}
 		basepath := body.Attachment().Object.Filename
 		basename := path.Base(basepath)
-		fullpath, err := getDownloadTempDir(g, basename)
+		filename, err = getDownloadTempDir(g, basename)
 		if err != nil {
 			return "", nil, err
 		}
-		f, err := os.OpenFile(fullpath, openFlag, libkb.PermFile)
-		if err != nil {
-			return "", nil, err
-		}
-		filename = fullpath
-		sink = f
 	} else {
 		if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
 			return "", nil, err
 		}
-		if sink, err = os.OpenFile(filename, openFlag, libkb.PermFile); err != nil {
-			return "", nil, err
-		}
+	}
+	filename = libkb.GetSafePath(filename)
+	if sink, err = os.OpenFile(filename, openFlag, libkb.PermFile); err != nil {
+		return "", nil, err
 	}
 	return filename, sink, nil
 }

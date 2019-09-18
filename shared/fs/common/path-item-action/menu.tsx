@@ -2,6 +2,9 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as Kbfs from '../../common'
+import * as FsGen from '../../../actions/fs-gen'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
 import Header from './header'
@@ -11,7 +14,7 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 type Props = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
-  shouldHideMenu: boolean
+  shouldAutoHide: boolean
   copyPath?: (() => void) | null
   delete?: (() => void) | null
   download?: (() => void) | null
@@ -120,7 +123,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
     ? [
         {
           onClick: () => {
-            props.floatingMenuProps.hideOnce()
+            props.floatingMenuProps.hide()
             props.sendAttachmentToChat && props.sendAttachmentToChat()
           },
           subTitle: `The ${
@@ -183,7 +186,24 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => [
 ]
 
 export default (props: Props) => {
-  props.shouldHideMenu && props.floatingMenuProps.hideOnce()
+  const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
+  Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+
+  const {
+    floatingMenuProps: {hide},
+    shouldAutoHide,
+  } = props
+
+  React.useEffect(() => {
+    shouldAutoHide && hide()
+  }, [shouldAutoHide, hide])
+
+  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const userInitiatedHide = React.useCallback(() => {
+    hide()
+    downloadID && dispatch(FsGen.createDismissDownload({downloadID}))
+  }, [downloadID, hide, dispatch])
+
   return (
     <Kb.FloatingMenu
       closeText="Cancel"
@@ -191,13 +211,13 @@ export default (props: Props) => {
       containerStyle={props.floatingMenuProps.containerStyle}
       attachTo={props.floatingMenuProps.attachTo}
       visible={props.floatingMenuProps.visible}
-      onHidden={props.floatingMenuProps.hideOnce}
+      onHidden={userInitiatedHide}
       position="left center"
       header={{
         title: 'unused',
         view: <Header path={props.path} />,
       }}
-      items={makeMenuItems(props, props.floatingMenuProps.hideOnce)}
+      items={makeMenuItems(props, props.floatingMenuProps.hide)}
     />
   )
 }

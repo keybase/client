@@ -217,6 +217,8 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no resolve")
 			}
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 			mustPostLocalEphemeralForTest(t, ctc, users[0], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{

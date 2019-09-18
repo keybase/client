@@ -58,17 +58,31 @@ export type PathAndOutboxID = {
 
 type _MessageCommon = {
   author: string
+  conversationIDKey: Common.ConversationIDKey
   id: MessageID
   ordinal: Ordinal
+  timestamp: number
+  bodySummary: HiddenString
 }
+type _MessageCommonWithDeviceInfo = {
+  deviceName: string
+  deviceRevokedAt: number | null
+  deviceType: DeviceType
+} & _MessageCommon
+
+type _MessageCommonWithDeviceDeletableEditable = {
+  isDeleteable: boolean
+  isEditable: boolean
+} & _MessageCommonWithDeviceInfo
+
+type _MessageCommonWithDeviceDeletableEditableReactions = {
+  reactions: Reactions
+} & _MessageCommonWithDeviceDeletableEditable
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
 
 export type _MessagePlaceholder = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  timestamp: number
   type: 'placeholder'
 } & _MessageCommon
 
@@ -76,27 +90,16 @@ export type MessagePlaceholder = I.RecordOf<_MessagePlaceholder>
 
 // We keep deleted messages around so the bookkeeping is simpler
 export type _MessageDeleted = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
   hasBeenEdited: boolean
   errorReason: string | null
   errorTyp: number | null
   outboxID: OutboxID | null
-  timestamp: number
   type: 'deleted'
-} & _MessageCommon
+} & _MessageCommonWithDeviceInfo
 export type MessageDeleted = I.RecordOf<_MessageDeleted>
 
 export type _MessageText = {
-  conversationIDKey: Common.ConversationIDKey
   decoratedText: HiddenString | null
-  bodySummary: HiddenString
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
   errorReason: string | null
   errorTyp: number | null
   exploded: boolean
@@ -120,10 +123,9 @@ export type _MessageText = {
   replyTo: Message | null
   text: HiddenString
   paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
-  timestamp: number
   unfurls: UnfurlMap
   type: 'text'
-} & _MessageCommon
+} & _MessageCommonWithDeviceInfo
 export type MessageText = I.RecordOf<_MessageText>
 
 export type AttachmentType = 'image' | 'file'
@@ -145,15 +147,10 @@ export type MessageAttachmentTransferState =
 export type _MessageAttachment = {
   attachmentType: AttachmentType
   showPlayButton: boolean
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
   fileURL: string
   fileURLCached: boolean
   previewURL: string
   fileType: string // MIME type,
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
   downloadPath: string | null // string if downloaded,
   errorReason: string | null
   errorTyp: number | null
@@ -176,14 +173,13 @@ export type _MessageAttachment = {
   previewTransferState: 'downloading' | null // only for preview,
   reactions: Reactions
   submitState: null | 'deleting' | 'pending' | 'failed'
-  timestamp: number
   title: string
   transferProgress: number // 0-1 // only for the file,
   transferState: MessageAttachmentTransferState
   transferErrMsg: string | null
   type: 'attachment'
   videoDuration: string | null
-} & _MessageCommon
+} & _MessageCommonWithDeviceInfo
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 
 export type _ChatRequestInfo = {
@@ -199,11 +195,6 @@ export type _ChatRequestInfo = {
 export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
 export type _MessageRequestPayment = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
   errorReason: string | null
   errorTyp: number | null
   hasBeenEdited: boolean
@@ -212,9 +203,8 @@ export type _MessageRequestPayment = {
   reactions: Reactions
   requestID: RPCStellarTypes.KeybaseRequestID
   requestInfo: ChatRequestInfo | null // If null, we are waiting on this from the service,
-  timestamp: number
   type: 'requestPayment'
-} & _MessageCommon
+} & _MessageCommonWithDeviceInfo
 export type MessageRequestPayment = I.RecordOf<_MessageRequestPayment>
 
 export type _ChatPaymentInfo = {
@@ -240,20 +230,14 @@ export type _ChatPaymentInfo = {
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
   errorReason: string | null
   errorTyp: number | null
   hasBeenEdited: boolean
   outboxID: OutboxID | null
   reactions: Reactions
   paymentInfo: ChatPaymentInfo | null // If null, we are waiting on this from the service,
-  timestamp: number
   type: 'sendPayment'
-} & _MessageCommon
+} & _MessageCommonWithDeviceInfo
 export type MessageSendPayment = I.RecordOf<_MessageSendPayment>
 
 // Note that all these MessageSystem* messages are generated by the sender's client
@@ -263,132 +247,70 @@ export type MessageSendPayment = I.RecordOf<_MessageSendPayment>
 // other places in the store to get that information when possible.
 export type _MessageSystemInviteAccepted = {
   adder: string
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
   inviteType: 'none' | 'unknown' | 'keybase' | 'email' | 'sbs' | 'text'
   invitee: string
   inviter: string
-  reactions: Reactions
   team: string
-  timestamp: number
   type: 'systemInviteAccepted'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepted>
 
+export type _MessageSystemSBSResolved = {
+  assertionUsername: string
+  assertionService: string
+  prover: string
+  type: 'systemSBSResolved'
+} & _MessageCommonWithDeviceDeletableEditableReactions
+export type MessageSystemSBSResolved = I.RecordOf<_MessageSystemSBSResolved>
+
 export type _MessageSystemSimpleToComplex = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
-  reactions: Reactions
-  timestamp: number
   team: string
   type: 'systemSimpleToComplex'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemSimpleToComplex = I.RecordOf<_MessageSystemSimpleToComplex>
 
 export type _MessageSystemGitPush = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
   pusher: string
   pushType: RPCTypes.GitPushType
-  reactions: Reactions
   refs: Array<RPCTypes.GitRefMetadata>
   repo: string
   repoID: string
   team: string
-  timestamp: number
   type: 'systemGitPush'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemGitPush = I.RecordOf<_MessageSystemGitPush>
 
 export type _MessageSystemAddedToTeam = {
   addee: string
   adder: string
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
   isAdmin: boolean
-  reactions: Reactions
   team: string
-  timestamp: number
   type: 'systemAddedToTeam'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemAddedToTeam = I.RecordOf<_MessageSystemAddedToTeam>
 
 export type _MessageSystemJoined = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
   joiners: Array<string>
   leavers: Array<string>
-  timestamp: number
   type: 'systemJoined'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditable
 export type MessageSystemJoined = I.RecordOf<_MessageSystemJoined>
 
 export type _MessageSystemLeft = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
-  timestamp: number
   type: 'systemLeft'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditable
 export type MessageSystemLeft = I.RecordOf<_MessageSystemLeft>
 
 export type _MessageSystemText = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
-  reactions: Reactions
-  timestamp: number
   text: HiddenString
   type: 'systemText'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemText = I.RecordOf<_MessageSystemText>
 
 export type _MessageSetDescription = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
-  reactions: Reactions
-  timestamp: number
   newDescription: HiddenString
   type: 'setDescription'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSetDescription = I.RecordOf<_MessageSetDescription>
 
 export type _MessagePin = {
@@ -407,53 +329,26 @@ export type _MessagePin = {
 export type MessagePin = I.RecordOf<_MessagePin>
 
 export type _MessageSetChannelname = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
-  reactions: Reactions
-  timestamp: number
   newChannelname: string
   type: 'setChannelname'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSetChannelname = I.RecordOf<_MessageSetChannelname>
 
 export type _MessageSystemChangeRetention = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
   isInherit: boolean
   isTeam: boolean
   membersType: RPCChatTypes.ConversationMembersType
   policy: RPCChatTypes.RetentionPolicy | null
-  reactions: Reactions
-  timestamp: number
   type: 'systemChangeRetention'
   user: string
   you: string
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemChangeRetention = I.RecordOf<_MessageSystemChangeRetention>
 
 export type _MessageSystemUsersAddedToConversation = {
-  bodySummary: HiddenString
-  conversationIDKey: Common.ConversationIDKey
-  deviceName: string
-  deviceRevokedAt: number | null
-  deviceType: DeviceType
-  isDeleteable: boolean
-  isEditable: boolean
-  reactions: Reactions
-  timestamp: number
   usernames: Array<string>
   type: 'systemUsersAddedToConversation'
-} & _MessageCommon
+} & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemUsersAddedToConversation = I.RecordOf<_MessageSystemUsersAddedToConversation>
 
 export type MessageWithReactionPopup =
@@ -465,6 +360,7 @@ export type MessageWithReactionPopup =
   | MessageSystemChangeRetention
   | MessageSystemGitPush
   | MessageSystemInviteAccepted
+  | MessageSystemSBSResolved
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageSystemUsersAddedToConversation
@@ -490,6 +386,7 @@ export type Message =
   | MessageSystemInviteAccepted
   | MessageSystemJoined
   | MessageSystemLeft
+  | MessageSystemSBSResolved
   | MessageSystemSimpleToComplex
   | MessageSystemText
   | MessageSystemUsersAddedToConversation
@@ -509,6 +406,7 @@ export type MessageType =
   | 'systemInviteAccepted'
   | 'systemJoined'
   | 'systemLeft'
+  | 'systemSBSResolved'
   | 'systemSimpleToComplex'
   | 'systemText'
   | 'systemUsersAddedToConversation'
