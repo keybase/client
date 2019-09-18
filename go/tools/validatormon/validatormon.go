@@ -77,4 +77,30 @@ func AnalyzeNode(sr StatusReader, nodeName string) (*Analysis, error) {
 }
 
 func main() {
+	log.Printf("validatormon starting")
+	sr := new(LocalReader)
+	for _, n := range kbNodes {
+		a, err := AnalyzeNode(sr, n)
+		if err != nil {
+			log.Printf("AnalyzeNode %s (%s) error: %s", n, nodes[n], err)
+			// post stellar - validator - monitor error
+			// post stellar - validator - monitor error - $name
+			continue
+		}
+
+		if a.Ok {
+			// post stellar - validator - ok
+			// post stellar - validator - ok - $name
+		} else {
+			// post stellar - validator - not ok
+			// post stellar - validator - not ok - $name
+		}
+
+		// post stellar - validator - missing count
+		// post stellar - validator - missing count - $name
+
+		// post stellar - validator - ledger delta
+		// post stellar - validator - ledger delta - $name
+	}
+	log.Printf("validatormon finished")
 }

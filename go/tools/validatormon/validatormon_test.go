@@ -58,3 +58,95 @@ func TestAnalyzeNode(t *testing.T) {
 		t.Errorf("keybase3 ok, expected not ok: %+v", a)
 	}
 }
+
+func TestStatusFromJSON(t *testing.T) {
+	s, err := statusFromJSON([]byte(lbRes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Node != "lobstr3" {
+		t.Errorf("node: %q, expected lobstr3", s.Node)
+	}
+	if s.Ledger != 25889124 {
+		t.Errorf("ledger: %d, expected 25889124", s.Ledger)
+	}
+	if s.Phase != "expired" {
+		t.Errorf("phase: %q, expected expired", s.Phase)
+	}
+	if len(s.Missing) != 0 {
+		t.Errorf("missing len: %d, expected 0", len(s.Missing))
+	}
+
+	s, err = statusFromJSON([]byte(kbRes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Node != "keybase2" {
+		t.Errorf("node: %q, expected keybase2", s.Node)
+	}
+	if s.Ledger != 25889136 {
+		t.Errorf("ledger: %d, expected 25889136", s.Ledger)
+	}
+	if s.Phase != "EXTERNALIZE" {
+		t.Errorf("phase: %q, expected EXTERNALIZE", s.Phase)
+	}
+	if len(s.Missing) != 1 {
+		t.Errorf("missing len: %d, expected 1", len(s.Missing))
+	}
+}
+
+const (
+	lbRes = `{
+   "node" : "lobstr3",
+   "qset" : {
+      "delayed" : null,
+      "disagree" : null,
+      "ledger" : 25889124,
+      "missing" : null,
+      "phase" : "expired",
+      "validated" : true
+   }
+}
+`
+	kbRes = `{
+   "node" : "keybase2",
+   "qset" : {
+      "agree" : 16,
+      "delayed" : null,
+      "disagree" : null,
+      "fail_at" : 4,
+      "fail_with" : [ "sdf3", "sdf1", "coinqvest.FI", "coinqvest.HK" ],
+      "hash" : "b69f17",
+      "ledger" : 25889136,
+      "missing" : [ "lobstr3" ],
+      "phase" : "EXTERNALIZE",
+      "validated" : true,
+      "value" : {
+         "t" : 4,
+         "v" : [
+            {
+               "t" : 2,
+               "v" : [ "sdf3", "sdf1", "sdf2" ]
+            },
+            {
+               "t" : 2,
+               "v" : [ "coinqvest.FI", "coinqvest.HK", "coinqvest.DE" ]
+            },
+            {
+               "t" : 2,
+               "v" : [ "satoshipay.US", "satoshipay.SG", "satoshipay.DE" ]
+            },
+            {
+               "t" : 2,
+               "v" : [ "keybase3", "keybase1", "keybase2" ]
+            },
+            {
+               "t" : 3,
+               "v" : [ "lobstr5", "lobstr4", "lobstr1", "lobstr2", "lobstr3" ]
+            }
+         ]
+      }
+   }
+}
+`
+)
