@@ -48,7 +48,11 @@ const dispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onForgotUsername: () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
-  onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
+  onGoToSignup: () => {
+    // navigateUp first so we can't try make a stack like signup -> login -> signup -> login
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(SignupGen.createRequestAutoInvite())
+  },
   onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
 })
 

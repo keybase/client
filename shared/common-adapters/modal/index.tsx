@@ -159,8 +159,8 @@ const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
     fullWidth={true}
     style={Styles.collapseStyles([
       styles.footer,
-      props.wide && !Styles.isMobile && styles.footerWide,
-      props.fullscreen && !Styles.isMobile && styles.footerFullscreen,
+      props.wide && styles.footerWide,
+      props.fullscreen && styles.footerFullscreen,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
@@ -200,12 +200,20 @@ const styles = Styles.styleSheetCreate(() => {
       borderTopColor: Styles.globalColors.black_10,
       borderTopWidth: 1,
     },
-    footerFullscreen: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.small, Styles.globalMargins.xlarge),
-    },
-    footerWide: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
-    },
+    footerFullscreen: Styles.platformStyles({
+      isElectron: {
+        ...Styles.padding(
+          Styles.globalMargins.xsmall,
+          Styles.globalMargins.small,
+          Styles.globalMargins.xlarge
+        ),
+      },
+    }),
+    footerWide: Styles.platformStyles({
+      isElectron: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
+      },
+    }),
     header: {
       ...headerCommon,
       minHeight: 48,

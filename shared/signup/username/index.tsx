@@ -3,7 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {maxUsernameLength} from '../../constants/signup'
-import {InfoIcon, SignupScreen, errorBanner} from '../common'
+import {HeaderRightInfoIcon, SignupScreen, errorBanner} from '../common'
 
 type Props = {
   error: string
@@ -84,14 +84,7 @@ EnterUsername.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
-  headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
-      <InfoIcon />
-    </Kb.Box2>
-  ),
+  headerRightActions: HeaderRightInfoIcon,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

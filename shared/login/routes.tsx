@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
 import {ProxySettingsPopup} from '../settings/proxy'
+import {HeaderRightInfoIcon} from '../signup/common'
 
 type OwnProps = {}
 type Props = {
@@ -26,6 +27,7 @@ _RootLogin.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
+  headerRightActions: HeaderRightInfoIcon,
 }
 
 const RootLogin = Container.connect(

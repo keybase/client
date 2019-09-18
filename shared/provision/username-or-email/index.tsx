@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {maxUsernameLength} from '../../constants/signup'
-import {SignupScreen, errorBanner} from '../../signup/common'
+import {SignupScreen, errorBanner, HeaderRightInfoIcon} from '../../signup/common'
 
 type Props = {
   error: string
@@ -57,7 +57,11 @@ const Username = (props: Props) => {
       onBack={props.onBack}
       title="Log in"
       rightActionComponent={
-        <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
+        Styles.isMobile ? (
+          undefined
+        ) : (
+          <Kb.Button type="Default" mode="Secondary" label="Create an account" onClick={props.onGoToSignup} />
+        )
       }
       contentContainerStyle={styles.contentContainer}
     >
@@ -143,6 +147,7 @@ Username.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
+  headerRightActions: HeaderRightInfoIcon,
 }
 
 export default Username

@@ -60,6 +60,15 @@ export const InfoIcon = Container.namedConnect(
   'SignupInfoIcon'
 )(Kb.OverlayParentHOC(_InfoIcon))
 
+export const HeaderRightInfoIcon = () => (
+  <Kb.Box2
+    direction="horizontal"
+    style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
+  >
+    <InfoIcon />
+  </Kb.Box2>
+)
+
 const BackButton = (props: {negative?: boolean; onBack: () => void}) => {
   if (!Styles.isMobile) {
     return (
@@ -113,8 +122,6 @@ type SignupScreenProps = {
   onRightAction?: (() => void) | null
   leftAction?: 'back' | 'cancel'
   leftActionText?: string
-  showHeaderInfoicon?: boolean
-  showHeaderInfoiconRow?: boolean
 }
 
 // Screens with header + body bg color (i.e. all but join-or-login)

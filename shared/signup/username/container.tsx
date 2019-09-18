@@ -25,7 +25,11 @@ const ConnectedEnterUsername = Container.connect(
       dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
     },
     onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
-    onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
+    onLogin: (initUsername: string) => {
+      // navigateUp first so we can't try make a stack like signup -> login -> signup -> login
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(ProvisionGen.createStartProvision({initUsername}))
+    },
   }),
   (s, d, o: OwnProps) => ({
     ...s,
