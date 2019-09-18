@@ -1789,7 +1789,7 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 	if err != nil {
 		return res, err
 	}
-	p := &chat1.Pagination{Num: 10}
+	p := &chat1.Pagination{Num: 1000}
 	for {
 		h.Debug(ctx, "GetAllResetConvMembers: p: %s", p)
 		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, p)
