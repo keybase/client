@@ -30,9 +30,9 @@ export type Props = {
   style?: Styles.StylesCrossPlatform
   labelContainerStyle?: Styles.StylesCrossPlatform
   labelStyle?: Styles.StylesCrossPlatform
-  type: ButtonType
+  type?: ButtonType
   backgroundColor?: ButtonColor
-  mode: 'Primary' | 'Secondary'
+  mode?: 'Primary' | 'Secondary'
   disabled?: boolean
   waiting?: boolean
   small?: boolean
@@ -51,13 +51,14 @@ const Progress = ({small, white}) => (
   </Kb.Box>
 )
 
-const _Button = (props: Props, ref: React.Ref<ClickableBox>) => {
+const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
+  const {mode = 'Primary', type = 'Default'} = props
   let containerStyle = props.backgroundColor
-    ? backgroundColorContainerStyles[props.mode]
-    : containerStyles[props.mode + props.type]
+    ? backgroundColorContainerStyles[mode]
+    : containerStyles[mode + type]
   let labelStyle = props.backgroundColor
-    ? backgroundColorLabelStyles[props.mode + (props.mode === 'Secondary' ? '' : props.backgroundColor)]
-    : labelStyles[props.mode + props.type]
+    ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
+    : labelStyles[mode + type]
 
   if (props.fullWidth) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
@@ -80,32 +81,32 @@ const _Button = (props: Props, ref: React.Ref<ClickableBox>) => {
 
   const onClick = (!unclickable && props.onClick) || undefined
   const whiteSpinner =
-    (props.mode === 'Primary' && !(props.backgroundColor || props.type === 'Dim')) ||
-    (props.mode === 'Secondary' && !!props.backgroundColor)
+    (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
+    (mode === 'Secondary' && !!props.backgroundColor)
 
   // Hover border colors
   const classNames: Array<string> = []
-  if (props.mode === 'Secondary' && !props.backgroundColor) {
+  if (mode === 'Secondary' && !props.backgroundColor) {
     // base grey border
     classNames.push('button__border')
     if (!unclickable) {
       // hover effect
-      classNames.push(`button__border_${typeToColorName[props.type]}`)
+      classNames.push(`button__border_${typeToColorName[type]}`)
     }
   }
 
   // Hover background colors
   const underlayClassNames: Array<string> = []
-  if (props.mode === 'Primary' && !unclickable) {
+  if (mode === 'Primary' && !unclickable) {
     underlayClassNames.push(
       'button__underlay',
       props.backgroundColor ? `button__underlay_${props.backgroundColor}` : 'button__underlay_black10'
     )
-  } else if (props.mode === 'Secondary' && !unclickable) {
+  } else if (mode === 'Secondary' && !unclickable) {
     // default 0.2 opacity + 0.15 here = 0.35 hover
     underlayClassNames.push(
       'button__underlay',
-      props.backgroundColor ? 'button__underlay_black' : `button__underlay_${typeToColorName[props.type]}`
+      props.backgroundColor ? 'button__underlay_black' : `button__underlay_${typeToColorName[type]}`
     )
   }
   const underlay =
@@ -153,13 +154,7 @@ const _Button = (props: Props, ref: React.Ref<ClickableBox>) => {
       </Kb.Box>
     </Kb.ClickableBox>
   )
-}
-
-const Button = React.forwardRef<ClickableBox, Props>(_Button)
-Button.defaultProps = {
-  mode: 'Primary',
-  type: 'Default',
-}
+})
 
 const typeToColorName = {
   Default: 'blue',

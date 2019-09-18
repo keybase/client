@@ -20,7 +20,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
   const {accountID, onCopyKey} = props
   const dispatch = Container.useDispatch()
   const [showingToast, setShowToast] = React.useState(false)
-  const attachmentRef = React.useRef<Kb.Button>(null)
+  const attachmentRef = React.useRef<Kb.ClickableBox>(null)
   const setShowToastFalseLater = Kb.useTimeout(() => setShowToast(false), 2000)
   const onLoadSecretKey = React.useCallback(
     () => dispatch(WalletsGen.createExportSecretKey({accountID: accountID})),
