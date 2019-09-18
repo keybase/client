@@ -11,7 +11,6 @@ export type Props = {
 const PromptReset = (props: Props) => {
   return (
     <SignupScreen
-      banners={[]}
       buttons={[
         {
           label: 'Start account reset',

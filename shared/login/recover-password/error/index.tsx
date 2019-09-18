@@ -11,7 +11,6 @@ type Props = {
 
 const Error = (props: Props) => (
   <SignupScreen
-    banners={[]}
     buttons={[
       {
         label: 'Back',

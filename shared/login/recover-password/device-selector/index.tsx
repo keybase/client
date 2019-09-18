@@ -84,7 +84,7 @@ const DeviceSelector = (props: Props) => {
     },
   ]
   return (
-    <SignupScreen onBack={props.onBack} title="Recover password">
+    <SignupScreen onBack={props.onBack} noBackground={true} title="Recover password">
       <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} fullHeight={true}>
         <Kb.Text type="Body">Which do you have handy?</Kb.Text>
         <Kb.Box2
