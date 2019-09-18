@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -e
+# shellcheck disable=SC2086,SC2068
+set -euxo pipefail
 
 # If a command was passed and KEYBASE_SERVICE is not set, simply run the command
 if [ "$#" -gt 1 ] -a [[ -z "${KEYBASE_SERVICE}" ]]; then
@@ -10,9 +11,9 @@ fi
 # If we're called with any args, don't pollute stdout and stderr and write the
 # logs into /var/log/keybase
 if [ "$#" -gt 1 ]; then
-    bash -c "keybase ${KEYBASE_SERVICE_ARGS:-"-debug"} service &> /var/log/keybase/service.log" &
+    keybase ${KEYBASE_SERVICE_ARGS:-"-debug"} service &> /var/log/keybase/service.log &
 else
-    bash -c "keybase ${KEYBASE_SERVICE_ARGS:-"-debug"} service" &
+    keybase ${KEYBASE_SERVICE_ARGS:-"-debug"} service &
 fi
 
 # Wait up to 10 seconds for the service to start
@@ -33,7 +34,7 @@ fi
 
 # Run the main command in foreground if one was passed
 if [ "$#" -gt 1 ]; then
-    "$@" &
+    $@ &
 fi
 
 wait -n
