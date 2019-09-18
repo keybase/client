@@ -263,10 +263,6 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellowLight: '#FFFDCC',
 }
 
-// export const partyColors: { [P in keyof typeof colors]: string | undefined } = {
-
-// }
-
 const partyFallbackColors = {
   black: 'rgba(255, 255, 255, 0.85)',
   get blackOrBlack() {
