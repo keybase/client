@@ -110,21 +110,15 @@ func TestContactSyncAndSearch(t *testing.T) {
 	}
 
 	{
-		// We expect two "Alice A" contacts to show up as resolved.
+		// We expect one "Alice A" show up as resolved.
 		list, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
 		require.NoError(t, err)
-		require.Len(t, list, 2)
+		require.Len(t, list, 1)
 		require.Equal(t, "alice", list[0].DisplayName)
 		require.Equal(t, "Alice A", list[0].DisplayLabel)
 		require.Equal(t, "alice", list[0].Username)
 		require.NotNil(t, list[0].Component.PhoneNumber)
-		require.Equal(t, "48111222332@phone", list[0].Assertion)
-
-		require.Equal(t, "alice", list[1].DisplayName)
-		require.Equal(t, "Alice A", list[1].DisplayLabel)
-		require.Equal(t, "alice", list[1].Username)
-		require.NotNil(t, list[1].Component.PhoneNumber)
-		require.Equal(t, "48111222333@phone", list[1].Assertion)
+		require.Equal(t, "48111222333@phone", list[0].Assertion)
 	}
 
 	{
