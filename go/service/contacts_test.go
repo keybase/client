@@ -70,11 +70,11 @@ func TestContactSyncAndSearch(t *testing.T) {
 
 	rawContacts := []keybase1.Contact{
 		contacts.MakeContact("Alice A",
-			contacts.MakePhoneComponent("mobile", "+48111222333"),
-			contacts.MakeEmailComponent("email", "alice@example.org"),
+			contacts.MakePhoneComponent("mobile", "+48111222332"),
 		),
 		contacts.MakeContact("Alice A",
-			contacts.MakePhoneComponent("mobile", "+48111222334"),
+			contacts.MakePhoneComponent("mobile", "+48111222333"),
+			contacts.MakeEmailComponent("email", "alice@example.org"),
 		),
 	}
 
