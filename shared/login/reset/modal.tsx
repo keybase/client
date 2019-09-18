@@ -1,15 +1,29 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {Props} from '.'
+import * as Container from '../../util/container'
+import * as Types from '../../constants/types/autoreset'
+import * as Constants from '../../constants/autoreset'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as AutoresetGen from '../../actions/autoreset-gen'
 
 export type Props = {
   mapURL: string
-  timeLeft: string
-  onCancelReset: () => void
 }
 
 const ResetModal = (props: Props) => {
+  const {active, endTime}: Types.State = Container.useSelector(s => s.autoreset)
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (!active) {
+      dispatch(RouteTreeGen.createNavigateUp())
+    }
+  }, [active])
+  const timeNice = Constants.formatTimeLeft(endTime)
+  const onCancelReset = () => {
+    dispatch(AutoresetGen.createCancelReset())
+  }
+
   return (
     <Kb.ScrollView>
       <Kb.Box2 fullWidth={true} direction="vertical" style={styles.wrapper}>
@@ -24,8 +38,11 @@ const ResetModal = (props: Props) => {
           centerChildren={true}
         >
           <Kb.Icon type="iconfont-skull" color={Styles.globalColors.black_20} fontSize={48} />
-          <Kb.Text type="Body">This account will reset in {props.timeLeft}.</Kb.Text>
-          <Kb.Text type="Body">Explanation goes here.</Kb.Text>
+          <Kb.Text type="Body">This account will reset in {timeNice}.</Kb.Text>
+          <Kb.Text type="Body">
+            But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
+            clearly you have access to your keys.
+          </Kb.Text>
           <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.deviceContainer}>
             <Kb.Image src={props.mapURL} style={{height: 100, width: 100}} />
@@ -38,10 +55,11 @@ const ResetModal = (props: Props) => {
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonContainer}>
-          <Kb.Button
+          <Kb.WaitingButton
             type="Danger"
             fullWidth={true}
-            onClick={props.onCancelReset}
+            onClick={onCancelReset}
+            waitingKey={Constants.waitingKeyCancelReset}
             label="Cancel account reset"
           />
         </Kb.Box2>
@@ -68,7 +86,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   wrapper: Styles.platformStyles({
     isElectron: {
-      height: 415,
+      height: 430,
       width: 360,
     },
   }),

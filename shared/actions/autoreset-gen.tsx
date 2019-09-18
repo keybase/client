@@ -3,22 +3,39 @@
 // Constants
 export const resetStore = 'common:resetStore' // not a part of autoreset but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'autoreset:'
-export const dummy = 'autoreset:dummy'
+export const cancelReset = 'autoreset:cancelReset'
+export const resetCancelled = 'autoreset:resetCancelled'
 
 // Payload Types
-type _DummyPayload = void
+type _CancelResetPayload = void
+type _ResetCancelledPayload = void
 
 // Action Creators
 /**
- * Remove this when this file gets a real action.
+ * Cancel an autoreset for the currently logged-in account.
  */
-export const createDummy = (payload: _DummyPayload): DummyPayload => ({payload, type: dummy})
+export const createCancelReset = (payload: _CancelResetPayload): CancelResetPayload => ({
+  payload,
+  type: cancelReset,
+})
+/**
+ * Cancelled an account reset.
+ */
+export const createResetCancelled = (payload: _ResetCancelledPayload): ResetCancelledPayload => ({
+  payload,
+  type: resetCancelled,
+})
 
 // Action Payloads
-export type DummyPayload = {readonly payload: _DummyPayload; readonly type: typeof dummy}
+export type CancelResetPayload = {readonly payload: _CancelResetPayload; readonly type: typeof cancelReset}
+export type ResetCancelledPayload = {
+  readonly payload: _ResetCancelledPayload
+  readonly type: typeof resetCancelled
+}
 
 // All Actions
 // prettier-ignore
 export type Actions =
-  | DummyPayload
+  | CancelResetPayload
+  | ResetCancelledPayload
   | {type: 'common:resetStore', payload: {}}

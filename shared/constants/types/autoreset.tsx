@@ -1,1 +1,4 @@
-export type State = {autoreset: 'coming soon'}
+export type State = Readonly<{
+  active: Boolean
+  endTime: number
+}>
