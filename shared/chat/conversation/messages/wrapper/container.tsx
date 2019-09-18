@@ -8,6 +8,7 @@ import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import {get} from 'lodash-es'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -18,6 +19,7 @@ type OwnProps = {
 
 // If there is no matching message treat it like a deleted
 const missingMessage = MessageConstants.makeMessageDeleted({})
+const emptySet = new Set<string>()
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
@@ -27,7 +29,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const orangeLineAbove = state.chat2.orangeLineMap.get(ownProps.conversationIDKey) === message.id
   const unfurlPrompts =
     message.type === 'text'
-      ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
+      ? get(state.chat2.unfurlPromptMap, [message.conversationIDKey, message.id], emptySet)
       : null
   const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
   const centeredOrdinal =

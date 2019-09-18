@@ -499,11 +499,18 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         return
       case Chat2Gen.unfurlTogglePrompt: {
-        const {show, domain} = action.payload
-        draftState.unfurlPromptMap = draftState.unfurlPromptMap.updateIn(
-          [action.payload.conversationIDKey, action.payload.messageID],
-          (prompts = I.Set<string>()) => (show ? prompts.add(domain) : prompts.delete(domain))
-        )
+        const {show, domain, conversationIDKey, messageID} = action.payload
+        const unfurlPromptMap = new Map(draftState.unfurlPromptMap || [])
+        const mmap = new Map(unfurlPromptMap.get(conversationIDKey) || [])
+        const prompts = new Set(mmap.get(messageID) || [])
+        if (show) {
+          prompts.add(domain)
+        } else {
+          prompts.delete(domain)
+        }
+        mmap.set(messageID, prompts)
+        unfurlPromptMap.set(conversationIDKey, mmap)
+        draftState.unfurlPromptMap = unfurlPromptMap
         return
       }
       case Chat2Gen.updateCoinFlipStatus: {
