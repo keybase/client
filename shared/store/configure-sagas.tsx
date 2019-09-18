@@ -13,6 +13,7 @@ import notificationsSaga from '../actions/notifications'
 import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
 import profileSaga from '../actions/profile'
+import recoverPasswordSaga from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
 import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
@@ -39,6 +40,7 @@ function* mainSaga() {
   yield Saga.spawn(notificationsSaga)
   yield Saga.spawn(pinentrySaga)
   yield Saga.spawn(profileSaga)
+  yield Saga.spawn(recoverPasswordSaga)
   yield Saga.spawn(tracker2Saga)
   yield Saga.spawn(searchSaga)
   yield Saga.spawn(settingsSaga)
