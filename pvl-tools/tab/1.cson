@@ -45,10 +45,8 @@ services:
       , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', got '%{hint_url}'"] } },
 
     # Check that the claimed username matches the url.
-    # Checking for the correct username is essential here. We rely on this
-    # check to prove that the user in question actually wrote the post. (Note
-    # that the m-site does *not* enforce this part of the URL. Only the
-    # desktop site does.)
+    # BUT this check is not sufficient: The mobile site does not care what username is passed to it.
+    # It will return posts made by a user different from that in the url.
     { assert_compare: {
       , cmp: "stripdots-then-cicmp"
       , a: "username_from_url"
@@ -64,7 +62,7 @@ services:
       , from: "our_url" } },
 
     { selector_css: {
-      , selectors: ["#m_story_permalink_view", "h3.by.bz.ca", 0]
+      , selectors: ["#m_story_permalink_view", "h3.by.bz", 0]
       , into: "post_text"
       , error: ["FAILED_PARSE", "Could not find post text in Facebook's response"] } },
     { whitespace_normalize: {
@@ -89,6 +87,30 @@ services:
       , a: "sig_id_medium"
       , b: "sig_from_post"
       , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_post}' != '%{sig_id_medium}'"] } },
+
+
+    # Check the username in the href of the "Join" button under "Foo Barzum is on Facebook. To connect with Foo, join Facebook today."
+    # Checking for the correct username is essential here. We rely on this
+    # check to prove that the user in question actually wrote the post. (Note
+    # that the m-site does *not* enforce this part of the URL. Only the
+    # desktop site does.)
+    { selector_css: {
+      , selectors: ["#mobile_login_bar", 0, "div.u", 0, "a", 0]
+      , attr: "href"
+      , into: "join_href"
+      , error: ["CONTENT_FAILURE", "Could not find 'Join' link"] } },
+    # The href once looked like this for the facebook username "mike.maxim":
+    # /r.php?next=https%3A%2F%2Fm.facebook.com%2Fmike.maxim%2Fposts%2F10154017925505382&cid=104&rs=10&rid=654595381
+    { regex_capture: {
+      , pattern: "^/r\\.php\\?next=https.*facebook.com%2F([^/]*)%2Fposts.*$"
+      , from: "join_href"
+      , into: ["username_from_join_href"]
+      , error: ["FAILED_PARSE", "Could not interpret 'Join' link"] } },
+    { assert_compare: {
+      , cmp: "stripdots-then-cicmp"
+      , a: "username_from_join_href"
+      , b: "username_service"
+      , error: ["CONTENT_FAILURE", "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"] } },
   ]]
   github: [[
     # validate url and extract username
