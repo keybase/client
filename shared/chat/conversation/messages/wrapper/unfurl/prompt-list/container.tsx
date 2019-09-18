@@ -17,7 +17,7 @@ export default namedConnect(
   (state, {conversationIDKey, ordinal}: OwnProps) => {
     const message = Constants.getMessage(state, conversationIDKey, ordinal)
     const messageID = message && message.type === 'text' ? message.id : noMessageID
-    let promptDomains
+    let promptDomains: Set<string> | undefined
 
     const pm = state.chat2.unfurlPromptMap.get(conversationIDKey)
     if (pm) {
@@ -34,33 +34,31 @@ export default namedConnect(
     },
   }),
   (stateProps, dispatchProps, _) => ({
-    prompts: stateProps.promptDomains
-      .map(domain => ({
-        domain,
-        onAccept: () =>
-          dispatchProps._setPolicy(stateProps.messageID, domain, {
-            accept: domain,
-            actionType: RPCChatTypes.UnfurlPromptAction.accept,
-          }),
-        onAlways: () =>
-          dispatchProps._setPolicy(stateProps.messageID, domain, {
-            actionType: RPCChatTypes.UnfurlPromptAction.always,
-          }),
-        onNever: () =>
-          dispatchProps._setPolicy(stateProps.messageID, domain, {
-            actionType: RPCChatTypes.UnfurlPromptAction.never,
-          }),
-        onNotnow: () =>
-          dispatchProps._setPolicy(stateProps.messageID, domain, {
-            actionType: RPCChatTypes.UnfurlPromptAction.notnow,
-          }),
-        onOnetime: () =>
-          dispatchProps._setPolicy(stateProps.messageID, domain, {
-            actionType: RPCChatTypes.UnfurlPromptAction.onetime,
-            onetime: domain,
-          }),
-      }))
-      .toArray(),
+    prompts: [...stateProps.promptDomains].map(domain => ({
+      domain,
+      onAccept: () =>
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          accept: domain,
+          actionType: RPCChatTypes.UnfurlPromptAction.accept,
+        }),
+      onAlways: () =>
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.always,
+        }),
+      onNever: () =>
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.never,
+        }),
+      onNotnow: () =>
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.notnow,
+        }),
+      onOnetime: () =>
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.onetime,
+          onetime: domain,
+        }),
+    })),
   }),
 
   'UnfurlPromptList'
