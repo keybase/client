@@ -65,7 +65,7 @@ export const TeamMemberRow = (props: Props) => {
   }
 
   return (
-    <Box style={Styles.collapseStyles([styles.container, active && styles.containerReset])}>
+    <Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
       <Box style={styles.innerContainerTop}>
         <ClickableBox
           style={styles.clickable}
