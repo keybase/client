@@ -107,17 +107,7 @@ export const TeamMemberRow = (props: Props) => {
               {fullNameLabel}
               {crown}
               {!active && (
-                <Text
-                  type="BodySmall"
-                  style={{
-                    ...Styles.globalStyles.fontBold,
-                    backgroundColor: Styles.globalColors.red,
-                    color: Styles.globalColors.white,
-                    marginRight: Styles.globalMargins.xtiny,
-                    paddingLeft: Styles.globalMargins.xtiny,
-                    paddingRight: Styles.globalMargins.xtiny,
-                  }}
-                >
+                <Text type="BodySmall" style={styles.lockedOutOrDeleted}>
                   {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
                 </Text>
               )}
@@ -234,5 +224,13 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   containerReset: {
     backgroundColor: Styles.globalColors.blueLighter2,
+  },
+  lockedOutOrDeleted: {
+    ...Styles.globalStyles.fontBold,
+    backgroundColor: Styles.globalColors.red,
+    color: Styles.globalColors.white,
+    marginRight: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.xtiny,
+    paddingRight: Styles.globalMargins.xtiny,
   },
 }))
