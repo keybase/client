@@ -26,8 +26,6 @@ type Props = {
   windowTitle: string
 }
 
-const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
-
 const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
@@ -36,7 +34,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const badged = isBadged ? 'badged-' : ''
 
   if (isDarwin) {
-    color = isDarkMode() ? 'white' : 'black'
+    color = KB.isDarkMode() ? 'white' : 'black'
   } else if (isWindows) {
     color = 'black'
     platform = 'windows-'
@@ -52,7 +50,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
 // Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
 function RemoteMenubarWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props> {
-    subscriptionId: number | null = null
+    subscriptionId: number | undefined
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
       KB.rendererToMainMenu({
@@ -85,20 +83,12 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 
     componentDidMount() {
       this._updateBadges()
-
-      if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-        this.subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
-          'AppleInterfaceThemeChangedNotification',
-          () => {
-            this._updateBadges()
-          }
-        )
-      }
+      this.subscriptionId = KB.handleDarkModeChanged(() => {
+        this._updateBadges()
+      })
     }
     componentWillUnmount() {
-      if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-        SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
-      }
+      KB.unhandleDarkModeChanged(this.subscriptionId)
     }
     render() {
       const {

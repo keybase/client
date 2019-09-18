@@ -8,6 +8,10 @@ import buffer from 'buffer'
 import framedMsgpackRpc from 'framed-msgpack-rpc'
 import purepack from 'purepack'
 
+const platform = process.platform
+const isDarwin = platform === 'darwin'
+// const isWindows = platform === 'win32'
+// const isLinux = platform === 'linux'
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
 
@@ -66,6 +70,28 @@ const handleAnyToMainDispatchAction = (cb: (action: any) => void) => {
   })
 }
 
+const isDarkMode = () => isDarwin && Electron.remote.systemPreferences.isDarkMode()
+
+const handleDarkModeChanged = (cb: (darkMode: boolean) => void) => {
+  const sub =
+    isDarwin && isRenderer
+      ? Electron.remote.systemPreferences.subscribeNotification
+      : Electron.systemPreferences.subscribeNotification
+  if (sub) {
+    return sub('AppleInterfaceThemeChangedNotification', () => {
+      cb(isDarkMode())
+    })
+  }
+  return -1
+}
+
+const unhandleDarkModeChanged = (id: undefined | number) => {
+  if (id !== undefined) {
+    const unsub = isDarwin && Electron.systemPreferences.unsubscribeNotification
+    unsub && unsub(id)
+  }
+}
+
 target.KB = {
   __child_process: child_process,
   __dirname: __dirname,
@@ -78,12 +104,16 @@ target.KB = {
   buffer,
   framedMsgpackRpc,
   handleAnyToMainDispatchAction,
+  handleDarkModeChanged,
   handleRenderToMain,
   handleRendererToMainMenu,
+  isDarkMode,
+  platform,
   punycode, // used by a dep
   purepack,
   renderToMain,
   rendererToMainMenu,
+  unhandleDarkModeChanged,
 }
 
 if (isRenderer) {

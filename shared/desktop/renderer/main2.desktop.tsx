@@ -1,5 +1,6 @@
 // Entry point to the chrome part of the app
 import '../../util/user-timings'
+import * as Electron from 'electron'
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
@@ -9,7 +10,6 @@ import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
@@ -144,18 +144,9 @@ const setupHMR = _ => {
 }
 
 const setupDarkMode = () => {
-  if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-    SafeElectron.getSystemPreferences().subscribeNotification(
-      'AppleInterfaceThemeChangedNotification',
-      () => {
-        store.dispatch(
-          ConfigGen.createSetSystemDarkMode({
-            dark: isDarwin && SafeElectron.getSystemPreferences().isDarkMode(),
-          })
-        )
-      }
-    )
-  }
+  KB.handleDarkModeChanged((dark: boolean) => {
+    store.dispatch(ConfigGen.createSetSystemDarkMode({dark}))
+  })
 }
 
 const load = () => {

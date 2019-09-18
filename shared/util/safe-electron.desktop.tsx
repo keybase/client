@@ -10,14 +10,6 @@ export const getApp = () => {
   return app
 }
 
-export const getSystemPreferences = () => {
-  const systemPreferences = Electron.systemPreferences || getRemote().systemPreferences
-  if (!systemPreferences) {
-    throw new Error('Should be impossible')
-  }
-  return systemPreferences
-}
-
 export const getDialog = () => {
   const dialog = Electron.dialog || getRemote().dialog
   if (!dialog) {
