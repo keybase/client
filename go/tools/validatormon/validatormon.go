@@ -2,7 +2,11 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"log"
+	"time"
+
+	stathat "github.com/stathat/go"
 )
 
 // this is a tool to monitor stellar validators.
@@ -76,31 +80,69 @@ func AnalyzeNode(sr StatusReader, nodeName string) (*Analysis, error) {
 	return &a, nil
 }
 
+var shkey string
+
 func main() {
 	log.Printf("validatormon starting")
+	parseFlags()
+	analyzeNodes()
+	log.Printf("waiting until stat posts are complete")
+	stathat.WaitUntilFinished(30 * time.Second)
+	log.Printf("validatormon finished")
+}
+
+func parseFlags() {
+	flag.StringVar(&shkey, "shkey", "", "StatHat ezkey")
+	flag.Parse()
+	if shkey == "" {
+		log.Printf("no shkey provided, proceeding but not stats will be reported")
+	}
+}
+
+func analyzeNodes() {
 	sr := new(LocalReader)
 	for _, n := range kbNodes {
 		a, err := AnalyzeNode(sr, n)
 		if err != nil {
 			log.Printf("AnalyzeNode %s (%s) error: %s", n, nodes[n], err)
-			// post stellar - validator - monitor error
-			// post stellar - validator - monitor error - $name
+			postCount("monitor error~total," + n)
 			continue
 		}
 
 		if a.Ok {
-			// post stellar - validator - ok
-			// post stellar - validator - ok - $name
+			log.Printf("node %s is ok", n)
+			postCount("ok~total," + n)
 		} else {
-			// post stellar - validator - not ok
-			// post stellar - validator - not ok - $name
+			log.Printf("node %s is not ok (%+v)", n, a)
+			postCount("not ok~total," + n)
 		}
 
-		// post stellar - validator - missing count
-		// post stellar - validator - missing count - $name
+		log.Printf("node %s missing count: %d", n, a.MissingCount)
+		postValue("missing count~all,"+n, a.MissingCount)
 
-		// post stellar - validator - ledger delta
-		// post stellar - validator - ledger delta - $name
+		log.Printf("node %s ledger delta: %d", n, a.LedgerDelta)
+		postValue("ledger delta~all,"+n, a.LedgerDelta)
 	}
-	log.Printf("validatormon finished")
+}
+
+const statPrefix = "stellar - validator - "
+
+func postCount(name string) {
+	if shkey == "" {
+		return
+	}
+	sname := statPrefix + name
+	if err := stathat.PostEZCountOne(sname, shkey); err != nil {
+		log.Printf("stathat post error: %s", err)
+	}
+}
+
+func postValue(name string, v int) {
+	if shkey == "" {
+		return
+	}
+	sname := statPrefix + name
+	if err := stathat.PostEZValue(sname, shkey, float64(v)); err != nil {
+		log.Printf("stathat post error: %s", err)
+	}
 }
