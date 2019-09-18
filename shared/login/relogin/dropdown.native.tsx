@@ -8,7 +8,7 @@ import {
   NativeModal,
 } from '../../common-adapters/mobile.native'
 import * as React from 'react'
-import {borderRadius, globalStyles, globalColors} from '../../styles'
+import * as Styles from '../../styles'
 import {isIOS} from '../../constants/platform'
 
 type Props = {
@@ -87,7 +87,7 @@ class Dropdown extends React.Component<Props, State> {
   }
 
   _itemStyle() {
-    return this.props.type === 'Username' ? {color: globalColors.orange} : {}
+    return this.props.type === 'Username' ? {color: Styles.globalColors.orange} : {}
   }
 
   _label(value: string | null): string {
@@ -105,10 +105,10 @@ class Dropdown extends React.Component<Props, State> {
 
   _renderLabelAndCaret() {
     return [
-      <Text center={true} key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
+      <Text center={true} key="text" type="Header" style={{...styles.text, ...this._itemStyle()}}>
         {this._label(this.state.value)}
       </Text>,
-      <Icon key="icon" type="iconfont-caret-down" style={styleIcon} sizeType="Tiny" />,
+      <Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />,
     ]
   }
 
@@ -149,9 +149,9 @@ class Dropdown extends React.Component<Props, State> {
     // everything else.
     // TODO: Clean this up to be less tricky
     return (
-      <Box style={{...styleContainer, ...this.props.style}}>
+      <Box style={{...styles.container, ...this.props.style}}>
         {this._renderLabelAndCaret()}
-        {this._renderPicker(stylePickerAndroid, true)}
+        {this._renderPicker(styles.pickerAndroid, true)}
       </Box>
     )
   }
@@ -159,18 +159,18 @@ class Dropdown extends React.Component<Props, State> {
   _renderIOS() {
     return (
       <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
-        <Box style={{...styleContainer, ...this.props.style}}>
+        <Box style={{...styles.container, ...this.props.style}}>
           <NativeModal
             animationType="slide"
             transparent={true}
             visible={this.state.modalVisible}
             onRequestClose={() => this._showModal(false)}
           >
-            <Box style={stylePickerContainer}>
+            <Box style={styles.pickerContainer}>
               <NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Box style={{flex: 1}} />
               </NativeTouchableWithoutFeedback>
-              {this._renderPicker(stylePickerIOS, false)}
+              {this._renderPicker(styles.pickerIOS, false)}
             </Box>
           </NativeModal>
           {this._renderLabelAndCaret()}
@@ -184,32 +184,37 @@ class Dropdown extends React.Component<Props, State> {
   }
 }
 
-const styleContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  borderColor: globalColors.black_10,
-  borderRadius,
-  borderWidth: 1,
-  height: 40,
-  paddingLeft: 17,
-  paddingRight: 17,
-}
-const styleText = {flex: 1}
-const styleIcon = {width: 10}
-const stylePickerContainer = {
-  backgroundColor: globalColors.black_50,
-  flex: 1,
-  justifyContent: 'flex-end',
-}
-const stylePickerIOS = {backgroundColor: globalColors.white}
-const stylePickerAndroid = {
-  backgroundColor: globalColors.transparent,
-  bottom: 0,
-  color: globalColors.transparent,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: 0,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: Styles.borderRadius,
+        borderWidth: 1,
+        height: 40,
+        paddingLeft: 17,
+        paddingRight: 17,
+      },
+      icon: {width: 10},
+      pickerAndroid: {
+        backgroundColor: Styles.globalColors.transparent,
+        bottom: 0,
+        color: Styles.globalColors.transparent,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+      },
+      pickerContainer: {
+        backgroundColor: Styles.globalColors.black_50,
+        flex: 1,
+        justifyContent: 'flex-end',
+      },
+      pickerIOS: {backgroundColor: Styles.globalColors.white},
+      text: {flex: 1},
+    } as const)
+)
 
 export default Dropdown

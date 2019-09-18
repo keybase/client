@@ -120,63 +120,66 @@ class Login extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-  },
-  contentBox: {
-    alignSelf: 'center',
-    flexGrow: 1,
-    maxWidth: 460,
-    padding: Styles.globalMargins.small,
-  },
-  forgotPassword: {
-    marginTop: Styles.globalMargins.tiny,
-  },
-  forgotPasswordContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  header: {
-    borderBottomWidth: 0,
-  },
-  inputRow: {
-    flex: 1,
-    marginBottom: 0,
-    marginTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
-  loginSubmitButton: {
-    marginTop: 0,
-    maxHeight: 32,
-    width: '100%',
-  },
-  loginSubmitContainer: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-  },
-  other: {color: Styles.globalColors.black},
-  provisioned: {color: Styles.globalColors.orange},
-  userContainer: {
-    backgroundColor: Styles.globalColors.transparent,
-    flex: 1,
-  },
-  userDropdown: {
-    backgroundColor: Styles.globalColors.white,
-    width: '100%',
-  },
-  userOverlayStyle: {
-    backgroundColor: Styles.globalColors.white,
-    width: 348,
-  },
-  userRow: {
-    ...Styles.globalStyles.flexBoxCenter,
-    minHeight: 40,
-    width: '100%',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+      },
+      contentBox: {
+        alignSelf: 'center',
+        flexGrow: 1,
+        maxWidth: 460,
+        padding: Styles.globalMargins.small,
+      },
+      forgotPassword: {
+        marginTop: Styles.globalMargins.tiny,
+      },
+      forgotPasswordContainer: {
+        flex: 1,
+        justifyContent: 'flex-end',
+      },
+      header: {
+        borderBottomWidth: 0,
+      },
+      inputRow: {
+        flex: 1,
+        marginBottom: 0,
+        marginTop: Styles.globalMargins.tiny,
+        width: '100%',
+      },
+      loginSubmitButton: {
+        marginTop: 0,
+        maxHeight: 32,
+        width: '100%',
+      },
+      loginSubmitContainer: {
+        flexGrow: 1,
+        justifyContent: 'flex-end',
+      },
+      other: {color: Styles.globalColors.black},
+      provisioned: {color: Styles.globalColors.orange},
+      userContainer: {
+        backgroundColor: Styles.globalColors.transparent,
+        flex: 1,
+      },
+      userDropdown: {
+        backgroundColor: Styles.globalColors.white,
+        width: '100%',
+      },
+      userOverlayStyle: {
+        backgroundColor: Styles.globalColors.white,
+        width: 348,
+      },
+      userRow: {
+        ...Styles.globalStyles.flexBoxCenter,
+        minHeight: 40,
+        width: '100%',
+      },
+    } as const)
+)
 
 export default Login
