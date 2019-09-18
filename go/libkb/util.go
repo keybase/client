@@ -1120,3 +1120,43 @@ func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err e
 		PlatformAfterMountPath: getKBFSAfterMountPath(afterKeybase, RuntimeGroup() == keybase1.RuntimeGroup_WINDOWSLIKE),
 	}, nil
 }
+
+func Throttle(f func(), dur time.Duration, shutdownCh chan struct{}) func() {
+	ch := make(chan struct{})
+	go func() {
+		shouldSend := false
+		var lastTime time.Time
+		trigger := func() {
+			if shouldSend {
+				go f()
+				shouldSend = false
+				lastTime = time.Now()
+			}
+		}
+		for {
+			select {
+			case <-ch:
+				shouldSend = true
+				if time.Since(lastTime) > dur {
+					trigger()
+				}
+			case <-time.After(dur):
+				trigger()
+			case <-shutdownCh:
+				return
+			}
+		}
+	}()
+	return func() {
+		ch <- struct{}{}
+	}
+}
+
+func StopThrottleOnShutdown(g *GlobalContext) chan struct{} {
+	ch := make(chan struct{})
+	g.PushShutdownHook(func(mctx MetaContext) error {
+		close(ch)
+		return nil
+	})
+	return ch
+}

@@ -769,10 +769,7 @@ func (s *HybridInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	if err := s.createInbox().MarkLocalRead(ctx, uid, convID, msgID); err != nil {
 		s.Debug(ctx, "MarkAsRead: failed to mark local read: %s", err)
 	} else {
-		err := s.badger.Send(ctx)
-		if err != nil {
-			return err
-		}
+		s.badger.Send(ctx)
 	}
 	if err := s.readOutbox.PushRead(ctx, convID, msgID); err != nil {
 		return err

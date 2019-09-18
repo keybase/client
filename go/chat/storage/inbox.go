@@ -274,19 +274,10 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxD
 
 type ByDatabaseOrder []types.RemoteConversation
 
-func dbConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
-	if a.GetMtime() > b.GetMtime() {
-		return true
-	} else if a.GetMtime() < b.GetMtime() {
-		return false
-	}
-	return bytes.Compare(a.GetConvID(), b.GetConvID()) > 0
-}
-
 func (a ByDatabaseOrder) Len() int      { return len(a) }
 func (a ByDatabaseOrder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByDatabaseOrder) Less(i, j int) bool {
-	return dbConvLess(a[i], a[j])
+	return utils.DBConvLess(a[i], a[j])
 }
 
 func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
@@ -618,7 +609,7 @@ func (i *Inbox) applyPagination(ctx context.Context, convs []types.RemoteConvers
 				i.Debug(ctx, "applyPagination: reached num results (%d), stopping", num)
 				break
 			}
-			if dbConvLess(pnext, conv) {
+			if utils.DBConvLess(pnext, conv) {
 				res = append(res, conv)
 			}
 		}
@@ -629,7 +620,7 @@ func (i *Inbox) applyPagination(ctx context.Context, convs []types.RemoteConvers
 				i.Debug(ctx, "applyPagination: reached num results (%d), stopping", num)
 				break
 			}
-			if dbConvLess(convs[index], pprev) {
+			if utils.DBConvLess(convs[index], pprev) {
 				res = append(res, convs[index])
 			}
 		}
