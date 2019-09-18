@@ -276,7 +276,7 @@ const uninstallDokanConfirm = async (state: TypedState) => {
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve =>
-      SafeElectron.getDialog().showMessageBox(
+      KB.showMessageBox(
         {
           buttons: ['Got it'],
           detail:

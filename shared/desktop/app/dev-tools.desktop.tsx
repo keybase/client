@@ -1,4 +1,4 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
@@ -6,7 +6,7 @@ function setupDevToolsExtensions() {
   if (KB.__process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
     KB.__process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
       try {
-        SafeElectron.BrowserWindow.addDevToolsExtension(p)
+        Electron.BrowserWindow.addDevToolsExtension(p)
       } catch (e) {
         console.error('Dev tool loading crash', p, e)
       }
@@ -18,9 +18,9 @@ function setupOpenDevtools() {
   let devToolsState = showDevTools
 
   if (flags.admin) {
-    SafeElectron.getGlobalShortcut().register('CommandOrControl+Alt+k+b', () => {
+    Electron.globalShortcut.register('CommandOrControl+Alt+k+b', () => {
       devToolsState = !devToolsState
-      SafeElectron.BrowserWindow.getAllWindows().map(bw =>
+      Electron.BrowserWindow.getAllWindows().map(bw =>
         devToolsState ? bw.webContents.openDevTools({mode: 'detach'}) : bw.webContents.closeDevTools()
       )
     })
@@ -29,12 +29,12 @@ function setupOpenDevtools() {
 
 function cleanupOpenDevtools() {
   if (flags.admin) {
-    SafeElectron.getGlobalShortcut().unregister('CommandOrControl+Alt+k+b')
+    Electron.globalShortcut.unregister('CommandOrControl+Alt+k+b')
   }
 }
 
 export default function() {
-  const app = SafeElectron.getApp()
+  const app = Electron.app
   if (app.isReady()) {
     setupOpenDevtools()
     setupDevToolsExtensions()
@@ -45,7 +45,7 @@ export default function() {
     })
   }
 
-  SafeElectron.getApp().on('will-quit', () => {
+  Electron.app.on('will-quit', () => {
     cleanupOpenDevtools()
   })
 }

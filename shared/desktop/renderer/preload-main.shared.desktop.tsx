@@ -105,6 +105,15 @@ const showOpenDialog = (options: any, cb: (filePaths: Array<string>) => void) =>
   Electron.remote.dialog.showOpenDialog(w, options, cb)
 }
 
+const handlePowerMonitor = (cb: (type: string) => void) => {
+  const pm = Electron.remote.powerMonitor
+  pm.on('suspend', () => cb('suspend'))
+  pm.on('resume', () => cb('resume'))
+  pm.on('shutdown', () => cb('shutdown'))
+  pm.on('lock-screen', () => cb('lock-screen'))
+  pm.on('unlock-screen', () => cb('unlock-screen'))
+}
+
 target.KB = {
   __child_process: child_process,
   __dirname: __dirname,
@@ -120,6 +129,7 @@ target.KB = {
   handleDarkModeChanged,
   handleRenderToMain,
   handleRendererToMainMenu,
+  handlePowerMonitor,
   isDarkMode,
   platform,
   punycode, // used by a dep

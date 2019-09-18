@@ -42,16 +42,31 @@ interface Console {
 }
 
 declare var KB: {
+  DEV?: any
   __child_process: any
-  __dirname: any
+  __dirname: string
   __electron: any
   __fs: any
-  __net: any
   __os: any
   __path: any
   __process: any
-  DEV?: any
+  anyToMainDispatchAction: any
+  buffer: any
+  framedMsgpackRpc: any
+  handleAnyToMainDispatchAction: any
+  handleDarkModeChanged: any
+  handlePowerMonitor: any
+  handleRenderToMain: any
+  handleRendererToMainMenu: any
+  isDarkMode: any
+  platform: any
   punycode: any
+  purepack: any
+  renderToMain: any
+  rendererToMainMenu: any
+  showMessageBox: any
+  showOpenDialog: any
+  unhandleDarkModeChanged: any
 }
 
 declare namespace NodeJS {

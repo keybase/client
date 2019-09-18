@@ -128,7 +128,7 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
     yield Saga.callUntyped(
       () =>
         new Promise((resolve, reject) => {
-          __KB.child_process.execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+          KB.__child_process.execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
               // error will be logged in bootstrap check
@@ -249,7 +249,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-      KB.renderToMain({type: 'requestStartService'}) 
+    KB.renderToMain({type: 'requestStartService'})
   }
 }
 
@@ -292,12 +292,7 @@ const updateNow = () =>
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = SafeElectron.getPowerMonitor()
-    pm.on('suspend', () => emitter('suspend'))
-    pm.on('resume', () => emitter('resume'))
-    pm.on('shutdown', () => emitter('shutdown'))
-    pm.on('lock-screen', () => emitter('lock-screen'))
-    pm.on('unlock-screen', () => emitter('unlock-screen'))
+    KB.handlePowerMonitor(type => emitter(type))
     return () => {}
   }, Saga.buffers.expanding(1))
   while (true) {

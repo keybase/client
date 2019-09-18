@@ -10,38 +10,6 @@ export const getApp = () => {
   return app
 }
 
-export const getDialog = () => {
-  const dialog = Electron.dialog || getRemote().dialog
-  if (!dialog) {
-    throw new Error('Should be impossible')
-  }
-  return dialog
-}
-
-export const getSession = () => {
-  const session = Electron.session || getRemote().session
-  if (!session) {
-    throw new Error('Should be impossible')
-  }
-  return session
-}
-
-export const getGlobalShortcut = () => {
-  const globalShortcut = Electron.globalShortcut || getRemote().globalShortcut
-  if (!globalShortcut) {
-    throw new Error('Should be impossible')
-  }
-  return globalShortcut
-}
-
-export const getPowerMonitor = () => {
-  const powerMonitor = Electron.powerMonitor || getRemote().powerMonitor
-  if (!powerMonitor) {
-    throw new Error('Should be impossible')
-  }
-  return powerMonitor
-}
-
 // Render thread only
 export const getIpcRenderer = () => {
   const ipcRenderer = Electron.ipcRenderer
