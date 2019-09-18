@@ -76,9 +76,9 @@ const styles = Styles.styleSheetCreate(
 
 const HoverBox = Styles.isMobile
   ? Kb.Box2
-  : Styles.styled(Kb.Box2)({
+  : Styles.styled(Kb.Box2)(() => ({
       ':hover': {backgroundColor: Styles.globalColors.blueGreyDark},
-    })
+    }))
 
 const WalletRow = (props: Props) => {
   return (

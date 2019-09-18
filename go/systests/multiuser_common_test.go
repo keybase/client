@@ -434,7 +434,9 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, keyGen keybase1.PerTeamK
 		totalWait += wait
 		wait *= 2
 	}
-	u.ctx.t.Fatalf("Failed to find the needed key generation (%d) after %s of waiting (%d iterations)", keyGen, totalWait, i)
+	require.FailNowf(u.ctx.t, "pollForMembershipUpdate timed out",
+		"Failed to find the needed key generation (%d) after %s of waiting (%d iterations)",
+		keyGen, totalWait, i)
 	return keybase1.TeamDetails{}
 }
 

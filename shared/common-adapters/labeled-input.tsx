@@ -94,6 +94,7 @@ const ReflessLabeledInput = (props: Props & RefProps) => {
         ref={props.forwardedRef}
         style={Styles.collapseStyles([
           styles.input,
+          props.style,
           {height: computedHeight, maxHeight: computedHeight},
           collapsed && styles.inputSmall,
         ])}
