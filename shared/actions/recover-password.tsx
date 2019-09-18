@@ -15,17 +15,8 @@ const chooseDevice = (
 ) => {
   return Saga.callUntyped(function*() {
     const devices = (params.devices || []).map(d => Constants.rpcDeviceToDevice(d))
+    yield Saga.put(RecoverPasswordGen.createDisplayDeviceSelect({devices}))
 
-    yield Saga.put(
-      RecoverPasswordGen.createDisplayDeviceSelect({
-        devices,
-      })
-    )
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordDeviceSelector'],
-      })
-    )
     const action:
       | RecoverPasswordGen.SubmitDeviceSelectPayload
       | RecoverPasswordGen.AbortDeviceSelectPayload = yield Saga.take([
@@ -99,7 +90,7 @@ const inputPaperKey = (
   return Saga.callUntyped(function*() {
     if (params.pinentry.retryLabel) {
       yield Saga.put(
-        RecoverPasswordGen.createDisplayPaperKeyError({
+        RecoverPasswordGen.createSetPaperKeyError({
           error: params.pinentry.retryLabel,
         })
       )
@@ -159,14 +150,21 @@ function* startRecoverPassword(_: any, action: RecoverPasswordGen.StartRecoverPa
           error: e.toString(),
         })
       )
-      yield Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: ['recoverPasswordError'],
-          replace: true,
-        })
-      )
     }
   }
+}
+
+const displayDeviceSelect = () => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['recoverPasswordDeviceSelector'],
+  })
+}
+
+const displayError = () => {
+  return RouteTreeGen.createNavigateAppend({
+    path: ['recoverPasswordError'],
+    replace: true,
+  })
 }
 
 const restartRecovery = (state: Container.TypedState) => {
@@ -183,6 +181,8 @@ function* recoverPasswordSaga() {
     RecoverPasswordGen.startRecoverPassword,
     startRecoverPassword
   )
+  yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect)
+  yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError)
   yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery)
 }
 

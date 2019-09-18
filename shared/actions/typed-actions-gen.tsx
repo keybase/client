@@ -671,8 +671,7 @@ export type TypedActionsMap = {
   'recover-password:abortDeviceSelect': recoverpassword.AbortDeviceSelectPayload
   'recover-password:showExplainDevice': recoverpassword.ShowExplainDevicePayload
   'recover-password:submitResetPrompt': recoverpassword.SubmitResetPromptPayload
-  'recover-password:showPaperKey': recoverpassword.ShowPaperKeyPayload
-  'recover-password:displayPaperKeyError': recoverpassword.DisplayPaperKeyErrorPayload
+  'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
   'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload

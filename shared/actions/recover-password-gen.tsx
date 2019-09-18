@@ -10,10 +10,9 @@ export const abortDeviceSelect = 'recover-password:abortDeviceSelect'
 export const abortPaperKey = 'recover-password:abortPaperKey'
 export const displayDeviceSelect = 'recover-password:displayDeviceSelect'
 export const displayError = 'recover-password:displayError'
-export const displayPaperKeyError = 'recover-password:displayPaperKeyError'
 export const restartRecovery = 'recover-password:restartRecovery'
+export const setPaperKeyError = 'recover-password:setPaperKeyError'
 export const showExplainDevice = 'recover-password:showExplainDevice'
-export const showPaperKey = 'recover-password:showPaperKey'
 export const startRecoverPassword = 'recover-password:startRecoverPassword'
 export const submitDeviceSelect = 'recover-password:submitDeviceSelect'
 export const submitPaperKey = 'recover-password:submitPaperKey'
@@ -24,10 +23,9 @@ type _AbortDeviceSelectPayload = void
 type _AbortPaperKeyPayload = void
 type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>}
 type _DisplayErrorPayload = {readonly error: string}
-type _DisplayPaperKeyErrorPayload = {readonly error: string}
 type _RestartRecoveryPayload = void
+type _SetPaperKeyErrorPayload = {readonly error: string}
 type _ShowExplainDevicePayload = {readonly type: RPCTypes.DeviceType; readonly name: string}
-type _ShowPaperKeyPayload = void
 type _StartRecoverPasswordPayload = {readonly username: string}
 type _SubmitDeviceSelectPayload = {readonly id: string}
 type _SubmitPaperKeyPayload = {readonly paperKey: string}
@@ -49,20 +47,17 @@ export const createDisplayError = (payload: _DisplayErrorPayload): DisplayErrorP
   payload,
   type: displayError,
 })
-export const createDisplayPaperKeyError = (
-  payload: _DisplayPaperKeyErrorPayload
-): DisplayPaperKeyErrorPayload => ({payload, type: displayPaperKeyError})
 export const createRestartRecovery = (payload: _RestartRecoveryPayload): RestartRecoveryPayload => ({
   payload,
   type: restartRecovery,
 })
+export const createSetPaperKeyError = (payload: _SetPaperKeyErrorPayload): SetPaperKeyErrorPayload => ({
+  payload,
+  type: setPaperKeyError,
+})
 export const createShowExplainDevice = (payload: _ShowExplainDevicePayload): ShowExplainDevicePayload => ({
   payload,
   type: showExplainDevice,
-})
-export const createShowPaperKey = (payload: _ShowPaperKeyPayload): ShowPaperKeyPayload => ({
-  payload,
-  type: showPaperKey,
 })
 export const createStartRecoverPassword = (
   payload: _StartRecoverPasswordPayload
@@ -94,19 +89,18 @@ export type DisplayDeviceSelectPayload = {
   readonly type: typeof displayDeviceSelect
 }
 export type DisplayErrorPayload = {readonly payload: _DisplayErrorPayload; readonly type: typeof displayError}
-export type DisplayPaperKeyErrorPayload = {
-  readonly payload: _DisplayPaperKeyErrorPayload
-  readonly type: typeof displayPaperKeyError
-}
 export type RestartRecoveryPayload = {
   readonly payload: _RestartRecoveryPayload
   readonly type: typeof restartRecovery
+}
+export type SetPaperKeyErrorPayload = {
+  readonly payload: _SetPaperKeyErrorPayload
+  readonly type: typeof setPaperKeyError
 }
 export type ShowExplainDevicePayload = {
   readonly payload: _ShowExplainDevicePayload
   readonly type: typeof showExplainDevice
 }
-export type ShowPaperKeyPayload = {readonly payload: _ShowPaperKeyPayload; readonly type: typeof showPaperKey}
 export type StartRecoverPasswordPayload = {
   readonly payload: _StartRecoverPasswordPayload
   readonly type: typeof startRecoverPassword
@@ -131,10 +125,9 @@ export type Actions =
   | AbortPaperKeyPayload
   | DisplayDeviceSelectPayload
   | DisplayErrorPayload
-  | DisplayPaperKeyErrorPayload
   | RestartRecoveryPayload
+  | SetPaperKeyErrorPayload
   | ShowExplainDevicePayload
-  | ShowPaperKeyPayload
   | StartRecoverPasswordPayload
   | SubmitDeviceSelectPayload
   | SubmitPaperKeyPayload
