@@ -1140,11 +1140,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.unsentTextMap = unsentTextMap
         return
       }
-      case Chat2Gen.setUnsentText:
+      case Chat2Gen.setUnsentText: {
         const unsentTextMap = new Map(draftState.unsentTextMap)
         unsentTextMap.set(action.payload.conversationIDKey, action.payload.text)
         draftState.unsentTextMap = unsentTextMap
         return
+      }
       case Chat2Gen.setPrependText:
         draftState.prependTextMap = draftState.prependTextMap.set(
           action.payload.conversationIDKey,
