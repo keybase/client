@@ -1,8 +1,8 @@
 import {trim, last} from 'lodash-es'
 import React, {Component} from 'react'
-import {Box, Text, Icon} from '../../common-adapters'
 import AutosizeInput from './autosize-input.desktop'
-import {globalColors, globalMargins, globalStyles, platformStyles, collapseStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
@@ -20,7 +20,7 @@ class UserItem extends Component<UserItemProps> {
   render() {
     const {followingState, icon, service, username} = this.props
     return (
-      <Box style={_pillStyle}>
+      <Kb.Box style={styles.pill}>
         <IconOrAvatar
           icon={icon}
           service={service}
@@ -31,25 +31,25 @@ class UserItem extends Component<UserItemProps> {
             marginLeft: service === 'Hacker News' || service === 'Facebook' ? 3 : 0,
           }}
         />
-        <Text
+        <Kb.Text
           type="BodySemibold"
-          style={platformStyles({
+          style={Styles.platformStyles({
             common: {
               ...followingStateToStyle(followingState),
               lineHeight: 18,
-              marginLeft: globalMargins.xtiny,
+              marginLeft: Styles.globalMargins.xtiny,
             },
           })}
         >
           {username}
-        </Text>
-        <Icon
+        </Kb.Text>
+        <Kb.Icon
           type="iconfont-close"
           onClick={this._onRemoveUser}
-          style={{marginLeft: globalMargins.tiny}}
+          style={{marginLeft: Styles.globalMargins.tiny}}
           fontSize={11}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }
@@ -135,32 +135,32 @@ class UserInput extends Component<Props, State> {
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     const inputLeftPadding =
-      !!userItems.length && (!!usernameText.length || isFocused) ? globalMargins.xtiny : 0
+      !!userItems.length && (!!usernameText.length || isFocused) ? Styles.globalMargins.xtiny : 0
 
     return (
-      <Box
+      <Kb.Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...Styles.globalStyles.flexBoxRow,
           alignItems: 'center',
-          marginLeft: globalMargins.tiny,
+          marginLeft: Styles.globalMargins.tiny,
           minHeight: 48,
         }}
       >
-        <Box
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, flexWrap: 'wrap'}}
+        <Kb.Box
+          style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', flex: 1, flexWrap: 'wrap'}}
           onClick={this.focus}
           onMouseDown={this._preventInputDefocus}
         >
           {userItems.map(item => (
             <UserItem {...item} onRemoveUser={onRemoveUser} key={item.id} />
           ))}
-          <Box style={_inputLineStyle}>
+          <Kb.Box style={styles.inputLine}>
             <AutosizeInput
               autoFocus={autoFocus}
               ref={el => {
                 this._textInput = el
               }}
-              inputStyle={collapseStyles([_inputStyle, {paddingLeft: inputLeftPadding}])}
+              inputStyle={Styles.collapseStyles([styles.input, {paddingLeft: inputLeftPadding}])}
               placeholder={userItems.length ? '' : placeholder}
               value={usernameText}
               onChange={onChangeText}
@@ -169,71 +169,74 @@ class UserInput extends Component<Props, State> {
               onBlur={this._onBlur}
             />
             {showAddButton && onClickAddButton && (
-              <Icon
+              <Kb.Icon
                 onClick={onClickAddButton}
                 type="iconfont-add"
-                style={platformStyles({
+                style={Styles.platformStyles({
                   common: {
-                    marginLeft: globalMargins.xtiny,
+                    marginLeft: Styles.globalMargins.xtiny,
                   },
                   isElectron: {
                     cursor: 'pointer',
                   },
                 })}
-                color={globalColors.blue}
+                color={Styles.globalColors.blue}
                 fontSize={12}
               />
             )}
-          </Box>
-        </Box>
+          </Kb.Box>
+        </Kb.Box>
         {onClearSearch && !this.props.hideClearSearch && (
-          <Icon
+          <Kb.Icon
             type="iconfont-remove"
-            style={{height: 16, marginRight: globalMargins.tiny, width: 16}}
+            style={{height: 16, marginRight: Styles.globalMargins.tiny, width: 16}}
             onClick={onClearSearch}
           />
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }
 
-const _pillStyle = {
-  ...globalStyles.flexBoxRow,
-  ...globalStyles.flexBoxCenter,
-  borderColor: globalColors.black_10,
-  borderRadius: 24,
-  borderStyle: 'solid',
-  borderWidth: 1,
-  height: 24,
-  margin: 2,
-  marginRight: globalMargins.xtiny,
-  paddingBottom: globalMargins.xtiny,
-  paddingLeft: globalMargins.xtiny,
-  // 2 pixel fudge to accomodate built-in padding to iconfont-close
-  paddingRight: globalMargins.tiny - 2,
-  paddingTop: globalMargins.xtiny,
-}
-
-const _inputLineStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 24,
-  marginBottom: 2,
-  marginTop: 2,
-  overflow: 'hidden',
-}
-
-const _inputStyle = platformStyles({
-  isElectron: {
-    ...getTextStyle('BodySemibold'),
-    border: 'none',
-    color: globalColors.black,
-    flex: 1,
-    lineHeight: 22,
-    outline: 'none',
-    padding: 0,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      input: Styles.platformStyles({
+        isElectron: {
+          ...getTextStyle('BodySemibold'),
+          border: 'none',
+          color: Styles.globalColors.black,
+          flex: 1,
+          lineHeight: 22,
+          outline: 'none',
+          padding: 0,
+        },
+      }),
+      inputLine: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        height: 24,
+        marginBottom: 2,
+        marginTop: 2,
+        overflow: 'hidden',
+      },
+      pill: {
+        ...Styles.globalStyles.flexBoxRow,
+        ...Styles.globalStyles.flexBoxCenter,
+        borderColor: Styles.globalColors.black_10,
+        borderRadius: 24,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        height: 24,
+        margin: 2,
+        marginRight: Styles.globalMargins.xtiny,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.xtiny,
+        // 2 pixel fudge to accomodate built-in padding to iconfont-close
+        paddingRight: Styles.globalMargins.tiny - 2,
+        paddingTop: Styles.globalMargins.xtiny,
+      },
+    } as const)
+)
 
 export default UserInput
