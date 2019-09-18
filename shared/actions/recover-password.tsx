@@ -38,8 +38,6 @@ const chooseDevice = (
 const explainDevice = (
   params: RPCTypes.MessageTypes['keybase.1.loginUi.explainDeviceRecovery']['inParam']
 ) => {
-  console.log('a!', params)
-
   return Saga.all([
     Saga.put(
       RecoverPasswordGen.createShowExplainDevice({

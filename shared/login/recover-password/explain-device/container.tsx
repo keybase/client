@@ -8,7 +8,6 @@ type OwnProps = {}
 const ConnectedExplainDevice = Container.connect(
   state => {
     const ed = state.recoverPassword.explainedDevice
-    console.log(ed)
     return {
       deviceName: ed ? ed.name : '',
       deviceType: ed ? ed.type : undefined,
