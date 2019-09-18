@@ -8,6 +8,7 @@ export declare const ignoreDisconnectOverlay: boolean
 export declare const immediateStateLogging: boolean
 export declare const isDevApplePushToken: boolean
 export declare const isTesting: boolean
+export declare const partyMode: boolean
 export declare const printOutstandingRPCs: boolean
 export declare const printOutstandingTimerListeners: boolean
 export declare const printRPC: boolean
