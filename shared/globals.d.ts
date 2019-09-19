@@ -65,20 +65,28 @@ declare var KB: {
   framedMsgpackRpc: any
   handleAnyToMainDispatchAction: any
   handleDarkModeChanged: any
+  handleMainWindowShown: any
   handlePowerMonitor: any
+  handleRemoteWindowProps: any
   handleRenderToMain: any
   handleRendererToMainMenu: any
   isDarkMode: any
   mainLoggerDump: any
+  netRequestHead: any
   platform: any
   punycode: any
   purepack: any
   renderToMain: any
   rendererToMainMenu: any
+  remoteProcessPid: number
+  resizeWindow: any
+  setOverlayIcon: (overlay: string) => void
+  showCurrentWindow: (show: boolean) => void
   showMainWindow: (show: boolean) => void
   showMessageBox: any
   showOpenDialog: any
   unhandleDarkModeChanged: any
+  unhandleMainWindowShown: any
 }
 
 declare namespace NodeJS {

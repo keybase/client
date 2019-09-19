@@ -3,7 +3,6 @@ import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import * as Container from '../util/container'
-import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
@@ -11,7 +10,6 @@ import * as Constants from '../constants/config'
 import {BadgeType} from '../constants/types/notifications'
 import {isDarwin, isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
-import {getMainWindow} from '../desktop/remote/util.desktop'
 
 const windowOpts = {}
 
@@ -63,11 +61,9 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       // Windows just lets us set (or unset, with null) a single 16x16 icon
       // to be used as an overlay in the bottom right of the taskbar icon.
       if (isWindows) {
-        const mw = getMainWindow()
         const overlay =
           this.props.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
-        // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
-        mw && mw.setOverlayIcon(overlay, 'new activity')
+        KB.setOverlayIcon(overlay)
       }
     }
 

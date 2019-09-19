@@ -15,8 +15,8 @@ const isDarwin = platform === 'darwin'
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
 
-const getWindow = (key: string) => {
-  let all: any
+const getWindow = (key: string): Electron.BrowserWindow | undefined => {
+  let all: Array<Electron.BrowserWindow>
   if (isRenderer) {
     all = Electron.remote.BrowserWindow.getAllWindows()
   } else {
@@ -194,7 +194,14 @@ const netRequestHead = (
 const handleRemoteWindowProps = (cb: (s: string) => void) => {
   const w = Electron.remote.getCurrentWindow()
   if (!w) return
-  w.on('KBprops', cb)
+  w.on('KBprops' as any, cb)
+}
+
+const setOverlayIcon = (overlay: string) => {
+  const mw = getMainWindow()
+  if (!mw) return
+
+  mw.setOverlayIcon(overlay as any, 'new activity')
 }
 
 target.KB = {
@@ -219,9 +226,9 @@ target.KB = {
   handleDarkModeChanged,
   handleMainWindowShown,
   handlePowerMonitor,
+  handleRemoteWindowProps,
   handleRenderToMain,
   handleRendererToMainMenu,
-  handleRemoteWindowProps,
   isDarkMode,
   mainLoggerDump,
   netRequestHead,
@@ -230,10 +237,11 @@ target.KB = {
   purepack,
   remoteProcessPid: isRenderer ? Electron.remote.process.pid : process.pid,
   renderToMain,
+  rendererToMainMenu,
   resizeWindow,
+  setOverlayIcon,
   showCurrentWindow,
   showMainWindow,
-  rendererToMainMenu,
   showMessageBox,
   showOpenDialog,
   unhandleDarkModeChanged,

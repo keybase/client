@@ -1,5 +1,4 @@
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as PeopleGen from '../../actions/people-gen'
