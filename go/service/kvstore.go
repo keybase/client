@@ -6,6 +6,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/kvstore"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -22,6 +24,9 @@ type KVStoreHandler struct {
 var _ keybase1.KvstoreInterface = (*KVStoreHandler)(nil)
 
 func NewKVStoreHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KVStoreHandler {
+	if g.GetKVRevisionCache() == nil {
+		g.SetKVRevisionCache(kvstore.NewKVRevisionCache())
+	}
 	return &KVStoreHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
@@ -60,6 +65,29 @@ func (k *getEntryAPIRes) GetAppStatus() *libkb.AppStatus {
 	return &k.Status
 }
 
+func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, teamID keybase1.TeamID, namespace, entryKey string) (res getEntryAPIRes, err error) {
+	var apiRes getEntryAPIRes
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/storage",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"team_id":   libkb.S{Val: teamID.String()},
+			"namespace": libkb.S{Val: namespace},
+			"entry_key": libkb.S{Val: entryKey},
+		},
+	}
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+	entryHash := kvstore.Hash(apiRes.Ciphertext)
+	err = mctx.G().GetKVRevisionCache().Check(teamID, namespace, entryKey, entryHash, apiRes.TeamKeyGen, apiRes.Revision)
+	if err != nil {
+		return res, err
+	}
+	return apiRes, nil
+}
+
 func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntryArg) (res keybase1.KVEntry, err error) {
 	ctx = libkb.WithLogTag(ctx, "KV")
 	if err := h.assertLoggedIn(ctx); err != nil {
@@ -70,17 +98,7 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	if err != nil {
 		return res, err
 	}
-	var apiRes getEntryAPIRes
-	apiArg := libkb.APIArg{
-		Endpoint:    "team/storage",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"team_id":   libkb.S{Val: team.ID.String()},
-			"namespace": libkb.S{Val: arg.Namespace},
-			"entry_key": libkb.S{Val: arg.EntryKey},
-		},
-	}
-	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	apiRes, err := h.serverFetch(mctx, team.ID, arg.Namespace, arg.EntryKey)
 	if err != nil {
 		return res, err
 	}
@@ -90,8 +108,8 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	}
 	res = keybase1.KVEntry{
 		TeamName:   arg.TeamName,
-		Namespace:  apiRes.Namespace,
-		EntryKey:   apiRes.EntryKey,
+		Namespace:  arg.Namespace,
+		EntryKey:   arg.EntryKey,
 		EntryValue: cleartext,
 		Revision:   apiRes.Revision,
 	}
@@ -105,6 +123,19 @@ type putEntryAPIRes struct {
 
 func (k *putEntryAPIRes) GetAppStatus() *libkb.AppStatus {
 	return &k.Status
+}
+
+func (h *KVStoreHandler) fetchRevisionFromCacheOrServer(mctx libkb.MetaContext, teamID keybase1.TeamID, namespace, entryKey string) (int, error) {
+	prevRevision := mctx.G().GetKVRevisionCache().FetchRevision(teamID, namespace, entryKey)
+	if prevRevision == 0 {
+		// not in the cache. check if it's in the server.
+		serverRes, err := h.serverFetch(mctx, teamID, namespace, entryKey)
+		if err != nil {
+			return 0, err
+		}
+		prevRevision = serverRes.Revision
+	}
+	return prevRevision, nil
 }
 
 func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
@@ -121,6 +152,8 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	if err != nil {
 		return res, err
 	}
+	prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, team.ID, arg.Namespace, arg.EntryKey)
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/storage",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -131,11 +164,19 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 			"entry_key":          libkb.S{Val: arg.EntryKey},
 			"ciphertext":         libkb.S{Val: ciphertext},
 			"ciphertext_version": libkb.I{Val: 1},
-			"revision":           libkb.I{Val: 1},
+			"revision":           libkb.I{Val: prevRevision + 1},
 		},
 	}
 	var apiRes putEntryAPIRes
 	err = mctx.G().API.PostDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+	if apiRes.Revision != prevRevision+1 {
+		return res, fmt.Errorf("kvstore PUT revision error. expected %d, got %d", prevRevision+1, apiRes.Revision)
+	}
+	entryHash := kvstore.Hash(ciphertext)
+	err = mctx.G().GetKVRevisionCache().Check(team.ID, arg.Namespace, arg.EntryKey, entryHash, int(team.Generation()), apiRes.Revision)
 	if err != nil {
 		return res, err
 	}
