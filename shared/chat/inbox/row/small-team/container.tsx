@@ -18,7 +18,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   let isTypingSnippet = false
   if (typers && typers.size > 0) {
     isTypingSnippet = true
-    snippet = typers.size === 1 ? `${typers.first()} is typing...` : 'Multiple people typing...'
+    snippet = typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
   }
   return {
     _meta,
