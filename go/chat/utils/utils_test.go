@@ -501,3 +501,16 @@ func TestAttachContactNames(t *testing.T) {
 	require.Nil(t, rawParticipants[2].ContactName)
 	require.Nil(t, rawParticipants[3].ContactName)
 }
+
+func TestTLFIsTeamID(t *testing.T) {
+	teamID := keybase1.MakeTestTeamID(3, false)
+	tlfID := chat1.TLFID(teamID.ToBytes())
+	require.True(t, tlfID.IsTeamID())
+
+	tlfID = chat1.TLFID{0}
+	require.False(t, tlfID.IsTeamID())
+
+	uid := keybase1.MakeTestUID(3)
+	tlfID = chat1.TLFID(uid.ToBytes())
+	require.False(t, tlfID.IsTeamID())
+}
