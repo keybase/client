@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -30,6 +31,8 @@ func (r *LocalReader) StatusRead(accountID string) (*Status, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf(string(body))
 
 	return statusFromJSON(body)
 }

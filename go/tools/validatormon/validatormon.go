@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"log"
+	"strings"
 	"time"
 
 	stathat "github.com/stathat/go"
@@ -56,6 +57,8 @@ type Analysis struct {
 	Phase        string
 	MissingCount int
 	Ok           bool
+	LedgerBehind bool
+	BadPhase     bool
 }
 
 func AnalyzeNode(sr StatusReader, nodeName string) (*Analysis, error) {
@@ -75,6 +78,13 @@ func AnalyzeNode(sr StatusReader, nodeName string) (*Analysis, error) {
 	a.MissingCount = len(status.Missing)
 	if a.LedgerDelta < 10 && a.Phase == "EXTERNALIZE" {
 		a.Ok = true
+	} else {
+		if a.LedgerDelta >= 10 {
+			a.LedgerBehind = true
+		}
+		if a.Phase != "EXTERNALIZE" {
+			a.BadPhase = true
+		}
 	}
 
 	return &a, nil
@@ -114,7 +124,15 @@ func analyzeNodes() {
 			postCount("ok~total," + n)
 		} else {
 			log.Printf("node %s is not ok (%+v)", n, a)
-			postCount("not ok~total," + n)
+			pieces := []string{"total"}
+			if a.BadPhase {
+				pieces = append(pieces, "bad phase")
+			}
+			if a.LedgerBehind {
+				pieces = append(pieces, "ledger behind")
+			}
+			pieces = append(pieces, n)
+			postCount("not ok~" + strings.Join(pieces, ","))
 		}
 
 		log.Printf("node %s missing count: %d", n, a.MissingCount)
