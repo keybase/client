@@ -70,7 +70,7 @@ const styles = Styles.styleSheetCreate(() => ({
   inside: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: Styles.globalColors.white,
+    backgroundColor: Styles.globalColors.fastBlank,
     justifyContent: 'flex-start',
     padding: 16,
     width: '100%',
