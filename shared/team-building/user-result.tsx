@@ -91,7 +91,7 @@ const UserResult = (props: Props) => {
             </>
           ) : (
             <>
-              <Kb.Text type="BodySemibold" lineClamp={2}>
+              <Kb.Text type="BodySemibold" lineClamp={1}>
                 {props.prettyName}
               </Kb.Text>
               {!!props.displayLabel && props.displayLabel !== props.prettyName && (
@@ -190,11 +190,11 @@ const FormatPrettyName = (props: {
   showServicesIcons: boolean
 }) =>
   props.prettyName ? (
-    <Kb.Text type="BodySmall">
+    <Kb.Text type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
   ) : props.displayLabel ? (
-    <Kb.Text type="BodySmall">
+    <Kb.Text type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.displayLabel, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
   ) : null
@@ -216,44 +216,52 @@ const BottomRow = (props: {
       <Kb.Text
         type="BodySemibold"
         style={followingStateToStyle(props.keybaseUsername ? props.followingState : 'NoState')}
+        lineClamp={1}
       >
         {props.keybaseUsername}
       </Kb.Text>
-      <Kb.Text type="BodySemibold">&nbsp;</Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
       <Kb.Text type="BodySmall">{dotSeparator}</Kb.Text>
-      <Kb.Text type="BodySemibold">&nbsp;</Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;</Kb.Text>
     </>
   ) : null
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignSelf="flex-start" style={styles.bottomRowContainer}>
-      {keybaseUsernameComponent}
-      {props.isPreExistingTeamMember ? (
-        <Kb.Text type="BodySmall" lineClamp={1}>
-          {isPreExistingTeamMemberText(props.prettyName)}
-        </Kb.Text>
-      ) : (
-        <>
-          <FormatPrettyName
-            displayLabel={props.displayLabel}
-            prettyName={props.prettyName}
-            services={serviceMapToArray(props.services)}
-            showServicesIcons={showServicesIcons}
-          />
-          {/* When the service result does not have any information other than
+      <Kb.ScrollView
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={1000}
+        contentContainerStyle={styles.bottomRowScrollContainer}
+      >
+        {keybaseUsernameComponent}
+        {props.isPreExistingTeamMember ? (
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {isPreExistingTeamMemberText(props.prettyName)}
+          </Kb.Text>
+        ) : (
+          <>
+            <FormatPrettyName
+              displayLabel={props.displayLabel}
+              prettyName={props.prettyName}
+              services={serviceMapToArray(props.services)}
+              showServicesIcons={showServicesIcons}
+            />
+            {/* When the service result does not have any information other than
             the service username we don't want to show the service icons since
             there will only be one item */}
-          {showServicesIcons ? (
-            <ServicesIcons
-              services={serviceMapToArray(props.services)}
-              isKeybaseResult={props.isKeybaseResult}
-              prettyName={props.prettyName}
-              displayLabel={props.displayLabel}
-              keybaseUsername={props.keybaseUsername}
-            />
-          ) : null}
-        </>
-      )}
+            {showServicesIcons ? (
+              <ServicesIcons
+                services={serviceMapToArray(props.services)}
+                isKeybaseResult={props.isKeybaseResult}
+                prettyName={props.prettyName}
+                displayLabel={props.displayLabel}
+                keybaseUsername={props.keybaseUsername}
+              />
+            ) : null}
+          </>
+        )}
+      </Kb.ScrollView>
     </Kb.Box2>
   )
 }
@@ -307,7 +315,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: ActionButtonSize,
     },
     isMobile: {
-      marginRight: Styles.globalMargins.small,
+      marginRight: 0,
     },
   }),
   addToTeamIcon: {
@@ -317,9 +325,11 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   bottomRowContainer: {
     alignItems: 'baseline',
-    // TODO: The smallest desktop width pushes text incorrectly.
-    // TODO: Long prettyName and services can push underneath the ActionButton.
     flexWrap: 'nowrap',
+    overflow: 'hidden',
+  },
+  bottomRowScrollContainer: {
+    display: 'flex',
   },
   contactName: {
     lineHeight: 22,
