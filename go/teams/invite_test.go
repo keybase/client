@@ -57,6 +57,8 @@ func TestObsoletingInvites1(t *testing.T) {
 	require.Equal(t, 0, len(members.Admins))
 	require.Equal(t, 1, len(members.Writers))
 	require.Equal(t, 0, len(members.Readers))
+	require.Equal(t, 0, len(members.Bots))
+	require.Equal(t, 0, len(members.RestrictedBots))
 }
 
 func TestObsoletingInvites2(t *testing.T) {
