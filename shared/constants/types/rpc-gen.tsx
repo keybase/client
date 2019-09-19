@@ -3448,7 +3448,6 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
 // 'keybase.1.login.loginWithPaperKey'
-// 'keybase.1.login.clearStoredSecret'
 // 'keybase.1.login.recoverAccountFromEmailAddress'
 // 'keybase.1.login.unlock'
 // 'keybase.1.login.unlockWithPassphrase'
