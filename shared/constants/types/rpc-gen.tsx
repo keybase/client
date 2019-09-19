@@ -2658,7 +2658,6 @@ export type ReacjiSkinTone = Int
 export type ReadArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long; readonly size: Int}
 export type ReaderKeyMask = {readonly application: TeamApplication; readonly generation: PerTeamKeyGeneration; readonly mask: MaskB64}
 export type ReferenceCountRes = {readonly counts?: Array<BlockIdCount> | null}
-export type RegionCode = String
 export type RegisterAddressRes = {readonly type: String; readonly family: String}
 export type RekeyEvent = {readonly eventType: RekeyEventType; readonly interruptType: Int}
 export type RekeyRequest = {readonly folderID: String; readonly revision: Long}

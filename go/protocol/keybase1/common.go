@@ -106,12 +106,6 @@ func (o RawPhoneNumber) DeepCopy() RawPhoneNumber {
 	return o
 }
 
-type RegionCode string
-
-func (o RegionCode) DeepCopy() RegionCode {
-	return o
-}
-
 type LinkID string
 
 func (o LinkID) DeepCopy() LinkID {

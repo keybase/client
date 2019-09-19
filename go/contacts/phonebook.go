@@ -71,7 +71,7 @@ type assertionToNameCache struct {
 const assertionToNameCurrentVer = 1
 
 func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
-	resolveResults, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
+	resolveResults, err := ResolveContacts(mctx, provider, contacts)
 	if err != nil {
 		return nil, err
 	}
