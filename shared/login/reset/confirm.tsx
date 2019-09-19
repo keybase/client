@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {SignupScreen} from '../../signup/common'
 
 const todo = () => console.log('todo')
 
@@ -16,13 +15,24 @@ const ConfirmReset = () => {
   const disabled = !check1 || !check2 || !check3
 
   return (
-    <SignupScreen
-      title="Account reset"
-      noBackground={true}
-      buttons={[
-        {disabled, label: 'Yes, reset account', onClick: onContinue, type: 'Danger'},
-        {label: 'Cancel reset', onClick: onCancel, type: 'Dim'},
-      ]}
+    <Kb.Modal
+      header={{title: 'Account reset'}}
+      fullscreen={true}
+      footer={{
+        content: (
+          <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
+            <Kb.Button
+              disabled={disabled}
+              label="Yes, reset account"
+              onClick={onContinue}
+              type="Danger"
+              fullWidth={true}
+            />
+            <Kb.Button label="Cancel reset" onClick={onCancel} type="Dim" fullWidth={true} />
+          </Kb.ButtonBar>
+        ),
+        style: styles.footer,
+      }}
     >
       <Kb.Box2
         direction="vertical"
@@ -31,7 +41,7 @@ const ConfirmReset = () => {
         alignItems="center"
         style={styles.container}
       >
-        <Kb.Icon type="iconfont-skull" sizeType="Big" />
+        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Styles.globalColors.black} />
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
           <Kb.Text type="Header">Go ahead with reset?</Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xsmall" alignItems="flex-start">
@@ -61,12 +71,18 @@ const ConfirmReset = () => {
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </SignupScreen>
+    </Kb.Modal>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  buttonBar: {
+    alignItems: 'center',
+  },
   container: Styles.platformStyles({
+    common: {
+      alignSelf: 'center',
+    },
     isElectron: {
       width: 368,
     },
@@ -74,6 +90,9 @@ const styles = Styles.styleSheetCreate(() => ({
       padding: Styles.globalMargins.medium,
     },
   }),
+  footer: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+  },
 }))
 
 export default ConfirmReset
