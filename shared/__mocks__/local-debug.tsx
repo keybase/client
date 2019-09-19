@@ -13,6 +13,7 @@ export const immediateStateLogging = false
 export const isDevApplePushToken = false
 export const isTesting = false
 export const maskStrings = false
+export const partyMode = false
 export const printOutstandingRPCs = false
 export const printOutstandingTimerListeners = false
 export const printRPC = false

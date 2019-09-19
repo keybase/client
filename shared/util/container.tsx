@@ -55,6 +55,8 @@ export type Route = {
 }
 export type RouteMap = {[K in string]: Route}
 
+export const assertNever = (_: never) => undefined
+
 export {
   branch,
   defaultProps,
@@ -85,3 +87,4 @@ export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce} from 'immer'
 export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
+export {default as makeReducer} from './make-reducer'

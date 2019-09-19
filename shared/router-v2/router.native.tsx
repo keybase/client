@@ -44,7 +44,7 @@ const defaultNavigationOptions: any = {
     ),
   headerStyle: {
     get backgroundColor() {
-      return Styles.globalColors.white
+      return Styles.globalColors.fastBlank
     },
     get borderBottomColor() {
       return Styles.globalColors.black_10
@@ -297,6 +297,9 @@ class RNApp extends React.PureComponent<Props> {
   render() {
     return (
       <>
+        <Kb.NativeStatusBar
+          barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
+        />
         <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
         <GlobalError />
         <OutOfDate />

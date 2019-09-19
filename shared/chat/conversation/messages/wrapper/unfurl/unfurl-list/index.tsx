@@ -96,15 +96,18 @@ class UnfurlList extends React.PureComponent<ListProps> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      alignSelf: 'flex-start',
-      flex: 1,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: Styles.globalMargins.xtiny,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+          flex: 1,
+          marginBottom: Styles.globalMargins.xtiny,
+          marginTop: Styles.globalMargins.xtiny,
+        },
+      }),
+    } as const)
+)
 
 export default UnfurlList

@@ -81,7 +81,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
   render() {
     const props = this.props
     return (
-      <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
+      <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn}}>
           <Kb.Box
             style={{
@@ -90,7 +90,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               margin: Styles.globalMargins.medium,
             }}
           >
-            <Kb.Text style={styleInside} type="Header">
+            <Kb.Text style={styles.inside} type="Header">
               Invite by email
             </Kb.Text>
             <Kb.Box
@@ -141,9 +141,9 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                   rowsMin={3}
                   rowsMax={8}
                   value={this.state.invitees}
-                  style={styleInside}
+                  style={styles.inside}
                   small={true}
-                  inputStyle={styleInput}
+                  inputStyle={styles.input}
                 />
               </Kb.Box>
               {props.errorMessage && (
@@ -163,42 +163,38 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
   }
 }
 
-const styleInside = {
-  marginBottom: 0,
-  marginTop: 0,
-  padding: Styles.globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    ...Styles.desktopStyles.boxShadow,
+    ...Styles.globalStyles.flexBoxColumn,
+    alignSelf: 'center',
+    backgroundColor: Styles.globalColors.white,
+    borderRadius: 5,
+  },
+  cover: {
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.black,
+    justifyContent: 'center',
+  },
 
-const styleInput = {
-  fontSize: 13,
-  fontWeight: 'normal',
-  textAlign: 'left',
-} as const
+  floatingRolePicker: Styles.platformStyles({
+    isElectron: {
+      position: 'relative',
+      top: -32,
+    },
+  }),
 
-const _styleCover = {
-  alignItems: 'center',
-  backgroundColor: Styles.globalColors.black,
-  justifyContent: 'center',
-}
+  input: {
+    fontSize: 13,
+    fontWeight: 'normal',
+    textAlign: 'left',
+  },
 
-const _styleContainer = {
-  ...Styles.desktopStyles.boxShadow,
-  ...Styles.globalStyles.flexBoxColumn,
-  alignSelf: 'center',
-  backgroundColor: Styles.globalColors.white,
-  borderRadius: 5,
-}
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      floatingRolePicker: Styles.platformStyles({
-        isElectron: {
-          position: 'relative',
-          top: -32,
-        },
-      }),
-    } as const)
-)
+  inside: {
+    marginBottom: 0,
+    marginTop: 0,
+    padding: Styles.globalMargins.tiny,
+  },
+}))
 
 export {InviteByEmailDesktop}

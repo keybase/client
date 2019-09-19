@@ -37,7 +37,7 @@ class Reload extends React.PureComponent<
   render() {
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
-        <Icon type="icon-skull-64" />
+        <Icon type="icon-illustration-zen-240-180" />
         <Kb.Text center={true} type="Header">
           We're having a hard time loading this page.
         </Kb.Text>
@@ -52,7 +52,7 @@ class Reload extends React.PureComponent<
           {this.state.expanded ? 'Hide details' : 'Show details'}
         </Kb.Text>
 
-        <Kb.Button label="Retry" onClick={this.props.onReload} />
+        <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
       </Kb.Box2>
     )
   }

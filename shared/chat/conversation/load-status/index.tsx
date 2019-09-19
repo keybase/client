@@ -4,7 +4,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../styles'
 
 type Props = {
-  status: RPCChatTypes.UIChatThreadStatus | null
+  status?: RPCChatTypes.UIChatThreadStatus
 }
 
 const ValidatedStatus = () => {

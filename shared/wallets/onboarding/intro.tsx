@@ -50,14 +50,14 @@ const Intro = (props: IntroProps) => {
   )
 }
 
-const bodyOverride = {
+const bodyOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
     textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: Styles.globalStyles.fontExtrabold,
-}
+}))
 
 const styles = Styles.styleSheetCreate(
   () =>

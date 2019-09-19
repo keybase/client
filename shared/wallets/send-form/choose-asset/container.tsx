@@ -1,4 +1,4 @@
-import ChooseAsset, {DisplayItem, OtherItem} from '.'
+import ChooseAsset, {DisplayItem} from '.'
 import * as Container from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -17,7 +17,6 @@ const mapStateToProps = state => {
     currencies: Constants.getDisplayCurrencies(state).toArray(),
     isRequest: state.wallets.building.isRequest,
     selected,
-    sendAssets: state.wallets.building.sendAssetChoices,
     to,
   }
 }
@@ -43,15 +42,8 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   })),
   isRequest: stateProps.isRequest,
   onBack: dispatchProps.onBack,
-  onChoose: (item: DisplayItem | OtherItem) => dispatchProps._onChoose(item.currencyCode),
+  onChoose: (item: DisplayItem) => dispatchProps._onChoose(item.currencyCode),
   onRefresh: () => dispatchProps._onRefresh(stateProps.accountID, stateProps.to),
-  otherChoices: (stateProps.sendAssets || []).map(a => ({
-    currencyCode: a.asset.code,
-    disabledExplanation: a.subtext || 'Support for other assets coming soon',
-    issuer: a.asset.issuer,
-    selected: a.asset.code === stateProps.selected,
-    type: 'other choice',
-  })),
   selected: stateProps.selected,
 })
 

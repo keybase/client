@@ -4,7 +4,7 @@ import QRCodeGen from 'qrcode-generator'
 
 type Props = {
   code: string
-  cellSize: 8 | 10
+  cellSize: 8 | 10 // we ONLY allow even numbers else you'll get fractional pixels and it looks blurry
 }
 
 class QrImage extends React.PureComponent<Props> {

@@ -241,7 +241,7 @@ class PlainInput extends Component<InternalProps> {
       // editable=false yields 1 and 2
       // pointerEvents=none yields 1 and 3
       return (
-        <ClickableBox onClick={props.onFocus}>
+        <ClickableBox style={{flexGrow: 1}} onClick={props.onFocus}>
           <Box2 direction="horizontal" pointerEvents="none">
             <NativeTextInput {...props} editable={false} />
           </Box2>

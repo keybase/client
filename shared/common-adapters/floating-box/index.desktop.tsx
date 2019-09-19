@@ -2,7 +2,7 @@ import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import {Box} from '..'
 import {ModalPositionRelative} from '../relative-popup-hoc.desktop'
-import {Props} from './index.types'
+import {Props} from '.'
 import logger from '../../logger'
 
 const StyleOnlyBox = (props: any) => <Box children={props.children} />

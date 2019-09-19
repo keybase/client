@@ -1,5 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 /* eslint-disable no-unused-vars,no-use-before-define */
+import * as autoreset from './autoreset-gen'
 import * as chat2 from './chat2-gen'
 import * as config from './config-gen'
 import * as deeplinks from './deeplinks-gen'
@@ -17,6 +18,7 @@ import * as pinentry from './pinentry-gen'
 import * as profile from './profile-gen'
 import * as provision from './provision-gen'
 import * as push from './push-gen'
+import * as recoverpassword from './recover-password-gen'
 import * as routetree from './route-tree-gen'
 import * as search from './search-gen'
 import * as settings from './settings-gen'
@@ -30,6 +32,7 @@ import * as waiting from './waiting-gen'
 import * as wallets from './wallets-gen'
 
 export type TypedActions =
+  | autoreset.Actions
   | chat2.Actions
   | config.Actions
   | deeplinks.Actions
@@ -47,6 +50,7 @@ export type TypedActions =
   | profile.Actions
   | provision.Actions
   | push.Actions
+  | recoverpassword.Actions
   | routetree.Actions
   | search.Actions
   | settings.Actions
@@ -60,6 +64,7 @@ export type TypedActions =
   | wallets.Actions
 
 export type TypedActionsMap = {
+  'autoreset:dummy': autoreset.DummyPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -474,14 +479,8 @@ export type TypedActionsMap = {
   'fs:pathItemLoaded': fs.PathItemLoadedPayload
   'fs:loadPathMetadata': fs.LoadPathMetadataPayload
   'fs:sortSetting': fs.SortSettingPayload
-  'fs:download': fs.DownloadPayload
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
-  'fs:downloadStarted': fs.DownloadStartedPayload
-  'fs:downloadSuccess': fs.DownloadSuccessPayload
-  'fs:downloadProgress': fs.DownloadProgressPayload
-  'fs:cancelDownload': fs.CancelDownloadPayload
-  'fs:dismissDownload': fs.DismissDownloadPayload
   'fs:upload': fs.UploadPayload
   'fs:uploadStarted': fs.UploadStartedPayload
   'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
@@ -533,7 +532,6 @@ export type TypedActionsMap = {
   'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
   'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
-  'fs:setPathItemActionMenuDownloadKey': fs.SetPathItemActionMenuDownloadKeyPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
   'fs:kbfsDaemonOnlineStatusChanged': fs.KbfsDaemonOnlineStatusChangedPayload
@@ -551,6 +549,16 @@ export type TypedActionsMap = {
   'fs:setPreferredMountDirs': fs.SetPreferredMountDirsPayload
   'fs:loadPathInfo': fs.LoadPathInfoPayload
   'fs:loadedPathInfo': fs.LoadedPathInfoPayload
+  'fs:download': fs.DownloadPayload
+  'fs:loadDownloadStatus': fs.LoadDownloadStatusPayload
+  'fs:loadDownloadInfo': fs.LoadDownloadInfoPayload
+  'fs:loadedDownloadStatus': fs.LoadedDownloadStatusPayload
+  'fs:loadedDownloadInfo': fs.LoadedDownloadInfoPayload
+  'fs:cancelDownload': fs.CancelDownloadPayload
+  'fs:dismissDownload': fs.DismissDownloadPayload
+  'fs:setPathItemActionMenuDownload': fs.SetPathItemActionMenuDownloadPayload
+  'fs:finishedDownloadWithIntent': fs.FinishedDownloadWithIntentPayload
+  'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -659,6 +667,17 @@ export type TypedActionsMap = {
   'push:updatePushToken': push.UpdatePushTokenPayload
   'push:updateHasPermissions': push.UpdateHasPermissionsPayload
   'push:notification': push.NotificationPayload
+  'recover-password:startRecoverPassword': recoverpassword.StartRecoverPasswordPayload
+  'recover-password:restartRecovery': recoverpassword.RestartRecoveryPayload
+  'recover-password:displayDeviceSelect': recoverpassword.DisplayDeviceSelectPayload
+  'recover-password:submitDeviceSelect': recoverpassword.SubmitDeviceSelectPayload
+  'recover-password:abortDeviceSelect': recoverpassword.AbortDeviceSelectPayload
+  'recover-password:showExplainDevice': recoverpassword.ShowExplainDevicePayload
+  'recover-password:submitResetPrompt': recoverpassword.SubmitResetPromptPayload
+  'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
+  'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
+  'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
+  'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
   'route-tree:clearModals': routetree.ClearModalsPayload
@@ -999,4 +1018,5 @@ export type TypedActionsMap = {
   'wallets:setTrustlineExpanded': wallets.SetTrustlineExpandedPayload
   'wallets:staticConfigLoaded': wallets.StaticConfigLoadedPayload
   'wallets:setSEP6Message': wallets.SetSEP6MessagePayload
+  'common:resetStore': {type: 'common:resetStore'; payload: {}}
 }

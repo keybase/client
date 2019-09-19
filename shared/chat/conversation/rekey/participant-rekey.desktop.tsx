@@ -1,71 +1,80 @@
 import * as React from 'react'
-import {Box, Avatar, Usernames, Text} from '../../../common-adapters'
-import {globalColors, globalStyles, globalMargins, platformStyles, desktopStyles} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {Props} from './participant-rekey.types'
 
 const Row = ({username, onUsernameClicked}) => (
-  <Box style={rowStyle} onClick={() => onUsernameClicked(username)}>
-    <Avatar username={username} size={48} style={{marginRight: globalMargins.small, padding: 4}} />
-    <Box style={innerRowStyle}>
-      <Usernames inline={true} type="BodySemibold" users={[{username}]} />
-      <Text type="BodySmall" style={platformStyles({isElectron: {lineHeight: '17px'}})}>
+  <Kb.Box style={styles.row} onClick={() => onUsernameClicked(username)}>
+    <Kb.Avatar username={username} size={48} style={{marginRight: Styles.globalMargins.small, padding: 4}} />
+    <Kb.Box style={styles.innerRow}>
+      <Kb.Usernames inline={true} type="BodySemibold" users={[{username}]} />
+      <Kb.Text type="BodySmall" style={Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
         Can rekey this chat by opening the Keybase app.
-      </Text>
-    </Box>
-  </Box>
+      </Kb.Text>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) => {
   return (
-    <Box style={containerStyle}>
-      <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
-        <Text
+    <Kb.Box style={styles.container}>
+      <Kb.Box
+        style={{
+          ...Styles.globalStyles.flexBoxRow,
+          backgroundColor: Styles.globalColors.red,
+          justifyContent: 'center',
+        }}
+      >
+        <Kb.Text
           negative={true}
           style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
           type="BodySemibold"
         >
           This conversation is waiting for a participant to open their Keybase app.
-        </Text>
-      </Box>
-      <Box
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Box
         style={{
-          ...globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexBoxColumn,
           flex: 1,
           justifyContent: 'center',
           marginLeft: 8,
           overflow: 'auto',
         }}
       >
-        <Box>
+        <Kb.Box>
           {rekeyers.map(username => (
             <Row key={username} username={username} onUsernameClicked={onUsernameClicked} />
           ))}
-        </Box>
-      </Box>
-    </Box>
+        </Kb.Box>
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  backgroundColor: globalColors.white,
-  borderLeft: `1px solid ${globalColors.black_20}`,
-  flex: 1,
-  justifyContent: 'flex-start',
-}
-
-const rowStyle = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  minHeight: 48,
-}
-
-const innerRowStyle = {
-  ...globalStyles.flexBoxColumn,
-  borderBottom: `1px solid ${globalColors.black_10}`,
-  flex: 1,
-  justifyContent: 'center',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'stretch',
+        backgroundColor: Styles.globalColors.white,
+        borderLeft: `1px solid ${Styles.globalColors.black_20}`,
+        flex: 1,
+        justifyContent: 'flex-start',
+      },
+      innerRow: {
+        ...Styles.globalStyles.flexBoxColumn,
+        borderBottom: `1px solid ${Styles.globalColors.black_10}`,
+        flex: 1,
+        justifyContent: 'center',
+      },
+      row: {
+        ...Styles.globalStyles.flexBoxRow,
+        ...Styles.desktopStyles.clickable,
+        minHeight: 48,
+      },
+    } as const)
+)
 
 export default ParticipantRekey

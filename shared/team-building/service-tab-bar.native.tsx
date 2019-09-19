@@ -59,15 +59,19 @@ const ServiceIcon = (props: IconProps) => {
           style={Styles.collapseStyles([styles.labelContainer, {height: labelHeight * props.labelPresence}])}
         >
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>
-            <Kb.Text
-              type="BodyTiny"
-              center={true}
-              lineClamp={2}
-              // @ts-ignore: we need to allow any color here for various services
-              style={{color}}
-            >
-              {props.label}
-            </Kb.Text>
+            <Kb.Box2 direction="vertical">
+              {props.label.map((label, i) => (
+                <Kb.Text
+                  key={i}
+                  center={true}
+                  type="BodyTiny"
+                  // @ts-ignore: we need to allow any color here for various services
+                  style={{color}}
+                >
+                  {label}
+                </Kb.Text>
+              ))}
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
         {!!props.showCount && props.count === null && (
@@ -150,7 +154,7 @@ export const ServiceTabBar = (props: Props) => {
                 <ServiceIcon
                   key={service}
                   service={service}
-                  label={serviceIdToLongLabel(service) + (serviceIdToWonderland(service) ? ' 🐇' : '')}
+                  label={serviceIdToLongLabel(service)}
                   labelPresence={presence}
                   onClick={() => onIconClick(service)}
                   count={undefToNull(props.serviceResultCount[service])}

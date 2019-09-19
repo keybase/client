@@ -89,7 +89,7 @@
         }
       ],
       "response": "boolean",
-      "doc": "Called during login / provisioning flows to ask the user whether they\n   would like to either enter the autoreset pipeline or perform the reset\n   of the account."
+      "doc": "Called during login / provisioning flows to ask the user whether they\n   would like to either enter the autoreset pipeline and perform the reset\n   of the account."
     },
     "displayResetProgress": {
       "request": [

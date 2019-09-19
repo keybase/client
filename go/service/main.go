@@ -228,7 +228,7 @@ func (d *Service) Handle(c net.Conn) {
 	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg)
 
 	var shutdownOnce sync.Once
-	shutdown := func() error {
+	shutdown := func(mctx libkb.MetaContext) error {
 		shutdownOnce.Do(func() {
 			for _, shutdowner := range shutdowners {
 				shutdowner.Shutdown()
@@ -238,7 +238,8 @@ func (d *Service) Handle(c net.Conn) {
 	}
 
 	// Clean up handlers when the connection closes.
-	defer func() { _ = shutdown() }()
+	mctx := libkb.NewMetaContextTODO(d.G())
+	defer func() { _ = shutdown(mctx) }()
 
 	// Make sure shutdown is called when service shuts down but the connection
 	// isn't closed yet.
@@ -629,11 +630,7 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 		m.Warning("merkle root background audit error: %v", err)
 	}
 
-	d.G().PushShutdownHook(func() error {
-		m.Debug("stopping merkle root background audit engine")
-		eng.Shutdown()
-		return nil
-	})
+	d.G().PushShutdownHook(eng.Shutdown)
 }
 
 func (d *Service) startupGregor() {
@@ -729,7 +726,7 @@ func (d *Service) writeServiceInfo() error {
 func (d *Service) chatOutboxPurgeCheck() {
 	ticker := libkb.NewBgTicker(5 * time.Minute)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("OBOXPRGE")
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		m.Debug("stopping chatOutboxPurgeCheck loop")
 		ticker.Stop()
 		return nil
@@ -763,7 +760,7 @@ func (d *Service) chatOutboxPurgeCheck() {
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		m.Debug("stopping hourlyChecks loop")
 		ticker.Stop()
 		return nil
@@ -811,7 +808,7 @@ func (d *Service) deviceCloneSelfCheck() error {
 
 func (d *Service) slowChecks() {
 	ticker := libkb.NewBgTicker(6 * time.Hour)
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping slowChecks loop")
 		ticker.Stop()
 		return nil
@@ -864,7 +861,7 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 		}
 	}()
 
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping per-user-key background upgrade")
 		eng.Shutdown()
 		return nil
@@ -881,7 +878,7 @@ func (d *Service) runBackgroundPerUserKeyUpkeep() {
 		}
 	}()
 
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping per-user-key background upkeep")
 		eng.Shutdown()
 		return nil
@@ -898,7 +895,7 @@ func (d *Service) runBackgroundWalletUpkeep() {
 		}
 	}()
 
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping background WalletUpkeep")
 		eng.Shutdown()
 		return nil
@@ -915,7 +912,7 @@ func (d *Service) runBackgroundBoxAuditRetry() {
 		}
 	}()
 
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping background BoxAuditorRetry")
 		eng.Shutdown()
 		return nil
@@ -932,7 +929,7 @@ func (d *Service) runBackgroundBoxAuditScheduler() {
 		}
 	}()
 
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping background BoxAuditorScheduler")
 		eng.Shutdown()
 		return nil
@@ -949,7 +946,7 @@ func (d *Service) runBackgroundContactSync() {
 		}
 	}()
 
-	d.G().PushShutdownHook(func() error {
+	d.G().PushShutdownHook(func(mctx libkb.MetaContext) error {
 		d.G().Log.Debug("stopping background ContactSync")
 		eng.Shutdown()
 		return nil
@@ -964,7 +961,7 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.startChatModules()
-		d.G().PushShutdownHook(func() error { return d.stopChatModules(mctx) })
+		d.G().PushShutdownHook(d.stopChatModules)
 		d.runTLFUpgrade()
 		d.runTrackerLoader(mctx.Ctx())
 		go d.identifySelf()
@@ -1001,7 +998,7 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 
 	log("shutting down TLF upgrader")
 	if d.tlfUpgrader != nil {
-		_ = d.tlfUpgrader.Shutdown()
+		_ = d.tlfUpgrader.Shutdown(m)
 	}
 
 	log("resetting wallet state on logout")
@@ -1041,7 +1038,7 @@ func (d *Service) gregordConnect() (err error) {
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and
 // deleting it.
-func (d *Service) ReleaseLock() error {
+func (d *Service) ReleaseLock(mctx libkb.MetaContext) error {
 	d.G().Log.Debug("Releasing lock file")
 	return d.lockPid.Close()
 }

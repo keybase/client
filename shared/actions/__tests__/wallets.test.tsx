@@ -39,6 +39,7 @@ const buildPaymentRes: RPCStellarTypes.BuildPaymentResLocal = {
   displayAmountXLM: '21.4168160 XLM',
   from: 'fake account ID',
   publicMemoErrMsg: '',
+  publicMemoOverride: '',
   readyToReview: false,
   secretNoteErrMsg: '',
   sendingIntentionXLM: false,

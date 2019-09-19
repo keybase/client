@@ -13,7 +13,6 @@ mode="$1"
 commit="$2"
 
 client_clone="/root/client"
-kbfs_clone="/root/kbfs"
 build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir.
@@ -51,8 +50,6 @@ git config --global user.name "Keybase Linux Build"
 git config --global user.email "example@example.com"
 echo "Cloning the client repo..."
 git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
-echo "Cloning the kbfs repo..."
-git clone git@github.com:keybase/kbfs "$kbfs_clone" --reference /KBFS
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"

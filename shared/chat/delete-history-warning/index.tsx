@@ -1,6 +1,6 @@
 import React from 'react'
-import {Box, Button, HeaderOnMobile, Icon, MaybePopup, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {
   onBack: (() => void) | null
@@ -9,67 +9,72 @@ type Props = {
 }
 
 const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
-  <MaybePopup onClose={onCancel}>
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        ...stylePadding,
-        alignItems: 'center',
-        backgroundColor: globalColors.white,
-        justifyContent: 'center',
-        maxWidth: 560,
-        padding: globalMargins.small,
-      }}
-    >
-      <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-      <Text style={{padding: globalMargins.small}} type="Header">
+  <Kb.MaybePopup onClose={onCancel}>
+    <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.padding, styles.box])}>
+      <Kb.Icon type={Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+      <Kb.Text style={{padding: Styles.globalMargins.small}} type="Header">
         Delete conversation history?
-      </Text>
-      <Text center={isMobile} style={styleText} type="Body">
+      </Kb.Text>
+      <Kb.Text center={Styles.isMobile} style={styles.text} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
-      </Text>
-      <Box style={styleButtonBox}>
-        <Button type="Dim" style={styleButton} onClick={onCancel} label="Cancel" fullWidth={isMobile} />
-        <Button
+      </Kb.Text>
+      <Kb.Box style={styles.buttonBox}>
+        <Kb.Button
+          type="Dim"
+          style={styles.button}
+          onClick={onCancel}
+          label="Cancel"
+          fullWidth={Styles.isMobile}
+        />
+        <Kb.Button
           type="Danger"
-          style={styleButton}
+          style={styles.button}
           onClick={onDeleteHistory}
           label="Yes, clear for everyone"
-          fullWidth={isMobile}
+          fullWidth={Styles.isMobile}
         />
-      </Box>
-    </Box>
-  </MaybePopup>
+      </Kb.Box>
+    </Kb.Box>
+  </Kb.MaybePopup>
 )
 
-const stylePadding = platformStyles({
-  isElectron: {
-    marginBottom: 40,
-    marginLeft: 80,
-    marginRight: 80,
-    marginTop: 40,
-  },
-  isMobile: {paddingTop: globalMargins.xlarge},
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      box: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.white,
+        justifyContent: 'center',
+        maxWidth: 560,
+        padding: Styles.globalMargins.small,
+      },
+      button: Styles.platformStyles({
+        isElectron: {marginLeft: Styles.globalMargins.tiny},
+        isMobile: {marginTop: Styles.globalMargins.tiny},
+      }),
+      buttonBox: Styles.platformStyles({
+        common: {marginTop: Styles.globalMargins.xlarge},
+        isElectron: {...Styles.globalStyles.flexBoxRow},
+        isMobile: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'stretch',
+          flex: 1,
+          flexDirection: 'column-reverse',
+          paddingTop: Styles.globalMargins.xlarge,
+          width: '100%',
+        },
+      }),
+      padding: Styles.platformStyles({
+        isElectron: {
+          marginBottom: 40,
+          marginLeft: 80,
+          marginRight: 80,
+          marginTop: 40,
+        },
+        isMobile: {paddingTop: Styles.globalMargins.xlarge},
+      }),
+      text: {padding: Styles.globalMargins.small},
+    } as const)
+)
 
-const styleButtonBox = platformStyles({
-  common: {marginTop: globalMargins.xlarge},
-  isElectron: {...globalStyles.flexBoxRow},
-  isMobile: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    flex: 1,
-    flexDirection: 'column-reverse',
-    paddingTop: globalMargins.xlarge,
-    width: '100%',
-  },
-})
-
-const styleButton = platformStyles({
-  isElectron: {marginLeft: globalMargins.tiny},
-  isMobile: {marginTop: globalMargins.tiny},
-})
-
-const styleText = {padding: globalMargins.small}
-
-export default HeaderOnMobile(DeleteHistoryWarning)
+export default Kb.HeaderOnMobile(DeleteHistoryWarning)

@@ -1,3 +1,4 @@
+import autoresetSaga from '../actions/autoreset'
 import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
@@ -12,6 +13,7 @@ import notificationsSaga from '../actions/notifications'
 import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
 import profileSaga from '../actions/profile'
+import recoverPasswordSaga from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
 import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
@@ -26,6 +28,7 @@ import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga() {
+  yield Saga.spawn(autoresetSaga)
   yield Saga.spawn(chat2Saga)
   yield Saga.spawn(configSaga)
   yield Saga.spawn(deeplinksSaga)
@@ -37,6 +40,7 @@ function* mainSaga() {
   yield Saga.spawn(notificationsSaga)
   yield Saga.spawn(pinentrySaga)
   yield Saga.spawn(profileSaga)
+  yield Saga.spawn(recoverPasswordSaga)
   yield Saga.spawn(tracker2Saga)
   yield Saga.spawn(searchSaga)
   yield Saga.spawn(settingsSaga)

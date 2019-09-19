@@ -1770,3 +1770,10 @@ func (c *ConfigLocal) SubscriptionManagerPublisher() SubscriptionManagerPublishe
 	defer c.lock.RUnlock()
 	return c.subscriptionManagerPublisher
 }
+
+// KbEnv implements the Config interface.
+func (c *ConfigLocal) KbEnv() *libkb.Env {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.kbCtx.GetEnv()
+}

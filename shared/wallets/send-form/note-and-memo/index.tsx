@@ -15,6 +15,7 @@ type SecretNoteProps = {
 type PublicMemoProps = {
   publicMemo: string // Initial value only
   publicMemoError?: string
+  publicMemoOverride?: string
   onChangePublicMemo: (memo: string) => void
   maxLength: number
 }
@@ -99,7 +100,7 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               placeholder={`${
                 this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'
               } (in Keybase)`}
-              placeholderColor={placeholderColor}
+              placeholderColor={Styles.globalColors.black_20}
               rowsMin={Styles.isMobile ? 2 : 3}
               rowsMax={8}
               style={styles.input}
@@ -170,18 +171,22 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             multiline={true}
             padding={0}
             placeholder="Add a public memo (on Stellar)"
-            placeholderColor={placeholderColor}
-            style={styles.input}
+            placeholderColor={Styles.globalColors.black_20}
+            style={this.props.publicMemoOverride ? styles.inputDisabled : styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
-            value={this.state.publicMemo}
+            disabled={!!this.props.publicMemoOverride}
+            value={this.props.publicMemoOverride || this.state.publicMemo}
             maxBytes={this.props.maxLength}
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodyTiny">
               {this.props.maxLength - Buffer.byteLength(this.state.publicMemo)} characters left
             </Kb.Text>
+          )}
+          {!!this.props.publicMemoOverride && (
+            <Kb.Text type="BodyTiny">This memo was provided by the recipient and cannot be changed.</Kb.Text>
           )}
           {!!this.props.publicMemoError && (
             <Kb.Text type="BodySmallError">{this.props.publicMemoError}</Kb.Text>
@@ -196,8 +201,6 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
 const Divider = ({error}: {error: boolean}) => (
   <Kb.Divider style={error ? Styles.collapseStyles([styles.divider, styles.dividerError]) : styles.divider} />
 )
-
-const placeholderColor = Styles.globalColors.black_20
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -226,6 +229,10 @@ const styles = Styles.styleSheetCreate(
       input: {
         backgroundColor: Styles.globalColors.white,
         color: Styles.globalColors.black_on_white,
+      },
+      inputDisabled: {
+        backgroundColor: Styles.globalColors.white,
+        color: Styles.globalColors.greyDarker,
       },
     } as const)
 )

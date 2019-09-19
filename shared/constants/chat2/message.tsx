@@ -95,6 +95,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemChangeRetention',
         'systemGitPush',
         'systemInviteAccepted',
+        'systemSBSResolved',
         'systemSimpleToComplex',
         'systemText',
         'systemUsersAddedToConversation',
@@ -130,6 +131,7 @@ export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
   'systemInviteAccepted',
   'systemJoined',
   'systemLeft',
+  'systemSBSResolved',
   'systemSimpleToComplex',
   'systemText',
   'systemUsersAddedToConversation',
@@ -162,6 +164,7 @@ const makeMessageCommon = {
   deviceRevokedAt: null,
   deviceType: 'mobile' as DeviceTypes.DeviceType,
   errorReason: null,
+  errorTyp: null,
   hasBeenEdited: false,
   outboxID: Types.stringToOutboxID(''),
 }
@@ -321,6 +324,15 @@ const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInvi
   reactions: I.Map(),
   team: '',
   type: 'systemInviteAccepted',
+})
+
+const makeMessageSystemSBSResolved = I.Record<MessageTypes._MessageSystemSBSResolved>({
+  ...makeMessageCommonNoDeleteNoEdit,
+  assertionService: '',
+  assertionUsername: '',
+  prover: '',
+  reactions: I.Map(),
+  type: 'systemSBSResolved',
 })
 
 const makeMessageSystemSimpleToComplex = I.Record<MessageTypes._MessageSystemSimpleToComplex>({
@@ -578,6 +590,16 @@ const uiMessageToSystemMessage = (
         ...minimum,
         reactions,
         team,
+      })
+    }
+    case RPCChatTypes.MessageSystemType.sbsresolve: {
+      const {prover = '???', assertionUsername = '???', assertionService = '???'} = body.sbsresolve || {}
+      return makeMessageSystemSBSResolved({
+        ...minimum,
+        assertionService,
+        assertionUsername,
+        prover,
+        reactions,
       })
     }
     case RPCChatTypes.MessageSystemType.createteam: {
@@ -933,6 +955,8 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
       return 'message already sent'
     case RPCChatTypes.OutboxErrorType.expired:
       return 'took too long to send'
+    case RPCChatTypes.OutboxErrorType.restrictedbot:
+      return 'bot is restricted from sending to this conversation'
     default:
       return `${error.message || ''} (code: ${error.typ})`
   }
@@ -946,6 +970,10 @@ const outboxUIMessagetoMessage = (
   const errorReason =
     o.state && o.state.state === RPCChatTypes.OutboxStateType.error && o.state.error
       ? rpcErrorToString(o.state.error)
+      : null
+  const errorTyp =
+    o.state && o.state.state === RPCChatTypes.OutboxStateType.error && o.state.error
+      ? o.state.error.typ
       : null
 
   switch (o.messageType) {
@@ -974,7 +1002,8 @@ const outboxUIMessagetoMessage = (
         pre,
         Types.stringToOutboxID(o.outboxID),
         Types.numberToOrdinal(o.ordinal),
-        errorReason
+        errorReason,
+        errorTyp
       )
     }
     case RPCChatTypes.MessageType.flip:
@@ -986,6 +1015,7 @@ const outboxUIMessagetoMessage = (
         deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
+        errorTyp,
         exploding: o.isEphemeral,
         flipGameID: o.flipGameID,
         ordinal: Types.numberToOrdinal(o.ordinal),
@@ -1113,6 +1143,7 @@ export const makePendingAttachmentMessage = (
   outboxID: Types.OutboxID,
   inOrdinal: Types.Ordinal | null,
   errorReason: string | null,
+  errorTyp: number | null,
   explodeTime?: number
 ) => {
   const lastOrdinal = (state.chat2.messageOrdinals.get(conversationIDKey) || I.OrderedSet<number>()).last(
@@ -1129,6 +1160,7 @@ export const makePendingAttachmentMessage = (
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     errorReason: errorReason,
+    errorTyp: errorTyp,
     fileName: fileName,
     id: Types.numberToMessageID(0),
     isCollapsed: false,
@@ -1266,6 +1298,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemChangeRetention':
     case 'systemGitPush':
     case 'systemInviteAccepted':
+    case 'systemSBSResolved':
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':

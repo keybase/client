@@ -15,11 +15,7 @@ func NewEphemeralStorageAndInstall(mctx libkb.MetaContext) {
 	mctx.G().AddLoginHook(ekLib)
 	mctx.G().AddLogoutHook(ekLib, "ekLib")
 	mctx.G().AddDbNukeHook(ekLib, "ekLib")
-	mctx.G().PushShutdownHook(func() error {
-		mctx.Debug("stopping background eklib loop")
-		ekLib.Shutdown()
-		return nil
-	})
+	mctx.G().PushShutdownHook(ekLib.Shutdown)
 }
 
 func ServiceInit(mctx libkb.MetaContext) {

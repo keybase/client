@@ -757,12 +757,17 @@ func (s *Server) SendPathLocal(ctx context.Context, arg stellar1.SendPathLocalAr
 		return res, err
 	}
 
+	var pubMemo *stellarnet.Memo
+	if arg.PublicNote != "" {
+		pubMemo = stellarnet.NewMemoText(arg.PublicNote)
+	}
+
 	sendRes, err := stellar.SendPathPaymentGUI(mctx, s.walletState, stellar.SendPathPaymentArg{
 		From:        arg.Source,
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
+		PublicMemo:  pubMemo,
 		QuickReturn: true,
 	})
 	if err != nil {

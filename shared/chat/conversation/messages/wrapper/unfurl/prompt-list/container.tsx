@@ -2,7 +2,6 @@ import * as Constants from '../../../../../../constants/chat2'
 import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Types from '../../../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../../../constants/types/rpc-chat-gen'
-import * as I from 'immutable'
 import {namedConnect} from '../../../../../../util/container'
 import UnfurlPromptList from '.'
 
@@ -11,74 +10,56 @@ type OwnProps = {
   ordinal: Types.Ordinal
 }
 
-const noPrompts = I.Set()
+const noPrompts = new Set<string>()
 const noMessageID = Types.numberToMessageID(0)
 
-const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
-  const message = Constants.getMessage(state, conversationIDKey, ordinal)
-  const messageID = message && message.type === 'text' ? message.id : noMessageID
-  const promptDomains = state.chat2.unfurlPromptMap.getIn([conversationIDKey, messageID]) || noPrompts
-  return {
-    messageID,
-    promptDomains,
-  }
-}
+export default namedConnect(
+  (state, {conversationIDKey, ordinal}: OwnProps) => {
+    const message = Constants.getMessage(state, conversationIDKey, ordinal)
+    const messageID = message && message.type === 'text' ? message.id : noMessageID
+    let promptDomains: Set<string> | undefined
 
-const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  _setPolicy: (messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult) => {
-    dispatch(
-      Chat2Gen.createUnfurlResolvePrompt({
-        conversationIDKey,
-        domain,
-        messageID,
-        result,
-      })
-    )
+    const pm = state.chat2.unfurlPromptMap.get(conversationIDKey)
+    if (pm) {
+      promptDomains = pm.get(messageID)
+    }
+    return {
+      messageID,
+      promptDomains: promptDomains || noPrompts,
+    }
   },
-})
-
-const makeRes = (actionType: RPCChatTypes.UnfurlPromptAction, domain?: string) => {
-  return {accept: domain, actionType, onetime: domain}
-}
-
-const mergeProps = (stateProps, dispatchProps, _) => ({
-  prompts: stateProps.promptDomains
-    .map(domain => ({
+  (dispatch, {conversationIDKey}: OwnProps) => ({
+    _setPolicy: (messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult) => {
+      dispatch(Chat2Gen.createUnfurlResolvePrompt({conversationIDKey, domain, messageID, result}))
+    },
+  }),
+  (stateProps, dispatchProps, _) => ({
+    prompts: [...stateProps.promptDomains].map(domain => ({
       domain,
       onAccept: () =>
-        dispatchProps._setPolicy(
-          stateProps.messageID,
-          domain,
-          makeRes(RPCChatTypes.UnfurlPromptAction.accept, domain)
-        ),
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          accept: domain,
+          actionType: RPCChatTypes.UnfurlPromptAction.accept,
+        }),
       onAlways: () =>
-        dispatchProps._setPolicy(
-          stateProps.messageID,
-          domain,
-          makeRes(RPCChatTypes.UnfurlPromptAction.always)
-        ),
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.always,
+        }),
       onNever: () =>
-        dispatchProps._setPolicy(
-          stateProps.messageID,
-          domain,
-          makeRes(RPCChatTypes.UnfurlPromptAction.never)
-        ),
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.never,
+        }),
       onNotnow: () =>
-        dispatchProps._setPolicy(
-          stateProps.messageID,
-          domain,
-          makeRes(RPCChatTypes.UnfurlPromptAction.notnow)
-        ),
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.notnow,
+        }),
       onOnetime: () =>
-        dispatchProps._setPolicy(
-          stateProps.messageID,
-          domain,
-          makeRes(RPCChatTypes.UnfurlPromptAction.onetime, domain)
-        ),
-    }))
-    .toArray(),
-})
+        dispatchProps._setPolicy(stateProps.messageID, domain, {
+          actionType: RPCChatTypes.UnfurlPromptAction.onetime,
+          onetime: domain,
+        }),
+    })),
+  }),
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'UnfurlPromptList')(
-  UnfurlPromptList
-)
+  'UnfurlPromptList'
+)(UnfurlPromptList)

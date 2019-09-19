@@ -19,7 +19,8 @@ git-hooks
 media
 osx
 packaging/linux/docker
-!packaging/linux/docker/service/start.sh
+!packaging/linux/docker/standard/entrypoint.sh
+!packaging/linux/docker/slim/entrypoint.sh
 !packaging/linux/docker/tini_key.asc
 protocol
 pvl-tools

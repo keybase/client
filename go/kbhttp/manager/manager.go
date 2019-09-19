@@ -41,7 +41,7 @@ func NewSrv(g *libkb.GlobalContext) *Srv {
 	}
 	h.initHTTPSrv()
 	h.startHTTPSrv()
-	g.PushShutdownHook(func() error {
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 		h.httpSrv.Stop()
 		return nil
 	})

@@ -41,9 +41,9 @@ export type SettingsProps = {
 
 const HoverText = Styles.isMobile
   ? Kb.Text
-  : Styles.styled(Kb.Text)({
+  : Styles.styled(Kb.Text)(() => ({
       ':hover': {backgroundColor: Styles.globalColors.yellowLight},
-    })
+    }))
 
 const Divider = () => <Kb.Divider style={styles.divider} />
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import DeleteChannel from './delete-channel'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalMargins, isMobile} from '../../styles'
+import * as Styles from '../../styles'
 
 export type Props = {
   teamname: string
@@ -54,18 +54,21 @@ class _EditChannel extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box style={_boxStyle}>
+      <Kb.Box style={styles.box}>
         <Kb.Avatar isTeam={true} teamname={this.props.teamname} size={32} />
-        <Kb.Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
+        <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
           {this.props.teamname}
         </Kb.Text>
         {this.props.waitingForGetInfo ? (
           <Kb.ProgressIndicator
-            style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny, width: 20}}
+            style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny, width: 20}}
           />
         ) : (
-          !isMobile && (
-            <Kb.Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+          !Styles.isMobile && (
+            <Kb.Text
+              type="Header"
+              style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
+            >
               {this.props.title}
             </Kb.Text>
           )
@@ -110,15 +113,15 @@ class _EditChannel extends React.Component<Props, State> {
             value={this.state.newTopic}
             multiline={true}
             rowsMin={1}
-            rowsMax={isMobile ? 2 : 10}
+            rowsMax={Styles.isMobile ? 2 : 10}
             autoCorrect={true}
             autoCapitalize="sentences"
             // From go/chat/msgchecker/constants.go#HeadlineMaxLength
             maxLength={280}
           />
         </Kb.Box>
-        <Kb.Box style={_bottomRowStyle}>
-          {!isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
+        <Kb.Box style={styles.bottomRow}>
+          {!Styles.isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
             <DeleteChannel
               channelName={this.props.channelName}
               onConfirmedDelete={this.props.onConfirmedDelete}
@@ -135,11 +138,11 @@ class _EditChannel extends React.Component<Props, State> {
               }
               waiting={this.props.waitingOnSave}
               onClick={this._onSave}
-              style={{marginLeft: globalMargins.tiny}}
+              style={{marginLeft: Styles.globalMargins.tiny}}
             />
           </Kb.ButtonBar>
         </Kb.Box>
-        {isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
+        {Styles.isMobile && this.props.showDelete && !this.props.deleteRenameDisabled && (
           <DeleteChannel
             channelName={this.props.channelName}
             onConfirmedDelete={this.props.onConfirmedDelete}
@@ -152,22 +155,26 @@ class _EditChannel extends React.Component<Props, State> {
 }
 const EditChannel = Kb.HeaderOrPopupWithHeader(_EditChannel)
 
-const _boxStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  paddingBottom: globalMargins.medium,
-  paddingTop: globalMargins.medium,
-  ...(isMobile ? {flex: 1} : {}),
-}
-
-const _bottomRowStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'flex-end',
-  alignSelf: 'stretch',
-  flex: 1,
-  justifyContent: 'center',
-  position: 'relative',
-  ...(isMobile ? {} : {minWidth: '500px'}),
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bottomRow: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-end',
+        alignSelf: 'stretch',
+        flex: 1,
+        justifyContent: 'center',
+        position: 'relative',
+        ...(Styles.isMobile ? {} : {minWidth: '500px'}),
+      },
+      box: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        paddingBottom: Styles.globalMargins.medium,
+        paddingTop: Styles.globalMargins.medium,
+        ...(Styles.isMobile ? {flex: 1} : {}),
+      },
+    } as const)
+)
 
 export default EditChannel

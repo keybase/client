@@ -449,7 +449,7 @@ const hoverStyles = Styles.styleSheetCreate(
     } as const)
 )
 
-const HoverBox = Styles.styled(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)(() => ({
   '&.filled': hoverStyles.filled,
   '&.filled:active': {cursor: '-webkit-grabbing'},
   '&.filled:hover': hoverStyles.filledHover,
@@ -458,7 +458,7 @@ const HoverBox = Styles.styled(Kb.Box)({
   '.dropping &': hoverStyles.dropping,
   '.dropping & .icon': hoverStyles.droppingIcon,
   ...hoverStyles.hoverContainer,
-})
+}))
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

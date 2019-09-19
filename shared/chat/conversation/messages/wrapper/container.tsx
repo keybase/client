@@ -7,6 +7,7 @@ import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as Types from '../../../../constants/types/chat2'
 import * as Container from '../../../../util/container'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -17,63 +18,6 @@ type OwnProps = {
 
 // If there is no matching message treat it like a deleted
 const missingMessage = MessageConstants.makeMessageDeleted({})
-
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
-  const previous =
-    (ownProps.previous && Constants.getMessage(state, ownProps.conversationIDKey, ownProps.previous)) ||
-    undefined
-  const orangeLineAbove = state.chat2.orangeLineMap.get(ownProps.conversationIDKey) === message.id
-  const unfurlPrompts =
-    message.type === 'text'
-      ? state.chat2.unfurlPromptMap.getIn([message.conversationIDKey, message.id])
-      : null
-  const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
-  const centeredOrdinal =
-    centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ownProps.ordinal
-      ? centeredOrdinalInfo.highlightMode
-      : 'none'
-  const meta = Constants.getMeta(state, message.conversationIDKey)
-  const teamname = meta.teamname
-  const authorIsAdmin = teamname
-    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
-    : false
-  const authorIsOwner = teamname
-    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
-    : false
-  return {
-    _you: state.config.username,
-    authorIsAdmin,
-    authorIsOwner,
-    centeredOrdinal,
-    conversationIDKey: ownProps.conversationIDKey,
-    hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
-    isLastInThread:
-      Constants.getMessageOrdinals(state, ownProps.conversationIDKey).last() === ownProps.ordinal,
-    isPendingPayment: Constants.isPendingPaymentMessage(state, message),
-    message,
-    orangeLineAbove,
-    previous,
-    shouldShowPopup: Constants.shouldShowPopup(state, message),
-    showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
-    showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAuthorClick: (username: string) =>
-    Container.isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username}))
-      : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-  _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-    dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
-  _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-    dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
-  _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
-    dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
-  _onSwipeLeft: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-    dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
-})
 
 // Used to decide whether to show the author for sequential messages
 const authorIsCollapsible = (m: Types.Message) =>
@@ -119,23 +63,28 @@ const getUsernameToShow = (
 
 const getFailureDescriptionAllowCancel = (message, you) => {
   let failureDescription = ''
-  let allowCancelRetry = false
+  let allowCancel = false
+  let allowRetry = false
   let resolveByEdit = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = message.errorReason
     if (you && ['pending', 'failed'].includes(message.submitState)) {
       // This is a message still in the outbox, we can retry/edit to fix, but
       // for flip messages, don't allow retry/cancel
-      allowCancelRetry = message.type === 'attachment' || !message.flipGameID
+      allowCancel = allowRetry = message.type === 'attachment' || !message.flipGameID
       const messageType = message.type === 'attachment' ? 'attachment' : 'message'
       failureDescription = `This ${messageType} failed to send`
-      resolveByEdit = !!message.outboxID && !!you && message.errorReason === 'message is too long'
+      resolveByEdit = !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
       if (resolveByEdit) {
         failureDescription += `, ${message.errorReason}`
       }
+      if (!!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.restrictedbot) {
+        failureDescription = `Unable to send, ${message.errorReason}`
+        allowRetry = false
+      }
     }
   }
-  return {allowCancelRetry, failureDescription, resolveByEdit}
+  return {allowCancel, allowRetry, failureDescription, resolveByEdit}
 }
 
 const getDecorate = message => {
@@ -150,14 +99,72 @@ const getDecorate = message => {
 }
 
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const message =
+      Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
+    const previous =
+      (ownProps.previous && Constants.getMessage(state, ownProps.conversationIDKey, ownProps.previous)) ||
+      undefined
+    const orangeLineAbove = state.chat2.orangeLineMap.get(ownProps.conversationIDKey) === message.id
+    let hasUnfurlPrompts = false
+    if (message.type === 'text') {
+      const mm = state.chat2.unfurlPromptMap.get(message.conversationIDKey)
+      if (mm) {
+        const unfurlPrompts = mm.get(message.id)
+        hasUnfurlPrompts = !!unfurlPrompts && unfurlPrompts.size > 0
+      }
+    }
+    const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
+    const centeredOrdinal =
+      centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ownProps.ordinal
+        ? centeredOrdinalInfo.highlightMode
+        : 'none'
+    const meta = Constants.getMeta(state, message.conversationIDKey)
+    const teamname = meta.teamname
+    const authorIsAdmin = teamname
+      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
+      : false
+    const authorIsOwner = teamname
+      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
+      : false
+    return {
+      _you: state.config.username,
+      authorIsAdmin,
+      authorIsOwner,
+      centeredOrdinal,
+      conversationIDKey: ownProps.conversationIDKey,
+      hasUnfurlPrompts,
+      isLastInThread:
+        Constants.getMessageOrdinals(state, ownProps.conversationIDKey).last() === ownProps.ordinal,
+      isPendingPayment: Constants.isPendingPaymentMessage(state, message),
+      message,
+      orangeLineAbove,
+      previous,
+      shouldShowPopup: Constants.shouldShowPopup(state, message),
+      showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
+      showCrowns: message.type !== 'systemAddedToTeam' && message.type !== 'systemInviteAccepted',
+    }
+  },
+  (dispatch: Container.TypedDispatch) => ({
+    _onAuthorClick: (username: string) =>
+      Container.isMobile
+        ? dispatch(ProfileGen.createShowUserProfile({username}))
+        : dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
+    _onCancel: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+      dispatch(Chat2Gen.createMessageDelete({conversationIDKey, ordinal})),
+    _onEdit: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+      dispatch(Chat2Gen.createMessageSetEditing({conversationIDKey, ordinal})),
+    _onRetry: (conversationIDKey: Types.ConversationIDKey, outboxID: Types.OutboxID) =>
+      dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
+    _onSwipeLeft: (conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
+      dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {previous, message, _you} = stateProps
     let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
-    let {allowCancelRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
+    let {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
       message,
       _you
     )
@@ -165,11 +172,11 @@ export default Container.namedConnect(
     // show send only if its possible we sent while you're looking at it
     const showSendIndicator = _you === message.author && message.ordinal !== message.id
     const decorate = getDecorate(message)
-    const onCancel = allowCancelRetry
+    const onCancel = allowCancel
       ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
       : undefined
     const onRetry =
-      allowCancelRetry && !resolveByEdit && outboxID
+      allowRetry && !resolveByEdit && outboxID
         ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
         : undefined
 

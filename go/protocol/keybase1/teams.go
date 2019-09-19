@@ -1,4 +1,4 @@
-// Auto-generated types and interfaces using avdl-compiler v1.4.1 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams.avdl
 
 package keybase1
@@ -115,6 +115,35 @@ var TeamStatusRevMap = map[TeamStatus]string{
 
 func (e TeamStatus) String() string {
 	if v, ok := TeamStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type AuditMode int
+
+const (
+	AuditMode_STANDARD     AuditMode = 0
+	AuditMode_JUST_CREATED AuditMode = 1
+	AuditMode_SKIP         AuditMode = 2
+)
+
+func (o AuditMode) DeepCopy() AuditMode { return o }
+
+var AuditModeMap = map[string]AuditMode{
+	"STANDARD":     0,
+	"JUST_CREATED": 1,
+	"SKIP":         2,
+}
+
+var AuditModeRevMap = map[AuditMode]string{
+	0: "STANDARD",
+	1: "JUST_CREATED",
+	2: "SKIP",
+}
+
+func (e AuditMode) String() string {
+	if v, ok := AuditModeRevMap[e]; ok {
 		return v
 	}
 	return ""
@@ -2510,8 +2539,8 @@ type LoadTeamArg struct {
 	ForceRepoll               bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
 	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
-	SkipAudit                 bool           `codec:"skipAudit" json:"skipAudit"`
 	SkipNeedHiddenRotateCheck bool           `codec:"skipNeedHiddenRotateCheck" json:"skipNeedHiddenRotateCheck"`
+	AuditMode                 AuditMode      `codec:"auditMode" json:"auditMode"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -2526,8 +2555,8 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceRepoll:               o.ForceRepoll,
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
-		SkipAudit:                 o.SkipAudit,
 		SkipNeedHiddenRotateCheck: o.SkipNeedHiddenRotateCheck,
+		AuditMode:                 o.AuditMode.DeepCopy(),
 	}
 }
 
@@ -3371,6 +3400,19 @@ type TeamEditMemberArg struct {
 	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
+type TeamGetBotSettingsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Username  string `codec:"username" json:"username"`
+}
+
+type TeamSetBotSettingsArg struct {
+	SessionID   int             `codec:"sessionID" json:"sessionID"`
+	Name        string          `codec:"name" json:"name"`
+	Username    string          `codec:"username" json:"username"`
+	BotSettings TeamBotSettings `codec:"botSettings" json:"botSettings"`
+}
+
 type TeamRenameArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	PrevName  TeamName `codec:"prevName" json:"prevName"`
@@ -3586,6 +3628,8 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
+	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
+	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
 	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
@@ -3881,6 +3925,36 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamEditMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetBotSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetBotSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetBotSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetBotSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetBotSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamSetBotSettings": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamSetBotSettingsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamSetBotSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamSetBotSettingsArg)(nil), args)
+						return
+					}
+					err = i.TeamSetBotSettings(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4509,6 +4583,16 @@ func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err err
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamGetBotSettings(ctx context.Context, __arg TeamGetBotSettingsArg) (res TeamBotSettings, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetBotSettings", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil)
 	return
 }
 

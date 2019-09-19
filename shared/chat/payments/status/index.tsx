@@ -120,47 +120,50 @@ class PaymentStatus extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  claimable: {
-    backgroundColor: Styles.globalColors.black_05OrBlack_60,
-    borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.black_50OrWhite,
-  },
-  claimableIcon: {},
-  completed: {
-    backgroundColor: Styles.globalColors.purple_10OrPurple,
-    borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.purpleDarkOrWhite,
-  },
-  completedIcon: {
-    color: Styles.globalColors.purpleDarkOrWhite,
-  },
-  container: Styles.platformStyles({
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
-  error: {
-    backgroundColor: Styles.globalColors.red_10OrRed,
-    borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.redDarkOrWhite,
-  },
-  errorIcon: {
-    color: Styles.globalColors.redDarkOrWhite,
-  },
-  iconBoxStyle: Styles.platformStyles({
-    isElectron: {
-      display: 'inline',
-    },
-  }),
-  pending: {
-    backgroundColor: Styles.globalColors.black_05OrBlack_60,
-    borderRadius: Styles.globalMargins.xxtiny,
-    color: Styles.globalColors.black_50OrWhite,
-  },
-  pendingIcon: {
-    color: Styles.globalColors.black_50OrWhite,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      claimable: {
+        backgroundColor: Styles.globalColors.black_05OrBlack_60,
+        borderRadius: Styles.globalMargins.xxtiny,
+        color: Styles.globalColors.black_50OrWhite,
+      },
+      claimableIcon: {},
+      completed: {
+        backgroundColor: Styles.globalColors.purple_10OrPurple,
+        borderRadius: Styles.globalMargins.xxtiny,
+        color: Styles.globalColors.purpleDarkOrWhite,
+      },
+      completedIcon: {
+        color: Styles.globalColors.purpleDarkOrWhite,
+      },
+      container: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+        },
+      }),
+      error: {
+        backgroundColor: Styles.globalColors.red_10OrRed,
+        borderRadius: Styles.globalMargins.xxtiny,
+        color: Styles.globalColors.redDarkOrWhite,
+      },
+      errorIcon: {
+        color: Styles.globalColors.redDarkOrWhite,
+      },
+      iconBoxStyle: Styles.platformStyles({
+        isElectron: {
+          display: 'inline',
+        },
+      }),
+      pending: {
+        backgroundColor: Styles.globalColors.black_05OrBlack_60,
+        borderRadius: Styles.globalMargins.xxtiny,
+        color: Styles.globalColors.black_50OrWhite,
+      },
+      pendingIcon: {
+        color: Styles.globalColors.black_50OrWhite,
+      },
+    } as const)
+)
 
 export default PaymentStatus

@@ -23,12 +23,15 @@ class SystemText extends React.PureComponent<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  notice: {marginTop: Styles.globalMargins.small},
-  text: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_50},
-    isElectron: {wordBreak: 'break-word'} as const,
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      notice: {marginTop: Styles.globalMargins.small},
+      text: Styles.platformStyles({
+        common: {color: Styles.globalColors.black_50},
+        isElectron: {wordBreak: 'break-word'} as const,
+      }),
+    } as const)
+)
 
 export default SystemText

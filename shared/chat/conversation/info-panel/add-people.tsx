@@ -91,12 +91,15 @@ const AddPeople = compose(
   OverlayParentHOC
 )(_AddPeople) as any
 
-const styles = Styles.styleSheetCreate(() => ({
-  addButtonContainer: {
-    marginBottom: Styles.globalMargins.small,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      addButtonContainer: {
+        marginBottom: Styles.globalMargins.small,
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default AddPeople

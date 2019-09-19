@@ -308,7 +308,7 @@ protocol remote {
   }
   SweepRes retentionSweepConv(ConversationID convID);
 
-  void upgradeKBFSToImpteam(TLFID tlfID);
+  void upgradeKBFSToImpteam(TLFID tlfID, keybase1.TeamID teamID);
 
   // Share extension
   void registerSharePost(ConversationID convID, gregor1.DeviceID deviceID, OutboxID outboxID);

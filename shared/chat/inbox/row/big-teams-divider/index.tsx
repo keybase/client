@@ -9,7 +9,7 @@ type Props = {
   toggle: () => void
 }
 
-const DividerBox = Styles.styled(Kb.Box)({
+const DividerBox = Styles.styled(Kb.Box)(() => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {backgroundColor: Styles.globalColors.fastBlank}
@@ -29,7 +29,7 @@ const DividerBox = Styles.styled(Kb.Box)({
   paddingRight: Styles.globalMargins.tiny,
   position: 'relative',
   width: '100%',
-})
+}))
 
 const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   <Kb.ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>

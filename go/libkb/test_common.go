@@ -109,7 +109,8 @@ func (tc *TestContext) Cleanup() {
 	require.NoError(tc.T, err)
 
 	tc.G.Log.Debug("global context shutdown:")
-	_ = tc.G.Shutdown() // could error due to missing pid file
+	mctx := NewMetaContextForTest(*tc)
+	_ = tc.G.Shutdown(mctx) // could error due to missing pid file
 	if len(tc.Tp.Home) > 0 {
 		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)

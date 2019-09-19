@@ -286,7 +286,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 }
 
 func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow, changes keybase1.TeamChangeSet) (err error) {
-	ctx = libkb.WithLogTag(ctx, "CLKR")
+	ctx = libkb.WithLogTag(ctx, "THCN")
 	defer g.CTrace(ctx, "HandleChangeNotification", func() error { return err })()
 	for _, row := range rows {
 		if err := handleChangeSingle(ctx, g, row, changes); err != nil {
@@ -385,13 +385,13 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if err != nil {
 			return err
 		}
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
 		switch category {
 		case keybase1.TeamInviteCategory_SBS:
 			//  resolve assertion in link (with uid in invite msg)
-			ityp, err := invite.Type.String()
-			if err != nil {
-				return err
-			}
 			assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, untrustedInviteeFromGregor.Uid)
 
 			arg := keybase1.Identify2Arg{
@@ -454,7 +454,17 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		}
 
 		// Send chat welcome message
-		if !team.IsImplicit() {
+		if team.IsImplicit() {
+			iteamName, err := team.ImplicitTeamDisplayNameString(ctx)
+			if err != nil {
+				return err
+			}
+			g.Log.CDebugf(ctx,
+				"sending resolution message for successful SBS handle")
+			SendChatSBSResolutionMessage(ctx, g, iteamName,
+				string(invite.Name), ityp, verifiedInvitee.Uid)
+
+		} else {
 			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
 			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
 				verifiedInvitee.Uid)
