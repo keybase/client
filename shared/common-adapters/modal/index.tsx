@@ -40,6 +40,7 @@ type Props = {
   footer?: FooterProps
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'Wide'
+  mobileStyle?: Styles.StylesCrossPlatform
 }
 
 const ModalInner = (props: Props) => (
@@ -60,7 +61,7 @@ const ModalInner = (props: Props) => (
 )
 const Modal = (props: Props) =>
   Styles.isMobile || props.fullscreen ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
       <ModalInner {...props} />
     </Kb.Box2>
   ) : (
