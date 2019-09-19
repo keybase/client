@@ -186,11 +186,11 @@ const ContactsImportButton = (props: ContactProps) => {
         gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-contact-book" color="Styles.globalColors.black" />
+        <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import your phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color="Styles.globalColors.black" />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
