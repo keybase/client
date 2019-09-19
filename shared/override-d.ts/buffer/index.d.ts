@@ -1,4 +1,4 @@
-type _B = Buffer
+import {Buffer as _Buffer} from 'buffer'
 declare module 'buffer/' {
-  export const Buffer: _B
+  export const Buffer: typeof _Buffer
 }

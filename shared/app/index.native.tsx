@@ -19,12 +19,12 @@ class Keybase extends Component<any> {
   constructor(props: any) {
     super(props)
 
-    if (!global.DEBUGLoaded) {
-      global.DEBUGLoaded = true
+    if (KB.DEV && !KB.DEV.DEBUGLoaded) {
+      KB.DEV.DEBUGLoaded = true
       const temp = configureStore()
       store = temp.store
       if (__DEV__) {
-        global.DEBUGStore = temp.store
+        KB.DEV.DEBUGStore = temp.store
       }
       const eng = makeEngine(temp.store.dispatch, temp.store.getState)
       temp.runSagas()

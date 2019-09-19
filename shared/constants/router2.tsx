@@ -4,12 +4,11 @@ let _navigator: Navigator | undefined
 // Private API only used by config sagas
 export const _setNavigator = (navigator: Navigator) => {
   _navigator = navigator
-  if (__DEV__) {
+  if (__DEV__ && KB.DEV) {
     if (require('./platform').isMobile) {
-      global.DEBUGNavigator = _navigator
+      KB.DEV.DEBUGNavigator = _navigator
     } else {
-      // @ts-ignore
-      window.DEBUGNavigator = _navigator
+      KB.DEV.DEBUGNavigator = _navigator
     }
   }
 }

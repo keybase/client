@@ -27,11 +27,8 @@ interface Window {
     opts?: RequestIdleCallbackOptions
   ) => RequestIdleCallbackHandle
   cancelIdleCallback: (handle: RequestIdleCallbackHandle) => void
-  DEBUGEffectById: any
-  DEBUGLogSagas: any
-  DEBUGLogSagasWithNames: any
-  DEBUGRootEffects: any
   KB: typeof KB
+  process: any
 }
 
 interface Console {
@@ -42,7 +39,20 @@ interface Console {
 }
 
 declare var KB: {
-  DEV?: any
+  DEV?: {
+    DEBUGActionLoop?: any
+    DEBUGEffectById?: any
+    DEBUGEngine?: any
+    DEBUGLoaded?: boolean
+    DEBUGLogSagas?: any
+    DEBUGLogSagasWithNames?: any
+    DEBUGNavigator?: any
+    DEBUGRootEffects?: any
+    DEBUGSagaMiddleware?: any
+    DEBUGStore?: any
+    events?: any
+    url?: any
+  }
   __child_process: any
   __dirname: string
   __electron: any
@@ -53,6 +63,7 @@ declare var KB: {
   anyToMainDispatchAction: any
   buffer: any
   framedMsgpackRpc: any
+  globalLogger: any
   handleAnyToMainDispatchAction: any
   handleDarkModeChanged: any
   handlePowerMonitor: any
@@ -71,17 +82,6 @@ declare var KB: {
 
 declare namespace NodeJS {
   interface Global {
-    DEBUGActionLoop: () => void
-    DEBUGEffectById: any
-    DEBUGEngine: any
-    DEBUGLoaded: boolean
-    DEBUGLogSagas: any
-    DEBUGLogSagasWithNames: any
-    DEBUGNavigator: any
-    DEBUGRootEffects: any
-    DEBUGSagaMiddleware: any
-    DEBUGStore: any
-    globalLogger: any
     KB: typeof KB
   }
 }

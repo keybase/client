@@ -112,12 +112,6 @@ const ERROR_STYLE = 'color: red'
 const CANCEL_STYLE = 'color: #ccc'
 
 const IS_BROWSER = typeof window !== 'undefined' && window.document
-const globalScope =
-  typeof window.document === 'undefined' && navigator.product === 'ReactNative'
-    ? global
-    : IS_BROWSER
-    ? window
-    : null
 // `VERBOSE` can be made a setting configured from the outside.
 const VERBOSE = true
 
@@ -525,11 +519,11 @@ const logSagaWithNames = (...namedSagas) => {
 }
 
 // Export the snapshot-logging function to run from the browser console or extensions.
-if (globalScope) {
-  globalScope.DEBUGLogSagas = logSaga
-  globalScope.DEBUGLogSagasWithNames = logSagaWithNames
-  globalScope.DEBUGRootEffects = rootEffects
-  globalScope.DEBUGEffectById = effectsById
+if (KB.DEV) {
+  KB.DEV.DEBUGLogSagas = logSaga
+  KB.DEV.DEBUGLogSagasWithNames = logSagaWithNames
+  KB.DEV.DEBUGRootEffects = rootEffects
+  KB.DEV.DEBUGEffectById = effectsById
 }
 
 // Export the snapshot-logging function for arbitrary use by external code.

@@ -100,20 +100,6 @@ function* initializeInputMonitor(): Iterable<any> {
   }
 }
 
-export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) =>
-  logger
-    .dump()
-    .then(fromRender => {
-      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
-      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
-    })
-    .then(() => {
-      // quit as soon as possible
-      if (action && action.payload.reason === 'quitting through menu') {
-        quit()
-      }
-    })
-
 function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(
@@ -407,7 +393,6 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
-  yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction2(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)

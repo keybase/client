@@ -1,5 +1,4 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {TypedActions} from '../../actions/typed-actions-gen'
 
 export const autoResize = () => {
   if (__STORYBOOK__) {

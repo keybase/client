@@ -1,6 +1,5 @@
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll ask to make a BrowserWindow
 import * as React from 'react'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 
 type Props = {
   windowOpts: Object

@@ -209,7 +209,6 @@ export type TypedActionsMap = {
   'config:logoutHandshake': config.LogoutHandshakePayload
   'config:logoutHandshakeWait': config.LogoutHandshakeWaitPayload
   'config:installerRan': config.InstallerRanPayload
-  'config:dumpLogs': config.DumpLogsPayload
   'config:openAppSettings': config.OpenAppSettingsPayload
   'config:changedFocus': config.ChangedFocusPayload
   'config:changedActive': config.ChangedActivePayload

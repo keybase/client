@@ -19,7 +19,6 @@ export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
-export const dumpLogs = 'config:dumpLogs'
 export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
@@ -81,7 +80,6 @@ type _DaemonHandshakeWaitPayload = {
   readonly failedReason?: string
   readonly failedFatal?: true
 }
-type _DumpLogsPayload = {readonly reason: 'quitting through menu'}
 type _FilePickerErrorPayload = {readonly error: Error}
 type _FollowerInfoUpdatedPayload = {
   readonly uid: string
@@ -271,7 +269,6 @@ export const createDaemonError = (payload: _DaemonErrorPayload = Object.freeze({
   payload,
   type: daemonError,
 })
-export const createDumpLogs = (payload: _DumpLogsPayload): DumpLogsPayload => ({payload, type: dumpLogs})
 export const createFollowerInfoUpdated = (
   payload: _FollowerInfoUpdatedPayload
 ): FollowerInfoUpdatedPayload => ({payload, type: followerInfoUpdated})
@@ -379,7 +376,6 @@ export type DaemonHandshakeWaitPayload = {
   readonly payload: _DaemonHandshakeWaitPayload
   readonly type: typeof daemonHandshakeWait
 }
-export type DumpLogsPayload = {readonly payload: _DumpLogsPayload; readonly type: typeof dumpLogs}
 export type FilePickerErrorPayload = {
   readonly payload: _FilePickerErrorPayload
   readonly type: typeof filePickerError
@@ -494,7 +490,6 @@ export type Actions =
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload
   | DaemonHandshakeWaitPayload
-  | DumpLogsPayload
   | FilePickerErrorPayload
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload

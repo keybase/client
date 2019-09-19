@@ -1,6 +1,5 @@
 // Entry point to the chrome part of the app
 import '../../util/user-timings'
-import * as Electron from 'electron'
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
 import * as NotificationsGen from '../../actions/notifications-gen'
@@ -15,7 +14,6 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
-import {isDarwin} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import {TypedActions} from '../../actions/typed-actions-gen'
@@ -36,9 +34,8 @@ const setupStore = () => {
     runSagas = configured.runSagas
 
     _store = store
-    if (__DEV__ && flags.admin) {
-      // @ts-ignore codemode issue
-      window.DEBUGStore = _store
+    if (__DEV__ && KB.DEV && flags.admin) {
+      KB.DEV.DEBUGStore = _store
     }
   }
 
@@ -150,13 +147,13 @@ const setupDarkMode = () => {
 }
 
 const load = () => {
-  if (typeof window !== 'undefined' && window.DEBUGLoaded) {
+  if (KB.DEV && KB.DEV.DEBUGLoaded) {
     // only load once
     console.log('Bail on load() on HMR')
     return
   }
-  if (typeof window !== 'undefined') {
-    window.DEBUGLoaded = true
+  if (KB.DEV) {
+    KB.DEV.DEBUGLoaded = true
   }
   initDesktopStyles()
   const temp = setupStore()

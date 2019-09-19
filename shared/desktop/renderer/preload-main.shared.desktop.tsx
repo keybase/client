@@ -100,7 +100,7 @@ const showMessageBox = (options: any, cb: (r: number) => void) => {
   }
 }
 
-const showOpenDialog = (options: any, cb: (filePaths: Array<string>) => void) => {
+const showOpenDialog = (options: any, cb: (filePaths?: string[], bookmarks?: string[]) => void) => {
   const w = Electron.remote.getCurrentWindow()
   Electron.remote.dialog.showOpenDialog(w, options, cb)
 }
@@ -125,11 +125,12 @@ target.KB = {
   anyToMainDispatchAction,
   buffer,
   framedMsgpackRpc,
+  globalLogger: undefined,
   handleAnyToMainDispatchAction,
   handleDarkModeChanged,
+  handlePowerMonitor,
   handleRenderToMain,
   handleRendererToMainMenu,
-  handlePowerMonitor,
   isDarkMode,
   platform,
   punycode, // used by a dep

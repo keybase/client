@@ -363,7 +363,7 @@ class FakeEngine {
 // don't overwrite this on HMR
 let engine: Engine
 if (__DEV__) {
-  engine = typeof window !== 'undefined' && window.DEBUGEngine
+  engine = KB.DEV ? KB.DEV.DEBUGEngine : undefined
 }
 
 const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
@@ -376,8 +376,8 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
       KB.__process.env.KEYBASE_NO_ENGINE || isTesting
         ? ((new FakeEngine() as unknown) as Engine)
         : new Engine(dispatch, getState)
-    if (__DEV__ && typeof window !== 'undefined') {
-      window.DEBUGEngine = engine
+    if (__DEV__ && KB.DEV) {
+      KB.DEV.DEBUGEngine = engine
     }
     initEngine(engine as any)
     initEngineSaga(engineSaga)

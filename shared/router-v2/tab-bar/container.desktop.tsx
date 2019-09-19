@@ -66,17 +66,18 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (!__DEV__) {
       if (isLinux) {
         dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
-      } else {
-        dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
       }
     }
     // In case dump log doesn't exit for us
     SafeElectron.getRemote()
       .getCurrentWindow()
       .hide()
-    setTimeout(() => {
-      quit()
-    }, 2000)
+    setTimeout(
+      () => {
+        quit()
+      },
+      isLinux ? 2000 : 1
+    )
   },
   onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),

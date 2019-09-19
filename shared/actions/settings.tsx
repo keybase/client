@@ -612,7 +612,6 @@ const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: fal
 
 const stop = async (_: TypedState, action: SettingsGen.StopPayload) => {
   await RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})
-  return false as const
 }
 
 const addPhoneNumber = async (
