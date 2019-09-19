@@ -462,7 +462,7 @@ const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin && commands.builtin) {
+  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
     return state.chat2.staticConfig
       ? state.chat2.staticConfig.builtinCommands[commands.builtin]
       : blankCommands
@@ -473,7 +473,7 @@ export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
 
 export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {botCommands} = getMeta(state, id)
-  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && botCommands.custom) {
+  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom) {
     return botCommands.custom.commands || blankCommands
   } else {
     return blankCommands
