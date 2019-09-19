@@ -70,6 +70,9 @@ func TestContactSyncAndSearch(t *testing.T) {
 
 	rawContacts := []keybase1.Contact{
 		contacts.MakeContact("Alice A",
+			contacts.MakePhoneComponent("mobile", "+48111222332"),
+		),
+		contacts.MakeContact("Alice A",
 			contacts.MakePhoneComponent("mobile", "+48111222333"),
 			contacts.MakeEmailComponent("email", "alice@example.org"),
 		),
@@ -86,11 +89,13 @@ func TestContactSyncAndSearch(t *testing.T) {
 
 	// bust cache, new resolution should be returned
 	clock.Advance(72 * time.Hour)
+	all.contactsMock.PhoneNumbers["+48111222332"] = contacts.MakeMockLookupUser("alice", "")
 	all.contactsMock.PhoneNumbers["+48111222333"] = contacts.MakeMockLookupUser("alice", "")
 	newlyResolved, err := all.contactsHandler.SaveContactList(context.Background(), keybase1.SaveContactListArg{
 		Contacts: rawContacts,
 	})
 	require.NoError(t, err)
+	// We should only have 1 resolved, since we dedupe.
 	require.Len(t, newlyResolved, 1)
 	require.Equal(t, newlyResolved[0].ContactName, "Alice A")
 	require.Equal(t, newlyResolved[0].Username, "alice")
@@ -100,13 +105,12 @@ func TestContactSyncAndSearch(t *testing.T) {
 		// Try raw contact list lookup.
 		list, err := all.contactsHandler.LookupSavedContactsList(context.Background(), 0)
 		require.NoError(t, err)
-		// We have one contact with two components
-		require.Len(t, list, 2)
+		// We have two contacts with three components between them
+		require.Len(t, list, 3)
 	}
 
 	{
-		// We expect "Alice A" contact to only show up as only the resolved
-		// component
+		// We expect one "Alice A" show up as resolved. She should be the second one.
 		list, err := all.contactsHandler.GetContactsForUserRecommendations(context.Background(), 0)
 		require.NoError(t, err)
 		require.Len(t, list, 1)
@@ -114,7 +118,7 @@ func TestContactSyncAndSearch(t *testing.T) {
 		require.Equal(t, "Alice A", list[0].DisplayLabel)
 		require.Equal(t, "alice", list[0].Username)
 		require.NotNil(t, list[0].Component.PhoneNumber)
-		require.Equal(t, "48111222333@phone", list[0].Assertion)
+		require.Equal(t, "48111222332@phone", list[0].Assertion)
 	}
 
 	{
@@ -134,7 +138,7 @@ func TestContactSyncAndSearch(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, res, 2)
 		pres := pluckAllSearchResultForTest(res)
-		require.Equal(t, "48111222333@phone", pres[0].id)
+		require.Equal(t, "48111222332@phone", pres[0].id)
 		require.Equal(t, "alice", pres[0].keybaseUsername)
 		require.Equal(t, "alice2", pres[1].id)
 		require.Equal(t, "alice2", pres[1].keybaseUsername)
