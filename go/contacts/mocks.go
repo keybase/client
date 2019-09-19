@@ -49,12 +49,12 @@ func MakeMockProvider(t libkb.TestingTB) *MockContactsProvider {
 }
 
 func (c *MockContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ContactLookupResults, error) {
-	return c.LookupAll(mctx, emails, numbers, userRegion)
+	numbers []keybase1.RawPhoneNumber, _ Token) (ContactLookupResults, error) {
+	return c.LookupAll(mctx, emails, numbers)
 }
 
 func (c *MockContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ContactLookupResults, error) {
+	numbers []keybase1.RawPhoneNumber) (ContactLookupResults, error) {
 
 	ret := NewContactLookupResults()
 	for _, email := range emails {
@@ -135,7 +135,7 @@ type ErrorContactsProvider struct {
 }
 
 func (c *ErrorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, _ Token) (ret ContactLookupResults, err error) {
+	numbers []keybase1.RawPhoneNumber, _ Token) (ret ContactLookupResults, err error) {
 
 	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.LookupAllWithToken")
@@ -144,7 +144,7 @@ func (c *ErrorContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, email
 }
 
 func (c *ErrorContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (ret ContactLookupResults, err error) {
+	numbers []keybase1.RawPhoneNumber) (ret ContactLookupResults, err error) {
 	if !c.NoFail {
 		require.Fail(c.T, "Call to ErrorContactsProvider.LookupAll")
 	}

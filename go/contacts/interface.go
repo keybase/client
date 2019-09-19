@@ -65,8 +65,8 @@ type Token string
 const NoneToken Token = ""
 
 type ContactsProvider interface {
-	LookupAllWithToken(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode, Token) (ContactLookupResults, error)
-	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, keybase1.RegionCode) (ContactLookupResults, error)
+	LookupAllWithToken(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber, Token) (ContactLookupResults, error)
+	LookupAll(libkb.MetaContext, []keybase1.EmailAddress, []keybase1.RawPhoneNumber) (ContactLookupResults, error)
 	FindUsernames(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]ContactUsernameAndFullName, error)
 	FindFollowing(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]bool, error)
 	FindServiceMaps(libkb.MetaContext, []keybase1.UID) (map[keybase1.UID]libkb.UserServiceSummary, error)
