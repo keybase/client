@@ -97,10 +97,12 @@ const LeftBlock = (_: EmptyProps) => {
               </Kb.Text>
             </>
           ))}
-        {!!builtPaymentAdvanced.amountError && (
+        {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
           </Kb.Text>
+        ) : (
+          <Available />
         )}
       </Kb.Box2>
     )
@@ -117,10 +119,12 @@ const LeftBlock = (_: EmptyProps) => {
         {!!buildingAdvanced.recipientAsset && (
           <Kb.Text type="BodyTiny">{builtPaymentAdvanced.exchangeRate}</Kb.Text>
         )}
-        {!!builtPaymentAdvanced.amountError && (
+        {builtPaymentAdvanced.amountError ? (
           <Kb.Text type="BodySmall" style={styles.error} lineClamp={3}>
             {builtPaymentAdvanced.amountError}
           </Kb.Text>
+        ) : (
+          <Available />
         )}
       </Kb.Box2>
     )
@@ -162,7 +166,6 @@ export const AssetInputSenderAdvanced = (_: EmptyProps) => {
         <Kb.Box style={Styles.globalStyles.flexGrow} />
         <PickAssetButton isSender={true} />
       </Kb.Box2>
-      <Available />
     </Kb.Box2>
   )
 }

@@ -14,7 +14,7 @@ export const RADIOBUTTON_MARGIN = 8
 
 type ExtraProps = {disabled?: boolean; selected: boolean}
 const RadioOuterCircle = Styles.styled<typeof ClickableBox, ExtraProps>(ClickableBox)(
-  {
+  () => ({
     backgroundColor: Styles.globalColors.white,
     borderRadius: 100,
     borderWidth: 1,
@@ -22,7 +22,7 @@ const RadioOuterCircle = Styles.styled<typeof ClickableBox, ExtraProps>(Clickabl
     marginRight: RADIOBUTTON_MARGIN,
     position: 'relative' as 'relative',
     width: RADIOBUTTON_SIZE,
-  },
+  }),
   ({disabled, selected}) => ({
     borderColor: selected ? Styles.globalColors.blue : Styles.globalColors.black_20,
     opacity: disabled ? 0.4 : 1,
@@ -30,14 +30,14 @@ const RadioOuterCircle = Styles.styled<typeof ClickableBox, ExtraProps>(Clickabl
 )
 
 const RadioInnerCircle = Styles.styled<typeof ClickableBox, ExtraProps>(ClickableBox)(
-  {
+  () => ({
     borderColor: Styles.globalColors.white,
     borderRadius: 10,
     borderWidth: 5,
     left: 5,
     position: 'absolute',
     top: 5,
-  },
+  }),
   ({selected}) => ({
     borderColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
   })

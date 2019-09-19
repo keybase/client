@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
 import {makeInsertMatcher} from '../../../util/string'
-import {RowItem, RowItemBig, RowItemSmall} from '../index.types'
+import {RowItem, RowItemBig, RowItemSmall} from '..'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher?: RegExp): number => {
   // special case, looking for yourself

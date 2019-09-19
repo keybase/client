@@ -226,8 +226,9 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team, didRun bool) {
 		// Install a loader with a mock interface to the outside world.
 		t.Logf("install mock loader")
 		mock := NewMockLoaderContext(t, tc.G, unit)
+		merkleStorage := storage.NewMerkle()
 		storage := storage.NewStorage(tc.G)
-		loader := NewTeamLoader(tc.G, mock, storage)
+		loader := NewTeamLoader(tc.G, mock, storage, merkleStorage)
 		tc.G.SetTeamLoader(loader)
 
 		for iLoad, loadSpec := range session.Loads {

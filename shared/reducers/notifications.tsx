@@ -2,6 +2,7 @@ import * as Container from '../util/container'
 import * as NotificationsGen from '../actions/notifications-gen'
 import * as Tabs from '../constants/tabs'
 import * as Types from '../constants/types/notifications'
+import {isEqual} from 'lodash-es'
 
 const initialState: Types.State = {
   badgeVersion: -1,
@@ -20,7 +21,9 @@ const updateWidgetBadge = (draftState: Container.Draft<Types.State>) => {
   } else if (keyState.get('kbfsUploading')) {
     widgetBadge = 'uploading'
   }
-  draftState.widgetBadge = widgetBadge
+  if (widgetBadge !== draftState.widgetBadge) {
+    draftState.widgetBadge = widgetBadge
+  }
 }
 
 export default (state: Types.State = initialState, action: NotificationsGen.Actions): Types.State =>
@@ -53,7 +56,10 @@ export default (state: Types.State = initialState, action: NotificationsGen.Acti
           draftState.desktopAppBadgeCount
         )
 
-        draftState.navBadges = counts
+        const navBadges = new Map([...draftState.navBadges, ...counts])
+        if (!isEqual(navBadges, draftState.navBadges)) {
+          draftState.navBadges = navBadges
+        }
         updateWidgetBadge(draftState)
         return
       }

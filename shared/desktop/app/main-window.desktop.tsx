@@ -92,10 +92,6 @@ const changeDock = (show: boolean) => {
   const dock = Electron.app.dock
   if (!dock) return
 
-  if (show === dock.isVisible()) {
-    return
-  }
-
   if (show) {
     dock.show()
   } else {

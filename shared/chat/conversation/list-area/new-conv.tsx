@@ -17,14 +17,17 @@ export default () => (
   </Kb.Box2>
 )
 
-const styles = Styles.styleSheetCreate(() => ({
-  wonderlandStyle: {
-    ...Styles.globalStyles.flexBoxCenter,
-    height: '100%',
-  },
-  wonderlandTextStyle: Styles.platformStyles({
-    isElectron: {
-      whiteSpace: 'pre-line',
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      wonderlandStyle: {
+        ...Styles.globalStyles.flexBoxCenter,
+        height: '100%',
+      },
+      wonderlandTextStyle: Styles.platformStyles({
+        isElectron: {
+          whiteSpace: 'pre-line',
+        },
+      }),
+    } as const)
+)

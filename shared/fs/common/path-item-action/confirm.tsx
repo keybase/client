@@ -39,7 +39,7 @@ export default (props: Props) => (
     containerStyle={props.floatingMenuProps.containerStyle}
     attachTo={props.floatingMenuProps.attachTo}
     visible={props.floatingMenuProps.visible}
-    onHidden={props.floatingMenuProps.hideOnce}
+    onHidden={props.floatingMenuProps.hide}
     position="bottom right"
     header={{
       title: 'unused',

@@ -270,7 +270,7 @@ const StaticDisclaimer = () => (
   </>
 )
 
-const bodyOverride = {
+const bodyOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
@@ -279,9 +279,9 @@ const bodyOverride = {
     textAlign: 'left' as const,
   },
   strong: Styles.globalStyles.fontExtrabold,
-}
+}))
 
-const bulletOverride = {
+const bulletOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     ...bodyOverride.paragraph,
     marginBottom: Styles.globalMargins.tiny,
@@ -289,7 +289,7 @@ const bulletOverride = {
     marginTop: undefined,
   },
   strong: bodyOverride.strong,
-}
+}))
 
 const styles = Styles.styleSheetCreate(
   () =>

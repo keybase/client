@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import {Props} from './index.types'
+import {Props} from '.'
 import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
@@ -102,25 +102,6 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 }
 
-// @ts-ignore
-const AshBox = Styles.styled.div({
-  '&.full-width': {
-    overflow: 'visible',
-    transition: `width ${animationDuration}ms linear`,
-    width: '100%',
-  },
-  backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
-  backgroundImage: explodedIllustrationUrl,
-  backgroundRepeat: 'repeat',
-  backgroundSize: '400px 68px',
-  bottom: 0,
-  left: 0,
-  overflow: 'hidden',
-  position: 'absolute',
-  top: 0,
-  transition: `width 0s`,
-  width: 0,
-})
 const Ashes = (props: {doneExploding: boolean; exploded: boolean; explodedBy?: string; height: number}) => {
   let explodedTag: React.ReactNode = null
   if (props.doneExploding) {
@@ -207,32 +188,58 @@ class Flame extends React.Component<{}, {color: string; timer: number; width: nu
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
-  exploded: Styles.platformStyles({
-    isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      bottom: 0,
-      color: Styles.globalColors.black_20_on_white,
-      padding: 2,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingTop: 0,
-      position: 'absolute',
-      right: 0,
-      whiteSpace: 'nowrap',
-    },
-  }),
-  flame: {
-    height: 17,
-    marginBottom: 1,
-    marginTop: 1,
-    opacity: 1,
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      ashBox: {
+        backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
+        backgroundImage: explodedIllustrationUrl,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '400px 68px',
+        bottom: 0,
+        left: 0,
+        overflow: 'hidden',
+        position: 'absolute',
+        top: 0,
+        transition: `width 0s`,
+        width: 0,
+      },
+      container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+      exploded: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.white,
+          bottom: 0,
+          color: Styles.globalColors.black_20_on_white,
+          padding: 2,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingTop: 0,
+          position: 'absolute',
+          right: 0,
+          whiteSpace: 'nowrap',
+        },
+      }),
+      flame: {
+        height: 17,
+        marginBottom: 1,
+        marginTop: 1,
+        opacity: 1,
+      },
+      flameContainer: {
+        position: 'absolute',
+        right: -1 * (maxFlameWidth + flameOffset),
+        width: maxFlameWidth + flameOffset,
+      },
+    } as const)
+)
+
+// @ts-ignore
+const AshBox = Styles.styled.div({
+  '&.full-width': {
+    overflow: 'visible',
+    transition: `width ${animationDuration}ms linear`,
+    width: '100%',
   },
-  flameContainer: {
-    position: 'absolute',
-    right: -1 * (maxFlameWidth + flameOffset),
-    width: maxFlameWidth + flameOffset,
-  },
-}))
+  ...styles.ashBox,
+})
 
 export default ExplodingHeightRetainer

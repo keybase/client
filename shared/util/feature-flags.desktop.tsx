@@ -25,6 +25,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
+  resetPipeline: false,
   stellarExternalPartners: true,
   wonderland: false,
 }

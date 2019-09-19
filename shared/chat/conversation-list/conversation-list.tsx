@@ -95,13 +95,16 @@ const ConversationList = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  filter: {
-    backgroundColor: Styles.globalColors.fastBlank,
-  },
-  moreLessContainer: {
-    height: rowHeight,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      filter: {
+        backgroundColor: Styles.globalColors.fastBlank,
+      },
+      moreLessContainer: {
+        height: rowHeight,
+      },
+    } as const)
+)
 
 export default ConversationList

@@ -384,6 +384,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             ref={this.sectionListRef}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
+            stickySectionHeadersEnabled={false}
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             keyExtractor={(item: SearchResult | ImportContactsEntry) => {

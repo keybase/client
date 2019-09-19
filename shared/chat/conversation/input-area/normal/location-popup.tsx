@@ -162,21 +162,24 @@ const LocationPopup = (props: Props) => {
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  accuracy: {
-    color: Styles.globalColors.white_75,
-  },
-  denied: {
-    ...Styles.globalStyles.fillAbsolute,
-    justifyContent: 'center',
-    padding: Styles.globalMargins.small,
-  },
-  deniedText: {
-    color: Styles.globalColors.redDark,
-  },
-  liveButton: {
-    height: 53,
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      accuracy: {
+        color: Styles.globalColors.white_75,
+      },
+      denied: {
+        ...Styles.globalStyles.fillAbsolute,
+        justifyContent: 'center',
+        padding: Styles.globalMargins.small,
+      },
+      deniedText: {
+        color: Styles.globalColors.redDark,
+      },
+      liveButton: {
+        height: 53,
+      },
+    } as const)
+)
 
 export default LocationPopup

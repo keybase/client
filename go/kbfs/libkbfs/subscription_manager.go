@@ -389,26 +389,14 @@ func (s subscriber) Unsubscribe(ctx context.Context, sid SubscriptionID) {
 
 var _ SubscriptionManagerPublisher = (*subscriptionManager)(nil)
 
-// FavoritesChanged implements the SubscriptionManagerPublisher interface.
-func (sm *subscriptionManager) FavoritesChanged() {
+// PublishChange implements the SubscriptionManagerPublisher interface.
+func (sm *subscriptionManager) PublishChange(topic keybase1.SubscriptionTopic) {
 	sm.lock.RLock()
 	defer sm.lock.RUnlock()
-	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_FAVORITES] == nil {
+	if sm.nonPathSubscriptions[topic] == nil {
 		return
 	}
-	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_FAVORITES] {
-		notifier.notify()
-	}
-}
-
-// JournalStatusChanged implements the SubscriptionManagerPublisher interface.
-func (sm *subscriptionManager) JournalStatusChanged() {
-	sm.lock.RLock()
-	defer sm.lock.RUnlock()
-	if sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] == nil {
-		return
-	}
-	for _, notifier := range sm.nonPathSubscriptions[keybase1.SubscriptionTopic_JOURNAL_STATUS] {
+	for _, notifier := range sm.nonPathSubscriptions[topic] {
 		notifier.notify()
 	}
 }

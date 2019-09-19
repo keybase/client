@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import {NativeWebView} from '../../../common-adapters/native-wrappers.native'
 import * as Styles from '../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 
 class GiphySearch extends React.Component<Props> {
   render() {
@@ -29,8 +29,11 @@ class GiphySearch extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: {height: 80},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {height: 80},
+    } as const)
+)
 
 export default GiphySearch

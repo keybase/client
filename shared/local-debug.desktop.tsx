@@ -15,6 +15,7 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
+  partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
@@ -121,6 +122,7 @@ export const {
   isDevApplePushToken,
   immediateStateLogging,
   isTesting,
+  partyMode,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,

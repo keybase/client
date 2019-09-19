@@ -487,10 +487,10 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const HoverBox = Styles.styled(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)(() => ({
   ':hover .timer, &.expanded .timer': {
     color: Styles.globalColors.black,
   },
-})
+}))
 
 export default Kb.OverlayParentHOC(PlatformInput)

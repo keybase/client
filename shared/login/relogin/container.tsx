@@ -3,10 +3,12 @@ import * as LoginGen from '../../actions/login-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
+import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
 import {sortBy} from 'lodash-es'
 import * as Container from '../../util/container'
+import flags from '../../util/feature-flags'
 import * as ConfigTypes from '../../constants/types/config'
 
 type OwnProps = {}
@@ -93,8 +95,11 @@ export default Container.connect(
     selectedUser: state.config.defaultUsername,
   }),
   dispatch => ({
+    _onForgotPassword: (username: string) =>
+      flags.resetPipeline
+        ? dispatch(RecoverPasswordGen.createStartRecoverPassword({username: username}))
+        : dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
     onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
-    onForgotPassword: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
     onLogin: (username: string, password: string) =>
       dispatch(LoginGen.createLogin({password: new HiddenString(password), username})),
     onSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
@@ -106,7 +111,7 @@ export default Container.connect(
       stateProps._users.map(account => [account.username, account.hasStoredSecret])
     ),
     onFeedback: dispatchProps.onFeedback,
-    onForgotPassword: dispatchProps.onForgotPassword,
+    onForgotPassword: () => dispatchProps._onForgotPassword(stateProps.selectedUser),
     onLogin: dispatchProps.onLogin,
     onSignup: dispatchProps.onSignup,
     onSomeoneElse: dispatchProps.onSomeoneElse,

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import MessagePopup from '../messages/message-popup'
-import {Props} from './index.types'
+import {Props} from '.'
 import RNVideo from 'react-native-video'
 import logger from '../../../logger'
 
@@ -122,7 +122,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         <Kb.Icon
           type="iconfont-ellipsis"
           // @ts-ignore TODO fix styles
-          style={styleHeaderFooter}
+          style={styles.headerFooter}
           color={Styles.globalColors.white}
           onClick={this.props.toggleShowingMenu}
         />
@@ -139,12 +139,17 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
 }
 const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 
-const styleHeaderFooter = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  flexShrink: 0,
-  height: 44,
-  paddingLeft: Styles.globalMargins.small,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      headerFooter: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        flexShrink: 0,
+        height: 44,
+        paddingLeft: Styles.globalMargins.small,
+      },
+    } as const)
+)
 
 export default Fullscreen

@@ -1180,10 +1180,22 @@ const exitFailedPayment = (state: TypedState, _: WalletsGen.ExitFailedPaymentPay
 }
 
 const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayload) => {
-  await RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
-    {register: action.payload.accept},
-    Constants.airdropWaitingKey
-  )
+  try {
+    await RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
+      {register: action.payload.accept},
+      Constants.airdropWaitingKey
+    )
+  } catch (err) {
+    switch (err.code) {
+      case RPCTypes.StatusCode.scinputerror:
+      case RPCTypes.StatusCode.scduplicate:
+        // If you're already out of (inputerror) or in (duplicate) the airdrop,
+        // ignore those errors and we'll fix it when we refresh status below.
+        break
+      default:
+        throw err
+    }
+  }
   return WalletsGen.createUpdateAirdropState() // reload
 }
 

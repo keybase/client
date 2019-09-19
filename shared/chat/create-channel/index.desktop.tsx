@@ -1,17 +1,20 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Props} from './index.types'
+import * as Styles from '../../styles'
+import {Props} from './index'
 
 const CreateChannel = (props: Props) => (
-  <Kb.PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
-    <Kb.Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
+  <Kb.PopupDialog onClose={props.onClose} styleCover={styles.cover} styleContainer={styles.container}>
+    <Kb.Box style={{...styles.box, paddingTop: Styles.globalMargins.medium}}>
       <Kb.Avatar isTeam={true} teamname={props.teamname} size={32} />
-      <Kb.Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
+      <Kb.Text type="BodySmallSemibold" style={{marginTop: Styles.globalMargins.xtiny}}>
         {props.teamname}
       </Kb.Text>
-      <Kb.Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+      <Kb.Text
+        type="Header"
+        style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny}}
+      >
         New chat channel
       </Kb.Text>
     </Kb.Box>
@@ -20,12 +23,12 @@ const CreateChannel = (props: Props) => (
         <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
       </Kb.Banner>
     )}
-    <Kb.Box style={_boxStyle}>
-      <Kb.Box style={_backStyle} onClick={props.onBack}>
-        <Kb.Icon style={_backIcon} type="iconfont-arrow-left" />
+    <Kb.Box style={styles.box}>
+      <Kb.Box style={styles.back} onClick={props.onBack}>
+        <Kb.Icon style={styles.back} type="iconfont-arrow-left" />
         <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
       </Kb.Box>
-      <Kb.Box style={_inputStyle}>
+      <Kb.Box style={styles.input}>
         <Kb.Input
           autoFocus={true}
           style={{minWidth: 450}}
@@ -35,7 +38,7 @@ const CreateChannel = (props: Props) => (
           onChangeText={channelname => props.onChannelnameChange(channelname)}
         />
       </Kb.Box>
-      <Kb.Box style={_inputStyle}>
+      <Kb.Box style={styles.input}>
         <Kb.Input
           autoFocus={false}
           autoCorrect={true}
@@ -64,44 +67,44 @@ const CreateChannel = (props: Props) => (
   </Kb.PopupDialog>
 )
 
-const _inputStyle = {
-  ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.medium,
-}
-
-const _boxStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  paddingLeft: globalMargins.large,
-  paddingRight: globalMargins.large,
-}
-
-const _backIcon = platformStyles({
-  common: {
-    marginRight: globalMargins.xtiny,
-  },
-  isElectron: {
-    display: 'block',
-  },
-})
-
-const _backStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  left: 32,
-  position: 'absolute',
-  top: 32,
-}
-
-const _styleCover = {
-  alignItems: 'center',
-  backgroundColor: globalColors.black_50,
-  justifyContent: 'center',
-}
-
-const _styleContainer = {
-  height: 520,
-  width: 620,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      back: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        left: 32,
+        position: 'absolute',
+        top: 32,
+      },
+      backIcon: Styles.platformStyles({
+        common: {
+          marginRight: Styles.globalMargins.xtiny,
+        },
+        isElectron: {
+          display: 'block',
+        },
+      }),
+      box: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        paddingLeft: Styles.globalMargins.large,
+        paddingRight: Styles.globalMargins.large,
+      },
+      container: {
+        height: 520,
+        width: 620,
+      },
+      cover: {
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.black_50,
+        justifyContent: 'center',
+      },
+      input: {
+        ...Styles.globalStyles.flexBoxRow,
+        marginTop: Styles.globalMargins.medium,
+      },
+    } as const)
+)
 
 export default CreateChannel

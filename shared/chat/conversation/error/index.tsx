@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, CopyableText, HeaderOnMobile, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {
   onBack: () => void
@@ -8,34 +8,36 @@ type Props = {
 }
 
 const ConversationError = ({text}: Props) => (
-  <Box style={styleContainer}>
-    <Text type="Header">There was an error loading this conversation.</Text>
-    <Text style={styleBody} type="Body">
+  <Kb.Box style={styles.container}>
+    <Kb.Text type="Header">There was an error loading this conversation.</Kb.Text>
+    <Kb.Text style={styles.body} type="Body">
       The error is:
-    </Text>
-    <Box style={styleErrorBox}>
-      <CopyableText style={styleErrorText} value={text} />
-    </Box>
-  </Box>
+    </Kb.Text>
+    <Kb.Box style={styles.errorBox}>
+      <Kb.CopyableText style={styles.errorText} value={text} />
+    </Kb.Box>
+  </Kb.Box>
 )
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  padding: globalMargins.medium,
-  width: '100%',
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      body: {
+        marginTop: Styles.globalMargins.small,
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        padding: Styles.globalMargins.medium,
+        width: '100%',
+      },
+      errorBox: {
+        ...Styles.globalStyles.flexBoxRow,
+        marginTop: Styles.globalMargins.small,
+      },
+      errorText: {
+        flexGrow: 1,
+      },
+    } as const)
+)
 
-const styleBody = {
-  marginTop: globalMargins.small,
-}
-
-const styleErrorBox = {
-  ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.small,
-}
-
-const styleErrorText = {
-  flexGrow: 1,
-}
-
-export default HeaderOnMobile(ConversationError)
+export default Kb.HeaderOnMobile(ConversationError)

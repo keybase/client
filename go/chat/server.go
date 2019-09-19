@@ -1789,26 +1789,34 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 	if err != nil {
 		return res, err
 	}
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, nil)
-	if err != nil {
-		return res, err
-	}
-	for _, conv := range ib.ConvsUnverified {
-		switch conv.GetMembersType() {
-		case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		default:
-			continue
+	p := &chat1.Pagination{Num: 1000}
+	for {
+		h.Debug(ctx, "GetAllResetConvMembers: p: %s", p)
+		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, p)
+		if err != nil {
+			return res, err
 		}
-		for _, ru := range conv.Conv.Metadata.ResetList {
-			username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
-			if err != nil {
-				return res, err
+		for _, conv := range ib.ConvsUnverified {
+			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
+			default:
+				continue
 			}
-			res.Members = append(res.Members, chat1.ResetConvMember{
-				Uid:      ru,
-				Conv:     conv.GetConvID(),
-				Username: username.String(),
-			})
+			for _, ru := range conv.Conv.Metadata.ResetList {
+				username, err := h.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(ru.String()))
+				if err != nil {
+					return res, err
+				}
+				res.Members = append(res.Members, chat1.ResetConvMember{
+					Uid:      ru,
+					Conv:     conv.GetConvID(),
+					Username: username.String(),
+				})
+			}
+		}
+		p = ib.Pagination
+		if p.Last {
+			break
 		}
 	}
 	return res, nil

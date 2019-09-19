@@ -9,7 +9,6 @@ import SetPublicName from './set-public-name/container'
 import Username from './username-or-email/container'
 
 export const newRoutes = {
-  // TODO broken connect
   codePage: {getScreen: (): typeof CodePage => require('./code-page/container').default},
   error: {getScreen: (): typeof ErrorView => require('./error/container').default},
   forgotUsername: {getScreen: (): typeof ForgotUsername => require('./forgot-username/container').default},

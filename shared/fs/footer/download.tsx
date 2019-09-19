@@ -1,21 +1,21 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import * as Kbfs from '../common'
+import * as Container from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
+import * as Constants from '../../constants/fs'
+import * as Types from '../../constants/types/fs'
+import DownloadWrapper from './download-wrapper'
+import {formatDurationFromNowTo} from '../../util/timestamp'
 import {isMobile} from '../../constants/platform'
 
 export type Props = {
-  error?: boolean | null
-  filename: string
-  completePortion: number
-  progressText: string
-  isDone: boolean
+  downloadID: string
   isFirst: boolean
-  open?: () => void
-  dismiss: () => void
-  cancel: () => void
 }
 
-const Progress = props => (
+const getProgress = (dlState: Types.DownloadState) => (
   <Kb.Box2 style={styles.progress} direction="horizontal" fullWidth={true} centerChildren={true} gap="xtiny">
     <Kb.Box style={styles.tubeBox}>
       <Kb.Box style={styles.tube} />
@@ -23,51 +23,66 @@ const Progress = props => (
         style={Styles.collapseStyles([
           styles.tube,
           styles.tubeStuffing,
-          {width: `${Math.round(100 * props.completePortion).toString()}%`},
+          {width: `${Math.round(100 * dlState.progress).toString()}%`},
         ])}
       />
     </Kb.Box>
     <Kb.Text type="BodyTinySemibold" negative={true}>
-      {props.progressText}
+      {formatDurationFromNowTo(dlState.endEstimate)}
     </Kb.Text>
   </Kb.Box2>
 )
 
-const Download = (props: Props) => (
-  <Kb.Box2
-    direction="horizontal"
-    centerChildren={true}
-    style={Styles.collapseStyles([styles.download, props.error && styles.red])}
-    gap="tiny"
-    gapStart={true}
-    gapEnd={true}
-  >
-    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-      <Kb.Icon
-        type={props.isDone ? 'iconfont-success' : 'iconfont-download'}
-        color={Styles.globalColors.black_20}
-      />
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
-      <Kb.Text
-        type="BodySmallSemibold"
-        onClick={isMobile ? undefined : props.open}
-        style={styles.filename}
-        lineClamp={isMobile ? 1 : undefined}
+const Download = (props: Props) => {
+  const dlInfo = Kbfs.useFsDownloadInfo(props.downloadID)
+  const dlState = Container.useSelector(state =>
+    state.fs.downloads.state.get(props.downloadID, Constants.emptyDownloadState)
+  )
+  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const open = dlState.localPath
+    ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: dlState.localPath}))
+    : () => {}
+  const dismiss = () => dispatch(FsGen.createDismissDownload({downloadID: props.downloadID}))
+  const cancel = () => dispatch(FsGen.createCancelDownload({downloadID: props.downloadID}))
+  Kbfs.useFsWatchDownloadForMobile(props.downloadID, Types.DownloadIntent.None)
+  return (
+    <DownloadWrapper dismiss={dismiss} isFirst={props.isFirst} done={dlState.done}>
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        style={Styles.collapseStyles([styles.download, !!dlState.error && styles.red])}
+        gap="tiny"
+        gapStart={true}
+        gapEnd={true}
       >
-        {props.filename}
-      </Kb.Text>
-      {!props.isDone && <Progress {...props} />}
-    </Kb.Box2>
-    <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
-      <Kb.Icon
-        type="iconfont-remove"
-        color={Styles.globalColors.white}
-        onClick={props.isDone ? props.dismiss : props.cancel}
-      />
-    </Kb.Box2>
-  </Kb.Box2>
-)
+        <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+          <Kb.Icon
+            type={dlState.done ? 'iconfont-success' : 'iconfont-download'}
+            color={Styles.globalColors.black_20}
+          />
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.nameAndProgress}>
+          <Kb.Text
+            type="BodySmallSemibold"
+            onClick={isMobile ? undefined : open}
+            style={styles.filename}
+            lineClamp={isMobile ? 1 : undefined}
+          >
+            {dlInfo.filename}
+          </Kb.Text>
+          {Constants.downloadIsOngoing(dlState) && getProgress(dlState)}
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
+          <Kb.Icon
+            type="iconfont-remove"
+            color={Styles.globalColors.white}
+            onClick={!Constants.downloadIsOngoing(dlState) ? dismiss : cancel}
+          />
+        </Kb.Box2>
+      </Kb.Box2>
+    </DownloadWrapper>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

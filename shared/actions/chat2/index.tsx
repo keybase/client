@@ -2120,7 +2120,7 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
         },
       }
     )
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filename}))
     return rpcRes.filename
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
@@ -2498,7 +2498,7 @@ const mobileNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConver
 }
 
 const desktopNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
-  if (action.payload.reason === 'findNewestConversation') return
+  if (action.payload.reason === 'findNewestConversation' || action.payload.reason === 'clearSelected') return
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 

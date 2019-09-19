@@ -42,6 +42,7 @@ const (
 	StatusCode_SCBadEmail                                  StatusCode = 472
 	StatusCode_SCRateLimit                                 StatusCode = 602
 	StatusCode_SCBadSignupUsernameTaken                    StatusCode = 701
+	StatusCode_SCDuplicate                                 StatusCode = 706
 	StatusCode_SCBadInvitationCode                         StatusCode = 707
 	StatusCode_SCBadSignupTeamName                         StatusCode = 711
 	StatusCode_SCFeatureFlag                               StatusCode = 712
@@ -78,6 +79,7 @@ const (
 	StatusCode_SCSigBadTotalOrder                          StatusCode = 1022
 	StatusCode_SCBadTrackSession                           StatusCode = 1301
 	StatusCode_SCDeviceBadName                             StatusCode = 1404
+	StatusCode_SCDeviceBadStatus                           StatusCode = 1405
 	StatusCode_SCDeviceNameInUse                           StatusCode = 1408
 	StatusCode_SCDeviceNotFound                            StatusCode = 1409
 	StatusCode_SCDeviceMismatch                            StatusCode = 1410
@@ -267,6 +269,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCBadEmail":                 472,
 	"SCRateLimit":                602,
 	"SCBadSignupUsernameTaken":   701,
+	"SCDuplicate":                706,
 	"SCBadInvitationCode":        707,
 	"SCBadSignupTeamName":        711,
 	"SCFeatureFlag":              712,
@@ -303,6 +306,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCSigBadTotalOrder":         1022,
 	"SCBadTrackSession":          1301,
 	"SCDeviceBadName":            1404,
+	"SCDeviceBadStatus":          1405,
 	"SCDeviceNameInUse":          1408,
 	"SCDeviceNotFound":           1409,
 	"SCDeviceMismatch":           1410,
@@ -490,6 +494,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	472:  "SCBadEmail",
 	602:  "SCRateLimit",
 	701:  "SCBadSignupUsernameTaken",
+	706:  "SCDuplicate",
 	707:  "SCBadInvitationCode",
 	711:  "SCBadSignupTeamName",
 	712:  "SCFeatureFlag",
@@ -526,6 +531,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1022: "SCSigBadTotalOrder",
 	1301: "SCBadTrackSession",
 	1404: "SCDeviceBadName",
+	1405: "SCDeviceBadStatus",
 	1408: "SCDeviceNameInUse",
 	1409: "SCDeviceNotFound",
 	1410: "SCDeviceMismatch",

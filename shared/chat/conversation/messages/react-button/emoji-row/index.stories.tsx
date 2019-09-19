@@ -12,11 +12,11 @@ const common = {
   onShowingEmojiPicker: Sb.action('onShowingEmojiPicker'),
 }
 
-const HideShowBox = Styles.styled(Kb.Box2)({
+const HideShowBox = Styles.styled(Kb.Box2)(() => ({
   '& .emoji-row': {visibility: 'hidden'},
   '&:hover .emoji-row': {visibility: 'visible'},
   position: 'relative',
-})
+}))
 
 const FakeMessage = () => (
   <HideShowBox direction="horizontal" style={{backgroundColor: 'pink', padding: 4, width: 500}}>
