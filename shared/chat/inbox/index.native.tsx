@@ -13,7 +13,7 @@ import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
 import {debounce} from 'lodash-es'
-import {makeRow} from './row'
+import {MakeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 
 const NoChats = (props: {onNewChat: () => void}) => (
@@ -84,12 +84,14 @@ class Inbox extends React.PureComponent<T.Props, State> {
         />
       )
     } else {
-      element = makeRow({
-        channelname: row.channelname,
-        conversationIDKey: row.conversationIDKey,
-        teamname: row.teamname,
-        type: row.type,
-      })
+      element = (
+        <MakeRow
+          channelname={row.channelname}
+          conversationIDKey={row.conversationIDKey}
+          teamname={row.teamname}
+          type={row.type}
+        />
+      )
     }
 
     if (virtualListMarks) {

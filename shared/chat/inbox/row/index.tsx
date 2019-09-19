@@ -8,14 +8,14 @@ import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 
-type MakeRowOptions = {
+type MakeRowProps = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
   teamname: string
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
 }
 
-const makeRow = (options: MakeRowOptions) => {
+const MakeRow = (options: MakeRowProps) => {
   if (options.type === 'bigTeamsLabel') {
     return (
       <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
@@ -54,4 +54,4 @@ const _bigTeamLabelStyle = {
   marginLeft: globalMargins.tiny,
 }
 
-export {makeRow}
+export {MakeRow}
