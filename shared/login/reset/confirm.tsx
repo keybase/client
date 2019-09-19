@@ -11,9 +11,9 @@ type Props = {
 const ConfirmReset = (props: Props) => {
   const [checks, setChecks] = React.useState({
     checkData: false,
+    checkNewPerson: false,
     checkTeams: false,
     checkWallet: false,
-    checkNewPerson: false,
   })
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
 
