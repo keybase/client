@@ -4,15 +4,23 @@ import * as Styles from '../../styles'
 
 const todo = () => console.log('todo')
 
-const ConfirmReset = () => {
+type Props = {
+  hasWallet: boolean
+}
+
+const ConfirmReset = (props: Props) => {
   const [check1, setCheck1] = React.useState(false)
   const [check2, setCheck2] = React.useState(false)
   const [check3, setCheck3] = React.useState(false)
+  const [check4, setCheck4] = React.useState(false)
 
   const onContinue = todo
   const onCancel = todo
 
-  const disabled = !check1 || !check2 || !check3
+  let disabled = !check1 || !check2 || !check4
+  if (props.hasWallet) {
+    disabled = disabled || !check3
+  }
 
   return (
     <Kb.Modal
@@ -63,10 +71,22 @@ const ConfirmReset = () => {
               checked={check2}
               onCheck={setCheck2}
             />
+            {props.hasWallet && (
+              <Kb.Checkbox
+                labelComponent={
+                  <Kb.Text type="Body">
+                    You will <Kb.Text type="BodyExtrabold">lose access to your wallet funds</Kb.Text> if you
+                    haven't backed up your Stellar private keys outside of Keybase.
+                  </Kb.Text>
+                }
+                checked={check3}
+                onCheck={setCheck3}
+              />
+            )}
             <Kb.Checkbox
               label="Cryptographically, you'll be a whole new person."
-              checked={check3}
-              onCheck={setCheck3}
+              checked={check4}
+              onCheck={setCheck4}
             />
           </Kb.Box2>
         </Kb.Box2>

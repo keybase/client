@@ -16,6 +16,7 @@ const load = () => {
     .add('Waiting', () => <Waiting time="7 days" pipelineStarted={true} />)
     .add('Check phone', () => <Waiting pipelineStarted={false} />)
     .add('Waiting more', () => <Waiting time="2 days" pipelineStarted={true} />)
-    .add('Confirm', () => <ConfirmReset />)
+    .add('Confirm w/out wallet', () => <ConfirmReset hasWallet={false} />)
+    .add('Confirm w/ wallet', () => <ConfirmReset hasWallet={true} />)
 }
 export default load
