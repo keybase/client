@@ -536,11 +536,11 @@ function* criticalOutOfDateCheck() {
           break
         case RPCTypes.UpdateInfoStatus2.suggested:
           status = 'suggested'
-          message = s.suggested && s.suggested.message
+          message = s.suggested.message
           break
         case RPCTypes.UpdateInfoStatus2.critical:
           status = 'critical'
-          message = s.critical && s.critical.message
+          message = s.critical.message
           break
         default:
           Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(s)
