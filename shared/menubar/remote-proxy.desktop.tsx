@@ -17,7 +17,6 @@ const windowOpts = {}
 
 type Props = {
   desktopAppBadgeCount: number
-  externalRemoteWindow: SafeElectron.BrowserWindowType
   widgetBadge: BadgeType
   windowComponent: string
   windowOpts?: Object
@@ -97,7 +96,6 @@ function RemoteMenubarWindow(ComposedComponent: any) {
         windowOpts,
         windowPositionBottomRight,
         windowTitle,
-        externalRemoteWindow,
         ...props
       } = this.props
       return <ComposedComponent {...props} />
@@ -110,8 +108,6 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _edits: state.fs.edits,
-  _externalRemoteWindowID: state.config.menubarWindowID,
-  // _following: state.config.following, // Not used?
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
@@ -133,16 +129,6 @@ const mapStateToProps = (state: Container.TypedState) => ({
 let _lastUsername: string | undefined
 let _lastClearCacheTrigger = 0
 
-// TODO better type
-const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<{
-    externalRemoteWindow?: SafeElectron.BrowserWindowType
-  }> {
-    render() {
-      return this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null
-    }
-  }
-
 // Actions are handled by remote-container
 export default Container.namedConnect(
   mapStateToProps,
@@ -162,9 +148,6 @@ export default Container.namedConnect(
 
       desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
       diskSpaceStatus: stateProps.diskSpaceStatus,
-      externalRemoteWindow: stateProps._externalRemoteWindowID
-        ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
-        : null,
       fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
       kbfsEnabled: stateProps.kbfsEnabled,
@@ -183,8 +166,4 @@ export default Container.namedConnect(
     }
   },
   'MenubarRemoteProxy'
-)(
-  RenderExternalWindowBranch(
-    RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(Container.NullComponent)))
-  )
-)
+)(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(Container.NullComponent))))

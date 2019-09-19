@@ -57,23 +57,19 @@ class MenubarRender extends React.Component<Props, State> {
   state: State = {showingMenu: false}
   attachmentRef = React.createRef<Kb.Icon>()
 
-  _refreshUserFileEditsOrWaitForKbfsDaemon = () =>
+  _refreshUserFileEditsOrWaitForKbfsDaemon = (shown: boolean) =>
+    shown &&
     this.props.loggedIn &&
     (this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected
       ? this.props.refreshUserFileEdits()
       : this.props.waitForKbfsDaemon())
 
   componentDidMount() {
-    this._refreshUserFileEditsOrWaitForKbfsDaemon()
-    SafeElectron.getRemote()
-      .getCurrentWindow()
-      .on('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
+    KB.handleMainWindowShown(this._refreshUserFileEditsOrWaitForKbfsDaemon)
   }
 
   componentWillUnmount() {
-    SafeElectron.getRemote()
-      .getCurrentWindow()
-      .removeListener('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
+    KB.unhandleMainWindowShown(this._refreshUserFileEditsOrWaitForKbfsDaemon)
   }
 
   render() {

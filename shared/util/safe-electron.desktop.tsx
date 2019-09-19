@@ -10,15 +10,6 @@ export const getApp = () => {
   return app
 }
 
-// Render thread only
-export const getIpcRenderer = () => {
-  const ipcRenderer = Electron.ipcRenderer
-  if (!ipcRenderer) {
-    throw new Error('Incorrect electron import. IpcRenderer only available from render thread')
-  }
-  return ipcRenderer
-}
-
 export const getRemote = () => {
   const remote = Electron.remote
   if (!remote) {

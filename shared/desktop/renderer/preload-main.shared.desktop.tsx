@@ -123,6 +123,42 @@ const mainLoggerDump = () => {
   }
 }
 
+const showMainWindow = (show: boolean) => {
+  const mw = getMainWindow()
+  if (mw) {
+    if (show) {
+      mw.show()
+    } else {
+      mw.hide()
+    }
+  }
+}
+
+const _handleMainWindowShownListeners = new Set<(shown: boolean) => void>()
+let _handleMainWindowShownInited: boolean = false
+const handleMainWindowShown = (cb: (shown: boolean) => void) => {
+  _handleMainWindowShownListeners.add(cb)
+
+  if (!_handleMainWindowShownInited) {
+    const mw = getMainWindow()
+    const onShow = () => {
+      _handleMainWindowShownListeners.forEach(l => l(true))
+    }
+    const onHide = () => {
+      _handleMainWindowShownListeners.forEach(l => l(false))
+    }
+    if (mw) {
+      mw.on('show', onShow)
+      mw.on('hide', onHide)
+    }
+    _handleMainWindowShownInited = true
+  }
+}
+
+const unhandleMainWindowShown = (cb: (shown: boolean) => void) => {
+  _handleMainWindowShownListeners.delete(cb)
+}
+
 target.KB = {
   __child_process: child_process,
   __dirname: __dirname,
@@ -136,6 +172,7 @@ target.KB = {
   framedMsgpackRpc,
   handleAnyToMainDispatchAction,
   handleDarkModeChanged,
+  handleMainWindowShown,
   handlePowerMonitor,
   handleRenderToMain,
   handleRendererToMainMenu,
@@ -145,10 +182,12 @@ target.KB = {
   punycode, // used by a dep
   purepack,
   renderToMain,
+  showMainWindow,
   rendererToMainMenu,
   showMessageBox,
   showOpenDialog,
   unhandleDarkModeChanged,
+  unhandleMainWindowShown,
 }
 
 if (isRenderer) {

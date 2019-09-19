@@ -35,7 +35,6 @@ export const serialize: any = {
   daemonHandshakeState: v => v,
   diskSpaceStatus: v => v,
   endEstimate: v => v,
-  externalRemoteWindow: v => v,
   fileName: v => v,
   fileRows: (v, o) =>
     o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads

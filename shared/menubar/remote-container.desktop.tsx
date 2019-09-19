@@ -16,12 +16,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/fs'
 
-const hideWindow = () => {
-  SafeElectron.getRemote()
-    .getCurrentWindow()
-    .hide()
-}
-
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = dispatch => ({
   _onRetrySync: name => () =>
@@ -38,7 +32,7 @@ const mapDispatchToProps = dispatch => ({
   onHideDiskSpaceBanner: dispatch(FsGen.createShowHideDiskSpaceBanner({show: false})),
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
-    hideWindow()
+    KB.showMainWindow(false)
   },
   openApp: (tab?: AppTab) => {
     dispatch(ConfigGen.createShowMain())
@@ -51,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
       }
     }
     // In case dump log doesn't exit for us
-    hideWindow()
+    KB.showMainWindow(false)
     setTimeout(
       () => {
         quit()
@@ -71,7 +65,7 @@ const mapDispatchToProps = dispatch => ({
   showHelp: () => {
     const link = urlHelper('help')
     link && openUrl(link)
-    hideWindow()
+    KB.showMainWindow(false)
   },
   showInFinder: () => dispatch(FsGen.createOpenPathInSystemFileManager({path: FsConstants.defaultPath})),
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,

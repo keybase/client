@@ -75,6 +75,7 @@ declare var KB: {
   purepack: any
   renderToMain: any
   rendererToMainMenu: any
+  showMainWindow: (show: boolean) => void
   showMessageBox: any
   showOpenDialog: any
   unhandleDarkModeChanged: any
