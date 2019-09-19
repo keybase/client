@@ -388,7 +388,7 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 		return res, err
 	}
 	// Ignore these requests on mobile
-	if h.G().IsMobileAppType() && arg.Query == nil && arg.Query.TopicType != nil &&
+	if h.G().IsMobileAppType() && arg.Query != nil && arg.Query.TopicType != nil &&
 		*arg.Query.TopicType == chat1.TopicType_KBFSFILEEDIT {
 		return chat1.GetInboxAndUnboxLocalRes{
 			IdentifyFailures: identBreaks,
