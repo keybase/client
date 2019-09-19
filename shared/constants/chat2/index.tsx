@@ -71,9 +71,9 @@ export const makeState = (): Types.State => ({
   threadSearchQueryMap: new Map(),
   trustedInboxHasLoaded: false,
   typingMap: new Map(), // who's typing currently,
-  unfurlPromptMap: I.Map(),
+  unfurlPromptMap: new Map(),
   unreadMap: I.Map(),
-  unsentTextMap: I.Map(),
+  unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
 })
 
