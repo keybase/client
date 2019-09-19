@@ -99,7 +99,7 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 		}
 
 		for _, resolution := range resolveResults {
-			if unresolved[resolution.ContactName] && resolution.Resolved {
+			if unresolved[resolution.ContactName] && resolution.Resolved && !resolution.Following {
 				// We only want to show one resolution per username.
 				newlyResolvedMap[resolution.Username] = resolution
 			}
