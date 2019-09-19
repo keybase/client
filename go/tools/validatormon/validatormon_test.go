@@ -46,8 +46,14 @@ func TestAnalyzeNode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if a.Ok {
-		t.Errorf("keybase2 ok, expected not ok: %+v", a)
+	// this was a bad phase check, which we are ignoring now
+	/*
+		if a.Ok {
+			t.Errorf("keybase2 ok, expected not ok: %+v", a)
+		}
+	*/
+	if !a.Ok {
+		t.Errorf("keybase2 not ok, expected ok: %+v", a)
 	}
 
 	a, err = AnalyzeNode(new(mockSR), "keybase3")

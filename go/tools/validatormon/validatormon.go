@@ -76,15 +76,23 @@ func AnalyzeNode(sr StatusReader, nodeName string) (*Analysis, error) {
 	a.LedgerDelta = cl - status.Ledger
 	a.Phase = status.Phase
 	a.MissingCount = len(status.Missing)
-	if a.LedgerDelta < 10 && a.Phase == "EXTERNALIZE" {
+	/*
+		if a.LedgerDelta < 10 && a.Phase == "EXTERNALIZE" {
+			a.Ok = true
+		} else {
+			if a.LedgerDelta >= 10 {
+				a.LedgerBehind = true
+			}
+			if a.Phase != "EXTERNALIZE" {
+				a.BadPhase = true
+			}
+		}
+	*/
+	// phase looks like it can be all over the place...will just check ledger
+	if a.LedgerDelta < 10 {
 		a.Ok = true
 	} else {
-		if a.LedgerDelta >= 10 {
-			a.LedgerBehind = true
-		}
-		if a.Phase != "EXTERNALIZE" {
-			a.BadPhase = true
-		}
+		a.LedgerBehind = true
 	}
 
 	return &a, nil
