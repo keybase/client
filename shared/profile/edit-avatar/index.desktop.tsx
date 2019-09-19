@@ -213,6 +213,9 @@ class EditAvatar extends React.Component<_Props, State> {
 
   _onMouseDown = (e: React.MouseEvent) => {
     if (!this.state.hasPreview || !this._image) return
+    // React will pool the event object and reuse it We want to tell react not
+    // to nullify this event object so we can asynchronously setState with it
+    e.persist()
 
     const img = this._image.current
 
@@ -243,6 +246,10 @@ class EditAvatar extends React.Component<_Props, State> {
 
   _onMouseMove = (e: React.MouseEvent) => {
     if (!this.state.dragging || this.props.submitting) return
+
+    // React will pool the event object and reuse it We want to tell react not
+    // to nullify this event object so we can asynchronously setState with it
+    e.persist()
 
     const offsetLeft = clamp(
       // eslint-disable-next-line
@@ -298,9 +305,6 @@ class EditAvatar extends React.Component<_Props, State> {
             cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
           },
         ])}
-        onMouseUp={this._onMouseUp}
-        onMouseDown={this._onMouseDown}
-        onMouseMove={this._onMouseMove}
       >
         {!!this.props.error && (
           <Kb.Banner color="red">
@@ -318,6 +322,9 @@ class EditAvatar extends React.Component<_Props, State> {
               paddingTop: this.props.createdTeam ? 0 : Styles.globalMargins.xlarge,
             },
           ])}
+          onMouseMove={this._onMouseMove}
+          onMouseUp={this._onMouseUp}
+          onMouseDown={this._onMouseDown}
         >
           {this.props.createdTeam && (
             <Kb.Box style={styles.createdBanner}>
