@@ -1,4 +1,5 @@
 import React from 'react'
+import * as Container from '../../../util/container'
 import logger from '../../../logger'
 import BigTeamHeader from './big-team-header/container'
 import BigTeamChannel from './big-team-channel/container'
@@ -16,6 +17,7 @@ type MakeRowProps = {
 }
 
 const MakeRow = (options: MakeRowProps) => {
+  const {navKey} = Container.useSafeNavigation()
   if (options.type === 'bigTeamsLabel') {
     return (
       <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
@@ -30,6 +32,7 @@ const MakeRow = (options: MakeRowProps) => {
           key={options.teamname}
           teamname={options.teamname}
           conversationIDKey={options.conversationIDKey}
+          navKey={navKey}
         />
       )
     case 'big':

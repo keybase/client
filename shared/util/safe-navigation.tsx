@@ -10,6 +10,7 @@ type Path = Array<string | {props?: any; selected?: string}>
 export type PropsWithSafeNavigation<P> = {
   safeNavigateAppendPayload: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
   safeNavigateUpPayload: () => RouteTreeGen.NavigateUpPayload
+  navKey: string
 } & P
 
 function withSafeNavigation<P extends {}>(
@@ -37,6 +38,7 @@ function withSafeNavigation<P extends {}>(
           {...rest}
           safeNavigateAppendPayload={this._navigateAppend}
           safeNavigateUpPayload={this._navigateUp}
+          navKey={getActiveKey(this.props.navigation.state)}
         />
       )
     }
@@ -71,6 +73,7 @@ export const useSafeNavigation: () => PropsWithSafeNavigation<{}> = () => {
   const fromKey = getActiveKey(state)
   return React.useMemo(
     () => ({
+      navKey: fromKey,
       safeNavigateAppendPayload: ({path, replace}) =>
         RouteTreeGen.createNavigateAppend({fromKey, path, replace}),
       safeNavigateUpPayload: () => RouteTreeGen.createNavigateUp({fromKey}),
