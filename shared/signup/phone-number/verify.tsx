@@ -53,7 +53,6 @@ const VerifyPhoneNumber = (props: Props) => {
       }
       negativeHeader={true}
       skipMobileHeader={true}
-      showHeaderInfoicon={true}
     >
       <VerifyBody
         onChangeCode={onChangeCode}

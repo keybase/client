@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
-import {SignupScreen, errorBanner} from '../common'
+import {HeaderRightInfoIcon, SignupScreen, errorBanner} from '../common'
 
 export type Props = {
   error: string
@@ -19,42 +19,44 @@ const EnterEmail = (props: Props) => {
   const onContinue = () => (disabled ? {} : props.onCreate(email.trim(), searchable))
 
   return (
-    <SignupScreen
-      banners={errorBanner(props.error)}
-      buttons={[
-        {
-          disabled,
-          label: 'Finish',
-          onClick: onContinue,
-          type: 'Success',
-          waiting: props.waiting,
-        },
-        ...(!Styles.isMobile && props.onSkip
-          ? [
-              {
-                disabled: props.waiting,
-                label: 'Skip for now',
-                onClick: props.onSkip,
-                type: 'Dim' as const,
-              },
-            ]
-          : []),
-      ]}
-      rightActionLabel="Skip"
-      onRightAction={props.onSkip}
-      title="Your email address"
-      showHeaderInfoicon={true}
-    >
-      <EnterEmailBody
-        onChangeEmail={onChangeEmail}
-        onContinue={onContinue}
-        email={email}
-        showSearchable={true}
-        searchable={searchable}
-        onChangeSearchable={onChangeSearchable}
-        iconType={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
-      />
-    </SignupScreen>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <HeaderRightInfoIcon />
+      <SignupScreen
+        banners={errorBanner(props.error)}
+        buttons={[
+          {
+            disabled,
+            label: 'Finish',
+            onClick: onContinue,
+            type: 'Success',
+            waiting: props.waiting,
+          },
+          ...(!Styles.isMobile && props.onSkip
+            ? [
+                {
+                  disabled: props.waiting,
+                  label: 'Skip for now',
+                  onClick: props.onSkip,
+                  type: 'Dim' as const,
+                },
+              ]
+            : []),
+        ]}
+        rightActionLabel="Skip"
+        onRightAction={props.onSkip}
+        title="Your email address"
+      >
+        <EnterEmailBody
+          onChangeEmail={onChangeEmail}
+          onContinue={onContinue}
+          email={email}
+          showSearchable={true}
+          searchable={searchable}
+          onChangeSearchable={onChangeSearchable}
+          iconType={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
+        />
+      </SignupScreen>
+    </Kb.Box2>
   )
 }
 

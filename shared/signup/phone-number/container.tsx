@@ -4,6 +4,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
+import {HeaderRightInfoIcon} from '../common'
 import EnterPhoneNumber, {Props} from '.'
 
 type OwnProps = {}
@@ -15,6 +16,9 @@ type WatcherProps = Props & {
 }
 // Watches for `pendingVerification` to change and routes to the verification screen
 class WatchForGoToVerify extends React.Component<WatcherProps> {
+  static navigationOptions = {
+    headerRightActions: HeaderRightInfoIcon,
+  }
   componentDidUpdate(prevProps: WatcherProps) {
     if (
       !this.props.error &&

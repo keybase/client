@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
-import {SignupScreen, errorBanner} from '../common'
+import {HeaderRightInfoIcon, SignupScreen, errorBanner} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
 
@@ -25,42 +25,49 @@ const EnterPhoneNumber = (props: Props) => {
     onChangeValidity(validity)
   }
   return (
-    <SignupScreen
-      buttons={[
-        {
-          disabled,
-          label: 'Continue',
-          onClick: onContinue,
-          type: 'Success' as ButtonType,
-          waiting: props.waiting,
-        },
-        ...(Styles.isMobile
-          ? []
-          : [
-              {
-                disabled: props.waiting,
-                label: 'Skip for now',
-                onClick: props.onSkip,
-                type: 'Dim' as ButtonType,
-              },
-            ]),
-      ]}
-      banners={errorBanner(props.error)}
-      rightActionLabel="Skip"
-      onRightAction={props.onSkip}
-      title="Your phone number"
-      showHeaderInfoicon={true}
-    >
-      <EnterPhoneNumberBody
-        // the push prompt might be overlaying us
-        // TODO Y2K-57 move phone number earlier and check that email won't have this problem
-        autoFocus={!Styles.isMobile}
-        onChangeNumber={onChangeNumberCb}
-        onContinue={onContinue}
-        searchable={true}
-        iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
-      />
-    </SignupScreen>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      {!Styles.isMobile && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-end">
+          <Kb.BoxGrow />
+          <HeaderRightInfoIcon />
+        </Kb.Box2>
+      )}
+      <SignupScreen
+        buttons={[
+          {
+            disabled,
+            label: 'Continue',
+            onClick: onContinue,
+            type: 'Success' as ButtonType,
+            waiting: props.waiting,
+          },
+          ...(Styles.isMobile
+            ? []
+            : [
+                {
+                  disabled: props.waiting,
+                  label: 'Skip for now',
+                  onClick: props.onSkip,
+                  type: 'Dim' as ButtonType,
+                },
+              ]),
+        ]}
+        banners={errorBanner(props.error)}
+        rightActionLabel="Skip"
+        onRightAction={props.onSkip}
+        title="Your phone number"
+      >
+        <EnterPhoneNumberBody
+          // the push prompt might be overlaying us
+          // TODO Y2K-57 move phone number earlier and check that email won't have this problem
+          autoFocus={!Styles.isMobile}
+          onChangeNumber={onChangeNumberCb}
+          onContinue={onContinue}
+          searchable={true}
+          iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
+        />
+      </SignupScreen>
+    </Kb.Box2>
   )
 }
 

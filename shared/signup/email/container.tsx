@@ -7,6 +7,7 @@ import * as SignupConstants from '../../constants/signup'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Platform from '../../constants/platform'
 import {anyWaiting} from '../../constants/waiting'
+import {HeaderRightInfoIcon} from '../common'
 import EnterEmail, {Props} from '.'
 
 type OwnProps = {}
@@ -37,6 +38,9 @@ const WatchForSuccess = (props: WatcherProps) => {
       waiting={props.waiting}
     />
   )
+}
+WatchForSuccess.navigationOptions = {
+  headerRightActions: HeaderRightInfoIcon,
 }
 
 const ConnectedEnterEmail = Container.connect(

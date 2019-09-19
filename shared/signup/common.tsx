@@ -159,7 +159,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
             props.rightActionComponent
           )
         ) : null,
-      style: props.headerStyle,
+      style: Styles.collapseStyles([styles.headerContainer, props.headerStyle]),
       title: props.title || props.titleComponent,
     }}
   >
