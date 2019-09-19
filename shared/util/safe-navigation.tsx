@@ -7,7 +7,7 @@ import {useNavigationState} from './navigation-hooks'
 
 type Path = Array<string | {props?: any; selected?: string}>
 
-export type PropsWithSafeNavigation<P> = {
+export type PropsWithSafeNavigation<P = {}> = {
   safeNavigateAppendPayload: (arg0: {path: Path; replace?: boolean}) => RouteTreeGen.NavigateAppendPayload
   safeNavigateUpPayload: () => RouteTreeGen.NavigateUpPayload
   navKey: string
@@ -68,7 +68,7 @@ function withSafeNavigationStorybook<P extends {}>(
   )
 }
 
-export const useSafeNavigation: () => PropsWithSafeNavigation<{}> = () => {
+export const useSafeNavigation: () => PropsWithSafeNavigation = () => {
   const state = useNavigationState()
   const fromKey = getActiveKey(state)
   return React.useMemo(

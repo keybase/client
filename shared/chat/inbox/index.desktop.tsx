@@ -13,7 +13,7 @@ import {ErrorBoundary} from '../../common-adapters'
 import {VariableSizeList} from 'react-window'
 import {debounce, throttle} from 'lodash-es'
 import {inboxWidth, getRowHeight} from './row/sizes'
-import {MakeRow} from './row'
+import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 
 type State = {
@@ -97,12 +97,13 @@ class Inbox extends React.PureComponent<T.Props, State> {
     // pointer events on so you can click even right after a scroll
     return (
       <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
-        <MakeRow
-          channelname={(row.type === 'big' && row.channelname) || ''}
-          conversationIDKey={conversationIDKey}
-          teamname={teamname}
-          type={row.type}
-        />
+        {makeRow({
+          channelname: (row.type === 'big' && row.channelname) || '',
+          conversationIDKey,
+          navKey: this.props.navKey,
+          teamname,
+          type: row.type,
+        })}
       </div>
     )
   }

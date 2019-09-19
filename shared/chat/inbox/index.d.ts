@@ -40,6 +40,7 @@ export type RouteState = I.RecordOf<{
 export type Props = {
   allowShowFloatingButton: boolean
   children?: React.ReactNode
+  navKey: string
   neverLoaded: boolean
   nowOverride?: number
   onEnsureSelection: () => void

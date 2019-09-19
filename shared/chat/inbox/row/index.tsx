@@ -1,5 +1,4 @@
 import React from 'react'
-import * as Container from '../../../util/container'
 import logger from '../../../logger'
 import BigTeamHeader from './big-team-header/container'
 import BigTeamChannel from './big-team-channel/container'
@@ -9,15 +8,15 @@ import {Box} from '../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 
-type MakeRowProps = {
+type MakeRowOptions = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
+  navKey: string
   teamname: string
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
 }
 
-const MakeRow = (options: MakeRowProps) => {
-  const {navKey} = Container.useSafeNavigation()
+const makeRow = (options: MakeRowOptions) => {
   if (options.type === 'bigTeamsLabel') {
     return (
       <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
@@ -32,7 +31,7 @@ const MakeRow = (options: MakeRowProps) => {
           key={options.teamname}
           teamname={options.teamname}
           conversationIDKey={options.conversationIDKey}
-          navKey={navKey}
+          navKey={options.navKey}
         />
       )
     case 'big':
@@ -41,7 +40,7 @@ const MakeRow = (options: MakeRowProps) => {
           key={options.conversationIDKey}
           conversationIDKey={options.conversationIDKey}
           channelname={options.channelname}
-          navKey={navKey}
+          navKey={options.navKey}
         />
       )
     case 'small':
@@ -49,7 +48,7 @@ const MakeRow = (options: MakeRowProps) => {
         <SmallTeam
           key={options.conversationIDKey}
           conversationIDKey={options.conversationIDKey}
-          navKey={navKey}
+          navKey={options.navKey}
         />
       )
   }
@@ -64,4 +63,4 @@ const _bigTeamLabelStyle = {
   marginLeft: globalMargins.tiny,
 }
 
-export {MakeRow}
+export {makeRow}
