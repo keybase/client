@@ -1,0 +1,108 @@
+{
+  "protocol": "kvstore",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "KVEntry",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "string",
+          "name": "entryValue"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVPutResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        }
+      ],
+      "response": "KVEntry"
+    },
+    "putKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        },
+        {
+          "name": "entryValue",
+          "type": "string"
+        }
+      ],
+      "response": "KVPutResult"
+    }
+  },
+  "namespace": "keybase.1"
+}

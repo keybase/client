@@ -2577,6 +2577,8 @@ export type KBFSRootHash = Bytes
 export type KBFSStatus = {readonly version: String; readonly installedVersion: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly mount: String}
 export type KBFSTeamSettings = {readonly tlfID: TLFID}
 export type KID = String
+export type KVEntry = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue: String; readonly revision: Int}
+export type KVPutResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KbClientStatus = {readonly version: String}
 export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String}
 export type KeyBundle = {readonly version: Int; readonly bundle: Bytes}
@@ -3482,6 +3484,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.Kex2Provisionee2.hello2'
 // 'keybase.1.Kex2Provisionee2.didCounterSign2'
 // 'keybase.1.Kex2Provisioner.kexStart'
+// 'keybase.1.kvstore.getKVEntry'
+// 'keybase.1.kvstore.putKVEntry'
 // 'keybase.1.log.registerLogger'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
