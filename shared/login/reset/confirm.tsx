@@ -82,17 +82,17 @@ const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       alignSelf: 'center',
-    },
-    isElectron: {
-      width: 368,
-    },
-    isMobile: {
       padding: Styles.globalMargins.medium,
     },
+    isElectron: {
+      width: 368 + Styles.globalMargins.medium * 2,
+    },
   }),
-  footer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-  },
+  footer: Styles.platformStyles({
+    isMobile: {
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+    },
+  }),
 }))
 
 export default ConfirmReset
