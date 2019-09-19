@@ -95,7 +95,7 @@ func (i *InMemoryStorageEngine) StoreKEVPairs(c context.Context, t Transaction, 
 
 func (i *InMemoryStorageEngine) StoreNodes(c context.Context, t Transaction, s Seqno, phps []PositionHashPair) error {
 	for _, php := range phps {
-		err := i.StoreNode(c, t, s, php.Position, php.Hash)
+		err := i.StoreNode(c, t, s, &php.Position, php.Hash)
 		if err != nil {
 			return err
 		}
@@ -103,10 +103,10 @@ func (i *InMemoryStorageEngine) StoreNodes(c context.Context, t Transaction, s S
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreNode(c context.Context, t Transaction, s Seqno, p Position, h Hash) error {
+func (i *InMemoryStorageEngine) StoreNode(c context.Context, t Transaction, s Seqno, p *Position, h Hash) error {
 	strKey := p.AsString()
 	oldNodeRec := i.Nodes[strKey]
-	i.Nodes[strKey] = &NodeRecord{s: s, p: p, h: h, next: oldNodeRec}
+	i.Nodes[strKey] = &NodeRecord{s: s, p: *p, h: h, next: oldNodeRec}
 	if oldNodeRec != nil && oldNodeRec.s >= s {
 		return errors.New("Engine does not support out of order insertions")
 	}
@@ -139,7 +139,7 @@ func (i *InMemoryStorageEngine) LookupRoot(c context.Context, t Transaction, s S
 	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
 }
 
-func (i *InMemoryStorageEngine) LookupNode(c context.Context, t Transaction, s Seqno, p Position) (Hash, error) {
+func (i *InMemoryStorageEngine) LookupNode(c context.Context, t Transaction, s Seqno, p *Position) (Hash, error) {
 	node, found := i.Nodes[string(p.GetBytes())]
 	if !found {
 		return nil, errors.New("No node found")
@@ -154,7 +154,7 @@ func (i *InMemoryStorageEngine) LookupNode(c context.Context, t Transaction, s S
 
 func (i *InMemoryStorageEngine) LookupNodes(c context.Context, t Transaction, s Seqno, positions []Position) (res []PositionHashPair, err error) {
 	for _, p := range positions {
-		h, err := i.LookupNode(c, t, s, p)
+		h, err := i.LookupNode(c, t, s, &p)
 		if err == nil {
 			res = append(res, PositionHashPair{Position: p, Hash: h})
 		}

@@ -10,7 +10,7 @@ type StorageEngine interface {
 	// StoreKVPairs stores the []KeyEncodedValuePair in the tree.
 	StoreKEVPairs(context.Context, Transaction, Seqno, []KeyEncodedValuePair) error
 
-	StoreNode(context.Context, Transaction, Seqno, Position, Hash) error
+	StoreNode(context.Context, Transaction, Seqno, *Position, Hash) error
 
 	StoreNodes(context.Context, Transaction, Seqno, []PositionHashPair) error
 
@@ -29,7 +29,7 @@ type StorageEngine interface {
 	// StoreNode(ctx, t, 8, p, hash8) were called for a specific position p,
 	// then LookupNode(ctx, t, 7, p) would return hash6. It returns an error if
 	// no such node was stored in the tree.
-	LookupNode(c context.Context, t Transaction, s Seqno, p Position) (Hash, error)
+	LookupNode(c context.Context, t Transaction, s Seqno, p *Position) (Hash, error)
 
 	// LookupNodes is analogous to LookupNode, but it takes more than one
 	// position and returns pairs of a Position and the corresponding node Hash
