@@ -340,6 +340,7 @@ const getPropProviderProps = own => {
 const propsInboxCommon = {
   allowShowFloatingButton: false,
   isSearching: false,
+  navKey: 'nav',
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onNewChat: Sb.action('onNewChat'),

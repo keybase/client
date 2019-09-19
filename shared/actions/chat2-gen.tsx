@@ -489,6 +489,7 @@ type _SelectConversationPayload = {
     | 'teamChat'
     | 'addedToChannel'
     | 'teamMention'
+  readonly navKey?: string
 }
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
