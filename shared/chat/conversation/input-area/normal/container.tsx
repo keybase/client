@@ -93,7 +93,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createSetPrependText({conversationIDKey, text: null}))
   },
   _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: null}))
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey}))
   },
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({

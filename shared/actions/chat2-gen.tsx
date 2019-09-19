@@ -551,7 +551,7 @@ type _SetThreadSearchStatusPayload = {
 }
 type _SetUnsentTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly text: HiddenString | null
+  readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}

@@ -469,7 +469,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             }
           )
           draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(conversationIDKey)
-          draftState.threadLoadStatus = draftState.threadLoadStatus.delete(conversationIDKey)
+          const threadLoadStatus = new Map(draftState.threadLoadStatus)
+          threadLoadStatus.delete(conversationIDKey)
+          draftState.threadLoadStatus = threadLoadStatus
           draftState.containsLatestMessageMap = draftState.containsLatestMessageMap.set(
             conversationIDKey,
             true
@@ -497,11 +499,18 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         return
       case Chat2Gen.unfurlTogglePrompt: {
-        const {show, domain} = action.payload
-        draftState.unfurlPromptMap = draftState.unfurlPromptMap.updateIn(
-          [action.payload.conversationIDKey, action.payload.messageID],
-          (prompts = I.Set<string>()) => (show ? prompts.add(domain) : prompts.delete(domain))
-        )
+        const {show, domain, conversationIDKey, messageID} = action.payload
+        const unfurlPromptMap = new Map(draftState.unfurlPromptMap || [])
+        const mmap = new Map(unfurlPromptMap.get(conversationIDKey) || [])
+        const prompts = new Set(mmap.get(messageID) || [])
+        if (show) {
+          prompts.add(domain)
+        } else {
+          prompts.delete(domain)
+        }
+        mmap.set(messageID, prompts)
+        unfurlPromptMap.set(conversationIDKey, mmap)
+        draftState.unfurlPromptMap = unfurlPromptMap
         return
       }
       case Chat2Gen.updateCoinFlipStatus: {
@@ -525,12 +534,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         return
       }
-      case Chat2Gen.setThreadLoadStatus:
-        draftState.threadLoadStatus = draftState.threadLoadStatus.set(
-          action.payload.conversationIDKey,
-          action.payload.status
-        )
+      case Chat2Gen.setThreadLoadStatus: {
+        const threadLoadStatus = new Map(draftState.threadLoadStatus)
+        threadLoadStatus.set(action.payload.conversationIDKey, action.payload.status)
+        draftState.threadLoadStatus = threadLoadStatus
         return
+      }
       case Chat2Gen.setCommandStatusInfo:
         draftState.commandStatusMap = draftState.commandStatusMap.set(
           action.payload.conversationIDKey,
@@ -547,7 +556,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           draftState.giphyResultMap = draftState.giphyResultMap.set(conversationIDKey, null)
         }
         if (action.payload.clearInput) {
-          draftState.unsentTextMap = draftState.unsentTextMap.set(conversationIDKey, new HiddenString(''))
+          const unsentTextMap = new Map(draftState.unsentTextMap)
+          unsentTextMap.delete(conversationIDKey)
+          draftState.unsentTextMap = unsentTextMap
         }
         return
       }
@@ -940,9 +951,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       case EngineGen.chat1NotifyChatChatTypingUpdate: {
         const {typingUpdates} = action.payload.params
-        const typingMap = I.Map(
-          (typingUpdates || []).reduce<Array<[string, I.Set<string>]>>((arr, u) => {
-            arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+        const typingMap = new Map(
+          (typingUpdates || []).reduce<Array<[string, Set<string>]>>((arr, u) => {
+            arr.push([Types.conversationIDToKey(u.convID), new Set((u.typers || []).map(t => t.username))])
             return arr
           }, [])
         )
@@ -1124,18 +1135,17 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.giphySend: {
         draftState.giphyWindowMap = draftState.giphyWindowMap.set(action.payload.conversationIDKey, false)
-        draftState.unsentTextMap = draftState.unsentTextMap.set(
-          action.payload.conversationIDKey,
-          new HiddenString('')
-        )
+        const unsentTextMap = new Map(draftState.unsentTextMap)
+        unsentTextMap.delete(action.payload.conversationIDKey)
+        draftState.unsentTextMap = unsentTextMap
         return
       }
-      case Chat2Gen.setUnsentText:
-        draftState.unsentTextMap = draftState.unsentTextMap.set(
-          action.payload.conversationIDKey,
-          action.payload.text
-        )
+      case Chat2Gen.setUnsentText: {
+        const unsentTextMap = new Map(draftState.unsentTextMap)
+        unsentTextMap.set(action.payload.conversationIDKey, action.payload.text)
+        draftState.unsentTextMap = unsentTextMap
         return
+      }
       case Chat2Gen.setPrependText:
         draftState.prependTextMap = draftState.prependTextMap.set(
           action.payload.conversationIDKey,
@@ -1159,51 +1169,59 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           action.payload.conversationIDKey
         )
         return
-      case Chat2Gen.threadSearchResults:
-        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
-          action.payload.conversationIDKey,
-          info =>
-            info.set(
-              'hits',
-              action.payload.clear
-                ? I.List(action.payload.messages)
-                : info.hits.concat(action.payload.messages)
-            )
-        )
+      case Chat2Gen.threadSearchResults: {
+        const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+        const info =
+          threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+
+        if (action.payload.clear) {
+          info.hits = action.payload.messages
+        } else {
+          info.hits = [...info.hits, ...action.payload.messages]
+        }
+        threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+        draftState.threadSearchInfoMap = threadSearchInfoMap
         return
-      case Chat2Gen.setThreadSearchStatus:
-        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
-          action.payload.conversationIDKey,
-          (info = Constants.makeThreadSearchInfo()) => info.set('status', action.payload.status)
-        )
+      }
+      case Chat2Gen.setThreadSearchStatus: {
+        const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+        const info =
+          threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+        info.status = action.payload.status
+        threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+        draftState.threadSearchInfoMap = threadSearchInfoMap
         return
-      case Chat2Gen.toggleThreadSearch:
-        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
-          action.payload.conversationIDKey,
-          (old = Constants.makeThreadSearchInfo()) =>
-            old.merge({
-              hits: I.List(),
-              status: 'initial',
-              visible: !old.visible,
-            })
-        )
+      }
+      case Chat2Gen.toggleThreadSearch: {
+        const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+        const info =
+          threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+        info.hits = []
+        info.status = 'initial'
+        info.visible = !info.visible
+        threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+        draftState.threadSearchInfoMap = threadSearchInfoMap
 
         draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
           action.payload.conversationIDKey
         )
         return
-      case Chat2Gen.threadSearch:
-        draftState.threadSearchInfoMap = draftState.threadSearchInfoMap.update(
-          action.payload.conversationIDKey,
-          (info = Constants.makeThreadSearchInfo()) => info.set('hits', I.List())
-        )
+      }
+      case Chat2Gen.threadSearch: {
+        const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
+        const info =
+          threadSearchInfoMap.get(action.payload.conversationIDKey) || Constants.makeThreadSearchInfo()
+        info.hits = []
+        threadSearchInfoMap.set(action.payload.conversationIDKey, info)
+        draftState.threadSearchInfoMap = threadSearchInfoMap
         return
-      case Chat2Gen.setThreadSearchQuery:
-        draftState.threadSearchQueryMap = draftState.threadSearchQueryMap.set(
-          action.payload.conversationIDKey,
-          action.payload.query
-        )
+      }
+      case Chat2Gen.setThreadSearchQuery: {
+        const threadSearchQueryMap = new Map(draftState.threadSearchQueryMap)
+        threadSearchQueryMap.set(action.payload.conversationIDKey, action.payload.query)
+        draftState.threadSearchQueryMap = threadSearchQueryMap
         return
+      }
       case Chat2Gen.inboxSearchSetTextStatus:
         draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
           textStatus: action.payload.status,
