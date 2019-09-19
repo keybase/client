@@ -885,6 +885,9 @@ func (f *JSONConfigFile) GetReadDeletedSigChain() (bool, bool) {
 }
 
 func (f *JSONConfigFile) SetRememberPassphrase(username NormalizedUsername, remember bool) error {
+	if username.IsNil() {
+	    return f.SetBoolAtPath("remember_passphrase", remember)
+	}
 	return f.SetBoolAtPath(fmt.Sprintf("remember_passphrase_map.%s", username.String()), remember)
 }
 

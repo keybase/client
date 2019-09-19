@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"errors"
 	"regexp"
 	"strings"
 
@@ -340,7 +339,7 @@ func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
 	username := h.G().Env.GetUsername()
 	if username.IsNil() {
-		return false, errors.New("SetRememberPassphrase: no user logged in")
+		h.G().Log.CDebugf(ctx, "GetRememberPassphrase: got nil username; using legacy remember_passphrase setting")
 	}
 	return h.G().Env.GetRememberPassphrase(username), nil
 }
@@ -350,9 +349,8 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 
 	username := m.G().Env.GetUsername()
 	if username.IsNil() {
-		return errors.New("SetRememberPassphrase: no user logged in")
+		m.Debug("SetRememberPassphrase: got nil username; using legacy remember_passphrase setting")
 	}
-
 	remember, err := h.GetRememberPassphrase(ctx, arg.SessionID)
 	if err != nil {
 		return err
