@@ -9,17 +9,21 @@ type Props = {
 }
 
 const ConfirmReset = (props: Props) => {
-  const [check1, setCheck1] = React.useState(false)
-  const [check2, setCheck2] = React.useState(false)
-  const [check3, setCheck3] = React.useState(false)
-  const [check4, setCheck4] = React.useState(false)
+  const [checks, setChecks] = React.useState({
+    checkData: false,
+    checkTeams: false,
+    checkWallet: false,
+    checkNewPerson: false,
+  })
+  const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
 
   const onContinue = todo
   const onCancel = todo
 
-  let disabled = !check1 || !check2 || !check4
+  const {checkData, checkTeams, checkWallet, checkNewPerson} = checks
+  let disabled = !checkData || !checkTeams || !checkNewPerson
   if (props.hasWallet) {
-    disabled = disabled || !check3
+    disabled = disabled || !checkWallet
   }
 
   return (
@@ -63,13 +67,13 @@ const ConfirmReset = (props: Props) => {
             </Kb.Box2>
             <Kb.Checkbox
               label="You will lose your personal chats, files and git data."
-              checked={check1}
-              onCheck={setCheck1}
+              checked={checkData}
+              onCheck={onCheck('checkData')}
             />
             <Kb.Checkbox
               label="You will be removed from teams. If you were the last owner or admin of a team, it'll be orphaned and unrecoverable."
-              checked={check2}
-              onCheck={setCheck2}
+              checked={checkTeams}
+              onCheck={onCheck('checkTeams')}
             />
             {props.hasWallet && (
               <Kb.Checkbox
@@ -79,14 +83,14 @@ const ConfirmReset = (props: Props) => {
                     haven't backed up your Stellar private keys outside of Keybase.
                   </Kb.Text>
                 }
-                checked={check3}
-                onCheck={setCheck3}
+                checked={checkWallet}
+                onCheck={onCheck('checkWallet')}
               />
             )}
             <Kb.Checkbox
               label="Cryptographically, you'll be a whole new person."
-              checked={check4}
-              onCheck={setCheck4}
+              checked={checkNewPerson}
+              onCheck={onCheck('checkNewPerson')}
             />
           </Kb.Box2>
         </Kb.Box2>
