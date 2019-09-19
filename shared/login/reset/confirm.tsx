@@ -74,7 +74,7 @@ const ConfirmReset = (props: Props) => {
             {props.hasWallet && (
               <Kb.Checkbox
                 labelComponent={
-                  <Kb.Text type="Body">
+                  <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
                     You will <Kb.Text type="BodyExtrabold">lose access to your wallet funds</Kb.Text> if you
                     haven't backed up your Stellar private keys outside of Keybase.
                   </Kb.Text>
