@@ -163,14 +163,14 @@ export type State = Readonly<{
   smallTeamsExpanded: boolean // if we're showing all small teams,
   staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  threadLoadStatus: I.Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
+  threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
-  threadSearchQueryMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
   trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
-  typingMap: I.Map<Common.ConversationIDKey, I.Set<string>> // who's typing currently,
-  unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>
+  typingMap: Map<Common.ConversationIDKey, Set<string>> // who's typing currently,
+  unfurlPromptMap: Map<Common.ConversationIDKey, Map<Message.MessageID, Set<string>>>
   unreadMap: ConversationCountMap // how many unread messages there are,
-  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
+  unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
   userReacjis: UserReacjis
 }>
 
