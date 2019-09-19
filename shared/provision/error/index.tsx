@@ -3,7 +3,7 @@ import Container from '../../login/forms/container'
 import * as React from 'react'
 import {RPCError} from '../../util/errors'
 import {StatusCode} from '../../constants/types/rpc-gen'
-import {Box2, Text, Markdown} from '../../common-adapters'
+import {Box2, Button, Text, Markdown} from '../../common-adapters'
 import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
@@ -28,6 +28,7 @@ const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
     <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
     </Box2>
+    <Button label="Close" onClick={p.onBack} />
   </Container>
 )
 

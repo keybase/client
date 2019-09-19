@@ -498,12 +498,15 @@ const showFinalErrorPage = (state: Container.TypedState, action: ProvisionGen.Sh
   let replace = true
   if (state.provision.finalError && !Constants.errorCausedByUsCanceling(state.provision.finalError)) {
     path = ['error']
-    replace = false // can't replace with a modal!
+    replace = !action.payload.fromDeviceAdd
   } else {
     path = []
   }
 
-  return RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace})
+  return [
+    ...(action.payload.fromDeviceAdd ? [RouteTreeGen.createClearModals()] : []),
+    RouteTreeGen.createNavigateAppend({path: [...parentPath, ...path], replace}),
+  ]
 }
 
 const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})

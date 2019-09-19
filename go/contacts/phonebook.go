@@ -71,13 +71,11 @@ type assertionToNameCache struct {
 const assertionToNameCurrentVer = 1
 
 func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
-	resolveResults, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
-	if err != nil {
-		return nil, err
-	}
+	_, err = ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
+	return nil, err
 
 	// find newly resolved
-	s := mctx.G().SyncedContactList
+	/* s := mctx.G().SyncedContactList
 	currentContacts, err := s.RetrieveContacts(mctx)
 
 	newlyResolvedMap := make(map[string]keybase1.ProcessedContact)
@@ -122,7 +120,7 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 		mctx.Warning("Could not add resolved contacts to people page: %v; returning contacts anyway", err)
 	}
 
-	return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults)
+	return newlyResolved, s.SaveProcessedContacts(mctx, resolveResults) */
 }
 
 func makeAssertionToName(contacts []keybase1.ProcessedContact) (res map[string]string) {
