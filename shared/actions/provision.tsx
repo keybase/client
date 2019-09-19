@@ -369,7 +369,6 @@ class ProvisioningManager {
       this._stashedResponseKey = null
     }
 
-    this._done = true
     this._canceled = true
   }
 }
@@ -404,6 +403,10 @@ function* startProvisioning(state: Container.TypedState) {
     })
     ProvisioningManager.getSingleton().done('provision call done w/ success')
   } catch (finalError) {
+    manager.done(
+      'startProvisioning call done w/ error ' + (finalError ? finalError.message : ' unknown error')
+    )
+
     if (ProvisioningManager.getSingleton() !== manager) {
       // Another provisioning session has started while this one was active.
       // This is not desired and is an indication of a problem somewhere else.
@@ -418,7 +421,6 @@ function* startProvisioning(state: Container.TypedState) {
       return
     }
 
-    manager.done('provision call done w/ error' + finalError ? finalError.message : ' unknown error')
     // If it's a non-existent username or invalid, allow the opportunity to
     // correct it right there on the page.
     switch (finalError.code) {
@@ -449,6 +451,8 @@ function* addNewDevice() {
     yield Saga.put(RouteTreeGen.createNavigateAppend({path: devicesRoot}))
     yield Saga.put(RouteTreeGen.createClearModals())
   } catch (finalError) {
+    manager.done('addNewDevice call done w/ error ' + (finalError ? finalError.message : ' unknown error'))
+
     if (ProvisioningManager.getSingleton() !== manager) {
       // Another provisioning session has started while this one was active.
       // This is not desired and is an indication of a problem somewhere else.
@@ -460,8 +464,6 @@ function* addNewDevice() {
       // After cancelling the RPC we are going to get "input canceled" error.
       return
     }
-
-    manager.done(finalError.message)
 
     yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: true}))
     logger.error(`Provision -> Add device error: ${finalError.message}`)
