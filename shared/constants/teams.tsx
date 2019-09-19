@@ -94,6 +94,7 @@ export const makeInviteInfo = I.Record<Types._InviteInfo>({
   email: '',
   id: '',
   name: '',
+  phone: '',
   role: 'writer',
   username: '',
 })

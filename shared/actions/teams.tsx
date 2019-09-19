@@ -24,6 +24,7 @@ import {uploadAvatarWaitingKey} from '../constants/profile'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
+import {e164ToDisplay} from '../util/phone-numbers'
 
 function* createNewTeam(_: TypedState, action: TeamsGen.CreateNewTeamPayload) {
   const {joinSubteam, teamname} = action.payload
@@ -551,6 +552,8 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
             email: invite.type.c === RPCTypes.TeamInviteCategory.email ? invite.name : '',
             id: invite.id,
             name: invite.type.c === RPCTypes.TeamInviteCategory.seitan ? invite.name : '',
+            phone:
+              invite.type.c === RPCTypes.TeamInviteCategory.phone ? e164ToDisplay('+' + invite.name) : '',
             role,
             username,
           })
