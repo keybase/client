@@ -215,7 +215,6 @@ class EditAvatar extends React.Component<_Props, State> {
     if (!this.state.hasPreview || !this._image) return
 
     // Grab the values now. The event object will be nullified by the time setState is called.
-    // const {pageX, pageY} = Object.assign({}, e)
     const {pageX, pageY} = e
 
     const img = this._image.current
@@ -249,7 +248,6 @@ class EditAvatar extends React.Component<_Props, State> {
     if (!this.state.dragging || this.props.submitting) return
 
     // Grab the values now. The event object will be nullified by the time setState is called.
-    // const {pageX, pageY} = Object.assign({}, e)
     const {pageX, pageY} = e
 
     const offsetLeft = clamp(
