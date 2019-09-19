@@ -20,9 +20,9 @@ export type Props = {
 }
 
 class ConversationFilterInput extends React.PureComponent<Props> {
-  _input: any
+  private input = React.createRef<Kb.SearchFilter>()
 
-  _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
+  private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
       this.props.onStopSearch()
     } else if (e.key === 'ArrowDown') {
@@ -36,18 +36,18 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     }
   }
 
-  _onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
+  private onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
     if (!Styles.isMobile) {
       if (e) {
         e.preventDefault()
         e.stopPropagation()
       }
       this.props.onEnsureSelection()
-      this._input && this._input.blur()
+      this.input.current && this.input.current.blur()
     }
   }
 
-  _onChange = (q: string) => {
+  private onChange = (q: string) => {
     if (q !== this.props.filter) {
       this.props.onSetFilter(q)
     }
@@ -55,16 +55,14 @@ class ConversationFilterInput extends React.PureComponent<Props> {
 
   componentDidUpdate(prevProps: Props) {
     if (!prevProps.isSearching && this.props.isSearching) {
-      this._input && this._input.focus()
+      this.input.current && this.input.current.focus()
     }
   }
-
-  _setRef = r => (this._input = r)
 
   render() {
     const searchInput = (
       <Kb.SearchFilter
-        ref={this._setRef}
+        ref={this.input}
         size="small"
         style={styles.searchBox}
         icon="iconfont-search"
@@ -80,11 +78,11 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         // Take care instead to only launch the keyboard from the isSearching=true mountpoint.
         dummyInput={Styles.isMobile && !this.props.isSearching}
         focusOnMount={Styles.isMobile && this.props.isSearching}
-        onChange={this._onChange}
+        onChange={this.onChange}
         onCancel={this.props.onStopSearch}
         onFocus={this.props.onStartSearch}
-        onKeyDown={this._onKeyDown}
-        onEnterKeyDown={this._onEnterKeyDown}
+        onKeyDown={this.onKeyDown}
+        onEnterKeyDown={this.onEnterKeyDown}
       />
     )
     const children = (
