@@ -1,5 +1,4 @@
 import {NavState} from '../constants/types/route-tree'
-import {memoize} from '../util/memoize'
 // We could have subnavigators, so traverse the routes so we can get the active
 // screen's index so we know when to enable the back button. Note this doesn't
 // support a subnavigator with a root you can hit back from.
