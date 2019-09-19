@@ -23,4 +23,7 @@ export default Container.namedConnect(
     highlight: Container.getRouteProps(o, 'highlight', noHighlight),
   }),
   'AddDevice'
-)(AddDevice)
+  // Note on mobile this doesn't unmount when we append, however it's impossible
+  // to get back to this screen from provisioning/paperkey, so
+  // `safeSubmitPerMount` works.
+)(Container.safeSubmitPerMount(['onAddComputer', 'onAddPaperKey', 'onAddPhone'])(AddDevice))
