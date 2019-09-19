@@ -68,9 +68,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       }
     }
     // In case dump log doesn't exit for us
-    SafeElectron.getRemote()
-      .getCurrentWindow()
-      .hide()
+    KB.showMainWindow(false)
     setTimeout(
       () => {
         quit()
