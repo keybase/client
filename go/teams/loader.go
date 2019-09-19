@@ -1668,7 +1668,7 @@ func (l *TeamLoader) lows(mctx libkb.MetaContext, state *keybase1.TeamData, hp *
 		}
 	}
 	if hp != nil {
-		lows.HiddenChainSeqno = hp.LastSeqno()
+		lows.HiddenChainSeqno = hp.LastFullSeqno()
 	}
 	return lows
 }

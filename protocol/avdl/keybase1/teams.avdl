@@ -335,7 +335,13 @@ protocol teams {
     boolean frozen;
     boolean tombstoned;
 
+    // The last link loaded to, but might have stubbed holes before then (due to FTL)
     Seqno last;
+
+    // From 1 to lastFull are fully populated links, with all stubs (via FTL) filled in.
+    // Might be less than last, or 0, since we didn't introduce this field until
+    // bug Y2K-679 came in.
+    Seqno lastFull;
 
     // Update this field when gregor notifications come in, and there is a bump
     // for last seqno. If this is wrong or buggy, it's a performance problem,
