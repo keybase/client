@@ -104,7 +104,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		return err
 	}
 	membersType := chat1.ConversationMembersType(intMembersType)
-	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, gc, uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "Failed to get conversation info", err)
 		return err
