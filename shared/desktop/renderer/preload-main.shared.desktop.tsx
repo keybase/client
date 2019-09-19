@@ -125,7 +125,6 @@ target.KB = {
   anyToMainDispatchAction,
   buffer,
   framedMsgpackRpc,
-  globalLogger: undefined,
   handleAnyToMainDispatchAction,
   handleDarkModeChanged,
   handlePowerMonitor,

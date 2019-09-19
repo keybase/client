@@ -63,7 +63,6 @@ declare var KB: {
   anyToMainDispatchAction: any
   buffer: any
   framedMsgpackRpc: any
-  globalLogger: any
   handleAnyToMainDispatchAction: any
   handleDarkModeChanged: any
   handlePowerMonitor: any
