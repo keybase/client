@@ -1,6 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of this source code is governed by the included BSD license.  package libkb import (
 package libkb
 
 import (
@@ -554,11 +552,14 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 	    return f.GetTopLevelBool("remember_passphrase")
 	}
 	i := f.jw.AtKey("remember_passphrase_map").GetDataOrNil()
-	m, ok := i.(map[string]bool)
+	m, ok := i.(map[string]interface{})
 	if ok {
 		ret, mOk := m[username.String()]
 		if mOk {
-			return ret, true
+			boolRet, boolOk := ret.(bool)
+			if boolOk {
+				return boolRet, true
+			}
 		}
 	}
 	return f.GetTopLevelBool("remember_passphrase")
