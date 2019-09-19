@@ -14,15 +14,13 @@ export const getActiveIndex = (navState: NavState): number => {
   return navState.index
 }
 // Get active key inside any subnavigator so navigation closures are
-export const getActiveKey = memoize(
-  (navState: NavState): string => {
-    if (!navState.routes) {
-      return navState.key
-    }
-    const route = navState.routes[navState.index]
-    if (route.routes) {
-      return getActiveKey(route)
-    }
-    return navState.routes[navState.index].key
+export const getActiveKey = (navState: NavState): string => {
+  if (!navState.routes) {
+    return navState.key
   }
-)
+  const route = navState.routes[navState.index]
+  if (route.routes) {
+    return getActiveKey(route)
+  }
+  return navState.routes[navState.index].key
+}
