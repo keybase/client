@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
+import {capitalize} from 'lodash-es'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
@@ -143,12 +144,13 @@ const Avatar = ({
 
 // If service icons are the only item present in the bottom row, then don't apply margin-left to the first icon
 const ServicesIcons = (props: {
-  services: Array<Types.ServiceIdWithContact>
+  services: {[K in Types.ServiceIdWithContact]?: string}
   prettyName: string
   displayLabel: string
   isKeybaseResult: boolean
   keybaseUsername: string | null
 }) => {
+  const serviceIds = serviceMapToArray(props.services)
   // When the result is from a non-keybase service, we could have:
   //  1. keybase username
   //  2. pretty name or display label
@@ -160,12 +162,16 @@ const ServicesIcons = (props: {
     : !props.prettyName && !props.displayLabel
   return (
     <Kb.Box2 direction="horizontal" fullWidth={Styles.isMobile} style={styles.services}>
-      {props.services.map((service, index) => (
-        <Kb.WithTooltip key={service} tooltip={service} position="top center">
+      {serviceIds.map((serviceName, index) => (
+        <Kb.WithTooltip
+          key={serviceName}
+          tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
+          position="top center"
+        >
           {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
           <Kb.Icon
             fontSize={14}
-            type={serviceIdToIconFont(service)}
+            type={serviceIdToIconFont(serviceName)}
             style={
               firstIconNoMargin && index === 0
                 ? null
@@ -252,7 +258,7 @@ const BottomRow = (props: {
             there will only be one item */}
             {showServicesIcons ? (
               <ServicesIcons
-                services={serviceMapToArray(props.services)}
+                services={props.services}
                 isKeybaseResult={props.isKeybaseResult}
                 prettyName={props.prettyName}
                 displayLabel={props.displayLabel}

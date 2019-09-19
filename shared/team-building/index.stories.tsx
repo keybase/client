@@ -119,12 +119,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -136,11 +136,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -152,11 +152,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -213,12 +213,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -230,11 +230,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -246,11 +246,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -354,12 +354,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -371,11 +371,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -387,11 +387,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -429,12 +429,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -446,11 +446,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -462,11 +462,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -504,12 +504,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -521,11 +521,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -537,11 +537,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -670,12 +670,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'Following' as const}
           highlight={false}
@@ -691,12 +691,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'Following' as const}
           highlight={false}
@@ -712,12 +712,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'NotFollowing' as const}
           highlight={false}
@@ -733,12 +733,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'NotFollowing' as const}
           highlight={false}
@@ -755,12 +755,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'Following' as const}
           highlight={false}
@@ -776,12 +776,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'Following' as const}
           highlight={false}
@@ -797,12 +797,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'NotFollowing' as const}
           highlight={false}
@@ -818,12 +818,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'NotFollowing' as const}
           highlight={false}
@@ -840,12 +840,12 @@ const load = () => {
           displayLabel=""
           resultForService="keybase"
           services={{
-            facebook: 'max on Facebook',
-            github: 'max on GitHub',
-            hackernews: 'max on HackerNews',
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
             keybase: 'max',
-            reddit: 'max on Reddit',
-            twitter: 'max on Twitter',
+            reddit: 'max',
+            twitter: 'max',
           }}
           followingState={'Following' as const}
           highlight={false}
