@@ -17,17 +17,17 @@ func NewMerkleProofVerifier(c Config) MerkleProofVerifier {
 func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyValuePair, proof MerkleInclusionProof, expRootHash Hash) error {
 
 	// Hash the key value pair
-	kvpHash, err := m.cfg.encoder.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)
+	kvpHash, err := m.cfg.Encoder.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)
 	if err != nil {
 		return NewProofVerificationFailedError(err)
 	}
 
-	if len(kvp.Key) != m.cfg.keysByteLength {
-		return NewProofVerificationFailedError(fmt.Errorf("Key has wrong length for this tree: %v (expected %v)", len(kvp.Key), m.cfg.keysByteLength))
+	if len(kvp.Key) != m.cfg.KeysByteLength {
+		return NewProofVerificationFailedError(fmt.Errorf("Key has wrong length for this tree: %v (expected %v)", len(kvp.Key), m.cfg.KeysByteLength))
 	}
 
-	if len(proof.OtherPairsInLeaf)+1 > m.cfg.maxValuesPerLeaf {
-		return NewProofVerificationFailedError(fmt.Errorf("Too many keys in leaf: %v > %v", len(proof.OtherPairsInLeaf)+1, m.cfg.maxValuesPerLeaf))
+	if len(proof.OtherPairsInLeaf)+1 > m.cfg.MaxValuesPerLeaf {
+		return NewProofVerificationFailedError(fmt.Errorf("Too many keys in leaf: %v > %v", len(proof.OtherPairsInLeaf)+1, m.cfg.MaxValuesPerLeaf))
 	}
 
 	// Reconstruct the leaf node
@@ -50,34 +50,34 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyV
 	}
 
 	// Recompute the hashes on the nodes on the path from the leaf to the root.
-	nodeHash, err := m.cfg.encoder.EncodeAndHashGeneric(leaf)
+	_, nodeHash, err := m.cfg.Encoder.EncodeAndHashGeneric(leaf)
 	if err != nil {
 		return NewProofVerificationFailedError(err)
 	}
 
 	sibH := proof.SiblingHashesOnPath
-	if len(sibH)%(m.cfg.childrenPerNode-1) != 0 {
+	if len(sibH)%(m.cfg.ChildrenPerNode-1) != 0 {
 		return NewProofVerificationFailedError(fmt.Errorf("Invalid number of SiblingHashes %v", len(sibH)))
 	}
 	keyAsPos, err := m.cfg.getDeepestPositionForKey(kvp.Key)
 	if err != nil {
 		return NewProofVerificationFailedError(err)
 	}
-	leafPosition := m.cfg.getParentAtLevel(keyAsPos, uint(len(sibH)/(m.cfg.childrenPerNode-1)))
+	leafPosition := m.cfg.getParentAtLevel(keyAsPos, uint(len(sibH)/(m.cfg.ChildrenPerNode-1)))
 
 	// recompute the hash of the root node by recreating all the internal nodes
 	// on the path from the leaf to the root.
 	i := 0
 	for _, childIndex := range m.cfg.positionToChildIndexPath(leafPosition) {
-		sibHAtLevel := sibH[i : i+m.cfg.childrenPerNode-1]
+		sibHAtLevel := sibH[i : i+m.cfg.ChildrenPerNode-1]
 
-		node := Node{INodes: make([]Hash, m.cfg.childrenPerNode)}
+		node := Node{INodes: make([]Hash, m.cfg.ChildrenPerNode)}
 		copy(node.INodes, sibHAtLevel[:int(childIndex)])
 		node.INodes[int(childIndex)] = nodeHash
 		copy(node.INodes[int(childIndex)+1:], sibHAtLevel[int(childIndex):])
 
-		i += m.cfg.childrenPerNode - 1
-		nodeHash, err = m.cfg.encoder.EncodeAndHashGeneric(node)
+		i += m.cfg.ChildrenPerNode - 1
+		_, nodeHash, err = m.cfg.Encoder.EncodeAndHashGeneric(node)
 		if err != nil {
 			return NewProofVerificationFailedError(err)
 		}
@@ -87,7 +87,7 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx context.Context, kvp KeyV
 	// with the value computed above.
 	rootMetadata := proof.RootMetadataNoHash
 	rootMetadata.BareRootHash = nodeHash
-	rootHash, err := m.cfg.encoder.EncodeAndHashGeneric(rootMetadata)
+	_, rootHash, err := m.cfg.Encoder.EncodeAndHashGeneric(rootMetadata)
 	if err != nil {
 		return NewProofVerificationFailedError(err)
 	}

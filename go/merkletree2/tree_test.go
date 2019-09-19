@@ -35,7 +35,7 @@ func TestEmptyTree(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 
@@ -87,7 +87,7 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 
@@ -213,7 +213,7 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 
@@ -284,9 +284,9 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 	kvps1_1bit, kvps2_1bit, _ := getSampleKVPS1bit()
 	kvps1_3bits, kvps2_3bits, _ := getSampleKVPS3bits()
 
-	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3)
+	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
-	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3)
+	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -305,7 +305,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
@@ -346,19 +346,19 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 }
 
 func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
-	blindedBinaryTreeConfig, err := NewConfig(BlindedSHA512_256v1Encoder{}, true, 1, 1, 32)
+	blindedBinaryTreeConfig, err := NewConfig(NewBlindedSHA512_256v1Encoder(), true, 1, 1, 32, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	unblindedBinaryTreeConfig, err := NewConfig(SHA512_256Encoder{}, false, 1, 1, 32)
+	unblindedBinaryTreeConfig, err := NewConfig(SHA512_256Encoder{}, false, 1, 1, 32, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	blinded16aryTreeConfig, err := NewConfig(BlindedSHA512_256v1Encoder{}, true, 4, 4, 32)
+	blinded16aryTreeConfig, err := NewConfig(NewBlindedSHA512_256v1Encoder(), true, 4, 4, 32, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	blinded16aryShallowTreeConfig, err := NewConfig(BlindedSHA512_256v1Encoder{}, true, 4, 4, 2)
+	blinded16aryShallowTreeConfig, err := NewConfig(NewBlindedSHA512_256v1Encoder(), true, 4, 4, 2, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	blindedBinaryShallowTreeConfig, err := NewConfig(BlindedSHA512_256v1Encoder{}, true, 1, 1, 2)
+	blindedBinaryShallowTreeConfig, err := NewConfig(NewBlindedSHA512_256v1Encoder(), true, 1, 1, 2, ConstructStringValueContainer)
 	require.NoError(t, err)
 
 	// Make test deterministic.
@@ -380,12 +380,12 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, test.step, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			keys, err := makeRandomKeysForTesting(uint(test.cfg.keysByteLength), test.numPairs)
+			keys, err := makeRandomKeysForTesting(uint(test.cfg.KeysByteLength), test.numPairs)
 			require.NoError(t, err)
 			kvp1, err := makeRandomKVPFromKeysForTesting(keys)
 			require.NoError(t, err)
@@ -432,9 +432,9 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 	kvps1_1bit, kvps2_1bit, _ := getSampleKVPS1bit()
 	kvps1_3bits, kvps2_3bits, _ := getSampleKVPS3bits()
 
-	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3)
+	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
-	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3)
+	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -453,7 +453,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
@@ -500,7 +500,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// Change the blinding key-specific secret (where appropriate)
-				if tree.cfg.useBlindedValueHashes {
+				if tree.cfg.UseBlindedValueHashes {
 					require.NotNil(t, proof.KeySpecificSecret)
 					require.True(t, len(proof.KeySpecificSecret) > 0, "Kss: %X", proof.KeySpecificSecret)
 
@@ -520,7 +520,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 
 func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 
-	cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2)
+	cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2, ConstructStringValueContainer)
 	require.NoError(t, err)
 	defaultStep := 2
 
@@ -557,7 +557,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 
 	// Proof has too many key hash pairs
 	fakeProof := proof
-	fakeProof.OtherPairsInLeaf = make([]KeyHashPair, cfg.maxValuesPerLeaf)
+	fakeProof.OtherPairsInLeaf = make([]KeyHashPair, cfg.MaxValuesPerLeaf)
 	err = verifier.VerifyInclusionProof(context.TODO(), kvp, fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
@@ -605,7 +605,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("Empy tree with %v step", test.step), func(t *testing.T) {
 
-			cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2)
+			cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2, ConstructStringValueContainer)
 			require.NoError(t, err)
 			tree, err := NewTree(cfg, test.step, NewInMemoryStorageEngine(cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
@@ -651,9 +651,9 @@ func TestGetLatestRoot(t *testing.T) {
 	kvps1_1bit, kvps2_1bit, _ := getSampleKVPS1bit()
 	kvps1_3bits, kvps2_3bits, _ := getSampleKVPS3bits()
 
-	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3)
+	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
-	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3)
+	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -672,7 +672,7 @@ func TestGetLatestRoot(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.bitsPerIndex, test.cfg.maxValuesPerLeaf, test.cfg.useBlindedValueHashes), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), logger.NewTestLogger(t))
 			require.NoError(t, err)
 

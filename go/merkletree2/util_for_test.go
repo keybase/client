@@ -23,26 +23,26 @@ func makePositionFromStringForTesting(s string) (Position, error) {
 }
 
 func getTreeCfgsWith1_2_3BitsPerIndexBlinded(t *testing.T) (config1bit, config2bits, config3bits Config) {
-	config1bit, err := NewConfig(IdentityHasherBlinded{}, true, 1, 1, 1)
+	config1bit, err := NewConfig(IdentityHasherBlinded{}, true, 1, 1, 1, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	config2bits, err = NewConfig(IdentityHasherBlinded{}, true, 2, 1, 1)
+	config2bits, err = NewConfig(IdentityHasherBlinded{}, true, 2, 1, 1, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	config3bits, err = NewConfig(IdentityHasherBlinded{}, true, 3, 1, 3)
+	config3bits, err = NewConfig(IdentityHasherBlinded{}, true, 3, 1, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
 
 	return config1bit, config2bits, config3bits
 }
 
 func getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t *testing.T) (config1bit, config2bits, config3bits Config) {
-	config1bit, err := NewConfig(IdentityHasher{}, false, 1, 1, 1)
+	config1bit, err := NewConfig(IdentityHasher{}, false, 1, 1, 1, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	config2bits, err = NewConfig(IdentityHasher{}, false, 2, 1, 1)
+	config2bits, err = NewConfig(IdentityHasher{}, false, 2, 1, 1, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	config3bits, err = NewConfig(IdentityHasher{}, false, 3, 1, 3)
+	config3bits, err = NewConfig(IdentityHasher{}, false, 3, 1, 3, ConstructStringValueContainer)
 	require.NoError(t, err)
 
 	return config1bit, config2bits, config3bits
@@ -107,16 +107,32 @@ type IdentityHasher struct{}
 
 var _ Encoder = IdentityHasher{}
 
-func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(o)
+func (i IdentityHasher) Encode(o interface{}) ([]byte, error) {
+	return msgpack.EncodeCanonical(o)
+}
+
+func (i IdentityHasher) Decode(dest interface{}, src []byte) error {
+	return msgpack.Decode(dest, src)
+}
+
+func (i IdentityHasher) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEncodedValuePair, _ KeySpecificSecret) (Hash, error) {
+	return i.Encode(kevp)
+}
+
+func (i IdentityHasher) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+	enc, err := i.Encode(o)
 	if err != nil {
-		return nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
+		return nil, nil, fmt.Errorf("Encoding error in IdentityHasher for %v: %v", o, err)
 	}
-	return Hash(enc), nil
+	return enc, Hash(enc), nil
 }
 
 func (i IdentityHasher) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
-	return i.EncodeAndHashGeneric(kvp)
+	encVal, err := i.Encode(kvp.Value)
+	if err != nil {
+		return nil, err
+	}
+	return i.HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair{Key: kvp.Key, Value: encVal}, kss)
 }
 
 func (i IdentityHasher) GenerateMasterSecret(Seqno) (MasterSecret, error) {
@@ -132,24 +148,39 @@ type IdentityHasherBlinded struct{}
 
 var _ Encoder = IdentityHasherBlinded{}
 
-func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) (Hash, error) {
+func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
 	enc, err := msgpack.EncodeCanonical(o)
 	if err != nil {
-		return nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
+		return nil, nil, fmt.Errorf("Msgpack error in IdentityHasher for %v: %v", o, err)
 	}
-	return Hash(enc), nil
+	return enc, Hash(enc), nil
+}
+
+func (i IdentityHasherBlinded) Encode(o interface{}) ([]byte, error) {
+	return msgpack.EncodeCanonical(o)
+}
+
+func (i IdentityHasherBlinded) Decode(dest interface{}, src []byte) error {
+	return msgpack.Decode(dest, src)
 }
 
 func (i IdentityHasherBlinded) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(struct {
-		Kvp KeyValuePair
-		Kss KeySpecificSecret
-	}{Kvp: kvp, Kss: kss})
+	encVal, err := i.Encode(kvp.Value)
+	if err != nil {
+		return nil, err
+	}
+	return i.HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair{Key: kvp.Key, Value: encVal}, kss)
+}
+
+func (i IdentityHasherBlinded) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEncodedValuePair, kss KeySpecificSecret) (Hash, error) {
+	enc, err := i.Encode(struct {
+		Kevp KeyEncodedValuePair
+		Kss  KeySpecificSecret
+	}{Kevp: kevp, Kss: kss})
 	if err != nil {
 		panic(err)
 	}
 	return Hash(enc), nil
-
 }
 
 func (i IdentityHasherBlinded) GenerateMasterSecret(Seqno) (MasterSecret, error) {
@@ -203,13 +234,18 @@ func makeRandomKeysForTesting(keysByteLength uint, numPairs int) ([]Key, error) 
 
 func makeRandomKVPFromKeysForTesting(keys []Key) ([]KeyValuePair, error) {
 	kvps := make([]KeyValuePair, len(keys))
+	valBuffer := make([]byte, 10)
 	for i, key := range keys {
 		kvps[i].Key = key
-		kvps[i].Value = make([]byte, 10)
-		_, err := rand.Read(kvps[i].Value.([]byte))
+		_, err := rand.Read(valBuffer)
 		if err != nil {
 			return nil, err
 		}
+		kvps[i].Value = string(valBuffer)
 	}
 	return kvps, nil
+}
+
+func ConstructStringValueContainer() interface{} {
+	return ""
 }

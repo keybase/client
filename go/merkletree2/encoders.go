@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/msgpack"
+	"github.com/keybase/go-codec/codec"
 )
 
 type EncodingType uint8
@@ -25,7 +26,7 @@ const (
 func (e EncodingType) GetEncoder() Encoder {
 	switch e {
 	case EncodingTypeBlindedSHA512_256v1:
-		return BlindedSHA512_256v1Encoder{}
+		return NewBlindedSHA512_256v1Encoder()
 	case EncodingTypeSHA512_256ForTesting:
 		return SHA512_256Encoder{}
 	default:
@@ -33,25 +34,60 @@ func (e EncodingType) GetEncoder() Encoder {
 	}
 }
 
-type BlindedSHA512_256v1Encoder struct{}
+// BlindedSHA512_256v1Encoder is not safe for concurrent use.
+type BlindedSHA512_256v1Encoder struct {
+	enc *codec.Encoder
+	dec *codec.Decoder
+}
 
 var _ Encoder = BlindedSHA512_256v1Encoder{}
 
-func (e BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(o)
+func NewBlindedSHA512_256v1Encoder() BlindedSHA512_256v1Encoder {
+	var mh codec.MsgpackHandle
+	mh.WriteExt = true
+	mh.Canonical = true
+
+	var mh2 codec.MsgpackHandle
+	mh2.WriteExt = true
+	mh2.Canonical = true
+
+	return BlindedSHA512_256v1Encoder{enc: codec.NewEncoderBytes(nil, &mh), dec: codec.NewDecoderBytes(nil, &mh2)}
+}
+
+func (e BlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {
+	e.enc.ResetBytes(&out)
+	return out, e.enc.Encode(o)
+}
+
+func (e BlindedSHA512_256v1Encoder) Decode(dest interface{}, src []byte) error {
+	e.dec.ResetBytes(src)
+	return e.dec.Decode(dest)
+}
+
+func (e BlindedSHA512_256v1Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+	enc, err := e.Encode(o)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	hasher := sha512.New512_256()
 	_, err = hasher.Write(enc)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return hasher.Sum(nil), nil
+	return enc, hasher.Sum(nil), nil
 }
 
 func (e BlindedSHA512_256v1Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(kvp)
+	encVal, err := e.Encode(kvp.Value)
+	if err != nil {
+		return nil, err
+	}
+	return e.HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair{Key: kvp.Key, Value: encVal}, kss)
+}
+
+func (e BlindedSHA512_256v1Encoder) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEncodedValuePair, kss KeySpecificSecret) (Hash, error) {
+	// TODO this double encoding is unnecessary. Consider removing.
+	enc, err := e.Encode(kevp)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +118,38 @@ type SHA512_256Encoder struct{}
 
 var _ Encoder = SHA512_256Encoder{}
 
-func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) (Hash, error) {
-	enc, err := msgpack.EncodeCanonical(o)
+func (e SHA512_256Encoder) Encode(o interface{}) ([]byte, error) {
+	return msgpack.EncodeCanonical(o)
+}
+
+func (e SHA512_256Encoder) Decode(dest interface{}, src []byte) error {
+	return msgpack.Decode(dest, src)
+}
+
+func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
+	enc, err := e.Encode(o)
+	if err != nil {
+		return nil, nil, err
+	}
+	hasher := sha512.New512_256()
+	_, err = hasher.Write(enc)
+	if err != nil {
+		return nil, nil, err
+	}
+	return enc, hasher.Sum(nil), nil
+}
+
+func (e SHA512_256Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
+	encVal, err := e.Encode(kvp.Value)
+	if err != nil {
+		return nil, err
+	}
+	return e.HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair{Key: kvp.Key, Value: encVal}, kss)
+}
+
+func (e SHA512_256Encoder) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEncodedValuePair, kss KeySpecificSecret) (Hash, error) {
+	// TODO this double encoding is unnecessary. Consider removing.
+	enc, err := e.Encode(kevp)
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +159,6 @@ func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) (Hash, error) {
 		return nil, err
 	}
 	return hasher.Sum(nil), nil
-}
-
-func (e SHA512_256Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, _ KeySpecificSecret) (Hash, error) {
-	return e.EncodeAndHashGeneric(kvp)
 }
 
 func (e SHA512_256Encoder) GenerateMasterSecret(_ Seqno) (MasterSecret, error) {
