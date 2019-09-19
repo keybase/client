@@ -1,5 +1,3 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
-
 export const autoResize = () => {
   if (__STORYBOOK__) {
     return
@@ -11,24 +9,11 @@ export const autoResize = () => {
     try {
       const el = window.document.getElementById('RemoteComponentRoot')
       const element: any = el && el.firstChild
-      const browserWindow = SafeElectron.getRemote().getCurrentWindow()
-      if (
-        element &&
-        element.scrollHeight != null &&
-        element.offsetTop != null &&
-        browserWindow &&
-        !browserWindow.isDestroyed()
-      ) {
+      if (element && element.scrollHeight != null && element.offsetTop != null) {
         // try 5 times to get a stable window size, doesn't seem like a better way to do this...
         getStableHeight(element, 5, 1, () => {
           // Height of remote component + offset from parent + top/bottom border
-          const originalResizableState = browserWindow.isResizable()
-          browserWindow.setResizable(true)
-          browserWindow.setContentSize(
-            browserWindow.getSize()[0],
-            element.scrollHeight + 2 * element.offsetTop + 2
-          )
-          browserWindow.setResizable(originalResizableState)
+          KB.resizeWindow(element.scrollHeight, element.offsetTop)
         })
       }
     } catch (e) {
@@ -52,11 +37,4 @@ export const autoResize = () => {
       }
     }
   }, 1)
-}
-
-export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
-  const w = SafeElectron.BrowserWindow.getAllWindows().find(
-    w => w.webContents.getURL().indexOf('/main.') !== -1
-  )
-  return w || null
 }

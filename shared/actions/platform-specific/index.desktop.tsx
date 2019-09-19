@@ -43,20 +43,21 @@ export const getContentTypeFromURL = (
   url: string,
   cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
 ) => {
-  const req = SafeElectron.getRemote().net.request({method: 'HEAD', url})
-  req.on('response', response => {
-    let contentType = ''
-    let disposition = ''
-    if (response.statusCode === 200) {
-      const contentTypeHeader = response.headers['content-type']
-      contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
-      const dispositionHeader = response.headers['content-disposition']
-      disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
-    }
-    cb({contentType, disposition, statusCode: response.statusCode})
-  })
-  req.on('error', error => cb({error}))
-  req.end()
+  KB.netRequestHead(
+    url,
+    (response: Electron.IncomingMessage) => {
+      let contentType = ''
+      let disposition = ''
+      if (response.statusCode === 200) {
+        const contentTypeHeader = response.headers['content-type']
+        contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
+        const dispositionHeader = response.headers['content-disposition']
+        disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
+      }
+      cb({contentType, disposition, statusCode: response.statusCode})
+    },
+    (error: Error) => cb({error})
+  )
 }
 
 function* handleWindowFocusEvents(): Iterable<any> {
@@ -199,7 +200,7 @@ const onConnected = () => {
       argv: KB.__process.argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
-      pid: SafeElectron.getRemote().process.pid,
+      pid: KB.remoteProcessPid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(_ => {})

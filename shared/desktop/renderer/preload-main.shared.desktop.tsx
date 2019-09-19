@@ -159,13 +159,58 @@ const unhandleMainWindowShown = (cb: (shown: boolean) => void) => {
   _handleMainWindowShownListeners.delete(cb)
 }
 
+const resizeWindow = (scrollHeight: number, offsetTop: number) => {
+  const w = Electron.remote.getCurrentWindow()
+  if (!w) return
+
+  const originalResizableState = w.isResizable()
+  w.setResizable(true)
+  w.setContentSize(w.getSize()[0], scrollHeight + 2 * offsetTop + 2)
+  w.setResizable(originalResizableState)
+}
+
+const showCurrentWindow = (show: boolean) => {
+  const w = Electron.remote.getCurrentWindow()
+  if (!w) return
+  if (show) {
+    w.showInactive()
+  } else {
+    w.close()
+  }
+}
+
+// TODO deprecate
+const netRequestHead = (
+  url: string,
+  onResponse: (m: Electron.IncomingMessage) => void,
+  onError: (e: Error) => void
+) => {
+  const req = Electron.remote.net.request({method: 'HEAD', url})
+  req.on('response', onResponse)
+  req.on('error', onError)
+  req.end()
+}
+
+const handleRemoteWindowProps = (cb: (s: string) => void) => {
+  const w = Electron.remote.getCurrentWindow()
+  if (!w) return
+  w.on('KBprops', cb)
+}
+
 target.KB = {
+  // TODO deprecate
   __child_process: child_process,
+  // TODO deprecate
   __dirname: __dirname,
+  // TODO deprecate
   __electron: Electron,
+  // TODO deprecate
   __fs: fs,
+  // TODO deprecate
   __os: os,
+  // TODO deprecate
   __path: path,
+  // TODO deprecate
   __process: process,
   anyToMainDispatchAction,
   buffer,
@@ -176,12 +221,17 @@ target.KB = {
   handlePowerMonitor,
   handleRenderToMain,
   handleRendererToMainMenu,
+  handleRemoteWindowProps,
   isDarkMode,
   mainLoggerDump,
+  netRequestHead,
   platform,
   punycode, // used by a dep
   purepack,
+  remoteProcessPid: isRenderer ? Electron.remote.process.pid : process.pid,
   renderToMain,
+  resizeWindow,
+  showCurrentWindow,
   showMainWindow,
   rendererToMainMenu,
   showMessageBox,

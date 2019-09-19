@@ -26,39 +26,35 @@ type Props = {
 }
 
 class RemoteComponentLoader extends React.Component<Props> {
-  _store: any
-  _window: SafeElectron.BrowserWindowType | null
+  private store: any
 
   constructor(props: Props) {
     super(props)
-    this._window = SafeElectron.getRemote().getCurrentWindow()
     const remoteStore = new RemoteStore({
       deserialize: props.deserialize,
-      gotPropsCallback: this._onGotProps,
+      gotPropsCallback: this.onGotProps,
       windowComponent: props.name,
       windowParam: props.params,
     })
-    this._store = remoteStore.getStore()
+    this.store = remoteStore.getStore()
   }
 
-  _onGotProps = () => {
+  private onGotProps = () => {
     // Show when we get props, unless its the menubar
-    if (this._window && this.props.showOnProps) {
-      this._window.showInactive()
+    if (this.props.showOnProps) {
+      KB.showCurrentWindow(true)
     }
   }
 
-  _onClose = () => {
-    if (this._window) {
-      this._window.close()
-    }
+  private onClose = () => {
+    KB.showCurrentWindow(false)
   }
 
   render() {
     return (
       <div id="RemoteComponentRoot" style={this.props.style || styles.container}>
-        <ErrorBoundary closeOnClick={this._onClose}>
-          <Root store={this._store}>{this.props.children}</Root>
+        <ErrorBoundary closeOnClick={this.onClose}>
+          <Root store={this.store}>{this.props.children}</Root>
         </ErrorBoundary>
       </div>
     )

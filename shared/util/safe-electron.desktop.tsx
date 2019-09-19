@@ -3,23 +3,15 @@ const Electron = KB.__electron
 
 // Main thread only, proxy through remote
 export const getApp = () => {
-  const app = Electron.app || getRemote().app
+  const app = Electron.app || Electron.remote.app
   if (!app) {
     throw new Error('Should be impossible')
   }
   return app
 }
 
-export const getRemote = () => {
-  const remote = Electron.remote
-  if (!remote) {
-    throw new Error('Incorrect electron import. remote only available from render thread')
-  }
-  return remote
-}
-
 export const getCurrentWindowFromRemote = () => {
-  return getRemote().getCurrentWindow()
+  return Electron.remote.getCurrentWindow()
 }
 
 // Both
