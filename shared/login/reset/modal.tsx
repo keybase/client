@@ -7,11 +7,9 @@ import * as Constants from '../../constants/autoreset'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as AutoresetGen from '../../actions/autoreset-gen'
 
-export type Props = {
-  mapURL: string
-}
+export type Props = {}
 
-const ResetModal = (props: Props) => {
+const ResetModal = (_: Props) => {
   const {active, endTime}: Types.State = Container.useSelector(s => s.autoreset)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
@@ -41,9 +39,9 @@ const ResetModal = (props: Props) => {
           <Kb.Text type="Body">This account will reset in {timeNice}.</Kb.Text>
           <Kb.Text type="Body">
             But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
-            clearly you have access to your keys.
+            clearly you have access to your devices.
           </Kb.Text>
-          <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
+          {/* <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
           <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.deviceContainer}>
             <Kb.Image src={props.mapURL} style={{height: 100, width: 100}} />
             <Kb.Box2 direction="vertical">
@@ -52,7 +50,7 @@ const ResetModal = (props: Props) => {
               <Kb.Text type="BodySmall">Entered on August 8, 2019</Kb.Text>
               <Kb.Text type="BodySmall">IP address: 127.0.0.1</Kb.Text>
             </Kb.Box2>
-          </Kb.Box2>
+          </Kb.Box2> */}
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonContainer}>
           <Kb.WaitingButton
@@ -86,7 +84,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   wrapper: Styles.platformStyles({
     isElectron: {
-      height: 430,
+      height: 415,
       width: 360,
     },
   }),

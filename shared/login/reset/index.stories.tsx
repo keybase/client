@@ -10,7 +10,7 @@ const load = () => {
   Sb.storiesOf('Login/Reset', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
 
-    .add('Modal', () => <ResetModal mapURL="https://i.imgur.com/XwTVNzr.png" />)
+    .add('Modal', () => <ResetModal />)
 
     .add('Waiting', () => <Waiting pipelineStarted={true} />)
     .add('Check phone', () => <Waiting pipelineStarted={false} />)
