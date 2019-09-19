@@ -114,6 +114,15 @@ const handlePowerMonitor = (cb: (type: string) => void) => {
   pm.on('unlock-screen', () => cb('unlock-screen'))
 }
 
+const mainLoggerDump = () => {
+  if (isRenderer) {
+    const d = Electron.remote.getGlobal('KB').mainLoggerDump
+    return d ? d() : Promise.resolve([])
+  } else {
+    // set globally by node process
+  }
+}
+
 target.KB = {
   __child_process: child_process,
   __dirname: __dirname,
@@ -131,6 +140,7 @@ target.KB = {
   handleRenderToMain,
   handleRendererToMainMenu,
   isDarkMode,
+  mainLoggerDump,
   platform,
   punycode, // used by a dep
   purepack,

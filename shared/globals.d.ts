@@ -69,6 +69,7 @@ declare var KB: {
   handleRenderToMain: any
   handleRendererToMainMenu: any
   isDarkMode: any
+  mainLoggerDump: any
   platform: any
   punycode: any
   purepack: any

@@ -12,7 +12,6 @@ import configureStore from '../../store/configure-store'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
-import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
@@ -67,11 +66,6 @@ const setupApp = (store, runSagas) => {
       KB.renderToMain({type: 'requestStartService'})
     }
   }, 0)
-
-  // After a delay dump logs in case some startup stuff happened
-  setTimeout(() => {
-    dumpLogs()
-  }, 5 * 1000)
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())

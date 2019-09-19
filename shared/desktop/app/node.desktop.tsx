@@ -15,6 +15,8 @@ import {quit} from './ctl.desktop'
 import logger from '../../logger'
 import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 
+KB.mainLoggerDump = () => logger.dump()
+
 let mainWindow: (ReturnType<typeof MainWindow>) | null = null
 let appStartedUp = false
 let startupURL: string | null = null

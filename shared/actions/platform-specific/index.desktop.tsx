@@ -9,7 +9,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {getEngine} from '../../engine'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
@@ -218,11 +217,15 @@ const onOutOfDate = (
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = (_: Container.TypedState, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
+const prepareLogSend = async (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1LogsendPrepareLogsendPayload
+) => {
   const response = action.payload.response
-  dumpLogs().then(() => {
-    response && response.result()
-  })
+  const fromRender = await logger.dump()
+  const fromMain = await KB.mainLoggerDump()
+  await writeLogLinesToFile([...fromRender, ...fromMain])
+  response && response.result()
 }
 
 const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {

@@ -533,8 +533,9 @@ const sendFeedback = async (state: TypedState, action: SettingsGen.SendFeedbackP
   const {feedback, sendLogs, sendMaxBytes} = action.payload
   try {
     if (sendLogs) {
-      const lines = await logger.dump()
-      await writeLogLinesToFile(lines)
+      const fromRender = await logger.dump()
+      const fromMain = await KB.mainLoggerDump()
+      await writeLogLinesToFile([...fromRender, ...fromMain])
     }
     const status = {version}
     logger.info(`Sending ${sendLogs ? 'log' : 'feedback'} to daemon`)
