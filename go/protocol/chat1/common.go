@@ -949,18 +949,20 @@ func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 }
 
 type ConversationReaderInfo struct {
-	Mtime     gregor1.Time             `codec:"mtime" json:"mtime"`
-	ReadMsgid MessageID                `codec:"readMsgid" json:"readMsgid"`
-	MaxMsgid  MessageID                `codec:"maxMsgid" json:"maxMsgid"`
-	Status    ConversationMemberStatus `codec:"status" json:"status"`
+	Mtime             gregor1.Time             `codec:"mtime" json:"mtime"`
+	ReadMsgid         MessageID                `codec:"readMsgid" json:"readMsgid"`
+	MaxMsgid          MessageID                `codec:"maxMsgid" json:"maxMsgid"`
+	Status            ConversationMemberStatus `codec:"status" json:"status"`
+	UntrustedTeamRole keybase1.TeamRole        `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
 }
 
 func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 	return ConversationReaderInfo{
-		Mtime:     o.Mtime.DeepCopy(),
-		ReadMsgid: o.ReadMsgid.DeepCopy(),
-		MaxMsgid:  o.MaxMsgid.DeepCopy(),
-		Status:    o.Status.DeepCopy(),
+		Mtime:             o.Mtime.DeepCopy(),
+		ReadMsgid:         o.ReadMsgid.DeepCopy(),
+		MaxMsgid:          o.MaxMsgid.DeepCopy(),
+		Status:            o.Status.DeepCopy(),
+		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
 	}
 }
 
