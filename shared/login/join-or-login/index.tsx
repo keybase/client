@@ -23,15 +23,7 @@ const Intro = (props: Props) => {
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <InfoIcon />
       </Kb.Box2>
-
-      {!!props.bannerMessage && (
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.banner}>
-          <Kb.Text center={true} type="BodySmallSemibold" style={styles.bannerMessage}>
-            {props.bannerMessage}
-          </Kb.Text>
-        </Kb.Box2>
-      )}
-
+      {!!props.bannerMessage && <Kb.Banner color="blue">{props.bannerMessage}</Kb.Banner>}
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
