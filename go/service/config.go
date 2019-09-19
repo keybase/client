@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"errors"
 	"regexp"
 	"strings"
 
@@ -337,11 +338,21 @@ func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
-	return h.G().Env.RememberPassphrase(), nil
+	username := h.G().Env.GetUsername()
+	if username.IsNil() {
+		return false, errors.New("SetRememberPassphrase: no user logged in")
+	}
+	return h.G().Env.GetRememberPassphrase(username), nil
 }
 
 func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.SetRememberPassphraseArg) error {
 	m := libkb.NewMetaContext(ctx, h.G())
+
+	username := m.G().Env.GetUsername()
+	if username.IsNil() {
+		return errors.New("SetRememberPassphrase: no user logged in")
+	}
+
 	remember, err := h.GetRememberPassphrase(ctx, arg.SessionID)
 	if err != nil {
 		return err
@@ -353,7 +364,7 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 
 	// set the config variable
 	w := h.G().Env.GetConfigWriter()
-	if err := w.SetRememberPassphrase(arg.Remember); err != nil {
+	if err := w.SetRememberPassphrase(username, arg.Remember); err != nil {
 		return err
 	}
 	err = h.G().ConfigReload()
@@ -367,7 +378,7 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 		return err
 	}
 
-	m.Debug("SetRememberPassphrase(%v) success", arg.Remember)
+	m.Debug("SetRememberPassphrase(%s, %v) success", username.String(), arg.Remember)
 
 	return nil
 }

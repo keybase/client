@@ -213,7 +213,7 @@ func NewSecretStoreLocked(m MetaContext) *SecretStoreLocked {
 
 	mem := NewSecretStoreMem()
 
-	if m.G().Env.RememberPassphrase() {
+	if m.G().Env.GetRememberPassphrase(m.G().Env.GetUsername()) {
 		// use os-specific secret store
 		m.Debug("NewSecretStoreLocked: using os-specific SecretStore")
 		disk = NewSecretStoreAll(m)

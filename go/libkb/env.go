@@ -115,7 +115,7 @@ func (n NullConfiguration) GetAppType() AppType                             { re
 func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetReadDeletedSigChain() (bool, bool)            { return false, false }
-func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
+func (n NullConfiguration) GetRememberPassphrase(NormalizedUsername) (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
@@ -1977,10 +1977,10 @@ func (e *Env) GetRuntimeStatsEnabled() bool {
 	)
 }
 
-func (e *Env) RememberPassphrase() bool {
+func (e *Env) GetRememberPassphrase(username NormalizedUsername) bool {
 	return e.GetBool(true,
-		e.cmd.GetRememberPassphrase,
-		e.GetConfig().GetRememberPassphrase,
+		func() (bool , bool) {return e.cmd.GetRememberPassphrase(username)},
+		func() (bool , bool) {return e.GetConfig().GetRememberPassphrase(username) },
 	)
 }
 
