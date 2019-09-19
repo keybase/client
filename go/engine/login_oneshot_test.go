@@ -1,11 +1,10 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestLoginOneshot(t *testing.T) {
@@ -14,6 +13,7 @@ func TestLoginOneshot(t *testing.T) {
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
+	arg.StoreSecret = true
 	loginUI := &paperLoginUI{Username: fu.Username}
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -28,7 +28,9 @@ func TestLoginOneshot(t *testing.T) {
 	require.True(t, len(loginUI.PaperPhrase) > 0)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
+	assertSecretStored(tc, fu.Username)
 	Logout(tc)
+	assertSecretNotStored(tc, fu.Username)
 
 	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
@@ -62,4 +64,52 @@ func TestLoginOneshot(t *testing.T) {
 	require.NoError(t, err)
 	testSign(t, tc2)
 
+}
+
+func TestLoginOneshotNoLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+	fu := NewFakeUserOrBust(t, "paper")
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	arg.StoreSecret = true
+	loginUI := &paperLoginUI{Username: fu.Username}
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, s)
+	require.NoError(t, err)
+	require.True(t, len(loginUI.PaperPhrase) > 0)
+
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
+	assertSecretStored(tc, fu.Username)
+
+	tc2 := SetupEngineTest(t, "login")
+	tc2.G.Env.Test.DevelName = tc.G.Env.Test.DevelName
+	// Assert that tc2 and tc share the same keychain, since they are
+	// on the same machine with the above testing flag override.
+	assertSecretStored(tc2, fu.Username)
+	defer tc2.Cleanup()
+
+	eng := NewLoginOneshot(tc2.G, keybase1.LoginOneshotArg{
+		Username: fu.NormalizedUsername().String(),
+		PaperKey: loginUI.PaperPhrase,
+	})
+	m = NewMetaContextForTest(tc2)
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
+	assertNumDevicesAndKeys(tc, fu, 2, 4)
+	err = AssertProvisioned(tc2)
+	require.NoError(t, err)
+
+	tc.G.SecretStore().ClearMem()
+	assertSecretStored(tc, fu.Username)
+	Logout(tc2)
+	tc.G.SecretStore().ClearMem()
+	assertSecretStored(tc, fu.Username)
 }

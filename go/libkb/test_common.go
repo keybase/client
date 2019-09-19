@@ -121,6 +121,10 @@ func (tc *TestContext) Cleanup() {
 	tc.G.Log.Debug("cleanup complete")
 }
 
+func (tc *TestContext) Logout() error {
+	return NewMetaContextForTest(*tc).Logout()
+}
+
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
 
 	mv := func(f string) (err error) {
