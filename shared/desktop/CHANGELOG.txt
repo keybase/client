@@ -2,7 +2,7 @@ Chat:
 • Support for pinned messages
 
 Stellar:
-• Better handling of federated addresses 
+• Better handling of federated addresses
 
 General:
 • Bug fixes
