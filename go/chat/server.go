@@ -186,7 +186,6 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	if err != nil {
 		return res, err
 	}
-
 	// Retry helpers
 	retryInboxLoad := func() {
 		h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), arg.Query, arg.Pagination))
@@ -387,6 +386,13 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
+	}
+	// Ignore these requests on mobile
+	if h.G().IsMobileAppType() && arg.Query == nil && arg.Query.TopicType != nil &&
+		*arg.Query.TopicType == chat1.TopicType_KBFSFILEEDIT {
+		return chat1.GetInboxAndUnboxLocalRes{
+			IdentifyFailures: identBreaks,
+		}, nil
 	}
 
 	// Read inbox from the source
