@@ -2425,7 +2425,7 @@ const navigateToInbox = (
 // Saga.put() this if you want to select the pending conversation
 // (which doesn't count as valid).
 //
-const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey) => {
+const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromKey?: string) => {
   let replace = false
 
   const visible = Router2Constants.getVisibleScreen()
@@ -2448,6 +2448,7 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey) => {
   }
 
   return RouteTreeGen.createNavigateAppend({
+    fromKey,
     path: [{props: {conversationIDKey}, selected: isMobile ? 'chatConversation' : 'chatRoot'}],
     replace,
   })
@@ -2487,19 +2488,19 @@ const mobileNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConver
     if (action.payload.reason === 'focused') {
       return // never nav if this is from a nav
     }
-    return navigateToThreadRoute(state.chat2.selectedConversation)
+    return navigateToThreadRoute(state.chat2.selectedConversation, action.payload.navKey)
   } else if (
     action.payload.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
     action.payload.conversationIDKey === Constants.pendingErrorConversationIDKey
   ) {
-    return navigateToThreadRoute(action.payload.conversationIDKey)
+    return navigateToThreadRoute(action.payload.conversationIDKey, action.payload.navKey)
   }
   return undefined
 }
 
 const desktopNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
   if (action.payload.reason === 'findNewestConversation' || action.payload.reason === 'clearSelected') return
-  return navigateToThreadRoute(state.chat2.selectedConversation)
+  return navigateToThreadRoute(state.chat2.selectedConversation, action.payload.navKey)
 }
 
 // Native share sheet for attachments
