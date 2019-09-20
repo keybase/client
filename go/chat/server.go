@@ -2897,9 +2897,8 @@ func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.Conver
 				return res, err
 			}
 			return team.ID, nil
-		} else {
-			return keybase1.TeamIDFromString(nameInfo.ID.String())
 		}
+		return keybase1.TeamIDFromString(nameInfo.ID.String())
 	}
 	return res, fmt.Errorf("unknown members type: %v", membersType)
 }
