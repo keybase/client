@@ -8,6 +8,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -42,6 +45,8 @@ func (sfn *statusFileNode) FillCacheDuration(d *time.Duration) {
 	// could change each time it's read.
 	*d = 0
 }
+
+var updateHistoryRevsRE = regexp.MustCompile("^\\.([0-9]+)(-([0-9]+))?$") //nolint (`\.` doesn't seem to work in single quotes)
 
 type updateHistoryFileNode struct {
 	libkbfs.Node
@@ -88,17 +93,72 @@ var perTlfWrappedNodeNames = map[string]bool{
 	UpdateHistoryFileName: true,
 }
 
+var perTlfWrappedNodePrefixes = []string{
+	UpdateHistoryFileName,
+}
+
+func shouldBeTlfWrappedNode(name string) bool {
+	for _, p := range perTlfWrappedNodePrefixes {
+		if strings.HasPrefix(name, p) {
+			return true
+		}
+	}
+	return perTlfWrappedNodeNames[name]
+}
+
+func (sfn *specialFileNode) newUpdateHistoryFileNode(
+	node libkbfs.Node, name string) *updateHistoryFileNode {
+	revs := strings.TrimPrefix(name, UpdateHistoryFileName)
+	if revs == "" {
+		return &updateHistoryFileNode{
+			Node:   node,
+			fb:     sfn.GetFolderBranch(),
+			config: sfn.config,
+			log:    sfn.log,
+			start:  kbfsmd.RevisionInitial,
+			end:    kbfsmd.RevisionUninitialized,
+		}
+	}
+
+	matches := updateHistoryRevsRE.FindStringSubmatch(revs)
+	if len(matches) != 4 {
+		return nil
+	}
+
+	start, err := strconv.ParseUint(matches[1], 10, 64)
+	if err != nil {
+		return nil
+	}
+	end := start
+	if matches[3] != "" {
+		end, err = strconv.ParseUint(matches[3], 10, 64)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return &updateHistoryFileNode{
+		Node:   node,
+		fb:     sfn.GetFolderBranch(),
+		config: sfn.config,
+		log:    sfn.log,
+		start:  kbfsmd.Revision(start),
+		end:    kbfsmd.Revision(end),
+	}
+}
+
 // ShouldCreateMissedLookup implements the Node interface for
 // specialFileNode.
 func (sfn *specialFileNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
 	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
-	if !perTlfWrappedNodeNames[name.Plaintext()] {
+	plain := name.Plaintext()
+	if !shouldBeTlfWrappedNode(plain) {
 		return sfn.Node.ShouldCreateMissedLookup(ctx, name)
 	}
 
-	switch name.Plaintext() {
-	case StatusFileName:
+	switch {
+	case plain == StatusFileName:
 		sfn := &statusFileNode{
 			Node:   nil,
 			fb:     sfn.GetFolderBranch(),
@@ -108,14 +168,10 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		f := sfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}
-	case UpdateHistoryFileName:
-		uhfn := &updateHistoryFileNode{
-			Node:   nil,
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-			start:  kbfsmd.RevisionInitial,
-			end:    kbfsmd.RevisionUninitialized,
+	case strings.HasPrefix(plain, UpdateHistoryFileName):
+		uhfn := sfn.newUpdateHistoryFileNode(nil, plain)
+		if uhfn == nil {
+			return sfn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
 		f := uhfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
@@ -130,7 +186,7 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = sfn.Node.WrapChild(child)
 	name := child.GetBasename().Plaintext()
-	if !perTlfWrappedNodeNames[name] {
+	if !shouldBeTlfWrappedNode(name) {
 		if child.EntryType() == data.Dir {
 			// Wrap this child too, so we can look up special files in
 			// subdirectories of this node as well.
@@ -143,23 +199,20 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		return child
 	}
 
-	switch name {
-	case StatusFileName:
+	switch {
+	case name == StatusFileName:
 		return &statusFileNode{
 			Node:   &libkbfs.ReadonlyNode{Node: child},
 			fb:     sfn.GetFolderBranch(),
 			config: sfn.config,
 			log:    sfn.log,
 		}
-	case UpdateHistoryFileName:
-		return &updateHistoryFileNode{
-			Node:   &libkbfs.ReadonlyNode{Node: child},
-			fb:     sfn.GetFolderBranch(),
-			config: sfn.config,
-			log:    sfn.log,
-			start:  kbfsmd.RevisionInitial,
-			end:    kbfsmd.RevisionUninitialized,
+	case strings.HasPrefix(name, UpdateHistoryFileName):
+		uhfn := sfn.newUpdateHistoryFileNode(child, name)
+		if uhfn == nil {
+			return child
 		}
+		return uhfn
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
 	}
