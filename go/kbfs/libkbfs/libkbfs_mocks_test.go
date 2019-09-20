@@ -1277,18 +1277,18 @@ func (mr *MockKBFSOpsMockRecorder) GetTLFID(arg0, arg1 interface{}) *gomock.Call
 }
 
 // GetUpdateHistory mocks base method
-func (m *MockKBFSOps) GetUpdateHistory(arg0 context.Context, arg1 data.FolderBranch) (TLFUpdateHistory, error) {
+func (m *MockKBFSOps) GetUpdateHistory(arg0 context.Context, arg1 data.FolderBranch, arg2, arg3 kbfsmd.Revision) (TLFUpdateHistory, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUpdateHistory", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetUpdateHistory", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(TLFUpdateHistory)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUpdateHistory indicates an expected call of GetUpdateHistory
-func (mr *MockKBFSOpsMockRecorder) GetUpdateHistory(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) GetUpdateHistory(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdateHistory", reflect.TypeOf((*MockKBFSOps)(nil).GetUpdateHistory), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdateHistory", reflect.TypeOf((*MockKBFSOps)(nil).GetUpdateHistory), arg0, arg1, arg2, arg3)
 }
 
 // InvalidateNodeAndChildren mocks base method

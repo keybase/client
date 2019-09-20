@@ -491,9 +491,12 @@ type KBFSOps interface {
 	// suitable for encoding directly into JSON.  This is an expensive
 	// operation, and should only be used for ocassional debugging.
 	// Note that the history does not include any unmerged changes or
-	// outstanding writes from the local device.
-	GetUpdateHistory(ctx context.Context, folderBranch data.FolderBranch) (
-		history TLFUpdateHistory, err error)
+	// outstanding writes from the local device.  To get all the
+	// revisions after `start`, use `kbfsmd.RevisionUninitialized` for
+	// the `end` parameter.
+	GetUpdateHistory(
+		ctx context.Context, folderBranch data.FolderBranch,
+		start, end kbfsmd.Revision) (history TLFUpdateHistory, err error)
 	// GetEditHistory returns the edit history of the TLF, clustered
 	// by writer.
 	GetEditHistory(ctx context.Context, folderBranch data.FolderBranch) (
