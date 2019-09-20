@@ -153,6 +153,7 @@ const willFinishLaunching = () => {
 let menubarWindowID = 0
 
 type Action =
+  | {type: 'quit'}
   | {type: 'appStartedUp'}
   | {type: 'requestStartService'}
   | {type: 'closeWindows'}
@@ -295,6 +296,9 @@ const plumbEvents = () => {
         const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
         w && w.emit('KBprops', action.payload.propsStr)
         break
+      }
+      case 'quit': {
+        quit()
       }
     }
   })

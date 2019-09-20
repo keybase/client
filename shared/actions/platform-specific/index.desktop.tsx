@@ -107,13 +107,10 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(KB.__process.env.LOCALAPPDATA)
-    var binPath = localAppData ? KB.__path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-    const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
       () =>
         new Promise((resolve, reject) => {
-          KB.__child_process.execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+          KB.checkPipeOwner(socketPath, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
               // error will be logged in bootstrap check

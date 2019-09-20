@@ -296,7 +296,7 @@ const uninstallDokan = (state: TypedState) => {
   logger.info('Invoking dokan uninstaller', execPath)
   return new Promise(resolve => {
     try {
-      KB.__child_process.exec(execPath, {windowsHide: true}, resolve)
+      KB.uninstallDokan(execPath, resolve)
     } catch (e) {
       logger.error('uninstallDokan caught', e)
       resolve()
@@ -317,33 +317,7 @@ const openSecurityPreferences = async () => {
 const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
-    const dokanPath = KB.__path.resolve(
-      String(KB.__process.env.LOCALAPPDATA),
-      'Keybase',
-      'DokanSetup_redist.exe'
-    )
-    KB.__child_process.execFile(dokanPath, [], err => {
-      if (err) {
-        reject(err)
-        return
-      }
-      // restart the service, particularly kbfsdokan
-      // based on desktop/app/start-win-service.js
-      const binPath = KB.__path.resolve(String(KB.__process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
-      if (!binPath) {
-        reject(new Error('resolve failed'))
-        return
-      }
-      const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
-      const args = [binPath, 'ctl', 'restart']
-
-      KB.__child_process.spawn(rqPath, args, {
-        detached: true,
-        stdio: 'ignore',
-      })
-
-      resolve()
-    })
+    KB.installDokan(resolve, reject)
   })
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(makeUnretriableErrorHandler(action, null))

@@ -4,7 +4,6 @@ import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {quit} from '../desktop/app/ctl.desktop'
 import {loginTab, AppTab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -47,7 +46,7 @@ const mapDispatchToProps = dispatch => ({
     KB.showMainWindow(false)
     setTimeout(
       () => {
-        quit()
+        KB.renderToMain({type: 'quit'})
       },
       isLinux ? 2000 : 1
     )

@@ -64,6 +64,7 @@ declare var KB: {
   __process: any
   anyToMainDispatchAction: any
   buffer: any
+  checkPipeOwner: (socketPath: string, cb: (err: any, stdout: any) => void) => void
   clipboard: {
     availableFormats: () => Array<string>
     readImage: () => Electron.NativeImage
@@ -80,6 +81,7 @@ declare var KB: {
   handleRemoteWindowProps: any
   handleRenderToMain: any
   handleRendererToMainMenu: any
+  installDokan: (resolve: () => void, reject: (e: Error) => void) => void
   isDarkMode: any
   isMaximized: any
   mainLoggerDump: any
@@ -109,6 +111,7 @@ declare var KB: {
   unhandleDarkModeChanged: any
   unhandleMainWindowMaximized: any
   unhandleMainWindowShown: any
+  uninstallDokan: (execPath: string, cb: () => void) => void
 }
 
 declare namespace NodeJS {

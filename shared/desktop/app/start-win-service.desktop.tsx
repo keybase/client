@@ -1,3 +1,4 @@
+import child_process from 'child_process'
 import {keybaseBinPath} from './paths.desktop'
 
 export default function() {
@@ -10,7 +11,7 @@ export default function() {
   const wdLogPath = binPath.replace('keybase.exe', 'watchdog.')
   const args = [binPath, '--log-format=file', '--log-prefix=' + wdLogPath, 'ctl', 'watchdog2']
 
-  KB.__child_process.spawn(rqPath, args, {
+  child_process.spawn(rqPath, args, {
     detached: true,
     stdio: 'ignore',
   })

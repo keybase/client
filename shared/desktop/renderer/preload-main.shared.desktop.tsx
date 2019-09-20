@@ -265,9 +265,44 @@ const toggleMaximizeWindow = () => {
   }
 }
 
+const checkPipeOwner = (socketPath: string, cb: (err: any, stdout: any) => void) => {
+  const localAppData = String(process.env.LOCALAPPDATA)
+  var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+  const args = ['pipeowner', socketPath]
+  child_process.execFile(binPath, args, {windowsHide: true}, cb)
+}
+
+const uninstallDokan = (execPath: string, cb: () => void) => {
+  child_process.exec(execPath, {windowsHide: true}, cb)
+}
+
+const installDokan = (resolve: () => void, reject: (e: Error) => void) => {
+  const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
+
+  child_process.execFile(dokanPath, [], err => {
+    if (err) {
+      reject(err)
+      return
+    }
+    // restart the service, particularly kbfsdokan
+    // based on desktop/app/start-win-service.js
+    const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+    if (!binPath) {
+      reject(new Error('resolve failed'))
+      return
+    }
+    const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
+    const args = [binPath, 'ctl', 'restart']
+
+    child_process.spawn(rqPath, args, {
+      detached: true,
+      stdio: 'ignore',
+    })
+    resolve()
+  })
+}
+
 target.KB = {
-  // TODO deprecate
-  __child_process: child_process,
   // TODO deprecate
   __dirname: __dirname,
   // TODO deprecate
@@ -284,6 +319,7 @@ target.KB = {
   appData: isRenderer ? Electron.remote.app.getPath('appData') : Electron.app.getPath('appData'),
   appPath: isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
   buffer,
+  checkPipeOwner,
   clipboard: {
     availableFormats: Electron.clipboard.availableFormats,
     readImage: Electron.clipboard.readImage,
@@ -300,6 +336,7 @@ target.KB = {
   handleRemoteWindowProps,
   handleRenderToMain,
   handleRendererToMainMenu,
+  installDokan,
   isDarkMode,
   isMaximized,
   mainLoggerDump,
@@ -329,6 +366,7 @@ target.KB = {
   unhandleDarkModeChanged,
   unhandleMainWindowMaximized,
   unhandleMainWindowShown,
+  uninstallDokan,
 }
 
 if (isRenderer) {

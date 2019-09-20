@@ -13,7 +13,6 @@ import TabBar from './index.desktop'
 import * as Container from '../../util/container'
 import {isLinux} from '../../constants/platform'
 import openURL from '../../util/open-url'
-import {quit} from '../../desktop/app/ctl.desktop'
 import {tabRoots} from '../routes'
 
 type OwnProps = {
@@ -70,7 +69,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     KB.showMainWindow(false)
     setTimeout(
       () => {
-        quit()
+        KB.renderToMain({type: 'quit'})
       },
       isLinux ? 2000 : 1
     )

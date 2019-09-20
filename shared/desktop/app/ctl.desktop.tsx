@@ -1,3 +1,4 @@
+import Electron from 'electron'
 import {keybaseBinPath} from './paths.desktop'
 import exec from './exec.desktop'
 import {isWindows} from '../../constants/platform'
