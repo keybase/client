@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/UIImage+GIF.h
+../../../SDWebImage/SDWebImage/Core/UIImage+GIF.h

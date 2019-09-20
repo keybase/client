@@ -1,1 +1,0 @@
-../../../libwebp/src/dec/vp8_dec.h
