@@ -91,9 +91,13 @@ func TestLoginOneshotNoLogout(t *testing.T) {
 
 	tc2 := SetupEngineTest(t, "login")
 	tc2.G.Env.Test.DevelName = tc.G.Env.Test.DevelName
+
 	// Assert that tc2 and tc share the same keychain, since they are
-	// on the same machine with the above testing flag override.
-	assertSecretStored(tc2, fu.Username)
+	// on the same machine with the above testing flag override. This only
+	// works on Darwin due to the global nature of the keychain.
+	if libkb.RuntimeGroup() == keybase1.RuntimeGroup_DARWINLIKE {
+		assertSecretStored(tc2, fu.Username)
+	}
 	defer tc2.Cleanup()
 
 	eng := NewLoginOneshot(tc2.G, keybase1.LoginOneshotArg{
