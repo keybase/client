@@ -42,31 +42,29 @@ const apiSearch = async (
   }
 }
 
+const apiSearchOne = async (
+  query: string,
+  service: TeamBuildingTypes.ServiceIdWithContact
+): Promise<TeamBuildingTypes.User | undefined> =>
+  (await apiSearch(
+    query,
+    service,
+    1 /* maxResults */,
+    true /* serviceSummaries */,
+    false /* includeContacts */
+  ))[0]
+
 // If the query is a well-formatted phone number or email, do additional search
 // and if the result is not already in the list, insert at the beginning.
 async function specialContactSearch(users: TeamBuildingTypes.User[], query: string, region: string | null) {
-  const apiSearchOne = async (
-    query: string,
-    service: TeamBuildingTypes.ServiceIdWithContact
-  ): Promise<TeamBuildingTypes.User | null> =>
-    apiSearch(
-      query,
-      service,
-      1 /* maxResults */,
-      true /* serviceSummaries */,
-      false /* includeContacts */
-    ).then(arg => arg[0])
-  const maybeSearch = async (): Promise<TeamBuildingTypes.User | null> => {
-    const phoneNumber = validateNumber(query, region)
-    if (phoneNumber.valid) {
-      return apiSearchOne(phoneNumber.e164, 'phone')
-    } else if (validateEmailAddress(query)) {
-      return apiSearchOne(query, 'email')
-    }
-    return null
+  let result: TeamBuildingTypes.User | undefined
+  const phoneNumber = validateNumber(query, region)
+  if (phoneNumber.valid) {
+    result = await apiSearchOne(phoneNumber.e164, 'phone')
+  } else if (validateEmailAddress(query)) {
+    result = await apiSearchOne(query, 'email')
   }
-  const result = await maybeSearch()
-  if (result && !users.find(x => x.id === result.id)) {
+  if (result && !users.find(x => result && x.id === result.id)) {
     // Overwrite `prettyName` to make the special result stand out.
     result.prettyName = query
     return [result, ...users]
