@@ -1,4 +1,3 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
@@ -6,7 +5,7 @@ import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 import zlib from 'zlib'
 
-const file = KB.__path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
+const file = KB.__path.join(Electron.app.getPath('userData'), 'installer.json')
 
 const loadHasPrompted = () => {
   try {
@@ -88,7 +87,7 @@ const darwinInstall = (callback: CB) => {
   let timeout = 30
   // If the app was opened at login, there might be contention for lots
   // of resources, so let's bump the install timeout to something large.
-  if (SafeElectron.getApp().getLoginItemSettings().wasOpenedAtLogin) {
+  if (Electron.app.getLoginItemSettings().wasOpenedAtLogin) {
     timeout = 90
   }
 

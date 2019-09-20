@@ -1,4 +1,3 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isWindows} from '../../constants/platform'
 
 let root
@@ -9,9 +8,7 @@ if (__STORYBOOK__) {
   prefix = ''
 } else {
   // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
-  root = !__DEV__
-    ? KB.__path.join(SafeElectron.getApp().getAppPath(), './desktop')
-    : KB.__path.join(KB.__dirname, '..')
+  root = !__DEV__ ? KB.__path.join(KB.appPath, './desktop') : KB.__path.join(KB.__dirname, '..')
 }
 
 const fixRegExp = new RegExp('\\' + KB.__path.sep, 'g')

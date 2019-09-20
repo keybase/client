@@ -4,8 +4,6 @@ import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
 import * as WalletsConstants from '../../constants/wallets'
 import * as Styles from '../../styles'
-import * as Window from '../../util/window-management'
-import {BrowserWindow} from '../../util/safe-electron.desktop'
 import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import flags from '../../util/feature-flags'
@@ -36,36 +34,36 @@ export const SystemButtons = () => (
   <Kb.Box2 direction="horizontal">
     <Kb.ClickableBox
       className="hover_background_color_black_05  color_black_50 hover_color_black"
-      onClick={Window.minimizeWindow}
+      onClick={KB.minimizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={Window.minimizeWindow}
+        onClick={KB.minimizeWindow}
         style={styles.appIcon}
         type="iconfont-app-minimize"
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_black_05 color_black_50 hover_color_black"
-      onClick={Window.toggleMaximizeWindow}
+      onClick={KB.toggleMaximizeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={Window.toggleMaximizeWindow}
+        onClick={KB.toggleMaximizeWindow}
         style={styles.appIcon}
-        type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
+        type={KB.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
       className="hover_background_color_red hover_color_white color_black_50"
-      onClick={Window.closeWindow}
+      onClick={KB.closeWindow}
       style={styles.appIconBox}
     >
       <Kb.Icon
         inheritColor={true}
-        onClick={Window.closeWindow}
+        onClick={KB.closeWindow}
         style={styles.appIcon}
         type="iconfont-app-close"
       />
@@ -84,18 +82,14 @@ class Header extends React.PureComponent<Props> {
   // We need to forceUpdate when maximizing and unmaximizing the window to update the
   // app icon on Windows and Linux.
   _registerWindowEvents() {
-    if (Platform.isDarwin) return
-    const win = BrowserWindow.getFocusedWindow()
-    if (!win) return
-    win.on('maximize', this._refreshWindowIcons)
-    win.on('unmaximize', this._refreshWindowIcons)
+    if (!Platform.isDarwin) {
+      KB.handleMainWindowMaximized(this._refreshWindowIcons)
+    }
   }
   _unregisterWindowEvents() {
-    if (Platform.isDarwin) return
-    const win = BrowserWindow.getFocusedWindow()
-    if (!win) return
-    win.removeListener('maximize', this._refreshWindowIcons)
-    win.removeListener('unmaximize', this._refreshWindowIcons)
+    if (!Platform.isDarwin) {
+      KB.unhandleMainWindowMaximized(this._refreshWindowIcons)
+    }
   }
   render() {
     // TODO add more here as we use more options on the mobile side maybe

@@ -154,9 +154,32 @@ const handleMainWindowShown = (cb: (shown: boolean) => void) => {
     _handleMainWindowShownInited = true
   }
 }
-
 const unhandleMainWindowShown = (cb: (shown: boolean) => void) => {
   _handleMainWindowShownListeners.delete(cb)
+}
+
+const _handleMainWindowMaximizedListeners = new Set<(maximized: boolean) => void>()
+let _handleMainWindowMaximizedInited: boolean = false
+const handleMainWindowMaximized = (cb: (maximized: boolean) => void) => {
+  _handleMainWindowMaximizedListeners.add(cb)
+
+  if (!_handleMainWindowMaximizedInited) {
+    const mw = getMainWindow()
+    const onMaximized = () => {
+      _handleMainWindowMaximizedListeners.forEach(l => l(true))
+    }
+    const onMinimized = () => {
+      _handleMainWindowMaximizedListeners.forEach(l => l(false))
+    }
+    if (mw) {
+      mw.on('maximize', onMaximized)
+      mw.on('unmaximize', onMinimized)
+    }
+    _handleMainWindowShownInited = true
+  }
+}
+const unhandleMainWindowMaximized = (cb: (maximized: boolean) => void) => {
+  _handleMainWindowMaximizedListeners.delete(cb)
 }
 
 const resizeWindow = (scrollHeight: number, offsetTop: number) => {
@@ -223,6 +246,25 @@ const openOSXSecurityPrefs = () => {
 const openFinder = (path: string) => Electron.remote.shell.openItem(path)
 const openFinderFolder = (path: string) => Electron.remote.shell.showItemInFolder(path)
 
+const closeWindow = () => {
+  const mw = getMainWindow()
+  mw && mw.close()
+}
+const isMaximized = () => {
+  const mw = getMainWindow()
+  return mw && mw.isMaximized()
+}
+const minimizeWindow = () => {
+  const mw = getMainWindow()
+  mw && mw.minimize()
+}
+const toggleMaximizeWindow = () => {
+  const mw = getMainWindow()
+  if (mw) {
+    mw.isMaximized() ? mw.unmaximize() : mw.maximize()
+  }
+}
+
 target.KB = {
   // TODO deprecate
   __child_process: child_process,
@@ -239,40 +281,53 @@ target.KB = {
   // TODO deprecate
   __process: process,
   anyToMainDispatchAction,
+  appData: isRenderer ? Electron.remote.app.getPath('appData') : Electron.app.getPath('appData'),
+  appPath: isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
   buffer,
   clipboard: {
-    availableFormats:  Electron.clipboard.availableFormats,
+    availableFormats: Electron.clipboard.availableFormats,
     readImage: Electron.clipboard.readImage,
     writeText: Electron.clipboard.writeText,
   },
+  closeWindow,
+  exit: (code: number) => (isRenderer ? Electron.remote.app.exit(code) : Electron.app.exit(code)),
   framedMsgpackRpc,
   handleAnyToMainDispatchAction,
   handleDarkModeChanged,
+  handleMainWindowMaximized,
   handleMainWindowShown,
   handlePowerMonitor,
   handleRemoteWindowProps,
   handleRenderToMain,
   handleRendererToMainMenu,
   isDarkMode,
+  isMaximized,
   mainLoggerDump,
+  minimizeWindow,
   netRequestHead,
-  openOSXSecurityPrefs,
-  openURL,
+  openAtLogin: () => Electron.remote.app.getLoginItemSettings().openAtLogin,
   openFinder,
   openFinderFolder,
+  openOSXSecurityPrefs,
+  openURL,
   platform,
   punycode, // used by a dep
   purepack,
+  quit: () => (isRenderer ? Electron.remote.app.quit() : Electron.app.quit()),
+  relaunch: () => Electron.remote.app.relaunch(),
   remoteProcessPid: isRenderer ? Electron.remote.process.pid : process.pid,
   renderToMain,
   rendererToMainMenu,
   resizeWindow,
+  setOpenAtLogin: (openAtLogin: boolean) => Electron.remote.app.setLoginItemSettings({openAtLogin}),
   setOverlayIcon,
   showCurrentWindow,
   showMainWindow,
   showMessageBox,
   showOpenDialog,
+  toggleMaximizeWindow,
   unhandleDarkModeChanged,
+  unhandleMainWindowMaximized,
   unhandleMainWindowShown,
 }
 

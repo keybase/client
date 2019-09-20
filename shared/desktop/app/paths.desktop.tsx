@@ -1,5 +1,3 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
-
 function appPath() {
   // For testing when running manually via npm start
   // return '/Applications/Keybase.app/Contents/Resources/app/'
@@ -9,7 +7,7 @@ function appPath() {
   if (appPath !== '') {
     return appPath
   }
-  return SafeElectron.getApp().getAppPath()
+  return KB.appPath
 }
 
 // Path to bundle directory, e.g. /Applications/Keybase.app (darwin only)
@@ -35,9 +33,7 @@ export function appInstallerPath() {
 // Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath() {
   if (KB.__os.platform() === 'win32') {
-    var kbPath = SafeElectron.getApp()
-      .getPath('appData')
-      .replace('Roaming', 'Local')
+    var kbPath = KB.appData.replace('Roaming', 'Local')
     if (!kbPath) {
       kbPath = KB.__process.env.LOCALAPPDATA || ''
     }

@@ -2,7 +2,6 @@ import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
@@ -172,7 +171,7 @@ function* setupReachabilityWatcher() {
 
 const onExit = () => {
   console.log('App exit requested')
-  SafeElectron.getApp().exit(0)
+  KB.exit(0)
 }
 
 const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
@@ -189,7 +188,7 @@ const onShutdown = (_: Container.TypedState, action: EngineGen.Keybase1NotifySer
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
-    SafeElectron.getApp().quit()
+    KB.quit()
   }
 }
 
@@ -385,9 +384,9 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
     },
   })
 
-  if (!__DEV__ && SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+  if (!__DEV__ && KB.openAtLogin() !== openAtLogin) {
     logger.info(`Login item settings changed! now ${openAtLogin}`)
-    SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+    KB.setOpenAtLogin(openAtLogin)
   }
 }
 

@@ -39,6 +39,8 @@ interface Console {
 }
 
 declare var KB: {
+  appPath: string
+  appData: string
   DEV?: {
     DEBUGActionLoop?: any
     DEBUGEffectById?: any
@@ -67,34 +69,45 @@ declare var KB: {
     readImage: () => Electron.NativeImage
     writeText: (s: string) => void
   }
+  closeWindow: any
+  exit: (code: number) => void
   framedMsgpackRpc: any
   handleAnyToMainDispatchAction: any
   handleDarkModeChanged: any
+  handleMainWindowMaximized: any
   handleMainWindowShown: any
   handlePowerMonitor: any
   handleRemoteWindowProps: any
   handleRenderToMain: any
   handleRendererToMainMenu: any
   isDarkMode: any
+  isMaximized: any
   mainLoggerDump: any
+  minimizeWindow: any
   netRequestHead: any
-  openOSXSecurityPrefs: () => void
-  openURL: (s: string) => Promise<void>
+  openAtLogin: () => boolean
   openFinder: (s: string) => boolean
   openFinderFolder: (s: string) => boolean
+  openOSXSecurityPrefs: () => void
+  openURL: (s: string) => Promise<void>
   platform: any
   punycode: any
   purepack: any
+  quit: () => void
+  relaunch: () => void
+  remoteProcessPid: number
   renderToMain: any
   rendererToMainMenu: any
-  remoteProcessPid: number
   resizeWindow: any
+  setOpenAtLogin: (openAtLogin: boolean) => void
   setOverlayIcon: (overlay: string) => void
   showCurrentWindow: (show: boolean) => void
   showMainWindow: (show: boolean) => void
   showMessageBox: any
   showOpenDialog: any
+  toggleMaximizeWindow: any
   unhandleDarkModeChanged: any
+  unhandleMainWindowMaximized: any
   unhandleMainWindowShown: any
 }
 
