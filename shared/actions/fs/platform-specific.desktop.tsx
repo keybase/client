@@ -47,8 +47,7 @@ function openInDefaultDirectory(openPath: string): Promise<void> {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      SafeElectron.getShell()
-        .openExternal(url, {activate: true})
+      KB.openURL(url)
         .then(() => {
           logger.info('Opened directory:', openPath)
           resolve()
@@ -86,11 +85,11 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
   new Promise((resolve, reject) =>
     isFolder
       ? isWindows
-        ? SafeElectron.getShell().openItem(openPath)
+        ? KB.openFinder(openPath)
           ? resolve()
           : reject(new Error('unable to open item'))
         : openInDefaultDirectory(openPath).then(resolve, reject)
-      : SafeElectron.getShell().showItemInFolder(openPath)
+      : KB.openFinderFolder(openPath)
       ? resolve()
       : reject(new Error('unable to open item in folder'))
   )
@@ -306,13 +305,11 @@ const uninstallDokan = (state: TypedState) => {
   }).then(() => FsGen.createRefreshDriverStatus())
 }
 
-const openSecurityPreferences = () => {
-  SafeElectron.getShell()
-    .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
-    .then(() => {
-      logger.info('Opened Security Preferences')
-    })
-    .catch(() => {})
+const openSecurityPreferences = async () => {
+  try {
+    await KB.openOSXSecurityPrefs()
+    logger.info('Opened Security Preferences')
+  } catch (_) {}
 }
 
 // Invoking the cached installer package has to happen from the topmost process
@@ -441,7 +438,6 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
   }
-  yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
 }

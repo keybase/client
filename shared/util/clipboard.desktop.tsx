@@ -1,5 +1,3 @@
-import * as SafeElectron from './safe-electron.desktop'
-
 export type ClipboardData = {
   path: string
   title: string
@@ -7,7 +5,7 @@ export type ClipboardData = {
 
 function readImage(): Promise<Buffer | null> {
   return new Promise(resolve => {
-    const image = SafeElectron.getClipboard().readImage()
+    const image = KB.clipboard.readImage()
     if (!image) {
       // Nothing to read
       resolve(null)
@@ -22,7 +20,7 @@ export function readImageFromClipboard(
   event: React.SyntheticEvent,
   willReadData: () => void
 ): Promise<Buffer | null> {
-  const formats = SafeElectron.getClipboard().availableFormats()
+  const formats = KB.clipboard.availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))
 

@@ -204,6 +204,25 @@ const setOverlayIcon = (overlay: string) => {
   mw.setOverlayIcon(overlay as any, 'new activity')
 }
 
+const openURL = (url: string) => {
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return Electron.remote.shell.openExternal(url)
+  }
+  return Promise.reject()
+}
+
+const openOSXSecurityPrefs = () => {
+  return Electron.remote.shell.openExternal(
+    'x-apple.systempreferences:com.apple.preference.security?General',
+    {
+      activate: true,
+    }
+  )
+}
+
+const openFinder = (path: string) => Electron.remote.shell.openItem(path)
+const openFinderFolder = (path: string) => Electron.remote.shell.showItemInFolder(path)
+
 target.KB = {
   // TODO deprecate
   __child_process: child_process,
@@ -221,6 +240,11 @@ target.KB = {
   __process: process,
   anyToMainDispatchAction,
   buffer,
+  clipboard: {
+    availableFormats:  Electron.clipboard.availableFormats,
+    readImage: Electron.clipboard.readImage,
+    writeText: Electron.clipboard.writeText,
+  },
   framedMsgpackRpc,
   handleAnyToMainDispatchAction,
   handleDarkModeChanged,
@@ -232,6 +256,10 @@ target.KB = {
   isDarkMode,
   mainLoggerDump,
   netRequestHead,
+  openOSXSecurityPrefs,
+  openURL,
+  openFinder,
+  openFinderFolder,
   platform,
   punycode, // used by a dep
   purepack,

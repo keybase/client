@@ -62,6 +62,11 @@ declare var KB: {
   __process: any
   anyToMainDispatchAction: any
   buffer: any
+  clipboard: {
+    availableFormats: () => Array<string>
+    readImage: () => Electron.NativeImage
+    writeText: (s: string) => void
+  }
   framedMsgpackRpc: any
   handleAnyToMainDispatchAction: any
   handleDarkModeChanged: any
@@ -73,6 +78,10 @@ declare var KB: {
   isDarkMode: any
   mainLoggerDump: any
   netRequestHead: any
+  openOSXSecurityPrefs: () => void
+  openURL: (s: string) => Promise<void>
+  openFinder: (s: string) => boolean
+  openFinderFolder: (s: string) => boolean
   platform: any
   punycode: any
   purepack: any

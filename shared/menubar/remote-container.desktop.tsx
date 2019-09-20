@@ -8,7 +8,6 @@ import {quit} from '../desktop/app/ctl.desktop'
 import {loginTab, AppTab} from '../constants/tabs'
 import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SafeElectron from '../util/safe-electron.desktop'
 import * as FsConstants from '../constants/fs'
 import {urlHelper} from '../util/url-helper'
 import {isWindows, isDarwin, isLinux} from '../constants/platform'
@@ -56,7 +55,7 @@ const mapDispatchToProps = dispatch => ({
   refreshUserFileEdits: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
-    SafeElectron.getShell().openExternal(
+    KB.openURL(
       `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
         version
       )}`

@@ -230,7 +230,7 @@ const prepareLogSend = async (
 }
 
 const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
-  SafeElectron.getClipboard().writeText(action.payload.text)
+  KB.clipboard.writeText(action.payload.text)
 }
 
 const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {

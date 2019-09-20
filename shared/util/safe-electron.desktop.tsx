@@ -10,19 +10,7 @@ export const getApp = () => {
   return app
 }
 
-export const getCurrentWindowFromRemote = () => {
-  return Electron.remote.getCurrentWindow()
-}
-
 // Both
-export const getShell = () => {
-  const shell = Electron.shell
-  if (!shell) {
-    throw new Error('Should be impossible')
-  }
-  return shell
-}
-
 export const getClipboard = () => {
   const clipboard = Electron.clipboard
   if (!clipboard) {

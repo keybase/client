@@ -6,7 +6,6 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import Tracker from './index.desktop'
 import {remoteConnect} from '../util/container'
-import * as SafeElectron from '../util/safe-electron.desktop'
 
 type OwnProps = {}
 
@@ -19,8 +18,7 @@ const mapDispatchToProps = dispatch => ({
   _onClose: (guiID: string) => {
     dispatch(Tracker2Gen.createCloseTracker({guiID}))
     // close immediately
-    const w = SafeElectron.getCurrentWindowFromRemote()
-    w && w.close()
+    KB.showCurrentWindow(false)
   },
   _onFollow: (guiID: string) => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
