@@ -66,6 +66,9 @@ func TestLoginOneshot(t *testing.T) {
 
 }
 
+// Test for the case that we hit, where a user has a regular keybase service + electron running,
+// and also a bot running on the same machine in oneshot mode. If the oneshot bot logs out,
+// it shouldn't molest the system keystore.  This tests repros and tests that case.
 func TestLoginOneshotNoLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -111,6 +114,9 @@ func TestLoginOneshotNoLogout(t *testing.T) {
 	err = AssertProvisioned(tc2)
 	require.NoError(t, err)
 
+	// This is the crux of the test --- logout in the oneshot regime (via Logout(tc2))
+	// but make sure that the standard install isn't touched. Hence, we need to clear
+	// the memory store to make sure it also doesn't get in the way of the test.
 	tc.G.SecretStore().ClearMem()
 	assertSecretStored(tc, fu.Username)
 	Logout(tc2)
