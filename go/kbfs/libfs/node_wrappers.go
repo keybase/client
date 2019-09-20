@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
 	billy "gopkg.in/src-d/go-billy.v4"
@@ -42,6 +43,35 @@ func (sfn *statusFileNode) FillCacheDuration(d *time.Duration) {
 	*d = 0
 }
 
+type updateHistoryFileNode struct {
+	libkbfs.Node
+
+	fb     data.FolderBranch
+	config libkbfs.Config
+	log    logger.Logger
+	start  kbfsmd.Revision
+	end    kbfsmd.Revision
+}
+
+var _ libkbfs.Node = (*updateHistoryFileNode)(nil)
+
+func (uhfn updateHistoryFileNode) GetFile(ctx context.Context) billy.File {
+	return &wrappedReadFile{
+		name: StatusFileName,
+		reader: func(ctx context.Context) ([]byte, time.Time, error) {
+			return GetEncodedUpdateHistory(
+				ctx, uhfn.config, uhfn.fb, uhfn.start, uhfn.end)
+		},
+		log: uhfn.log,
+	}
+}
+
+func (uhfn *updateHistoryFileNode) FillCacheDuration(d *time.Duration) {
+	// Suggest kindly that no one should cache this node, since it
+	// could change each time it's read.
+	*d = 0
+}
+
 // specialFileNode is a Node wrapper around a TLF node, that causes
 // special files to be fake-created when they are accessed.
 type specialFileNode struct {
@@ -54,7 +84,8 @@ type specialFileNode struct {
 var _ libkbfs.Node = (*specialFileNode)(nil)
 
 var perTlfWrappedNodeNames = map[string]bool{
-	StatusFileName: true,
+	StatusFileName:        true,
+	UpdateHistoryFileName: true,
 }
 
 // ShouldCreateMissedLookup implements the Node interface for
@@ -75,6 +106,18 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 			log:    sfn.log,
 		}
 		f := sfn.GetFile(ctx)
+		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
+			data.PathPartString{}
+	case UpdateHistoryFileName:
+		uhfn := &updateHistoryFileNode{
+			Node:   nil,
+			fb:     sfn.GetFolderBranch(),
+			config: sfn.config,
+			log:    sfn.log,
+			start:  kbfsmd.RevisionInitial,
+			end:    kbfsmd.RevisionUninitialized,
+		}
+		f := uhfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}
 	default:
@@ -107,6 +150,15 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			fb:     sfn.GetFolderBranch(),
 			config: sfn.config,
 			log:    sfn.log,
+		}
+	case UpdateHistoryFileName:
+		return &updateHistoryFileNode{
+			Node:   &libkbfs.ReadonlyNode{Node: child},
+			fb:     sfn.GetFolderBranch(),
+			config: sfn.config,
+			log:    sfn.log,
+			start:  kbfsmd.RevisionInitial,
+			end:    kbfsmd.RevisionUninitialized,
 		}
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
