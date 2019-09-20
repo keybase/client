@@ -10,8 +10,8 @@ import (
 type KeychainMode int
 
 const (
-	KeychainModeNone KeychainMode = 0
-	KeychainModeOS KeychainMode = 1
+	KeychainModeNone   KeychainMode = 0
+	KeychainModeOS     KeychainMode = 1
 	KeychainModeMemory KeychainMode = 2
 )
 
@@ -21,7 +21,7 @@ type DeviceWithKeys struct {
 	deviceID      keybase1.DeviceID
 	deviceName    string
 	deviceCtime   keybase1.Time
-	keychainMode KeychainMode
+	keychainMode  KeychainMode
 }
 
 func NewDeviceWithKeys(signingKey, encryptionKey GenericKey, deviceID keybase1.DeviceID, deviceName string, keychainMode KeychainMode) *DeviceWithKeys {
@@ -30,14 +30,14 @@ func NewDeviceWithKeys(signingKey, encryptionKey GenericKey, deviceID keybase1.D
 		encryptionKey: encryptionKey,
 		deviceID:      deviceID,
 		deviceName:    deviceName,
-		keychainMode: keychainMode,
+		keychainMode:  keychainMode,
 	}
 }
 func NewDeviceWithKeysOnly(signingKey, encryptionKey GenericKey, keychainMode KeychainMode) *DeviceWithKeys {
 	return &DeviceWithKeys{
 		signingKey:    signingKey,
 		encryptionKey: encryptionKey,
-		keychainMode : keychainMode,
+		keychainMode:  keychainMode,
 	}
 }
 func (d DeviceWithKeys) EncryptionKey() GenericKey {

@@ -304,7 +304,6 @@ func (g *GlobalContext) simulateServiceRestart() {
 	_ = g.ActiveDevice.Clear()
 }
 
-
 // ConfigureLogging should be given non-nil Usage if called by the main
 // service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
@@ -1167,7 +1166,6 @@ func (g *GlobalContext) GetDataDir() string {
 func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
-
 
 func (g *GlobalContext) MakeAssertionContext(mctx MetaContext) AssertionContext {
 	g.cacheMu.Lock()

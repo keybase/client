@@ -690,4 +690,3 @@ func (m MetaContext) Keyring() (ret *SKBKeyringFile, err error) {
 	}
 	return m.ActiveDevice().Keyring(m)
 }
-
