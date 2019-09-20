@@ -299,15 +299,15 @@ describe('Extra search', () => {
             {
               imptofu: {
                 assertion: '[marco@keyba.se]@email',
-                assertionValue: 'marco@keyba.se',
                 assertionKey: 'phone',
+                assertionValue: 'marco@keyba.se',
+                keybaseUsername: '',
                 label: '',
                 prettyName: '',
-                keybaseUsername: '',
               },
-              servicesSummary: {},
-              score: 0.5,
               rawScore: 1,
+              score: 0.5,
+              servicesSummary: {},
             },
           ]
         }
@@ -319,8 +319,8 @@ describe('Extra search', () => {
         TeamBuildingGen.createSearch({
           includeContacts: false,
           namespace: testNamespace,
-          service: 'keybase',
           query,
+          service: 'keybase',
         })
       )
       await Testing.flushPromises()
