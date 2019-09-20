@@ -200,7 +200,7 @@ func (s *SignupEngine) doGPG(m libkb.MetaContext) error {
 	return nil
 }
 
-func (s *SignupEngine) genRandomPassphrase(m libkb.MetaContext) (string, error) {
+func genRandomPassphrase(m libkb.MetaContext) (string, error) {
 	str, err := libkb.RandBytes(randomPassphraseLen)
 	if err != nil {
 		return "", err
@@ -209,29 +209,41 @@ func (s *SignupEngine) genRandomPassphrase(m libkb.MetaContext) (string, error) 
 }
 
 func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase string, randomPW bool) error {
-	if randomPW {
-		if len(passphrase) != 0 {
-			return fmt.Errorf("Tried to generate random passphrase but also provided passphrase argument")
-		}
-		var err error
-		passphrase, err = s.genRandomPassphrase(m)
-		if err != nil {
-			return err
-		}
-	}
-	if len(passphrase) < libkb.MinPassphraseLength {
-		return libkb.PassphraseError{Msg: fmt.Sprintf("Passphrase must be at least %d characters", libkb.MinPassphraseLength)}
-	}
-	salt, err := libkb.RandBytes(triplesec.SaltLen)
+	tsec, ppStream, salt, err := genPassphraseStream(m, passphrase, randomPW)
 	if err != nil {
 		return err
 	}
 	s.pwsalt = salt
-	s.tsec, s.ppStream, err = libkb.StretchPassphrase(m.G(), passphrase, salt)
-	if err != nil {
-		return err
-	}
+	s.tsec = tsec
+	s.ppStream = ppStream
 	return nil
+}
+
+func genPassphraseStream(m libkb.MetaContext, passphrase string, randomPW bool) (tsec libkb.Triplesec, ppStream *libkb.PassphraseStream, salt []byte, err error) {
+
+	if randomPW {
+		if len(passphrase) != 0 {
+			return tsec, nil, nil, fmt.Errorf("Tried to generate random passphrase but also provided passphrase argument")
+		}
+		var err error
+		passphrase, err = genRandomPassphrase(m)
+		if err != nil {
+			return tsec, nil, nil, err
+		}
+	}
+
+	if len(passphrase) < libkb.MinPassphraseLength {
+		return tsec, nil, nil, libkb.PassphraseError{Msg: fmt.Sprintf("Passphrase must be at least %d characters", libkb.MinPassphraseLength)}
+	}
+	salt, err = libkb.RandBytes(triplesec.SaltLen)
+	if err != nil {
+		return tsec, nil, nil, err
+	}
+	tsec, ppStream, err = libkb.StretchPassphrase(m.G(), passphrase, salt)
+	if err != nil {
+		return tsec, nil, nil, err
+	}
+	return tsec, ppStream, salt, nil
 }
 
 func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool, randomPW bool) error {

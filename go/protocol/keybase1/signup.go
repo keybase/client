@@ -22,6 +22,16 @@ func (o SignupRes) DeepCopy() SignupRes {
 	}
 }
 
+type BotSignupRes struct {
+	PaperKey string `codec:"paperKey" json:"paperKey"`
+}
+
+func (o BotSignupRes) DeepCopy() BotSignupRes {
+	return BotSignupRes{
+		PaperKey: o.PaperKey,
+	}
+}
+
 type CheckUsernameAvailableArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -59,12 +69,20 @@ type GetInvitationCodeArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type BotSignupArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Email     string `codec:"email" json:"email"`
+	Username  string `codec:"username" json:"username"`
+	SkipMail  bool   `codec:"skipMail" json:"skipMail"`
+}
+
 type SignupInterface interface {
 	CheckUsernameAvailable(context.Context, CheckUsernameAvailableArg) error
 	Signup(context.Context, SignupArg) (SignupRes, error)
 	InviteRequest(context.Context, InviteRequestArg) error
 	CheckInvitationCode(context.Context, CheckInvitationCodeArg) error
 	GetInvitationCode(context.Context, int) (string, error)
+	BotSignup(context.Context, BotSignupArg) (BotSignupRes, error)
 }
 
 func SignupProtocol(i SignupInterface) rpc.Protocol {
@@ -146,6 +164,21 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 					return
 				},
 			},
+			"botSignup": {
+				MakeArg: func() interface{} {
+					var ret [1]BotSignupArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BotSignupArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BotSignupArg)(nil), args)
+						return
+					}
+					ret, err = i.BotSignup(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -177,5 +210,10 @@ func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvita
 func (c SignupClient) GetInvitationCode(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := GetInvitationCodeArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.signup.getInvitationCode", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SignupClient) BotSignup(ctx context.Context, __arg BotSignupArg) (res BotSignupRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.botSignup", []interface{}{__arg}, &res)
 	return
 }

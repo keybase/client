@@ -18,4 +18,10 @@ protocol signup {
   void inviteRequest(int sessionID, string email, string fullname, string notes);
   void checkInvitationCode(int sessionID, string invitationCode);
   string getInvitationCode(int sessionID);
+  BotSignupRes botSignup(int sessionID, string email, string username, boolean skipMail);
+
+  record BotSignupRes {
+    string paperKey;
+  }
+
 }

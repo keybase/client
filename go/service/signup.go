@@ -80,6 +80,21 @@ func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1
 	}
 }
 
+func (h *SignupHandler) BotSignup(ctx context.Context, arg keybase1.BotSignupArg) (res keybase1.BotSignupRes, err error) {
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	eng := engine.NewBotSignupEngine(&arg)
+	err = engine.RunEngine2(m, eng)
+	if err != nil {
+		return res, err
+	}
+	res = eng.Result()
+	return res, nil
+}
+
 func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),

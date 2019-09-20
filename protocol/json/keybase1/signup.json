@@ -27,6 +27,16 @@
           "lint": "ignore"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BotSignupRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "paperKey"
+        }
+      ]
     }
   ],
   "messages": {
@@ -142,6 +152,27 @@
         }
       ],
       "response": "string"
+    },
+    "botSignup": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "skipMail",
+          "type": "boolean"
+        }
+      ],
+      "response": "BotSignupRes"
     }
   },
   "namespace": "keybase.1"

@@ -2369,6 +2369,7 @@ export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo; readonly nonce: BlockRefNonce; readonly chargedTo: UserOrTeamID}
 export type BlockReferenceCount = {readonly ref: BlockReference; readonly liveCount: Int}
 export type BootstrapStatus = {readonly registered: Boolean; readonly loggedIn: Boolean; readonly uid: UID; readonly username: String; readonly deviceID: DeviceID; readonly deviceName: String; readonly fullname: FullName; readonly userReacjis: UserReacjis; readonly httpSrvInfo?: HttpSrvInfo | null}
+export type BotSignupRes = {readonly paperKey: String}
 export type BoxAuditAttempt = {readonly ctime: UnixTime; readonly error?: String | null; readonly result: BoxAuditAttemptResult; readonly generation?: PerTeamKeyGeneration | null; readonly rotated: Boolean}
 export type BoxNonce = string | null
 export type BoxPublicKey = string | null
@@ -3611,6 +3612,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.selfprovision.selfProvision'
 // 'keybase.1.session.currentSession'
 // 'keybase.1.session.sessionPing'
+// 'keybase.1.signup.botSignup'
 // 'keybase.1.sigs.sigList'
 // 'keybase.1.sigs.sigListJSON'
 // 'keybase.1.SimpleFS.simpleFSListRecursive'
