@@ -5,6 +5,8 @@ package engine
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -397,4 +399,69 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	_, err = libkb.LoadUser(loadArg)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+}
+
+func assertNoFiles(t *testing.T, dir string, files []string) {
+	err := filepath.Walk(dir,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			for _, f := range files {
+				require.NotEqual(t, f, filepath.Base(path))
+
+			}
+			return nil
+		},
+	)
+	require.NoError(t, err)
+}
+
+func TestBotSignup(t *testing.T) {
+	tc := SetupEngineTest(t, "signup_nopw")
+	defer tc.Cleanup()
+	fu, err := NewFakeUser("bot")
+	require.NoError(t, err)
+
+	arg := SignupEngineRunArg{
+		Username:                 fu.Username,
+		InviteCode:               libkb.TestInvitationCode,
+		StoreSecret:              false,
+		GenerateRandomPassphrase: true,
+		SkipGPG:                  true,
+		SkipMail:                 true,
+		SkipPaper:                true,
+		Bot:                      true,
+	}
+
+	uis := libkb.UIs{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, s)
+	require.NoError(tc.T, err)
+
+	// assert paper key generation works
+	uis = libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng2 := NewPaperKey(tc.G)
+	m = m.WithUIs(uis)
+	err = RunEngine2(m, eng2)
+	require.NoError(t, err)
+	require.NotZero(t, len(eng2.Passphrase()))
+
+	testSign(t, tc)
+	trackAlice(tc, fu, 2)
+	err = m.LogoutAndDeprovisionIfRevoked()
+	require.NoError(t, err)
+
+	assertNoFiles(t, tc.G.Env.GetConfigDir(),
+		[]string{
+			"config.json",
+			filepath.Base(tc.G.SKBFilenameForUser(libkb.NewNormalizedUsername(fu.Username))),
+		})
 }
