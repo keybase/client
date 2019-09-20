@@ -269,17 +269,25 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno, m
 
 	node := Node{INodes: make([]Hash, t.cfg.ChildrenPerNode)}
 
-	j := 0
-	for i := ChildIndex(0); i < ChildIndex(t.cfg.ChildrenPerNode); i++ {
-		childPos := t.cfg.getChild(p, i)
-		start := j
-		for j < len(sortedKEVPairs) && childPos.isOnPathToKey(sortedKEVPairs[j].Key) {
-			j++
+	pairsNotYetSelected := sortedKEVPairs
+	var nextChild *Position
+	for i, child := ChildIndex(0), t.cfg.getChild(p, ChildIndex(0)); i < ChildIndex(t.cfg.ChildrenPerNode); i++ {
+		var end int
+		if i+1 < ChildIndex(t.cfg.ChildrenPerNode) {
+			nextChild = t.cfg.getChild(p, i+1)
+			maxKey := t.cfg.getMinKey(nextChild)
+
+			end = sort.Search(len(pairsNotYetSelected), func(n int) bool {
+				return pairsNotYetSelected[n].Key.Cmp(maxKey) >= 0
+			})
+		} else {
+			end = len(pairsNotYetSelected)
 		}
-		end := j
-		if start < end {
-			sublist := sortedKEVPairs[start:end]
-			ret, err = t.hashTreeRecursive(ctx, tr, s, ms, childPos, sublist)
+
+		if end > 0 {
+			pairsSelected := pairsNotYetSelected[0:end]
+			pairsNotYetSelected = pairsNotYetSelected[end:]
+			ret, err = t.hashTreeRecursive(ctx, tr, s, ms, child, pairsSelected)
 			if err != nil {
 				return nil, err
 			}
@@ -288,6 +296,7 @@ func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno, m
 			// is a leaf).
 			node.INodes[i] = ret
 		}
+		child = nextChild
 	}
 	if _, ret, err = t.cfg.Encoder.EncodeAndHashGeneric(node); err != nil {
 		return nil, err

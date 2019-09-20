@@ -21,7 +21,7 @@ func (t *Config) getRootPosition() *Position {
 func (t *Config) getChild(p *Position, c ChildIndex) *Position {
 	var q big.Int
 	q.Lsh((*big.Int)(p), uint(t.BitsPerIndex))
-	q.Or(&q, big.NewInt(int64(c)))
+	q.Bits()[0] = q.Bits()[0] | big.Word(c)
 	return (*Position)(&q)
 }
 
@@ -139,6 +139,16 @@ func (t *Config) getDeepestPositionForKey(k Key) (*Position, error) {
 	(*big.Int)(&p).SetBytes(k)
 	(*big.Int)(&p).SetBit((*big.Int)(&p), len(k)*8, 1)
 	return &p, nil
+}
+
+// Returns the lexicographically first key which could be found at any children
+// of position p in the tree
+func (t *Config) getMinKey(p *Position) Key {
+	var min big.Int
+	min.Set((*big.Int)(p))
+	n := uint(t.KeysByteLength*8 + 1 - min.BitLen())
+	min.Lsh(&min, n)
+	return min.Bytes()[1:]
 }
 
 func (t *Config) GetKeyIntervalUnderPosition(p *Position) (minKey, maxKey Key) {
