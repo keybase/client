@@ -964,6 +964,19 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		info, ierr = infoSource.LookupName(ctx,
 			conversationLocal.Info.Triple.Tlfid,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		var team *teams.Team
+		team, ierr = NewTeamLoader(s.G().ExternalG()).loadTeam(ctx, conversationLocal.Info.Triple.Tlfid,
+			unverifiedTLFName, chat1.ConversationMembersType_IMPTEAMUPGRADE,
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC, nil)
+		if ierr == nil {
+			var displayName keybase1.ImplicitTeamDisplayName
+			displayName, ierr = team.ImplicitTeamDisplayName(ctx)
+			if ierr == nil {
+				info.CanonicalName = displayName.String()
+				info.ID = chat1.TLFID(team.ID.ToBytes())
+			}
+		}
 	default:
 		if len(conversationLocal.Info.TlfName) == 0 {
 			conversationLocal.Error = chat1.NewConversationErrorLocal(

@@ -19,7 +19,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
@@ -857,16 +856,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	}
 
 	// Fetch the bot settings, if any
-	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
-	if err != nil {
-		// If we fail here the conversation could be a IMPTEAMUPGRADE conv that
-		// used the old KBFS tlfID, so we short circuit.
-		return nil, nil
-	}
-	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: msg.ClientHeader.TlfPublic,
-	})
+	team, err := NewTeamLoader(s.G().ExternalG()).loadTeam(ctx, conv.Info.Triple.Tlfid,
+		conv.Info.TlfName, conv.GetMembersType(), conv.IsPublic(), nil)
 	if err != nil {
 		return nil, err
 	}

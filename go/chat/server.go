@@ -2879,14 +2879,29 @@ func (h *Server) validateBotRole(ctx context.Context, role keybase1.TeamRole) er
 }
 
 func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.ConversationMembersType,
-	tlfName string, isPublic bool) (keybase1.TeamID, error) {
+	tlfName string, isPublic bool) (res keybase1.TeamID, err error) {
 
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupID(ctx, tlfName, isPublic)
-	if err != nil {
-		return "", err
+	switch membersType {
+	case chat1.ConversationMembersType_KBFS:
+		return res, errors.New("unable to find a team for KBFS conv")
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		nameInfo, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupID(ctx, tlfName, isPublic)
+		if err != nil {
+			return "", err
+		}
+		if membersType == chat1.ConversationMembersType_IMPTEAMUPGRADE {
+			team, err := NewTeamLoader(h.G().ExternalG()).loadTeam(ctx, nameInfo.ID, tlfName,
+				membersType, isPublic, nil)
+			if err != nil {
+				return res, err
+			}
+			return team.ID, nil
+		} else {
+			return keybase1.TeamIDFromString(nameInfo.ID.String())
+		}
 	}
-
-	return keybase1.TeamIDFromString(nameInfo.ID.String())
+	return res, fmt.Errorf("unknown members type: %v", membersType)
 }
 
 func (h *Server) fixupTeamErrorWithTLFName(ctx context.Context, username, tlfName string, err error) error {
