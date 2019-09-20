@@ -1343,6 +1343,11 @@
     shell-quote "1.6.1"
     ws "^1.1.0"
 
+"@react-native-community/geolocation@2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@react-native-community/geolocation/-/geolocation-2.0.2.tgz#ba8b40f560ead8d014740d1cdea970b33f19312e"
+  integrity sha512-tTNXRCgnhJBu79mulQwzabXRpDqfh/uaDqfHVpvF0nX4NTpolpy6mvTRiFg7eWFPGRArsnZz1EYp6rHfJWGgEA==
+
 "@react-native-community/netinfo@4.1.3":
   version "4.1.3"
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-4.1.3.tgz#77571619eb90ff59777a85a913fc30acd30b6020"
