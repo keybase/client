@@ -74,7 +74,8 @@ SettingsSubNavigator.navigationOptions = {
 }
 
 export const newRoutes = {
-  settingsRoot: {getScreen: () => SettingsSubNavigator},
+  // MUST use screen and not getScreen for subnavs!
+  settingsRoot: {screen: SettingsSubNavigator},
 }
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
