@@ -398,3 +398,30 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
 }
+
+func TestBotSignup(t *testing.T) {
+	tc := SetupEngineTest(t, "signup_nopw")
+	defer tc.Cleanup()
+	fu, err := NewFakeUser("bot")
+	require.NoError(t, err)
+
+	arg := SignupEngineRunArg{
+		Username:                 fu.Username,
+		InviteCode:               libkb.TestInvitationCode,
+		StoreSecret:              false,
+		DeviceName:               defaultDeviceName,
+		GenerateRandomPassphrase: true,
+		SkipGPG:                  true,
+		SkipMail:                 true,
+		SkipPaper:                true,
+		BotSignup:                true,
+	}
+
+	uis := libkb.UIs{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
+	s := NewSignupEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, s)
+	require.NoError(tc.T, err)
+}

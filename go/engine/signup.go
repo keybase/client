@@ -27,6 +27,7 @@ type SignupEngine struct {
 	arg            *SignupEngineRunArg
 	lks            *libkb.LKSec
 	perUserKeyring *libkb.PerUserKeyring // Created after provisioning. Sent to paperkey gen.
+	paperKey       string
 }
 
 var _ Engine2 = (*SignupEngine)(nil)
@@ -45,6 +46,10 @@ type SignupEngineRunArg struct {
 	SkipPaper                bool
 	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
 	VerifyEmail              bool
+
+	// Bot signups have random PWs, no device keys, an eldest paper key, and return an paper key via
+	// the main flow.
+	BotSignup bool
 
 	// Used in tests for reproducible key generation
 	naclSigningKeyPair    libkb.NaclKeyPair
@@ -68,6 +73,9 @@ func (s *SignupEngine) RequiredUIs() []libkb.UIKind {
 func (s *SignupEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
+	if s.arg.BotSignup {
+		return nil
+	}
 	return []libkb.UIConsumer{
 		&GPGImportKeyEngine{},
 		&DeviceWrap{},
@@ -93,7 +101,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// StoreSecret is required if we are doing NOPW
-	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase {
+	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase && !s.arg.BotSignup {
 		return fmt.Errorf("cannot SignUp with StoreSecret=false and GenerateRandomPassphrase=true")
 	}
 
@@ -132,7 +140,12 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err = s.registerDevice(m, s.arg.DeviceName, s.arg.GenerateRandomPassphrase); err != nil {
+	if !s.arg.BotSignup {
+		err = s.registerDevice(m, s.arg.DeviceName, s.arg.GenerateRandomPassphrase)
+	} else {
+		err = s.genEldestPaperKey(m)
+	}
+	if err != nil {
 		return err
 	}
 
@@ -360,6 +373,23 @@ func (s *SignupEngine) storeSecretForRecovery(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	return nil
+}
+
+func (s *SignupEngine) genEldestPaperKey(m libkb.MetaContext) (err error) {
+	passphrase, err := libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion)
+	kgarg := &PaperKeyGenArg{
+		Passphrase:     passphrase,
+		Me:             s.me,
+		PerUserKeyring: s.perUserKeyring,
+		IsEldest:       true,
+	}
+	kgeng := NewPaperKeyGen(m.G(), kgarg)
+	err = RunEngine2(m, kgeng)
+	if err != nil {
+		return err
+	}
+	s.paperKey = passphrase.String()
 	return nil
 }
 
