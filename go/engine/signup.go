@@ -88,7 +88,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return fmt.Errorf("Cannot signup because of currently logged in user: %s", clRes.Reason)
 	}
 
-	if err = m.G().Logout(m.Ctx()); err != nil {
+	if err = m.Logout(); err != nil {
 		return err
 	}
 

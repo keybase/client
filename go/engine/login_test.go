@@ -4259,6 +4259,13 @@ func assertSecretStored(tc libkb.TestContext, username string) {
 	require.False(tc.T, secret.IsNil(), "secret was non-nil")
 }
 
+func assertSecretNotStored(tc libkb.TestContext, username string) {
+	nun := libkb.NewNormalizedUsername(username)
+	_, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(tc), nun)
+	require.Error(tc.T, err, "no secret found")
+	require.Equal(tc.T, err, libkb.NewErrSecretForUserNotFound(nun))
+}
+
 func assertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int) error {
 	mctx := libkb.NewMetaContextForTest(tc)
 	resp, err := tc.G.API.Get(mctx, libkb.APIArg{

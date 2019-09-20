@@ -375,8 +375,8 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 
 // SwitchUserNewConfigActiveDevice creates a new config file stanza and an
 // active device for the given user, all while holding the switchUserMu lock.
-func (m MetaContext) SwitchUserNewConfigActiveDevice(uv keybase1.UserVersion, n NormalizedUsername, salt []byte, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) error {
-	ad := NewProvisionalActiveDevice(m, uv, d, sigKey, encKey, deviceName)
+func (m MetaContext) SwitchUserNewConfigActiveDevice(uv keybase1.UserVersion, n NormalizedUsername, salt []byte, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string, keychainMode KeychainMode) error {
+	ad := NewProvisionalActiveDevice(m, uv, d, sigKey, encKey, deviceName, keychainMode)
 	return m.switchUserNewConfig(uv.Uid, n, salt, d, ad)
 }
 
@@ -515,13 +515,13 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 // `current_user` in the config file, or edit the global config file in any
 // way.
 func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID,
-	sigKey, encKey GenericKey, deviceName string) error {
+	sigKey, encKey GenericKey, deviceName string, keychainMode KeychainMode) error {
 	g := m.G()
 	defer g.switchUserMu.Acquire(m, "SetActiveDevice")()
 	if !g.Env.GetUID().Equal(uv.Uid) {
 		return NewUIDMismatchError("UID switched out from underneath provisioning process")
 	}
-	return g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName, 0)
+	return g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName, 0, keychainMode)
 }
 
 func (m MetaContext) SetSigningKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
@@ -571,7 +571,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 
 	if doLogout {
 		username := m.G().Env.GetUsername()
-		if err := m.G().Logout(m.Ctx()); err != nil {
+		if err := m.Logout(); err != nil {
 			return err
 		}
 		return ClearSecretsOnDeprovision(m, username)

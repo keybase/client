@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 )
 
 func forceOpenDBs(tc libkb.TestContext) {
@@ -268,7 +267,7 @@ func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 	// Unlike the first test, this time we log out before we run the
 	// deprovision. We should be able to do a deprovision with revocation
 	// disabled.
-	if err := tc.G.Logout(context.TODO()); err != nil {
+	if err := m.Logout(); err != nil {
 		tc.T.Fatal(err)
 	}
 

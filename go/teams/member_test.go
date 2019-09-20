@@ -34,12 +34,12 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 
 	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -758,7 +758,7 @@ func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	// (all of that tested in memberSetupSubteam)
 
 	switchTo := func(to *kbtest.FakeUser) {
-		err := tc.G.Logout(context.TODO())
+		err := tc.Logout()
 		require.NoError(t, err)
 		err = to.Login(tc.G)
 		require.NoError(t, err)
@@ -804,14 +804,14 @@ func TestLeave(t *testing.T) {
 
 	botua, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
 
 	restrictedBotua, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
@@ -825,35 +825,35 @@ func TestLeave(t *testing.T) {
 	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, restrictedBotua.Username, keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	err = otherA.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	err = otherB.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	err = botua.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	err = restrictedBotua.Login(tc.G)
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, name, false)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	err = owner.Login(tc.G)
@@ -892,7 +892,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	if err := otherA.Login(tc.G); err != nil {
@@ -901,7 +901,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
 		t.Fatal(err)
 	}
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	if err := otherB.Login(tc.G); err != nil {
@@ -910,7 +910,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
 		t.Fatal(err)
 	}
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	if err := owner.Login(tc.G); err != nil {
@@ -931,7 +931,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	// They are now an implicit admin and not an explicit member.
 	// So this should fail, but with a reasonable error.
 	t.Logf("try to leave again")
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = otherA.Login(tc.G)
 	require.NoError(t, err)
@@ -1470,17 +1470,17 @@ func TestFollowResetAdd(t *testing.T) {
 	require.NoError(t, err)
 	team := createTeam(tc)
 	t.Logf("Created team %q", team)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	// alice tracks bob and charlie
@@ -1496,17 +1496,17 @@ func TestFollowResetAdd(t *testing.T) {
 	require.NoError(t, err)
 
 	// bob and charlie reset
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = bob.Login(tc.G)
 	require.NoError(t, err)
 	kbtest.ResetAccount(tc, bob)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = charlie.Login(tc.G)
 	require.NoError(t, err)
 	kbtest.ResetAccount(tc, charlie)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	// alice fails to invite bob into the team since her tracking statement of him is broken

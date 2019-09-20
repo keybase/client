@@ -42,7 +42,7 @@ func (e *LogoutEngine) doSwitch(mctx libkb.MetaContext) (err error) {
 
 func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("Logout#Run", func() error { return err })()
-	err = mctx.G().Logout(mctx.Ctx())
+	err = mctx.Logout()
 	if err != nil {
 		return err
 	}
