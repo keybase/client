@@ -6,6 +6,8 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../constants/reducer'
+import {validateNumber} from '../util/phone-numbers'
+import {validateEmailAddress} from '../util/email-address'
 
 const closeTeamBuilding = () => RouteTreeGen.createClearModals()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
@@ -40,6 +42,36 @@ const apiSearch = async (
   }
 }
 
+const apiSearchOne = async (
+  query: string,
+  service: TeamBuildingTypes.ServiceIdWithContact
+): Promise<TeamBuildingTypes.User | undefined> =>
+  (await apiSearch(
+    query,
+    service,
+    1 /* maxResults */,
+    true /* serviceSummaries */,
+    false /* includeContacts */
+  ))[0]
+
+// If the query is a well-formatted phone number or email, do additional search
+// and if the result is not already in the list, insert at the beginning.
+async function specialContactSearch(users: TeamBuildingTypes.User[], query: string, region: string | null) {
+  let result: TeamBuildingTypes.User | undefined
+  const phoneNumber = validateNumber(query, region)
+  if (phoneNumber.valid) {
+    result = await apiSearchOne(phoneNumber.e164, 'phone')
+  } else if (validateEmailAddress(query)) {
+    result = await apiSearchOne(query, 'email')
+  }
+  if (result && !users.find(x => result && x.id === result.id)) {
+    // Overwrite `prettyName` to make the special result stand out.
+    result.prettyName = query
+    return [result, ...users]
+  }
+  return users
+}
+
 const search = async (state: TypedState, {payload: {namespace, includeContacts}}: SearchOrRecAction) => {
   const {teamBuildingSearchQuery, teamBuildingSelectedService, teamBuildingSearchLimit} = state[
     namespace
@@ -50,13 +82,19 @@ const search = async (state: TypedState, {payload: {namespace, includeContacts}}
     return false
   }
 
-  const users = await apiSearch(
+  // Do the main search for selected service and query.
+  let users = await apiSearch(
     teamBuildingSearchQuery,
     teamBuildingSelectedService,
     teamBuildingSearchLimit,
     true /* includeServicesSummary */,
     includeContacts
   )
+  if (teamBuildingSelectedService === 'keybase') {
+    // If we are on Keybase tab, do additional search if query is phone/email.
+    const userRegion = state.settings.contacts.userCountryCode
+    users = await specialContactSearch(users, teamBuildingSearchQuery, userRegion)
+  }
   return TeamBuildingGen.createSearchResultsLoaded({
     namespace,
     query: teamBuildingSearchQuery,
