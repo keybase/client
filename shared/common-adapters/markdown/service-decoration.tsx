@@ -69,7 +69,7 @@ const ServiceDecoration = (props: Props) => {
   } catch (e) {
     return null
   }
-  if (parsed.typ === RPCChatTypes.UITextDecorationTyp.payment && parsed.payment && props.message) {
+  if (parsed.typ === RPCChatTypes.UITextDecorationTyp.payment && props.message) {
     let paymentID: WalletTypes.PaymentID | undefined
     let error
     if (
@@ -102,7 +102,7 @@ const ServiceDecoration = (props: Props) => {
         username={parsed.atmention}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.maybemention && parsed.maybemention) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.maybemention) {
     return (
       <MaybeMention
         allowFontScaling={props.allowFontScaling || false}
@@ -111,7 +111,7 @@ const ServiceDecoration = (props: Props) => {
         channel={parsed.maybemention.channel}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link && parsed.link) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link) {
     const link = parsed.link.display
     return DeeplinksConstants.linkIsKeybaseLink(link) ? (
       <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
@@ -127,7 +127,7 @@ const ServiceDecoration = (props: Props) => {
         {parsed.link.display}
       </Text>
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto && parsed.mailto) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto) {
     return (
       <Text
         className="hover-underline"
@@ -140,10 +140,7 @@ const ServiceDecoration = (props: Props) => {
         {parsed.mailto.display}
       </Text>
     )
-  } else if (
-    parsed.typ === RPCChatTypes.UITextDecorationTyp.channelnamemention &&
-    parsed.channelnamemention
-  ) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.channelnamemention) {
     return (
       <Channel
         allowFontScaling={props.allowFontScaling || false}
@@ -152,7 +149,7 @@ const ServiceDecoration = (props: Props) => {
         style={props.styles.linkStyle}
       />
     )
-  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath && parsed.kbfspath) {
+  } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath) {
     return (
       <KbfsPath
         knownPathInfo={FsConstants.makePathInfo({
