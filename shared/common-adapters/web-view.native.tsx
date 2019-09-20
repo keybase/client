@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {WebView} from 'react-native'
+import {WebView as NativeWebView} from 'react-native-webview'
 import {WebViewInjections, WebViewProps} from './web-view'
 import {memoize} from 'lodash-es'
 
@@ -22,7 +22,7 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 const KBWebView = (props: WebViewProps) => {
   const {onLoadingStateChange} = props
   return (
-    <WebView
+    <NativeWebView
       allowsInlineMediaPlayback={true}
       useWebKit={true}
       source={{uri: props.url}}

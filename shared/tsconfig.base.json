@@ -13,6 +13,7 @@
       "@react-navigation/core": ["override-d.ts/@react-navigation/core/index.d.ts"],
       "@react-navigation/native": ["override-d.ts/@react-navigation/native/index.d.ts"],
       "immutable": ["override-d.ts/immutable/index.d.ts"],
+      "react-native-reanimated": ["override-d.ts/react-native-reanimated/index.d.ts"],
       "popper": ["override-d.ts/popper/index.d.ts"],
       "react-native-fast-image": ["override-d.ts/react-native-fast-image/index.d.ts"],
       "react-native-gesture-handler": ["override-d.ts/react-native-gesture-handler/index.d.ts"],

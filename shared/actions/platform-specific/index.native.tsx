@@ -23,7 +23,6 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-// eslint-ignore-next-line messed up export in module. fixed in the next update
 import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
@@ -286,13 +285,13 @@ const updateMobileNetState = async (
 }
 
 const initOsNetworkStatus = async () => {
-  const {type} = await NetInfo.getConnectionInfo()
+  const {type} = await NetInfo.fetch()
   return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
 }
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type))
+    NetInfo.addEventListener(({type}) => emitter(type))
     return () => {}
   }, Saga.buffers.sliding(1))
 

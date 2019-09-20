@@ -1,6 +1,5 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import {NativeWebView} from '../../../common-adapters/native-wrappers.native'
+import * as Kb from '../../../common-adapters/mobile.native'
 import * as Styles from '../../../styles'
 import {Props} from '.'
 
@@ -12,7 +11,7 @@ class GiphySearch extends React.Component<Props> {
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         {this.props.previews ? (
-          <NativeWebView
+          <Kb.NativeWebView
             allowsInlineMediaPlayback={true}
             useWebKit={true}
             source={source}
