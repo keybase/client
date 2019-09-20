@@ -7,10 +7,8 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Constants from '../../../../constants/chat2'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {isIOS} from '../../../../constants/platform'
 import HiddenString from '../../../../util/hidden-string'
-import {requestLocationPermission} from '../../../../actions/platform-specific'
+import {clearWatchPosition, watchPositionForMap} from '../../../../actions/platform-specific'
 
 type Props = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 
@@ -45,36 +43,12 @@ const LocationPopup = (props: Props) => {
   React.useEffect(() => {
     let watchID: number | null
     async function watchPosition() {
-      try {
-        await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
-      } catch (e) {
-        setLocationDenied(true)
-        return
-      }
-      watchID = navigator.geolocation.watchPosition(
-        pos => {
-          dispatch(
-            Chat2Gen.createUpdateLastCoord({
-              coord: {
-                accuracy: Math.floor(pos.coords.accuracy),
-                lat: pos.coords.latitude,
-                lon: pos.coords.longitude,
-              },
-            })
-          )
-        },
-        err => {
-          if (err.code && err.code === 1) {
-            setLocationDenied(true)
-          }
-        },
-        {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-      )
+      watchID = await watchPositionForMap(() => setLocationDenied(true))
     }
     watchPosition()
     return () => {
       if (watchID !== null) {
-        navigator.geolocation.clearWatch(watchID)
+        clearWatchPosition(watchID)
       }
     }
   }, [])

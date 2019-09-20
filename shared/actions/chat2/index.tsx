@@ -26,19 +26,14 @@ import * as Router2Constants from '../../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
-import {isMobile, isIOS} from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
-import {
-  requestLocationPermission,
-  saveAttachmentToCameraRoll,
-  showShareActionSheetFromFile,
-} from '../platform-specific'
+import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
 import {TypedActions, TypedState} from '../../util/container'
-import {getEngine} from '../../engine/require'
 import {store} from 'emoji-mart'
 
 const onConnect = async () => {
@@ -3122,82 +3117,6 @@ const onChatMaybeMentionUpdate = (
   })
 }
 
-let locationEmitter: ((input: unknown) => void) | null = null
-
-function* setupLocationUpdateLoop() {
-  if (locationEmitter) {
-    return
-  }
-  const locationChannel = yield Saga.eventChannel(emitter => {
-    locationEmitter = emitter
-    // we never unsubscribe
-    return () => {}
-  }, Saga.buffers.expanding(10))
-  while (true) {
-    const action = yield Saga.take(locationChannel)
-    yield Saga.put(action)
-  }
-}
-
-const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
-  Chat2Gen.createSetCommandStatusInfo({
-    conversationIDKey,
-    info: {
-      actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
-      displayText: text,
-      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
-    },
-  })
-
-const onChatWatchPosition = async (
-  _: TypedState,
-  action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
-  logger: Saga.SagaLogger
-) => {
-  const response = action.payload.response
-  if (!isMobile) {
-    return []
-  }
-  try {
-    await requestLocationPermission(action.payload.params.perm)
-  } catch (err) {
-    logger.info('failed to get location perms: ' + err)
-    return setLocationDeniedCommandStatus(
-      Types.conversationIDToKey(action.payload.params.convID),
-      `Failed to access location. ${err.message}`
-    )
-  }
-  const watchID = navigator.geolocation.watchPosition(
-    pos => {
-      if (locationEmitter) {
-        locationEmitter(
-          Chat2Gen.createUpdateLastCoord({
-            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
-          })
-        )
-      }
-    },
-    err => {
-      logger.warn(err.message)
-      if (err.code && err.code === 1 && locationEmitter) {
-        locationEmitter(
-          setLocationDeniedCommandStatus(
-            Types.conversationIDToKey(action.payload.params.convID),
-            `Failed to access location. ${err.message}`
-          )
-        )
-      }
-    },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
-  )
-  response.result(watchID)
-  return []
-}
-
-const onChatClearWatch = (_: TypedState, action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
-  navigator.geolocation.clearWatch(action.payload.params.id)
-}
-
 const resolveMaybeMention = (_: TypedState, action: Chat2Gen.ResolveMaybeMentionPayload) =>
   RPCChatTypes.localResolveMaybeMentionRpcPromise({
     mention: {channel: action.payload.channel, name: action.payload.name},
@@ -3716,9 +3635,6 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus, 'onChatCommandStatus')
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatMaybeMentionUpdate, onChatMaybeMentionUpdate)
-  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
-  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition, 'onChatWatchPosition')
-  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch, 'onChatClearWatch')
 
   yield* Saga.chainAction2(Chat2Gen.replyJump, onReplyJump)
 
@@ -3750,10 +3666,6 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
 
-  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
-    ConfigGen.daemonHandshake,
-    setupLocationUpdateLoop
-  )
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
   yield* chatTeamBuildingSaga()

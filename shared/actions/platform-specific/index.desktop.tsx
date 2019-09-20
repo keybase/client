@@ -411,6 +411,8 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
 }
 
 export const requestLocationPermission = () => Promise.resolve()
+export const clearWatchPosition = () => {}
+export const watchPositionForMap = () => Promise.resolve(0)
 
 export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
