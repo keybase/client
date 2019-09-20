@@ -146,6 +146,12 @@ func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keyb
 	return nil
 }
 
+func (a *ActiveDevice) KeychainMode() KeychainMode {
+	a.Lock()
+	defer a.Unlock()
+	return a.keychainMode
+}
+
 // setSigningKey acquires the write lock and sets the signing key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.

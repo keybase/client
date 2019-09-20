@@ -101,6 +101,8 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		GenPGPBatch:              arg.GenPGPBatch,
 		SkipPaper:                !arg.GenPaper,
 		VerifyEmail:              arg.VerifyEmail,
+		Bot:                      arg.Bot,
+		SkipGPG:                  arg.SkipGPG,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewSignupEngine(h.G(), &runarg)
@@ -114,6 +116,9 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		res.PassphraseOk = true
 		res.PostOk = true
 		res.WriteOk = true
+		if pk := eng.PaperKey(); pk != nil && arg.Bot {
+			res.PaperKey = pk.String()
+		}
 		return res, nil
 	}
 

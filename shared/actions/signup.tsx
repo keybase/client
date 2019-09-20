@@ -185,6 +185,8 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
         storeSecret: true,
         username,
         verifyEmail: true,
+        bot: false,
+        skipGPG: true,
       },
       waitingKey: Constants.waitingKey,
     })
