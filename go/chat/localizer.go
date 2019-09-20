@@ -976,6 +976,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				info.CanonicalName = displayName.String()
 				info.ID = chat1.TLFID(team.ID.ToBytes())
 			}
+		} else {
+			// fallback to source if this fails
+			info, ierr = infoSource.LookupID(ctx,
+				conversationLocal.Info.TlfName,
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 		}
 	default:
 		if len(conversationLocal.Info.TlfName) == 0 {
