@@ -608,6 +608,7 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
 	// Travel 5 days into future + 1h to make sure that it all runs
+	kickAutoresetd(tcX)
 	require.NoError(t, timeTravelReset(tcX, time.Hour*121))
 	require.NoError(t, processReset(tcX))
 
@@ -619,7 +620,7 @@ func TestProvisionAutoreset(t *testing.T) {
 		if lastErr == nil {
 			break
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond * libkb.CITimeMultiplier(tcX.G))
 	}
 	require.NoError(t, lastErr)
 
@@ -4286,4 +4287,12 @@ func assertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int)
 		return fmt.Errorf("expected account %s to be in %d state (got %d)", uid.String(), expectedStatus, status)
 	}
 	return nil
+}
+
+func kickAutoresetd(tc libkb.TestContext) {
+	_, err := tc.G.API.Post(tc.MetaContext(), libkb.APIArg{
+		Endpoint:    "test/accelerate_autoresetd",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	})
+	require.NoError(tc.T, err)
 }
