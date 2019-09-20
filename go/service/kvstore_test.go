@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -72,4 +73,72 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	getRes, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
 	require.Equal(t, updatedSecret, getRes.EntryValue)
+}
+
+func TestKvStoreMultiUserTeam(t *testing.T) {
+	tcAlice := kvTestSetup(t)
+	defer tcAlice.Cleanup()
+	tcBob := kvTestSetup(t)
+	defer tcBob.Cleanup()
+	ctx := context.Background()
+
+	alice, err := kbtest.CreateAndSignupFakeUser("kvsA", tcAlice.G)
+	require.NoError(t, err)
+	aliceHandler := NewKVStoreHandler(nil, tcAlice.G)
+	bob, err := kbtest.CreateAndSignupFakeUser("kvsB", tcBob.G)
+	require.NoError(t, err)
+	bobHandler := NewKVStoreHandler(nil, tcBob.G)
+
+	teamName := alice.Username + "t"
+	_, err = teams.CreateRootTeam(context.Background(), tcAlice.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	_, err = teams.AddMember(context.Background(), tcAlice.G, teamName, bob.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	// Alice puts a secret
+	namespace := "myapp"
+	entryKey := "asdfasfeasef"
+	secretData := map[string]interface{}{
+		"username":      "hunter2",
+		"email":         "thereal@example.com",
+		"password":      "super random password",
+		"OTP":           "otp secret",
+		"twoFactorAuth": "not-really-anymore",
+	}
+	cleartextSecret, err := json.Marshal(secretData)
+	require.NoError(t, err)
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: string(cleartextSecret),
+	}
+	putRes, err := aliceHandler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 1, putRes.Revision)
+
+	// Bob can read it
+	getArg := keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	getRes, err := bobHandler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
+	require.Equal(t, 1, getRes.Revision)
+
+	// Alice kicks bob out of the team.
+	err = teams.RemoveMember(ctx, tcAlice.G, teamName, bob.Username)
+	require.NoError(t, err)
+
+	// Bob cannot read the entry anymore.
+	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ := err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamBadMembership {
+		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	}
 }

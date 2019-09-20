@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/kvstore"
 	"github.com/keybase/client/go/libkb"
@@ -42,8 +43,12 @@ func (h *KVStoreHandler) assertLoggedIn(ctx context.Context) error {
 }
 
 func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (team *teams.Team, err error) {
-	team, _, _, err = teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false)
-	return team, err
+	if strings.Contains(userInputTeamName, ",") {
+		// it's an implicit team
+		team, _, _, err = teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false)
+		return team, err
+	}
+	return teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{Name: userInputTeamName})
 }
 
 type getEntryAPIRes struct {
