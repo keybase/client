@@ -33,11 +33,11 @@ requestbundles ()
   printf "\nRequesting bundles...\n"
   case "ios" in
     $arg1|$arg2)
-      curl -s -o /dev/null localhost:8081/index.ios.bundle 2>&1;;
+      curl -s -o /dev/null localhost:8081/index.bundle?platform=ios&dev=true&minify=false 2>&1;;
   esac
   case "android" in
     $arg1|$arg2)
-      curl -s -o /dev/null localhost:8081/index.android.bundle 2>&1;;
+      curl -s -o /dev/null localhost:8081/index.bundle?platform=android&dev=true&minify=false 2>&1;;
   esac
 }
 
@@ -46,5 +46,5 @@ sleep 5 && requestbundles &
 backgroundpid=$!
 trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
 while true; do
-  babel-node ./node_modules/react-native/local-cli/cli.js start --resetCache
+  yarn react-native start
 done

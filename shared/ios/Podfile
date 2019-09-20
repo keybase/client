@@ -1,46 +1,40 @@
 # Reference: https://sandstorm.de/de/blog/post/react-native-managing-native-dependencies-using-xcode-and-cocoapods.html
 platform :ios, '10.0'
 
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
 
 target 'Keybase' do
-  pod 'React', :path => '../node_modules/react-native', :subspecs => [
-    'Core',
-    'CxxBridge',
-    'DevSupport',
-    'RCTText',
-    'RCTNetwork',
-    'RCTWebSocket',
-    'RCTAnimation',
-    'RCTImage',
-    'RCTActionSheet',
-    'RCTLinkingIOS',
-    'RCTPushNotification',
-    'RCTSettings',
-    'RCTCameraRoll',
-    'RCTGeolocation',
-  ]
+  pod 'React', :path => '../node_modules/react-native/'
+  pod 'React-Core', :path => '../node_modules/react-native/React'
+  pod 'React-DevSupport', :path => '../node_modules/react-native/React'
+  pod 'React-RCTActionSheet', :path => '../node_modules/react-native/Libraries/ActionSheetIOS'
+  pod 'React-RCTAnimation', :path => '../node_modules/react-native/Libraries/NativeAnimation'
+  pod 'React-RCTBlob', :path => '../node_modules/react-native/Libraries/Blob'
+  pod 'React-RCTImage', :path => '../node_modules/react-native/Libraries/Image'
+  pod 'React-RCTLinking', :path => '../node_modules/react-native/Libraries/LinkingIOS'
+  pod 'React-RCTNetwork', :path => '../node_modules/react-native/Libraries/Network'
+  pod 'React-RCTSettings', :path => '../node_modules/react-native/Libraries/Settings'
+  pod 'React-RCTText', :path => '../node_modules/react-native/Libraries/Text'
+  pod 'React-RCTVibration', :path => '../node_modules/react-native/Libraries/Vibration'
+  pod 'React-RCTWebSocket', :path => '../node_modules/react-native/Libraries/WebSocket'
 
-  # Do not leave dependencies commented out here - it messes with `react-native link/unlink` behavior
+  pod 'React-cxxreact', :path => '../node_modules/react-native/ReactCommon/cxxreact'
+  pod 'React-jsi', :path => '../node_modules/react-native/ReactCommon/jsi'
+  pod 'React-jsiexecutor', :path => '../node_modules/react-native/ReactCommon/jsiexecutor'
+  pod 'React-jsinspector', :path => '../node_modules/react-native/ReactCommon/jsinspector'
   pod 'yoga', :path => '../node_modules/react-native/ReactCommon/yoga'
+
   pod 'DoubleConversion', :podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
-  pod 'lottie-ios', :path => '../node_modules/lottie-ios'
-  pod 'lottie-react-native', :path => '../node_modules/lottie-react-native'
-  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
-  pod 'rn-fetch-blob', :path => '../node_modules/rn-fetch-blob'
-  pod 'react-native-contacts', :path => '../node_modules/react-native-contacts'
-  pod 'react-native-fast-image', :path => '../node_modules/react-native-fast-image'
-  pod 'react-native-netinfo', :path => '../node_modules/@react-native-community/netinfo'
-  pod 'react-native-webview', :path => '../node_modules/react-native-webview'
-  pod 'RNReanimated', :path => '../node_modules/react-native-reanimated'
-  pod 'RNScreens', :path => '../node_modules/react-native-screens'
-  pod 'react-native-video', :path => '../node_modules/react-native-video'
+  # 3rd party / special
+  # Really should use lean core version but react-native-push-notification uses the react-native version
+  pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
 
   use_unimodules!(modules_paths: ['../node_modules'])
-
+  use_native_modules!
 end
 
 # # The following is needed to ensure the "archive" step works in XCode.

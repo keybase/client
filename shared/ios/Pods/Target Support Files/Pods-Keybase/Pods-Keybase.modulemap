@@ -1,0 +1,6 @@
+module Pods_Keybase {
+  umbrella header "Pods-Keybase-umbrella.h"
+
+  export *
+  module * { export * }
+}

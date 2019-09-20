@@ -13,12 +13,12 @@ export type Props = {
   inTeam: boolean
   isOpen: boolean
   name: string
+  numMembers: number
   onChat?: () => void
   onJoinTeam: (arg0: string) => void
   onViewTeam: (arg0: string) => void
-  resolved: boolean
-  numMembers: number
   publicAdmins: Array<string>
+  resolved: boolean
   style?: StylesTextCrossPlatform
 }
 

@@ -429,7 +429,7 @@ const chatActivityToMetasAction = (
   state: TypedState,
   payload: {
     readonly conv?: RPCChatTypes.InboxUIItem | null
-  } | null,
+  },
   ignoreDelete?: boolean
 ) => {
   const conv = payload ? payload.conv : null
@@ -485,7 +485,7 @@ const onErrorMessage = (outboxRecords: Array<RPCChatTypes.OutboxRecord>) => {
         let tempForceRedBox: string | null = null
         if (error.typ === RPCChatTypes.OutboxErrorType.identify) {
           // Find out the user who failed identify
-          const match = error.message && error.message.match(/"(.*)"/)
+          const match = error.message.match(/"(.*)"/)
           tempForceRedBox = match && match[1]
         }
         arr.push(Chat2Gen.createMessageErrored({conversationIDKey, outboxID, reason}))
@@ -896,13 +896,11 @@ const onNewChatActivity = (
   let actions: Array<TypedActions> | null = null
   switch (activity.activityType) {
     case RPCChatTypes.ChatActivityType.incomingMessage: {
-      const incomingMessage = activity.incomingMessage
-      if (incomingMessage) {
-        actions = [
-          ...onIncomingMessage(state, incomingMessage, logger),
-          ...chatActivityToMetasAction(state, incomingMessage),
-        ]
-      }
+      const {incomingMessage} = activity
+      actions = [
+        ...onIncomingMessage(state, incomingMessage, logger),
+        ...chatActivityToMetasAction(state, incomingMessage),
+      ]
       break
     }
     case RPCChatTypes.ChatActivityType.setStatus:
@@ -915,64 +913,47 @@ const onNewChatActivity = (
       actions = chatActivityToMetasAction(state, activity.newConversation, true)
       break
     case RPCChatTypes.ChatActivityType.failedMessage: {
-      const failedMessage: RPCChatTypes.FailedMessageInfo | null = activity.failedMessage
-      const outboxRecords = failedMessage && failedMessage.outboxRecords
+      const {failedMessage} = activity
+      const {outboxRecords} = failedMessage
       if (outboxRecords) {
         actions = onErrorMessage(outboxRecords)
       }
       break
     }
     case RPCChatTypes.ChatActivityType.membersUpdate:
-      {
-        const convID = activity.membersUpdate && activity.membersUpdate.convID
-        if (convID) {
-          actions = [
-            Chat2Gen.createMetaRequestTrusted({
-              conversationIDKeys: [Types.conversationIDToKey(convID)],
-              force: true,
-            }),
-          ]
-        }
-      }
+      actions = [
+        Chat2Gen.createMetaRequestTrusted({
+          conversationIDKeys: [Types.conversationIDToKey(activity.membersUpdate.convID)],
+          force: true,
+        }),
+      ]
       break
     case RPCChatTypes.ChatActivityType.setAppNotificationSettings:
       {
-        const setAppNotificationSettings = activity.setAppNotificationSettings
-        if (setAppNotificationSettings) {
-          actions = [
-            Chat2Gen.createNotificationSettingsUpdated({
-              conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-              settings: setAppNotificationSettings.settings,
-            }),
-          ]
-        }
+        const {setAppNotificationSettings} = activity
+        actions = [
+          Chat2Gen.createNotificationSettingsUpdated({
+            conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+            settings: setAppNotificationSettings.settings,
+          }),
+        ]
       }
       break
     case RPCChatTypes.ChatActivityType.teamtype:
       actions = [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
       break
     case RPCChatTypes.ChatActivityType.expunge: {
-      const expunge = activity.expunge
-      if (expunge) {
-        actions = expungeToActions(state, expunge)
-      }
+      actions = expungeToActions(state, activity.expunge)
       break
     }
     case RPCChatTypes.ChatActivityType.ephemeralPurge:
-      if (activity.ephemeralPurge) {
-        actions = ephemeralPurgeToActions(activity.ephemeralPurge)
-      }
+      actions = ephemeralPurgeToActions(activity.ephemeralPurge)
       break
     case RPCChatTypes.ChatActivityType.reactionUpdate:
-      if (activity.reactionUpdate) {
-        actions = reactionUpdateToActions(activity.reactionUpdate)
-      }
+      actions = reactionUpdateToActions(activity.reactionUpdate)
       break
     case RPCChatTypes.ChatActivityType.messagesUpdated: {
-      const messagesUpdated = activity.messagesUpdated
-      if (messagesUpdated) {
-        actions = messagesUpdatedToActions(state, messagesUpdated)
-      }
+      actions = messagesUpdatedToActions(state, activity.messagesUpdated)
       break
     }
   }
