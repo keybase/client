@@ -123,8 +123,8 @@ func (r *Runner) updateStats(ctx context.Context) {
 
 	var stats keybase1.RuntimeStats
 	stats.ProcessStats = append(stats.ProcessStats, serviceStats)
-	if serviceStats.CpuSeverity >= 20000 {
-		r.debug(ctx, "cpu severity very high, running 30s profile")
+	if serviceStats.CpuSeverity == keybase1.StatsSeverityLevel_SEVERE {
+		r.debug(ctx, "cpu severity severe, running 30s profile")
 		if err := pprof.DoTimedPprofProfileInDir(r.G().GetLog(),
 			pprof.CpuPprofProfiler{}, r.G().GetLogDir(), 30); err != nil {
 			r.debug(ctx, "failed to run cpu profile: %s", err)
@@ -179,9 +179,9 @@ func (r statsResult) Export() keybase1.ProcessRuntimeStats {
 
 func (r statsResult) cpuSeverity() keybase1.StatsSeverityLevel {
 	switch {
-	case r.TotalCPU >= 10000:
+	case r.TotalCPU >= 17500:
 		return keybase1.StatsSeverityLevel_SEVERE
-	case r.TotalCPU >= 6000:
+	case r.TotalCPU >= 10000:
 		return keybase1.StatsSeverityLevel_WARNING
 	default:
 		return keybase1.StatsSeverityLevel_NORMAL

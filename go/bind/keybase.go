@@ -7,7 +7,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
 	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -21,6 +23,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"strings"
+
+	_ "net/http/pprof"
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbfs/env"
@@ -150,6 +154,10 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		guiLogFile = logFile + ".gui"
 		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
 	}
+
+	go func() {
+		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
 	oldProcs := runtime.GOMAXPROCS(0)

@@ -103,16 +103,17 @@ func logFilesFromStatus(g *libkb.GlobalContext, fstatus *keybase1.FullStatus) Lo
 	}
 
 	return Logs{
-		GUI:      filepath.Join(logDir, libkb.GUILogFileName),
-		Kbfs:     filepath.Join(logDir, libkb.KBFSLogFileName),
-		Service:  getServiceLog(libkb.NewMetaContextTODO(g), logDir),
-		EK:       filepath.Join(logDir, libkb.EKLogFileName),
-		Updater:  filepath.Join(logDir, libkb.UpdaterLogFileName),
-		Start:    filepath.Join(logDir, libkb.StartLogFileName),
-		Git:      filepath.Join(logDir, libkb.GitLogFileName),
-		Install:  installLogPath,
-		Trace:    traceDir,
-		Watchdog: watchdogLogPath,
+		GUI:        filepath.Join(logDir, libkb.GUILogFileName),
+		Kbfs:       filepath.Join(logDir, libkb.KBFSLogFileName),
+		Service:    getServiceLog(libkb.NewMetaContextTODO(g), logDir),
+		EK:         filepath.Join(logDir, libkb.EKLogFileName),
+		Updater:    filepath.Join(logDir, libkb.UpdaterLogFileName),
+		Start:      filepath.Join(logDir, libkb.StartLogFileName),
+		Git:        filepath.Join(logDir, libkb.GitLogFileName),
+		Install:    installLogPath,
+		Trace:      traceDir,
+		CPUProfile: cpuProfileDir,
+		Watchdog:   watchdogLogPath,
 	}
 }
 

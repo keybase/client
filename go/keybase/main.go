@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -14,6 +16,8 @@ import (
 	"runtime/pprof"
 	"syscall"
 	"time"
+
+	_ "net/http/pprof"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/externals"
@@ -51,6 +55,10 @@ func main() {
 	// startup, where logging is not set up yet, to be printed later
 	// when logging is functioning.
 	var startupErrors []error
+
+	go func() {
+		log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+	}()
 
 	if err := libkb.SaferDLLLoading(); err != nil {
 		// Don't abort here. This should not happen on any known
