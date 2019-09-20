@@ -4,9 +4,35 @@ import {IconType} from '../common-adapters/icon.constants-gen'
 import Flags from '../util/feature-flags'
 import {allServices} from '../constants/team-building'
 
+const serviceColors: {[K in ServiceIdWithContact]: string} = {
+  get email() {
+    return Styles.isDarkMode ? '#3663ea' : '#3663ea'
+  },
+  get facebook() {
+    return Styles.isDarkMode ? '#3B5998' : '#3B5998'
+  },
+  get github() {
+    return Styles.isDarkMode ? '#333' : '#333'
+  },
+  get hackernews() {
+    return Styles.isDarkMode ? '#FF6600' : '#FF6600'
+  },
+  get keybase() {
+    return Styles.isDarkMode ? '#3663ea' : '#3663ea'
+  },
+  get phone() {
+    return Styles.isDarkMode ? '#3663ea' : '#3663ea'
+  },
+  get reddit() {
+    return Styles.isDarkMode ? '#ff4500' : '#ff4500'
+  },
+  get twitter() {
+    return Styles.isDarkMode ? '#1DA1F2' : '#1DA1F2'
+  },
+}
+
 const services: {
   [K in ServiceIdWithContact]: {
-    color: string
     icon: IconType
     label: string
     longLabel: Array<string>
@@ -15,7 +41,6 @@ const services: {
   }
 } = {
   email: {
-    color: '#3663ea',
     icon: 'iconfont-mention',
     label: 'Email', // TODO: rethink this for the empty state when we're actually using it
     longLabel: ['An email', 'address'],
@@ -23,35 +48,30 @@ const services: {
     wonderland: true,
   },
   facebook: {
-    color: '#3B5998',
     icon: 'iconfont-identity-facebook',
     label: 'Facebook',
     longLabel: ['A Facebook', 'user'],
     searchPlaceholder: 'Facebook',
   },
   github: {
-    color: '#333',
     icon: 'iconfont-identity-github',
     label: 'GitHub',
     longLabel: ['A GitHub', 'user'],
     searchPlaceholder: 'GitHub',
   },
   hackernews: {
-    color: '#FF6600',
     icon: 'iconfont-identity-hn',
     label: 'Hacker News',
     longLabel: ['A Hacker', 'News user'],
     searchPlaceholder: 'Hacker News',
   },
   keybase: {
-    color: '#3663ea',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
     longLabel: Styles.isMobile ? ['Keybase &', 'Contacts'] : ['A Keybase', 'user'],
     searchPlaceholder: Styles.isMobile ? 'Keybase & contacts' : 'Keybase',
   },
   phone: {
-    color: '#3663ea',
     icon: 'iconfont-number-pad',
     label: 'Phone',
     longLabel: ['A phone', 'number'],
@@ -59,14 +79,12 @@ const services: {
     wonderland: true,
   },
   reddit: {
-    color: '#ff4500',
     icon: 'iconfont-identity-reddit',
     label: 'Reddit',
     longLabel: ['A Reddit', 'user'],
     searchPlaceholder: 'Reddit',
   },
   twitter: {
-    color: '#1DA1F2',
     icon: 'iconfont-identity-twitter',
     label: 'Twitter',
     longLabel: ['A Twitter', 'user'],
@@ -74,7 +92,7 @@ const services: {
   },
 }
 
-const serviceIdToAccentColor = (service: ServiceIdWithContact): string => services[service].color
+const serviceIdToAccentColor = (service: ServiceIdWithContact): string => serviceColors[service]
 const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
 const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
 const serviceIdToLongLabel = (service: ServiceIdWithContact): Array<string> => services[service].longLabel

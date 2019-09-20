@@ -61,6 +61,9 @@ const PaperKey = () => {
     </Kb.Box2>
   )
 }
+PaperKey.navigationOptions = {
+  gesturesEnabled: false,
+}
 
 const borderWidth = 3
 

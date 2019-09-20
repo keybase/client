@@ -44,7 +44,7 @@ const defaultNavigationOptions: any = {
     ),
   headerStyle: {
     get backgroundColor() {
-      return Styles.globalColors.white
+      return Styles.globalColors.fastBlank
     },
     get borderBottomColor() {
       return Styles.globalColors.black_10

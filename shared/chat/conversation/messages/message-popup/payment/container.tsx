@@ -52,9 +52,7 @@ const commonLoadingProps = {
 
 // MessageSendPayment ===================================
 const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps) => {
-  let paymentInfo = ownProps.paymentID
-    ? state.chat2.getIn(['paymentStatusMap', ownProps.paymentID]) || null
-    : null
+  let paymentInfo = ownProps.paymentID ? state.chat2.paymentStatusMap.get(ownProps.paymentID) || null : null
   if (!paymentInfo && ownProps.message.type === 'sendPayment') {
     paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
   }

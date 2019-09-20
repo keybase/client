@@ -614,7 +614,6 @@ func TestBotMember(t *testing.T) {
 	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
 
 	kbtest.ResetAccount(*tcs[2], botua)
-	// BOT invites not supported, add support in HOTPOT-460
 	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
 	require.Error(t, err)
 

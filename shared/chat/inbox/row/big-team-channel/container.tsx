@@ -7,6 +7,7 @@ import {namedConnect, isMobile} from '../../../../util/container'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   channelname: string
+  navKey: string
 }
 
 export default namedConnect(
@@ -19,9 +20,9 @@ export default namedConnect(
       isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
     }
   },
-  (dispatch, {conversationIDKey}: OwnProps) => ({
+  (dispatch, {conversationIDKey, navKey}: OwnProps) => ({
     onSelectConversation: () =>
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxBig'})),
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxBig'})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     channelname: ownProps.channelname,

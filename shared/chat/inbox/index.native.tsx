@@ -87,6 +87,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow({
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
+        navKey: this.props.navKey,
         teamname: row.teamname,
         type: row.type,
       })

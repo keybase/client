@@ -24,6 +24,7 @@ type Props = {
   tabOverride?: Tab
   textCode: string
   onBack: () => void
+  onClose: () => void
   onSubmitTextCode: (code: string) => void
 }
 
@@ -53,6 +54,10 @@ class CodePage2 extends React.Component<Props, State> {
     if (curDefault !== prevDefault) {
       this.setState({tab: curDefault})
     }
+  }
+
+  componentWillUnmount() {
+    this.props.onClose()
   }
 
   static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
