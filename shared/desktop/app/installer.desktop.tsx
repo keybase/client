@@ -1,3 +1,4 @@
+import * as Electron from 'electron'
 import exec from './exec.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
