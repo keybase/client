@@ -1926,7 +1926,8 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 		Policy:      arg.Policy,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID, false)
+	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID,
+		false, "")
 	if err != nil {
 		return err
 	}
@@ -2549,7 +2550,7 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	}
 
 	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
-		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC, "")
 	if err != nil {
 		return err
 	}

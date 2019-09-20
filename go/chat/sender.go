@@ -228,7 +228,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 			}
 			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
 				conv.Info.Triple.Tlfid,
-				conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+				headerQ.TlfName); err != nil {
 				return err
 			} else if info.CanonicalName != teamNameParsed.String() {
 				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
@@ -856,12 +857,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	}
 
 	// Fetch the bot settings, if any
-	team, err := NewTeamLoader(s.G().ExternalG()).loadTeam(ctx, conv.Info.Triple.Tlfid,
-		conv.Info.TlfName, conv.GetMembersType(), conv.IsPublic(), nil)
-	if err != nil {
-		return nil, err
-	}
-	teamBotSettings, err := team.TeamBotSettings()
+	teamBotSettings, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).TeamBotSettings(ctx,
+		conv.Info.TlfName, conv.Info.Triple.Tlfid, conv.GetMembersType(), conv.IsPublic())
 	if err != nil {
 		return nil, err
 	}
