@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	stdpath "path"
 	"sort"
@@ -121,6 +123,8 @@ type SimpleFS struct {
 	subscriber libkbfs.Subscriber
 
 	downloadManager *downloadManager
+
+	httpClient *http.Client
 }
 
 type inprogress struct {
@@ -192,6 +196,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		idd:             libkbfs.NewImpatientDebugDumperForForcedDumps(config),
 		localHTTPServer: localHTTPServer,
 		subscriber:      config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
+		httpClient:      &http.Client{},
 	}
 	k.downloadManager = newDownloadManager(k)
 	return k
@@ -2286,23 +2291,6 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 	}, nil
 }
 
-// SimpleFSGetHTTPAddressAndToken returns a random token to be used for the
-// local KBFS http server.
-func (k *SimpleFS) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (
-	resp keybase1.SimpleFSGetHTTPAddressAndTokenResponse, err error) {
-	if k.localHTTPServer == nil {
-		return resp, errors.New("HTTP server is disabled")
-	}
-	if resp.Token, err = k.localHTTPServer.NewToken(); err != nil {
-		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
-	}
-	if resp.Address, err = k.localHTTPServer.Address(); err != nil {
-		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
-	}
-
-	return resp, nil
-}
-
 // SimpleFSUserEditHistory returns the edit history for the logged-in user.
 func (k *SimpleFS) SimpleFSUserEditHistory(ctx context.Context) (
 	res []keybase1.FSFolderEditHistory, err error) {
@@ -3021,4 +3009,56 @@ func (k *SimpleFS) SimpleFSConfigureDownload(
 	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
 	k.downloadManager.configureDownload(arg.CacheDirOverride, arg.DownloadDirOverride)
 	return nil
+}
+
+// SimpleFSGetGUIFileContext implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
+	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
+	if len(path.Path) == 0 {
+		return keybase1.GUIFileContext{}, errors.New("empty path")
+	}
+
+	if k.localHTTPServer == nil {
+		return keybase1.GUIFileContext{}, errors.New("HTTP server is disabled")
+	}
+	// Refresh the token every time. This RPC is called everytime a file is
+	// being viewed and we have a cache size of 64 so this shouldn't be a
+	// problem.
+	token, err := k.localHTTPServer.NewToken()
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+	address, err := k.localHTTPServer.Address()
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+
+	var encodedSegments []string
+	for _, segment := range strings.Split(path.Path, "/") {
+		encodedSegments = append(encodedSegments, url.PathEscape(segment))
+	}
+
+	u := url.URL{
+		Scheme:   "http",
+		Host:     address,
+		Path:     "/files" + strings.Join(encodedSegments, "/"),
+		RawQuery: "token=" + token,
+	}
+
+	r, err := http.NewRequest("HEAD", u.String(), nil)
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+	resp, err := k.httpClient.Do(r)
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+	viewType, contentType, invariance := libhttpserver.GetGUIFileContext(resp.Header)
+
+	u.RawQuery = "token=" + token + "&viewTypeInvariance=" + invariance
+	return keybase1.GUIFileContext{
+		ContentType: contentType,
+		ViewType:    viewType,
+		Url:         u.String(),
+	}, nil
 }

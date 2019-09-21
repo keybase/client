@@ -166,8 +166,9 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 		s.handleBadRequest(w)
 		return
 	}
-	http.StripPrefix(toStrip, http.FileServer(fs)).ServeHTTP(
-		newContentTypeOverridingResponseWriter(w), req)
+	wrappedW := newContentTypeOverridingResponseWriter(w,
+		req.URL.Query().Get("viewTypeInvariance"))
+	http.StripPrefix(toStrip, http.FileServer(fs)).ServeHTTP(wrappedW, req)
 }
 
 const portStart = 16723

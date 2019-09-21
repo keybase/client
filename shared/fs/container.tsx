@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import Browser from './browser/container'
@@ -13,24 +14,18 @@ import {Actions, MainBanner, MobileHeader, mobileHeaderHeight, Title} from './na
 type ChooseComponentProps = {
   emitBarePreview: () => void
   kbfsDaemonStatus: Types.KbfsDaemonStatus
-  mimeType: Types.Mime | null
   path: Types.Path
   pathType: Types.PathType
   waitForKbfsDaemon: () => void
 }
 
-const useBare = Container.isMobile
-  ? (mimeType: Types.Mime | null) => {
-      return Constants.viewTypeFromMimeType(mimeType) === Types.FileViewType.Image
-    }
-  : () => {
-      return false
-    }
-
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview, waitForKbfsDaemon} = props
 
-  const bare = useBare(props.mimeType)
+  const fileContext = Container.useSelector(state =>
+    state.fs.fileContext.get(props.path, Constants.emptyFileContext)
+  )
+  const bare = Container.isMobile && fileContext.viewType === RPCTypes.GUIViewType.image
   React.useEffect(() => {
     bare && emitBarePreview()
   }, [bare, emitBarePreview])
@@ -43,6 +38,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   }, [isConnected, waitForKbfsDaemon])
 
   Kbfs.useFsPathMetadata(props.path)
+  Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
 
@@ -60,7 +56,7 @@ const ChooseComponent = (props: ChooseComponentProps) => {
     case Types.PathType.Unknown:
       return <SimpleScreens.Loading />
     default:
-      if (!props.mimeType) {
+      if (fileContext === Constants.emptyFileContext) {
         // We don't have it yet, so don't render.
         return <SimpleScreens.Loading />
       }
@@ -127,10 +123,6 @@ const Connected = Container.namedConnect(
     return {
       emitBarePreview: () => dispatchProps._emitBarePreview(path),
       kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-      mimeType:
-        !isDefinitelyFolder && stateProps._pathItem.type === Types.PathType.File
-          ? stateProps._pathItem.mimeType
-          : null,
       path,
       pathType: isDefinitelyFolder ? Types.PathType.Folder : stateProps._pathItem.type,
       waitForKbfsDaemon: dispatchProps.waitForKbfsDaemon,

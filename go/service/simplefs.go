@@ -350,17 +350,6 @@ func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context, filter keybase
 	return cli.SimpleFSSyncStatus(ctx, filter)
 }
 
-// SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (keybase1.SimpleFSGetHTTPAddressAndTokenResponse, error) {
-	ctx, cancel := s.wrapContextWithTimeout(ctx)
-	defer cancel()
-	cli, err := s.client()
-	if err != nil {
-		return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, err
-	}
-	return cli.SimpleFSGetHTTPAddressAndToken(ctx)
-}
-
 // SimpleFSUserEditHistory implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSUserEditHistory(ctx context.Context) (
 	res []keybase1.FSFolderEditHistory, err error) {
@@ -685,4 +674,16 @@ func (s *SimpleFSHandler) SimpleFSConfigureDownload(
 		return err
 	}
 	return cli.SimpleFSConfigureDownload(ctx, arg)
+}
+
+// SimpleFSGetGUIFileContext implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetGUIFileContext(ctx context.Context,
+	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+	return cli.SimpleFSGetGUIFileContext(ctx, path)
 }

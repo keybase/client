@@ -41,38 +41,8 @@ const updatePathItem = (
       // @ts-ignore
       const oldFilePathItem: Types.FilePathItem = oldPathItem
       const newFilePathItem: Types.FilePathItem = newPathItem
-      // There are two complications in this case:
-      // 1) Most of the fields in FilePathItem are primitive types, and would
-      //    work with merge fine. The only exception is `mimeType: ?Mime` which
-      //    is a record, so we need to compare it separately.
-      // 2) Additionally, we don't always get a oldFilePathItem with the
-      //    mimeType set. The most performant way is to never over a known
-      //    mimeType into null, but if the file content changes, mimeType can
-      //    change too. So instead we compare other fields as well in this
-      //    case.
-      if (oldFilePathItem.mimeType && !newFilePathItem.mimeType) {
-        // The new one doesn't have mimeType but the old one has it. So compare
-        // other fields, and return the old one if they all match, or new one
-        // (i.e. unset known mimeType) if anything has changed.
-        return oldFilePathItem.set('mimeType', newFilePathItem.mimeType).equals(newFilePathItem)
-          ? oldFilePathItem
-          : newFilePathItem
-      }
-      if (oldFilePathItem.mimeType && newFilePathItem.mimeType) {
-        // The new one comes with mimeType, and we already know one. So compare
-        // the mimeType from both first. If they are equal in value, make sure
-        // they have the same reference before calling merge, so we can reuse
-        // the old oldFilePathItem when possible.
-        return oldFilePathItem.mimeType.equals(newFilePathItem.mimeType)
-          ? oldFilePathItem.merge(newFilePathItem.set('mimeType', oldFilePathItem.mimeType))
-          : newFilePathItem
-      }
-      // Now there are two possibilities:
-      // 1) We have mimeType in the new one but not the old one. In this case
-      //    we simply want to take it from the new one.
-      // 2) We don't have it in either of them. In this case we'll want to get
-      //    other fields from the new one if they change.
-      // Either way, this can be done with a simple merge.
+      // This returns oldPathItem if oldPathItem.equals(newPathItem), which is
+      // what we want here.
       return oldFilePathItem.merge(newFilePathItem)
     }
     case Types.PathType.Folder: {
@@ -290,8 +260,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         }
       })
     }
-    case FsGen.localHTTPServerInfo:
-      return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.favoriteIgnore: // fallthrough
     case FsGen.favoriteIgnoreError: {
       const elems = Types.getPathElements(action.payload.path)
@@ -532,6 +500,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('downloads', downloads =>
         downloads.update('info', info => info.set(action.payload.downloadID, action.payload.info))
       )
+    case FsGen.loadedFileContext:
+      return state.update('fileContext', fileContext =>
+        fileContext.update(action.payload.path, oldFileContext =>
+          action.payload.fileContext.equals(oldFileContext) ? oldFileContext : action.payload.fileContext
+        )
+      )
     case FsGen.startManualConflictResolution:
     case FsGen.finishManualConflictResolution:
     case FsGen.driverDisable:
@@ -541,7 +515,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.favoritesLoad:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.openSecurityPreferences:
-    case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
     case FsGen.saveMedia:
     case FsGen.openPathInSystemFileManager:
@@ -575,6 +548,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissDownload:
     case FsGen.finishedRegularDownload:
     case FsGen.finishedDownloadWithIntent:
+    case FsGen.loadFileContext:
     case FsGen.setDebugLevel:
       return state
     default:

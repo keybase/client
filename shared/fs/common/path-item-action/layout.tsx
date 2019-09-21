@@ -46,6 +46,7 @@ const getRawLayout = (
   mode: 'row' | 'screen',
   path: Types.Path,
   pathItem: Types.PathItem,
+  fileContext: Types.FileContext,
   me: string
 ): Layout => {
   const parsedPath = Constants.parsePath(path)
@@ -87,7 +88,8 @@ const getRawLayout = (
         delete: pathItem.writable,
         download: pathItem.type === Types.PathType.File && !isIOS,
         moveOrCopy: true,
-        saveMedia: isMobile && pathItem.type === Types.PathType.File && Constants.canSaveMedia(pathItem),
+        saveMedia:
+          isMobile && pathItem.type === Types.PathType.File && Constants.canSaveMedia(pathItem, fileContext),
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
@@ -122,15 +124,22 @@ export const getRootLayout = (
   mode: 'row' | 'screen',
   path: Types.Path,
   pathItem: Types.PathItem,
+  fileContext: Types.FileContext,
   me: string
-): Layout => consolidateShares(getRawLayout(mode, path, pathItem, me))
+): Layout => consolidateShares(getRawLayout(mode, path, pathItem, fileContext, me))
 
 export const getShareLayout = (
   mode: 'row' | 'screen',
   path: Types.Path,
   pathItem: Types.PathItem,
+  fileContext: Types.FileContext,
   me: string
-): Layout => filterForOnlyShares(getRawLayout(mode, path, pathItem, me))
+): Layout => filterForOnlyShares(getRawLayout(mode, path, pathItem, fileContext, me))
 
-export const hasShare = (mode: 'row' | 'screen', path: Types.Path, pathItem: Types.PathItem): boolean =>
-  totalShare(getRawLayout(mode, path, pathItem, '' /* username doesn't matter for shares */)) > 0
+export const hasShare = (
+  mode: 'row' | 'screen',
+  path: Types.Path,
+  pathItem: Types.PathItem,
+  fileContext: Types.FileContext
+): boolean =>
+  totalShare(getRawLayout(mode, path, pathItem, fileContext, '' /* username doesn't matter for shares */)) > 0

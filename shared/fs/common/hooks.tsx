@@ -133,6 +133,20 @@ export const useFsDownloadStatus = () => {
   }, [dispatch])
 }
 
+export const useFsFileContext = (path: Types.Path) => {
+  const dispatch = useDispatchWhenConnected()
+  const pathItem = Container.useSelector(state => state.fs.pathItems.get(path, Constants.unknownPathItem))
+  React.useEffect(() => {
+    pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
+  }, [
+    dispatch,
+    path,
+    // Intentionally depend on pathItem instead of only pathItem.type so we
+    // load when timestamp changes.
+    pathItem,
+  ])
+}
+
 export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
       const dlState = Container.useSelector(state =>
@@ -141,11 +155,10 @@ export const useFsWatchDownloadForMobile = isMobile
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
 
       const dlInfo = useFsDownloadInfo(downloadID)
-      const pathItem = Container.useSelector(state =>
-        state.fs.pathItems.get(dlInfo.path, Constants.unknownPathItem)
-      )
-      const mimeType =
-        (pathItem.type === Types.PathType.File && pathItem.mimeType && pathItem.mimeType.mimeType) || ''
+      useFsFileContext(dlInfo.path)
+      const mimeType = Container.useSelector(state =>
+        state.fs.fileContext.get(dlInfo.path, Constants.emptyFileContext)
+      ).contentType
 
       const dispatch = useDispatchWhenConnected()
       React.useEffect(() => {

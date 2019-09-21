@@ -3,7 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import Footer from '../footer/footer'
-import View from './view-container'
+import View from './view'
 import {PathItemAction} from '../common'
 
 type Props = {

@@ -189,11 +189,6 @@ func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context, filter keybase1.Li
 	return keybase1.FSSyncStatus{}, nil
 }
 
-// SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (keybase1.SimpleFSGetHTTPAddressAndTokenResponse, error) {
-	return keybase1.SimpleFSGetHTTPAddressAndTokenResponse{}, nil
-}
-
 // SimpleFSUserEditHistory implements the SimpleFSInterface.
 func (s SimpleFSMock) SimpleFSUserEditHistory(ctx context.Context) (
 	res []keybase1.FSFolderEditHistory, err error) {
@@ -353,6 +348,11 @@ func (s SimpleFSMock) SimpleFSGetDownloadInfo(
 func (s SimpleFSMock) SimpleFSConfigureDownload(
 	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
 	return nil
+}
+
+func (s SimpleFSMock) SimpleFSGetGUIFileContext(ctx context.Context,
+	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
+	return keybase1.GUIFileContext{}, nil
 }
 
 /*

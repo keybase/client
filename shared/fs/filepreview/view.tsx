@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as Container from '../../util/container'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
@@ -9,108 +11,96 @@ import AVView from './av-view'
 import * as Kb from '../../common-adapters'
 
 type Props = {
-  lastModifiedTimestamp: number
-  mime?: Types.Mime | null
-  onLoadingStateChange: (arg0: boolean) => void
   path: Types.Path
-  type: Types.PathType
-  tooLargeForText: boolean
-  url: string
+  onLoadingStateChange: (isLoading: boolean) => void
 }
 
-type State = {
-  loadedLastModifiedTimestamp: number
-}
+const textViewUpperLimit = 10 * 1024 * 1024 // 10MB
 
-export default class FilePreviewView extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      loadedLastModifiedTimestamp: this.props.lastModifiedTimestamp,
-    }
-  }
-  _reload = () => {
-    this.setState({
-      loadedLastModifiedTimestamp: this.props.lastModifiedTimestamp,
-    })
-  }
+const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
+  const pathItem = Container.useSelector(state => {
+    return state.fs.pathItems.get(path, Constants.unknownPathItem)
+  })
+  const [loadedLastModifiedTimestamp, setLoadedLastModifiedTimestamp] = React.useState(
+    pathItem.lastModifiedTimestamp
+  )
+  const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
+  const tooLargeForText = pathItem.type === Types.PathType.File && pathItem.size > textViewUpperLimit
 
-  componentDidUpdate(prevProps: Props) {
-    // If path changes we need to reset loadedLastModifiedTimestamp. This
-    // probalby never happens since we don't navigate from one file to another
-    // directly (i.e. without unmounting) in file-preview, but just in case.
-    this.props.path !== prevProps.path && this._reload()
+  const fileContext = Container.useSelector(state =>
+    state.fs.fileContext.get(path, Constants.emptyFileContext)
+  )
+
+  if (pathItem.type === Types.PathType.Symlink) {
+    return <DefaultView path={path} />
   }
 
-  render() {
-    if (this.props.type === Types.PathType.Symlink) {
-      return <DefaultView path={this.props.path} />
-    }
+  if (pathItem.type !== Types.PathType.File) {
+    return <Kb.Text type="BodySmallError">This shouldn't happen type={pathItem.type}</Kb.Text>
+  }
 
-    if (this.props.type !== Types.PathType.File) {
-      return <Kb.Text type="BodySmallError">This shouldn't happen type={this.props.type}</Kb.Text>
-    }
-
-    if (!this.props.mime) {
-      // We are still loading this.props.pathItem.mime which is needed to
-      // determine which component to use.
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-          <Kb.Text type="BodySmall">Loading ...</Kb.Text>
-        </Kb.Box2>
-      )
-    }
-
-    const reloadBanner = this.state.loadedLastModifiedTimestamp !== this.props.lastModifiedTimestamp && (
-      <Kb.Box style={styles.bannerContainer}>
-        <Kb.Banner color="blue" style={styles.banner}>
-          <Kb.BannerParagraph
-            bannerColor="blue"
-            content={['The content of this file has updated. ', {onClick: this._reload, text: 'Reload'}, '.']}
-          />
-        </Kb.Banner>
-      </Kb.Box>
+  if (fileContext === Constants.emptyFileContext) {
+    // We are still loading fileContext which is needed to determine which
+    // component to use.
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+        <Kb.Text type="BodySmall">Loading ...</Kb.Text>
+      </Kb.Box2>
     )
+  }
 
-    // Electron caches <img> aggressively and doesn't really probe server to
-    // find out if resource has updated. So embed timestamp into URL to force
-    // a reload when needed.
-    const url = this.props.url + `&unused_field_ts=${this.state.loadedLastModifiedTimestamp}`
+  const reloadBanner = loadedLastModifiedTimestamp !== pathItem.lastModifiedTimestamp && (
+    <Kb.Box style={styles.bannerContainer}>
+      <Kb.Banner color="blue" style={styles.banner}>
+        <Kb.BannerParagraph
+          bannerColor="blue"
+          content={['The content of this file has updated. ', {onClick: reload, text: 'Reload'}, '.']}
+        />
+      </Kb.Banner>
+    </Kb.Box>
+  )
 
-    switch (Constants.viewTypeFromMimeType(this.props.mime)) {
-      case Types.FileViewType.Default:
-        return <DefaultView path={this.props.path} />
-      case Types.FileViewType.Text:
-        return this.props.tooLargeForText ? (
-          <DefaultView path={this.props.path} />
-        ) : (
-          <>
-            {reloadBanner}
-            <TextView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
-          </>
-        )
-      case Types.FileViewType.Image:
-        return (
-          <>
-            {reloadBanner}
-            <ImageView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
-          </>
-        )
-      case Types.FileViewType.Av:
-        return (
-          <>
-            {reloadBanner}
-            <AVView url={url} onLoadingStateChange={this.props.onLoadingStateChange} />
-          </>
-        )
-      case Types.FileViewType.Pdf:
-        // Security risks to links in PDF viewing. See DESKTOP-6888.
-        return <DefaultView path={this.props.path} />
-      default:
-        return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
-    }
+  // Electron caches <img> aggressively and doesn't really probe server to
+  // find out if resource has updated. So embed timestamp into URL to force a
+  // reload when needed.
+  const url = fileContext.url + `&unused_field_ts=${loadedLastModifiedTimestamp}`
+
+  switch (fileContext.viewType) {
+    case RPCTypes.GUIViewType.default:
+      return <DefaultView path={path} />
+    case RPCTypes.GUIViewType.text:
+      return tooLargeForText ? (
+        <DefaultView path={path} />
+      ) : (
+        <>
+          {reloadBanner}
+          <TextView url={url} onLoadingStateChange={onLoadingStateChange} />
+        </>
+      )
+    case RPCTypes.GUIViewType.image:
+      return (
+        <>
+          {reloadBanner}
+          <ImageView url={url} onLoadingStateChange={onLoadingStateChange} />
+        </>
+      )
+    case RPCTypes.GUIViewType.audio:
+    case RPCTypes.GUIViewType.video:
+      return (
+        <>
+          {reloadBanner}
+          <AVView url={url} onLoadingStateChange={onLoadingStateChange} />
+        </>
+      )
+    case RPCTypes.GUIViewType.pdf:
+      // Security risks to links in PDF viewing. See DESKTOP-6888.
+      return <DefaultView path={path} />
+    default:
+      return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
   }
 }
+
+export default FilePreviewView
 
 const styles = Styles.styleSheetCreate(
   () =>

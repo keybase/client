@@ -23,10 +23,6 @@ const state0 = Constants.makeState({
     [file0Path || '']: Constants.makeFile({
       lastModifiedTimestamp: 1,
       lastWriter: 'foo',
-      mimeType: Constants.makeMime({
-        displayPreview: true,
-        mimeType: 'text/plain',
-      }),
       name: 'file0',
     }),
     [folder0Path || '']: Constants.makeFolder({
@@ -44,21 +40,6 @@ const state0 = Constants.makeState({
 })
 
 describe('fs reducer', () => {
-  test('pathItemLoaded: reuse old pathItem even if new one lacks mimeType', () => {
-    const state1 = reducer(
-      state0,
-      FsGen.createPathItemLoaded({
-        path: file0Path,
-        pathItem: Constants.makeFile({
-          lastModifiedTimestamp: 1,
-          lastWriter: 'foo',
-          name: 'file0',
-        }),
-      })
-    )
-    expect(state1.pathItems).toBe(state0.pathItems)
-  })
-
   test('pathItemLoaded: reuse old pathItem if new one remains the same', () => {
     const state1 = reducer(
       state0,
@@ -67,33 +48,11 @@ describe('fs reducer', () => {
         pathItem: Constants.makeFile({
           lastModifiedTimestamp: 1,
           lastWriter: 'foo',
-          mimeType: Constants.makeMime({
-            displayPreview: true,
-            mimeType: 'text/plain',
-          }),
           name: 'file0',
         }),
       })
     )
     expect(state1.pathItems).toBe(state0.pathItems)
-  })
-
-  test('pathItemLoaded: unset mimeType when other metadata changes', () => {
-    const newPathItem = Constants.makeFile({
-      lastModifiedTimestamp: 2,
-      lastWriter: 'foo',
-      name: 'file0',
-      size: 1,
-    })
-    const state1 = reducer(
-      state0,
-      FsGen.createPathItemLoaded({
-        path: file0Path,
-        pathItem: newPathItem,
-      })
-    )
-    expect(state1.pathItems).not.toBe(state0.pathItems)
-    expect(state1.pathItems.get(file0Path)).toBe(newPathItem)
   })
 
   test('pathItemLoaded: pending folder should not over ride loaded children', () => {

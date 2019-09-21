@@ -21,6 +21,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _downloadID: state.fs.pathItemActionMenu.downloadID,
   _downloads: state.fs.downloads,
+  _fileContext: state.fs.fileContext.get(path, Constants.emptyFileContext),
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _pathItemActionMenu: state.fs.pathItemActionMenu,
   _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
@@ -156,7 +157,13 @@ const mergeProps = (
 ) => {
   const getLayout = stateProps._view === 'share' ? getShareLayout : getRootLayout
   const {mode, ...rest} = ownProps
-  const layout = getLayout(mode, ownProps.path, stateProps._pathItem, stateProps._username)
+  const layout = getLayout(
+    mode,
+    ownProps.path,
+    stateProps._pathItem,
+    stateProps._fileContext,
+    stateProps._username
+  )
   const c = action =>
     isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadID) : action
   return {

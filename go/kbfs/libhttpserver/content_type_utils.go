@@ -5,20 +5,26 @@
 package libhttpserver
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type contentTypeOverridingResponseWriter struct {
-	original http.ResponseWriter
+	original           http.ResponseWriter
+	viewTypeInvariance string
 }
 
 var _ http.ResponseWriter = (*contentTypeOverridingResponseWriter)(nil)
 
 func newContentTypeOverridingResponseWriter(
-	original http.ResponseWriter) *contentTypeOverridingResponseWriter {
+	original http.ResponseWriter, viewTypeInvariance string) *contentTypeOverridingResponseWriter {
 	return &contentTypeOverridingResponseWriter{
-		original: original,
+		original:           original,
+		viewTypeInvariance: viewTypeInvariance,
 	}
 }
 
@@ -88,18 +94,89 @@ func (w *contentTypeOverridingResponseWriter) override() {
 	w.original.Header().Set("X-Content-Type-Options", "nosniff")
 }
 
+func (w *contentTypeOverridingResponseWriter) checkViewTypeInvariance() error {
+	if len(w.viewTypeInvariance) == 0 {
+		return nil
+	}
+	if _, _, i := GetGUIFileContext(w.original.Header()); i == w.viewTypeInvariance {
+		return nil
+	}
+	w.original.WriteHeader(http.StatusPreconditionFailed)
+	return errors.New("viewTypeInvariance doesn't match")
+}
+
 func (w *contentTypeOverridingResponseWriter) Header() http.Header {
 	return w.original.Header()
 }
 
 func (w *contentTypeOverridingResponseWriter) WriteHeader(statusCode int) {
 	w.override()
+	if err := w.checkViewTypeInvariance(); err != nil {
+		return
+	}
 	w.original.WriteHeader(statusCode)
 }
 
 func (w *contentTypeOverridingResponseWriter) Write(data []byte) (int, error) {
 	w.override()
+	if err := w.checkViewTypeInvariance(); err != nil {
+		return 0, err
+	}
 	return w.original.Write(data)
+}
+
+func beforeSemicolon(str string) string {
+	semicolonIndex := strings.Index(str, ";")
+	if semicolonIndex > 0 {
+		str = str[:semicolonIndex]
+	}
+	return strings.ToLower(strings.TrimSpace(str))
+}
+
+var supportedImgMimeTypes = map[string]bool{
+	"image/png":  true,
+	"image/jpeg": true,
+	"image/gif":  true,
+	"image/webp": true,
+}
+
+func getGetGUIFileContextReturnType(
+	viewType keybase1.GUIViewType, contentType string) (
+	keybase1.GUIViewType, string, string) {
+	return viewType, contentType, strconv.Itoa(int(keybase1.GUIViewType_DEFAULT))
+}
+
+// GetGUIFileContext returns necessary data used by GUI for displaying file
+// previews.
+//
+// The invariance here is derived from viewType, and later added into the url
+// returned to GUI. When a file is requested from the the http server and an
+// invariance field is specified, we make sure the viewType of the file we
+// serve satisfies the invariance provided. This makes sure the viewType
+// doesn't change between when GUI learnt about it and when GUI requested it
+// over HTTP from the webview.
+func GetGUIFileContext(header http.Header) (
+	viewType keybase1.GUIViewType, contentType string, invariance string) {
+	contentTypeRaw := header.Get("Content-Type")
+	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
+	disposition := beforeSemicolon(header.Get("Content-Disposition"))
+	if disposition == "attachment" {
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_DEFAULT, contentTypeRaw)
+	}
+	switch {
+	case contentTypeProcessed == "text/plain":
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_TEXT, contentTypeRaw)
+	case supportedImgMimeTypes[contentTypeProcessed]:
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_IMAGE, contentTypeRaw)
+	case strings.HasPrefix(contentTypeProcessed, "audio/"):
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_AUDIO, contentTypeRaw)
+	case strings.HasPrefix(contentTypeProcessed, "video/"):
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_VIDEO, contentTypeRaw)
+	case contentTypeProcessed == "application/pdf":
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_PDF, contentTypeRaw)
+	default:
+		return getGetGUIFileContextReturnType(keybase1.GUIViewType_DEFAULT, contentTypeRaw)
+	}
 }
 
 var additionalMimeTypes = map[string]string{
