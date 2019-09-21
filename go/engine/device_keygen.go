@@ -267,6 +267,10 @@ func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 	if e.runErr != nil {
 		return
 	}
+	if e.args.DeviceType == libkb.DeviceTypePaper {
+		m.Debug("Not writing out paper key to local storage")
+		return
+	}
 	if e.runErr = e.naclSignGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
