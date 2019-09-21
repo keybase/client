@@ -4,7 +4,7 @@
           \__\__/\____/\_____/__/ ____  ___
                 / _/ /    \    \ /  _ \/ _/
                /  \_/   / /   \ \   __/  \__
-               \____/____/\_____/_____/____/v1.0.2
+               \____/____/\_____/_____/____/v1.0.3
 
 Description:
 ============
@@ -597,7 +597,7 @@ The encoding flow looks like:
   // Setup a config, starting form a preset and tuning some additional
   // parameters
   WebPConfig config;
-  if (!WebPConfigPreset(&config, WEBP_PRESET_PHOTO, quality_factor))
+  if (!WebPConfigPreset(&config, WEBP_PRESET_PHOTO, quality_factor)) {
     return 0;   // version error
   }
   // ... additional tuning

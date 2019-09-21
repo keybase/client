@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/SDWebImagePrefetcher.h
+../../../SDWebImage/SDWebImage/Core/SDWebImagePrefetcher.h
