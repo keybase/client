@@ -127,16 +127,17 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
 
-// KB: Returns minutes from January 1 2016
-def Integer timestamp() {
-    def minutesSinceEpoch = (new Date()).getTime()/(1000 * 60)
-    def cal = new GregorianCalendar()
-    cal.clear()
-    cal.set(2016,0,1)
-    def minutesJan2016 = cal.getTimeInMillis()/(1000 * 60)
-
-    return minutesSinceEpoch - minutesJan2016 + 4200000 // This is to fix an accidental bumping of the code
+// KB: Number of commits, like ios
+def Integer getVersionCode() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-list', 'HEAD', '--count'
+        standardOutput = stdout
+    }
+    return Integer.parseInt(stdout.toString().trim()) + 10316799 // plus bump it so its above the old version code
 }
+
+project.logger.lifecycle('Version code: ' + getVersionCode().toString())
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -152,7 +153,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
     // KB:
-        versionCode timestamp()
+        versionCode getVersionCode()
     // KB:
         versionName VERSION_NAME
     // KB: our binary is too big
@@ -225,8 +226,8 @@ android {
             def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
+                output.versionCodeOverride = getVersionCode()
+                        // versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
             }
         }
     }
