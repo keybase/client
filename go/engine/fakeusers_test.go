@@ -24,7 +24,12 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 			return err
 		}
 
-		if err := s.join(m, username, email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
+		if err := s.join(m, SignupEngineRunArg{
+			Username:   username,
+			Email:      email,
+			InviteCode: libkb.TestInvitationCode,
+			SkipMail:   true,
+		}); err != nil {
 			return err
 		}
 		m = m.CommitProvisionalLogin()
@@ -59,7 +64,12 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	m = m.WithNewProvisionalLoginContext()
 	err := s.genPassphraseStream(m, fu.Passphrase, false /* randomPW */)
 	require.NoError(t, err)
-	err = s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */)
+	err = s.join(m, SignupEngineRunArg{
+		Username:   fu.Username,
+		Email:      fu.Email,
+		InviteCode: libkb.TestInvitationCode,
+		SkipMail:   true,
+	})
 	require.NoError(t, err)
 	err = s.fakeLKS(m)
 	require.NoError(t, err)
@@ -110,7 +120,12 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
+		if err := s.join(m, SignupEngineRunArg{
+			Username:   fu.Username,
+			Email:      fu.Email,
+			InviteCode: libkb.TestInvitationCode,
+			SkipMail:   true,
+		}); err != nil {
 			return err
 		}
 
@@ -154,7 +169,12 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 			return err
 		}
 
-		if err := s.join(m, fu.Username, fu.Email, libkb.TestInvitationCode, true /* skipMail */, false /* randomPW */); err != nil {
+		if err := s.join(m, SignupEngineRunArg{
+			Username:   fu.Username,
+			Email:      fu.Email,
+			InviteCode: libkb.TestInvitationCode,
+			SkipMail:   true,
+		}); err != nil {
 			t.Fatal(err)
 		}
 

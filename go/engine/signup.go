@@ -142,7 +142,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		}
 	}
 
-	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail, s.arg.GenerateRandomPassphrase); err != nil {
+	if err = s.join(m, *s.arg); err != nil {
 		return err
 	}
 
@@ -256,7 +256,7 @@ func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase strin
 	return nil
 }
 
-func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool, randomPW bool) error {
+func (s *SignupEngine) join(m libkb.MetaContext, arg SignupEngineRunArg) error {
 	m.Debug("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(m.G())
 
@@ -265,18 +265,19 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 		return err
 	}
 
-	arg := SignupJoinEngineRunArg{
-		Username:    username,
-		Email:       email,
-		InviteCode:  inviteCode,
+	jarg := SignupJoinEngineRunArg{
+		Username:    arg.Username,
+		Email:       arg.Email,
+		InviteCode:  arg.InviteCode,
 		PWHash:      s.ppStream.PWHash(),
 		PWSalt:      s.pwsalt,
-		RandomPW:    randomPW,
-		SkipMail:    skipMail,
+		RandomPW:    arg.GenerateRandomPassphrase,
+		SkipMail:    arg.SkipMail,
 		PDPKA5KID:   pdpkda5kid,
-		VerifyEmail: s.arg != nil && s.arg.VerifyEmail,
+		VerifyEmail: arg.VerifyEmail,
+		Bot:         arg.Bot,
 	}
-	res := joinEngine.Run(m, arg)
+	res := joinEngine.Run(m, jarg)
 	if res.Err != nil {
 		return res
 	}
