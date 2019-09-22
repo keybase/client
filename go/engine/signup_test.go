@@ -5,6 +5,8 @@ package engine
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -399,6 +401,22 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
+func assertNoFiles(t *testing.T, dir string, files []string) {
+	err := filepath.Walk(dir,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			for _, f := range files {
+				require.NotEqual(t, f, filepath.Base(path))
+
+			}
+			return nil
+		},
+	)
+	require.NoError(t, err)
+}
+
 func TestBotSignup(t *testing.T) {
 	tc := SetupEngineTest(t, "signup_nopw")
 	defer tc.Cleanup()
@@ -440,4 +458,10 @@ func TestBotSignup(t *testing.T) {
 	trackAlice(tc, fu, 2)
 	err = m.LogoutAndDeprovisionIfRevoked()
 	require.NoError(t, err)
+
+	assertNoFiles(t, tc.G.Env.GetConfigDir(),
+		[]string{
+			"config.json",
+			filepath.Base(tc.G.SKBFilenameForUser(libkb.NewNormalizedUsername(fu.Username))),
+		})
 }
