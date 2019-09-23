@@ -99,11 +99,11 @@ const UserResult = (props: Props) => {
   )
 }
 
-const AvatarSize = 48
+const avatarSize = 48
 const dotSeparator = '•'
 
 const isPreExistingTeamMemberText = (prettyName: string) =>
-  `${prettyName ? prettyName + ` ${dotSeparator} ` : ''} Already in team`
+  `${prettyName ? prettyName + ` ${dotSeparator} ` : ''}Already in team`
 
 const textWithConditionalSeparator = (text: string, conditional: boolean) =>
   `${text}${conditional ? ` ${dotSeparator}` : ''}`
@@ -116,14 +116,14 @@ const Avatar = ({
   resultForService: Types.ServiceIdWithContact
 }) => {
   if (keybaseUsername) {
-    return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
+    return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
-    return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
+    return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (
     <Kb.Icon
-      fontSize={AvatarSize}
+      fontSize={avatarSize}
       type={serviceIdToIconFont(resultForService)}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
