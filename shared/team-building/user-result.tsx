@@ -33,7 +33,7 @@ export type Props = {
  *    Bottom: "{keybaseUsername} • {prettyName} • {services icons}"
  *
  *    {keybaseUsername} if the user is also a keybase user
- *    {prettyName} if the user added it
+ *    {prettyName} if the user added it. Can fallback to username if no prettyName is set
  *    {service icons} if the user has proofs
  */
 const UserResult = (props: Props) => {
@@ -141,7 +141,7 @@ const ServicesIcons = (props: {
   const serviceIds = serviceMapToArray(props.services)
   // When the result is from a non-keybase service, we could have:
   //  1. keybase username
-  //  2. pretty name or display label
+  //  2. pretty name or display label. prettyName can fallback to username if no prettyName is set.
   //
   // When the result is from the keybase service, we could have:
   //  1. pretty name or display name
@@ -180,10 +180,11 @@ const ServicesIcons = (props: {
 const FormatPrettyName = (props: {
   displayLabel: string
   prettyName: string
+  username: string
   services: Array<Types.ServiceIdWithContact>
   showServicesIcons: boolean
 }) =>
-  props.prettyName ? (
+  props.prettyName && props.prettyName !== props.username ? (
     <Kb.Text type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
@@ -238,6 +239,7 @@ const BottomRow = (props: {
             <FormatPrettyName
               displayLabel={props.displayLabel}
               prettyName={props.prettyName}
+              username={props.username}
               services={serviceMapToArray(props.services)}
               showServicesIcons={showServicesIcons}
             />
