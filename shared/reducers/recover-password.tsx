@@ -28,11 +28,15 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       })
     case RecoverPasswordGen.setPaperKeyError:
       return state.merge({
-        paperKeyError: new HiddenString(action.payload.error),
+        paperKeyError: action.payload.error,
+      })
+    case RecoverPasswordGen.setPasswordError:
+      return state.merge({
+        passwordError: action.payload.error,
       })
     case RecoverPasswordGen.displayError:
       return state.merge({
-        error: new HiddenString(action.payload.error),
+        error: action.payload.error,
       })
     default:
       return state

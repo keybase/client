@@ -11,6 +11,7 @@ export type _State = {
     type: RPCTypes.DeviceType
   }
   paperKeyError: HiddenString
+  passwordError: HiddenString
   username: string
 }
 
