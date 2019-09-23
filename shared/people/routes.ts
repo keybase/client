@@ -1,5 +1,6 @@
 import PeopleRoot from './container'
 import AccountSwitcher from '../router-v2/account-switcher/container'
+import TeamBuilder from '../team-building/container'
 
 export const newRoutes = {
   accountSwitcher: {
@@ -8,4 +9,6 @@ export const newRoutes = {
   peopleRoot: {getScreen: (): typeof PeopleRoot => require('./container').default},
 }
 
-export const newModalRoutes = {}
+export const newModalRoutes = {
+  peopleTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
+}

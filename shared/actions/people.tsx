@@ -6,6 +6,7 @@ import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 
@@ -163,6 +164,15 @@ const connected = async () => {
   }
 }
 
+function* peopleTeamBuildingSaga() {
+  yield* commonTeamBuildingSaga('people')
+  // TODO hok up
+  // yield* Saga.chainAction2(
+  // TeamBuildingGen.finishedTeamBuilding,
+  // filterForNs('people', createConversationFromTeamBuilder)
+  // )
+}
+
 const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
@@ -170,6 +180,7 @@ const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   yield* Saga.chainAction2(EngineGen.connected, connected)
+  yield* peopleTeamBuildingSaga()
 }
 
 export default peopleSaga

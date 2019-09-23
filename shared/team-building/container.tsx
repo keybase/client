@@ -39,6 +39,7 @@ type OwnProps = {
   changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
   showServiceResultCount: boolean
+  title: string
 }
 
 type LocalState = {
@@ -541,7 +542,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = rolePickerProps ? `Add to ${ownProps.teamname}` : 'New chat'
+  const title = ownProps.title
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
@@ -631,7 +632,11 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
   Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname?: string}>
+type RealOwnProps = Container.RouteProps<{
+  namespace: Types.AllowedNamespace
+  teamname?: string
+  title: string
+}>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
@@ -679,6 +684,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
+        title={Container.getRouteProps(this.props, 'title', '')}
       />
     )
   }

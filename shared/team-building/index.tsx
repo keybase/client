@@ -457,7 +457,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   render() {
     const props = this.props
 
-    let content
+    let content: React.ReactNode
     switch (props.selectedService) {
       case 'email':
         content = (
@@ -589,9 +589,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
-      bannerIcon: {
-        maxHeight: 112,
-      },
+      bannerIcon: {maxHeight: 112},
       bannerText: {
         flexWrap: 'wrap',
         marginTop: Styles.globalMargins.tiny,
@@ -614,16 +612,12 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       emptyContainer: Styles.platformStyles({
-        common: {
-          flex: 1,
-        },
+        common: {flex: 1},
         isElectron: {
           maxWidth: 290,
           paddingBottom: 40,
         },
-        isMobile: {
-          maxWidth: '80%',
-        },
+        isMobile: {maxWidth: '80%'},
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {
@@ -636,14 +630,10 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.xsmall,
       },
       list: Styles.platformStyles({
-        common: {
-          paddingBottom: Styles.globalMargins.small,
-        },
+        common: {paddingBottom: Styles.globalMargins.small},
       }),
       listContentContainer: Styles.platformStyles({
-        isMobile: {
-          paddingTop: Styles.globalMargins.xtiny,
-        },
+        isMobile: {paddingTop: Styles.globalMargins.xtiny},
       }),
       loadingContainer: {
         flex: 1,

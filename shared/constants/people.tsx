@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
+import * as TeamBuildingConstants from './team-building'
 import {invert} from 'lodash-es'
 import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
@@ -317,6 +318,7 @@ export const makeState = I.Record<Types._State>({
   newItems: I.List(),
   oldItems: I.List(),
   resentEmail: '',
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   version: -1,
 })
 

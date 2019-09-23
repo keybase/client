@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import {TeamRoleType} from './teams'
 import {ServiceId} from '../../util/platforms'
 
-export type AllowedNamespace = 'chat2' | 'teams'
+export type AllowedNamespace = 'chat2' | 'teams' | 'people'
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 export type ServiceId = ServiceId
 
