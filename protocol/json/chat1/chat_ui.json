@@ -1783,7 +1783,7 @@
           "type": "int"
         },
         {
-          "name": "conv",
+          "name": "convs",
           "type": "string"
         }
       ],

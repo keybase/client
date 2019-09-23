@@ -143,21 +143,6 @@ func (h *Server) setResultRateLimit(ctx context.Context, res types.RateLimitedRe
 	res.SetRateLimits(globals.CtxRateLimits(ctx))
 }
 
-func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
-	p *chat1.Pagination, offline bool) (res chat1.UnverifiedInboxUIItems, err error) {
-	for _, rawConv := range convs {
-		if len(rawConv.Conv.MaxMsgSummaries) == 0 {
-			h.Debug(ctx, "presentUnverifiedInbox: invalid convo, no max msg summaries, skipping: %s",
-				rawConv.Conv.GetConvID())
-			continue
-		}
-		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), rawConv))
-	}
-	res.Pagination = utils.PresentPagination(p)
-	res.Offline = offline
-	return res, err
-}
-
 func (h *Server) suspendBgConvLoads(ctx context.Context) func() {
 	return utils.SuspendComponents(ctx, h.G(), []types.Suspendable{
 		h.G().ConvLoader,
@@ -182,163 +167,11 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		}
 	}()
 	defer h.suspendBgConvLoads(ctx)()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
+
+	if err := h.G().UIInboxLoader.LoadNonblock(ctx, arg.Query, arg.Pagination, arg.MaxUnbox,
+		arg.SkipUnverified); err != nil {
 		return res, err
 	}
-	// Retry helpers
-	retryInboxLoad := func() {
-		h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), arg.Query, arg.Pagination))
-	}
-	retryConvLoad := func(convID chat1.ConversationID, tlfID *chat1.TLFID) {
-		h.G().FetchRetrier.Failure(ctx, uid, NewConversationRetry(h.G(), convID, tlfID, InboxLoad))
-	}
-	defer func() {
-		// handle errors on the main processing thread, any errors during localizaton are handled
-		// in the goroutine for localization callbacks
-		if err != nil {
-			if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
-				h.Debug(ctx, "GetInboxNonblockLocal: failed to load convID query, retrying all convs")
-				for _, convID := range arg.Query.ConvIDs {
-					retryConvLoad(convID, nil)
-				}
-			} else {
-				h.Debug(ctx, "GetInboxNonblockLocal: failed to load general query, retrying")
-				retryInboxLoad()
-			}
-		}
-	}()
-
-	// Create localized conversation callback channel
-	chatUI := h.getChatUI(arg.SessionID)
-
-	// Invoke nonblocking inbox read and get remote inbox version to send back
-	// as our result
-	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerNonblocking,
-		types.InboxSourceDataSourceAll, arg.MaxUnbox, arg.Query, arg.Pagination)
-	if err != nil {
-		return res, err
-	}
-
-	// Wait for inbox to get sent to us
-	var lres types.AsyncInboxResult
-	if arg.SkipUnverified {
-		select {
-		case lres = <-localizeCb:
-			h.Debug(ctx, "GetInboxNonblockLocal: received unverified inbox, skipping send")
-		case <-time.After(time.Minute):
-			return res, fmt.Errorf("timeout waiting for inbox result")
-		case <-ctx.Done():
-			h.Debug(ctx, "GetInboxNonblockLocal: context canceled waiting for unverified (skip): %s")
-			return res, ctx.Err()
-		}
-	} else {
-		select {
-		case lres = <-localizeCb:
-			if lres.InboxRes == nil {
-				return res, fmt.Errorf("invalid conversation localize callback received")
-			}
-			uires, err := h.presentUnverifiedInbox(ctx, lres.InboxRes.ConvsUnverified,
-				lres.InboxRes.Pagination, h.G().InboxSource.IsOffline(ctx))
-			if err != nil {
-				h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
-				return res, err
-			}
-			jbody, err := json.Marshal(uires)
-			if err != nil {
-				h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON up unverified inbox: %s", err.Error())
-				return res, err
-			}
-			start := time.Now()
-			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: num convs: %d bytes: %d",
-				len(lres.InboxRes.ConvsUnverified), len(jbody))
-			if err := chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
-				SessionID: arg.SessionID,
-				Inbox:     string(jbody),
-			}); err != nil {
-				h.Debug(ctx, "GetInboxNonblockLocal: failed to send unverfified inbox: %s", err)
-				return res, err
-			}
-			h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v",
-				time.Since(start))
-		case <-time.After(time.Minute):
-			return res, fmt.Errorf("timeout waiting for inbox result")
-		case <-ctx.Done():
-			h.Debug(ctx, "GetInboxNonblockLocal: context canceled waiting for unverified")
-			return res, ctx.Err()
-		}
-	}
-
-	// Consume localize callbacks and send out to UI.
-	var wg sync.WaitGroup
-	convLocalsCh := make(chan chat1.ConversationLocal, len(lres.InboxRes.ConvsUnverified))
-	for convRes := range localizeCb {
-		wg.Add(1)
-		go func(convRes types.AsyncInboxResult) {
-			if convRes.ConvLocal.Error != nil {
-				h.Debug(ctx, "GetInboxNonblockLocal: *** error conv: id: %s err: %s",
-					convRes.Conv.GetConvID(), convRes.ConvLocal.Error.Message)
-				if err := chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
-					SessionID: arg.SessionID,
-					ConvID:    convRes.Conv.GetConvID(),
-					Error:     utils.PresentConversationErrorLocal(ctx, h.G(), *convRes.ConvLocal.Error),
-				}); err != nil {
-					h.Debug(ctx, "GetInboxNonblockLocal: failed to send failed conv: %s", err)
-				}
-				// If we get a transient failure, add this to the retrier queue
-				if convRes.ConvLocal.Error.Typ == chat1.ConversationErrorType_TRANSIENT {
-					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
-				}
-			} else {
-				pconv := utils.PresentConversationLocal(ctx, h.G(), uid, convRes.ConvLocal)
-				jbody, err := json.Marshal(pconv)
-				isSuccess := true
-				if err != nil {
-					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s", err)
-					isSuccess = false
-				} else {
-					h.Debug(ctx, "GetInboxNonblockLocal: sending verified conv: id: %s tlf: %s bytes: %d",
-						convRes.Conv.GetConvID(), convRes.ConvLocal.Info.TLFNameExpanded(), len(jbody))
-					start := time.Now()
-					if err := chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
-						SessionID: arg.SessionID,
-						Conv:      string(jbody),
-					}); err != nil {
-						h.Debug(ctx, "GetInboxNonblockLocal: failed to send verified conv: %s", err)
-						isSuccess = false
-					}
-					h.Debug(ctx, "GetInboxNonblockLocal: sent verified conv successfully: id: %s time: %v",
-						convRes.Conv.GetConvID(), time.Since(start))
-				}
-				// Send a note to the retrier that we actually loaded this guy successfully
-				if isSuccess {
-					h.G().FetchRetrier.Success(ctx, uid,
-						NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
-							&convRes.Conv.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
-				} else {
-					h.Debug(ctx, "GetInboxNonblockLocal: failed to transmit conv, retrying")
-					retryConvLoad(convRes.Conv.GetConvID(), &convRes.Conv.Conv.Metadata.IdTriple.Tlfid)
-				}
-				convLocalsCh <- convRes.ConvLocal
-			}
-			wg.Done()
-		}(convRes)
-	}
-
-	// Write metadata to the inbox cache
-	var convLocals []chat1.ConversationLocal
-	go func() {
-		wg.Wait()
-		close(convLocalsCh)
-	}()
-	for convLocal := range convLocalsCh {
-		convLocals = append(convLocals, convLocal)
-	}
-	if err = h.G().InboxSource.MergeLocalMetadata(ctx, uid, convLocals); err != nil {
-		// Don't abort the operation on this kind of error
-		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
-	}
-
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	res.IdentifyFailures = breaks
 	return res, nil

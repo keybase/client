@@ -45,6 +45,27 @@ const onConnect = async () => {
   }
 }
 
+const onGetInboxUnverifiedConvs = (
+  _: TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload
+) => {
+  const inbox = action.payload.params.inbox
+  const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+  const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+  // We get a subset of meta information from the cache even in the untrusted payload
+  const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
+    const m = Constants.unverifiedInboxUIItemToConversationMeta(item)
+    m && arr.push(m)
+    return arr
+  }, [])
+  // Check if some of our existing stored metas might no longer be valid
+  return Chat2Gen.createMetasReceived({
+    fromInboxRefresh: true,
+    initialTrustedLoad: true,
+    metas,
+  })
+}
+
 // Ask the service to refresh the inbox
 function* inboxRefresh(
   state: TypedState,
@@ -89,29 +110,14 @@ function* inboxRefresh(
 
   logger.info(`Inbox refresh due to ${reason || '???'}`)
 
-  const onUnverified = function({inbox}) {
-    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-    const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
-    // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
-      const m = Constants.unverifiedInboxUIItemToConversationMeta(item)
-      m && arr.push(m)
-      return arr
-    }, [])
-    // Check if some of our existing stored metas might no longer be valid
-    return Saga.put(
-      Chat2Gen.createMetasReceived({
-        clearExistingMessages,
-        clearExistingMetas,
-        fromInboxRefresh: true,
-        initialTrustedLoad: reason === 'initialTrustedLoad',
-        metas,
-      })
-    )
+  if (clearExistingMetas) {
+    yield Saga.put(Chat2Gen.createClearMetas({}))
   }
-
+  if (clearExistingMessages) {
+    yield Saga.put(Chat2Gen.createClearMessages({}))
+  }
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
+    incomingCallMap: {},
     params: {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
@@ -207,6 +213,64 @@ const rpcMetaRequestConversationIDKeys = (
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
+const onGetInboxConvsUnboxed = (
+  state: TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxConversationPayload
+) => {
+  const infoMap = state.users.infoMap
+  const actions: Array<TypedActions> = []
+  const convs = action.payload.params.convs
+  const inboxUIItems: Array<RPCChatTypes.InboxUIItem> = JSON.parse(convs)
+  const metas: Array<Types.ConversationMeta> = []
+  let added = false
+  const usernameToFullname: {[username: string]: string} = {}
+  inboxUIItems.forEach(inboxUIItem => {
+    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem, true)
+    if (meta) {
+      metas.push(meta)
+    }
+    ;(inboxUIItem.participants || []).forEach((part: RPCChatTypes.UIParticipant) => {
+      if (!infoMap.get(part.assertion) && part.fullName) {
+        added = true
+        usernameToFullname[part.assertion] = part.fullName
+      }
+    })
+  })
+  if (added) {
+    actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
+  }
+  if (metas.length > 0) {
+    actions.push(
+      Chat2Gen.createMetasReceived({
+        metas,
+      })
+    )
+  }
+  return actions
+}
+
+const onGetInboxConvFailed = (
+  state: TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxConversation,
+  logger: Saga.SagaLogger
+) => {
+  const conversationIDKey = Types.conversationIDToKey(convID)
+  switch (error.typ) {
+    case RPCChatTypes.ConversationErrorType.transient:
+      logger.info(
+        `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+      )
+      return undefined
+    default:
+      logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
+      return Chat2Gen.createMetaReceivedError({
+        conversationIDKey: conversationIDKey,
+        error,
+        username: state.config.username,
+      })
+  }
+}
+
 // We want to unbox rows that have scroll into view
 function* unboxRows(
   state: TypedState,
@@ -219,88 +283,13 @@ function* unboxRows(
   if (!state.config.loggedIn) {
     return
   }
-
   const conversationIDKeys = rpcMetaRequestConversationIDKeys(state, action)
   if (!conversationIDKeys.length) {
     return
   }
 
-  const onUnboxed = function({conv}) {
-    const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-    // We allow empty conversations now since we create them and they're empty now
-    const allowEmpty = action.type === Chat2Gen.selectConversation
-    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem, allowEmpty)
-    const actions: Array<Saga.PutEffect> = []
-    if (meta) {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createMetasReceived({
-            metas: [meta],
-            neverCreate: action.type === Chat2Gen.metaRequestTrusted,
-          })
-        )
-      )
-    } else {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createMetaReceivedError({
-            conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
-            error: null, // just remove this item, not a real server error
-            username: null,
-          })
-        )
-      )
-    }
-
-    const infoMap = state.users.infoMap
-    let added = false
-    // We get some info about users also so update that too
-    const usernameToFullname = (inboxUIItem.participants || []).reduce<{[key: string]: string}>(
-      (map, part) => {
-        if (!infoMap.get(part.assertion) && part.fullName) {
-          added = true
-          map[part.assertion] = part.fullName
-        }
-        return map
-      },
-      {}
-    )
-    if (added) {
-      actions.push(Saga.put(UsersGen.createUpdateFullnames({usernameToFullname})))
-    }
-    return Saga.all(actions)
-  }
-
-  const onFailed = ({convID, error}) => {
-    const conversationIDKey = Types.conversationIDToKey(convID)
-    switch (error.typ) {
-      case RPCChatTypes.ConversationErrorType.transient:
-        logger.info(
-          `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
-        )
-        return undefined
-      default:
-        logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
-        return Saga.callUntyped(function*() {
-          const state: TypedState = yield* Saga.selectState()
-          yield Saga.put(
-            Chat2Gen.createMetaReceivedError({
-              conversationIDKey: conversationIDKey,
-              error,
-              username: state.config.username,
-            })
-          )
-        })
-    }
-  }
-
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {
-      'chat.1.chatUi.chatInboxConversation': onUnboxed,
-      'chat.1.chatUi.chatInboxFailed': onFailed,
-      'chat.1.chatUi.chatInboxUnverified': () => {},
-    },
     params: {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       query: Constants.makeInboxQuery(conversationIDKeys),
@@ -3374,6 +3363,16 @@ function* chat2Saga() {
     [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation, Chat2Gen.metasReceived],
     unboxRows,
     'unboxRows'
+  )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatInboxConversation,
+    onGetInboxConvsUnboxed,
+    'onGetInboxConvsUnboxed'
+  )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatInboxUnverified,
+    onGetInboxUnverifiedConvs,
+    'onGetInboxUnverifiedConvs'
   )
 
   // Load the selected thread
