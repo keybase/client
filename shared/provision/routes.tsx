@@ -21,4 +21,7 @@ export const newRoutes = {
   setPublicName: {getScreen: (): typeof SetPublicName => require('./set-public-name/container').default},
   username: {getScreen: (): typeof Username => require('./username-or-email/container').default},
 }
-export const newModalRoutes = {}
+//
+// export const newModalRoutes = {
+//   troubleshooting: {getScreen: (): typeof Troubleshooting => require('./troubleshooting').default},
+// }

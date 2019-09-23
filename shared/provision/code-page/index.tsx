@@ -6,7 +6,7 @@ import * as Flow from '../../util/flow'
 import QRImage from './qr-image'
 import QRScan from './qr-scan/container'
 import {isAndroid} from '../../constants/platform'
-
+import Troubleshooting from '../troubleshooting'
 const blueBackground = require('../../images/illustrations/bg-provisioning-blue.png')
 const greenBackground = require('../../images/illustrations/bg-provisioning-green.png')
 
@@ -30,6 +30,7 @@ type Props = {
 type State = {
   code: string
   tab: Tab
+  troubleshooting: Boolean
 }
 
 class CodePage2 extends React.Component<Props, State> {
@@ -44,6 +45,7 @@ class CodePage2 extends React.Component<Props, State> {
     this.state = {
       code: '',
       tab: (__STORYBOOK__ && this.props.tabOverride) || this._defaultTab(this.props),
+      troubleshooting: false,
     }
   }
 
@@ -156,16 +158,28 @@ class CodePage2 extends React.Component<Props, State> {
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
+        {!this._inModal() &&
+          this.props.otherDeviceType === 'desktop' &&
+          !this.props.currentDeviceAlreadyProvisioned &&
+          this._heyWaitBanner()}
+        {!this._inModal() && this.state.troubleshooting && (
+          <Kb.Overlay onHidden={() => this.setState({troubleshooting: false})} propagateOutsideClicks={true}>
+            {this._troubleshooting()}
+          </Kb.Overlay>
+        )}
       </Kb.Box2>
     )
   }
   _footer = () => {
+    const showHeyWaitInFooter =
+      this.props.otherDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
     return {
       content: (
         <Kb.Box2
           alignItems="center"
           direction="vertical"
           gap={Styles.isMobile ? 'medium' : 'small'}
+          gapEnd={!showHeyWaitInFooter}
           fullWidth={true}
         >
           {this.state.tab === 'enterText' && (
@@ -186,20 +200,45 @@ class CodePage2 extends React.Component<Props, State> {
               label="Close"
               onClick={this.props.onBack}
               onlyDisable={true}
+              style={styles.closeButton}
               waitingKey={Constants.waitingKey}
             />
           )}
           <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
+          {showHeyWaitInFooter && this._heyWaitBanner()}
         </Kb.Box2>
       ),
       hideBorder: !this._inModal() || currentDeviceType !== 'desktop',
-      style: {backgroundColor: this._tabBackground()},
+      style: {backgroundColor: this._tabBackground(), ...Styles.padding(Styles.globalMargins.xsmall, 0, 0)},
     }
   }
+
+  _heyWaitBanner = () => (
+    <Kb.ClickableBox onClick={() => this.setState({troubleshooting: true})}>
+      <Kb.Banner color="yellow">
+        <Kb.BannerParagraph
+          bannerColor="yellow"
+          content={[`Wait, I'm on that ${Styles.isMobile ? 'phone' : 'computer'} right now!`]}
+        />
+      </Kb.Banner>
+    </Kb.ClickableBox>
+  )
+
+  _troubleshooting = () => (
+    <Troubleshooting
+      mode={this.state.tab === 'QR' ? 'QR' : 'text'}
+      onCancel={() => this.setState({troubleshooting: false})}
+    />
+  )
   // We're in a modal unless this is a desktop being newly provisioned.
   _inModal = () => currentDeviceType !== 'desktop' || this.props.currentDeviceAlreadyProvisioned
 
   render() {
+    // Workaround for no modals while logged out: display just the troubleshooting modal if we're on mobile and it's open;
+    // When we're on desktop being newly provisioned, it's in this._body()
+    if (Styles.isMobile && this.state.troubleshooting) {
+      return this._troubleshooting()
+    }
     const content = this._body()
     if (this._inModal()) {
       return (
@@ -393,6 +432,10 @@ const styles = Styles.styleSheetCreate(
       backgroundOnRight: {
         marginRight: -230,
       },
+      closeButton: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
       codePageContainer: Styles.platformStyles({
         common: {
           overflow: 'hidden',
@@ -406,8 +449,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           height: '100%',
           padding: Styles.globalMargins.large,
-          // else the background can go above things, annoyingly
-          zIndex: 1,
         },
         isMobile: {
           flexGrow: 1,
@@ -418,8 +459,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       enterTextButton: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
         maxWidth: Styles.isMobile ? undefined : 460,
-        width: '100%',
+        width: '90%',
       },
       enterTextContainer: {
         alignItems: Styles.isMobile ? 'stretch' : 'center',

@@ -5,6 +5,7 @@ import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '..
 import {newRoutes as _loggedOutRoutes, newModalRoutes as loginNewModalRoutes} from '../login/routes'
 import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
+import {newRoutes as provisionNewRoutes} from '../provision/routes'
 import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
 import {newRoutes as signupNewRoutes, newModalRoutes as signupNewModalRoutes} from '../signup/routes'
 import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
@@ -70,4 +71,4 @@ export const modalRoutes: RouteMap = {
   ...(walletsNewModalRoutes as RouteMap),
 }
 
-export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes}
+export const loggedOutRoutes: RouteMap = {..._loggedOutRoutes, ...signupNewRoutes, ...provisionNewRoutes}
