@@ -72,32 +72,27 @@ var supportedImgMimeTypes = map[string]bool{
 	"image/webp": true,
 }
 
-func getGetGUIFileContextResp(viewType keybase1.GUIViewType) (
-	keybase1.GUIViewType, string) {
-	return viewType, strconv.Itoa(int(viewType))
-}
-
 func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
 	viewType keybase1.GUIViewType, invariance string) {
 	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
 	disposition := beforeSemicolon(contentDispositionRaw)
-	if disposition == "attachment" {
-		return getGetGUIFileContextResp(keybase1.GUIViewType_DEFAULT)
-	}
 	switch {
+	case disposition == "attachment":
+		viewType = keybase1.GUIViewType_TEXT
 	case contentTypeProcessed == "text/plain":
-		return getGetGUIFileContextResp(keybase1.GUIViewType_TEXT)
+		viewType = (keybase1.GUIViewType_TEXT)
 	case supportedImgMimeTypes[contentTypeProcessed]:
-		return getGetGUIFileContextResp(keybase1.GUIViewType_IMAGE)
+		viewType = (keybase1.GUIViewType_IMAGE)
 	case strings.HasPrefix(contentTypeProcessed, "audio/"):
-		return getGetGUIFileContextResp(keybase1.GUIViewType_AUDIO)
+		viewType = (keybase1.GUIViewType_AUDIO)
 	case strings.HasPrefix(contentTypeProcessed, "video/"):
-		return getGetGUIFileContextResp(keybase1.GUIViewType_VIDEO)
+		viewType = (keybase1.GUIViewType_VIDEO)
 	case contentTypeProcessed == "application/pdf":
-		return getGetGUIFileContextResp(keybase1.GUIViewType_PDF)
+		viewType = (keybase1.GUIViewType_PDF)
 	default:
-		return getGetGUIFileContextResp(keybase1.GUIViewType_DEFAULT)
+		viewType = (keybase1.GUIViewType_DEFAULT)
 	}
+	return viewType, strconv.Itoa(int(viewType))
 }
 
 func getGUIInvarianceFromHTTPHeader(header http.Header) (invariance string) {
@@ -117,11 +112,11 @@ func getGUIInvarianceFromHTTPHeader(header http.Header) (invariance string) {
 // doesn't change between when GUI learnt about it and when GUI requested it
 // over HTTP from the webview.
 func GetGUIFileContextFromContentType(contentTypeRaw string) (
-	viewType keybase1.GUIViewType, contentType string, invariance string) {
+	viewType keybase1.GUIViewType, invariance string) {
 	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
 	disposition := getDisposition(true, contentTypeProcessed)
 	viewType, invariance = getGUIFileContext(contentTypeRaw, disposition)
-	return viewType, contentTypeRaw, invariance
+	return viewType, invariance
 }
 
 func (w *contentTypeOverridingResponseWriter) calculateOverride(

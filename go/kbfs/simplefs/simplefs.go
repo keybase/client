@@ -3041,7 +3041,6 @@ func (k *SimpleFS) getContentType(ctx context.Context, kbfsPath keybase1.KBFSPat
 	var buf [sniffLen]byte
 	n, _ := io.ReadFull(f, buf[:])
 	return http.DetectContentType(buf[:n]), nil
-
 }
 
 // SimpleFSGetGUIFileContext implements the SimpleFSInterface.
@@ -3065,7 +3064,7 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	if err != nil {
 		return keybase1.GUIFileContext{}, err
 	}
-	viewType, contentType, invariance := libhttpserver.GetGUIFileContextFromContentType(contentType)
+	viewType, invariance := libhttpserver.GetGUIFileContextFromContentType(contentType)
 
 	// Refresh the token every time. This RPC is called everytime a file is
 	// being viewed and we have a cache size of 64 so this shouldn't be a
@@ -3078,8 +3077,10 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	if err != nil {
 		return keybase1.GUIFileContext{}, err
 	}
-	encodedSegments := []string{"/files"}
-	for _, segment := range strings.Split(kbfsPath.Path, "/") {
+
+	segments := strings.Split(kbfsPath.Path, "/")
+	encodedSegments := append(make([]string, 0, len(segments)), "/files")
+	for _, segment := range segments {
 		encodedSegments = append(encodedSegments, url.PathEscape(segment))
 	}
 	u := url.URL{
