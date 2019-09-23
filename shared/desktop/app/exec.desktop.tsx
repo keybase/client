@@ -44,7 +44,7 @@ export default function(
       return
     }
 
-    args.unshift(path)
+    args.unshift(`'${path}'`) // protect against spaces in path
     var cmd = args.join(' ')
     console.log('Executing:', cmd)
     var procExec = exec(cmd, function(execErr, stdout, stderr) {
