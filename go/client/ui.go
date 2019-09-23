@@ -835,6 +835,11 @@ uninstalled Keybase from all of them, you can reset your account. You will keep 
 but lose all your data.
 
 Would you like to request a reset of your account?`
+	case keybase1.ResetPromptType_ENTER_RESET_PW:
+		msg = `If you have forgotten your password you can reset your password. You will keep your
+username, but lose all your data, including all of your uploaded encrypted PGP keys.
+
+Would you like to request a reset of your account?`
 	default:
 		return false, fmt.Errorf("Unknown prompt type - got %v", arg.Kind)
 	}

@@ -1907,6 +1907,7 @@ export enum ResetPromptType {
   complete = 0,
   enterNoDevices = 1,
   enterForgotPw = 2,
+  enterResetPw = 3,
 }
 
 export enum ResetType {

@@ -55,11 +55,29 @@ const explainDevice = (
 }
 
 const promptReset = (
-  _: any,
+  params: RPCTypes.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
   response: {
     result: (reset: boolean) => void
   }
 ) => {
+  if (params.kind === RPCTypes.ResetPromptType.enterResetPw) {
+    return Saga.callUntyped(function*() {
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: ['recoverPasswordResetPassword'],
+          replace: true,
+        })
+      )
+      const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
+        RecoverPasswordGen.submitResetPrompt
+      )
+      response.result(action.payload.action)
+
+      // todo new screen?
+      yield Saga.put(RouteTreeGen.createNavigateUp())
+    })
+  }
+
   return Saga.callUntyped(function*() {
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({

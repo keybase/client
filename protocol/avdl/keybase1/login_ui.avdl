@@ -11,7 +11,8 @@ protocol loginUi {
   enum ResetPromptType {
     COMPLETE_0,         // reset completion if the countdown is done
     ENTER_NO_DEVICES_1, // no devices available in provisioning, suggest entering
-    ENTER_FORGOT_PW_2   // forgot the password, suggest entering the pipeline w/o pw
+    ENTER_FORGOT_PW_2,  // forgot the password, suggest entering the pipeline w/o pw
+    ENTER_RESET_PW_3    // forgot the password and no devices (web user)
   }
   /**
    Called during login / provisioning flows to ask the user whether they
