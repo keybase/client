@@ -375,11 +375,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         this.props.recommendations
       )
       return (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
-        >
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
           <Kb.SectionList
             ref={this.sectionListRef}
             keyboardDismissMode="on-drag"
@@ -579,9 +575,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.xtiny,
         },
-        isMobile: {
-          zIndex: -1, // behind ServiceTabBar
-        },
+        isMobile: {zIndex: -1}, // behind ServiceTabBar
       }),
       bannerButtonContainer: {
         alignSelf: 'flex-start',
@@ -589,9 +583,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
-      bannerIcon: {
-        maxHeight: 112,
-      },
+      bannerIcon: {maxHeight: 112},
       bannerText: {
         flexWrap: 'wrap',
         marginTop: Styles.globalMargins.tiny,
@@ -609,21 +601,18 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderRadius: 4,
           height: 560,
+          maxHeight: 560,
           overflow: 'visible',
           width: 400,
         },
       }),
       emptyContainer: Styles.platformStyles({
-        common: {
-          flex: 1,
-        },
+        common: {flex: 1},
         isElectron: {
           maxWidth: 290,
           paddingBottom: 40,
         },
-        isMobile: {
-          maxWidth: '80%',
-        },
+        isMobile: {maxWidth: '80%'},
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {
@@ -636,9 +625,14 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.xsmall,
       },
       list: Styles.platformStyles({
+        common: {paddingBottom: Styles.globalMargins.small},
+      }),
+      listContainer: Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.small,
+          flex: 1,
+          position: 'relative',
         },
+        isElectron: {overflow: 'hidden'},
       }),
       listContentContainer: Styles.platformStyles({
         isMobile: {
