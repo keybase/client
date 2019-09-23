@@ -481,7 +481,23 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	var upak keybase1.UserPlusKeysV2
 
 	if isServerTrustInvite {
-		doInvite = true
+		user, resolveRes, err := g.Resolver.ResolveUser(m, assertion)
+		if err == nil {
+			if !resolveRes.IsServerTrust() {
+				return "", uv, false, fmt.Errorf("Unexpected non server-trust resolution returned: %q", assertion)
+			}
+			upak, err = engine.ResolveAndCheck(m, user.Username, true /* useTracking */)
+			if err != nil {
+				return "", uv, false, err
+			}
+		} else {
+			if shouldPreventTeamCreation(err) {
+				// Resolution failed because of rate limit or similar, do not
+				// try to invite because it might be a resolvable assertion.
+				return "", uv, false, err
+			}
+			doInvite = true
+		}
 	} else {
 		upak, err = engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
