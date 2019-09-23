@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import * as Container from '../../../../util/container'
 import {AllowedColors} from '../../../../common-adapters/text'
+import * as Styles from '../../../../styles'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -84,12 +85,12 @@ export default Container.namedConnect(
       onMuteConversation: () => dispatchProps.onMuteConversation(stateProps._meta.isMuted),
       // Don't allow you to select yourself
       onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
-      participantNeedToRekey,
+      participantNeedToRekey: true,
       participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
       showBold: styles.showBold,
       snippet: stateProps.snippet,
       snippetDecoration: stateProps.snippetDecoration,
-      subColor: styles.subColor as AllowedColors,
+      subColor: Styles.globalColors.red,//styles.subColor as AllowedColors,
       teamname: stateProps._meta.teamname,
       timestamp: Constants.timestampToString(stateProps._meta),
       usernameColor: styles.usernameColor,
