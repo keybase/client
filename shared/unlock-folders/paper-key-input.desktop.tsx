@@ -1,6 +1,6 @@
-import React, {Component} from 'react'
-import {globalStyles} from '../styles'
-import {Text, Button, BackButton, Icon, Input} from '../common-adapters'
+import * as React from 'react'
+import * as Styles from '../styles'
+import * as Kb from '../common-adapters'
 
 export type Props = {
   onBack: () => void
@@ -13,22 +13,20 @@ type State = {
   paperkey: string
 }
 
-class PaperKeyInput extends Component<Props, State> {
-  state: State = {
-    paperkey: '',
-  }
+class PaperKeyInput extends React.Component<Props, State> {
+  state: State = {paperkey: ''}
 
   render() {
     const errorText = this.props.paperkeyError
 
     return (
-      <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <BackButton onClick={this.props.onBack} style={backStyle} />
-        <Text style={headerTextStyle} type="Body">
+      <div style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
+        <Kb.BackButton onClick={this.props.onBack} style={backStyle} />
+        <Kb.Text style={headerTextStyle} type="Body">
           Type in your paper key:
-        </Text>
-        <Icon style={paperKeyIconStyle} type="icon-paper-key-48" />
-        <Input
+        </Kb.Text>
+        <Kb.Icon style={paperKeyIconStyle} type="icon-paper-key-48" />
+        <Kb.Input
           multiline={true}
           rowsMax={3}
           style={paperKeyInputStyle}
@@ -39,7 +37,7 @@ class PaperKeyInput extends Component<Props, State> {
 ruril globil cose"
           uncontrolled={true}
         />
-        <Button
+        <Kb.Button
           label="Continue"
           style={continueStyle}
           waiting={this.props.waiting}

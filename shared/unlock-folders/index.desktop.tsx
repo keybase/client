@@ -1,10 +1,10 @@
+import * as Kb from '../common-adapters'
 import * as React from 'react'
+import * as Styles from '../styles'
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
 import Success from './success.desktop'
-import {Header} from '../common-adapters'
 import {State, _Device} from '../constants/types/unlock-folders'
-import * as Styles from '../styles'
 
 export type Props = {
   phase: State['phase']
@@ -18,41 +18,37 @@ export type Props = {
   onFinish: () => void
 }
 
-export default class UnlockFoldersRender extends React.Component<Props> {
-  render() {
-    let innerComponent
+const UnlockFolders = (props: Props) => {
+  let innerComponent: React.ReactNode
 
-    switch (this.props.phase) {
-      case 'dead':
-      case 'promptOtherDevice':
-        innerComponent = (
-          <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
-        )
-        break
-      case 'paperKeyInput':
-        innerComponent = (
-          <PaperKeyInput
-            onBack={this.props.onBackFromPaperKey}
-            onContinue={this.props.onContinueFromPaperKey}
-            paperkeyError={this.props.paperkeyError}
-            waiting={this.props.waiting}
-          />
-        )
-        break
-      case 'success':
-        innerComponent = <Success onClose={this.props.onClose} />
-        break
-    }
-
-    return (
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <Header icon={true} type="Default" title="" onClose={this.props.onClose} />
-        </div>
-        {innerComponent}
-      </div>
-    )
+  switch (props.phase) {
+    case 'dead':
+    case 'promptOtherDevice':
+      innerComponent = <DeviceList devices={props.devices} toPaperKeyInput={props.toPaperKeyInput} />
+      break
+    case 'paperKeyInput':
+      innerComponent = (
+        <PaperKeyInput
+          onBack={props.onBackFromPaperKey}
+          onContinue={props.onContinueFromPaperKey}
+          paperkeyError={props.paperkeyError}
+          waiting={props.waiting}
+        />
+      )
+      break
+    case 'success':
+      innerComponent = <Success onClose={props.onClose} />
+      break
   }
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <Kb.Header icon={true} type="Default" title="" onClose={props.onClose} />
+      </div>
+      {innerComponent}
+    </div>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -70,3 +66,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
+
+export default UnlockFolders
