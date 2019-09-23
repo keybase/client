@@ -20,6 +20,7 @@ import (
 type KVStoreHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	Boxer kvstore.KVStoreBoxer
 }
 
 var _ keybase1.KvstoreInterface = (*KVStoreHandler)(nil)
@@ -31,6 +32,7 @@ func NewKVStoreHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KVStoreHandl
 	return &KVStoreHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
+		Boxer:        kvstore.NewKVStoreBoxer(g),
 	}
 }
 
@@ -52,18 +54,18 @@ func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName s
 }
 
 type getEntryAPIRes struct {
-	Status            libkb.AppStatus `json:"status"`
-	TeamID            string          `json:"team_id"`
-	Namespace         string          `json:"namespace"`
-	EntryKey          string          `json:"entry_key"`
-	TeamKeyGen        int             `json:"team_key_gen"`
-	Revision          int             `json:"revision"`
-	Ciphertext        string          `json:"ciphertext"`
-	CiphertextVersion int             `json:"ciphertext_version"`
-	FormatVersion     int             `json:"format_version"`
-	WriterUID         string          `json:"uid"`
-	WriterEldestSeqno int             `json:"eldest_seqno"`
-	WriterDeviceID    string          `json:"device_id"`
+	Status            libkb.AppStatus   `json:"status"`
+	TeamID            string            `json:"team_id"`
+	Namespace         string            `json:"namespace"`
+	EntryKey          string            `json:"entry_key"`
+	TeamKeyGen        int               `json:"team_key_gen"`
+	Revision          int               `json:"revision"`
+	Ciphertext        string            `json:"ciphertext"`
+	CiphertextVersion int               `json:"ciphertext_version"`
+	FormatVersion     int               `json:"format_version"`
+	WriterUID         keybase1.UID      `json:"uid"`
+	WriterEldestSeqno keybase1.Seqno    `json:"eldest_seqno"`
+	WriterDeviceID    keybase1.DeviceID `json:"device_id"`
 }
 
 func (k *getEntryAPIRes) GetAppStatus() *libkb.AppStatus {
@@ -107,7 +109,7 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	if err != nil {
 		return res, err
 	}
-	cleartext, err := kvstore.Unbox(apiRes.Ciphertext)
+	cleartext, err := h.Boxer.Unbox(mctx, arg.Namespace, arg.EntryKey, apiRes.Revision, apiRes.Ciphertext, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
 	if err != nil {
 		return res, err
 	}
@@ -153,12 +155,15 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	if err != nil {
 		return res, err
 	}
-	ciphertext, err := kvstore.Box(arg.EntryValue)
+	prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, team.ID, arg.Namespace, arg.EntryKey)
 	if err != nil {
 		return res, err
 	}
-	prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, team.ID, arg.Namespace, arg.EntryKey)
-
+	revision := prevRevision + 1
+	ciphertext, err := h.Boxer.Box(arg.Namespace, arg.EntryKey, revision, arg.EntryValue)
+	if err != nil {
+		return res, err
+	}
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/storage",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -169,7 +174,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 			"entry_key":          libkb.S{Val: arg.EntryKey},
 			"ciphertext":         libkb.S{Val: ciphertext},
 			"ciphertext_version": libkb.I{Val: 1},
-			"revision":           libkb.I{Val: prevRevision + 1},
+			"revision":           libkb.I{Val: revision},
 		},
 	}
 	var apiRes putEntryAPIRes

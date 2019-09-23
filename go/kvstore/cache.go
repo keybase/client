@@ -6,15 +6,11 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type KVRevisionCacheInterface interface {
-	Check(teamID keybase1.TeamID, namespace, entryKey, entryHash string, teamKeyGen, revision int) (err error)
-	FetchRevision(teamID keybase1.TeamID, namespace, entryKey string) (revision int)
-}
-
-var _ KVRevisionCacheInterface = (*KVRevisionCache)(nil)
+var _ libkb.KVRevisionCacher = (*KVRevisionCache)(nil)
 
 type kvCacheEntry struct {
 	Revision   int

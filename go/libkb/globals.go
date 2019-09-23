@@ -25,7 +25,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/kvstore"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -86,23 +85,23 @@ type GlobalContext struct {
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
 	hasRandomPWPrefetcher  *HasRandomPWPrefetcher
-	stellar                Stellar                          // Stellar related ops
-	deviceEKStorage        DeviceEKStorage                  // Store device ephemeral keys
-	userEKBoxStorage       UserEKBoxStorage                 // Store user ephemeral key boxes
-	teamEKBoxStorage       TeamEKBoxStorage                 // Store team ephemeral key boxes
-	teambotEKBoxStorage    TeamEKBoxStorage                 // Store team bot ephemeral key boxes
-	ekLib                  EKLib                            // Wrapper to call ephemeral key methods
-	teambotBotKeyer        TeambotBotKeyer                  // TeambotKeyer for bot members
-	teambotMemberKeyer     TeambotMemberKeyer               // TeambotKeyer for non-bot members
-	itciCacher             LRUer                            // Cacher for implicit team conflict info
-	iteamCacher            MemLRUer                         // In memory cacher for implicit teams
-	cardCache              *UserCardCache                   // cache of keybase1.UserCard objects
-	fullSelfer             FullSelfer                       // a loader that gets the full self object
-	pvlSource              MerkleStore                      // a cache and fetcher for pvl
-	paramProofStore        MerkleStore                      // a cache and fetcher for param proofs
-	externalURLStore       MerkleStore                      // a cache and fetcher for external urls
-	PayloadCache           *PayloadCache                    // cache of ChainLink payload json wrappers
-	kvRevisionCache        kvstore.KVRevisionCacheInterface // cache of revisions for verifying key-value store results
+	stellar                Stellar            // Stellar related ops
+	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
+	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
+	teamEKBoxStorage       TeamEKBoxStorage   // Store team ephemeral key boxes
+	teambotEKBoxStorage    TeamEKBoxStorage   // Store team bot ephemeral key boxes
+	ekLib                  EKLib              // Wrapper to call ephemeral key methods
+	teambotBotKeyer        TeambotBotKeyer    // TeambotKeyer for bot members
+	teambotMemberKeyer     TeambotMemberKeyer // TeambotKeyer for non-bot members
+	itciCacher             LRUer              // Cacher for implicit team conflict info
+	iteamCacher            MemLRUer           // In memory cacher for implicit teams
+	cardCache              *UserCardCache     // cache of keybase1.UserCard objects
+	fullSelfer             FullSelfer         // a loader that gets the full self object
+	pvlSource              MerkleStore        // a cache and fetcher for pvl
+	paramProofStore        MerkleStore        // a cache and fetcher for param proofs
+	externalURLStore       MerkleStore        // a cache and fetcher for external urls
+	PayloadCache           *PayloadCache      // cache of ChainLink payload json wrappers
+	kvRevisionCache        KVRevisionCacher   // cache of revisions for verifying key-value store results
 	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -703,13 +702,13 @@ func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
 	g.iteamCacher = l
 }
 
-func (g *GlobalContext) GetKVRevisionCache() kvstore.KVRevisionCacheInterface {
+func (g *GlobalContext) GetKVRevisionCache() KVRevisionCacher {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.kvRevisionCache
 }
 
-func (g *GlobalContext) SetKVRevisionCache(kvr kvstore.KVRevisionCacheInterface) {
+func (g *GlobalContext) SetKVRevisionCache(kvr KVRevisionCacher) {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	g.kvRevisionCache = kvr
