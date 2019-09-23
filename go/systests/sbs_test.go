@@ -14,6 +14,13 @@ import (
 	context "golang.org/x/net/context"
 )
 
+func assertionFromKV(t *testing.T, key, value string) libkb.AssertionURL {
+	actx := externals.MakeStaticAssertionContext(context.TODO())
+	ret, err := libkb.ParseAssertionURLKeyValue(actx, key, value, true /* strict */)
+	require.NoError(t, err)
+	return ret
+}
+
 // Same SBS test can run against different SBS types, where each one has
 // different way of proving (verifying), revoking etc. Encapsulate all that
 // under a type that implements `userSBSProvider` and pass it to the "generic"
@@ -29,13 +36,6 @@ type userSBSProvider interface {
 type userSBSPhoneNumber struct {
 	u           *userPlusDevice
 	phoneNumber string //without `+`
-}
-
-func assertionFromKV(t *testing.T, key, value string) libkb.AssertionURL {
-	actx := externals.MakeStaticAssertionContext(context.TODO())
-	ret, err := libkb.ParseAssertionURLKeyValue(actx, key, value, true /* strict */)
-	require.NoError(t, err)
-	return ret
 }
 
 func (p *userSBSPhoneNumber) SetUser(user *userPlusDevice) {
