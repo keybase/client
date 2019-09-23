@@ -175,6 +175,7 @@ class Input extends React.Component<InputProps, InputState> {
       emoji: emojiTransformer,
       users: this._transformUserSuggestion,
     }
+
     // + 1 for '/'
     this._maxCmdLength =
       this.props.suggestCommands
@@ -328,6 +329,13 @@ class Input extends React.Component<InputProps, InputState> {
       if (!this.props.isSearching) {
         this._inputFocus()
       }
+
+      // potentially different commands so we need to recalculate max command length
+      // + 1 for '/'
+      this._maxCmdLength =
+        this.props.suggestCommands
+          .concat(this.props.suggestBotCommands)
+          .reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
     }
   }
 
