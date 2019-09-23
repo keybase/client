@@ -21,11 +21,6 @@ export type Props = {
   onRemove: () => void
 }
 
-// Desktop hover styling
-const realCSS = (inTeam: boolean) => `
-    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
-`
-
 // TODO
 // * Use ListItem2
 
@@ -59,16 +54,12 @@ const UserResult = (props: Props) => {
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
       <Kb.Box2
-        className={Styles.classNames({
-          hoverRow: !props.inTeam,
-          hoverRowinTeam: props.inTeam,
-        })}
+        className="hover_background_color_blueLighter2"
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
         style={styles.rowContainer}
       >
-        {!Styles.isMobile && <Kb.DesktopStyle style={realCSS(props.inTeam)} />}
         <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
         <Kb.Box2 direction="vertical" style={styles.username}>
           {serviceUsername ? (
