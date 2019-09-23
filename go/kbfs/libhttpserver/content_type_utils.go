@@ -57,6 +57,73 @@ func getDisposition(defaultInlineValue bool, mimeType string) string {
 // way to do that as even Go's DetectContentType just uses utf-8 by default.
 const textPlainUtf8 = "text/plain; charset=utf-8"
 
+func beforeSemicolon(str string) string {
+	semicolonIndex := strings.Index(str, ";")
+	if semicolonIndex > 0 {
+		str = str[:semicolonIndex]
+	}
+	return strings.ToLower(strings.TrimSpace(str))
+}
+
+var supportedImgMimeTypes = map[string]bool{
+	"image/png":  true,
+	"image/jpeg": true,
+	"image/gif":  true,
+	"image/webp": true,
+}
+
+func getGetGUIFileContextResp(viewType keybase1.GUIViewType) (
+	keybase1.GUIViewType, string) {
+	return viewType, strconv.Itoa(int(viewType))
+}
+
+func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
+	viewType keybase1.GUIViewType, invariance string) {
+	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
+	disposition := beforeSemicolon(contentDispositionRaw)
+	if disposition == "attachment" {
+		return getGetGUIFileContextResp(keybase1.GUIViewType_DEFAULT)
+	}
+	switch {
+	case contentTypeProcessed == "text/plain":
+		return getGetGUIFileContextResp(keybase1.GUIViewType_TEXT)
+	case supportedImgMimeTypes[contentTypeProcessed]:
+		return getGetGUIFileContextResp(keybase1.GUIViewType_IMAGE)
+	case strings.HasPrefix(contentTypeProcessed, "audio/"):
+		return getGetGUIFileContextResp(keybase1.GUIViewType_AUDIO)
+	case strings.HasPrefix(contentTypeProcessed, "video/"):
+		return getGetGUIFileContextResp(keybase1.GUIViewType_VIDEO)
+	case contentTypeProcessed == "application/pdf":
+		return getGetGUIFileContextResp(keybase1.GUIViewType_PDF)
+	default:
+		return getGetGUIFileContextResp(keybase1.GUIViewType_DEFAULT)
+	}
+}
+
+func getGUIInvarianceFromHTTPHeader(header http.Header) (invariance string) {
+	contentTypeRaw := header.Get("Content-Type")
+	contentDispositionRaw := (header.Get("Content-Disposition"))
+	_, invariance = getGUIFileContext(contentTypeRaw, contentDispositionRaw)
+	return invariance
+}
+
+// GetGUIFileContextFromContentType returns necessary data used by GUI for
+// displaying file previews.
+//
+// The invariance here is derived from viewType, and later added into the url
+// returned to GUI. When a file is requested from the the http server and an
+// invariance field is specified, we make sure the viewType of the file we
+// serve satisfies the invariance provided. This makes sure the viewType
+// doesn't change between when GUI learnt about it and when GUI requested it
+// over HTTP from the webview.
+func GetGUIFileContextFromContentType(contentTypeRaw string) (
+	viewType keybase1.GUIViewType, contentType string, invariance string) {
+	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
+	disposition := getDisposition(true, contentTypeProcessed)
+	viewType, invariance = getGUIFileContext(contentTypeRaw, disposition)
+	return viewType, contentTypeRaw, invariance
+}
+
 func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	mimeType string) (newMimeType, disposition string) {
 	// Send text/plain for all HTML and JS files to avoid them being executed
@@ -98,7 +165,7 @@ func (w *contentTypeOverridingResponseWriter) checkViewTypeInvariance() error {
 	if len(w.viewTypeInvariance) == 0 {
 		return nil
 	}
-	if _, _, i := GetGUIFileContext(w.original.Header()); i == w.viewTypeInvariance {
+	if i := getGUIInvarianceFromHTTPHeader(w.original.Header()); i == w.viewTypeInvariance {
 		return nil
 	}
 	w.original.WriteHeader(http.StatusPreconditionFailed)
@@ -123,60 +190,6 @@ func (w *contentTypeOverridingResponseWriter) Write(data []byte) (int, error) {
 		return 0, err
 	}
 	return w.original.Write(data)
-}
-
-func beforeSemicolon(str string) string {
-	semicolonIndex := strings.Index(str, ";")
-	if semicolonIndex > 0 {
-		str = str[:semicolonIndex]
-	}
-	return strings.ToLower(strings.TrimSpace(str))
-}
-
-var supportedImgMimeTypes = map[string]bool{
-	"image/png":  true,
-	"image/jpeg": true,
-	"image/gif":  true,
-	"image/webp": true,
-}
-
-func getGetGUIFileContextReturnType(
-	viewType keybase1.GUIViewType, contentType string) (
-	keybase1.GUIViewType, string, string) {
-	return viewType, contentType, strconv.Itoa(int(keybase1.GUIViewType_DEFAULT))
-}
-
-// GetGUIFileContext returns necessary data used by GUI for displaying file
-// previews.
-//
-// The invariance here is derived from viewType, and later added into the url
-// returned to GUI. When a file is requested from the the http server and an
-// invariance field is specified, we make sure the viewType of the file we
-// serve satisfies the invariance provided. This makes sure the viewType
-// doesn't change between when GUI learnt about it and when GUI requested it
-// over HTTP from the webview.
-func GetGUIFileContext(header http.Header) (
-	viewType keybase1.GUIViewType, contentType string, invariance string) {
-	contentTypeRaw := header.Get("Content-Type")
-	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
-	disposition := beforeSemicolon(header.Get("Content-Disposition"))
-	if disposition == "attachment" {
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_DEFAULT, contentTypeRaw)
-	}
-	switch {
-	case contentTypeProcessed == "text/plain":
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_TEXT, contentTypeRaw)
-	case supportedImgMimeTypes[contentTypeProcessed]:
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_IMAGE, contentTypeRaw)
-	case strings.HasPrefix(contentTypeProcessed, "audio/"):
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_AUDIO, contentTypeRaw)
-	case strings.HasPrefix(contentTypeProcessed, "video/"):
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_VIDEO, contentTypeRaw)
-	case contentTypeProcessed == "application/pdf":
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_PDF, contentTypeRaw)
-	default:
-		return getGetGUIFileContextReturnType(keybase1.GUIViewType_DEFAULT, contentTypeRaw)
-	}
 }
 
 var additionalMimeTypes = map[string]string{

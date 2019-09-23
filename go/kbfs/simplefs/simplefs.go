@@ -8,10 +8,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	stdpath "path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -3011,16 +3014,59 @@ func (k *SimpleFS) SimpleFSConfigureDownload(
 	return nil
 }
 
-// SimpleFSGetGUIFileContext implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
-	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
-	if len(path.Path) == 0 {
-		return keybase1.GUIFileContext{}, errors.New("empty path")
+// Copied from net/http/sniff.go: the algorithm uses at most sniffLen bytes to
+// make its decision.
+const sniffLen = 512
+
+// getContentType detects the content type of the file located at kbfsPath.
+// It's adapted from serveContent in net/http/fs.go. The algorithm might change
+// in the future, but it's OK as we are using the invariance mechanism and the
+// check in libhttpserver happens right before writing the content, using the
+// real HTTP headers from the http package.
+func (k *SimpleFS) getContentType(ctx context.Context, kbfsPath keybase1.KBFSPath) (
+	contentType string, err error) {
+	contentType = mime.TypeByExtension(filepath.Ext(kbfsPath.Path))
+	if len(contentType) > 0 {
+		return contentType, nil
 	}
 
+	fs, finalElem, err := k.getFS(ctx, keybase1.NewPathWithKbfs(kbfsPath))
+	if err != nil {
+		return "", err
+	}
+	f, err := fs.OpenFile(finalElem, os.O_RDONLY, 0644)
+	if err != nil {
+		return "", err
+	}
+	var buf [sniffLen]byte
+	n, _ := io.ReadFull(f, buf[:])
+	return http.DetectContentType(buf[:n]), nil
+
+}
+
+// SimpleFSGetGUIFileContext implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
+	kbfsPath keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
+	wrappedPath := keybase1.NewPathWithKbfs(kbfsPath)
+	ctx, err = k.startSyncOp(ctx, "GetGUIFileContext", "", &wrappedPath, nil)
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+	defer func() { k.doneSyncOp(ctx, err) }()
+
+	if len(kbfsPath.Path) == 0 {
+		return keybase1.GUIFileContext{}, errors.New("empty path")
+	}
 	if k.localHTTPServer == nil {
 		return keybase1.GUIFileContext{}, errors.New("HTTP server is disabled")
 	}
+
+	contentType, err := k.getContentType(ctx, kbfsPath)
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
+	viewType, contentType, invariance := libhttpserver.GetGUIFileContextFromContentType(contentType)
+
 	// Refresh the token every time. This RPC is called everytime a file is
 	// being viewed and we have a cache size of 64 so this shouldn't be a
 	// problem.
@@ -3032,30 +3078,17 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	if err != nil {
 		return keybase1.GUIFileContext{}, err
 	}
-
-	var encodedSegments []string
-	for _, segment := range strings.Split(path.Path, "/") {
+	encodedSegments := []string{"/files"}
+	for _, segment := range strings.Split(kbfsPath.Path, "/") {
 		encodedSegments = append(encodedSegments, url.PathEscape(segment))
 	}
-
 	u := url.URL{
 		Scheme:   "http",
 		Host:     address,
-		Path:     "/files" + strings.Join(encodedSegments, "/"),
-		RawQuery: "token=" + token,
+		Path:     path.Join(encodedSegments...),
+		RawQuery: "token=" + token + "&viewTypeInvariance=" + invariance,
 	}
 
-	r, err := http.NewRequest("HEAD", u.String(), nil)
-	if err != nil {
-		return keybase1.GUIFileContext{}, err
-	}
-	resp, err := k.httpClient.Do(r)
-	if err != nil {
-		return keybase1.GUIFileContext{}, err
-	}
-	viewType, contentType, invariance := libhttpserver.GetGUIFileContext(resp.Header)
-
-	u.RawQuery = "token=" + token + "&viewTypeInvariance=" + invariance
 	return keybase1.GUIFileContext{
 		ContentType: contentType,
 		ViewType:    viewType,
