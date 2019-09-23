@@ -12,7 +12,7 @@ export type Props = {
 
 const PaperKey = (props: Props) => {
   const [paperKey, setPaperKey] = React.useState('')
-  const onSubmit = React.useCallback(() => props.onSubmit(paperKey), [paperKey])
+  const onSubmit = React.useCallback(() => paperKey && props.onSubmit(paperKey), [paperKey])
 
   return (
     <SignupScreen

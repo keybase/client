@@ -114,12 +114,16 @@ const inputPaperKey = (
         })
       )
     }
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordPaperKey'],
-        replace: true,
-      })
-    )
+    if (params.pinentry.type === RPCTypes.PassphraseType.paperKey) {
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: ['recoverPasswordPaperKey'],
+          replace: true,
+        })
+      )
+    } else {
+      // TODO: nav to "input new password" screen
+    }
     const action:
       | RecoverPasswordGen.SubmitPaperKeyPayload
       | RecoverPasswordGen.AbortPaperKeyPayload = yield Saga.take([
