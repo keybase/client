@@ -614,3 +614,64 @@ func TestTlfHistoryDeleteHistory(t *testing.T) {
 	require.Equal(t, allAliceDeletesExpected[0].Revision, rev)
 	checkTlfHistory(t, th, expected, aliceName)
 }
+
+// Regression test for HOTPOT-856.
+func TestTlfHistoryComplexRename(t *testing.T) {
+	aliceName := "alice"
+	aliceUID := keybase1.MakeTestUID(1)
+	tlfID, err := tlf.MakeRandomID(tlf.Private)
+	require.NoError(t, err)
+
+	var aliceMessages []string
+	nn := nextNotification{1, 0, tlfID, nil}
+
+	// Alice creates "a", and adds a file to it.
+	_ = nn.makeWithType(
+		"/k/p/a/a", NotificationCreate, aliceUID, nil, time.Time{},
+		EntryTypeDir)
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	fooCreate := nn.make(
+		"/k/p/a/a/foo", NotificationCreate, aliceUID, nil, time.Time{})
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Alice renames "a" to "b".
+	_ = nn.makeWithType(
+		"/k/p/a/b", NotificationRename, aliceUID, &NotificationParams{
+			OldFilename: "/k/p/a/a",
+		}, time.Time{}, EntryTypeDir)
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Alice makes new dir "c".
+	_ = nn.makeWithType(
+		"/k/p/a/c", NotificationCreate, aliceUID, nil, time.Time{},
+		EntryTypeDir)
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Alice renames "c" to "a".
+	_ = nn.makeWithType(
+		"/k/p/a/a", NotificationRename, aliceUID, &NotificationParams{
+			OldFilename: "/k/p/a/c",
+		}, time.Time{}, EntryTypeDir)
+	aliceMessages = append(aliceMessages, nn.encode(t))
+
+	// Alice renames "b" to "a/d".
+	bRename := nn.makeWithType(
+		"/k/p/a/a/d", NotificationRename, aliceUID, &NotificationParams{
+			OldFilename: "/k/p/a/b",
+		}, time.Time{}, EntryTypeDir)
+	aliceMessages = append(aliceMessages, nn.encode(t))
+	fooCreate.Filename = "/k/p/a/a/d/foo"
+
+	expected := writersByRevision{
+		{aliceName,
+			[]NotificationMessage{fooCreate},
+			nil,
+		},
+	}
+
+	th := NewTlfHistory()
+	rev, err := th.AddNotifications(aliceName, aliceMessages)
+	require.NoError(t, err)
+	require.Equal(t, bRename.Revision, rev)
+	checkTlfHistory(t, th, expected, aliceName)
+}
