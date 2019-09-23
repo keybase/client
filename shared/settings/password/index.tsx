@@ -131,11 +131,12 @@ class UpdatePassword extends Component<Props, State> {
           ),
         }}
         header={{
-          leftButton: Styles.isMobile ? (
-            <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
-              Cancel
-            </Kb.Text>
-          ) : null,
+          leftButton:
+            Styles.isMobile && this.props.onCancel ? (
+              <Kb.Text type="BodyBigLink" onClick={this.props.onCancel}>
+                Cancel
+              </Kb.Text>
+            ) : null,
           title: this.props.hasRandomPW ? 'Set a password' : 'Change password',
         }}
         onClose={this.props.onCancel}
