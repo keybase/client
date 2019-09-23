@@ -144,35 +144,34 @@ const ServicesIcons = (props: {
   //  2. pretty name or display label. prettyName can fallback to username if no prettyName is set.
   //
   // When the result is from the keybase service, we could have:
-  //  1. pretty name or display name
+  //  1. prettyName that matches the username - in which case it will be hidden
+  //  1. No prettyName and also no displayLabel
   const firstIconNoMargin = !props.isKeybaseResult
     ? !props.keybaseUsername && !props.prettyName && !props.displayLabel
-    : !props.prettyName && !props.displayLabel
+    : props.prettyName
+    ? props.prettyName === props.keybaseUsername
+    : !props.displayLabel
   return (
     <Kb.Box2 direction="horizontal" fullWidth={Styles.isMobile} style={styles.services}>
-      {serviceIds.map((serviceName, index) => (
-        <Kb.WithTooltip
-          key={serviceName}
-          tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
-          position="top center"
-        >
-          {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
-          <Kb.Icon
-            fontSize={14}
-            type={serviceIdToIconFont(serviceName)}
-            style={
-              firstIconNoMargin && index === 0
-                ? null
-                : Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)
-            }
-            boxStyle={
-              firstIconNoMargin && index === 0
-                ? null
-                : !Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)
-            }
-          />
-        </Kb.WithTooltip>
-      ))}
+      {serviceIds.map((serviceName, index) => {
+        const iconStyle =
+          firstIconNoMargin && index === 0 ? null : Kb.iconCastPlatformStyles(styles.serviceIcon)
+        return (
+          <Kb.WithTooltip
+            key={serviceName}
+            tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
+            position="top center"
+          >
+            {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
+            <Kb.Icon
+              fontSize={14}
+              type={serviceIdToIconFont(serviceName)}
+              style={Styles.isMobile && iconStyle}
+              boxStyle={!Styles.isMobile && iconStyle}
+            />
+          </Kb.WithTooltip>
+        )
+      })}
     </Kb.Box2>
   )
 }
