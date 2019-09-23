@@ -21,9 +21,6 @@ export type Props = {
   onRemove: () => void
 }
 
-// TODO
-// * Use ListItem2
-
 /*
  * Case 1: the service is 'keybase' (isKeybaseResult = true)
  *
