@@ -54,6 +54,7 @@ export type Props = {
   toggleSmallTeamsExpanded: () => void
   unreadIndices: I.List<number>
   isSearching: boolean
+  isLoading: boolean
 }
 
 export default class Inbox extends React.Component<Props> {}
