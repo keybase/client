@@ -91,9 +91,9 @@ type DisplayResetProgressArg struct {
 }
 
 type ExplainDeviceRecoveryArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Kind      DeviceType `codec:"kind" json:"kind"`
-	Name      string     `codec:"name" json:"name"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Kind      DeviceTypeChat `codec:"kind" json:"kind"`
+	Name      string         `codec:"name" json:"name"`
 }
 
 type PromptPassphraseRecoveryArg struct {

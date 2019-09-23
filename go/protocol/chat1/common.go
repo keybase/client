@@ -915,18 +915,18 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 }
 
 type ConversationNotificationInfo struct {
-	ChannelWide bool                                              `codec:"channelWide" json:"channelWide"`
-	Settings    map[keybase1.DeviceType]map[NotificationKind]bool `codec:"settings" json:"settings"`
+	ChannelWide bool                                                  `codec:"channelWide" json:"channelWide"`
+	Settings    map[keybase1.DeviceTypeChat]map[NotificationKind]bool `codec:"settings" json:"settings"`
 }
 
 func (o ConversationNotificationInfo) DeepCopy() ConversationNotificationInfo {
 	return ConversationNotificationInfo{
 		ChannelWide: o.ChannelWide,
-		Settings: (func(x map[keybase1.DeviceType]map[NotificationKind]bool) map[keybase1.DeviceType]map[NotificationKind]bool {
+		Settings: (func(x map[keybase1.DeviceTypeChat]map[NotificationKind]bool) map[keybase1.DeviceTypeChat]map[NotificationKind]bool {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[keybase1.DeviceType]map[NotificationKind]bool, len(x))
+			ret := make(map[keybase1.DeviceTypeChat]map[NotificationKind]bool, len(x))
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := (func(x map[NotificationKind]bool) map[NotificationKind]bool {

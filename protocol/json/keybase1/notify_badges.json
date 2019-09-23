@@ -201,7 +201,7 @@
           "type": {
             "type": "map",
             "values": "int",
-            "keys": "DeviceType"
+            "keys": "DeviceTypeChat"
           },
           "name": "badgeCounts"
         },

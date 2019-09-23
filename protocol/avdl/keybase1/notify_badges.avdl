@@ -53,7 +53,7 @@ protocol NotifyBadges {
 
   record BadgeConversationInfo {
     ChatConversationID convID;
-    map<DeviceType, int> badgeCounts;
+    map<DeviceTypeChat, int> badgeCounts;
     int unreadMessages;
   }
 

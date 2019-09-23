@@ -884,7 +884,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.loginUi.explainDeviceRecovery': {
-    inParam: {readonly kind: DeviceType; readonly name: String}
+    inParam: {readonly kind: DeviceTypeChat; readonly name: String}
     outParam: void
   }
   'keybase.1.loginUi.getEmailOrUsername': {
@@ -1012,7 +1012,7 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.provisionUi.DisplayAndPromptSecret': {
-    inParam: {readonly secret: Bytes; readonly phrase: String; readonly otherDeviceType: DeviceType; readonly previousErr: String}
+    inParam: {readonly secret: Bytes; readonly phrase: String; readonly otherDeviceType: DeviceTypeChat; readonly previousErr: String}
     outParam: SecretResponse
   }
   'keybase.1.provisionUi.DisplaySecretExchanged': {
@@ -1037,7 +1037,7 @@ export type MessageTypes = {
   }
   'keybase.1.provisionUi.chooseDeviceType': {
     inParam: {readonly kind: ChooseType}
-    outParam: DeviceType
+    outParam: DeviceTypeChat
   }
   'keybase.1.provisionUi.chooseGPGMethod': {
     inParam: {readonly keys?: Array<GPGKey> | null}
@@ -1132,7 +1132,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.signup.signup': {
-    inParam: {readonly email: String; readonly inviteCode: String; readonly passphrase: String; readonly username: String; readonly deviceName: String; readonly deviceType: DeviceType; readonly storeSecret: Boolean; readonly skipMail: Boolean; readonly genPGPBatch: Boolean; readonly genPaper: Boolean; readonly randomPw: Boolean; readonly verifyEmail: Boolean; readonly bot: Boolean; readonly skipGPG: Boolean}
+    inParam: {readonly email: String; readonly inviteCode: String; readonly passphrase: String; readonly username: String; readonly deviceName: String; readonly deviceType: DeviceTypeAPI; readonly storeSecret: Boolean; readonly skipMail: Boolean; readonly genPGPBatch: Boolean; readonly genPaper: Boolean; readonly randomPw: Boolean; readonly verifyEmail: Boolean; readonly bot: Boolean; readonly skipGPG: Boolean}
     outParam: SignupRes
   }
   'keybase.1.streamUi.close': {
@@ -1444,7 +1444,14 @@ export enum DbType {
   fsSyncBlockCacheMeta = 5,
 }
 
-export enum DeviceType {
+export enum DeviceTypeAPI {
+  none = 0,
+  desktop = 1,
+  mobile = 2,
+  backup = 5,
+}
+
+export enum DeviceTypeChat {
   desktop = 0,
   mobile = 1,
 }

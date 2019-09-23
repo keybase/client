@@ -59,7 +59,7 @@ protocol provisionUi {
    If selecting the existing device type, set kind to EXISTING_DEVICE_0.
    If selecting the new device type, set kind to NEW_DEVICE_1.
    */
-  DeviceType chooseDeviceType(int sessionID, ChooseType kind);
+  DeviceTypeChat chooseDeviceType(int sessionID, ChooseType kind);
 
   /**
    SecretResponse should be returned by DisplayAndPromptSecret.  Use either secret or phrase.
@@ -76,7 +76,7 @@ protocol provisionUi {
    If there is an error in the phrase, then previousErr will be set when this is called again.
    */
   @lint("ignore")
-  SecretResponse DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceType otherDeviceType, string previousErr);
+  SecretResponse DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceTypeChat otherDeviceType, string previousErr);
 
   /**
    DisplaySecretExchanged is called when the kex2 secret has successfully been exchanged by the two

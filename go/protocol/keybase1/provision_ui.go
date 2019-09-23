@@ -144,11 +144,11 @@ type ChooseDeviceTypeArg struct {
 }
 
 type DisplayAndPromptSecretArg struct {
-	SessionID       int        `codec:"sessionID" json:"sessionID"`
-	Secret          []byte     `codec:"secret" json:"secret"`
-	Phrase          string     `codec:"phrase" json:"phrase"`
-	OtherDeviceType DeviceType `codec:"otherDeviceType" json:"otherDeviceType"`
-	PreviousErr     string     `codec:"previousErr" json:"previousErr"`
+	SessionID       int            `codec:"sessionID" json:"sessionID"`
+	Secret          []byte         `codec:"secret" json:"secret"`
+	Phrase          string         `codec:"phrase" json:"phrase"`
+	OtherDeviceType DeviceTypeChat `codec:"otherDeviceType" json:"otherDeviceType"`
+	PreviousErr     string         `codec:"previousErr" json:"previousErr"`
 }
 
 type DisplaySecretExchangedArg struct {
@@ -200,7 +200,7 @@ type ProvisionUiInterface interface {
 	// If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.
 	// If selecting the existing device type, set kind to EXISTING_DEVICE_0.
 	// If selecting the new device type, set kind to NEW_DEVICE_1.
-	ChooseDeviceType(context.Context, ChooseDeviceTypeArg) (DeviceType, error)
+	ChooseDeviceType(context.Context, ChooseDeviceTypeArg) (DeviceTypeChat, error)
 	// DisplayAndPromptSecret displays a secret that the user can enter into the other device.
 	// It also can return a secret that the user enters into this device (from the other device).
 	// If it does not return a secret, it will be canceled when this device receives the secret via kex2.
@@ -424,7 +424,7 @@ func (c ProvisionUiClient) ChooseDevice(ctx context.Context, __arg ChooseDeviceA
 // If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.
 // If selecting the existing device type, set kind to EXISTING_DEVICE_0.
 // If selecting the new device type, set kind to NEW_DEVICE_1.
-func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, __arg ChooseDeviceTypeArg) (res DeviceType, err error) {
+func (c ProvisionUiClient) ChooseDeviceType(ctx context.Context, __arg ChooseDeviceTypeArg) (res DeviceTypeChat, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDeviceType", []interface{}{__arg}, &res)
 	return
 }

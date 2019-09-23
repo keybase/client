@@ -29,7 +29,7 @@ protocol loginUi {
    During recovery the service might want to explain to the user how they can change
    their password by using the "change password" functionality on other devices.
    */
-  void explainDeviceRecovery(int sessionID, DeviceType kind, string name);
+  void explainDeviceRecovery(int sessionID, DeviceTypeChat kind, string name);
 
   enum PassphraseRecoveryPromptType {
     ENCRYPTED_PGP_KEYS_0 // explain to the user that they'll lose encrypted pgp keys

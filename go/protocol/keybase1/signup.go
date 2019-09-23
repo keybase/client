@@ -30,21 +30,21 @@ type CheckUsernameAvailableArg struct {
 }
 
 type SignupArg struct {
-	SessionID   int        `codec:"sessionID" json:"sessionID"`
-	Email       string     `codec:"email" json:"email"`
-	InviteCode  string     `codec:"inviteCode" json:"inviteCode"`
-	Passphrase  string     `codec:"passphrase" json:"passphrase"`
-	Username    string     `codec:"username" json:"username"`
-	DeviceName  string     `codec:"deviceName" json:"deviceName"`
-	DeviceType  DeviceType `codec:"deviceType" json:"deviceType"`
-	StoreSecret bool       `codec:"storeSecret" json:"storeSecret"`
-	SkipMail    bool       `codec:"skipMail" json:"skipMail"`
-	GenPGPBatch bool       `codec:"genPGPBatch" json:"genPGPBatch"`
-	GenPaper    bool       `codec:"genPaper" json:"genPaper"`
-	RandomPw    bool       `codec:"randomPw" json:"randomPw"`
-	VerifyEmail bool       `codec:"verifyEmail" json:"verifyEmail"`
-	Bot         bool       `codec:"bot" json:"bot"`
-	SkipGPG     bool       `codec:"skipGPG" json:"skipGPG"`
+	SessionID   int           `codec:"sessionID" json:"sessionID"`
+	Email       string        `codec:"email" json:"email"`
+	InviteCode  string        `codec:"inviteCode" json:"inviteCode"`
+	Passphrase  string        `codec:"passphrase" json:"passphrase"`
+	Username    string        `codec:"username" json:"username"`
+	DeviceName  string        `codec:"deviceName" json:"deviceName"`
+	DeviceType  DeviceTypeAPI `codec:"deviceType" json:"deviceType"`
+	StoreSecret bool          `codec:"storeSecret" json:"storeSecret"`
+	SkipMail    bool          `codec:"skipMail" json:"skipMail"`
+	GenPGPBatch bool          `codec:"genPGPBatch" json:"genPGPBatch"`
+	GenPaper    bool          `codec:"genPaper" json:"genPaper"`
+	RandomPw    bool          `codec:"randomPw" json:"randomPw"`
+	VerifyEmail bool          `codec:"verifyEmail" json:"verifyEmail"`
+	Bot         bool          `codec:"bot" json:"bot"`
+	SkipGPG     bool          `codec:"skipGPG" json:"skipGPG"`
 }
 
 type InviteRequestArg struct {

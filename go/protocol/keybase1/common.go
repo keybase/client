@@ -523,27 +523,59 @@ func (o Device) DeepCopy() Device {
 	}
 }
 
-type DeviceType int
+type DeviceTypeAPI int
 
 const (
-	DeviceType_DESKTOP DeviceType = 0
-	DeviceType_MOBILE  DeviceType = 1
+	DeviceTypeAPI_NONE    DeviceTypeAPI = 0
+	DeviceTypeAPI_DESKTOP DeviceTypeAPI = 1
+	DeviceTypeAPI_MOBILE  DeviceTypeAPI = 2
+	DeviceTypeAPI_BACKUP  DeviceTypeAPI = 5
 )
 
-func (o DeviceType) DeepCopy() DeviceType { return o }
+func (o DeviceTypeAPI) DeepCopy() DeviceTypeAPI { return o }
 
-var DeviceTypeMap = map[string]DeviceType{
+var DeviceTypeAPIMap = map[string]DeviceTypeAPI{
+	"NONE":    0,
+	"DESKTOP": 1,
+	"MOBILE":  2,
+	"BACKUP":  5,
+}
+
+var DeviceTypeAPIRevMap = map[DeviceTypeAPI]string{
+	0: "NONE",
+	1: "DESKTOP",
+	2: "MOBILE",
+	5: "BACKUP",
+}
+
+func (e DeviceTypeAPI) String() string {
+	if v, ok := DeviceTypeAPIRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type DeviceTypeChat int
+
+const (
+	DeviceTypeChat_DESKTOP DeviceTypeChat = 0
+	DeviceTypeChat_MOBILE  DeviceTypeChat = 1
+)
+
+func (o DeviceTypeChat) DeepCopy() DeviceTypeChat { return o }
+
+var DeviceTypeChatMap = map[string]DeviceTypeChat{
 	"DESKTOP": 0,
 	"MOBILE":  1,
 }
 
-var DeviceTypeRevMap = map[DeviceType]string{
+var DeviceTypeChatRevMap = map[DeviceTypeChat]string{
 	0: "DESKTOP",
 	1: "MOBILE",
 }
 
-func (e DeviceType) String() string {
-	if v, ok := DeviceTypeRevMap[e]; ok {
+func (e DeviceTypeChat) String() string {
+	if v, ok := DeviceTypeChatRevMap[e]; ok {
 		return v
 	}
 	return ""

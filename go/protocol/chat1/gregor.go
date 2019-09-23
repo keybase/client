@@ -238,22 +238,22 @@ func (o ExpungePayload) DeepCopy() ExpungePayload {
 }
 
 type UnreadUpdate struct {
-	ConvID                  ConversationID              `codec:"convID" json:"convID"`
-	UnreadMessages          int                         `codec:"unreadMessages" json:"unreadMessages"`
-	UnreadNotifyingMessages map[keybase1.DeviceType]int `codec:"unreadNotifyingMessages" json:"unreadNotifyingMessages"`
-	CompatUnreadMessages    int                         `codec:"UnreadMessages" json:"UnreadMessages"`
-	Diff                    bool                        `codec:"diff" json:"diff"`
+	ConvID                  ConversationID                  `codec:"convID" json:"convID"`
+	UnreadMessages          int                             `codec:"unreadMessages" json:"unreadMessages"`
+	UnreadNotifyingMessages map[keybase1.DeviceTypeChat]int `codec:"unreadNotifyingMessages" json:"unreadNotifyingMessages"`
+	CompatUnreadMessages    int                             `codec:"UnreadMessages" json:"UnreadMessages"`
+	Diff                    bool                            `codec:"diff" json:"diff"`
 }
 
 func (o UnreadUpdate) DeepCopy() UnreadUpdate {
 	return UnreadUpdate{
 		ConvID:         o.ConvID.DeepCopy(),
 		UnreadMessages: o.UnreadMessages,
-		UnreadNotifyingMessages: (func(x map[keybase1.DeviceType]int) map[keybase1.DeviceType]int {
+		UnreadNotifyingMessages: (func(x map[keybase1.DeviceTypeChat]int) map[keybase1.DeviceTypeChat]int {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[keybase1.DeviceType]int, len(x))
+			ret := make(map[keybase1.DeviceTypeChat]int, len(x))
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := v

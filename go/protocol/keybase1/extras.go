@@ -3439,3 +3439,25 @@ func NewPathWithKbfsPath(path string) Path {
 func (p PerTeamKey) Equal(q PerTeamKey) bool {
 	return p.EncKID.Equal(q.EncKID) && p.SigKID.Equal(q.SigKID)
 }
+
+func (d DeviceTypeAPI) ToChat() DeviceTypeChat {
+	switch d {
+	case DeviceTypeAPI_MOBILE:
+		return DeviceTypeChat_MOBILE
+	default:
+		return DeviceTypeChat_DESKTOP
+	}
+}
+
+func (d DeviceTypeAPI) StringForAPI() (string, error) {
+	switch d {
+	case DeviceTypeAPI_MOBILE:
+		return "mobile", nil
+	case DeviceTypeAPI_DESKTOP:
+		return "desktop", nil
+	case DeviceTypeAPI_BACKUP:
+		return "backup", nil
+	default:
+		return "", fmt.Errorf("no string for given DeviceType %d", d)
+	}
+}

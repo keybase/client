@@ -183,7 +183,16 @@ protocol Common {
     int status;
   }
 
-  enum DeviceType {
+  enum DeviceTypeAPI {
+    NONE_0,
+    DESKTOP_1,
+    MOBILE_2,
+    BACKUP_5
+  }
+
+  // Due to historical bugs, the Chat server uses different values for DeviceTypes
+  // from the API server. It's too hard to back this out.
+  enum DeviceTypeChat {
     DESKTOP_0,
     MOBILE_1
   }

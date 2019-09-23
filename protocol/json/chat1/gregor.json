@@ -307,7 +307,7 @@
           "type": {
             "type": "map",
             "values": "int",
-            "keys": "keybase1.DeviceType"
+            "keys": "keybase1.DeviceTypeChat"
           },
           "name": "unreadNotifyingMessages"
         },

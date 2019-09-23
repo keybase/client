@@ -265,7 +265,7 @@
 
   record ConversationNotificationInfo {
     boolean channelWide;
-    map<keybase1.DeviceType, map<NotificationKind, boolean>> settings;
+    map<keybase1.DeviceTypeChat, map<NotificationKind, boolean>> settings;
   }
 
   record ConversationReaderInfo {

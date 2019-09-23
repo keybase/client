@@ -439,7 +439,17 @@
     },
     {
       "type": "enum",
-      "name": "DeviceType",
+      "name": "DeviceTypeAPI",
+      "symbols": [
+        "NONE_0",
+        "DESKTOP_1",
+        "MOBILE_2",
+        "BACKUP_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "DeviceTypeChat",
       "symbols": [
         "DESKTOP_0",
         "MOBILE_1"

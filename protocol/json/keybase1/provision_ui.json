@@ -136,7 +136,7 @@
           "type": "ChooseType"
         }
       ],
-      "response": "DeviceType",
+      "response": "DeviceTypeChat",
       "doc": "If provisioning via device, this will be called so user can select the provisioner/provisionee device type: desktop or mobile.\n   If selecting the existing device type, set kind to EXISTING_DEVICE_0.\n   If selecting the new device type, set kind to NEW_DEVICE_1."
     },
     "DisplayAndPromptSecret": {
@@ -155,7 +155,7 @@
         },
         {
           "name": "otherDeviceType",
-          "type": "DeviceType"
+          "type": "DeviceTypeChat"
         },
         {
           "name": "previousErr",

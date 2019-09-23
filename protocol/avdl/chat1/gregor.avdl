@@ -91,7 +91,7 @@ protocol gregor {
         // The count of unread messages to display
         // Counts only visible types of messages deserving of a badge, no EDITs
         int unreadMessages;
-        map<keybase1.DeviceType, int> unreadNotifyingMessages;
+        map<keybase1.DeviceTypeChat, int> unreadNotifyingMessages;
         // Compatibility field for gregor->client messages. Result of past botched protocol change.
         @mpackkey("UnreadMessages") @jsonkey("UnreadMessages")
         int compatUnreadMessages;

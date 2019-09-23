@@ -659,7 +659,7 @@
               "values": "boolean",
               "keys": "NotificationKind"
             },
-            "keys": "keybase1.DeviceType"
+            "keys": "keybase1.DeviceTypeChat"
           },
           "name": "settings"
         }
