@@ -178,8 +178,10 @@ func (w *contentTypeOverridingResponseWriter) Header() http.Header {
 
 func (w *contentTypeOverridingResponseWriter) WriteHeader(statusCode int) {
 	w.override()
-	if err := w.checkViewTypeInvariance(); err != nil {
-		return
+	if statusCode == http.StatusOK {
+		if err := w.checkViewTypeInvariance(); err != nil {
+			return
+		}
 	}
 	w.original.WriteHeader(statusCode)
 }

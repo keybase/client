@@ -166,8 +166,14 @@ func (s *Server) serve(w http.ResponseWriter, req *http.Request) {
 		s.handleBadRequest(w)
 		return
 	}
+	viewTypeInvariance := req.URL.Query().Get("viewTypeInvariance")
+	if len(viewTypeInvariance) == 0 {
+		s.logger.Warning("Bad request; missing viewTypeInvariance")
+		s.handleBadRequest(w)
+		return
+	}
 	wrappedW := newContentTypeOverridingResponseWriter(w,
-		req.URL.Query().Get("viewTypeInvariance"))
+		viewTypeInvariance)
 	http.StripPrefix(toStrip, http.FileServer(fs)).ServeHTTP(wrappedW, req)
 }
 
