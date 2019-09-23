@@ -1214,6 +1214,15 @@ pathLoop:
 			return err
 		}
 
+		if elemNode == nil {
+			// This can happen if an old bug (HOTPOT-616) kept a
+			// deleted path in the history that has since been changed
+			// into a symlink.
+			fbo.vlog.CLogf(
+				ctx, libkb.VLog1, "Ignoring symlink path %s", p)
+			continue pathLoop
+		}
+
 		ptr, err := fbo.syncOneNode(
 			ctx, elemNode, latestMerged, priority, pathSyncAction)
 		if err != nil {
