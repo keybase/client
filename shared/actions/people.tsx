@@ -1,5 +1,7 @@
 import * as EngineGen from './engine-gen-gen'
+import * as TeamBuildingGen from './team-building-gen'
 import * as PeopleGen from './people-gen'
+import * as ProfileGen from './profile-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
@@ -164,13 +166,22 @@ const connected = async () => {
   }
 }
 
+const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
+  const {users} = action.payload
+  const user = users[0]
+  if (!user) return false
+
+  const username = user.id
+  return [
+    TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'}),
+    ProfileGen.createShowUserProfile({username}),
+  ]
+}
+
 function* peopleTeamBuildingSaga() {
   yield* commonTeamBuildingSaga('people')
   // TODO hok up
-  // yield* Saga.chainAction2(
-  // TeamBuildingGen.finishedTeamBuilding,
-  // filterForNs('people', createConversationFromTeamBuilder)
-  // )
+  yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
 const peopleSaga = function*() {
