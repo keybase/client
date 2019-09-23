@@ -111,10 +111,10 @@ function* inboxRefresh(
   logger.info(`Inbox refresh due to ${reason || '???'}`)
 
   if (clearExistingMetas) {
-    yield Saga.put(Chat2Gen.createClearMetas({}))
+    yield Saga.put(Chat2Gen.createClearMetas())
   }
   if (clearExistingMessages) {
-    yield Saga.put(Chat2Gen.createClearMessages({}))
+    yield Saga.put(Chat2Gen.createClearMessages())
   }
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
     incomingCallMap: {},
@@ -251,9 +251,10 @@ const onGetInboxConvsUnboxed = (
 
 const onGetInboxConvFailed = (
   state: TypedState,
-  action: EngineGen.Chat1ChatUiChatInboxConversation,
+  action: EngineGen.Chat1ChatUiChatInboxFailedPayload,
   logger: Saga.SagaLogger
 ) => {
+  const {convID, error} = action.payload.params
   const conversationIDKey = Types.conversationIDToKey(convID)
   switch (error.typ) {
     case RPCChatTypes.ConversationErrorType.transient:
@@ -277,8 +278,7 @@ function* unboxRows(
   action:
     | Chat2Gen.MetaRequestTrustedPayload
     | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.MetasReceivedPayload,
-  logger: Saga.SagaLogger
+    | Chat2Gen.MetasReceivedPayload
 ) {
   if (!state.config.loggedIn) {
     return
@@ -287,9 +287,9 @@ function* unboxRows(
   if (!conversationIDKeys.length) {
     return
   }
-
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
+    incomingCallMap: {},
     params: {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       query: Constants.makeInboxQuery(conversationIDKeys),
@@ -1009,7 +1009,6 @@ function* loadMoreMessages(
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | Chat2Gen.MetasReceivedPayload
     | ConfigGen.ChangedFocusPayload,
   logger: Saga.SagaLogger
 ) {
@@ -1045,13 +1044,6 @@ function* loadMoreMessages(
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
       reason = action.payload.reason || 'selected'
-      break
-    case Chat2Gen.metasReceived:
-      if (!action.payload.clearExistingMessages) {
-        // we didn't clear anything out, we don't need to fetch anything
-        return
-      }
-      key = Constants.getSelectedConversation(state)
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -3374,6 +3366,7 @@ function* chat2Saga() {
     onGetInboxUnverifiedConvs,
     'onGetInboxUnverifiedConvs'
   )
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed, 'onGetInboxConvFailed')
 
   // Load the selected thread
   yield* Saga.chainGenerator<
@@ -3383,7 +3376,6 @@ function* chat2Saga() {
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | Chat2Gen.MetasReceivedPayload
     | ConfigGen.ChangedFocusPayload
   >(
     [
@@ -3393,7 +3385,6 @@ function* chat2Saga() {
       Chat2Gen.loadNewerMessagesDueToScroll,
       Chat2Gen.loadMessagesCentered,
       Chat2Gen.markConversationsStale,
-      Chat2Gen.metasReceived,
       ConfigGen.changedFocus,
     ],
     loadMoreMessages,

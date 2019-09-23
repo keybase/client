@@ -1513,6 +1513,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.messagesExploded:
       case Chat2Gen.saveMinWriterRole:
       case Chat2Gen.updateMessages:
+      case Chat2Gen.clearMessages:
+      case Chat2Gen.clearMetas:
         draftState.metaMap = metaMapReducer(draftState.metaMap, action)
         draftState.messageMap = messageMapReducer(
           draftState.messageMap,
