@@ -39,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onRekey: dispatchProps.onRekey,
   onShowProfile: dispatchProps.onShowProfile,
   rekeyers: stateProps.rekeyers.toArray(),
-  youRekey: true,//stateProps.rekeyers.has(stateProps._you),
+  youRekey: stateProps.rekeyers.has(stateProps._you),
 })
 
 class Rekey extends React.PureComponent<Props> {

@@ -493,17 +493,14 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   )
 }
 
-export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
-  const isError = meta.trustedState === 'error'
+export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? globalColors.blue
     : isMobile
     ? globalColors.fastBlank
     : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
-  const subColor: AllowedColors = isError
-    ? globalColors.redDark
-    : isSelected
+  const subColor: AllowedColors = isSelected
     ? globalColors.white
     : hasUnread
     ? globalColors.black
