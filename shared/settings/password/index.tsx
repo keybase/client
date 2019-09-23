@@ -9,7 +9,7 @@ type Props = {
   newPasswordError?: string
   newPasswordConfirmError?: string
   onCancel?: () => void
-  onSave: (password: string, passwordConfirm: string) => void
+  onSave: (password: string) => void // will only be called if password.length > 8 & passwords match
   saveLabel?: string
   showTyping?: boolean
   waitingForResponse?: boolean
@@ -60,6 +60,11 @@ class UpdatePassword extends Component<Props, State> {
     }
     return ''
   }
+
+  private canSubmit = () =>
+    !this.state.errorSaving &&
+    this.state.password.length >= 8 &&
+    this.state.password === this.state.passwordConfirm
 
   render() {
     const inputType = this.state.showTyping ? 'text' : 'password'
@@ -119,12 +124,8 @@ class UpdatePassword extends Component<Props, State> {
               <Kb.Button
                 fullWidth={true}
                 label={this.props.saveLabel || 'Save'}
-                disabled={
-                  !!this.state.errorSaving ||
-                  this.state.password.length < 8 ||
-                  this.state.password !== this.state.passwordConfirm
-                }
-                onClick={() => this.props.onSave(this.state.password, this.state.passwordConfirm)}
+                disabled={!this.canSubmit()}
+                onClick={() => this.props.onSave(this.state.password)}
                 waiting={this.props.waitingForResponse}
               />
             </Kb.ButtonBar>
@@ -162,12 +163,8 @@ class UpdatePassword extends Component<Props, State> {
               value={this.state.passwordConfirm}
               onChangeText={password => this._handlePasswordConfirmChange(password)}
               onEnterKeyDown={() => {
-                if (
-                  !this.state.errorSaving &&
-                  this.state.password.length >= 8 &&
-                  this.state.password === this.state.passwordConfirm
-                ) {
-                  this.props.onSave(this.state.password, this.state.passwordConfirm)
+                if (this.canSubmit()) {
+                  this.props.onSave(this.state.password)
                 }
               }}
             />
