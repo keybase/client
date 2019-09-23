@@ -283,7 +283,6 @@ const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () =
   return (
     <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
       <Kb.Box2
-        className="actionButton"
         direction="vertical"
         centerChildren={true}
         style={Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: null}])}
