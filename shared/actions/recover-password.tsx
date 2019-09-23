@@ -146,11 +146,13 @@ const inputPaperKey = (
         yield Saga.put(
           RecoverPasswordGen.createSetPasswordError({error: new HiddenString(params.pinentry.retryLabel)})
         )
+      } else {
+        yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
       }
-      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
       const action: RecoverPasswordGen.SubmitPasswordPayload = yield Saga.take([
         RecoverPasswordGen.submitPassword,
       ])
+      response.result({passphrase: action.payload.password.stringValue(), storeSecret: true})
     }
   })
 }
@@ -178,7 +180,7 @@ function* startRecoverPassword(
       },
     })
   } catch (e) {
-    logger.warn('RPC returned error: ' + e)
+    logger.warn('RPC returned error: ' + e.toString())
     if (
       !(
         e instanceof RPCError &&
