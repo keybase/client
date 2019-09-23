@@ -12,9 +12,20 @@ type ExternalHandler interface {
 	Log(level keybase1.LogLevel, format string, args []interface{})
 }
 
-type Logger interface {
-	// Debug logs a message at debug level, with formatting args.
+type BaseLogger interface {
 	Debug(format string, args ...interface{})
+	Warning(format string, args ...interface{})
+	Error(format string, args ...interface{})
+}
+
+type CtxAndLogger interface {
+	BaseLogger
+	Ctx() context.Context
+	UpdateContext(context.Context) CtxAndLogger
+}
+
+type Logger interface {
+	BaseLogger
 	// CDebugf logs a message at debug level, with a context and
 	// formatting args.
 	CDebugf(ctx context.Context, format string, args ...interface{})
@@ -28,13 +39,8 @@ type Logger interface {
 	// formatting args.
 	CNoticef(ctx context.Context, format string, args ...interface{})
 	// Warning logs a message at warning level, with formatting args.
-	Warning(format string, args ...interface{})
-	// CWarning logs a message at warning level, with a context and
-	// formatting args.
 	CWarningf(ctx context.Context, format string, args ...interface{})
 	// Error logs a message at error level, with formatting args
-	Error(format string, args ...interface{})
-	// Errorf logs a message at error level, with formatting args.
 	Errorf(format string, args ...interface{})
 	// CErrorf logs a message at error level, with a context and
 	// formatting args.

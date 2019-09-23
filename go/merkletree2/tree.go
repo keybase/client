@@ -9,14 +9,12 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-codec/codec"
-	"golang.org/x/net/context"
 )
 
 // Tree is the MerkleTree class; it needs an engine and a configuration
 // to run
 type Tree struct {
 	sync.RWMutex
-	logger.Logger
 
 	cfg Config
 	eng StorageEngine
@@ -33,7 +31,7 @@ type Tree struct {
 }
 
 // NewTree makes a new tree
-func NewTree(c Config, step int, e StorageEngine, l logger.Logger) (*Tree, error) {
+func NewTree(c Config, step int, e StorageEngine) (*Tree, error) {
 	if c.UseBlindedValueHashes {
 		_, ok := e.(StorageEngineWithBlinding)
 		if !ok {
@@ -44,7 +42,7 @@ func NewTree(c Config, step int, e StorageEngine, l logger.Logger) (*Tree, error
 		return nil, fmt.Errorf("step must be a positive integer")
 	}
 
-	return &Tree{cfg: c, eng: e, Logger: l, step: step}, nil
+	return &Tree{cfg: c, eng: e, step: step}, nil
 }
 
 // Hash is a byte-array, used to represent a full collision-resistant hash.
@@ -169,7 +167,7 @@ func (t *Tree) makeNextRootMetadata(curr *RootMetadata, newRootHash Hash) RootMe
 }
 
 func (t *Tree) GenerateAndStoreMasterSecret(
-	ctx context.Context, tr Transaction, s Seqno) (ms MasterSecret, err error) {
+	ctx logger.CtxAndLogger, tr Transaction, s Seqno) (ms MasterSecret, err error) {
 	ms, err = t.cfg.Encoder.GenerateMasterSecret(s)
 	if err != nil {
 		return nil, err
@@ -203,62 +201,64 @@ func (t *Tree) encodeKVPairs(sortedKVPairs []KeyValuePair) (kevPairs []KeyEncode
 // state. This function does not check the condition is true for efficiency
 // reasons.
 func (t *Tree) Build(
-	ctx context.Context, tr Transaction, sortedKVPairs []KeyValuePair) (rootHash Hash, err error) {
+	ctx logger.CtxAndLogger, tr Transaction, sortedKVPairs []KeyValuePair) (s Seqno, rootHash Hash, err error) {
 	t.Lock()
 	defer t.Unlock()
 
 	latestSeqNo, rootMetadata, err := t.eng.LookupLatestRoot(ctx, tr)
 	if err != nil {
 		if _, isNoLatestRootFoundError := err.(NoLatestRootFoundError); isNoLatestRootFoundError {
-			t.CInfof(ctx, "No root found. Starting a new merkle tree.")
+			ctx.Debug("No root found. Starting a new merkle tree.")
 			latestSeqNo = 0
 			rootMetadata = RootMetadata{}
 		} else {
-			return nil, err
+			return 0, nil, err
 		}
 	}
 
+	newSeqno := latestSeqNo + 1
+
 	sortedKEVPairs, err := t.encodeKVPairs(sortedKVPairs)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
-	if err = t.eng.StoreKEVPairs(ctx, tr, latestSeqNo+1, sortedKEVPairs); err != nil {
-		return nil, err
+	if err = t.eng.StoreKEVPairs(ctx, tr, newSeqno, sortedKEVPairs); err != nil {
+		return 0, nil, err
 	}
 
 	var ms MasterSecret
 	if t.cfg.UseBlindedValueHashes {
-		ms, err = t.GenerateAndStoreMasterSecret(ctx, tr, latestSeqNo+1)
+		ms, err = t.GenerateAndStoreMasterSecret(ctx, tr, newSeqno)
 		if err != nil {
-			return nil, err
+			return 0, nil, err
 		}
 	} else {
 		ms = nil
 	}
 
 	var newBareRootHash Hash
-	if newBareRootHash, err = t.hashTreeRecursive(ctx, tr, latestSeqNo+1, ms,
+	if newBareRootHash, err = t.hashTreeRecursive(ctx, tr, newSeqno, ms,
 		t.cfg.getRootPosition(), sortedKEVPairs); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	newRootMetadata := t.makeNextRootMetadata(&rootMetadata, newBareRootHash)
 
 	if err = t.eng.StoreRootMetadata(ctx, tr, newRootMetadata); err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
 	_, hash, err := t.cfg.Encoder.EncodeAndHashGeneric(newRootMetadata)
 
-	return hash, err
+	return newSeqno, hash, err
 }
 
-func (t *Tree) hashTreeRecursive(ctx context.Context, tr Transaction, s Seqno, ms MasterSecret,
+func (t *Tree) hashTreeRecursive(ctx logger.CtxAndLogger, tr Transaction, s Seqno, ms MasterSecret,
 	p *Position, sortedKEVPairs []KeyEncodedValuePair) (ret Hash, err error) {
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-ctx.Ctx().Done():
+		return nil, ctx.Ctx().Err()
 	default:
 	}
 
@@ -321,7 +321,7 @@ func (t *Tree) makeKeyHashPairsFromKeyValuePairs(ms MasterSecret, unhashed []Key
 	return hashed, nil
 }
 
-func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, ms MasterSecret, p *Position, sortedKEVPairs []KeyEncodedValuePair) (ret Hash, err error) {
+func (t *Tree) makeAndStoreLeaf(ctx logger.CtxAndLogger, tr Transaction, s Seqno, ms MasterSecret, p *Position, sortedKEVPairs []KeyEncodedValuePair) (ret Hash, err error) {
 
 	khps, err := t.makeKeyHashPairsFromKeyValuePairs(ms, sortedKEVPairs)
 	if err != nil {
@@ -342,7 +342,7 @@ func (t *Tree) makeAndStoreLeaf(ctx context.Context, tr Transaction, s Seqno, ms
 // Retrieves a KeyValuePair from the tree. Note that if the root at Seqno s was
 // not committed yet, there might be no proof for this pair yet (hence it is
 // unsafe).
-func (t *Tree) GetKeyValuePairUnsafe(ctx context.Context, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, err error) {
+func (t *Tree) GetKeyValuePairUnsafe(ctx logger.CtxAndLogger, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, err error) {
 	if s == 0 {
 		return KeyValuePair{}, NewInvalidSeqnoError(0, fmt.Errorf("No keys stored at Seqno 0"))
 	}
@@ -363,7 +363,7 @@ func (t *Tree) GetKeyValuePairUnsafe(ctx context.Context, tr Transaction, s Seqn
 
 // Retrieves a KeyValuePair from the tree. Note that if the root at Seqno s was
 // not committed yet, an InvalidSeqnoError is returned.
-func (t *Tree) GetKeyValuePair(ctx context.Context, tr Transaction, s Seqno, k Key) (KeyValuePair, error) {
+func (t *Tree) GetKeyValuePair(ctx logger.CtxAndLogger, tr Transaction, s Seqno, k Key) (KeyValuePair, error) {
 	// Checking the Seqno was committed.
 	_, err := t.eng.LookupRoot(ctx, tr, s)
 	if err != nil {
@@ -410,7 +410,7 @@ func (p PosHashPairsInMerkleProofOrder) Swap(i, j int) {
 
 var _ sort.Interface = PosHashPairsInMerkleProofOrder{}
 
-func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
+func (t *Tree) GetKeyValuePairWithProof(ctx logger.CtxAndLogger, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
 
 	// Lookup the appropriate root.
 	rootMetadata, err := t.eng.LookupRoot(ctx, tr, s)
@@ -531,14 +531,14 @@ func (t *Tree) GetKeyValuePairWithProof(ctx context.Context, tr Transaction, s S
 	return kvp, proof, nil
 }
 
-func (t *Tree) ExecTransaction(ctx context.Context, txFn func(context.Context, Transaction) error) error {
+func (t *Tree) ExecTransaction(ctx logger.CtxAndLogger, txFn func(logger.CtxAndLogger, Transaction) error) error {
 	return t.eng.ExecTransaction(ctx, txFn)
 }
 
 // GetLatestRoot returns the latest RootMetadata which was stored in the
 // tree (and its Hash and Seqno). If no such record was stored yet,
 // GetLatestRoot returns 0 as a Seqno and a NoLatestRootFound error.
-func (t *Tree) GetLatestRoot(ctx context.Context, tr Transaction) (s Seqno, root RootMetadata, rootHash Hash, err error) {
+func (t *Tree) GetLatestRoot(ctx logger.CtxAndLogger, tr Transaction) (s Seqno, root RootMetadata, rootHash Hash, err error) {
 	s, root, err = t.eng.LookupLatestRoot(ctx, tr)
 	if err != nil || s == 0 {
 		return 0, RootMetadata{}, nil, err
