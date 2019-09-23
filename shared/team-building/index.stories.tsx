@@ -34,6 +34,43 @@ const generateTeamSofar = (count: number) => {
   })
 }
 
+const defaultUserResult = {
+  displayLabel: '',
+  followingState: 'Following' as const,
+  highlight: false,
+  inTeam: false,
+  isPreExistingTeamMember: false,
+  prettyName: 'max',
+  resultForService: 'keybase',
+  services: {
+    facebook: 'maxtaco',
+    github: 'maxtaco',
+    hackernews: 'maxtaco',
+    keybase: 'maxtaco',
+    reddit: 'maxtaco',
+    twitter: 'maxtaco',
+  },
+  username: 'max',
+}
+
+const makeUserResults = userResults =>
+  userResults.map((result, index) => (
+    <UserResult
+      key={index}
+      username={result.username}
+      prettyName={result.prettyName}
+      displayLabel={result.displayLabel}
+      resultForService={result.resultForService}
+      services={result.services}
+      followingState={result.followingState}
+      highlight={result.highlight}
+      inTeam={result.inTeam}
+      isPreExistingTeamMember={result.isPreExistingTeamMember}
+      onAdd={Sb.action('onAdd')}
+      onRemove={Sb.action('onRemove')}
+    />
+  ))
+
 const commonProps = {
   focusInputCounter: 0,
   showRecs: false,
@@ -661,265 +698,89 @@ const load = () => {
 
   Sb.storiesOf('Team-Building/User Result', module)
     .addDecorator(provider)
-    .add('Keybase/Contact Tab - Keybase User', () => (
-      <>
-        {/* Following */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Following - inTream = true*/}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Not Following */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* NotFollowing - inTeam = true */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-
-        {/* No Pretty Names - Following */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* No Pretty Names - Following - inTream = true*/}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* No Pretty Names - Not Following */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* No Pretty Names - NotFollowing - inTeam = true */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-
-        {/* Following - inPreExistingTeam = true */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="keybase"
-          services={{
-            facebook: 'max',
-            github: 'max',
-            hackernews: 'max',
-            keybase: 'max',
-            reddit: 'max',
-            twitter: 'max',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-      </>
-    ))
-    .add('Keybase/Contact Tab - Contacts', () => (
-      <>
-        <UserResult
-          username="+18885125555"
-          prettyName="Max Krohn"
-          displayLabel="+1 (888) 555-5555 (work)"
-          resultForService="keybase"
-          services={{
-            keybase: '',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="+18885125555"
-          prettyName="Max Krohn"
-          displayLabel="+1 (888) 555-5555 (work)"
-          resultForService="keybase"
-          services={{
-            keybase: '',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="maxwellkrohn@keybase.io"
-          prettyName="Max Krohn"
-          displayLabel="maxwellkrohn@keybase.io"
-          resultForService="keybase"
-          services={{
-            keybase: '',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="maxwellkrohn@keybase.io"
-          prettyName="Max Krohn"
-          displayLabel="maxwellkrohn@keybase.io"
-          resultForService="keybase"
-          services={{
-            keybase: '',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-      </>
-    ))
+    .add('Keybase/Contact Tab - Keybase User', () =>
+      makeUserResults([
+        {
+          ...defaultUserResult,
+        },
+        {
+          ...defaultUserResult,
+          inTeam: true,
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+        },
+        {
+          ...defaultUserResult,
+          inTeam: true,
+          prettyName: '',
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          prettyName: '',
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: '',
+        },
+        {
+          ...defaultUserResult,
+          isPreExistingTeamMember: true,
+        },
+      ])
+    )
+    .add('Keybase/Contact Tab - Contacts', () =>
+      makeUserResults([
+        {
+          ...defaultUserResult,
+          displayLabel: '+1 (888) 555-5555 (work)',
+          followingState: 'NotFollowing' as const,
+          prettyName: 'Max Krohn',
+          resultForService: 'keybase',
+          services: {keybase: ''},
+          username: '+18885125555',
+        },
+        {
+          ...defaultUserResult,
+          displayLabel: '+1 (888) 555-5555 (work)',
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: 'Max Krohn',
+          resultForService: 'keybase',
+          services: {keybase: ''},
+          username: '+18885125555',
+        },
+        {
+          ...defaultUserResult,
+          displayLabel: 'maxwellkrohn@keybase',
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          prettyName: 'Max Krohn',
+          resultForService: 'keybase',
+          services: {keybase: ''},
+          username: 'maxwellkrohn@keybase.io',
+        },
+        {
+          ...defaultUserResult,
+          displayLabel: 'maxwellkrohn@keybase',
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: 'Max Krohn',
+          resultForService: 'keybase',
+          services: {keybase: ''},
+          username: 'maxwellkrohn@keybase.io',
+        },
+      ])
+    )
     .add('Service Tab - Also Keybse User', () => (
       <>
         <UserResult
