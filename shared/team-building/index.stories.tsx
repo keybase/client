@@ -40,7 +40,7 @@ const defaultUserResult = {
   highlight: false,
   inTeam: false,
   isPreExistingTeamMember: false,
-  prettyName: 'max',
+  prettyName: 'Max Krohn',
   resultForService: 'keybase',
   services: {
     facebook: 'maxtaco',
@@ -781,698 +781,289 @@ const load = () => {
         },
       ])
     )
-    .add('Service Tab - Also Keybse User', () => (
-      <>
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            keybase: 'max',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            keybase: 'max',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'Following' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            keybase: 'max',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            keybase: 'max',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            keybase: 'max',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-      </>
-    ))
-    .add('Service Tab - Not Keybase User - Full Name', () => (
-      <>
-        {/* Twitter */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Github */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Facebook */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Reddit */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Hacker News */}
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="hackernews"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="hackernews"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName="Max Krohn"
-          displayLabel=""
-          resultForService="hackernews"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-      </>
-    ))
-    .add('Service Tab - Not Keybase User - No Name', () => (
-      <>
-        {/* Twitter */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="twitter"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Github */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="github"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Facebook */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="facebook"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Reddit */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="reddit"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        {/* Hacker News */}
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="hackernews"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="hackernews"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={true}
-          isPreExistingTeamMember={false}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-        <UserResult
-          username="max"
-          prettyName=""
-          displayLabel=""
-          resultForService="hackernews"
-          services={{
-            facebook: 'maxtaco',
-            github: 'maxtaco',
-            hackernews: 'maxtaco',
-            reddit: 'maxtaco',
-            twitter: 'maxtaco',
-          }}
-          followingState={'NotFollowing' as const}
-          highlight={false}
-          inTeam={false}
-          isPreExistingTeamMember={true}
-          onAdd={Sb.action('onAdd')}
-          onRemove={Sb.action('onRemove')}
-        />
-      </>
-    ))
+    .add('Service Tab - Also Keybse User', () =>
+      makeUserResults([
+        {
+          ...defaultUserResult,
+          resultForService: 'twitter',
+        },
+        {
+          ...defaultUserResult,
+          inTeam: true,
+          resultForService: 'twitter',
+        },
+        {
+          ...defaultUserResult,
+          inTeam: true,
+          resultForService: 'reddit',
+        },
+        {
+          ...defaultUserResult,
+          inTeam: true,
+          resultForService: 'facebook',
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          resultForService: 'reddit',
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          resultForService: 'facebook',
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          resultForService: 'github',
+        },
+      ])
+    )
+    .add('Service Tab - Not Keybase User - Full Name', () =>
+      makeUserResults([
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          resultForService: 'twitter',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          resultForService: 'twitter',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          resultForService: 'twitter',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          resultForService: 'github',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          resultForService: 'github',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          resultForService: 'github',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          resultForService: 'facebook',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          resultForService: 'facebook',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          resultForService: 'facebook',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          resultForService: 'reddit',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          resultForService: 'reddit',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          resultForService: 'reddit',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+      ])
+    )
+    .add('Service Tab - Not Keybase User - No Name', () =>
+      makeUserResults([
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          prettyName: '',
+          resultForService: 'twitter',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: '',
+          resultForService: 'twitter',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          prettyName: '',
+          resultForService: 'twitter',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          prettyName: '',
+          resultForService: 'github',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: '',
+          resultForService: 'github',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          prettyName: '',
+          resultForService: 'github',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          prettyName: '',
+          resultForService: 'facebook',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: '',
+          resultForService: 'facebook',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          prettyName: '',
+          resultForService: 'facebook',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          prettyName: '',
+          resultForService: 'reddit',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: '',
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          prettyName: '',
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          prettyName: '',
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: true,
+          prettyName: '',
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+        {
+          ...defaultUserResult,
+          followingState: 'NotFollowing' as const,
+          inTeam: false,
+          isPreExistingTeamMember: true,
+          prettyName: '',
+          resultForService: 'hackernews',
+          services: {...defaultUserResult.services, keybase: ''},
+        },
+      ])
+    )
 
   Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (
     <PhoneSearch
