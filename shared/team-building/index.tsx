@@ -375,11 +375,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         this.props.recommendations
       )
       return (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
-        >
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
           <Kb.SectionList
             ref={this.sectionListRef}
             keyboardDismissMode="on-drag"
@@ -579,9 +575,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.xtiny,
         },
-        isMobile: {
-          zIndex: -1, // behind ServiceTabBar
-        },
+        isMobile: {zIndex: -1}, // behind ServiceTabBar
       }),
       bannerButtonContainer: {
         alignSelf: 'flex-start',
@@ -607,6 +601,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderRadius: 4,
           height: 560,
+          maxHeight: 560,
           overflow: 'visible',
           width: 400,
         },
@@ -631,6 +626,13 @@ const styles = Styles.styleSheetCreate(
       },
       list: Styles.platformStyles({
         common: {paddingBottom: Styles.globalMargins.small},
+      }),
+      listContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+          position: 'relative',
+        },
+        isElectron: {overflow: 'hidden'},
       }),
       listContentContainer: Styles.platformStyles({
         isMobile: {paddingTop: Styles.globalMargins.xtiny},
