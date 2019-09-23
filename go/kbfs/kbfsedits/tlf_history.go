@@ -342,7 +342,7 @@ func (r *recomputer) processNotification(
 		// See if any of the parent directories were renamed, checking
 		// backwards until we get to the TLF name.
 		prefix := filename
-		rev := notification.Revision
+		latestRenameRev := notification.Revision
 		suffix := ""
 		for strings.Count(prefix, "/") > 4 {
 			var finalElem string
@@ -353,9 +353,9 @@ func (r *recomputer) processNotification(
 			// Ignore any rename events that happen at or before the
 			// last revision we considered, to avoid weird rename
 			// loops (see HOTPOT-856).
-			if hasEvent && event.newName != "" && rev < event.rev {
+			if hasEvent && event.newName != "" && latestRenameRev < event.rev {
 				prefix = event.newName
-				rev = event.rev
+				latestRenameRev = event.rev
 			}
 		}
 		filename = path.Clean(path.Join(prefix, suffix))
