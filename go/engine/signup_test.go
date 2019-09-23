@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -431,7 +432,7 @@ func TestBotSignup(t *testing.T) {
 		SkipGPG:                  true,
 		SkipMail:                 true,
 		SkipPaper:                true,
-		Bot:                      true,
+		BotToken:                 keybase1.BotToken("aabb"),
 	}
 
 	uis := libkb.UIs{

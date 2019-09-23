@@ -101,7 +101,7 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		GenPGPBatch:              arg.GenPGPBatch,
 		SkipPaper:                !arg.GenPaper,
 		VerifyEmail:              arg.VerifyEmail,
-		Bot:                      arg.Bot,
+		BotToken:                 arg.BotToken,
 		SkipGPG:                  arg.SkipGPG,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
@@ -116,7 +116,7 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		res.PassphraseOk = true
 		res.PostOk = true
 		res.WriteOk = true
-		if pk := eng.PaperKey(); pk != nil && arg.Bot {
+		if pk := eng.PaperKey(); pk != nil && arg.BotToken.Exists() {
 			res.PaperKey = pk.String()
 		}
 		return res, nil

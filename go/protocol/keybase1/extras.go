@@ -31,6 +31,8 @@ const (
 	UID_SUFFIX_2                  = 0x19
 	UID_SUFFIX_HEX                = "00"
 	UID_SUFFIX_2_HEX              = "19"
+	UID_SUFFIX_BOT                = 0x3a
+	UID_SUFFIX_BOT_HEX            = "3a"
 	TEAMID_LEN                    = 16
 	TEAMID_PRIVATE_SUFFIX         = 0x24
 	TEAMID_PRIVATE_SUFFIX_HEX     = "24"
@@ -437,8 +439,8 @@ func UIDFromString(s string) (UID, error) {
 		return "", fmt.Errorf("Bad UID '%s'; must be %d bytes long", s, UID_LEN)
 	}
 	suffix := s[len(s)-2:]
-	if suffix != UID_SUFFIX_HEX && suffix != UID_SUFFIX_2_HEX {
-		return "", fmt.Errorf("Bad UID '%s': must end in 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2)
+	if suffix != UID_SUFFIX_HEX && suffix != UID_SUFFIX_2_HEX && suffix != UID_SUFFIX_BOT_HEX {
+		return "", fmt.Errorf("Bad UID '%s': must end in 0x%x, 0x%x or 0x%x", s, UID_SUFFIX, UID_SUFFIX_2, UID_SUFFIX_BOT_HEX)
 	}
 	return UID(s), nil
 }
@@ -1732,7 +1734,7 @@ func (ut UserOrTeamID) Compare(ut2 UserOrTeamID) int {
 func (ut UserOrTeamID) IsUser() bool {
 	i := idSchema{
 		length:        UID_LEN,
-		magicSuffixes: map[byte]bool{UID_SUFFIX: true, UID_SUFFIX_2: true},
+		magicSuffixes: map[byte]bool{UID_SUFFIX: true, UID_SUFFIX_2: true, UID_SUFFIX_BOT: true},
 		typeHint:      "user id",
 	}
 	return i.check(string(ut)) == nil
@@ -3438,4 +3440,25 @@ func NewPathWithKbfsPath(path string) Path {
 
 func (p PerTeamKey) Equal(q PerTeamKey) bool {
 	return p.EncKID.Equal(q.EncKID) && p.SigKID.Equal(q.SigKID)
+}
+
+func (b BotToken) IsNil() bool {
+	return len(b) == 0
+}
+
+func (b BotToken) Exists() bool {
+	return !b.IsNil()
+}
+
+func (b BotToken) String() string {
+	return string(b)
+}
+
+var botTokenRxx = regexp.MustCompile(`^[a-zA-Z0-9_-]{32}$`)
+
+func NewBotToken(s string) (BotToken, error) {
+	if !botTokenRxx.MatchString(s) {
+		return BotToken(""), errors.New("bad bot token")
+	}
+	return BotToken(s), nil
 }

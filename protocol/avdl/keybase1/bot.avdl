@@ -1,0 +1,18 @@
+
+@namespace("keybase.1")
+protocol bot {
+
+  import idl "common.avdl";
+
+  @typedef("string") record BotToken {}
+
+  record BotTokenInfo {
+    BotToken token;
+    Time ctime;
+  }
+
+  array<BotTokenInfo> botTokenList();
+  BotToken botTokenCreate();
+  void botTokenDelete(BotToken token);
+
+}
