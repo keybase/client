@@ -10,7 +10,9 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/keybase/client/go/bot"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -418,50 +420,73 @@ func assertNoFiles(t *testing.T, dir string, files []string) {
 }
 
 func TestBotSignup(t *testing.T) {
-	tc := SetupEngineTest(t, "signup_nopw")
+	tc := SetupEngineTest(t, "signup_bot")
 	defer tc.Cleanup()
-	fu, err := NewFakeUser("bot")
+	_ = CreateAndSignupFakeUser(tc, "own")
+
+	mctx := NewMetaContextForTest(tc)
+	botToken, err := bot.CreateToken(mctx)
 	require.NoError(t, err)
 
+	fuBot, err := NewFakeUser("bot")
+	require.NoError(t, err)
+	botName := fuBot.Username
+
+	// Signup tc2 in Bot mode
+	tc2 := SetupEngineTest(t, "signup_bot")
+	defer tc2.Cleanup()
+
 	arg := SignupEngineRunArg{
-		Username:                 fu.Username,
+		Username:                 botName,
 		InviteCode:               libkb.TestInvitationCode,
 		StoreSecret:              false,
 		GenerateRandomPassphrase: true,
 		SkipGPG:                  true,
 		SkipMail:                 true,
 		SkipPaper:                true,
-		Bot:                      true,
+		BotToken:                 botToken,
 	}
 
 	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
-	s := NewSignupEngine(tc.G, &arg)
-	m := NewMetaContextForTest(tc).WithUIs(uis)
-	err = RunEngine2(m, s)
-	require.NoError(tc.T, err)
+	signupEng := NewSignupEngine(tc2.G, &arg)
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	err = RunEngine2(m, signupEng)
+	require.NoError(tc2.T, err)
+	pk := signupEng.PaperKey()
 
-	// assert paper key generation works
-	uis = libkb.UIs{
-		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{},
-		SecretUI: fu.NewSecretUI(),
-	}
-	eng2 := NewPaperKey(tc.G)
-	m = m.WithUIs(uis)
-	err = RunEngine2(m, eng2)
-	require.NoError(t, err)
-	require.NotZero(t, len(eng2.Passphrase()))
-
-	testSign(t, tc)
-	trackAlice(tc, fu, 2)
+	// Check that it worked to sign in
+	testSign(t, tc2)
+	trackAlice(tc2, fuBot, 2)
 	err = m.LogoutAndDeprovisionIfRevoked()
 	require.NoError(t, err)
 
-	assertNoFiles(t, tc.G.Env.GetConfigDir(),
-		[]string{
-			"config.json",
-			filepath.Base(tc.G.SKBFilenameForUser(libkb.NewNormalizedUsername(fu.Username))),
-		})
+	// Check that we didn't write a config.json or anything
+	assertNoDurableFiles := func() {
+		assertNoFiles(t, tc2.G.Env.GetConfigDir(),
+			[]string{
+				"config.json",
+				filepath.Base(tc2.G.SKBFilenameForUser(libkb.NewNormalizedUsername(botName))),
+			})
+	}
+	assertNoDurableFiles()
+
+	Logout(tc2)
+
+	// Now check that we can log back in via oneshot
+	oneshotEng := NewLoginOneshot(tc2.G, keybase1.LoginOneshotArg{
+		Username: botName,
+		PaperKey: pk.String(),
+	})
+	m = NewMetaContextForTest(tc2)
+	err = RunEngine2(m, oneshotEng)
+	require.NoError(t, err)
+	err = AssertProvisioned(tc2)
+	require.NoError(t, err)
+	testSign(t, tc2)
+	untrackAlice(tc2, fuBot, 2)
+	err = m.LogoutAndDeprovisionIfRevoked()
+	require.NoError(t, err)
+	assertNoDurableFiles()
 }

@@ -3439,3 +3439,24 @@ func NewPathWithKbfsPath(path string) Path {
 func (p PerTeamKey) Equal(q PerTeamKey) bool {
 	return p.EncKID.Equal(q.EncKID) && p.SigKID.Equal(q.SigKID)
 }
+
+func (b BotToken) IsNil() bool {
+	return len(b) == 0
+}
+
+func (b BotToken) Exists() bool {
+	return !b.IsNil()
+}
+
+func (b BotToken) String() string {
+	return string(b)
+}
+
+var botTokenRxx = regexp.MustCompile(`^[a-zA-Z0-9_-]{32}$`)
+
+func NewBotToken(s string) (BotToken, error) {
+	if !botTokenRxx.MatchString(s) {
+		return BotToken(""), errors.New("bad bot token")
+	}
+	return BotToken(s), nil
+}

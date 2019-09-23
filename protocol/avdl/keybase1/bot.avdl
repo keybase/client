@@ -1,0 +1,20 @@
+
+@namespace("keybase.1")
+protocol bot {
+
+  import idl "common.avdl";
+
+  @typedef("string") record BotToken {}
+
+  record BotTokenInfo {
+    @mppackkey("bot_token") @jsonkey("bot_token")
+    BotToken token;
+    @mppackkey("ctime") @jsonkey("ctime")
+    Time ctime;
+  }
+
+  array<BotTokenInfo> botTokenList();
+  BotToken botTokenCreate();
+  void botTokenDelete(BotToken token);
+
+}

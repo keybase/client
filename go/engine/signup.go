@@ -48,8 +48,8 @@ type SignupEngineRunArg struct {
 	VerifyEmail              bool
 
 	// Bot signups have random PWs, no device keys, an eldest paper key, and return an paper key via
-	// the main flow.
-	Bot bool
+	// the main flow; you need to supply a bot token to signup with them.
+	BotToken keybase1.BotToken
 
 	// Used in tests for reproducible key generation
 	naclSigningKeyPair    libkb.NaclKeyPair
@@ -73,7 +73,7 @@ func (s *SignupEngine) RequiredUIs() []libkb.UIKind {
 func (s *SignupEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
-	if s.arg.Bot {
+	if s.arg.BotToken.Exists() {
 		return nil
 	}
 	return []libkb.UIConsumer{
@@ -105,7 +105,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// StoreSecret is required if we are doing NOPW
-	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase && !s.arg.Bot {
+	if !s.arg.StoreSecret && s.arg.GenerateRandomPassphrase && s.arg.BotToken.IsNil() {
 		return fmt.Errorf("cannot SignUp with StoreSecret=false and GenerateRandomPassphrase=true")
 	}
 
@@ -135,7 +135,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if s.arg.Bot && s.arg.InviteCode == "" {
+	if s.arg.BotToken.Exists() && s.arg.InviteCode == "" {
 		s.arg.InviteCode, err = libkb.GetInvitationCode(m)
 		if err != nil {
 			return err
@@ -156,7 +156,7 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if !s.arg.Bot {
+	if s.arg.BotToken.IsNil() {
 		m.Info("Signed up and provisioned a device.")
 	}
 
@@ -275,7 +275,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, arg SignupEngineRunArg) error {
 		SkipMail:    arg.SkipMail,
 		PDPKA5KID:   pdpkda5kid,
 		VerifyEmail: arg.VerifyEmail,
-		Bot:         arg.Bot,
+		BotToken:    arg.BotToken,
 	}
 	res := joinEngine.Run(m, jarg)
 	if res.Err != nil {
@@ -340,12 +340,12 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 	case keybase1.DeviceType_MOBILE:
 		args.DeviceType = libkb.DeviceTypeMobile
 	default:
-		if !s.arg.Bot {
+		if s.arg.BotToken.IsNil() {
 			return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
 		}
 	}
 
-	if s.arg.Bot {
+	if s.arg.BotToken.Exists() {
 		err := s.generateEldestPaperKey(m, args)
 		if err != nil {
 			return err
