@@ -14,6 +14,7 @@ type ExternalHandler interface {
 
 type BaseLogger interface {
 	Debug(format string, args ...interface{})
+	Info(format string, args ...interface{})
 	Warning(format string, args ...interface{})
 	Error(format string, args ...interface{})
 }
@@ -29,8 +30,6 @@ type Logger interface {
 	// CDebugf logs a message at debug level, with a context and
 	// formatting args.
 	CDebugf(ctx context.Context, format string, args ...interface{})
-	// Info logs a message at info level, with formatting args.
-	Info(format string, args ...interface{})
 	// CInfo logs a message at info level, with a context and formatting args.
 	CInfof(ctx context.Context, format string, args ...interface{})
 	// Notice logs a message at notice level, with formatting args.

@@ -21,14 +21,8 @@ func NewContexAndLogger(c context.Context, l Logger) ContextAndLogger {
 	return ContextAndLogger{ctx: c, Logger: l}
 }
 
-type loggerTypeKey string
-
 func (c ContextAndLogger) UpdateContext(ctx context.Context) CtxAndLogger {
 	return NewContexAndLogger(ctx, c.Logger)
-}
-
-func ExtractContextAndLoggerFromContext(c context.Context) ContextAndLogger {
-	return NewContexAndLogger(c, c.Value(loggerTypeKey("")).(Logger))
 }
 
 func (c ContextAndLogger) Debug(format string, args ...interface{}) {
