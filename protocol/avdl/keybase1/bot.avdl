@@ -11,6 +11,11 @@ protocol bot {
     Time ctime;
   }
 
+  enum UserType {
+     HUMAN_0,
+     BOT_1
+  }
+
   array<BotTokenInfo> botTokenList();
   BotToken botTokenCreate();
   void botTokenDelete(BotToken token);

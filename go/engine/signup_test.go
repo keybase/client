@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/keybase/client/go/bot"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -421,18 +421,25 @@ func assertNoFiles(t *testing.T, dir string, files []string) {
 func TestBotSignup(t *testing.T) {
 	tc := SetupEngineTest(t, "signup_nopw")
 	defer tc.Cleanup()
-	fu, err := NewFakeUser("bot")
+	fu := CreateAndSignupFakeUser(tc, "own")
+
+	mctx := NewMetaContextForTest(tc)
+	botToken, err := bot.CreateToken(mctx)
 	require.NoError(t, err)
 
+	fuBot, err := NewFakeUser("bot")
+	require.NoError(t, err)
+	botName := fuBot.Username
+
 	arg := SignupEngineRunArg{
-		Username:                 fu.Username,
+		Username:                 botName,
 		InviteCode:               libkb.TestInvitationCode,
 		StoreSecret:              false,
 		GenerateRandomPassphrase: true,
 		SkipGPG:                  true,
 		SkipMail:                 true,
 		SkipPaper:                true,
-		BotToken:                 keybase1.BotToken("aabb"),
+		BotToken:                 botToken,
 	}
 
 	uis := libkb.UIs{
@@ -443,20 +450,8 @@ func TestBotSignup(t *testing.T) {
 	err = RunEngine2(m, s)
 	require.NoError(tc.T, err)
 
-	// assert paper key generation works
-	uis = libkb.UIs{
-		LogUI:    tc.G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{},
-		SecretUI: fu.NewSecretUI(),
-	}
-	eng2 := NewPaperKey(tc.G)
-	m = m.WithUIs(uis)
-	err = RunEngine2(m, eng2)
-	require.NoError(t, err)
-	require.NotZero(t, len(eng2.Passphrase()))
-
 	testSign(t, tc)
-	trackAlice(tc, fu, 2)
+	trackAlice(tc, fuBot, 2)
 	err = m.LogoutAndDeprovisionIfRevoked()
 	require.NoError(t, err)
 

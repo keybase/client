@@ -26,6 +26,32 @@ func (o BotTokenInfo) DeepCopy() BotTokenInfo {
 	}
 }
 
+type UserType int
+
+const (
+	UserType_HUMAN UserType = 0
+	UserType_BOT   UserType = 1
+)
+
+func (o UserType) DeepCopy() UserType { return o }
+
+var UserTypeMap = map[string]UserType{
+	"HUMAN": 0,
+	"BOT":   1,
+}
+
+var UserTypeRevMap = map[UserType]string{
+	0: "HUMAN",
+	1: "BOT",
+}
+
+func (e UserType) String() string {
+	if v, ok := UserTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type BotTokenListArg struct {
 }
 

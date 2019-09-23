@@ -73,7 +73,7 @@ func (s *SignupEngine) RequiredUIs() []libkb.UIKind {
 func (s *SignupEngine) Prereqs() Prereqs { return Prereqs{} }
 
 func (s *SignupEngine) SubConsumers() []libkb.UIConsumer {
-	if s.arg.BotToken.IsNil() {
+	if s.arg.BotToken.Exists() {
 		return nil
 	}
 	return []libkb.UIConsumer{
