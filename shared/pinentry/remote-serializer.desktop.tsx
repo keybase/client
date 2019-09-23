@@ -1,5 +1,6 @@
 export const serialize = {
   cancelLabel: v => v,
+  darkMode: v => v,
   prompt: v => v,
   retryLabel: v => v,
   sessionID: v => v,

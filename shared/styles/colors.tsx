@@ -112,6 +112,9 @@ export const colors = {
   get whiteOrBlack() {
     return this.white
   },
+  get whiteOrWhite() {
+    return this.white
+  },
   get whiteOrGreenDark() {
     return this.greenDark
   },
@@ -298,6 +301,10 @@ const partyFallbackColors = {
   },
   get whiteOrGreenDark() {
     return '#FF00FF'
+  },
+
+  get whiteOrWhite() {
+    return colors.white
   },
   white_0: 'rgba(25, 25, 25, 0)',
   white_0_on_white: '#191919',

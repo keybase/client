@@ -9,6 +9,7 @@ export const serialize: any = {
   airdropIsLive: v => v,
   assertions: v => (v ? v.toJS() : v),
   bio: v => v,
+  darkMode: v => v,
   followThem: v => v,
   followersCount: v => v,
   followingCount: v => v,

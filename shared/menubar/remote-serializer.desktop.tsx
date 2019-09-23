@@ -33,6 +33,7 @@ export const serialize: any = {
           }
     }, {}),
   daemonHandshakeState: v => v,
+  darkMode: v => v,
   diskSpaceStatus: v => v,
   endEstimate: v => v,
   externalRemoteWindow: v => v,

@@ -1,4 +1,5 @@
 export const serialize = {
+  darkMode: (v: any) => v,
   devices: (v: any) => v,
   paperkeyError: (v: any) => v,
   phase: (v: any) => v,

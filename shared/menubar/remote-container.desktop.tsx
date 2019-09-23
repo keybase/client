@@ -1,8 +1,8 @@
+import * as Container from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
 import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
-import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {quit} from '../desktop/app/ctl.desktop'
 import {loginTab, AppTab} from '../constants/tabs'
@@ -23,8 +23,8 @@ const hideWindow = () => {
 }
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = dispatch => ({
-  _onRetrySync: name => () =>
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onRetrySync: (name: string) => () =>
     // This LoadPathMetadata triggers a sync retry.
     dispatch(FsGen.createLoadPathMetadata({path: Types.stringToPath('/keybase/private' + name)})),
   _showUser: (username: string) => {
@@ -86,4 +86,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
   }
 }
-export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)
+export default Container.remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

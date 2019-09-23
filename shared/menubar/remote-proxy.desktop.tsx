@@ -2,6 +2,7 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
+import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
@@ -13,7 +14,7 @@ import {isDarwin, isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
 
-const windowOpts = {}
+const _windowOpts = {}
 
 type Props = {
   desktopAppBadgeCount: number
@@ -26,8 +27,6 @@ type Props = {
   windowTitle: string
 }
 
-const isDarkMode = () => isDarwin && SafeElectron.getSystemPreferences().isDarkMode()
-
 const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
@@ -36,7 +35,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const badged = isBadged ? 'badged-' : ''
 
   if (isDarwin) {
-    color = isDarkMode() ? 'white' : 'black'
+    color = Styles.isDarkMode() ? 'white' : 'black'
   } else if (isWindows) {
     color = 'black'
     platform = 'windows-'
@@ -74,7 +73,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
       }
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps: Props) {
       if (
         this.props.widgetBadge !== prevProps.widgetBadge ||
         this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount
@@ -126,6 +125,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
+  darkMode: Styles.isDarkMode(),
   daemonHandshakeState: state.config.daemonHandshakeState,
   desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,
   diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
@@ -169,7 +169,7 @@ export default Container.namedConnect(
       conversationIDs: stateProps.conversationsToSend,
       conversationMap: stateProps.conversationsToSend,
       daemonHandshakeState: stateProps.daemonHandshakeState,
-
+      darkMode: stateProps.darkMode,
       desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
       diskSpaceStatus: stateProps.diskSpaceStatus,
       externalRemoteWindow: stateProps._externalRemoteWindowID
@@ -186,7 +186,7 @@ export default Container.namedConnect(
       username: stateProps.username,
       widgetBadge: stateProps.widgetBadge,
       windowComponent: 'menubar',
-      windowOpts,
+      windowOpts: _windowOpts,
       windowParam: '',
       windowTitle: '',
       ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
