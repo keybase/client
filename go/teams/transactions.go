@@ -461,7 +461,8 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 // three major cases:
 //  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
 //  2. joe@reddit WHERE joe isn't a keybase user, and this is a social invitations
-//  3. [bob@gmail.com]@email WHERE there's an email-based invitation in play
+//  3. [bob@gmail.com]@email WHERE server-trust resolution is performed and either TOFU invite is created
+//     or resolved member is added. Same works with `@phone`.
 // **Does** attempt to resolve the assertion, to distinguish between case (1), case (2) and an error
 // The return values (uv, username) can both be zero-valued if the assertion is not a keybase user.
 func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
