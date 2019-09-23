@@ -1137,6 +1137,16 @@ func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, 
 	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
 }
 
+// loadUserVersionByUsername is a wrapper around `engine.ResolveAndCheck` to
+// return UV by username or assertion. When the argument does not resolve to a
+// Keybase user with PUK, `errInviteRequired` is returned.
+//
+// Returns `errInviteRequired` if given argument cannot be brought in as a
+// crypto member - so it is either a reset and not provisioned keybae user
+// (keybase-type invite is required), or a social assertion that does not
+// resolve to a user.
+//
+// NOTE: This also doesn't try to resolve server-trust assertions.
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (keybase1.UserVersion, error) {
 	m := libkb.NewMetaContext(ctx, g)
 	upk, err := engine.ResolveAndCheck(m, username, useTracking)
