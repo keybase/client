@@ -6,7 +6,6 @@ import * as Kb from '../common-adapters'
 import People, {Header} from '.'
 import * as PeopleGen from '../actions/people-gen'
 import * as Container from '../util/container'
-import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -89,9 +88,6 @@ export default Container.connect(
     getData: (markViewed = true) =>
       dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
     onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
-    onSearch: () => {
-      dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    },
   }),
   (stateProps, dispatchProps) => ({
     followSuggestions: stateProps.followSuggestions,

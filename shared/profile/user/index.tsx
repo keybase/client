@@ -33,7 +33,6 @@ export type Props = {
   onAddIdentity: (() => void) | null
   onBack: () => void
   onReload: () => void
-  onSearch: () => void
   onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
   reason: string
   sbsAvatarUrl?: string
