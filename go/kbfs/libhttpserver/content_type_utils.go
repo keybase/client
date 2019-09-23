@@ -80,15 +80,15 @@ func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
 	case disposition == "attachment":
 		viewType = keybase1.GUIViewType_TEXT
 	case contentTypeProcessed == "text/plain":
-		viewType = (keybase1.GUIViewType_TEXT)
+		viewType = keybase1.GUIViewType_TEXT
 	case supportedImgMimeTypes[contentTypeProcessed]:
-		viewType = (keybase1.GUIViewType_IMAGE)
+		viewType = keybase1.GUIViewType_IMAGE
 	case strings.HasPrefix(contentTypeProcessed, "audio/"):
-		viewType = (keybase1.GUIViewType_AUDIO)
+		viewType = keybase1.GUIViewType_AUDIO
 	case strings.HasPrefix(contentTypeProcessed, "video/"):
-		viewType = (keybase1.GUIViewType_VIDEO)
+		viewType = keybase1.GUIViewType_VIDEO
 	case contentTypeProcessed == "application/pdf":
-		viewType = (keybase1.GUIViewType_PDF)
+		viewType = keybase1.GUIViewType_PDF
 	default:
 		viewType = (keybase1.GUIViewType_DEFAULT)
 	}

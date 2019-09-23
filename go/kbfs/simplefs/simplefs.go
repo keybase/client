@@ -3079,7 +3079,7 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 	}
 
 	segments := strings.Split(kbfsPath.Path, "/")
-	encodedSegments := append(make([]string, 0, len(segments)), "/files")
+	encodedSegments := append(make([]string, 0, len(segments)+1), "/files")
 	for _, segment := range segments {
 		encodedSegments = append(encodedSegments, url.PathEscape(segment))
 	}
