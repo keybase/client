@@ -264,6 +264,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'flex-start',
       },
       tabBarContainer: {
+        flexShrink: 0,
         minHeight: 30,
       },
       wonderland: {
