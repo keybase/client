@@ -7,9 +7,11 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"net"
 
@@ -872,6 +874,20 @@ func stepFetch(m metaContext, ins fetchT, state scriptState) (scriptState, libkb
 		res, err1 := m.G().GetExternalAPI().GetHTML(m.MetaContext, libkb.APIArg{Endpoint: from})
 		if err1 != nil {
 			return state, libkb.XapiError(err1, from)
+		}
+		if strings.Contains(from, "facebook.com") {
+			outerHTML, err1 := goquery.OuterHtml(res.GoQuery.Selection)
+			if err1 != nil {
+				return state, libkb.NewProofError(keybase1.ProofStatus_HTTP_OTHER, "could not get outer html: %v", err1)
+			}
+			usernameService, err := state.Regs.Get("username_service")
+			if err != nil {
+				return state, err
+			}
+			err1 = ioutil.WriteFile(fmt.Sprintf("/tmp/fb/%v-%v.html", usernameService, time.Now().Format("2006-01-02T15;04;05.000000")), []byte(outerHTML), 0644)
+			if err1 != nil {
+				return state, libkb.NewProofError(keybase1.ProofStatus_HTTP_OTHER, "could not save response to file: %v", err1)
+			}
 		}
 		state.FetchResult = &fetchResult{
 			fetchMode: fetchModeHTML,
