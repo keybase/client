@@ -84,7 +84,7 @@ const fixUnimodules = () => {
 }
 
 function fixModules() {
-  if (platform === 'darwin') {
+  if (process.platform === 'darwin') {
     fixUnimodules()
     // run jetify to fix android deps
     exec('yarn jetify', null, null)
