@@ -1,38 +1,12 @@
-import crypto from 'crypto'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
 import {findAvailableFilename} from './file.shared'
-import {cacheRoot} from '../constants/platform.desktop'
 import {StatResult, WriteStream, Encoding} from './file'
-
-export function tmpDir(): string {
-  return cacheRoot
-}
-
-export function tmpFile(suffix: string): string {
-  return path.join(tmpDir(), suffix)
-}
-
-export function tmpRandFile(suffix: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    crypto.randomBytes(16, (err, buf) => {
-      if (err) {
-        reject(err)
-        return
-      }
-      resolve(path.join(tmpDir(), buf.toString('hex') + suffix))
-    })
-  })
-}
 
 export const downloadFolder = __STORYBOOK__
   ? ''
   : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
-
-export function downloadFilePathNoSearch(filename: string): string {
-  return path.join(downloadFolder, filename)
-}
 
 export function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, path.join(downloadFolder, suffix))
