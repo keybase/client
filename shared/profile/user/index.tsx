@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as SearchGen from '../../actions/search-gen'
+import {appendPeopleBuilder} from '../../actions/typed-routes'
 import * as Container from '../../util/container'
 import ProfileSearch from '../search/bar'
 import * as Kb from '../../common-adapters'
@@ -314,7 +314,7 @@ const Header = ({onSearch}) => (
 const ConnectedHeader = Container.connect(
   () => ({}),
   dispatch => ({
-    onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
+    onSearch: () => dispatch(appendPeopleBuilder()),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )(Header)

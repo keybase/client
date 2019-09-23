@@ -180,7 +180,6 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
 
 function* peopleTeamBuildingSaga() {
   yield* commonTeamBuildingSaga('people')
-  // TODO hok up
   yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
 }
 
