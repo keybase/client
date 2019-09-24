@@ -3,12 +3,21 @@
 
 import * as RouteTreeGen from './route-tree-gen'
 
+// TODO i think this should go away. either we dispatch a team building action that's typed that produces these or
+// we actually type the routes / props
+export const appendPeopleBuilder = () =>
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {namespace: 'people', title: ''}, selected: 'peopleTeamBuilder'}],
+  })
+
 export const appendNewChatBuilder = () =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'chat2'}, selected: 'chatNewChat'}],
+    path: [{props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'}],
   })
 
 export const appendNewTeamBuilder = (teamname: string) =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'teams', teamname}, selected: 'teamsTeamBuilder'}],
+    path: [
+      {props: {namespace: 'teams', teamname, title: `Add to ${teamname}`}, selected: 'teamsTeamBuilder'},
+    ],
   })
