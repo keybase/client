@@ -33,7 +33,7 @@ export default namedConnect(
     isMuted: stateProps._meta.isMuted,
     isSelected: stateProps.isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
-    showBold: Constants.getRowStyles(stateProps._meta, false, false).showBold,
+    showBold: Constants.getRowStyles(false, false).showBold,
   }),
   'BigTeamChannel'
 )(BigTeamChannel)

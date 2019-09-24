@@ -1,15 +1,7 @@
 import React, {PureComponent} from 'react'
-import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {AllowedColors} from '../../../../common-adapters/text'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  styleSheetCreate,
-  collapseStyles,
-  platformStyles,
-} from '../../../../styles'
-import {isMobile} from '../../../../constants/platform'
 
 type Props = {
   backgroundColor?: string
@@ -30,11 +22,11 @@ type Props = {
 class BottomLine extends PureComponent<Props> {
   render() {
     let content
-    const style = collapseStyles([
+    const style = Styles.collapseStyles([
       styles.bottomLine,
       {
         color: this.props.subColor,
-        ...(this.props.showBold ? globalStyles.fontBold : {}),
+        ...(this.props.showBold ? Styles.globalStyles.fontBold : {}),
       },
       this.props.isTypingSnippet ? styles.typingSnippet : null,
     ])
@@ -42,44 +34,44 @@ class BottomLine extends PureComponent<Props> {
       content = null
     } else if (this.props.youAreReset) {
       content = (
-        <Text
+        <Kb.Text
           type="BodySmallSemibold"
           negative={true}
-          style={collapseStyles([
+          style={Styles.collapseStyles([
             styles.youAreResetText,
             {
-              color: this.props.isSelected ? globalColors.white : globalColors.red,
+              color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.red,
             },
           ])}
         >
           You are locked out.
-        </Text>
+        </Kb.Text>
       )
     } else if (this.props.participantNeedToRekey) {
       content = (
-        <Text type="BodySmall" negative={true} style={{color: this.props.subColor}}>
-          Waiting for participants to rekey...
-        </Text>
+        <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
       )
     } else if (this.props.draft) {
       content = (
-        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-          <Text
+        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+          <Kb.Text
             type="BodySmall"
-            style={collapseStyles([
+            style={Styles.collapseStyles([
               styles.draftLabel,
-              this.props.isSelected ? {color: globalColors.white} : null,
+              this.props.isSelected ? {color: Styles.globalColors.white} : null,
             ])}
           >
             Draft:
-          </Text>
-          <Markdown preview={true} style={style}>
+          </Kb.Text>
+          <Kb.Markdown preview={true} style={style}>
             {this.props.draft}
-          </Markdown>
-        </Box2>
+          </Kb.Markdown>
+        </Kb.Box2>
       )
     } else if (this.props.isDecryptingSnippet) {
-      content = <Meta title="decrypting..." style={styles.alertMeta} backgroundColor={globalColors.blue} />
+      content = (
+        <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Styles.globalColors.blue} />
+      )
     } else if (this.props.snippet) {
       let snippetDecoration
       let exploded = false
@@ -89,21 +81,23 @@ class BottomLine extends PureComponent<Props> {
       switch (this.props.snippetDecoration) {
         case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
           snippetDecoration = (
-            <Text
+            <Kb.Text
               type="BodySmall"
-              style={{color: this.props.isSelected ? globalColors.white : globalColors.black_50}}
+              style={{
+                color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
+              }}
             >
               Message exploded.
-            </Text>
+            </Kb.Text>
           )
           exploded = true
           break
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = (
-            <Icon
-              color={this.props.isSelected ? globalColors.white : globalColors.black_50}
+            <Kb.Icon
+              color={this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50}
               type="iconfont-timer"
-              fontSize={isMobile ? 16 : 12}
+              fontSize={Styles.isMobile ? 16 : 12}
               style={{alignSelf: 'flex-start'}}
             />
           )
@@ -111,50 +105,50 @@ class BottomLine extends PureComponent<Props> {
         default:
           snippetDecoration =
             !!this.props.snippetDecoration && !this.props.isTypingSnippet ? (
-              <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+              <Kb.Text type="BodySmall">{this.props.snippetDecoration}</Kb.Text>
             ) : null
       }
       content = (
-        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
           {!!snippetDecoration && (
-            <Box2 direction="vertical" centerChildren={true}>
+            <Kb.Box2 direction="vertical" centerChildren={true}>
               {snippetDecoration}
-            </Box2>
+            </Kb.Box2>
           )}
           {!exploded && !!this.props.snippet && (
-            <Markdown preview={true} style={style}>
+            <Kb.Markdown preview={true} style={style}>
               {this.props.snippet}
-            </Markdown>
+            </Kb.Markdown>
           )}
-        </Box2>
+        </Kb.Box2>
       )
     } else {
       return null
     }
     return (
-      <Box
-        style={collapseStyles([
+      <Kb.Box
+        style={Styles.collapseStyles([
           styles.outerBox,
           {
-            backgroundColor: isMobile ? this.props.backgroundColor : undefined,
+            backgroundColor: Styles.isMobile ? this.props.backgroundColor : undefined,
           },
         ])}
       >
         {this.props.hasResetUsers && (
-          <Meta title="reset" style={styles.alertMeta} backgroundColor={globalColors.red} />
+          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
         )}
         {this.props.youNeedToRekey && (
-          <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
+          <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
         )}
-        <Box style={styles.innerBox}>{content}</Box>
-      </Box>
+        <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
+      </Kb.Box>
     )
   }
 }
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
-      alertMeta: platformStyles({
+      alertMeta: Styles.platformStyles({
         common: {
           alignSelf: 'center',
           marginRight: 6,
@@ -163,12 +157,12 @@ const styles = styleSheetCreate(
           marginTop: 2,
         },
       }),
-      bottomLine: platformStyles({
+      bottomLine: Styles.platformStyles({
         isAndroid: {
           lineHeight: undefined,
         },
         isElectron: {
-          color: globalColors.black_50,
+          color: Styles.globalColors.black_50,
           display: 'block',
           minHeight: 16,
           overflow: 'hidden',
@@ -178,8 +172,8 @@ const styles = styleSheetCreate(
           width: '100%',
         },
         isMobile: {
-          backgroundColor: globalColors.fastBlank,
-          color: globalColors.black_50,
+          backgroundColor: Styles.globalColors.fastBlank,
+          color: Styles.globalColors.black_50,
           flex: 1,
           fontSize: 15,
           lineHeight: 19,
@@ -188,45 +182,30 @@ const styles = styleSheetCreate(
         },
       }),
       contentBox: {
-        ...globalStyles.fillAbsolute,
+        ...Styles.globalStyles.fillAbsolute,
         alignItems: 'center',
         width: '100%',
       },
       draftLabel: {
-        color: globalColors.orange,
+        color: Styles.globalColors.orange,
       },
-      innerBox: {
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        flexGrow: 1,
-        height: isMobile ? 21 : 17,
-        position: 'relative',
-      },
-      outerBox: {
-        ...globalStyles.flexBoxRow,
-      },
-      rekeyNeededContainer: {
-        alignSelf: 'center',
-        backgroundColor: globalColors.red,
-        borderRadius: 2,
-        paddingLeft: globalMargins.xtiny,
-        paddingRight: globalMargins.xtiny,
-      },
-      rekeyNeededText: platformStyles({
+      innerBox: Styles.platformStyles({
         common: {
-          color: globalColors.white,
-        },
-        isElectron: {
-          fontSize: 11,
-          lineHeight: 13,
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flexGrow: 1,
+          height: 17,
+          position: 'relative',
         },
         isMobile: {
-          fontSize: 12,
-          lineHeight: 14,
+          height: 21,
         },
       }),
+      outerBox: {
+        ...Styles.globalStyles.flexBoxRow,
+      },
       typingSnippet: {},
-      youAreResetText: platformStyles({
+      youAreResetText: Styles.platformStyles({
         isElectron: {
           fontSize: 12,
           lineHeight: 13,
