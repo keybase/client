@@ -403,28 +403,6 @@ protocol SimpleFS {
    */
   FSSyncStatus simpleFSSyncStatus(ListFilter filter);
 
-  @lint("ignore")
-  record SimpleFSGetHTTPAddressAndTokenResponse {
-    string address;
-    string token;
-  }
-
-  /**
-   This RPC generates a random token to be used by a client that needs to
-   access KBFS content through HTTP. It's fine to call this RPC more than once,
-   but it's probably best to call this once and keep using it. Clients should
-   be using HTTP GET methods, with requests in the form of:
-
-     http://<address>/<kbfs_path>?token=<token>
-
-   If the provided token is invalid, 403 Forbidden is returned, with a HTML
-   document that has title of "KBFS HTTP Token Invalid". When receiving such
-   response, client should call this RPC (again) to get a new token.
-
-   */
-  @lint("ignore")
-  SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
-
   /**
    simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
    user can access.  Each returned history is corresponds to a unique
@@ -615,4 +593,19 @@ protocol SimpleFS {
   // and non-regular downloads.
   void simpleFSDismissDownload(string downloadID);
   void simpleFSConfigureDownload(string cacheDirOverride, string downloadDirOverride);
+
+  enum GUIViewType {
+    DEFAULT_0,
+    TEXT_1,
+    IMAGE_2,
+    AUDIO_3,
+    VIDEO_4,
+    PDF_5
+  }
+  record GUIFileContext {
+    GUIViewType viewType;
+    string contentType;
+    string url;
+  }
+  GUIFileContext simpleFSGetGUIFileContext(KBFSPath path);
 }

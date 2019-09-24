@@ -29,14 +29,4 @@ export declare function displayNewMessageNotification(
 
 export declare function clearAllNotifications(): void
 
-export declare function getContentTypeFromURL(
-  url: string,
-  cb: (arg: {
-    error?: any
-    statusCode?: number
-    contentType?: string
-    disposition?: string
-  }) => Promise<string> | void
-)
-
 export declare function platformConfigSaga()
