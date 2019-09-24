@@ -99,7 +99,8 @@ const UserResult = (props: Props) => {
   )
 }
 
-const avatarSize = 48
+const avatarSize = Styles.isMobile ? 64 : 32
+const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
 const dotSeparator = '•'
 
 const isPreExistingTeamMemberText = (prettyName: string) =>
@@ -293,30 +294,30 @@ const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () =
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-circle" fontSize={22} color={Styles.globalColors.black_10} />
-
-const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-success" fontSize={22} color={Styles.globalColors.blue} />
+const AddButton = () => (
+  <Kb.Icon type="iconfont-circle" fontSize={actionButtonSize} color={Styles.globalColors.black_10} />
 )
 
-const ActionButtonSize = 40
-export const userResultHeight = Styles.globalMargins.xlarge
+const AlreadyAddedIconButton = () => (
+  <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={Styles.globalColors.blue} />
+)
+
+export const userResultHeight = Styles.isMobile ? Styles.globalMargins.xlarge : 48
 const styles = Styles.styleSheetCreate(() => ({
   actionButton: Styles.platformStyles({
     common: {
-      height: ActionButtonSize,
       marginLeft: Styles.globalMargins.tiny,
-      width: ActionButtonSize,
+    },
+    isElectron: {
+      height: Styles.globalMargins.small,
+      width: Styles.globalMargins.small,
     },
     isMobile: {
+      height: Styles.globalMargins.large,
       marginRight: Styles.globalMargins.tiny,
+      width: Styles.globalMargins.large,
     },
   }),
-  addToTeamIcon: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
-  },
   bottomRowContainer: {
     alignItems: 'baseline',
     flexWrap: 'nowrap',
@@ -330,11 +331,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   keybaseServiceIcon: {
     marginRight: Styles.globalMargins.xtiny,
-  },
-  removeButton: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
   },
   rowContainer: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
