@@ -115,7 +115,7 @@ export default Container.compose(
         phoneNo: string | null
       ): boolean => {
         if (email) {
-          return loadingInvites.get(email) !== false
+          return loadingInvites.get(email, false) !== false
         }
         const relevantInvite = _pendingInvites.find(rec => {
           if (rec.name) {
@@ -128,8 +128,12 @@ export default Container.compose(
           return undefined
         })
         if (relevantInvite) {
-          return loadingInvites.get(relevantInvite.id) !== false
+          if (relevantInvite.id === 'f1fa014b958a1e9bafb4600dad810c27') debugger;
+          return loadingInvites.get(relevantInvite.id, false) !== false
+
+
         }
+
         return false
       },
       isSelected: ({_pendingInvites}) => (addr: string): boolean => {
