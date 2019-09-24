@@ -1,4 +1,6 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of this source code is governed by the included BSD license.  package libkb import (
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 package libkb
 
 import (
@@ -549,19 +551,22 @@ func (f *JSONConfigFile) GetAutoFork() (bool, bool) {
 }
 func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (bool, bool) {
 	if username.IsNil() {
-	    return f.GetTopLevelBool("remember_passphrase")
+		goto Fallback
 	}
-	i := f.jw.AtKey("remember_passphrase_map").GetDataOrNil()
-	m, ok := i.(map[string]interface{})
-	if ok {
-		ret, mOk := m[username.String()]
-		if mOk {
-			boolRet, boolOk := ret.(bool)
-			if boolOk {
-				return boolRet, true
+	{
+		i := f.jw.AtKey("remember_passphrase_map").GetDataOrNil()
+		m, ok := i.(map[string]interface{})
+		if ok {
+			ret, mOk := m[username.String()]
+			if mOk {
+				boolRet, boolOk := ret.(bool)
+				if boolOk {
+					return boolRet, true
+				}
 			}
 		}
 	}
+Fallback:
 	return f.GetTopLevelBool("remember_passphrase")
 }
 func (f *JSONConfigFile) GetLogFormat() string {
@@ -887,7 +892,7 @@ func (f *JSONConfigFile) GetReadDeletedSigChain() (bool, bool) {
 
 func (f *JSONConfigFile) SetRememberPassphrase(username NormalizedUsername, remember bool) error {
 	if username.IsNil() {
-	    return f.SetBoolAtPath("remember_passphrase", remember)
+		return f.SetBoolAtPath("remember_passphrase", remember)
 	}
 	return f.SetBoolAtPath(fmt.Sprintf("remember_passphrase_map.%s", username.String()), remember)
 }
