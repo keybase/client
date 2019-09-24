@@ -684,6 +684,10 @@
         {
           "type": "ConversationMemberStatus",
           "name": "status"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "untrustedTeamRole"
         }
       ]
     },

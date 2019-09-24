@@ -273,6 +273,7 @@
     MessageID readMsgid; // The message ID the user has read up to in the convo
     MessageID maxMsgid; // The max message ID in the convo
     ConversationMemberStatus status; // The status of the membership to the convo
+    keybase1.TeamRole untrustedTeamRole; // gregor's view of your role in the team. This value is purely server trust, use with caution.
   }
 
   record ConversationCreatorInfo {
