@@ -234,7 +234,7 @@ type _SetTeamJoinSuccessPayload = {readonly success: boolean; readonly teamname:
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
   readonly invitees: string
-  readonly loadingInvites: boolean
+  readonly loadingInvites: true | false | 'stale'
 }
 type _SetTeamProfileAddListPayload = {readonly teamlist: I.List<Types.TeamProfileAddList>}
 type _SetTeamPublicitySettingsPayload = {

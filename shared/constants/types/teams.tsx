@@ -130,7 +130,7 @@ export type _State = {
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>
   teamNameToIsOpen: I.Map<Teamname, boolean>
-  teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, boolean>>
+  teamNameToLoadingInvites: I.Map<Teamname, I.Map<string, true | false | 'stale'>>
   teamNameToMembers: I.Map<Teamname, I.Map<string, MemberInfo>>
   teamNameToRequests: I.Map<Teamname, I.Set<RequestInfo>>
   teamNameToResetUsers: I.Map<Teamname, I.Set<ResetUser>>

@@ -183,7 +183,7 @@
     "setTeamLoadingInvites": {
       "teamname": "string",
       "invitees": "string",
-      "loadingInvites": "boolean"
+      "loadingInvites": "true | false | 'stale'"
     },
     "clearTeamRequests": {
       "teamname": "string"
