@@ -10,7 +10,6 @@ import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
-import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
@@ -401,11 +400,6 @@ export const getDownloadIntentFromAction = (
     : action.type === FsGen.shareNative
     ? Types.DownloadIntent.Share
     : Types.DownloadIntent.CameraRoll
-
-export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
-  downloadFilePath(Types.getPathName(p))
-export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
-  downloadFilePathNoSearch(Types.getPathName(p))
 
 export const makeTlfUpdate = I.Record<Types._TlfUpdate>({
   history: I.List(),
