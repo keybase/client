@@ -48,7 +48,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const isSelected = stateProps.isSelected
     const hasUnread = stateProps.hasUnread
-    const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
+    const styles = Constants.getRowStyles(isSelected, hasUnread)
     const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
