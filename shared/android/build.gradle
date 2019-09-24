@@ -46,19 +46,6 @@ subprojects {project ->
         }
     }
 }
-// KB workaround not finding androidx.core 1.0.0
-subprojects {
-    project.configurations.all {
-        resolutionStrategy.eachDependency { details ->
-            if (details.requested.group == 'androidx.core' && !details.requested.name.contains('androidx') ) {
-                details.useVersion "1.0.1"
-            }
-            if (details.requested.group == 'androidx.vectordrawable' && !details.requested.name.contains('androidx') ) {
-                details.useVersion "1.1.0"
-            }
-        }
-    }
-}
 
 allprojects {
     repositories {
