@@ -324,10 +324,7 @@ func (e *PassphraseRecover) promptPassphrase(mctx libkb.MetaContext) (string, er
 	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
 
-	ppres, err := libkb.GetNewKeybasePassphrase(
-		mctx, mctx.UIs().SecretUI, arg,
-		"Please reenter your new passphrase for confirmation",
-	)
+	ppres, err := libkb.GetKeybasePassphrase(mctx, mctx.UIs().SecretUI, arg)
 	if err != nil {
 		return "", err
 	}

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/recover-password'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
@@ -22,6 +23,7 @@ const PaperKey = (props: Props) => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
+          waitingKey: Constants.getPaperKeyOrPwWaitingKey,
         },
       ]}
       onBack={props.onBack}

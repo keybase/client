@@ -3,7 +3,7 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Constants from '../constants/provision'
+import * as ProvisionConstants from '../constants/provision'
 import * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
@@ -16,7 +16,7 @@ const chooseDevice = (
   }
 ) => {
   return Saga.callUntyped(function*() {
-    const devices = (params.devices || []).map(d => Constants.rpcDeviceToDevice(d))
+    const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
     yield Saga.put(RecoverPasswordGen.createDisplayDeviceSelect({devices}))
 
     const action:
@@ -100,7 +100,7 @@ const promptReset = (
   })
 }
 
-const inputPaperKey = (
+const getPaperKeyOrPw = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],
   response: {
     result: (res: {passphrase: string; storeSecret: boolean}) => void
@@ -147,6 +147,7 @@ const inputPaperKey = (
           RecoverPasswordGen.createSetPasswordError({error: new HiddenString(params.pinentry.retryLabel)})
         )
       } else {
+        // TODO wait for loggedIn, for now the service promises to send this after login.
         yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
       }
       const action: RecoverPasswordGen.SubmitPasswordPayload = yield Saga.take([
@@ -165,12 +166,13 @@ function* startRecoverPassword(
   if (action.payload.abortProvisioning) {
     yield Saga.put(ProvisionGen.createCancelProvision())
   }
+  let hadError = false
   try {
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
         'keybase.1.loginUi.promptResetAccount': promptReset,
         'keybase.1.provisionUi.chooseDevice': chooseDevice,
-        'keybase.1.secretUi.getPassphrase': inputPaperKey,
+        'keybase.1.secretUi.getPassphrase': getPaperKeyOrPw,
       },
       incomingCallMap: {
         'keybase.1.loginUi.explainDeviceRecovery': explainDevice,
@@ -180,6 +182,7 @@ function* startRecoverPassword(
       },
     })
   } catch (e) {
+    hadError = true
     logger.warn('RPC returned error: ' + e.toString())
     if (
       !(
@@ -193,6 +196,10 @@ function* startRecoverPassword(
         })
       )
     }
+  }
+  logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
+  if (!hadError) {
+    yield Saga.put(RouteTreeGen.createClearModals())
   }
 }
 
