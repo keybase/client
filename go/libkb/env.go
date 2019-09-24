@@ -1953,7 +1953,7 @@ func (e *Env) RunningInCI() bool {
 }
 
 func (e *Env) WantsSystemd() bool {
-	return (e.GetRunMode() == ProductionRunMode && e.ModelessWantsSystemd())
+	return (e.GetRunMode() == ProductionRunMode && e.ModelessWantsSystemd() && e.Cmd.GetHome() == "")
 }
 
 func (e *Env) ModelessWantsSystemd() bool {
