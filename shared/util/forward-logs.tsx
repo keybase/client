@@ -1,7 +1,7 @@
 import {LogLineWithLevelISOTimestamp} from '../logger/types'
 import {noop} from 'lodash-es'
 import {isMobile} from '../constants/platform'
-import {getEngine} from '../engine'
+import {getEngine} from '../engine/require'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 type Log = (...args: Array<any>) => void
