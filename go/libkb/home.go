@@ -41,6 +41,7 @@ type HomeFinder interface {
 	ServiceSpawnDir() (string, error)
 	SandboxCacheDir() string // For macOS
 	InfoDir() string
+	IsLinuxNonstandardHome() bool
 }
 
 func (b Base) getHome() string {
@@ -58,6 +59,8 @@ func (b Base) getHome() string {
 	}
 	return ""
 }
+
+func (b Base) IsLinuxNonstandardHome() bool { return false }
 
 func (b Base) getenv(s string) string {
 	if b.getenvFunc != nil {
@@ -80,6 +83,10 @@ func (x XdgPosix) Home(emptyOk bool) string {
 		ret = x.getenv("HOME")
 	}
 	return ret
+}
+
+func (x XdgPosix) IsLinuxNonstandardHome() bool {
+	return x.Home(false) != ""
 }
 
 func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
