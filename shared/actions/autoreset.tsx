@@ -6,18 +6,18 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as AutoresetGen from './autoreset-gen'
 import * as RPCGen from '../constants/types/rpc-gen'
 
-import * as Types from '../constants/types/autoreset'
 import * as Constants from '../constants/autoreset'
 
-let oldResetState: Types.State = {active: false, endTime: 0}
 const receivedBadgeState = async (
-  _: Container.TypedState,
+  state: Container.TypedState,
   action: NotificationsGen.ReceivedBadgeStatePayload
 ) => {
   const newResetState = action.payload.badgeState.resetState
-  if (newResetState.active && oldResetState !== newResetState) {
-    oldResetState = newResetState
-    return RouteTreeGen.createNavigateAppend({path: ['resetModal']})
+  if (state.autoreset !== newResetState) {
+    return [
+      ...(newResetState.active ? [RouteTreeGen.createNavigateAppend({path: ['resetModal']})] : []),
+      AutoresetGen.createUpdateAutoresetState(action.payload.badgeState.resetState),
+    ]
   }
   return null
 }

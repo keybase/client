@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as Types from '../../constants/types/autoreset'
 import * as Constants from '../../constants/autoreset'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as AutoresetGen from '../../actions/autoreset-gen'
@@ -10,7 +9,7 @@ import * as AutoresetGen from '../../actions/autoreset-gen'
 export type Props = {}
 
 const ResetModal = (_: Props) => {
-  const {active, endTime}: Types.State = Container.useSelector(s => s.autoreset)
+  const {active, endTime} = Container.useSelector(s => s.autoreset)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (!active) {
@@ -36,8 +35,10 @@ const ResetModal = (_: Props) => {
           centerChildren={true}
         >
           <Kb.Icon type="iconfont-skull" color={Styles.globalColors.black_20} fontSize={48} />
-          <Kb.Text type="Body">This account will reset in {timeNice}.</Kb.Text>
-          <Kb.Text type="Body">
+          <Kb.Text type="Body" center={true}>
+            This account will reset in {timeNice}.
+          </Kb.Text>
+          <Kb.Text type="Body" center={true}>
             But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
             clearly you have access to your devices.
           </Kb.Text>
@@ -64,6 +65,11 @@ const ResetModal = (_: Props) => {
       </Kb.Box2>
     </Kb.ScrollView>
   )
+}
+
+// @ts-ignore
+ResetModal.navigationOptions = {
+  gesturesEnabled: false,
 }
 
 const styles = Styles.styleSheetCreate(() => ({
