@@ -19,7 +19,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   _onForgotPassword: username =>
     flags.resetPipeline
-      ? dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
+      ? dispatch(RecoverPasswordGen.createStartRecoverPassword({abortProvisioning: true, username}))
       : dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSubmit: (password: string) =>

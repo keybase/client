@@ -1,6 +1,7 @@
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
+import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/provision'
 import * as Container from '../util/container'
@@ -142,6 +143,10 @@ const inputPaperKey = (
 }
 
 function* startRecoverPassword(_: any, action: RecoverPasswordGen.StartRecoverPasswordPayload) {
+  if (action.payload.abortProvisioning) {
+    yield Saga.put(ProvisionGen.createCancelProvision())
+  }
+
   try {
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
