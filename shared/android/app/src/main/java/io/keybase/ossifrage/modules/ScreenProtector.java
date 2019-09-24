@@ -52,13 +52,13 @@ public class ScreenProtector extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getSecureFlagSetting(Promise promise) {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
-        final boolean setSecure = prefs.getBoolean("setSecure", misTestDevice);
+        final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
         promise.resolve(setSecure);
     }
 
     private void setSecureFlag() {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
-        final boolean setSecure = prefs.getBoolean("setSecure", misTestDevice);
+        final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
         final Activity activity = this.reactContext.getCurrentActivity();
         if (activity != null) {
             activity.runOnUiThread(new Runnable() {
