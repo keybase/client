@@ -2025,6 +2025,7 @@ export enum StatusCode {
   scemaillimitexceeded = 715,
   scemailcannotdeleteprimary = 716,
   scemailunknown = 717,
+  scbotsignuptokennotfound = 719,
   scmissingresult = 801,
   sckeynotfound = 901,
   sckeycorrupted = 905,

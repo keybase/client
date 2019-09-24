@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"testing"
 
+	"encoding/base64"
 	"github.com/keybase/client/go/bot"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -436,6 +437,13 @@ func TestBotSignup(t *testing.T) {
 	tc2 := SetupEngineTest(t, "signup_bot")
 	defer tc2.Cleanup()
 
+	twiddle := func(tok keybase1.BotToken) keybase1.BotToken {
+		b, err := base64.URLEncoding.DecodeString(string(tok))
+		require.NoError(t, err)
+		b[0] ^= 0x1
+		return keybase1.BotToken(base64.URLEncoding.EncodeToString(b))
+	}
+
 	arg := SignupEngineRunArg{
 		Username:                 botName,
 		InviteCode:               libkb.TestInvitationCode,
@@ -444,14 +452,25 @@ func TestBotSignup(t *testing.T) {
 		SkipGPG:                  true,
 		SkipMail:                 true,
 		SkipPaper:                true,
-		BotToken:                 botToken,
+		BotToken:                 twiddle(botToken),
 	}
 
 	uis := libkb.UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 	}
+
+	// First fail the signup since we put up a bad bot Token
 	signupEng := NewSignupEngine(tc2.G, &arg)
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	err = RunEngine2(m, signupEng)
+	require.Error(t, err)
+	appErr, ok := err.(SignupJoinEngineRunRes).Err.(libkb.AppStatusError)
+	require.True(t, ok)
+	require.Equal(t, appErr.Code, int(keybase1.StatusCode_SCBotSignupTokenNotFound))
+
+	// Next success since we have a good bot token
+	arg.BotToken = botToken
+	signupEng = NewSignupEngine(tc2.G, &arg)
 	err = RunEngine2(m, signupEng)
 	require.NoError(tc2.T, err)
 	pk := signupEng.PaperKey()

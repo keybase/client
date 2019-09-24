@@ -47,7 +47,7 @@ type SignupEngineRunArg struct {
 	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
 	VerifyEmail              bool
 
-	// Bot signups have random PWs, no device keys, an eldest paper key, and return an paper key via
+	// Bot signups have random PWs, no device keys, an eldest paper key, and return a paper key via
 	// the main flow; you need to supply a bot token to signup with them.
 	BotToken keybase1.BotToken
 
