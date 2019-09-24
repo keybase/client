@@ -92,17 +92,6 @@ project.ext.react = [
 apply from: "../../node_modules/react-native/react.gradle"
 
 /**
- * Set this to true to create two separate APKs instead of one:
- *   - An APK that only works on ARM devices
- *   - An APK that only works on x86 devices
- * The advantage is the size of the APK is reduced by about 4MB.
- * Upload all the APKs to the Play Store and people will download
- * the correct one based on the CPU architecture of their device.
- */
-// KB: split it
-def enableSeparateBuildPerCPUArchitecture = true
-
-/**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
 def enableProguardInReleaseBuilds = false
@@ -127,16 +116,17 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def enableHermes = project.ext.react.get("enableHermes", false);
 
-// KB: Returns minutes from January 1 2016
-def Integer timestamp() {
-    def minutesSinceEpoch = (new Date()).getTime()/(1000 * 60)
-    def cal = new GregorianCalendar()
-    cal.clear()
-    cal.set(2016,0,1)
-    def minutesJan2016 = cal.getTimeInMillis()/(1000 * 60)
-
-    return minutesSinceEpoch - minutesJan2016 + 4200000 // This is to fix an accidental bumping of the code
+// KB: Number of commits, like ios
+def Integer getVersionCode() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-list', 'HEAD', '--count'
+        standardOutput = stdout
+    }
+    return Integer.parseInt(stdout.toString().trim()) + 10316799 // plus bump it so its above the old version code
 }
+
+project.logger.lifecycle('Version code: ' + getVersionCode().toString())
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -152,7 +142,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
     // KB:
-        versionCode timestamp()
+        versionCode getVersionCode()
     // KB:
         versionName VERSION_NAME
     // KB: our binary is too big
@@ -181,14 +171,6 @@ android {
         }
     }
 
-    splits {
-        abi {
-            reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
-        }
-    }
     buildTypes {
         // KB:
         debug {
@@ -220,14 +202,7 @@ android {
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // https://developer.android.com/studio/build/configure-apk-splits.html
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
-            }
+            output.versionCodeOverride = getVersionCode()
         }
     }
 

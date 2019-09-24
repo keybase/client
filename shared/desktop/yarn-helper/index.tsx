@@ -135,7 +135,7 @@ const decorateInfo = info => {
   return temp
 }
 
-const warnFail = err => console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
+const warnFail = err => err && console.warn(`Error cleaning tscache ${err}, tsc may be inaccurate.`)
 const clearTSCache = () => {
   const glob = path.resolve(__dirname, '..', '..', '.tsOuts', '.tsOut*')
   rimraf(glob, {}, warnFail)

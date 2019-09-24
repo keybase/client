@@ -6,7 +6,6 @@ import Flags from '../util/feature-flags'
 
 export type Props = {
   filter: string
-  isLoading: boolean
   isSearching: boolean
   onBack: () => void
   onEnsureSelection: () => void
@@ -85,7 +84,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         onEnterKeyDown={this.onEnterKeyDown}
       />
     )
-    const children = (
+    return (
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
@@ -113,16 +112,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           </Kb.Box>
         )}
       </Kb.Box2>
-    )
-    return (
-      <>
-        {children}
-        {this.props.isLoading && Styles.isMobile && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
-        )}
-      </>
     )
   }
 }
@@ -187,12 +176,6 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      loadingContainer: {
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
       newChatButton: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
@@ -212,7 +195,9 @@ const styles = Styles.styleSheetCreate(
           padding: 2,
         },
         isElectron: {
-          background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
+          background: Styles.isDarkMode()
+            ? 'linear-gradient(rgba(255, 93, 93, 0.75), rgba(255, 247, 90, 0.75) 50%, rgba(58, 255, 172, 0.75))'
+            : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
           borderRadius: 6,
         },
         isMobile: {
