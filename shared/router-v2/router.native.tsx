@@ -116,6 +116,8 @@ const TabBarIconContainer = props => (
 const VanillaTabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
     map[tab] = createStackNavigator(Shim.shim(routes), {
+      bgOnlyDuringTransition: Styles.isAndroid,
+      cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
       defaultNavigationOptions,
       headerMode,
       initialRouteName: tabRoots[tab],
@@ -195,6 +197,8 @@ const LoggedInStackNavigator = createStackNavigator(
     ...Shim.shim(modalRoutes),
   },
   {
+    bgOnlyDuringTransition: Styles.isAndroid,
+    cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
     headerMode: 'none',
     mode: 'modal',
   }
