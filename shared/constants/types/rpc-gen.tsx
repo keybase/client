@@ -2726,7 +2726,6 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean; readonly paperKey: String}
-export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
 export type SimpleFSStats = {readonly processStats: ProcessRuntimeStats; readonly blockCacheDbStats?: Array<String> | null; readonly syncCacheDbStats?: Array<String> | null; readonly runtimeDbStats?: Array<DbStats> | null}
