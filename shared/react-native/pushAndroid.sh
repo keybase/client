@@ -22,8 +22,10 @@ if [ -n "${ADB_DEVICE_ID-}" ]; then
     ADB_DEVICE="-s $ADB_DEVICE_ID"
 fi
 
-ADB_ABI="$(adb shell getprop ro.product.cpu.abi)"
-APK_FILENAME="app-${ADB_ABI//[^a-zA-Z0-9\-_]/}-$VARIANT.apk"
+# old name:
+# ADB_ABI="$(adb shell getprop ro.product.cpu.abi)"
+# APK_FILENAME="app-${ADB_ABI//[^a-zA-Z0-9\-_]/}-$VARIANT.apk"
+APK_FILENAME="app-$VARIANT.apk"
 
 # The exact location of the .apk varies.
 echo "Looking for $APK_FILENAME in $APK_DIR..."
