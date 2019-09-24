@@ -134,7 +134,8 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 	h.convTransmitBatch = make(map[string]chat1.ConversationLocal) // clear batch always
 	defer func() {
 		if err != nil {
-			h.Debug(ctx, "flushConvBatch: failed to transmit, retrying convs: %s", err)
+			h.Debug(ctx, "flushConvBatch: failed to transmit, retrying convs: num: %d err: %s",
+				len(convs), err)
 			for _, conv := range convs {
 				h.G().FetchRetrier.Failure(ctx, h.uid,
 					NewConversationRetry(h.G(), conv.GetConvID(), &conv.Info.Triple.Tlfid, InboxLoad))
@@ -162,7 +163,7 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 	ctx := context.Background()
 	defer func() {
 		if err != nil {
-			h.Debug(ctx, "flushUnverified: failed to transmite, retrying: %s", err)
+			h.Debug(ctx, "flushUnverified: failed to transmit, retrying: %s", err)
 			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), r.Query, r.Pagination))
 		}
 	}()

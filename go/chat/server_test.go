@@ -446,6 +446,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.CoinFlipManager.Start(context.TODO(), uid)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager.Start(context.TODO(), uid)
+	g.UIInboxLoader = NewUIInboxLoader(g)
+	g.UIInboxLoader.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -897,6 +899,8 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		numconvs := 5
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
+		tc := ctc.world.Tcs[users[0].Username]
+		tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
 
 		var firstConv chat1.ConversationInfoLocal
 		switch mt {
@@ -1035,6 +1039,8 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		numconvs := 5
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
+		tc := ctc.world.Tcs[users[0].Username]
+		tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
 
 		// Create a bunch of blank convos
 		convs := make(map[string]bool)
@@ -3769,6 +3775,8 @@ func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
 	tui := kbtest.NewChatUI()
 	ui := &getInboxNonblockFailingUI{ChatUI: tui, failUnverified: true, failVerified: true}
 	ctc.as(t, users[0]).h.mockChatUI = ui
+	tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
+
 	listener0 := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 
@@ -3783,18 +3791,24 @@ func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
 				ConvIDs: []chat1.ConversationID{conv.Id},
 			},
 		})
-	require.Error(t, err)
-	require.Equal(t, errGetInboxNonblockFailingUI, err)
-	tc.Context().FetchRetrier.Force(ctx)
-	select {
-	case <-listener0.threadsStale:
-	case <-time.After(timeout):
-		require.Fail(t, "no inbox stale")
+	require.NoError(t, err)
+	waitForThreadStale := func() {
+		for i := 0; i < 5; i++ {
+			tc.Context().FetchRetrier.Force(ctx)
+			select {
+			case <-listener0.threadsStale:
+				return
+			case <-time.After(timeout):
+				t.Logf("no threads stale yet, trying again")
+			}
+		}
+		require.Fail(t, "no threads stale")
 	}
+	waitForThreadStale()
+
 	_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
 		chat1.GetInboxNonblockLocalArg{})
-	require.Error(t, err)
-	require.Equal(t, errGetInboxNonblockFailingUI, err)
+	require.NoError(t, err)
 	tc.Context().FetchRetrier.Force(ctx)
 	select {
 	case <-listener0.inboxStale:
