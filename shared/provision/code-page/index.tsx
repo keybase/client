@@ -30,7 +30,7 @@ type Props = {
 type State = {
   code: string
   tab: Tab
-  troubleshooting: Boolean
+  troubleshooting: boolean
 }
 
 class CodePage2 extends React.Component<Props, State> {

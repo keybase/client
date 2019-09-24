@@ -21,7 +21,6 @@ export const newRoutes = {
   setPublicName: {getScreen: (): typeof SetPublicName => require('./set-public-name/container').default},
   username: {getScreen: (): typeof Username => require('./username-or-email/container').default},
 }
-//
-// export const newModalRoutes = {
-//   troubleshooting: {getScreen: (): typeof Troubleshooting => require('./troubleshooting').default},
-// }
+
+// No modal routes while not logged in. More plumbing would be necessary to add them, so there is not
+// an empty newModalRoutes here.

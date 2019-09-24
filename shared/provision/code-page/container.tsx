@@ -26,7 +26,13 @@ export default Container.connect(
       dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    ...dispatchProps,
-    ...stateProps,
+    currentDeviceAlreadyProvisioned: stateProps.currentDeviceAlreadyProvisioned,
+    currentDeviceName: stateProps.currentDeviceName,
+    error: stateProps.error,
+    onBack: dispatchProps.onBack,
+    onSubmitTextCode: dispatchProps.onSubmitTextCode,
+    otherDeviceName: stateProps.otherDeviceName,
+    otherDeviceType: stateProps.otherDeviceType,
+    textCode: stateProps.textCode,
   })
 )(Container.safeSubmit(['onBack', 'onSubmitTextCode'], ['error'])(CodePage2))
