@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/identify3_ui.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type Identify3RowState int
@@ -341,34 +342,34 @@ type Identify3UiClient struct {
 }
 
 func (c Identify3UiClient) Identify3ShowTracker(ctx context.Context, __arg Identify3ShowTrackerArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.identify3Ui.identify3ShowTracker", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UpdateRow(ctx context.Context, row Identify3Row) (err error) {
 	__arg := Identify3UpdateRowArg{Row: row}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateRow", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UserReset(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3UserResetArg{GuiID: guiID}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UserReset", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3UpdateUserCard(ctx context.Context, __arg Identify3UpdateUserCardArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3UpdateUserCard", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3TrackerTimedOut(ctx context.Context, guiID Identify3GUIID) (err error) {
 	__arg := Identify3TrackerTimedOutArg{GuiID: guiID}
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3TrackerTimedOut", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c Identify3UiClient) Identify3Result(ctx context.Context, __arg Identify3ResultArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.identify3Ui.identify3Result", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

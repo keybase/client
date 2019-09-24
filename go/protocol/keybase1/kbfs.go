@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/kbfs.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type KBFSTeamSettings struct {
@@ -371,7 +372,7 @@ type KbfsClient struct {
 // the clients.
 func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err error) {
 	__arg := FSEventArg{Event: event}
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -379,21 +380,21 @@ func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err erro
 // SimpleFSList[Recursive call) has been updated.
 func (c KbfsClient) FSPathUpdate(ctx context.Context, path string) (err error) {
 	__arg := FSPathUpdateArg{Path: path}
-	err = c.Cli.Notify(ctx, "keybase.1.kbfs.FSPathUpdate", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.kbfs.FSPathUpdate", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 // kbfs calls this as a response to receiving an FSEditListRequest with a
 // given requestID.
 func (c KbfsClient) FSEditList(ctx context.Context, __arg FSEditListArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEditList", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEditList", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // FSSyncStatus is called by KBFS as a response to receiving an
 // FSSyncStatusRequest with a given requestID.
 func (c KbfsClient) FSSyncStatus(ctx context.Context, __arg FSSyncStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -401,7 +402,7 @@ func (c KbfsClient) FSSyncStatus(ctx context.Context, __arg FSSyncStatusArg) (er
 // changes.
 func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (err error) {
 	__arg := FSSyncEventArg{Event: event}
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -409,62 +410,62 @@ func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (er
 // changes.
 func (c KbfsClient) FSOverallSyncEvent(ctx context.Context, status FolderSyncStatus) (err error) {
 	__arg := FSOverallSyncEventArg{Status: status}
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOverallSyncEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOverallSyncEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // FSOnlineStatusChangedEvent is called by KBFS when the online status changes.
 func (c KbfsClient) FSOnlineStatusChangedEvent(ctx context.Context, online bool) (err error) {
 	__arg := FSOnlineStatusChangedEventArg{Online: online}
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOnlineStatusChangedEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSOnlineStatusChangedEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // FSFavoritesChangedEvent is called by KBFS when the favorites list changes.
 func (c KbfsClient) FSFavoritesChangedEvent(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSFavoritesChangedEvent", []interface{}{FSFavoritesChangedEventArg{}}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSFavoritesChangedEvent", []interface{}{FSFavoritesChangedEventArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsClient) FSSubscriptionNotifyPathEvent(ctx context.Context, __arg FSSubscriptionNotifyPathEventArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSubscriptionNotifyPathEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSubscriptionNotifyPathEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsClient) FSSubscriptionNotifyEvent(ctx context.Context, __arg FSSubscriptionNotifyEventArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSubscriptionNotifyEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSubscriptionNotifyEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // createTLF is called by KBFS to associate the tlfID with the given teamID,
 // using the v2 Team-based system.
 func (c KbfsClient) CreateTLF(ctx context.Context, __arg CreateTLFArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.createTLF", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.createTLF", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
 func (c KbfsClient) GetKBFSTeamSettings(ctx context.Context, __arg GetKBFSTeamSettingsArg) (res KBFSTeamSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.getKBFSTeamSettings", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.getKBFSTeamSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // upgradeTLF upgrades a TLF to use implicit team keys
 func (c KbfsClient) UpgradeTLF(ctx context.Context, __arg UpgradeTLFArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.upgradeTLF", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.upgradeTLF", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Encrypt cached favorites to store on disk.
 func (c KbfsClient) EncryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
 	__arg := EncryptFavoritesArg{DataToEncrypt: dataToEncrypt}
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.encryptFavorites", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.encryptFavorites", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Decrypt cached favorites stored on disk.
 func (c KbfsClient) DecryptFavorites(ctx context.Context, dataToEncrypt []byte) (res []byte, err error) {
 	__arg := DecryptFavoritesArg{DataToEncrypt: dataToEncrypt}
-	err = c.Cli.Call(ctx, "keybase.1.kbfs.decryptFavorites", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.decryptFavorites", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

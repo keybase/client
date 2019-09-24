@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/login_ui.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ResetPromptType int
@@ -255,22 +256,22 @@ type LoginUiClient struct {
 
 func (c LoginUiClient) GetEmailOrUsername(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := GetEmailOrUsernameArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) PromptRevokePaperKeys(ctx context.Context, __arg PromptRevokePaperKeysArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) DisplayPaperKeyPhrase(ctx context.Context, __arg DisplayPaperKeyPhraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg DisplayPrimaryPaperKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -278,24 +279,24 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 // would like to either enter the autoreset pipeline and perform the reset
 // of the account.
 func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // In some flows the user will get notified of the reset progress
 func (c LoginUiClient) DisplayResetProgress(ctx context.Context, __arg DisplayResetProgressArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetProgress", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetProgress", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // During recovery the service might want to explain to the user how they can change
 // their password by using the "change password" functionality on other devices.
 func (c LoginUiClient) ExplainDeviceRecovery(ctx context.Context, __arg ExplainDeviceRecoveryArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.explainDeviceRecovery", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.explainDeviceRecovery", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) PromptPassphraseRecovery(ctx context.Context, __arg PromptPassphraseRecoveryArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptPassphraseRecovery", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptPassphraseRecovery", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

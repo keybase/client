@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/user.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TrackProof struct {
@@ -926,49 +927,49 @@ type UserClient struct {
 // They are "unchecked" in that the client is not verifying the info from the server.
 // If len(uids) > 500, the first 500 will be returned.
 func (c UserClient) LoadUncheckedUserSummaries(ctx context.Context, __arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load a user from the server.
 func (c UserClient) LoadUser(ctx context.Context, __arg LoadUserArg) (res User, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadUserByName(ctx context.Context, __arg LoadUserByNameArg) (res User, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load a user + device keys from the server.
 func (c UserClient) LoadUserPlusKeys(ctx context.Context, __arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadUserPlusKeysV2(ctx context.Context, __arg LoadUserPlusKeysV2Arg) (res UserPlusKeysV2AllIncarnations, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeysV2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load public keys for a user.
 func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPublicKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load my public keys (for logged in user).
 func (c UserClient) LoadMyPublicKeys(ctx context.Context, sessionID int) (res []PublicKey, err error) {
 	__arg := LoadMyPublicKeysArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load user settings (for logged in user).
 func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res UserSettings, err error) {
 	__arg := LoadMySettingsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -977,65 +978,65 @@ func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res User
 //
 // If assertion is empty, it will use the current logged in user.
 func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Load all the user's public keys (even those in reset key families)
 // from the server with no verification
 func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (res UserSummary2Set, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ProfileEdit(ctx context.Context, __arg ProfileEditArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.profileEdit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) InterestingPeople(ctx context.Context, maxUsers int) (res []InterestingPerson, err error) {
 	__arg := InterestingPeopleArg{MaxUsers: maxUsers}
-	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.interestingPeople", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) MeUserVersion(ctx context.Context, __arg MeUserVersionArg) (res UserVersion, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.meUserVersion", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // getUPAK returns a UPAK. Used mainly for debugging.
 func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, err error) {
 	__arg := GetUPAKArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
 func (c UserClient) GetUPAKLite(ctx context.Context, uid UID) (res UPKLiteV1AllIncarnations, err error) {
 	__arg := GetUPAKLiteArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.getUPAKLite", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatarArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.uploadUserAvatar", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res ProofSuggestionsRes, err error) {
 	__arg := ProofSuggestionsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1043,7 +1044,7 @@ func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res Pr
 // revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 // we'll start our search. Usually it's the next one, but not always
 func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg FindNextMerkleRootAfterRevokeArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterRevoke", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1051,34 +1052,34 @@ func (c UserClient) FindNextMerkleRootAfterRevoke(ctx context.Context, __arg Fin
 // at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 // the reset. Usually, we'll just turn up the next Merkle root, but not always.
 func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg FindNextMerkleRootAfterResetArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.findNextMerkleRootAfterReset", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
 	__arg := CanLogoutArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UserCard(ctx context.Context, __arg UserCardArg) (res *UserCard, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.user.userCard", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) BlockUser(ctx context.Context, username string) (err error) {
 	__arg := BlockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.blockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c UserClient) UnblockUser(ctx context.Context, username string) (err error) {
 	__arg := UnblockUserArg{Username: username}
-	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.user.unblockUser", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

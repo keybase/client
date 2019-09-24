@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_tracking.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TrackingChangedArg struct {
@@ -68,11 +69,11 @@ type NotifyTrackingClient struct {
 }
 
 func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, __arg TrackingChangedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTrackingClient) TrackingInfo(ctx context.Context, __arg TrackingInfoArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingInfo", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingInfo", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

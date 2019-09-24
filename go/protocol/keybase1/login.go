@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/login.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ConfiguredAccount struct {
@@ -379,7 +380,7 @@ type LoginClient struct {
 // secrets, but this definition may be expanded in the future.
 func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (res []ConfiguredAccount, err error) {
 	__arg := GetConfiguredAccountsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.login.getConfiguredAccounts", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -387,7 +388,7 @@ func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (
 // or libkb.DeviceTypeMobile. username is optional. If the current
 // device isn't provisioned, this function will provision it.
 func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -395,7 +396,7 @@ func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 // If noPassphrasePrompt is set, then only a stored secret will be used to unlock
 // the device keys.
 func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProvisionedDeviceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginProvisionedDevice", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.loginProvisionedDevice", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -403,31 +404,31 @@ func (c LoginClient) LoginProvisionedDevice(ctx context.Context, __arg LoginProv
 // - trying unlocked device keys if available
 // - prompting for a paper key and using that
 func (c LoginClient) LoginWithPaperKey(ctx context.Context, __arg LoginWithPaperKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.loginWithPaperKey", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) Logout(ctx context.Context, sessionID int) (err error) {
 	__arg := LogoutArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) Deprovision(ctx context.Context, __arg DeprovisionArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.deprovision", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.deprovision", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) RecoverAccountFromEmailAddress(ctx context.Context, email string) (err error) {
 	__arg := RecoverAccountFromEmailAddressArg{Email: email}
-	err = c.Cli.Call(ctx, "keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.recoverAccountFromEmailAddress", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Guide the user through possibilities of changing their passphrase.
 // Lets them change their passphrase using a paper key or enter the reset pipeline.
 func (c LoginClient) RecoverPassphrase(ctx context.Context, __arg RecoverPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.recoverPassphrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.recoverPassphrase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -435,33 +436,33 @@ func (c LoginClient) RecoverPassphrase(ctx context.Context, __arg RecoverPassphr
 // It calls login_ui.displayPaperKeyPhrase with the phrase.
 func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 	__arg := PaperKeyArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.paperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.paperKey", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // paperKeySubmit checks that paperPhrase is a valid paper key
 // for the logged in user, caches the keys, and sends a notification.
 func (c LoginClient) PaperKeySubmit(ctx context.Context, __arg PaperKeySubmitArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.paperKeySubmit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.paperKeySubmit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Unlock restores access to local key store by priming passphrase stream cache.
 func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // accountDelete is for devel/testing to delete the current user's account.
 func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err error) {
 	__arg := AccountDeleteArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -469,13 +470,13 @@ func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err erro
 // provisioning a device. It bootstraps credentials with the given
 // paperkey
 func (c LoginClient) LoginOneshot(ctx context.Context, __arg LoginOneshotArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.loginOneshot", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.login.loginOneshot", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // isOnline returns whether the device is able to open a connection to keybase.io.
 // Used for determining whether to offer proxy settings on the login screen.
 func (c LoginClient) IsOnline(ctx context.Context) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.isOnline", []interface{}{IsOnlineArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.login.isOnline", []interface{}{IsOnlineArg{}}, &res, 0*time.Millisecond)
 	return
 }

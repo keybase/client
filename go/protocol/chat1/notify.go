@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/notify.avdl
 
 package chat1
@@ -8,6 +8,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ChatActivitySource int
@@ -1424,115 +1425,115 @@ type NotifyChatClient struct {
 }
 
 func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActivityArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.NewChatActivity", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatIdentifyUpdate(ctx context.Context, update keybase1.CanonicalTLFNameAndIDWithBreaks) (err error) {
 	__arg := ChatIdentifyUpdateArg{Update: update}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatIdentifyUpdate", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatIdentifyUpdate", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatTLFFinalize(ctx context.Context, __arg ChatTLFFinalizeArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFFinalize", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatTLFResolve(ctx context.Context, __arg ChatTLFResolveArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFResolve", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTLFResolve", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatInboxStale(ctx context.Context, uid keybase1.UID) (err error) {
 	__arg := ChatInboxStaleArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxStale", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxStale", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatThreadsStale(ctx context.Context, __arg ChatThreadsStaleArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatThreadsStale", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatThreadsStale", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatTypingUpdate(ctx context.Context, typingUpdates []ConvTypingUpdate) (err error) {
 	__arg := ChatTypingUpdateArg{TypingUpdates: typingUpdates}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatTypingUpdate", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatJoinedConversation(ctx context.Context, __arg ChatJoinedConversationArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatJoinedConversation", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatJoinedConversation", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatLeftConversation(ctx context.Context, __arg ChatLeftConversationArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatResetConversation(ctx context.Context, __arg ChatResetConversationArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatResetConversation", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatResetConversation", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatInboxSyncStarted(ctx context.Context, uid keybase1.UID) (err error) {
 	__arg := ChatInboxSyncStartedArg{Uid: uid}
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatInboxSynced(ctx context.Context, __arg ChatInboxSyncedArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSynced", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSynced", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSetConvRetention(ctx context.Context, __arg ChatSetConvRetentionArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvRetention", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvRetention", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSetTeamRetention(ctx context.Context, __arg ChatSetTeamRetentionArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetTeamRetention", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSetConvSettings(ctx context.Context, __arg ChatSetConvSettingsArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvSettings", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSetConvSettings", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatSubteamRename(ctx context.Context, __arg ChatSubteamRenameArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSubteamRename", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatSubteamRename", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatKBFSToImpteamUpgrade(ctx context.Context, __arg ChatKBFSToImpteamUpgradeArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatKBFSToImpteamUpgrade", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatKBFSToImpteamUpgrade", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatAttachmentUploadStart(ctx context.Context, __arg ChatAttachmentUploadStartArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadStart", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadStart", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPaymentInfoArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequestInfoArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyChatClient) ChatPromptUnfurl(ctx context.Context, __arg ChatPromptUnfurlArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPromptUnfurl", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

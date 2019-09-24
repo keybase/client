@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/gregor_ui.avdl
 
 package keybase1
@@ -7,6 +7,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type PushReason int
@@ -95,12 +96,12 @@ type GregorUIClient struct {
 }
 
 func (c GregorUIClient) PushState(ctx context.Context, __arg PushStateArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushState", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushState", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c GregorUIClient) PushOutOfBandMessages(ctx context.Context, oobm []gregor1.OutOfBandMessage) (err error) {
 	__arg := PushOutOfBandMessagesArg{Oobm: oobm}
-	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

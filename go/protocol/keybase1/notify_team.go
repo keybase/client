@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_team.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TeamChangeSet struct {
@@ -219,40 +220,40 @@ type NotifyTeamClient struct {
 }
 
 func (c NotifyTeamClient) TeamChangedByID(ctx context.Context, __arg TeamChangedByIDArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByID", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByID", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamChangedByName(ctx context.Context, __arg TeamChangedByNameArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByName", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChangedByName", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamDeleted(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamDeletedArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamDeleted", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamDeleted", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamAbandoned(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamAbandonedArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamAbandoned", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamAbandoned", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) TeamExit(ctx context.Context, teamID TeamID) (err error) {
 	__arg := TeamExitArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamExit", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamExit", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) NewlyAddedToTeam(ctx context.Context, teamID TeamID) (err error) {
 	__arg := NewlyAddedToTeamArg{TeamID: teamID}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.newlyAddedToTeam", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.newlyAddedToTeam", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeamClient) AvatarUpdated(ctx context.Context, __arg AvatarUpdatedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.avatarUpdated", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

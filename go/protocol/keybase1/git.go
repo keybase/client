@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/git.avdl
 
 package keybase1
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type EncryptedGitMetadata struct {
@@ -647,64 +648,64 @@ type GitClient struct {
 }
 
 func (c GitClient) PutGitMetadata(ctx context.Context, __arg PutGitMetadataArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.putGitMetadata", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.putGitMetadata", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) DeleteGitMetadata(ctx context.Context, __arg DeleteGitMetadataArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.deleteGitMetadata", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteGitMetadata", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GetGitMetadata(ctx context.Context, folder FolderHandle) (res []GitRepoResult, err error) {
 	__arg := GetGitMetadataArg{Folder: folder}
-	err = c.Cli.Call(ctx, "keybase.1.git.getGitMetadata", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.git.getGitMetadata", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GetAllGitMetadata(ctx context.Context) (res []GitRepoResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []interface{}{GetAllGitMetadataArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []interface{}{GetAllGitMetadataArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) CreatePersonalRepo(ctx context.Context, repoName GitRepoName) (res RepoID, err error) {
 	__arg := CreatePersonalRepoArg{RepoName: repoName}
-	err = c.Cli.Call(ctx, "keybase.1.git.createPersonalRepo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.git.createPersonalRepo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) CreateTeamRepo(ctx context.Context, __arg CreateTeamRepoArg) (res RepoID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) DeletePersonalRepo(ctx context.Context, repoName GitRepoName) (err error) {
 	__arg := DeletePersonalRepoArg{RepoName: repoName}
-	err = c.Cli.Call(ctx, "keybase.1.git.deletePersonalRepo", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.deletePersonalRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) DeleteTeamRepo(ctx context.Context, __arg DeleteTeamRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.deleteTeamRepo", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteTeamRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GcPersonalRepo(ctx context.Context, __arg GcPersonalRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.gcPersonalRepo", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.gcPersonalRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GcTeamRepo(ctx context.Context, __arg GcTeamRepoArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.gcTeamRepo", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.gcTeamRepo", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) GetTeamRepoSettings(ctx context.Context, __arg GetTeamRepoSettingsArg) (res GitTeamRepoSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.getTeamRepoSettings", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.git.getTeamRepoSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c GitClient) SetTeamRepoSettings(ctx context.Context, __arg SetTeamRepoSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.git.setTeamRepoSettings", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.git.setTeamRepoSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

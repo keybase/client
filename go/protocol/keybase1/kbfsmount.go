@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/kbfsmount.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type GetCurrentMountDirArg struct {
@@ -106,28 +107,28 @@ type KbfsMountClient struct {
 }
 
 func (c KbfsMountClient) GetCurrentMountDir(ctx context.Context) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetCurrentMountDir", []interface{}{GetCurrentMountDirArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetCurrentMountDir", []interface{}{GetCurrentMountDirArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetPreferredMountDirs", []interface{}{GetPreferredMountDirsArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetPreferredMountDirs", []interface{}{GetPreferredMountDirsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) GetAllAvailableMountDirs(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetAllAvailableMountDirs", []interface{}{GetAllAvailableMountDirsArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetAllAvailableMountDirs", []interface{}{GetAllAvailableMountDirsArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) SetCurrentMountDir(ctx context.Context, dir string) (err error) {
 	__arg := SetCurrentMountDirArg{Dir: dir}
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.SetCurrentMountDir", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.SetCurrentMountDir", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c KbfsMountClient) GetKBFSPathInfo(ctx context.Context, standardPath string) (res KBFSPathInfo, err error) {
 	__arg := GetKBFSPathInfoArg{StandardPath: standardPath}
-	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetKBFSPathInfo", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.kbfsMount.GetKBFSPathInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

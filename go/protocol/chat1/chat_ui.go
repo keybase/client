@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/chat_ui.avdl
 
 package chat1
@@ -10,6 +10,7 @@ import (
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type UIPagination struct {
@@ -3210,170 +3211,170 @@ type ChatUiClient struct {
 
 func (c ChatUiClient) ChatAttachmentDownloadStart(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentDownloadStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadStart", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadStart", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg ChatAttachmentDownloadProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentDownloadProgress", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatAttachmentDownloadProgress", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentDownloadDoneArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatInboxUnverified(ctx context.Context, __arg ChatInboxUnverifiedArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxUnverified", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxUnverified", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatInboxConversation(ctx context.Context, __arg ChatInboxConversationArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxConversation", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxConversation", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatInboxFailed(ctx context.Context, __arg ChatInboxFailedArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxFailed", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCachedArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadCached", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatThreadStatus(ctx context.Context, __arg ChatThreadStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatThreadStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchHit(ctx context.Context, __arg ChatSearchHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchHit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchHit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchDone(ctx context.Context, __arg ChatSearchDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchDone", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchInboxStart(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatSearchInboxStartArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxStart", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchInboxHit(ctx context.Context, __arg ChatSearchInboxHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxHit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxHit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchInboxDone(ctx context.Context, __arg ChatSearchInboxDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxDone", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchInboxDone", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearchIndexStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchIndexStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatSearchConvHits(ctx context.Context, __arg ChatSearchConvHitsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarDataConfirm(ctx context.Context, __arg ChatStellarDataConfirmArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataConfirm", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataConfirm", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStellarDataErrorArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDataError", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiphySearchResultsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatGiphyToggleResultWindow(ctx context.Context, __arg ChatGiphyToggleResultWindowArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphyToggleResultWindow", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatShowManageChannels(ctx context.Context, __arg ChatShowManageChannelsArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlipStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommandMarkdownArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatMaybeMentionUpdate(ctx context.Context, __arg ChatMaybeMentionUpdateArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatMaybeMentionUpdate", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatLoadGalleryHit(ctx context.Context, __arg ChatLoadGalleryHitArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatLoadGalleryHit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatLoadGalleryHit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatWatchPosition(ctx context.Context, __arg ChatWatchPositionArg) (res LocationWatchID, err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatWatchPosition", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatClearWatch(ctx context.Context, __arg ChatClearWatchArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatClearWatch", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatCommandStatus(ctx context.Context, __arg ChatCommandStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) ChatBotCommandsUpdateStatus(ctx context.Context, __arg ChatBotCommandsUpdateStatusArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatBotCommandsUpdateStatus", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ChatUiClient) TriggerContactSync(ctx context.Context, sessionID int) (err error) {
 	__arg := TriggerContactSyncArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.triggerContactSync", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.triggerContactSync", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

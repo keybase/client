@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/remote.avdl
 
 package chat1
@@ -9,6 +9,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type MessageBoxed struct {
@@ -2174,235 +2175,235 @@ type RemoteClient struct {
 }
 
 func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteArg) (res GetInboxRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetUnreadlineRemote(ctx context.Context, __arg GetUnreadlineRemoteArg) (res GetUnreadlineRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getUnreadlineRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getUnreadlineRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetPublicConversations(ctx context.Context, __arg GetPublicConversationsArg) (res GetPublicConversationsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getPublicConversations", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getPublicConversations", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res PostRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res NewConversationRemoteRes, err error) {
 	__arg := NewConversationRemoteArg{IdTriple: idTriple}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res NewConversationRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote2", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.newConversationRemote2", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRemoteArg) (res GetMessagesRemoteRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessagesRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessagesRemote", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConversationStatusArg) (res SetConversationStatusRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.SetConversationStatus", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.SetConversationStatus", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull, err error) {
 	__arg := GetUnreadUpdateFullArg{InboxVers: inboxVers}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetS3Params(ctx context.Context, conversationID ConversationID) (res S3Params, err error) {
 	__arg := GetS3ParamsArg{ConversationID: conversationID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getS3Params", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getS3Params", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.s3Sign", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.s3Sign", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetInboxVersion(ctx context.Context, uid gregor1.UID) (res InboxVers, err error) {
 	__arg := GetInboxVersionArg{Uid: uid}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getInboxVersion", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncInboxRes, err error) {
 	__arg := SyncInboxArg{Vers: vers}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncInbox", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncInbox", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SyncChat(ctx context.Context, __arg SyncChatArg) (res SyncChatRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SyncAll(ctx context.Context, __arg SyncAllArg) (res SyncAllResult, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res, rpc.CompressionMsgpackzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncAll", []interface{}{__arg}, &res, rpc.CompressionMsgpackzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) TlfFinalize(ctx context.Context, __arg TlfFinalizeArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) TlfResolve(ctx context.Context, __arg TlfResolveArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfResolve", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.tlfResolve", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) UpdateTypingRemote(ctx context.Context, __arg UpdateTypingRemoteArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.updateTypingRemote", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.updateTypingRemote", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := JoinConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.joinConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := LeaveConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) PreviewConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := PreviewConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.previewConversation", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.previewConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) DeleteConversation(ctx context.Context, convID ConversationID) (res DeleteConversationRemoteRes, err error) {
 	__arg := DeleteConversationArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.deleteConversation", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.deleteConversation", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetMessageBefore(ctx context.Context, __arg GetMessageBeforeArg) (res GetMessageBeforeRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessageBefore", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getMessageBefore", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConversationsArg) (res GetTLFConversationsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getTLFConversations", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetGlobalAppNotificationSettings(ctx context.Context, settings GlobalAppNotificationSettings) (err error) {
 	__arg := SetGlobalAppNotificationSettingsArg{Settings: settings}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setGlobalAppNotificationSettings", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setGlobalAppNotificationSettings", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetGlobalAppNotificationSettings(ctx context.Context) (res GlobalAppNotificationSettings, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getGlobalAppNotificationSettings", []interface{}{GetGlobalAppNotificationSettingsArg{}}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getGlobalAppNotificationSettings", []interface{}{GetGlobalAppNotificationSettingsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RemoteNotificationSuccessful(ctx context.Context, __arg RemoteNotificationSuccessfulArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.remote.remoteNotificationSuccessful", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetConvRetention(ctx context.Context, __arg SetConvRetentionArg) (res SetRetentionRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvRetention", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvRetention", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetTeamRetention(ctx context.Context, __arg SetTeamRetentionArg) (res SetRetentionRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setTeamRetention", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) SetConvMinWriterRole(ctx context.Context, __arg SetConvMinWriterRoleArg) (res SetConvMinWriterRoleRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvMinWriterRole", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setConvMinWriterRole", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RetentionSweepConv(ctx context.Context, convID ConversationID) (res SweepRes, err error) {
 	__arg := RetentionSweepConvArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.retentionSweepConv", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.retentionSweepConv", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, __arg UpgradeKBFSToImpteamArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) RegisterSharePost(ctx context.Context, __arg RegisterSharePostArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.registerSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.registerSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) FailSharePost(ctx context.Context, __arg FailSharePostArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.failSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.failSharePost", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg BroadcastGregorMessageToConvArg) (err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.broadcastGregorMessageToConv", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.broadcastGregorMessageToConv", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) TeamIDOfConv(ctx context.Context, convID ConversationID) (res *keybase1.TeamID, err error) {
 	__arg := TeamIDOfConvArg{ConvID: convID}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.teamIDOfConv", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.teamIDOfConv", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ServerNow(ctx context.Context) (res ServerNowRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.serverNow", []interface{}{ServerNowArg{}}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.serverNow", []interface{}{ServerNowArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetExternalAPIKeys(ctx context.Context, typs []ExternalAPIKeyTyp) (res []ExternalAPIKey, err error) {
 	__arg := GetExternalAPIKeysArg{Typs: typs}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getExternalAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getExternalAPIKeys", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) AdvertiseBotCommands(ctx context.Context, ads []RemoteBotCommandsAdvertisement) (res AdvertiseBotCommandsRes, err error) {
 	__arg := AdvertiseBotCommandsArg{Ads: ads}
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.advertiseBotCommands", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.advertiseBotCommands", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) ClearBotCommands(ctx context.Context) (res ClearBotCommandsRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.clearBotCommands", []interface{}{ClearBotCommandsArg{}}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.clearBotCommands", []interface{}{ClearBotCommandsArg{}}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }
 
 func (c RemoteClient) GetBotInfo(ctx context.Context, __arg GetBotInfoArg) (res GetBotInfoRes, err error) {
-	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

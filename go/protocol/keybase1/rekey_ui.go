@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/rekey_ui.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type RekeyEventType int
@@ -143,20 +144,20 @@ type RekeyUIClient struct {
 }
 
 func (c RekeyUIClient) DelegateRekeyUI(ctx context.Context) (res int, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.delegateRekeyUI", []interface{}{DelegateRekeyUIArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.delegateRekeyUI", []interface{}{DelegateRekeyUIArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 // Refresh is called whenever Electron should refresh the UI, either
 // because a change came in, or because there was a timeout poll.
 func (c RekeyUIClient) Refresh(ctx context.Context, __arg RefreshArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.refresh", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.refresh", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // RekeySendEvent sends updates as to what's going on in the rekey
 // thread. This is mainly useful in testing.
 func (c RekeyUIClient) RekeySendEvent(ctx context.Context, __arg RekeySendEventArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

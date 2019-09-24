@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/tlf_keys.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TLFIdentifyBehavior int
@@ -243,7 +244,7 @@ type TlfKeysClient struct {
 // TLF ID should not be cached or stored persistently.
 func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, query TLFQuery) (res GetTLFCryptKeysRes, err error) {
 	__arg := GetTLFCryptKeysArg{Query: query}
-	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -251,6 +252,6 @@ func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, query TLFQuery) (res
 // TLF ID should not be cached or stored persistently.
 func (c TlfKeysClient) GetPublicCanonicalTLFNameAndID(ctx context.Context, query TLFQuery) (res CanonicalTLFNameAndIDWithBreaks, err error) {
 	__arg := GetPublicCanonicalTLFNameAndIDArg{Query: query}
-	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

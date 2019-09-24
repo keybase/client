@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_session.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type LoggedOutArg struct {
@@ -81,16 +82,16 @@ type NotifySessionClient struct {
 }
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifySessionClient) LoggedIn(ctx context.Context, __arg LoggedInArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedIn", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedIn", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c NotifySessionClient) ClientOutOfDate(ctx context.Context, __arg ClientOutOfDateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifySession.clientOutOfDate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.NotifySession.clientOutOfDate", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/emails.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type EmailLookupResult struct {
@@ -233,42 +234,42 @@ type EmailsClient struct {
 }
 
 func (c EmailsClient) AddEmail(ctx context.Context, __arg AddEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.addEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.addEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) DeleteEmail(ctx context.Context, __arg DeleteEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.deleteEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.deleteEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) EditEmail(ctx context.Context, __arg EditEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.editEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.editEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SetPrimaryEmail(ctx context.Context, __arg SetPrimaryEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.setPrimaryEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.setPrimaryEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SendVerificationEmail(ctx context.Context, __arg SendVerificationEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.sendVerificationEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.sendVerificationEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SetVisibilityEmail(ctx context.Context, __arg SetVisibilityEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) SetVisibilityAllEmail(ctx context.Context, __arg SetVisibilityAllEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityAllEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.emails.setVisibilityAllEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c EmailsClient) GetEmails(ctx context.Context, sessionID int) (res []Email, err error) {
 	__arg := GetEmailsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.emails.getEmails", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.emails.getEmails", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

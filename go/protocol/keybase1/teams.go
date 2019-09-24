@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams.avdl
 
 package keybase1
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TeamRole int
@@ -4509,177 +4510,177 @@ type TeamsClient struct {
 }
 
 func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res TeamCreateResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreateWithSettingsArg) (res TeamCreateResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetMembers(ctx context.Context, __arg TeamGetMembersArg) (res TeamMembersDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembers", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitAdminsArg) (res []TeamMemberDetails, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamImplicitAdmins", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamImplicitAdmins", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListUnverified(ctx context.Context, __arg TeamListUnverifiedArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverified", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListTeammates(ctx context.Context, __arg TeamListTeammatesArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListTeammates", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListTeammates", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListVerified(ctx context.Context, __arg TeamListVerifiedArg) (res AnnotatedTeamList, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListVerified", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListVerified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListSubteamsRecursive(ctx context.Context, __arg TeamListSubteamsRecursiveArg) (res []TeamIDAndName, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListSubteamsRecursive", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListSubteamsRecursive", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamChangeMembership(ctx context.Context, __arg TeamChangeMembershipArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamChangeMembership", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamChangeMembership", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) (res TeamAddMemberResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMember", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamLeave", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetBotSettings(ctx context.Context, __arg TeamGetBotSettingsArg) (res TeamBotSettings, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetBotSettings", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetBotSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamSetBotSettings(ctx context.Context, __arg TeamSetBotSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetBotSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRename(ctx context.Context, __arg TeamRenameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRename", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRename", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAcceptInvite(ctx context.Context, __arg TeamAcceptInviteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInvite", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInvite", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (res TeamRequestAccessResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAcceptInviteOrRequestAccess(ctx context.Context, __arg TeamAcceptInviteOrRequestAccessArg) (res TeamAcceptOrRequestResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAcceptInviteOrRequestAccess", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListRequests(ctx context.Context, __arg TeamListRequestsArg) (res []TeamJoinRequest, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListRequests", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamListMyAccessRequests(ctx context.Context, __arg TeamListMyAccessRequestsArg) (res []TeamName, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListMyAccessRequests", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamIgnoreRequest(ctx context.Context, __arg TeamIgnoreRequestArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamIgnoreRequest", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamIgnoreRequest", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamTree(ctx context.Context, __arg TeamTreeArg) (res TeamTreeResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamTree", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamTree", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamGetSubteams(ctx context.Context, __arg TeamGetSubteamsArg) (res SubteamListResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteams", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetSubteams", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamDelete", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreateSeitanTokenArg) (res SeitanIKey, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamCreateSeitanTokenV2(ctx context.Context, __arg TeamCreateSeitanTokenV2Arg) (res SeitanIKeyV2, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanTokenV2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamAddEmailsBulk(ctx context.Context, __arg TeamAddEmailsBulkArg) (res BulkRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamReAddMemberAfterResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamReAddMemberAfterReset", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamReAddMemberAfterReset", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -4689,78 +4690,78 @@ func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamRe
 // * client is currently offline (or thinks it's offline), then the refreshers are overridden
 // * and ignored, and stale data might still be returned.
 func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg LoadTeamPlusApplicationKeysArg) (res TeamPlusApplicationKeys, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, err error) {
 	__arg := GetTeamRootIDArg{Id: id}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamRootID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamShowcase(ctx context.Context, name string) (res TeamShowcase, err error) {
 	__arg := GetTeamShowcaseArg{Name: name}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, name string) (res TeamAndMemberShowcase, err error) {
 	__arg := GetTeamAndMemberShowcaseArg{Name: name}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) SetTeamShowcase(ctx context.Context, __arg SetTeamShowcaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamShowcase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamShowcase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) SetTeamMemberShowcase(ctx context.Context, __arg SetTeamMemberShowcaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTeamMemberShowcase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) CanUserPerform(ctx context.Context, name string) (res TeamOperation, err error) {
 	__arg := CanUserPerformArg{Name: name}
-	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.canUserPerform", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamRotateKey(ctx context.Context, __arg TeamRotateKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRotateKey", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebugRes, err error) {
 	__arg := TeamDebugArg{TeamID: teamID}
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamDebug", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamDebug", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) GetTarsDisabled(ctx context.Context, name string) (res bool, err error) {
 	__arg := GetTarsDisabledArg{Name: name}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) SetTarsDisabled(ctx context.Context, __arg SetTarsDisabledArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.setTarsDisabled", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TeamProfileAddList(ctx context.Context, __arg TeamProfileAddListArg) (res []TeamProfileAddEntry, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamProfileAddList", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamProfileAddList", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) UploadTeamAvatar(ctx context.Context, __arg UploadTeamAvatarArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.uploadTeamAvatar", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.teams.uploadTeamAvatar", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) TryDecryptWithTeamKey(ctx context.Context, __arg TryDecryptWithTeamKeyArg) (res []byte, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.tryDecryptWithTeamKey", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.tryDecryptWithTeamKey", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -4768,7 +4769,7 @@ func (c TeamsClient) TryDecryptWithTeamKey(ctx context.Context, __arg TryDecrypt
 // removed from the team at that given seqno in the team's chain. You should pass in a previous
 // Merkle root as a starting point for the binary search.
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemoval", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemoval", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -4777,7 +4778,7 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemoval(ctx context.Context, __a
 // we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
 // permissions from Writer (or above) to Reader (or below).
 func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.Context, __arg FindNextMerkleRootAfterTeamRemovalBySigningKeyArg) (res NextMerkleRootRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -4785,7 +4786,7 @@ func (c TeamsClient) FindNextMerkleRootAfterTeamRemovalBySigningKey(ctx context.
 // the team load machinery.
 func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res ProfileTeamLoadRes, err error) {
 	__arg := ProfileTeamLoadArg{Arg: arg}
-	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.profileTeamLoad", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -4793,12 +4794,12 @@ func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res 
 // current user can't read the team.
 func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
 	__arg := GetTeamIDArg{TeamName: teamName}
-	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsClient) Ftl(ctx context.Context, arg FastTeamLoadArg) (res FastTeamLoadRes, err error) {
 	__arg := FtlArg{Arg: arg}
-	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

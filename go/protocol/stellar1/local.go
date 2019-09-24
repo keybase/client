@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.3 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/stellar1/local.avdl
 
 package stellar1
@@ -6,6 +6,7 @@ package stellar1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type WalletAccountLocal struct {
@@ -3012,422 +3013,422 @@ type LocalClient struct {
 
 func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetWalletAccountLocal(ctx context.Context, __arg GetWalletAccountLocalArg) (res WalletAccountLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetAccountAssetsLocal(ctx context.Context, __arg GetAccountAssetsLocalArg) (res []AccountAssetLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getAccountAssetsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPaymentsLocal(ctx context.Context, __arg GetPaymentsLocalArg) (res PaymentsPageLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPendingPaymentsLocal(ctx context.Context, __arg GetPendingPaymentsLocalArg) (res []PaymentOrErrorLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getPendingPaymentsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPendingPaymentsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.markAsReadLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.markAsReadLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPaymentDetailsLocal(ctx context.Context, __arg GetPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentDetailsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetGenericPaymentDetailsLocal(ctx context.Context, __arg GetGenericPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getGenericPaymentDetailsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getGenericPaymentDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetDisplayCurrenciesLocal(ctx context.Context, sessionID int) (res []CurrencyLocal, err error) {
 	__arg := GetDisplayCurrenciesLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrenciesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateAccountIDLocal(ctx context.Context, __arg ValidateAccountIDLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountIDLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountIDLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateSecretKeyLocal(ctx context.Context, __arg ValidateSecretKeyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateSecretKeyLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateSecretKeyLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateAccountNameLocal(ctx context.Context, __arg ValidateAccountNameLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountNameLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateAccountNameLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ChangeWalletAccountNameLocal(ctx context.Context, __arg ChangeWalletAccountNameLocalArg) (res WalletAccountLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeWalletAccountNameLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.changeWalletAccountNameLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetWalletAccountAsDefaultLocal(ctx context.Context, __arg SetWalletAccountAsDefaultLocalArg) (res []WalletAccountLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.setWalletAccountAsDefaultLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) DeleteWalletAccountLocal(ctx context.Context, __arg DeleteWalletAccountLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.deleteWalletAccountLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteWalletAccountLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) LinkNewWalletAccountLocal(ctx context.Context, __arg LinkNewWalletAccountLocalArg) (res AccountID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.linkNewWalletAccountLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.linkNewWalletAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) CreateWalletAccountLocal(ctx context.Context, __arg CreateWalletAccountLocalArg) (res AccountID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.createWalletAccountLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.createWalletAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ChangeDisplayCurrencyLocal(ctx context.Context, __arg ChangeDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.changeDisplayCurrencyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetDisplayCurrencyLocal(ctx context.Context, __arg GetDisplayCurrencyLocalArg) (res CurrencyLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getDisplayCurrencyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) HasAcceptedDisclaimerLocal(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := HasAcceptedDisclaimerLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.hasAcceptedDisclaimerLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.hasAcceptedDisclaimerLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err error) {
 	__arg := AcceptDisclaimerLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.acceptDisclaimerLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.acceptDisclaimerLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetWalletAccountPublicKeyLocal(ctx context.Context, __arg GetWalletAccountPublicKeyLocalArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountPublicKeyLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountPublicKeyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetWalletAccountSecretKeyLocal(ctx context.Context, __arg GetWalletAccountSecretKeyLocalArg) (res SecretKey, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountSecretKeyLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountSecretKeyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetSendAssetChoicesLocal(ctx context.Context, __arg GetSendAssetChoicesLocalArg) (res []SendAssetChoiceLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getSendAssetChoicesLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getSendAssetChoicesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) StartBuildPaymentLocal(ctx context.Context, sessionID int) (res BuildPaymentID, err error) {
 	__arg := StartBuildPaymentLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.startBuildPaymentLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.startBuildPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) StopBuildPaymentLocal(ctx context.Context, __arg StopBuildPaymentLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.stopBuildPaymentLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.stopBuildPaymentLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BuildPaymentLocal(ctx context.Context, __arg BuildPaymentLocalArg) (res BuildPaymentResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.buildPaymentLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.buildPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ReviewPaymentLocal(ctx context.Context, __arg ReviewPaymentLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.reviewPaymentLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.reviewPaymentLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendPaymentLocal(ctx context.Context, __arg SendPaymentLocalArg) (res SendPaymentResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendPathLocal(ctx context.Context, __arg SendPathLocalArg) (res SendPaymentResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendPathLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BuildRequestLocal(ctx context.Context, __arg BuildRequestLocalArg) (res BuildRequestResLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.buildRequestLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetRequestDetailsLocal(ctx context.Context, __arg GetRequestDetailsLocalArg) (res RequestDetailsLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getRequestDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) CancelRequestLocal(ctx context.Context, __arg CancelRequestLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.cancelRequestLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelRequestLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) MakeRequestLocal(ctx context.Context, __arg MakeRequestLocalArg) (res KeybaseRequestID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetAccountMobileOnlyLocal(ctx context.Context, __arg SetAccountMobileOnlyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setAccountMobileOnlyLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.setAccountMobileOnlyLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetAccountAllDevicesLocal(ctx context.Context, __arg SetAccountAllDevicesLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setAccountAllDevicesLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.setAccountAllDevicesLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccountMobileOnlyLocalArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (res []PredefinedInflationDestination, err error) {
 	__arg := GetPredefinedInflationDestinationsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getPredefinedInflationDestinationsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPredefinedInflationDestinationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg SetInflationDestinationLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setInflationDestinationLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.setInflationDestinationLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res InflationDestinationResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res AirdropDetails, err error) {
 	__arg := AirdropDetailsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.airdropDetailsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropDetailsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AirdropStatusLocal(ctx context.Context, sessionID int) (res AirdropStatus, err error) {
 	__arg := AirdropStatusLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.airdropStatusLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropStatusLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AirdropRegisterLocal(ctx context.Context, __arg AirdropRegisterLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) FuzzyAssetSearchLocal(ctx context.Context, __arg FuzzyAssetSearchLocalArg) (res []Asset, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.fuzzyAssetSearchLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.fuzzyAssetSearchLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ListPopularAssetsLocal(ctx context.Context, sessionID int) (res AssetListResult, err error) {
 	__arg := ListPopularAssetsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.listPopularAssetsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AddTrustlineLocal(ctx context.Context, __arg AddTrustlineLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.addTrustlineLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.addTrustlineLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) DeleteTrustlineLocal(ctx context.Context, __arg DeleteTrustlineLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.deleteTrustlineLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.deleteTrustlineLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ChangeTrustlineLimitLocal(ctx context.Context, __arg ChangeTrustlineLimitLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.changeTrustlineLimitLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.changeTrustlineLimitLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetTrustlinesLocal(ctx context.Context, __arg GetTrustlinesLocalArg) (res []Balance, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetTrustlinesForRecipientLocal(ctx context.Context, __arg GetTrustlinesForRecipientLocalArg) (res RecipientTrustlinesLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesForRecipientLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getTrustlinesForRecipientLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) FindPaymentPathLocal(ctx context.Context, __arg FindPaymentPathLocalArg) (res PaymentPathLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.findPaymentPathLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AssetDepositLocal(ctx context.Context, __arg AssetDepositLocalArg) (res AssetActionResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.assetDepositLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.assetDepositLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AssetWithdrawLocal(ctx context.Context, __arg AssetWithdrawLocalArg) (res AssetActionResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.assetWithdrawLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.assetWithdrawLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BalancesLocal(ctx context.Context, accountID AccountID) (res []Balance, err error) {
 	__arg := BalancesLocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.balancesLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendCLILocal(ctx context.Context, __arg SendCLILocalArg) (res SendResultCLILocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SendPathCLILocal(ctx context.Context, __arg SendPathCLILocalArg) (res SendResultCLILocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.sendPathCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.sendPathCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) AccountMergeCLILocal(ctx context.Context, __arg AccountMergeCLILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.accountMergeCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.accountMergeCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ClaimCLILocal(ctx context.Context, __arg ClaimCLILocalArg) (res RelayClaimResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.claimCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) RecentPaymentsCLILocal(ctx context.Context, accountID *AccountID) (res []PaymentOrErrorCLILocal, err error) {
 	__arg := RecentPaymentsCLILocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.recentPaymentsCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) PaymentDetailCLILocal(ctx context.Context, txID string) (res PaymentCLILocal, err error) {
 	__arg := PaymentDetailCLILocalArg{TxID: txID}
-	err = c.Cli.Call(ctx, "stellar.1.local.paymentDetailCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.paymentDetailCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) WalletInitLocal(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletInitLocal", []interface{}{WalletInitLocalArg{}}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.walletInitLocal", []interface{}{WalletInitLocalArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) WalletDumpLocal(ctx context.Context) (res Bundle, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.walletDumpLocal", []interface{}{WalletDumpLocalArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) WalletGetAccountsCLILocal(ctx context.Context) (res []OwnAccountCLILocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.walletGetAccountsCLILocal", []interface{}{WalletGetAccountsCLILocalArg{}}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.walletGetAccountsCLILocal", []interface{}{WalletGetAccountsCLILocalArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) OwnAccountLocal(ctx context.Context, accountID AccountID) (res bool, err error) {
 	__arg := OwnAccountLocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.ownAccountLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.ownAccountLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ImportSecretKeyLocal(ctx context.Context, __arg ImportSecretKeyLocalArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.importSecretKeyLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ExportSecretKeyLocal(ctx context.Context, accountID AccountID) (res SecretKey, err error) {
 	__arg := ExportSecretKeyLocalArg{AccountID: accountID}
-	err = c.Cli.Call(ctx, "stellar.1.local.exportSecretKeyLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.exportSecretKeyLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SetDisplayCurrency(ctx context.Context, __arg SetDisplayCurrencyArg) (err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "stellar.1.local.setDisplayCurrency", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ExchangeRateLocal(ctx context.Context, currency OutsideCurrencyCode) (res OutsideExchangeRate, err error) {
 	__arg := ExchangeRateLocalArg{Currency: currency}
-	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.exchangeRateLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetAvailableLocalCurrencies(ctx context.Context) (res map[OutsideCurrencyCode]OutsideCurrencyDefinition, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableLocalCurrencies", []interface{}{GetAvailableLocalCurrenciesArg{}}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getAvailableLocalCurrencies", []interface{}{GetAvailableLocalCurrenciesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) FormatLocalCurrencyString(ctx context.Context, __arg FormatLocalCurrencyStringArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.formatLocalCurrencyString", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestCLILocalArg) (res KeybaseRequestID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.makeRequestCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res LookupResultCLILocal, err error) {
 	__arg := LookupCLILocalArg{Name: name}
-	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res BatchResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ValidateStellarURILocal(ctx context.Context, __arg ValidateStellarURILocalArg) (res ValidateStellarURIResultLocal, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.validateStellarURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ApproveTxURILocal(ctx context.Context, __arg ApproveTxURILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.approveTxURILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.approveTxURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ApprovePayURILocal(ctx context.Context, __arg ApprovePayURILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.approvePayURILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePayURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) ApprovePathURILocal(ctx context.Context, __arg ApprovePathURILocalArg) (res TransactionID, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.approvePathURILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetPartnerUrlsLocal(ctx context.Context, sessionID int) (res []PartnerUrl, err error) {
 	__arg := GetPartnerUrlsLocalArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getPartnerUrlsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) SignTransactionXdrLocal(ctx context.Context, __arg SignTransactionXdrLocalArg) (res SignXdrResult, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.signTransactionXdrLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.signTransactionXdrLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) GetStaticConfigLocal(ctx context.Context) (res StaticConfig, err error) {
-	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfigLocal", []interface{}{GetStaticConfigLocalArg{}}, &res)
+	err = c.Cli.Call(ctx, "stellar.1.local.getStaticConfigLocal", []interface{}{GetStaticConfigLocalArg{}}, &res, 0*time.Millisecond)
 	return
 }
