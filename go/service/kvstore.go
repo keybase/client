@@ -96,7 +96,7 @@ func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KV
 		return emptyRes, fmt.Errorf("api returned an unexpected entryKey: %s isn't %s", apiRes.EntryKey, entryID.EntryKey)
 	}
 	entryHash := kvstore.Hash(apiRes.Ciphertext)
-	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, entryHash, apiRes.TeamKeyGen, apiRes.Revision)
+	err = mctx.G().GetKVRevisionCache().PutCheck(mctx, entryID, entryHash, apiRes.TeamKeyGen, apiRes.Revision)
 	if err != nil {
 		return emptyRes, err
 	}
@@ -152,7 +152,7 @@ func (k *putEntryAPIRes) GetAppStatus() *libkb.AppStatus {
 }
 
 func (h *KVStoreHandler) fetchRevisionFromCacheOrServer(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (int, error) {
-	prevRevision := mctx.G().GetKVRevisionCache().FetchRevision(mctx, entryID)
+	_, _, prevRevision := mctx.G().GetKVRevisionCache().Fetch(mctx, entryID)
 	if prevRevision == 0 {
 		// not in the cache. check if it's in the server.
 		serverRes, err := h.serverFetch(mctx, entryID)
@@ -218,7 +218,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		return res, fmt.Errorf("kvstore PUT revision error. expected %d, got %d", prevRevision+1, apiRes.Revision)
 	}
 	entryHash := kvstore.Hash(ciphertext)
-	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, entryHash, teamKeyGen, apiRes.Revision)
+	err = mctx.G().GetKVRevisionCache().PutCheck(mctx, entryID, entryHash, teamKeyGen, apiRes.Revision)
 	if err != nil {
 		mctx.Debug("error loading %+v into the revision cache: %v", entryID, err)
 		return res, err

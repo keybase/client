@@ -142,7 +142,7 @@ func (b *KVStoreRealBoxer) fetchEncryptionKey(mctx libkb.MetaContext, entryID ke
 	if generation != nil && appKey.KeyGeneration != *generation {
 		return res, fmt.Errorf("expected app key generation %d, got %d", *generation, appKey.KeyGeneration)
 	}
-	// TODO: more sanity checking on this key. see chat/teams.go#147
+	// TODO: a little more sanity checking on this key. see chat/teams.go#147
 	return appKey, nil
 }
 

@@ -31,22 +31,15 @@ func NewKVRevisionCache() *KVRevisionCache {
 	}
 }
 
-// ensure initialized maps exist for intermediate data structures
-func (k *KVRevisionCache) ensureIntermediateLocked(entryID keybase1.KVEntryID) {
-	// call this function inside a previously acquired lock
-	_, ok := k.data[entryID.TeamID]
-	if !ok {
-		// populate intermediate data structures to prevent panics
-		k.data[entryID.TeamID] = make(map[string]map[string]kvCacheEntry)
-	}
-	_, ok = k.data[entryID.TeamID][entryID.Namespace]
-	if !ok {
-		// populate intermediate data structures to prevent panics
-		k.data[entryID.TeamID][entryID.Namespace] = make(map[string]kvCacheEntry)
-	}
+type KVRevisionCacheError struct {
+	Message string
 }
 
-func (k *KVRevisionCache) Check(mctx libkb.MetaContext, entryID keybase1.KVEntryID, entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
+func (e KVRevisionCacheError) Error() string {
+	return e.Message
+}
+
+func (k *KVRevisionCache) PutCheck(mctx libkb.MetaContext, entryID keybase1.KVEntryID, entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
 	k.Lock()
 	defer k.Unlock()
 
@@ -69,17 +62,17 @@ func (k *KVRevisionCache) Check(mctx libkb.MetaContext, entryID keybase1.KVEntry
 	return nil
 }
 
-func (k *KVRevisionCache) FetchRevision(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (revision int) {
+func (k *KVRevisionCache) Fetch(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (entryHash string,
+	teamKeyGen keybase1.PerTeamKeyGeneration, revision int) {
 	k.Lock()
 	defer k.Unlock()
 	k.ensureIntermediateLocked(entryID)
-	// fetch and default to 0
 	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if !ok {
 		mctx.Debug("KVRevisionCache cache miss for %+v, defaulting revision to 0", entryID)
-		return 0
+		return "", keybase1.PerTeamKeyGeneration(0), 0
 	}
-	return entry.Revision
+	return entry.EntryHash, entry.TeamKeyGen, entry.Revision
 }
 
 func Hash(ciphertext string) string {
@@ -87,19 +80,34 @@ func Hash(ciphertext string) string {
 	return hex.EncodeToString(b[:])
 }
 
+// ensure initialized maps exist for intermediate data structures
+func (k *KVRevisionCache) ensureIntermediateLocked(entryID keybase1.KVEntryID) {
+	// call this function inside a previously acquired lock
+	_, ok := k.data[entryID.TeamID]
+	if !ok {
+		// populate intermediate data structures to prevent panics
+		k.data[entryID.TeamID] = make(map[string]map[string]kvCacheEntry)
+	}
+	_, ok = k.data[entryID.TeamID][entryID.Namespace]
+	if !ok {
+		// populate intermediate data structures to prevent panics
+		k.data[entryID.TeamID][entryID.Namespace] = make(map[string]kvCacheEntry)
+	}
+}
+
 func checkNewAgainstCachedEntry(newEntry, cachedEntry kvCacheEntry) error {
 	if newEntry.Revision < cachedEntry.Revision {
-		return fmt.Errorf("cache error: revision decreased from %d to %d", cachedEntry.Revision, newEntry.Revision)
+		return KVRevisionCacheError{fmt.Sprintf("cache error: revision decreased from %d to %d", cachedEntry.Revision, newEntry.Revision)}
 	}
 	if newEntry.TeamKeyGen < cachedEntry.TeamKeyGen {
-		return fmt.Errorf("cache error: team key generation decreased from %d to %d", cachedEntry.TeamKeyGen, newEntry.TeamKeyGen)
+		return KVRevisionCacheError{fmt.Sprintf("cache error: team key generation decreased from %d to %d", cachedEntry.TeamKeyGen, newEntry.TeamKeyGen)}
 	}
 	if newEntry.Revision == cachedEntry.Revision {
 		if newEntry.TeamKeyGen != cachedEntry.TeamKeyGen {
-			return fmt.Errorf("cache error: at the same revision (%d) team key gen cannot be different: %d -> %d", newEntry.Revision, cachedEntry.TeamKeyGen, newEntry.TeamKeyGen)
+			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) team key gen cannot be different: %d -> %d", newEntry.Revision, cachedEntry.TeamKeyGen, newEntry.TeamKeyGen)}
 		}
 		if newEntry.EntryHash != cachedEntry.EntryHash {
-			return fmt.Errorf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", newEntry.Revision, cachedEntry.EntryHash, newEntry.EntryHash)
+			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", newEntry.Revision, cachedEntry.EntryHash, newEntry.EntryHash)}
 		}
 	}
 	return nil

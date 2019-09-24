@@ -1120,6 +1120,6 @@ type SyncedContactListProvider interface {
 }
 
 type KVRevisionCacher interface {
-	Check(mctx MetaContext, entryID keybase1.KVEntryID, entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
-	FetchRevision(mctx MetaContext, entryID keybase1.KVEntryID) (revision int)
+	PutCheck(mctx MetaContext, entryID keybase1.KVEntryID, entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
+	Fetch(mctx MetaContext, entryID keybase1.KVEntryID) (entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int)
 }
