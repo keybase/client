@@ -87,7 +87,7 @@ const Troubleshooting = (props: Props) => {
           <BigButton
             onClick={onBack}
             icon={
-              `icon-${Styles.isMobile ? 'phone' : 'computer'}-background${deviceIconNo}-64` as Kb.IconType
+              `icon-${Styles.isMobile ? 'phone' : 'computer'}-background-${deviceIconNo}-64` as Kb.IconType
             }
             mainText={`I have my old "${deviceName}," let me use it to authorize.`}
             subText={`Back to ${props.mode} code`}

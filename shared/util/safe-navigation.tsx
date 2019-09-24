@@ -61,6 +61,15 @@ function withSafeNavigation<P extends {}>(
   return WithNav
 }
 
+function withSafeNavigationStorybook<P extends {}>(
+  Component: React.ComponentType<PropsWithSafeNavigation<P>>
+): React.ComponentType<P> {
+  return props => (
+    // @ts-ignore
+    <Component getParam={(key: string) => ''} navigateAppend={() => {}} navigateUp={() => {}} {...props} />
+  )
+}
+
 export const useSafeNavigation: () => PropsWithSafeNavigation = () => {
   const state = useNavigationState()
   const fromKey = getActiveKey(state)
@@ -75,4 +84,4 @@ export const useSafeNavigation: () => PropsWithSafeNavigation = () => {
   )
 }
 
-export default withSafeNavigation
+export default (__STORYBOOK__ ? withSafeNavigationStorybook : withSafeNavigation)
