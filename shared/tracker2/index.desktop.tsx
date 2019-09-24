@@ -112,7 +112,7 @@ const TeamShowcase = ({name}) => (
 )
 
 const Tracker = (props: Props) => {
-  _setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
   let assertions
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
@@ -140,8 +140,8 @@ const Tracker = (props: Props) => {
       fullWidth={true}
       fullHeight={true}
       style={styles.container}
-      className={this.props.darkMode ? 'darkMode' : ''}
-      key={this.props.darkMode ? 'darkMode' : 'light'}
+      className={props.darkMode ? 'darkMode' : ''}
+      key={props.darkMode ? 'darkMode' : 'light'}
     >
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
