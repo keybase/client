@@ -1,24 +1,27 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
-export type Props = {
-  onContinue: (choice: boolean) => void
-}
+const ResetPassword = () => {
+  const dispatch = Container.useDispatch()
+  const onContinue = (action: boolean) => {
+    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action}))
+  }
 
-const ResetPassword = (props: Props) => {
   return (
     <SignupScreen
       buttons={[
         {
-          label: 'Reset password',
-          onClick: () => props.onContinue(true),
+          label: 'Send reset link',
+          onClick: () => onContinue(true),
           type: 'Default' as ButtonType,
         },
       ]}
-      onBack={() => props.onContinue(false)}
+      onBack={() => onContinue(false)}
       title="Reset password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
