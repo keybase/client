@@ -187,10 +187,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
 // Get valid keys that we aren't already loading or have loaded
 const rpcMetaRequestConversationIDKeys = (
   state: TypedState,
-  action:
-    | Chat2Gen.MetaRequestTrustedPayload
-    | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.MetasReceivedPayload
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
 ) => {
   let keys: Array<Types.ConversationIDKey>
   switch (action.type) {
@@ -202,9 +199,6 @@ const rpcMetaRequestConversationIDKeys = (
       break
     case Chat2Gen.selectConversation:
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
-      break
-    case Chat2Gen.metasReceived:
-      keys = [Constants.getSelectedConversation(state)]
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
@@ -275,10 +269,7 @@ const onGetInboxConvFailed = (
 // We want to unbox rows that have scroll into view
 function* unboxRows(
   state: TypedState,
-  action:
-    | Chat2Gen.MetaRequestTrustedPayload
-    | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.MetasReceivedPayload
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
 ) {
   if (!state.config.loggedIn) {
     return
@@ -3349,10 +3340,8 @@ function* chat2Saga() {
   )
 
   // Actually try and unbox conversations
-  yield* Saga.chainGenerator<
-    Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
-  >(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation, Chat2Gen.metasReceived],
+  yield* Saga.chainGenerator<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
+    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
     unboxRows,
     'unboxRows'
   )

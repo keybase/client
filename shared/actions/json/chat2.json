@@ -126,7 +126,6 @@
     "metasReceived": {
       "metas": "Array<Types.ConversationMeta>",
       "removals?": "Array<Types.ConversationIDKey>", // convs to remove
-      "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "fromInboxRefresh?": "boolean", // If true from an inbox refresh
       "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
     },

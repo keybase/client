@@ -387,7 +387,6 @@ type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.C
 type _MetasReceivedPayload = {
   readonly metas: Array<Types.ConversationMeta>
   readonly removals?: Array<Types.ConversationIDKey>
-  readonly neverCreate?: boolean
   readonly fromInboxRefresh?: boolean
   readonly initialTrustedLoad?: boolean
 }

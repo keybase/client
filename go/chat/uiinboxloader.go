@@ -132,6 +132,7 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 	}
 	h.lastBatchFlush = h.clock.Now()
 	h.convTransmitBatch = make(map[string]chat1.ConversationLocal) // clear batch always
+	h.Debug(ctx, "flushConvBatch: transmitting %d convs", len(convs))
 	defer func() {
 		if err != nil {
 			h.Debug(ctx, "flushConvBatch: failed to transmit, retrying convs: num: %d err: %s",
@@ -145,18 +146,22 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 			h.Debug(ctx, "flushConvBatch: unable to write inbox local metadata: %s", err)
 		}
 	}()
-
+	start := time.Now()
 	dat, err := json.Marshal(utils.PresentConversationLocals(ctx, h.G(), h.uid, convs))
 	if err != nil {
 		return err
 	}
+	h.Debug(ctx, "flushConvBatch: present time: %v", time.Since(start))
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
 		return err
 	}
-	return ui.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
+	start = time.Now()
+	err = ui.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 		Convs: string(dat),
 	})
+	h.Debug(ctx, "flushConvBatch: transmit time: %v", time.Since(start))
+	return err
 }
 
 func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
@@ -167,6 +172,7 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), r.Query, r.Pagination))
 		}
 	}()
+	start := time.Now()
 	uires, err := h.presentUnverifiedInbox(ctx, r.Convs, r.Pagination, h.G().InboxSource.IsOffline(ctx))
 	if err != nil {
 		h.Debug(ctx, "flushUnverified: failed to present untrusted inbox, failing: %s", err.Error())
@@ -177,11 +183,12 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 		h.Debug(ctx, "flushUnverified: failed to JSON up unverified inbox: %s", err.Error())
 		return err
 	}
+	h.Debug(ctx, "flushUnverified: present time: %v", time.Since(start))
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
 		return err
 	}
-	start := time.Now()
+	start = time.Now()
 	h.Debug(ctx, "flushUnverified: sending unverified inbox: num convs: %d bytes: %d", len(r.Convs),
 		len(jbody))
 	if err := ui.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
@@ -190,13 +197,14 @@ func (h *UIInboxLoader) flushUnverified(r unverifiedResponse) (err error) {
 		h.Debug(ctx, "flushUnverified: failed to send unverfified inbox: %s", err)
 		return err
 	}
-	h.Debug(ctx, "LoadNonblock: sent unverified inbox successfully: %v", time.Since(start))
+	h.Debug(ctx, "flushUnverified: sent unverified inbox successfully: %v", time.Since(start))
 	return nil
 }
 
 func (h *UIInboxLoader) flushFailed(r failedResponse) {
 	ctx := context.Background()
 	ui, err := h.getChatUI(ctx)
+	h.Debug(ctx, "flushFailed: transmitting: %s", r.Conv.GetConvID())
 	if err == nil {
 		if err := ui.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 			ConvID: r.Conv.GetConvID(),

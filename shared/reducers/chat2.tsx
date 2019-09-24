@@ -125,15 +125,10 @@ const metaMapReducer = (metaMap: Container.Draft<Types.State['metaMap']>, action
       return metaMap.clear()
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
-        const neverCreate = !!action.payload.neverCreate
         map.deleteAll(action.payload.removals || [])
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
-            if (old) {
-              return Constants.updateMeta(old, meta)
-            } else {
-              return neverCreate ? old : meta
-            }
+            return old ? Constants.updateMeta(old, meta) : meta
           })
         })
       })
