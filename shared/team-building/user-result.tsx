@@ -309,7 +309,7 @@ const styles = Styles.styleSheetCreate(() => ({
       width: ActionButtonSize,
     },
     isMobile: {
-      marginRight: 0,
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
   addToTeamIcon: {
