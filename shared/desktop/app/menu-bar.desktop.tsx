@@ -8,8 +8,10 @@ import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
-let icon = ''
-let selectedIcon = ''
+let icon = isWindows
+  ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
+  : 'icon-keybase-menubar-regular-white-22@2x.png'
+let selectedIcon = icon
 
 type Bounds = {
   x: number
@@ -46,7 +48,12 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   })
 
   const updateIcon = (selected: boolean) => {
-    mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
+    const i = selected ? selectedIcon : icon
+    try {
+      i && mb.tray.setImage(resolveImage('menubarIcon', i))
+    } catch (err) {
+      console.error('menu icon err: ' + err)
+    }
   }
 
   type Action = {
