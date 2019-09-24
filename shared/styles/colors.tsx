@@ -1,5 +1,6 @@
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {isDarkMode} from './dark-mode'
+import {partyMode} from '../local-debug'
 import {isIOS} from '../constants/platform'
 
 export const colors = {
@@ -130,6 +131,9 @@ export const colors = {
   yellow: '#FFF75A',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
+  get yellowOrYellowLight() {
+    return this.yellow
+  },
 } as const
 
 export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
@@ -260,6 +264,58 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellow: '#FFF75A',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
+  get yellowOrYellowLight() {
+    return colors.yellowLight
+  },
+}
+
+const partyFallbackColors = {
+  black: 'rgba(255, 255, 255, 0.85)',
+  get blackOrBlack() {
+    return colors.black
+  },
+  get blackOrWhite() {
+    return colors.white
+  },
+  get black_05OrBlack_60() {
+    return colors.black_60
+  },
+  black_05_on_white: 'rgb(13, 13, 13)',
+  black_10_on_white: 'rgb(26, 26, 26)',
+  get black_20OrBlack() {
+    return colors.black
+  },
+  black_20_on_white: 'rgb(51, 51, 51)',
+  get black_50OrWhite() {
+    return colors.white
+  },
+  get black_50OrWhite_75() {
+    return colors.white_75
+  },
+  black_50_on_white: 'rgb(128, 128, 128)',
+  black_60: 'rgba(255, 255, 255, 0.60)',
+  black_63: 'rgba(255, 255, 255, 0.63)',
+  black_on_white: 'rgb(217, 217, 217)',
+  transparent: 'rgba(255, 255, 255, 0)',
+  transparent_on_white: '#191919',
+  white: '#191919',
+  get whiteOrBlack() {
+    return colors.black
+  },
+  get whiteOrGreenDark() {
+    return '#FF00FF'
+  },
+  white_0: 'rgba(25, 25, 25, 0)',
+  white_0_on_white: '#191919',
+  white_20_on_white: '#191919',
+  get white_40OrBlack_60() {
+    return colors.black_60
+  },
+  white_40_on_white: '#191919',
+  white_75: 'rgba(25, 25, 25, 0.75)',
+  white_75_on_white: '#191919',
+  white_90: 'rgba(25, 25, 25, 0.90)',
+  white_90_on_white: '#191919',
 }
 
 type Color = typeof colors
@@ -272,6 +328,11 @@ export const themed = names.reduce<Color>(
       configurable: false,
       enumerable: true,
       get() {
+        if (partyMode && isDarkMode()) {
+          // sets all non-grayscale colors to magenta in dark mode when enabled
+          return partyFallbackColors[name] || '#FF00FF'
+        }
+
         return isDarkMode() ? darkColors[name] : colors[name]
       },
     }),

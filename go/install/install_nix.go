@@ -6,14 +6,55 @@
 package install
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strconv"
 
 	"github.com/keybase/client/go/lsof"
 )
 
+// maybeKernelOpenFiles returns true if the kernel might currently
+// have open files.  If it returns false, the mount is definitely not
+// in use.
+func maybeKernelOpenFiles(mountDir string, log Log) bool {
+	// This file name is copied from kbfs/libfs/constants.go because
+	// importing that package bloats the `keybase` service binary and
+	// causes compilation issues.
+	p := filepath.Join(mountDir, ".kbfs_open_file_count")
+	f, err := os.Open(p)
+	if err != nil {
+		log.Debug("Couldn't check for open files in %s: %+v", p, err)
+		return true
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		log.Debug("Couldn't read the open file count in %s: %+v", p, err)
+		return true
+	}
+
+	numOpenFiles, err := strconv.ParseInt(string(b), 10, 64)
+	if err != nil {
+		log.Debug("Couldn't parse the open file count (%s) in %s: %+v",
+			string(b), p, err)
+		return true
+	}
+
+	return numOpenFiles != 0
+}
+
 // IsInUse returns true if the mount is in use. This may be used by the updater
 // to determine if it's safe to apply an update and restart.
 func IsInUse(mountDir string, log Log) bool {
+	// Shortcut to avoid expensive lsof call if KBFS tells us that
+	// there are definitely no open files.
+	if !maybeKernelOpenFiles(mountDir, log) {
+		log.Debug("Definitely no open files; skipping lsof")
+		return false
+	}
+
 	// ignore error
 	lsofResults, _ := LsofMount(mountDir, log)
 	return len(lsofResults) > 0

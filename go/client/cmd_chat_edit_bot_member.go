@@ -34,7 +34,7 @@ func newCmdChatEditBotMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Usage: "username",
 	}, cli.StringFlag{
 		Name:  "r, role",
-		Usage: "team role (bot, restricted)",
+		Usage: "team role (bot, restrictedbot)",
 	})
 	return cli.Command{
 		Name:         "edit-bot-member",

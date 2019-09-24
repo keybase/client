@@ -47,7 +47,7 @@ func TestLookupEmptyList(t *testing.T) {
 	provider := &ErrorContactsProvider{T: t}
 	contactList := []keybase1.Contact{}
 
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 0)
 }
@@ -73,7 +73,7 @@ func TestLookupContacts(t *testing.T) {
 
 	// None of the contact components resolved (empty mock provider). Return all
 	// 3 unresolved components to the caller.
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	for i, r := range res {
@@ -90,7 +90,7 @@ func TestLookupContacts(t *testing.T) {
 	mockJoe := MakeMockLookupUser("joe", "JOE")
 	provider.PhoneNumbers["+1111222"] = mockJoe
 
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	require.True(t, res[0].Resolved)
@@ -108,7 +108,7 @@ func TestLookupContacts(t *testing.T) {
 
 	// Second number also belongs to joe now. Still save all entries.
 	provider.PhoneNumbers["+199123"] = mockJoe
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	for i, v := range res {
@@ -123,7 +123,7 @@ func TestLookupContacts(t *testing.T) {
 
 	// Suddenly this number resolves to someone else, despite being in same contact.
 	provider.PhoneNumbers["+199123"] = MakeMockLookupUser("ed", "")
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	require.Equal(t, []string{
@@ -141,7 +141,7 @@ func TestLookupContacts(t *testing.T) {
 	// Test with email
 	provider = MakeMockProvider(t) // *new provider*
 	provider.Emails["joe@linux.org"] = mockJoe
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	// Only last component (the one with email) resolves, rest is unresolved.
@@ -191,7 +191,7 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 
 	provider := MakeMockProvider(t)
 
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	expected := []string{
 		"Alice +1111222 (Home)",
@@ -204,7 +204,7 @@ func TestLookupContactsMultipleUsers(t *testing.T) {
 	provider.PhoneNumbers["+123456"] = MakeMockLookupUser("bob", "")
 	provider.Emails["charlie+test@keyba.se"] = MakeMockLookupUser("charlie", "")
 
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	expected = []string{
 		"Alice +1111222 (Home)",
@@ -243,7 +243,7 @@ func TestEmptyComponentLabels(t *testing.T) {
 
 	provider := MakeMockProvider(t)
 
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	expected := []string{
 		"Alice +1111222 ()",
@@ -257,7 +257,7 @@ func TestEmptyComponentLabels(t *testing.T) {
 	require.Equal(t, expected, displayResults(res))
 
 	provider.Emails["alice+test@keyba.se"] = MockLookupUser{UID: keybase1.UID("1111"), Username: "alice", Fullname: "A L I C E"}
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 2)
 	// First component did not resolve
@@ -315,7 +315,7 @@ func TestFollowing(t *testing.T) {
 	provider.Following[keybase1.UID("1111")] = true
 	provider.Following[keybase1.UID("3333")] = true
 
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 4)
 	expected := []string{
@@ -351,7 +351,7 @@ func TestErrorsInResolution(t *testing.T) {
 	provider.PhoneNumbers["+1111222"] = MakeMockLookupUser("alice", "CryptoAlice")
 	provider.PhoneNumberErrors["444"] = "Mock error for number 444"
 
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 2)
 	require.True(t, res[0].Resolved)
@@ -364,7 +364,7 @@ func TestErrorsInResolution(t *testing.T) {
 
 	delete(provider.PhoneNumbers, "+1111222")
 
-	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err = ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 2)
 	require.False(t, res[0].Resolved)
@@ -420,7 +420,7 @@ func TestDuplicateEntries(t *testing.T) {
 	// unique combination of "Alice" contact name ane component value
 	// "+1111222". Both "bob+test@keyba.se" values for Bob/Robert should have
 	// own, resolved, entry.
-	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList, keybase1.RegionCode(""))
+	res, err := ResolveContacts(libkb.NewMetaContextForTest(tc), provider, contactList)
 	require.NoError(t, err)
 	require.Len(t, res, 3)
 	expected := []string{

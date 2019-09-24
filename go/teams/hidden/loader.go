@@ -431,6 +431,15 @@ func (l *LoaderPackage) LastSeqno() keybase1.Seqno {
 	return l.data.Last
 }
 
+// LastFullSeqno returns the last seqno before the end of the chain, or before an unstubbed
+// hole is found (as a result of FTL).
+func (l *LoaderPackage) LastFullSeqno() keybase1.Seqno {
+	if l.data == nil {
+		return keybase1.Seqno(0)
+	}
+	return l.data.LastFullPopulateIfUnset()
+}
+
 // MaxRatchet returns the greatest sequence number across all ratchets in the loaded data and also
 // in the data from the recent update from the server.
 func (l *LoaderPackage) MaxRatchet() (ret keybase1.Seqno) {

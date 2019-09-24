@@ -8,6 +8,7 @@ import {RPCError} from '../util/errors'
 export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'provision:'
 export const addNewDevice = 'provision:addNewDevice'
+export const cancelProvision = 'provision:cancelProvision'
 export const forgotUsername = 'provision:forgotUsername'
 export const forgotUsernameResult = 'provision:forgotUsernameResult'
 export const provisionError = 'provision:provisionError'
@@ -32,6 +33,7 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
 type _AddNewDevicePayload = {readonly otherDeviceType: 'desktop' | 'mobile'}
+type _CancelProvisionPayload = void
 type _ForgotUsernamePayload = {readonly email: string; readonly phone: string}
 type _ForgotUsernameResultPayload = {readonly result: string}
 type _ProvisionErrorPayload = {readonly error: HiddenString | null}
@@ -74,6 +76,10 @@ export const createShowDeviceListPage = (payload: _ShowDeviceListPagePayload): S
 export const createAddNewDevice = (payload: _AddNewDevicePayload): AddNewDevicePayload => ({
   payload,
   type: addNewDevice,
+})
+export const createCancelProvision = (payload: _CancelProvisionPayload): CancelProvisionPayload => ({
+  payload,
+  type: cancelProvision,
 })
 export const createForgotUsername = (payload: _ForgotUsernamePayload): ForgotUsernamePayload => ({
   payload,
@@ -151,6 +157,10 @@ export const createSwitchToGPGSignOnly = (
 
 // Action Payloads
 export type AddNewDevicePayload = {readonly payload: _AddNewDevicePayload; readonly type: typeof addNewDevice}
+export type CancelProvisionPayload = {
+  readonly payload: _CancelProvisionPayload
+  readonly type: typeof cancelProvision
+}
 export type ForgotUsernamePayload = {
   readonly payload: _ForgotUsernamePayload
   readonly type: typeof forgotUsername
@@ -234,6 +244,7 @@ export type SwitchToGPGSignOnlyPayload = {
 // prettier-ignore
 export type Actions =
   | AddNewDevicePayload
+  | CancelProvisionPayload
   | ForgotUsernamePayload
   | ForgotUsernameResultPayload
   | ProvisionErrorPayload

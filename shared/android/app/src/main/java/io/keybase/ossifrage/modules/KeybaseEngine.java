@@ -114,7 +114,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     public void destroy() {
         try {
-            executor.shutdownNow();
+            if (executor != null) {
+                executor.shutdownNow();
+            }
+
             Keybase.reset();
             relayReset(reactContext);
             // We often hit this timeout during app resume, e.g. hit the back

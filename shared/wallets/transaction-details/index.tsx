@@ -658,7 +658,7 @@ const styles = Styles.styleSheetCreate(
       }),
       transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
       warningBannerContainer: {
-        backgroundColor: Styles.backgroundModeToColor.Information,
+        backgroundColor: Styles.globalColors.yellow,
         borderRadius: Styles.borderRadius,
         marginTop: Styles.globalMargins.xtiny,
         padding: Styles.globalMargins.tiny,

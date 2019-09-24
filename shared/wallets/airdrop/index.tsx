@@ -211,7 +211,7 @@ class Airdrop extends React.Component<Props> {
   }
 }
 
-const headerOverride = {
+const headerOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     ...Styles.globalStyles.fontSemibold,
     color: Styles.globalColors.white,
@@ -219,25 +219,25 @@ const headerOverride = {
     textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: {...Styles.globalStyles.fontExtrabold},
-}
-const bodyOverride = {
+}))
+const bodyOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
     textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: {...Styles.globalStyles.fontExtrabold},
-}
-const sectionOverride = {
+}))
+const sectionOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     ...Styles.globalStyles.fontSemibold,
     fontSize: Styles.isMobile ? 18 : 14,
   },
   strong: {...Styles.globalStyles.fontExtrabold},
-}
-const sectionBodyOverride = {
+}))
+const sectionBodyOverride = Styles.styleSheetCreate(() => ({
   paragraph: {fontSize: Styles.isMobile ? 16 : 13},
-}
+}))
 
 const styles = Styles.styleSheetCreate(
   () =>

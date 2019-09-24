@@ -73,6 +73,7 @@ const commonBigChannel = {
   hasUnread: false,
   isError: false,
   isMuted: false,
+  isLoading: false,
   isSearching: false,
   isSelected: false,
   onSelectConversation: Sb.action('onSelectConversation'),
@@ -339,7 +340,9 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  isLoading: false,
   isSearching: false,
+  navKey: 'nav',
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onNewChat: Sb.action('onNewChat'),

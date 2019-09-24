@@ -1,8 +1,8 @@
 import {last} from 'lodash-es'
 import React, {Component} from 'react'
 import {TextInput, Animated} from 'react-native'
-import {Box, Text, Icon, ClickableBox} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
@@ -50,27 +50,27 @@ class UserItem extends Component<UserItemProps, UserItemState> {
 
     const usernameStyle = followingStateToStyle(followingState)
     return (
-      <Box style={{...globalStyles.flexBoxRow, marginRight: globalMargins.xtiny}}>
-        <ClickableBox feedback={false} onClick={this._onSelect}>
+      <Kb.Box style={{...Styles.globalStyles.flexBoxRow, marginRight: Styles.globalMargins.xtiny}}>
+        <Kb.ClickableBox feedback={false} onClick={this._onSelect}>
           <Animated.View
             style={{
-              ..._pillStyle,
+              ...styles.pill,
               backgroundColor: selectAnim.interpolate({
                 inputRange: [0, 1],
-                outputRange: [globalColors.white_0, globalColors.blue],
+                outputRange: [Styles.globalColors.white_0, Styles.globalColors.blue],
               }),
             }}
           >
             <IconOrAvatar icon={icon} service={service} username={username} avatarSize={16} />
             <Animated.Text
               style={[
-                _pillTextStyle,
+                styles.pillText,
                 usernameStyle,
-                globalStyles.fontSemibold,
+                Styles.globalStyles.fontSemibold,
                 {
                   color: selectAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [usernameStyle.color, globalColors.white],
+                    outputRange: [usernameStyle.color, Styles.globalColors.white],
                   }),
                   marginLeft: 3,
                 },
@@ -79,18 +79,10 @@ class UserItem extends Component<UserItemProps, UserItemState> {
               {username}
             </Animated.Text>
           </Animated.View>
-        </ClickableBox>
-        <Text
-          type="BodySemibold"
-          style={[
-            _pillTextStyle,
-            {
-              color: globalColors.black_20,
-            },
-          ]}
-        >
+        </Kb.ClickableBox>
+        <Kb.Text type="BodySemibold" style={[styles.pillText, {}]}>
           ,
-        </Text>
+        </Kb.Text>
         {/* We can't listen to keyboard events in RN Android, so instead we
             create an offscreen text input with a single space character and
             observe it being removed when the value changes. */}
@@ -104,7 +96,7 @@ class UserItem extends Component<UserItemProps, UserItemState> {
             style={{left: -9999, position: 'absolute'}}
           />
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }
@@ -189,22 +181,22 @@ class UserInput extends Component<Props, State> {
 
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     return (
-      <ClickableBox feedback={false} onClick={this.focus}>
-        <Box
+      <Kb.ClickableBox feedback={false} onClick={this.focus}>
+        <Kb.Box
           style={{
-            ...globalStyles.flexBoxRow,
+            ...Styles.globalStyles.flexBoxRow,
             alignItems: 'center',
             flexWrap: 'wrap',
-            marginLeft: globalMargins.xtiny,
+            marginLeft: Styles.globalMargins.xtiny,
             minHeight: 40,
           }}
         >
           {userItems.map(item => (
             <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />
           ))}
-          <Box
+          <Kb.Box
             style={{
-              ...globalStyles.flexBoxRow,
+              ...Styles.globalStyles.flexBoxRow,
               alignItems: 'center',
               flexGrow: 1,
               height: 24,
@@ -221,7 +213,7 @@ class UserInput extends Component<Props, State> {
               onFocus={this._onFocus}
               onBlur={this._onBlur}
               style={{
-                ..._inputStyle,
+                ...styles.input,
                 ...(showAddButton ? {width: this.state.isFocused ? 10 : 0} : {flexGrow: 1}),
               }}
               placeholder={userItems.length ? '' : placeholder}
@@ -234,52 +226,58 @@ class UserInput extends Component<Props, State> {
               returnKeyType="next"
             />
             {showAddButton && onClickAddButton && (
-              <Icon
+              <Kb.Icon
                 onClick={onClickAddButton}
                 type="iconfont-add"
                 style={{
                   height: 22,
                 }}
                 fontSize={22}
-                color={globalColors.blue}
+                color={Styles.globalColors.blue}
               />
             )}
-          </Box>
-        </Box>
-      </ClickableBox>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
 
-const _pillStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  borderRadius: 2,
-  height: 24,
-  paddingBottom: 2,
-  paddingLeft: 1,
-  paddingRight: 1,
-  paddingTop: 2,
-}
-
-const _pillTextStyle = platformStyles({
-  isMobile: {
-    ...getTextStyle('BodySemibold'),
-    height: 23,
-    lineHeight: 21,
-  },
-})
-
-const _inputStyle = platformStyles({
-  isMobile: {
-    ...getTextStyle('BodySemibold'),
-    color: globalColors.black,
-    fontWeight: '600',
-    height: 23,
-    lineHeight: 21,
-    paddingBottom: 2,
-    paddingTop: 2,
-  },
-})
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      input: Styles.platformStyles({
+        isMobile: {
+          ...getTextStyle('BodySemibold'),
+          color: Styles.globalColors.black,
+          fontWeight: '600',
+          height: 23,
+          lineHeight: 21,
+          paddingBottom: 2,
+          paddingTop: 2,
+        },
+      }),
+      pill: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        borderRadius: 2,
+        height: 24,
+        paddingBottom: 2,
+        paddingLeft: 1,
+        paddingRight: 1,
+        paddingTop: 2,
+      },
+      pillText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black_20,
+        },
+        isMobile: {
+          ...getTextStyle('BodySemibold'),
+          height: 23,
+          lineHeight: 21,
+        },
+      }),
+    } as const)
+)
 
 export default UserInput

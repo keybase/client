@@ -17,7 +17,8 @@ describe('chat2 reducer', () => {
   // 2: you wrote text
   // 3: you attached
   // 4: someone else wrote text
-  const initialState = Constants.makeState({
+  const initialState: Types.State = {
+    ...Constants.makeState(),
     messageMap: I.Map([
       [
         conversationIDKey,
@@ -58,7 +59,7 @@ describe('chat2 reducer', () => {
         ]),
       ],
     ]),
-  })
+  }
 
   describe('messageSetEditing action', () => {
     it('edit last skips other people and non-text types', () => {

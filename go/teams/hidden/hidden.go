@@ -42,6 +42,13 @@ func populateLink(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain, link si
 	}
 	ret.Inner[q] = *rkex
 
+	// Because this link isn't stubbed, we can bump the `LastFull` field
+	// forward if it's one more than previous. ret.LastFull will start at 0
+	// so this should work for the first link.
+	if ret.LastFull+1 == q {
+		ret.LastFull = q
+	}
+
 	// For each PTK (right now we really only expect one - the Reader PTK),
 	// update our maximum PTK generation
 	for _, ptk := range rotateKey.PTKs() {

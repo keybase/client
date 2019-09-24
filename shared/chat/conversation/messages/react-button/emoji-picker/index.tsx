@@ -107,7 +107,7 @@ class EmojiPicker extends React.Component<Props, State> {
       category: c.category,
       data: chunk(c.data.emojis, emojisPerLine).map((c: any, idx: number) => ({
         emojis: c,
-        key: (c && c.length && c[0].short_name) || String(idx),
+        key: (c && c.length && c[0] && c[0].short_name) || String(idx),
       })),
       key: c.key,
     }))

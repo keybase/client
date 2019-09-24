@@ -6,6 +6,7 @@ package engine
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -282,7 +283,7 @@ func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device *libkb.
 	// The actual contents of the shown prompt will depend on the UI impl
 	return mctx.UIs().LoginUI.ExplainDeviceRecovery(mctx.Ctx(), keybase1.ExplainDeviceRecoveryArg{
 		Name: name,
-		Kind: keybase1.DeviceTypeMap[device.Type],
+		Kind: keybase1.DeviceTypeMap[strings.ToUpper(device.Type)],
 	})
 }
 

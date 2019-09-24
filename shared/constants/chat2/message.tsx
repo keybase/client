@@ -761,13 +761,13 @@ const validUIMessagetoMessage = (
       let payments: Array<RPCChatTypes.TextPayment> | null = null
       switch (m.messageBody.messageType) {
         case RPCChatTypes.MessageType.flip:
-          rawText = (m.messageBody.flip && m.messageBody.flip.text) || ''
+          rawText = m.messageBody.flip.text
           break
         case RPCChatTypes.MessageType.text:
           {
             const messageText = m.messageBody.text
-            rawText = (messageText && messageText.body) || ''
-            payments = (messageText && messageText.payments) || null
+            rawText = messageText.body
+            payments = messageText.payments || null
           }
           break
         default:
@@ -782,7 +782,7 @@ const validUIMessagetoMessage = (
         inlinePaymentIDs: payments
           ? I.List(
               payments.reduce((arr: Array<string>, p) => {
-                if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent && p.result.sent) {
+                if (p.result.resultTyp === RPCChatTypes.TextPaymentResultTyp.sent) {
                   const s = WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
                   s && arr.push(s)
                 }
@@ -819,22 +819,18 @@ const validUIMessagetoMessage = (
 
       if (m.messageBody.messageType === RPCChatTypes.MessageType.attachment) {
         attachment = m.messageBody.attachment
-        if (attachment) {
-          preview =
-            attachment.preview ||
-            (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
-          full = attachment.object
-          if (!attachment.uploaded) {
-            transferState = 'remoteUploading' as const
-          }
+        preview =
+          attachment.preview ||
+          (attachment.previews && attachment.previews.length ? attachment.previews[0] : null)
+        full = attachment.object
+        if (!attachment.uploaded) {
+          transferState = 'remoteUploading' as const
         }
       } else if (m.messageBody.messageType === RPCChatTypes.MessageType.attachmentuploaded) {
         attachment = m.messageBody.attachmentuploaded
-        if (attachment) {
-          preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
-          full = attachment.object
-          transferState = null
-        }
+        preview = attachment.previews && attachment.previews.length ? attachment.previews[0] : null
+        full = attachment.object
+        transferState = null
       }
 
       const a = attachment || {object: {filename: undefined, size: undefined, title: undefined}}
@@ -881,8 +877,8 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.join:
       return makeMessageSystemJoined({
         ...common,
-        joiners: m.messageBody.join ? m.messageBody.join.joiners || [] : [],
-        leavers: m.messageBody.join ? m.messageBody.join.leavers || [] : [],
+        joiners: m.messageBody.join.joiners || [],
+        leavers: m.messageBody.join.leavers || [],
       })
     case RPCChatTypes.MessageType.leave:
       return makeMessageSystemLeft({
@@ -893,13 +889,11 @@ const validUIMessagetoMessage = (
         ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
-      return m.messageBody.headline
-        ? makeMessageSetDescription({
-            ...common,
-            newDescription: new HiddenString(m.messageBody.headline.headline),
-            reactions,
-          })
-        : null
+      return makeMessageSetDescription({
+        ...common,
+        newDescription: new HiddenString(m.messageBody.headline.headline),
+        reactions,
+      })
     case RPCChatTypes.MessageType.pin:
       return makeMessagePin({
         ...common,
@@ -907,29 +901,23 @@ const validUIMessagetoMessage = (
         reactions,
       })
     case RPCChatTypes.MessageType.metadata:
-      return m.messageBody.metadata
-        ? makeMessageSetChannelname({
-            ...common,
-            newChannelname: m.messageBody.metadata.conversationTitle,
-            reactions,
-          })
-        : null
+      return makeMessageSetChannelname({
+        ...common,
+        newChannelname: m.messageBody.metadata.conversationTitle,
+        reactions,
+      })
     case RPCChatTypes.MessageType.sendpayment:
-      return m.messageBody.sendpayment
-        ? makeMessageSendPayment({
-            ...common,
-            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos || null),
-          })
-        : null
+      return makeMessageSendPayment({
+        ...common,
+        paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfos || null),
+      })
     case RPCChatTypes.MessageType.requestpayment:
-      return m.messageBody.requestpayment
-        ? makeMessageRequestPayment({
-            ...common,
-            note: new HiddenString(m.messageBody.requestpayment.note),
-            requestID: m.messageBody.requestpayment.requestID,
-            requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo || null),
-          })
-        : null
+      return makeMessageRequestPayment({
+        ...common,
+        note: new HiddenString(m.messageBody.requestpayment.note),
+        requestID: m.messageBody.requestpayment.requestID,
+        requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo || null),
+      })
     case RPCChatTypes.MessageType.edit:
       return null
     case RPCChatTypes.MessageType.delete:
@@ -968,13 +956,8 @@ const outboxUIMessagetoMessage = (
   o: RPCChatTypes.UIMessageOutbox
 ) => {
   const errorReason =
-    o.state && o.state.state === RPCChatTypes.OutboxStateType.error && o.state.error
-      ? rpcErrorToString(o.state.error)
-      : null
-  const errorTyp =
-    o.state && o.state.state === RPCChatTypes.OutboxStateType.error && o.state.error
-      ? o.state.error.typ
-      : null
+    o.state && o.state.state === RPCChatTypes.OutboxStateType.error ? rpcErrorToString(o.state.error) : null
+  const errorTyp = o.state && o.state.state === RPCChatTypes.OutboxStateType.error ? o.state.error.typ : null
 
   switch (o.messageType) {
     case RPCChatTypes.MessageType.attachment: {
@@ -984,9 +967,7 @@ const outboxUIMessagetoMessage = (
       let pre = previewSpecs(null, null)
       if (o.preview) {
         previewURL =
-          o.preview.location &&
-          o.preview.location.ltyp === RPCChatTypes.PreviewLocationTyp.url &&
-          o.preview.location.url
+          o.preview.location && o.preview.location.ltyp === RPCChatTypes.PreviewLocationTyp.url
             ? o.preview.location.url
             : ''
         const md = (o.preview && o.preview.metadata) || null
@@ -1009,7 +990,7 @@ const outboxUIMessagetoMessage = (
     case RPCChatTypes.MessageType.flip:
     case RPCChatTypes.MessageType.text:
       return makeMessageText({
-        author: state.config.username || '',
+        author: state.config.username,
         conversationIDKey,
         decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : null,
         deviceName: state.config.deviceName || '',
@@ -1071,25 +1052,13 @@ export const uiMessageToMessage = (
 ): Types.Message | null => {
   switch (uiMessage.state) {
     case RPCChatTypes.MessageUnboxedState.valid:
-      if (uiMessage.valid) {
-        return validUIMessagetoMessage(state, conversationIDKey, uiMessage.valid)
-      }
-      return null
+      return validUIMessagetoMessage(state, conversationIDKey, uiMessage.valid)
     case RPCChatTypes.MessageUnboxedState.error:
-      if (uiMessage.error) {
-        return errorUIMessagetoMessage(conversationIDKey, uiMessage.error)
-      }
-      return null
+      return errorUIMessagetoMessage(conversationIDKey, uiMessage.error)
     case RPCChatTypes.MessageUnboxedState.outbox:
-      if (uiMessage.outbox) {
-        return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
-      }
-      return null
+      return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
     case RPCChatTypes.MessageUnboxedState.placeholder:
-      if (uiMessage.placeholder) {
-        return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
-      }
-      return null
+      return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
     default:
       return null
   }
@@ -1120,7 +1089,7 @@ export const makePendingTextMessage = (
 
   return makeMessageText({
     ...explodeInfo,
-    author: state.config.username || '',
+    author: state.config.username,
     conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
@@ -1155,7 +1124,7 @@ export const makePendingAttachmentMessage = (
   return makeMessageAttachment({
     ...explodeInfo,
     attachmentType: previewSpec.attachmentType,
-    author: state.config.username || '',
+    author: state.config.username,
     conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',

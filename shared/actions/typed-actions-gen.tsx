@@ -18,6 +18,7 @@ import * as pinentry from './pinentry-gen'
 import * as profile from './profile-gen'
 import * as provision from './provision-gen'
 import * as push from './push-gen'
+import * as recoverpassword from './recover-password-gen'
 import * as routetree from './route-tree-gen'
 import * as search from './search-gen'
 import * as settings from './settings-gen'
@@ -49,6 +50,7 @@ export type TypedActions =
   | profile.Actions
   | provision.Actions
   | push.Actions
+  | recoverpassword.Actions
   | routetree.Actions
   | search.Actions
   | settings.Actions
@@ -661,12 +663,24 @@ export type TypedActionsMap = {
   'provision:addNewDevice': provision.AddNewDevicePayload
   'provision:forgotUsername': provision.ForgotUsernamePayload
   'provision:forgotUsernameResult': provision.ForgotUsernameResultPayload
+  'provision:cancelProvision': provision.CancelProvisionPayload
   'push:rejectPermissions': push.RejectPermissionsPayload
   'push:requestPermissions': push.RequestPermissionsPayload
   'push:showPermissionsPrompt': push.ShowPermissionsPromptPayload
   'push:updatePushToken': push.UpdatePushTokenPayload
   'push:updateHasPermissions': push.UpdateHasPermissionsPayload
   'push:notification': push.NotificationPayload
+  'recover-password:startRecoverPassword': recoverpassword.StartRecoverPasswordPayload
+  'recover-password:restartRecovery': recoverpassword.RestartRecoveryPayload
+  'recover-password:displayDeviceSelect': recoverpassword.DisplayDeviceSelectPayload
+  'recover-password:submitDeviceSelect': recoverpassword.SubmitDeviceSelectPayload
+  'recover-password:abortDeviceSelect': recoverpassword.AbortDeviceSelectPayload
+  'recover-password:showExplainDevice': recoverpassword.ShowExplainDevicePayload
+  'recover-password:submitResetPrompt': recoverpassword.SubmitResetPromptPayload
+  'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
+  'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
+  'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
+  'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload
   'route-tree:clearModals': routetree.ClearModalsPayload
@@ -1007,4 +1021,5 @@ export type TypedActionsMap = {
   'wallets:setTrustlineExpanded': wallets.SetTrustlineExpandedPayload
   'wallets:staticConfigLoaded': wallets.StaticConfigLoadedPayload
   'wallets:setSEP6Message': wallets.SetSEP6MessagePayload
+  'common:resetStore': {type: 'common:resetStore'; payload: {}}
 }

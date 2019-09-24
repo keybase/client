@@ -3,19 +3,21 @@ import * as Kb from '../common-adapters'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
 
-const decoratorStyle = Styles.platformStyles({
-  isElectron: {
-    border: `1px solid ${Styles.globalColors.black_10}`,
-    borderRadius: Styles.borderRadius,
-    height: '500px',
-    margin: Styles.globalMargins.tiny,
-    width: '500px',
-  },
-  isMobile: {
-    height: '100%',
-    width: '100%',
-  },
-})
+const styles = Styles.styleSheetCreate(() => ({
+  decorator: Styles.platformStyles({
+    isElectron: {
+      border: `1px solid ${Styles.globalColors.black_10}`,
+      borderRadius: Styles.borderRadius,
+      height: '500px',
+      margin: Styles.globalMargins.tiny,
+      width: '500px',
+    },
+    isMobile: {
+      height: '100%',
+      width: '100%',
+    },
+  }),
+}))
 
 const propProvider = Sb.createPropProviderWithCommon({
   SignupInfoIcon: p => ({
@@ -26,5 +28,5 @@ const propProvider = Sb.createPropProviderWithCommon({
 })
 export const storyDecorator = (story: Function) => (
   // @ts-ignore
-  <Kb.Box style={decoratorStyle}>{propProvider(story)}</Kb.Box>
+  <Kb.Box style={styles.decorator}>{propProvider(story)}</Kb.Box>
 )

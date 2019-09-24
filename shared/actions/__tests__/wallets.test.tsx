@@ -129,6 +129,7 @@ it('build and send payment', () => {
 
       const sendRPC = jest.spyOn(RPCStellarTypes, 'localSendPaymentLocalRpcPromise')
       const sendPaymentResult = {
+        jumpToChat: '',
         kbTxID: 'fake transaction id',
         pending: false,
       }

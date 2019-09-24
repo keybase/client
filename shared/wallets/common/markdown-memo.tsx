@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import {StyleOverride} from '../../common-adapters/markdown'
 import {isMobile} from '../../constants/platform'
 
-const styleOverride: StyleOverride = {
+const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
   del: {
     color: Styles.globalColors.black,
   },
@@ -20,7 +20,7 @@ const styleOverride: StyleOverride = {
   strong: {
     color: Styles.globalColors.black,
   },
-}
+}))
 
 type Props = {
   memo: string

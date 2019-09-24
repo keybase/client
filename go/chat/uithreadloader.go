@@ -34,7 +34,7 @@ type UIThreadLoader struct {
 }
 
 func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
-	cacheDelay := 30 * time.Millisecond
+	cacheDelay := 10 * time.Millisecond
 	return &UIThreadLoader{
 		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
@@ -591,9 +591,11 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, cbmode); fullErr != nil {
 			return
 		}
-		t.Debug(ctx, "LoadNonblock: sending full response: messages: %d pager: %s",
+		t.Debug(ctx, "LoadNonblock: presenting full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
+		start := time.Now()
 		uires := utils.PresentThreadView(ctx, t.G(), uid, rthread, convID)
+		t.Debug(ctx, "LoadNonblock: present compute time: %v", time.Since(start))
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			t.Debug(ctx, "LoadNonblock: failed to JSON full result: %s", fullErr)
@@ -601,7 +603,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		resultPagination = rthread.Pagination
 		t.applyPagerModeOutgoing(ctx, convID, rthread.Pagination, pagination, pgmode)
-		start := time.Now()
+		start = time.Now()
 		if fullErr = chatUI.ChatThreadFull(ctx, string(jsonUIRes)); err != nil {
 			t.Debug(ctx, "LoadNonblock: failed to send full result to UI: %s", err)
 			return

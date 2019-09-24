@@ -119,12 +119,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -136,11 +136,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -152,11 +152,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -213,12 +213,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -230,11 +230,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -246,11 +246,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -354,12 +354,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -371,11 +371,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -387,11 +387,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -429,12 +429,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -446,11 +446,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -462,11 +462,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -504,12 +504,12 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Coyne',
             services: {
-              facebook: 'chriscoyne on Facebook',
-              github: 'malgorithms on GitHub',
-              hackernews: 'malgorithms on HackerNews',
+              facebook: 'chriscoyne',
+              github: 'malgorithms',
+              hackernews: 'malgorithms',
               keybase: 'chris',
-              reddit: 'malgorithms on Reddit',
-              twitter: 'malgorithms on Twitter',
+              reddit: 'malgorithms',
+              twitter: 'malgorithms',
             },
             userId: 'chris',
             username: 'chris',
@@ -521,11 +521,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Mikacle',
             services: {
-              github: 'chrismikacle on GitHub',
-              hackernews: 'chrismikacle on HackerNews',
+              github: 'chrismikacle',
+              hackernews: 'chrismikacle',
               keybase: 'chrismikacle',
-              reddit: 'chrismikacle on Reddit',
-              twitter: 'chrismikacle on Twitter',
+              reddit: 'chrismikacle',
+              twitter: 'chrismikacle',
             },
             userId: 'chrismikacle',
             username: 'chrismikacle',
@@ -537,11 +537,11 @@ const load = () => {
             isPreExistingTeamMember: false,
             prettyName: 'Chris Nojima',
             services: {
-              github: 'cnojima on GitHub',
-              hackernews: 'cnojima on HackerNews',
+              github: 'cnojima',
+              hackernews: 'cnojima',
               keybase: 'chrisnojima',
-              reddit: 'cnojima on Reddit',
-              twitter: 'cnojima on Twitter',
+              reddit: 'cnojima',
+              twitter: 'cnojima',
             },
             userId: 'chrisnojima',
             username: 'chrisnojima',
@@ -661,98 +661,956 @@ const load = () => {
 
   Sb.storiesOf('Team-Building/User Result', module)
     .addDecorator(provider)
-    .add('Chris', () => (
-      <UserResult
-        username="chris"
-        prettyName="Chris Coyne"
-        displayLabel="Chris Coyne"
-        highlight={false}
-        resultForService="keybase"
-        services={{
-          facebook: 'chriscoyne on Facebook',
-          github: 'malgorithms on GitHub',
-          hackernews: 'malgorithms on HackerNews',
-          reddit: 'malgorithms on Reddit',
-          twitter: 'malgorithms on Twitter',
-        }}
-        inTeam={false}
-        isPreExistingTeamMember={false}
-        followingState={'Following' as const}
-        onAdd={Sb.action('onAdd')}
-        onRemove={Sb.action('onRemove')}
-      />
+    .add('Keybase/Contact Tab - Keybase User', () => (
+      <>
+        {/* Following */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Following - inTream = true*/}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Not Following */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* NotFollowing - inTeam = true */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+
+        {/* No Pretty Names - Following */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* No Pretty Names - Following - inTream = true*/}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* No Pretty Names - Not Following */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* No Pretty Names - NotFollowing - inTeam = true */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+
+        {/* Following - inPreExistingTeam = true */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="keybase"
+          services={{
+            facebook: 'max',
+            github: 'max',
+            hackernews: 'max',
+            keybase: 'max',
+            reddit: 'max',
+            twitter: 'max',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
     ))
-    .add('Chris (already in team)', () => (
-      <UserResult
-        username="chris"
-        prettyName="Chris Coyne"
-        displayLabel="Chris Coyne"
-        highlight={false}
-        resultForService="keybase"
-        services={{
-          facebook: 'chriscoyne on Facebook',
-          github: 'malgorithms on GitHub',
-          hackernews: 'malgorithms on HackerNews',
-          reddit: 'malgorithms on Reddit',
-          twitter: 'malgorithms on Twitter',
-        }}
-        inTeam={true}
-        isPreExistingTeamMember={false}
-        followingState={'Following' as const}
-        onAdd={Sb.action('onAdd')}
-        onRemove={Sb.action('onRemove')}
-      />
+    .add('Keybase/Contact Tab - Contacts', () => (
+      <>
+        <UserResult
+          username="+18885125555"
+          prettyName="Max Krohn"
+          displayLabel="+1 (888) 555-5555 (work)"
+          resultForService="keybase"
+          services={{
+            keybase: '',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="+18885125555"
+          prettyName="Max Krohn"
+          displayLabel="+1 (888) 555-5555 (work)"
+          resultForService="keybase"
+          services={{
+            keybase: '',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="maxwellkrohn@keybase.io"
+          prettyName="Max Krohn"
+          displayLabel="maxwellkrohn@keybase.io"
+          resultForService="keybase"
+          services={{
+            keybase: '',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="maxwellkrohn@keybase.io"
+          prettyName="Max Krohn"
+          displayLabel="maxwellkrohn@keybase.io"
+          resultForService="keybase"
+          services={{
+            keybase: '',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
     ))
-    .add('marcopolo (github) - keybase user. following', () => (
-      <UserResult
-        resultForService="github"
-        username="marcopolo"
-        prettyName=""
-        displayLabel=""
-        highlight={false}
-        services={{github: 'marcopolo', keybase: 'marcopolo'}}
-        inTeam={true}
-        isPreExistingTeamMember={false}
-        followingState={'Following' as const}
-        onAdd={Sb.action('onAdd')}
-        onRemove={Sb.action('onRemove')}
-      />
+    .add('Service Tab - Also Keybse User', () => (
+      <>
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            keybase: 'max',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            keybase: 'max',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'Following' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            keybase: 'max',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            keybase: 'max',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            keybase: 'max',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
     ))
-    .add('marcopolo2 (github) - no keybase user', () => (
-      <UserResult
-        resultForService="github"
-        username="marcopolo"
-        prettyName=""
-        displayLabel=""
-        highlight={false}
-        services={{github: 'marcopolo'}}
-        inTeam={true}
-        followingState={'NoState' as const}
-        onAdd={Sb.action('onAdd')}
-        onRemove={Sb.action('onRemove')}
-        isPreExistingTeamMember={false}
-      />
+    .add('Service Tab - Not Keybase User - Full Name', () => (
+      <>
+        {/* Twitter */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Github */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Facebook */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Reddit */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Hacker News */}
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="hackernews"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="hackernews"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName="Max Krohn"
+          displayLabel=""
+          resultForService="hackernews"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
     ))
-    .add('Chris Highlighted (already in team)', () => (
-      <UserResult
-        isPreExistingTeamMember={false}
-        username="chris"
-        prettyName="Chris Coyne"
-        displayLabel="Chris Coyne"
-        services={{
-          facebook: 'chriscoyne on Facebook',
-          github: 'malgorithms on GitHub',
-          hackernews: 'malgorithms on HackerNews',
-          reddit: 'malgorithms on Reddit',
-          twitter: 'malgorithms on Twitter',
-        }}
-        inTeam={true}
-        followingState={'Following' as const}
-        onAdd={Sb.action('onAdd')}
-        onRemove={Sb.action('onRemove')}
-        highlight={true}
-        resultForService="keybase"
-      />
+    .add('Service Tab - Not Keybase User - No Name', () => (
+      <>
+        {/* Twitter */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="twitter"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Github */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="github"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Facebook */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="facebook"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Reddit */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="reddit"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        {/* Hacker News */}
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="hackernews"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="hackernews"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={true}
+          isPreExistingTeamMember={false}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+        <UserResult
+          username="max"
+          prettyName=""
+          displayLabel=""
+          resultForService="hackernews"
+          services={{
+            facebook: 'maxtaco',
+            github: 'maxtaco',
+            hackernews: 'maxtaco',
+            reddit: 'maxtaco',
+            twitter: 'maxtaco',
+          }}
+          followingState={'NotFollowing' as const}
+          highlight={false}
+          inTeam={false}
+          isPreExistingTeamMember={true}
+          onAdd={Sb.action('onAdd')}
+          onRemove={Sb.action('onRemove')}
+        />
+      </>
     ))
 
   Sb.storiesOf('Team-Building/Phone Search', module).add('Empty Phone Search', () => (

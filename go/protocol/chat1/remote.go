@@ -1425,7 +1425,8 @@ type RetentionSweepConvArg struct {
 }
 
 type UpgradeKBFSToImpteamArg struct {
-	TlfID TLFID `codec:"tlfID" json:"tlfID"`
+	TlfID  TLFID           `codec:"tlfID" json:"tlfID"`
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
 }
 
 type RegisterSharePostArg struct {
@@ -1503,7 +1504,7 @@ type RemoteInterface interface {
 	SetTeamRetention(context.Context, SetTeamRetentionArg) (SetRetentionRes, error)
 	SetConvMinWriterRole(context.Context, SetConvMinWriterRoleArg) (SetConvMinWriterRoleRes, error)
 	RetentionSweepConv(context.Context, ConversationID) (SweepRes, error)
-	UpgradeKBFSToImpteam(context.Context, TLFID) error
+	UpgradeKBFSToImpteam(context.Context, UpgradeKBFSToImpteamArg) error
 	RegisterSharePost(context.Context, RegisterSharePostArg) error
 	FailSharePost(context.Context, FailSharePostArg) error
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
@@ -2035,7 +2036,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]UpgradeKBFSToImpteamArg)(nil), args)
 						return
 					}
-					err = i.UpgradeKBFSToImpteam(ctx, typedArgs[0].TlfID)
+					err = i.UpgradeKBFSToImpteam(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2353,8 +2354,7 @@ func (c RemoteClient) RetentionSweepConv(ctx context.Context, convID Conversatio
 	return
 }
 
-func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, tlfID TLFID) (err error) {
-	__arg := UpgradeKBFSToImpteamArg{TlfID: tlfID}
+func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, __arg UpgradeKBFSToImpteamArg) (err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil, rpc.CompressionGzip)
 	return
 }

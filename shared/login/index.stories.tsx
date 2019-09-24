@@ -1,3 +1,4 @@
+import recoverPassword from './recover-password/index.stories'
 import relogin from './relogin/index.stories'
 import reset from './reset/index.stories'
 import * as React from 'react'
@@ -28,6 +29,7 @@ const loadingProps = {
 }
 
 const load = () => {
+  recoverPassword()
   relogin()
 
   Sb.storiesOf('Login/JoinOrLogin', module)

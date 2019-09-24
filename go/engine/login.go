@@ -140,7 +140,7 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	m.Debug("clearing any existing login session with Logout before loading user for login")
 	// If the doUserSwitch flag is specified, we don't want to kill the existing session
-	err = m.G().LogoutCurrentUserWithSecretKill(m, !e.doUserSwitch)
+	err = m.LogoutCurrentUserWithSecretKill(!e.doUserSwitch)
 	if err != nil {
 		return err
 	}
@@ -285,14 +285,14 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
 		m.Debug("Login on revoked or reset device: %s", err.Error())
-		if err = m.G().LogoutUsernameWithSecretKill(m, username, true); err != nil {
+		if err = m.LogoutUsernameWithSecretKill(username, true); err != nil {
 			m.Debug("logout error: %s", err)
 		}
 		return false, err
 	case libkb.LoggedInWrongUserError:
 		m.Debug(err.Error())
 		if e.doUserSwitch {
-			err := m.G().ClearStateForSwitchUsers(m)
+			err := m.ClearStateForSwitchUsers()
 			if err != nil {
 				return false, err
 			}

@@ -50,6 +50,7 @@
     },
     "forgotUsernameResult": {
       "result": "string"
-    }
+    },
+    "cancelProvision": {}
   }
 }

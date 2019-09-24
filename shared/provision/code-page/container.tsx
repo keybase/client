@@ -22,6 +22,7 @@ export default Container.connect(
   },
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onClose: () => dispatch(ProvisionGen.createCancelProvision()),
     onSubmitTextCode: (code: string) =>
       dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),
   }),
@@ -30,6 +31,7 @@ export default Container.connect(
     currentDeviceName: stateProps.currentDeviceName,
     error: stateProps.error,
     onBack: dispatchProps.onBack,
+    onClose: dispatchProps.onClose,
     onSubmitTextCode: dispatchProps.onSubmitTextCode,
     otherDeviceName: stateProps.otherDeviceName,
     otherDeviceType: stateProps.otherDeviceType,

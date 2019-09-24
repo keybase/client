@@ -50,7 +50,7 @@ type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
 	LookupID(ctx context.Context, name string, public bool) (NameInfo, error)
-	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
+	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool, unverifiedTLFName string) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, botUID *gregor1.UID) (CryptKey, NameInfo, error)
@@ -64,6 +64,8 @@ type NameInfoSource interface {
 		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (EphemeralCryptKey, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
+	TeamBotSettings(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (map[keybase1.UserVersion]keybase1.TeamBotSettings, error)
 }
 
 type UnboxConversationInfo interface {

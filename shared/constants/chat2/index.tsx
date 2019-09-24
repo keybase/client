@@ -22,12 +22,14 @@ import HiddenString from '../../util/hidden-string'
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
+const emptyArray = []
+const emptySet = new Set()
 
-export const makeState = I.Record<Types._State>({
+export const makeState = (): Types.State => ({
   accountsInfoMap: I.Map(),
   attachmentFullscreenSelection: null,
   attachmentViewMap: I.Map(),
-  badgeMap: I.Map(),
+  badgeMap: I.Map(), // id to the badge count
   botCommandsUpdateStatusMap: I.Map(),
   commandMarkdownMap: I.Map(),
   commandStatusMap: I.Map(),
@@ -35,8 +37,8 @@ export const makeState = I.Record<Types._State>({
   createConversationError: null,
   dismissedInviteBannersMap: I.Map(),
   editingMap: I.Map(),
-  explodingModeLocks: I.Map(),
-  explodingModes: I.Map(),
+  explodingModeLocks: I.Map(), // locks set on exploding mode while user is inputting text,
+  explodingModes: I.Map(), // seconds to exploding message expiration,
   flipStatusMap: I.Map(),
   focus: null,
   giphyResultMap: I.Map(),
@@ -47,15 +49,15 @@ export const makeState = I.Record<Types._State>({
   isWalletsNew: true,
   lastCoord: null,
   maybeMentionMap: I.Map(),
-  messageCenterOrdinals: I.Map(),
-  messageMap: I.Map(),
-  messageOrdinals: I.Map(),
-  metaMap: I.Map(),
-  moreToLoadMap: I.Map(),
-  orangeLineMap: I.Map(),
+  messageCenterOrdinals: I.Map(), // ordinals to center threads on,
+  messageMap: I.Map(), // messages in a thread,
+  messageOrdinals: I.Map(), // ordered ordinals in a thread,
+  metaMap: I.Map(), // metadata about a thread, There is a special node for the pending conversation,
+  moreToLoadMap: I.Map(), // if we have more data to load,
+  orangeLineMap: I.Map(), // last message we've seen,
   paymentConfirmInfo: null,
   paymentStatusMap: I.Map(),
-  pendingOutboxToOrdinal: I.Map(),
+  pendingOutboxToOrdinal: I.Map(), // messages waiting to be sent,
   prependTextMap: I.Map(),
   previousSelectedConversation: noConversationIDKey,
   quote: null,
@@ -64,14 +66,14 @@ export const makeState = I.Record<Types._State>({
   smallTeamsExpanded: false,
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  threadLoadStatus: I.Map(),
-  threadSearchInfoMap: I.Map(),
-  threadSearchQueryMap: I.Map(),
+  threadLoadStatus: new Map(),
+  threadSearchInfoMap: new Map(),
+  threadSearchQueryMap: new Map(),
   trustedInboxHasLoaded: false,
-  typingMap: I.Map(),
-  unfurlPromptMap: I.Map(),
+  typingMap: new Map(), // who's typing currently,
+  unfurlPromptMap: new Map(),
   unreadMap: I.Map(),
-  unsentTextMap: I.Map(),
+  unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
 })
 
@@ -84,17 +86,17 @@ export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
 
 export const makeStaticConfig = I.Record<Types._StaticConfig>({
   builtinCommands: {
-    [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.none]: [],
-    [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: [],
+    [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.none]: emptyArray,
+    [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: emptyArray,
   },
   deletableByDeleteHistory: I.Set(),
 })
 
-export const makeThreadSearchInfo = I.Record<Types._ThreadSearchInfo>({
-  hits: I.List(),
+export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
+  hits: emptyArray,
   status: 'initial',
   visible: false,
 })
@@ -162,7 +164,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 }
 
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
-  state.chat2.threadSearchInfoMap.get(conversationIDKey, makeThreadSearchInfo())
+  state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
@@ -228,7 +230,7 @@ export const getQuoteInfo = (state: TypedState, id: Types.ConversationIDKey) => 
 }
 
 export const getTyping = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.typingMap.get(id, I.Set())
+  state.chat2.typingMap.get(id) || (emptySet as Set<string>)
 export const generateOutboxID = () => Buffer.from([...Array(8)].map(() => Math.floor(Math.random() * 256)))
 export const isUserActivelyLookingAtThisThread = (
   state: TypedState,

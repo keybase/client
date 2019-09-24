@@ -62,7 +62,7 @@ services:
       , from: "our_url" } },
 
     { selector_css: {
-      , selectors: ["#m_story_permalink_view", "h3.by.bz", 0]
+      , selectors: ["#m_story_permalink_view", 0, "h3", 1]
       , into: "post_text"
       , error: ["FAILED_PARSE", "Could not find post text in Facebook's response"] } },
     { whitespace_normalize: {
@@ -95,7 +95,7 @@ services:
     # that the m-site does *not* enforce this part of the URL. Only the
     # desktop site does.)
     { selector_css: {
-      , selectors: ["#mobile_login_bar", 0, "div.u", 0, "a", 0]
+      , selectors: ["#mobile_login_bar", 0, "a", 0]
       , attr: "href"
       , into: "join_href"
       , error: ["CONTENT_FAILURE", "Could not find 'Join' link"] } },

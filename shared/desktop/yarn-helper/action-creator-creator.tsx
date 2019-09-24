@@ -185,7 +185,8 @@ function makeTypedActions(created) {
 
   export type TypedActions = ${created.map(c => `${cleanName(c)}.Actions`).join(' | ')}
 
-  export type TypedActionsMap = {${typeMap.join(',\n')}
+  export type TypedActionsMap = {${typeMap.join(',\n')},
+    'common:resetStore': {type: 'common:resetStore', payload: {}}
   }
 `
 }

@@ -429,6 +429,18 @@ func (f *Folder) access(ctx context.Context, r *fuse.AccessRequest) error {
 	return nil
 }
 
+func (f *Folder) openFileCount() int64 {
+	f.nodesMu.Lock()
+	defer f.nodesMu.Unlock()
+	count := int64(len(f.nodes))
+	if count > 0 {
+		// The root node itself should only be counted by the folder
+		// list, not here.
+		count--
+	}
+	return count
+}
+
 // TODO: Expire TLF nodes periodically. See
 // https://keybase.atlassian.net/browse/KBFS-59 .
 

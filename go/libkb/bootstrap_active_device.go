@@ -82,7 +82,7 @@ func bootstrapActiveDeviceReturnRawError(m MetaContext, uid keybase1.UID, device
 	if err != nil {
 		return err
 	}
-	err = m.SetActiveDevice(uv, deviceID, sib, sub, deviceName)
+	err = m.SetActiveDevice(uv, deviceID, sib, sub, deviceName, KeychainModeOS)
 	return err
 }
 
@@ -152,7 +152,7 @@ func LoadProvisionalActiveDevice(m MetaContext, uid keybase1.UID, deviceID keyba
 	if err != nil {
 		return nil, err
 	}
-	ret = NewProvisionalActiveDevice(m, uv, deviceID, sib, sub, deviceName)
+	ret = NewProvisionalActiveDevice(m, uv, deviceID, sib, sub, deviceName, KeychainModeOS)
 	return ret, nil
 }
 

@@ -134,17 +134,15 @@ export function extractMetaFromTodoItem(
   const T = RPCTypes.HomeScreenTodoType
   switch (todo.t) {
     case T.legacyEmailVisibility:
-      return makeTodoMetaEmail({email: todo.legacyEmailVisibility || ''})
+      return makeTodoMetaEmail({email: todo.legacyEmailVisibility})
     case T.verifyAllEmail:
       return makeTodoMetaEmail({
         email: todo.verifyAllEmail || '',
         lastVerifyEmailDate:
-          todoExt && todoExt.t === T.verifyAllEmail && todoExt.verifyAllEmail
-            ? todoExt.verifyAllEmail.lastVerifyEmailDate
-            : 0,
+          todoExt && todoExt.t === T.verifyAllEmail ? todoExt.verifyAllEmail.lastVerifyEmailDate : 0,
       })
     case T.verifyAllPhoneNumber:
-      return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber || ''})
+      return makeTodoMetaPhone({phone: todo.verifyAllPhoneNumber})
     default:
       return null
   }
@@ -157,9 +155,6 @@ export const reduceRPCItemToPeopleItem = (
   const badged = item.badged
   if (item.data.t === RPCTypes.HomeScreenItemType.todo) {
     const todo = item.data.todo
-    if (!todo) {
-      return list
-    }
     const todoExt: RPCTypes.HomeScreenTodoExt | null =
       item.dataExt.t === RPCTypes.HomeScreenItemType.todo ? item.dataExt.todo : null
 
@@ -179,7 +174,7 @@ export const reduceRPCItemToPeopleItem = (
   } else if (item.data.t === RPCTypes.HomeScreenItemType.people) {
     // Follow notification or contact resolution
     const notification = item.data.people
-    if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followed) {
+    if (notification.t === RPCTypes.HomeScreenPeopleNotificationType.followed) {
       // Single follow notification
       const follow = notification.followed
       if (!follow) {
@@ -193,12 +188,9 @@ export const reduceRPCItemToPeopleItem = (
           type: 'follow',
         })
       )
-    } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
+    } else if (notification.t === RPCTypes.HomeScreenPeopleNotificationType.followedMulti) {
       // Multiple follows notification
       const multiFollow = notification.followedMulti
-      if (!multiFollow) {
-        return list
-      }
       const followers = multiFollow.followers
       if (!followers) {
         return list
@@ -222,9 +214,6 @@ export const reduceRPCItemToPeopleItem = (
     } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contact) {
       // Single contact notification
       const follow = notification.contact
-      if (!follow) {
-        return list
-      }
       return list.push(
         makeFollowedNotificationItem({
           badged,
@@ -238,9 +227,6 @@ export const reduceRPCItemToPeopleItem = (
     } else if (notification && notification.t === RPCTypes.HomeScreenPeopleNotificationType.contactMulti) {
       // Multiple follows notification
       const multiContact = notification.contactMulti
-      if (!multiContact) {
-        return list
-      }
       const contacts = multiContact.contacts
       if (!contacts) {
         return list
@@ -265,20 +251,18 @@ export const reduceRPCItemToPeopleItem = (
     }
   } else if (item.data.t === RPCTypes.HomeScreenItemType.announcement) {
     const a = item.data.announcement
-    if (a) {
-      return list.push(
-        makeAnnouncement({
-          appLink: a.appLink,
-          badged,
-          confirmLabel: a.confirmLabel,
-          dismissable: a.dismissable,
-          iconUrl: a.iconUrl,
-          id: a.id,
-          text: a.text,
-          url: a.url,
-        })
-      )
-    }
+    return list.push(
+      makeAnnouncement({
+        appLink: a.appLink,
+        badged,
+        confirmLabel: a.confirmLabel,
+        dismissable: a.dismissable,
+        iconUrl: a.iconUrl,
+        id: a.id,
+        text: a.text,
+        url: a.url,
+      })
+    )
   }
 
   return list

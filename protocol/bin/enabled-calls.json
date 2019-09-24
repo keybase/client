@@ -189,6 +189,7 @@
   "keybase.1.login.logout": {"promise": true},
   "keybase.1.login.paperKey": {"engineSaga": true},
   "keybase.1.login.paperKeySubmit": {"promise": true},
+  "keybase.1.login.recoverPassphrase": {"engineSaga": true},
   "keybase.1.login.isOnline": {"promise": true},
   "keybase.1.notifyCtl.setNotifications": {"promise": true},
   "keybase.1.pgp.pgpKeyGenDefault": {"engineSaga": true},

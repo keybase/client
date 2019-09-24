@@ -148,7 +148,7 @@ func (e *DeviceWrap) SwitchConfigAndActiveDevice(m libkb.MetaContext) (err error
 	me := e.args.Me
 	// Atomically swap to the new config and active device
 	if err := m.SwitchUserNewConfigActiveDevice(me.ToUserVersion(), me.GetNormalizedName(), salt,
-		e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName); err != nil {
+		e.deviceID, e.signingKey, e.encryptionKey, e.args.DeviceName, libkb.KeychainModeOS); err != nil {
 		return err
 	}
 

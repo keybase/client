@@ -328,6 +328,8 @@ func (tlf *TLF) Forget() {
 	dir := tlf.getStoredDir()
 	if dir != nil {
 		dir.Forget()
+	} else {
+		tlf.folder.list.forgetFolder(string(tlf.folder.name()))
 	}
 }
 
@@ -366,4 +368,8 @@ func (tlf *TLF) Open(ctx context.Context, req *fuse.OpenRequest,
 		return nil, err
 	}
 	return tlf, nil
+}
+
+func (tlf *TLF) openFileCount() int64 {
+	return tlf.folder.openFileCount()
 }

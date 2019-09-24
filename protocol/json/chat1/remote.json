@@ -1403,6 +1403,10 @@
         {
           "name": "tlfID",
           "type": "TLFID"
+        },
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
         }
       ],
       "response": null

@@ -1,18 +1,18 @@
 import * as I from 'immutable'
 import * as React from 'react'
+import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
-import {namedConnect} from '../../../util/container'
 import {Props as _Props, RowItemSmall, RowItemBig} from '..'
 import normalRowData from './normal'
 import * as Kb from '../../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
-type OwnProps = {}
+type OwnProps = Container.PropsWithSafeNavigation
 
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
@@ -30,6 +30,7 @@ const mapStateToProps = state => {
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
+    isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
     rows,
@@ -72,7 +73,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const unreadIndices: Array<number> = []
   for (let i = stateProps.rows.length - 1; i >= 0; i--) {
     const row = stateProps.rows[i]
@@ -96,7 +97,9 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => {
     _onMountedDesktop: dispatchProps._onMountedDesktop,
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
+    isLoading: stateProps.isLoading,
     isSearching: stateProps.isSearching,
+    navKey: ownProps.navKey,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {
       if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
@@ -180,6 +183,8 @@ class InboxWrapper extends React.PureComponent<Props> {
   }
 }
 
-const Connected = namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(InboxWrapper)
+const Connected = Container.withSafeNavigation(
+  Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(InboxWrapper)
+)
 
 export default Connected
