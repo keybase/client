@@ -103,8 +103,8 @@ const avatarSize = Styles.isMobile ? 48 : 32
 const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
 const dotSeparator = '•'
 
-const isPreExistingTeamMemberText = (prettyName: string) =>
-  `${prettyName ? prettyName + ` ${dotSeparator} ` : ''}Already in team`
+const isPreExistingTeamMemberText = (prettyName: string, username: string) =>
+  `${prettyName && prettyName !== username ? prettyName + ` ${dotSeparator} ` : ''}Already in team`
 
 const textWithConditionalSeparator = (text: string, conditional: boolean) =>
   `${text}${conditional ? ` ${dotSeparator}` : ''}`
@@ -232,7 +232,7 @@ const BottomRow = (props: {
         {keybaseUsernameComponent}
         {props.isPreExistingTeamMember ? (
           <Kb.Text type="BodySmall" lineClamp={1}>
-            {isPreExistingTeamMemberText(props.prettyName)}
+            {isPreExistingTeamMemberText(props.prettyName, props.username)}
           </Kb.Text>
         ) : (
           <>
