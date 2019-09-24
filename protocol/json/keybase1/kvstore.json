@@ -9,7 +9,7 @@
   "types": [
     {
       "type": "record",
-      "name": "KVEntry",
+      "name": "KVGetResult",
       "fields": [
         {
           "type": "string",
@@ -54,6 +54,46 @@
           "name": "revision"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KVEntryID",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedKVEntry",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
     }
   ],
   "messages": {
@@ -76,7 +116,7 @@
           "type": "string"
         }
       ],
-      "response": "KVEntry"
+      "response": "KVGetResult"
     },
     "putKVEntry": {
       "request": [

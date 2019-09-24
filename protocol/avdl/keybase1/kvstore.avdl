@@ -3,7 +3,7 @@
 protocol kvstore {
   import idl "common.avdl";
 
-  record KVEntry {
+  record KVGetResult {
     string teamName;
     string namespace;
     string entryKey;
@@ -18,6 +18,20 @@ protocol kvstore {
     int revision;
   }
 
-  KVEntry getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
+  // for passing around internally
+  record KVEntryID {
+    TeamID teamID;
+    string namespace;
+    string entryKey;
+  }
+
+  record EncryptedKVEntry {
+    int v;                    // version
+    bytes e;                  // encrypted data
+    BoxNonce n;               // nonce
+    PerTeamKeyGeneration gen; // key generation that was used
+  }
+
+  KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
   KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, string entryValue);
 }

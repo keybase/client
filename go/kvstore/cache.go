@@ -15,7 +15,7 @@ var _ libkb.KVRevisionCacher = (*KVRevisionCache)(nil)
 type kvCacheEntry struct {
 	Revision   int
 	EntryHash  string
-	TeamKeyGen int
+	TeamKeyGen keybase1.PerTeamKeyGeneration
 }
 
 type kvCacheData map[keybase1.TeamID]map[string] /*namespace*/ map[string] /*entry*/ kvCacheEntry
@@ -31,40 +31,52 @@ func NewKVRevisionCache() *KVRevisionCache {
 	}
 }
 
-func (k *KVRevisionCache) Check(teamID keybase1.TeamID, namespace, entryKey, entryHash string, teamKeyGen, revision int) (err error) {
+// ensure initialized maps exist for intermediate data structures
+func (k *KVRevisionCache) ensureIntermediateLocked(entryID keybase1.KVEntryID) {
+	// call this function inside a previously acquired lock
+	_, ok := k.data[entryID.TeamID]
+	if !ok {
+		// populate intermediate data structures to prevent panics
+		k.data[entryID.TeamID] = make(map[string]map[string]kvCacheEntry)
+	}
+	_, ok = k.data[entryID.TeamID][entryID.Namespace]
+	if !ok {
+		// populate intermediate data structures to prevent panics
+		k.data[entryID.TeamID][entryID.Namespace] = make(map[string]kvCacheEntry)
+	}
+}
+
+func (k *KVRevisionCache) Check(mctx libkb.MetaContext, entryID keybase1.KVEntryID, entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
 	k.Lock()
 	defer k.Unlock()
 
-	// populate intermediate data structures
-	_, ok := k.data[teamID]
-	if !ok {
-		k.data[teamID] = make(map[string]map[string]kvCacheEntry)
-	}
-	_, ok = k.data[teamID][namespace]
-	if !ok {
-		k.data[teamID][namespace] = make(map[string]kvCacheEntry)
-	}
-
+	k.ensureIntermediateLocked(entryID)
 	newEntry := kvCacheEntry{
 		EntryHash:  entryHash,
 		TeamKeyGen: teamKeyGen,
 		Revision:   revision,
 	}
-	entry, ok := k.data[teamID][namespace][entryKey]
+	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if ok {
 		// the cache knows about this
 		err = checkNewAgainstCachedEntry(newEntry, entry)
 		if err != nil {
+			mctx.Debug("KVRevisionCache hit but with a mismatch from the server: %v", err)
 			return err
 		}
 	}
-	k.data[teamID][namespace][entryKey] = newEntry
+	k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey] = newEntry
 	return nil
 }
 
-func (k *KVRevisionCache) FetchRevision(teamID keybase1.TeamID, namespace, entryKey string) (revision int) {
-	entry, ok := k.data[teamID][namespace][entryKey]
+func (k *KVRevisionCache) FetchRevision(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (revision int) {
+	k.Lock()
+	defer k.Unlock()
+	k.ensureIntermediateLocked(entryID)
+	// fetch and default to 0
+	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if !ok {
+		mctx.Debug("KVRevisionCache cache miss for %+v, defaulting revision to 0", entryID)
 		return 0
 	}
 	return entry.Revision

@@ -700,6 +700,7 @@ const (
 	TeamGitMetadataDerivationString      = "Keybase-Derived-Team-NaCl-GitMetadata-1"
 	TeamSeitanTokenDerivationString      = "Keybase-Derived-Team-NaCl-SeitanInviteToken-1"
 	TeamStellarRelayDerivationString     = "Keybase-Derived-Team-NaCl-StellarRelay-1"
+	TeamKVStoreDerivationString          = "Keybase-Derived-Team-NaCl-KVStore-1"
 	TeamKeySeedCheckDerivationString     = "Keybase-Derived-Team-Seedcheck-1"
 )
 

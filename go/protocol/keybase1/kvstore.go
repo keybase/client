@@ -8,7 +8,7 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type KVEntry struct {
+type KVGetResult struct {
 	TeamName   string `codec:"teamName" json:"teamName"`
 	Namespace  string `codec:"namespace" json:"namespace"`
 	EntryKey   string `codec:"entryKey" json:"entryKey"`
@@ -16,8 +16,8 @@ type KVEntry struct {
 	Revision   int    `codec:"revision" json:"revision"`
 }
 
-func (o KVEntry) DeepCopy() KVEntry {
-	return KVEntry{
+func (o KVGetResult) DeepCopy() KVGetResult {
+	return KVGetResult{
 		TeamName:   o.TeamName,
 		Namespace:  o.Namespace,
 		EntryKey:   o.EntryKey,
@@ -42,6 +42,41 @@ func (o KVPutResult) DeepCopy() KVPutResult {
 	}
 }
 
+type KVEntryID struct {
+	TeamID    TeamID `codec:"teamID" json:"teamID"`
+	Namespace string `codec:"namespace" json:"namespace"`
+	EntryKey  string `codec:"entryKey" json:"entryKey"`
+}
+
+func (o KVEntryID) DeepCopy() KVEntryID {
+	return KVEntryID{
+		TeamID:    o.TeamID.DeepCopy(),
+		Namespace: o.Namespace,
+		EntryKey:  o.EntryKey,
+	}
+}
+
+type EncryptedKVEntry struct {
+	V   int                  `codec:"v" json:"v"`
+	E   []byte               `codec:"e" json:"e"`
+	N   BoxNonce             `codec:"n" json:"n"`
+	Gen PerTeamKeyGeneration `codec:"gen" json:"gen"`
+}
+
+func (o EncryptedKVEntry) DeepCopy() EncryptedKVEntry {
+	return EncryptedKVEntry{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte{}, x...)
+		})(o.E),
+		N:   o.N.DeepCopy(),
+		Gen: o.Gen.DeepCopy(),
+	}
+}
+
 type GetKVEntryArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamName  string `codec:"teamName" json:"teamName"`
@@ -58,7 +93,7 @@ type PutKVEntryArg struct {
 }
 
 type KvstoreInterface interface {
-	GetKVEntry(context.Context, GetKVEntryArg) (KVEntry, error)
+	GetKVEntry(context.Context, GetKVEntryArg) (KVGetResult, error)
 	PutKVEntry(context.Context, PutKVEntryArg) (KVPutResult, error)
 }
 
@@ -104,7 +139,7 @@ type KvstoreClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c KvstoreClient) GetKVEntry(ctx context.Context, __arg GetKVEntryArg) (res KVEntry, err error) {
+func (c KvstoreClient) GetKVEntry(ctx context.Context, __arg GetKVEntryArg) (res KVGetResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kvstore.getKVEntry", []interface{}{__arg}, &res)
 	return
 }
