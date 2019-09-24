@@ -278,7 +278,7 @@ const RuntimeStats = Styles.isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.black,
+      backgroundColor: Styles.globalColors.blackOrBlack,
     },
     isElectron: {
       overflow: 'auto',
@@ -304,7 +304,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   stat: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.white,
+      color: Styles.globalColors.whiteOrGreenDark,
     },
     isMobile: {
       fontFamily: 'Courier',
@@ -313,13 +313,13 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   statNormal: {
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.whiteOrGreenDark,
   },
   statSevere: {
     color: Styles.globalColors.red,
   },
   statWarning: {
-    color: Styles.globalColors.yellow,
+    color: Styles.globalColors.yellowOrYellowLight,
   },
 }))
 

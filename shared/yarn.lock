@@ -1353,10 +1353,10 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-4.1.3.tgz#77571619eb90ff59777a85a913fc30acd30b6020"
   integrity sha512-c9ppXNFpKkXiKFJhik9Lzw62dosm+cAIvHl6OOGXp2D+1GlliIP+nMMtNapdppPoilRc33f4/GosqnL70viH9Q==
 
-"@react-navigation/core@3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-3.4.0.tgz#776845f9d4f8b2b9cb99c5d2d4433ebcef290d92"
-  integrity sha512-YAnx9mK6P/zYkvn4YxZL6thaNdouSmD7FUaftFrOAbE7y7cCfH8hmk7BOLoOet6Sh2+UnrpkWX7Kg54cT2Jw+g==
+"@react-navigation/core@3.4.2":
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/@react-navigation/core/-/core-3.4.2.tgz#bec563e94fde40fbab3730cdc97f22afbb2a1498"
+  integrity sha512-7G+iDzLSTeOUU4vVZeRZKJ+Bd7ds7ZxYNqZcB8i0KlBeQEQfR74Ounfu/p0KIEq2RiNnaE3QT7WVP3C87sebzw==
   dependencies:
     hoist-non-react-statics "^3.3.0"
     path-to-regexp "^1.7.0"

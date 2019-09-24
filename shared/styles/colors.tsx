@@ -131,6 +131,9 @@ export const colors = {
   yellow: '#FFF75A',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
+  get yellowOrYellowLight() {
+    return this.yellow
+  },
 } as const
 
 export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
@@ -261,6 +264,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellow: '#FFF75A',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
+  get yellowOrYellowLight() {
+    return colors.yellowLight
+  },
 }
 
 const partyFallbackColors = {

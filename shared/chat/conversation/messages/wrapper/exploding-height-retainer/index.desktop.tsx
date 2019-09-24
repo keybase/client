@@ -233,13 +233,15 @@ const styles = Styles.styleSheetCreate(
 )
 
 // @ts-ignore
-const AshBox = Styles.styled.div({
-  '&.full-width': {
-    overflow: 'visible',
-    transition: `width ${animationDuration}ms linear`,
-    width: '100%',
+const AshBox = Styles.styled.div(
+  {
+    '&.full-width': {
+      overflow: 'visible',
+      transition: `width ${animationDuration}ms linear`,
+      width: '100%',
+    },
   },
-  ...styles.ashBox,
-})
+  () => styles.ashBox
+)
 
 export default ExplodingHeightRetainer
