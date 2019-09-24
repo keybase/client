@@ -1,6 +1,7 @@
 import path from 'path'
 
 const platform = process.platform
+export const isTestDevice = false
 export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
