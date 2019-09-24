@@ -288,6 +288,7 @@ function* unboxRows(
   if (!conversationIDKeys.length) {
     return
   }
+  logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
     incomingCallMap: {},
