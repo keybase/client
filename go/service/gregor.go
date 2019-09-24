@@ -272,7 +272,10 @@ func (g *gregorHandler) monitorAppState() {
 		select {
 		case state = <-g.G().MobileAppState.NextUpdate(&state):
 			switch state {
-			case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
+			case keybase1.MobileAppState_FOREGROUND:
+				g.Shutdown()
+				monitorAction = monitorConnect
+			case keybase1.MobileAppState_BACKGROUNDACTIVE:
 				monitorAction = monitorConnect
 			case keybase1.MobileAppState_BACKGROUND, keybase1.MobileAppState_INACTIVE:
 				monitorAction = monitorDisconnect
