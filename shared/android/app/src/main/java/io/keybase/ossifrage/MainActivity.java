@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
@@ -81,6 +82,12 @@ public class MainActivity extends ReactFragmentActivity {
     }
 
     return instanceManager.getCurrentReactContext();
+  }
+
+  // Is this a robot controlled test device? (i.e. pre-launch report?)
+  public static boolean isTestDevice(Context context) {
+    String testLabSetting = Settings.System.getString(context.getContentResolver(), "firebase.test.lab");
+    return "true".equals(testLabSetting);
   }
 
 
