@@ -40,48 +40,51 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
 )
 
 const radius = 4
-const styles = Styles.styleSheetCreate(() => ({
-  badge: Styles.platformStyles({
-    common: {
-      alignSelf: 'center',
-    },
-    isMobile: {
-      position: 'absolute',
-      right: 0,
-      top: 2,
-    },
-  }),
-  container: {
-    position: 'relative',
-  },
-  menuItemBox: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-    },
-    isElectron: {
-      justifyContent: 'space-between',
-    },
-    isMobile: {
-      justifyContent: 'center',
-    },
-  }),
-  newBadge: {
-    backgroundColor: Styles.globalColors.blue,
-    borderColor: Styles.globalColors.white,
-    borderRadius: radius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: radius * 2,
-    position: 'absolute',
-    right: -1,
-    top: -2,
-    width: radius * 2,
-  },
-  text: Styles.platformStyles({
-    isMobile: {
-      color: Styles.globalColors.blueDark,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      badge: Styles.platformStyles({
+        common: {
+          alignSelf: 'center',
+        },
+        isMobile: {
+          position: 'absolute',
+          right: 0,
+          top: 2,
+        },
+      }),
+      container: {
+        position: 'relative',
+      },
+      menuItemBox: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+        },
+        isElectron: {
+          justifyContent: 'space-between',
+        },
+        isMobile: {
+          justifyContent: 'center',
+        },
+      }),
+      newBadge: {
+        backgroundColor: Styles.globalColors.blue,
+        borderColor: Styles.globalColors.white,
+        borderRadius: radius,
+        borderStyle: 'solid',
+        borderWidth: 1,
+        height: radius * 2,
+        position: 'absolute',
+        right: -1,
+        top: -2,
+        width: radius * 2,
+      },
+      text: Styles.platformStyles({
+        isMobile: {
+          color: Styles.globalColors.blueDark,
+        },
+      }),
+    } as const)
+)
 
 export default Kb.OverlayParentHOC(WalletsIcon)

@@ -6,6 +6,7 @@ import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
+import * as Styles from '../../../styles'
 import {InfoPanel, Panel, ParticipantTyp} from '.'
 import * as Container from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -52,7 +53,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const isPreview = meta.membershipType === 'youArePreviewing'
   const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
   const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
-  const attachmentInfo = state.chat2.attachmentViewMap.getIn(
+  const attachmentInfo: Types.AttachmentViewInfo = state.chat2.attachmentViewMap.getIn(
     [conversationIDKey, selectedAttachmentView],
     Constants.makeAttachmentViewInfo()
   )
@@ -175,7 +176,7 @@ const ConnectedInfoPanel = Container.connect(
     docs:
       stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.doc
         ? {
-            docs: stateProps._attachmentInfo.messages
+            docs: (stateProps._attachmentInfo.messages as I.List<Types.MessageAttachment>)
               .map(m => ({
                 author: m.author,
                 ctime: m.timestamp,
@@ -201,12 +202,17 @@ const ConnectedInfoPanel = Container.connect(
     links:
       stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.link
         ? {
-            links: stateProps._attachmentInfo.messages.reduce((l, m) => {
+            links: stateProps._attachmentInfo.messages.reduce<
+              Array<{author: string; ctime: number; snippet: string; title?: string; url?: string}>
+            >((l, m) => {
+              if (m.type !== 'text') {
+                return l
+              }
               if (!m.unfurls.size) {
                 l.push({
                   author: m.author,
                   ctime: m.timestamp,
-                  snippet: m.decoratedText.stringValue(),
+                  snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
                 })
               } else {
                 m.unfurls.toList().forEach(u => {
@@ -214,7 +220,7 @@ const ConnectedInfoPanel = Container.connect(
                     l.push({
                       author: m.author,
                       ctime: m.timestamp,
-                      snippet: m.decoratedText.stringValue(),
+                      snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
                       title: u.unfurl.generic.title,
                       url: u.unfurl.generic.url,
                     })
@@ -236,7 +242,7 @@ const ConnectedInfoPanel = Container.connect(
               ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
               : null,
             status: stateProps._attachmentInfo.status,
-            thumbs: stateProps._attachmentInfo.messages
+            thumbs: (stateProps._attachmentInfo.messages as I.List<Types.MessageAttachment>)
               .map(m => ({
                 ctime: m.timestamp,
                 height: m.previewHeight,
@@ -383,8 +389,8 @@ class InfoPanelSelector extends React.PureComponent<Props> {
         selectedAttachmentView={this.props.selectedAttachmentView}
       />
     ) : (
-      <Box onClick={this.props.onBack} style={clickCatcherStyle}>
-        <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
+      <Box onClick={this.props.onBack} style={styles.clickCatcher}>
+        <Box style={styles.panelContainer} onClick={evt => evt.stopPropagation()}>
           <ConnectedInfoPanel
             onBack={this.props.onBack}
             onSelectTab={this.props.onSelectTab}
@@ -399,22 +405,27 @@ class InfoPanelSelector extends React.PureComponent<Props> {
   }
 }
 
-const clickCatcherStyle = {
-  bottom: 0,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: 39,
-}
-const panelContainerStyle = {
-  bottom: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  position: 'absolute',
-  right: 0,
-  top: 40,
-  width: 320,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      clickCatcher: {
+        bottom: 0,
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 39,
+      },
+      panelContainer: {
+        bottom: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'absolute',
+        right: 0,
+        top: 40,
+        width: 320,
+      },
+    } as const)
+)
 
 const InfoConnected = Container.connect(
   mapStateToSelectorProps,

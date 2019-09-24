@@ -41,11 +41,11 @@ const UnmutedNotificationPrefs = (props: Props) => {
         />
       )}
 
-      <Kb.Box style={Styles.isMobile ? styleHeaderMobile : styleHeader}>
+      <Kb.Box style={styles.header}>
         <Kb.Text type="BodySmallSemibold">Desktop notifications</Kb.Text>
       </Kb.Box>
 
-      <Kb.Box style={styleRadioButton}>
+      <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateDesktop('onAnyActivity')}
@@ -53,7 +53,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           label="On any activity"
         />
       </Kb.Box>
-      <Kb.Box style={styleRadioButton}>
+      <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateDesktop('onWhenAtMentioned')}
@@ -61,7 +61,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           label="Only when @mentioned"
         />
       </Kb.Box>
-      <Kb.Box style={styleRadioButton}>
+      <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateDesktop('never')}
@@ -70,11 +70,11 @@ const UnmutedNotificationPrefs = (props: Props) => {
         />
       </Kb.Box>
 
-      <Kb.Box style={styleHeader}>
+      <Kb.Box style={styles.header}>
         <Kb.Text type="BodySmallSemibold">Mobile notifications</Kb.Text>
       </Kb.Box>
 
-      <Kb.Box style={styleRadioButton}>
+      <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateMobile('onAnyActivity')}
@@ -82,7 +82,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           label="On any activity"
         />
       </Kb.Box>
-      <Kb.Box style={styleRadioButton}>
+      <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateMobile('onWhenAtMentioned')}
@@ -90,7 +90,7 @@ const UnmutedNotificationPrefs = (props: Props) => {
           label="Only when @mentioned"
         />
       </Kb.Box>
-      <Kb.Box style={styleRadioButton}>
+      <Kb.Box style={styles.radioButton}>
         <Kb.RadioButton
           style={{marginTop: Styles.globalMargins.xtiny}}
           onSelect={() => props.updateMobile('never')}
@@ -131,18 +131,22 @@ export const Notifications = (props: Props) => (
   </Kb.Box>
 )
 
-const styleHeader = {
-  ...Styles.globalStyles.flexBoxRow,
-  paddingTop: Styles.globalMargins.small,
-}
-
-const styleHeaderMobile = {
-  ...styleHeader,
-  paddingBottom: Styles.globalMargins.tiny,
-  paddingTop: Styles.globalMargins.medium,
-}
-
-const styleRadioButton = {
-  ...Styles.globalStyles.flexBoxRow,
-  marginLeft: Styles.globalMargins.tiny,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      header: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          paddingTop: Styles.globalMargins.small,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.medium,
+        },
+      }),
+      radioButton: {
+        ...Styles.globalStyles.flexBoxRow,
+        marginLeft: Styles.globalMargins.tiny,
+      },
+    } as const)
+)

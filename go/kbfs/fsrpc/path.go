@@ -22,6 +22,7 @@ const (
 	topName     = "keybase"
 	publicName  = "public"
 	privateName = "private"
+	teamName    = "team"
 )
 
 // PathType describes the types for different paths
@@ -75,6 +76,8 @@ func listTypeToTLFType(c string) tlf.Type {
 		return tlf.Private
 	case publicName:
 		return tlf.Public
+	case teamName:
+		return tlf.SingleTeam
 	default:
 		// TODO: support team TLFs.
 		panic(fmt.Sprintf("Unknown folder list type: %s", c))
@@ -90,7 +93,8 @@ func NewPath(pathStr string) (Path, error) {
 	len := len(components)
 
 	if (len >= 1 && components[0] != topName) ||
-		(len >= 2 && components[1] != publicName && components[1] != privateName) {
+		(len >= 2 && components[1] != publicName &&
+			components[1] != privateName && components[1] != teamName) {
 		return Path{}, InvalidPathErr{pathStr}
 	}
 

@@ -302,6 +302,7 @@ class Input extends Component<Props, State> {
       autoCorrect: Object.prototype.hasOwnProperty.call(this.props, 'autoCorrect') && this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
       editable: Object.prototype.hasOwnProperty.call(this.props, 'editable') ? this.props.editable : true,
+      keyboardAppearance: Styles.isIOS ? (Styles.isDarkMode() ? 'dark' : 'light') : undefined,
       keyboardType,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
@@ -317,7 +318,7 @@ class Input extends Component<Props, State> {
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxLength: this.props.maxLength} : null),
-    }
+    } as const
 
     if (!this.props.uncontrolled) {
       // @ts-ignore it's ok to add this

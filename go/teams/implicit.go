@@ -311,7 +311,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 				ID:          teamID,
 				Public:      impTeamName.IsPublic,
 				ForceRepoll: true,
-				SkipAudit:   true,
+				AuditMode:   keybase1.AuditMode_JUST_CREATED,
 			})
 			return res, teamName, impTeamName, err
 		}

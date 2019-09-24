@@ -7,6 +7,7 @@ import {AllowedColors} from '../../../../common-adapters/text'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
+  navKey: string
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
@@ -18,7 +19,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   let isTypingSnippet = false
   if (typers && typers.size > 0) {
     isTypingSnippet = true
-    snippet = typers.size === 1 ? `${typers.first()} is typing...` : 'Multiple people typing...'
+    snippet = typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
   }
   return {
     _meta,
@@ -33,12 +34,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey, navKey}: OwnProps) => ({
   onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
   onMuteConversation: (isMuted: boolean) =>
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
   onSelectConversation: () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxSmall'})),
 })
 
 export default Container.namedConnect(
@@ -47,7 +48,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const isSelected = stateProps.isSelected
     const hasUnread = stateProps.hasUnread
-    const styles = Constants.getRowStyles(stateProps._meta, isSelected, hasUnread)
+    const styles = Constants.getRowStyles(isSelected, hasUnread)
     const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =

@@ -1,3 +1,4 @@
+import autoreset from './autoreset'
 import chat2 from './chat2'
 import config from './config'
 import deeplinks from './deeplinks'
@@ -12,6 +13,7 @@ import pinentry from './pinentry'
 import profile from './profile'
 import provision from './provision'
 import push from './push'
+import recoverPassword from './recover-password'
 import settings from './settings'
 import signup from './signup'
 import teams from './teams'
@@ -23,6 +25,7 @@ import wallets from './wallets'
 import {combineReducers} from 'redux'
 
 const reducers = {
+  autoreset,
   chat2,
   config,
   deeplinks,
@@ -37,6 +40,7 @@ const reducers = {
   profile,
   provision,
   push,
+  recoverPassword,
   settings,
   signup,
   teams,

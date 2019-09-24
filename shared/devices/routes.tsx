@@ -15,7 +15,7 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  ...mapValues(provisionNewRoutes, v => modalizeRoute(v)),
+  ...mapValues(provisionNewRoutes, (val, key) => (key === 'error' ? modalizeRoute(val) : val)),
   deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device/container').default},
   devicePaperKey: modalizeRoute({
     getScreen: (): typeof DevicePaperKey => require('./paper-key').default,

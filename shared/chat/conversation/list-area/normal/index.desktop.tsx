@@ -13,8 +13,8 @@ import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
 import {debounce, throttle, chunk} from 'lodash-es'
-import {globalStyles} from '../../../../styles'
-import {Props} from './index.types'
+import * as Styles from '../../../../styles'
+import {Props} from '.'
 import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
 import logger from '../../../../logger'
@@ -508,11 +508,11 @@ class Thread extends React.PureComponent<Props, State> {
     return (
       <ErrorBoundary>
         {debugInfo}
-        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+        <div style={styles.container} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div
             key={this.props.conversationIDKey}
-            style={listStyle}
+            style={styles.list}
             ref={this._listRef}
             onScroll={this._onScroll}
           >
@@ -525,7 +525,7 @@ class Thread extends React.PureComponent<Props, State> {
             </Measure>
           </div>
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
-            <JumpToRecent onClick={this._jumpToRecent} style={jumpToRecentStyle} />
+            <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
           )}
         </div>
       </ErrorBoundary>
@@ -725,27 +725,31 @@ const realCSS = `
   contain: content;
 }
 `
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  // containment hints so we can scroll faster
-  contain: 'strict' as const,
-  flex: 1,
-  position: 'relative' as const,
-}
 
-const listStyle = {
-  ...globalStyles.fillAbsolute,
-  outline: 'none',
-  overflowX: 'hidden' as const,
-  overflowY: 'auto' as const,
-  paddingBottom: globalMargins.small,
-  // get our own layer so we can scroll faster
-  willChange: 'transform' as const,
-}
-
-const jumpToRecentStyle = {
-  bottom: 0,
-  position: 'absolute' as const,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        // containment hints so we can scroll faster
+        contain: 'strict' as const,
+        flex: 1,
+        position: 'relative' as const,
+      },
+      jumpToRecent: {
+        bottom: 0,
+        position: 'absolute' as const,
+      },
+      list: {
+        ...Styles.globalStyles.fillAbsolute,
+        outline: 'none',
+        overflowX: 'hidden' as const,
+        overflowY: 'auto' as const,
+        paddingBottom: globalMargins.small,
+        // get our own layer so we can scroll faster
+        willChange: 'transform' as const,
+      },
+    } as const)
+)
 
 export default Thread

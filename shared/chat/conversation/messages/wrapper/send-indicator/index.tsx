@@ -113,10 +113,13 @@ class SendIndicator extends React.Component<Props, State> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  invisible: {height: 16, opacity: 0, width: 24},
-  visible: {height: 16, opacity: 1, width: 24},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      invisible: {height: 16, opacity: 0, width: 24},
+      visible: {height: 16, opacity: 1, width: 24},
+    } as const)
+)
 
 const TimedSendIndicator = Kb.HOCTimers(SendIndicator)
 

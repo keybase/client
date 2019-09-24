@@ -1,4 +1,6 @@
+import recoverPassword from './recover-password/index.stories'
 import relogin from './relogin/index.stories'
+import reset from './reset/index.stories'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {storyDecorator} from '../signup/common-stories'
@@ -27,6 +29,7 @@ const loadingProps = {
 }
 
 const load = () => {
+  recoverPassword()
   relogin()
 
   Sb.storiesOf('Login/JoinOrLogin', module)
@@ -54,6 +57,9 @@ const load = () => {
         onFeedback={Sb.action('onFeedback')}
       />
     ))
+
+  reset()
+
   // storiesOf('Login', module).add('Failure', () => <Failure {...props} bootStatus="bootStatusFailure" />)
 }
 

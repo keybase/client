@@ -111,20 +111,6 @@
       "response": null,
       "doc": "Login and unlock by\n  - trying unlocked device keys if available\n  - prompting for a paper key and using that"
     },
-    "clearStoredSecret": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        }
-      ],
-      "response": null,
-      "doc": "Removes any existing stored secret for the given username.\n    loginWithStoredSecret(_, username) will fail after this is called."
-    },
     "logout": {
       "request": [
         {

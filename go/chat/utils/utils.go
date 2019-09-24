@@ -2406,23 +2406,27 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string) string {
 	switch info.TeamType {
 	case chat1.TeamType_COMPLEX:
-		return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
+		if len(info.TlfName) > 0 && len(info.TopicName) > 0 {
+			return fmt.Sprintf("%s#%s", info.TlfName, info.TopicName)
+		}
+		return info.TlfName
 	case chat1.TeamType_SIMPLE:
 		return info.TlfName
 	case chat1.TeamType_NONE:
 		users := info.Participants
-		if len(users) > 1 {
-			var usersWithoutYou []string
-			for _, user := range users {
-				if user.Username != myUsername {
-					usersWithoutYou = append(usersWithoutYou, user.Username)
-				}
-			}
-			return strings.Join(usersWithoutYou, ",")
+		if len(users) == 1 {
+			return ""
 		}
+		var usersWithoutYou []string
+		for _, user := range users {
+			if user.Username != myUsername {
+				usersWithoutYou = append(usersWithoutYou, user.Username)
+			}
+		}
+		return strings.Join(usersWithoutYou, ",")
+	default:
 		return ""
 	}
-	return info.TlfName
 }
 
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
@@ -2483,4 +2487,13 @@ func DedupStringLists(lists ...[]string) (res []string) {
 		}
 	}
 	return res
+}
+
+func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
+	if a.GetMtime() > b.GetMtime() {
+		return true
+	} else if a.GetMtime() < b.GetMtime() {
+		return false
+	}
+	return !(a.GetConvID().Eq(b.GetConvID()) || a.GetConvID().Less(b.GetConvID()))
 }

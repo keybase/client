@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/SDWebImageCacheKeyFilter.h
+../../../SDWebImage/SDWebImage/Core/SDWebImageCacheKeyFilter.h

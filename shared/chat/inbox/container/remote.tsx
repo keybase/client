@@ -90,7 +90,7 @@ export const serialize = ({
   hasUnread: boolean
   conversation: ChatTypes.ConversationMeta
 }): RemoteConvMeta => {
-  const styles = Constants.getRowStyles(conversation, false, hasUnread)
+  const styles = Constants.getRowStyles(false, hasUnread)
   const participantNeedToRekey = conversation.rekeyers.size > 0
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(_username)
   return {

@@ -81,23 +81,26 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
   )
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  bannerStyle: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      backgroundColor: Styles.globalColors.red,
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      paddingBottom: 8,
-      paddingLeft: 24,
-      paddingRight: 24,
-      paddingTop: 8,
-    },
-    isElectron: {
-      marginBottom: Styles.globalMargins.tiny,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      bannerStyle: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          backgroundColor: Styles.globalColors.red,
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          paddingBottom: 8,
+          paddingLeft: 24,
+          paddingRight: 24,
+          paddingTop: 8,
+        },
+        isElectron: {
+          marginBottom: Styles.globalMargins.tiny,
+        },
+      }),
+    } as const)
+)
 
 export {InviteBanner}

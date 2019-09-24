@@ -1292,9 +1292,9 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	case chat1.ConversationMembersType_TEAM:
 		return NewTeamsNameInfoSource(g)
 	case chat1.ConversationMembersType_IMPTEAMNATIVE:
-		return NewImplicitTeamsNameInfoSource(g, false)
+		return NewImplicitTeamsNameInfoSource(g, membersType)
 	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		return NewImplicitTeamsNameInfoSource(g, true)
+		return NewImplicitTeamsNameInfoSource(g, membersType)
 	}
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)

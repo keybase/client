@@ -59,7 +59,7 @@ const EmailSearch = ({continueLabel, namespace, search, teamBuildingSearchResult
   }, [dispatch, canSubmit, user, namespace, onChange])
 
   return (
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.background}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         <Kb.NewInput
           autoFocus={true}

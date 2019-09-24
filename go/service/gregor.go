@@ -221,6 +221,7 @@ type gregorHandler struct {
 	shutdownCh  chan struct{}
 	broadcastCh chan gregor1.Message
 	replayCh    chan replayThreadArg
+	pushStateCh chan struct{}
 
 	// Testing
 	testingEvents       *testingEvents
@@ -241,6 +242,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		forceSessionCheck: false,
 		connectHappened:   make(chan struct{}),
 		replayCh:          make(chan replayThreadArg, 10),
+		pushStateCh:       make(chan struct{}, 100),
 	}
 	return gh
 }
@@ -441,8 +443,8 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	// In case we need to interrupt auth'ing or the ping loop,
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
-
 	g.uri = uri
+	go g.pushStateNewDataDebouncer(g.shutdownCh)
 	if uri.UseTLS() {
 		err = g.connectTLS()
 	} else {
@@ -521,7 +523,33 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 	g.firehoseHandlers = freshHandlers
 }
 
-func (g *gregorHandler) pushState(r keybase1.PushReason) {
+func (g *gregorHandler) pushStateNewDataDebouncer(shutdownCh chan struct{}) {
+	shouldSend := false
+	var lastTime time.Time
+	dur := time.Second
+	trigger := func() {
+		if shouldSend {
+			go g.pushStateOnce(keybase1.PushReason_NEW_DATA)
+			shouldSend = false
+			lastTime = time.Now()
+		}
+	}
+	for {
+		select {
+		case <-g.pushStateCh:
+			shouldSend = true
+			if time.Since(lastTime) > dur {
+				trigger()
+			}
+		case <-time.After(dur):
+			trigger()
+		case <-shutdownCh:
+			return
+		}
+	}
+}
+
+func (g *gregorHandler) pushStateOnce(r keybase1.PushReason) {
 	s, err := g.getState(context.Background())
 	if err != nil {
 		g.Warning(context.Background(), "Cannot push state in firehose handler: %s", err)
@@ -531,11 +559,19 @@ func (g *gregorHandler) pushState(r keybase1.PushReason) {
 		g.Debug(context.Background(), "pushState: pushing state with %d items", len(s.Items_))
 		h.PushState(s, r)
 	})
-
 	// Only send this state update on reception of new data, not a reconnect since we will
 	// be sending that on a different code path altogether (see OnConnect).
 	if g.badger != nil && r != keybase1.PushReason_RECONNECTED {
 		g.badger.PushState(context.Background(), s)
+	}
+}
+
+func (g *gregorHandler) pushState(r keybase1.PushReason) {
+	switch r {
+	case keybase1.PushReason_RECONNECTED, keybase1.PushReason_NONE:
+		g.pushStateOnce(r)
+	default:
+		g.pushStateCh <- struct{}{}
 	}
 }
 
@@ -614,6 +650,8 @@ func (g *gregorHandler) IsConnected() bool {
 func (g *gregorHandler) syncReplayThread() {
 	for rarg := range g.replayCh {
 		var trr testingReplayRes
+		now := time.Now()
+		g.Debug(rarg.ctx, "serverSync: starting replay thread")
 		replayedMsgs, err := g.replayInBandMessages(rarg.ctx, rarg.cli, rarg.t, nil)
 		if err != nil {
 			g.Debug(rarg.ctx, "serverSync: replayThread: replay messages failed: %s", err)
@@ -625,6 +663,7 @@ func (g *gregorHandler) syncReplayThread() {
 		if g.testingEvents != nil {
 			g.testingEvents.replayThreadCh <- trr
 		}
+		g.Debug(rarg.ctx, "serverSync: syncReplayThread complete: %v", time.Since(now))
 	}
 }
 

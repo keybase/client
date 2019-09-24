@@ -202,48 +202,51 @@ export const getLoopInterval = (diff: number) => {
   return deltaMS + halfNearestUnit
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  container: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      marginLeft: Styles.globalMargins.tiny,
-      position: 'relative',
-    },
-    isMobile: {height: 21},
-  }),
-  countdown: Styles.platformStyles({
-    common: {color: Styles.globalColors.white, fontWeight: 'bold'},
-    isElectron: {fontSize: 10, lineHeight: 14},
-    isMobile: {fontSize: 11, lineHeight: 16},
-  }),
-  countdownContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      borderRadius: 2,
-      justifyContent: 'center',
-      paddingLeft: 2,
-      paddingRight: 2,
-    },
-    isElectron: {
-      height: 14,
-      width: 28,
-    },
-    isMobile: {
-      height: 16,
-      width: 30,
-    },
-  }),
-  progressContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    isElectron: {width: 28},
-    isMobile: {
-      height: 15,
-      width: 32,
-    },
-  }),
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          marginLeft: Styles.globalMargins.tiny,
+          position: 'relative',
+        },
+        isMobile: {height: 21},
+      }),
+      countdown: Styles.platformStyles({
+        common: {color: Styles.globalColors.white, fontWeight: 'bold'},
+        isElectron: {fontSize: 10, lineHeight: 14},
+        isMobile: {fontSize: 11, lineHeight: 16},
+      }),
+      countdownContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          borderRadius: 2,
+          justifyContent: 'center',
+          paddingLeft: 2,
+          paddingRight: 2,
+        },
+        isElectron: {
+          height: 14,
+          width: 28,
+        },
+        isMobile: {
+          height: 16,
+          width: 30,
+        },
+      }),
+      progressContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        isElectron: {width: 28},
+        isMobile: {
+          height: 15,
+          width: 32,
+        },
+      }),
+    } as const)
+)
 
 export default Kb.HOCTimers(ExplodingMeta)

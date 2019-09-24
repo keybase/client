@@ -370,7 +370,7 @@ func TestLoggedOutPublicTeamLoad(t *testing.T) {
 	createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, true)
 	require.NoError(t, err)
 	require.Equal(t, true, impTeamName.IsPublic)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	for i := 0; i < 2; i++ {
@@ -614,7 +614,6 @@ func TestBotMember(t *testing.T) {
 	require.Equal(t, restrictedBotua.User.GetUID(), members.RestrictedBots[0].Uid)
 
 	kbtest.ResetAccount(*tcs[2], botua)
-	// BOT invites not supported, add support in HOTPOT-460
 	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, botua.Username)
 	require.Error(t, err)
 

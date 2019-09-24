@@ -23,17 +23,17 @@ type bulkLookupContactsProvider struct {
 var _ contacts.ContactsProvider = (*bulkLookupContactsProvider)(nil)
 
 func (c *bulkLookupContactsProvider) LookupAllWithToken(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode, token contacts.Token) (contacts.ContactLookupResults, error) {
+	numbers []keybase1.RawPhoneNumber, token contacts.Token) (contacts.ContactLookupResults, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAllWithToken(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
-	return contacts.BulkLookupContacts(mctx, emails, numbers, userRegion, token)
+	return contacts.BulkLookupContacts(mctx, emails, numbers, token)
 }
 
 func (c *bulkLookupContactsProvider) LookupAll(mctx libkb.MetaContext, emails []keybase1.EmailAddress,
-	numbers []keybase1.RawPhoneNumber, userRegion keybase1.RegionCode) (contacts.ContactLookupResults, error) {
+	numbers []keybase1.RawPhoneNumber) (contacts.ContactLookupResults, error) {
 	defer mctx.TraceTimed(fmt.Sprintf("bulkLookupContactsProvider#LookupAll(len=%d)", len(emails)+len(numbers)),
 		func() error { return nil })()
-	return c.LookupAllWithToken(mctx, emails, numbers, userRegion, contacts.NoneToken)
+	return c.LookupAllWithToken(mctx, emails, numbers, contacts.NoneToken)
 }
 
 func (c *bulkLookupContactsProvider) FindUsernames(mctx libkb.MetaContext,
@@ -161,7 +161,7 @@ func (h *ContactsHandler) LookupContactList(ctx context.Context, arg keybase1.Lo
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOOKCON")
 	defer mctx.TraceTimed(fmt.Sprintf("ContactsHandler#LookupContactList(len=%d)", len(arg.Contacts)),
 		func() error { return err })()
-	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts, arg.UserRegionCode)
+	return contacts.ResolveContacts(mctx, h.contactsProvider, arg.Contacts)
 }
 
 func (h *ContactsHandler) SaveContactList(ctx context.Context, arg keybase1.SaveContactListArg) (res []keybase1.ProcessedContact, err error) {

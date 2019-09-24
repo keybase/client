@@ -120,6 +120,35 @@ func (e TeamStatus) String() string {
 	return ""
 }
 
+type AuditMode int
+
+const (
+	AuditMode_STANDARD     AuditMode = 0
+	AuditMode_JUST_CREATED AuditMode = 1
+	AuditMode_SKIP         AuditMode = 2
+)
+
+func (o AuditMode) DeepCopy() AuditMode { return o }
+
+var AuditModeMap = map[string]AuditMode{
+	"STANDARD":     0,
+	"JUST_CREATED": 1,
+	"SKIP":         2,
+}
+
+var AuditModeRevMap = map[AuditMode]string{
+	0: "STANDARD",
+	1: "JUST_CREATED",
+	2: "SKIP",
+}
+
+func (e AuditMode) String() string {
+	if v, ok := AuditModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PerTeamKeyGeneration int
 
 func (o PerTeamKeyGeneration) DeepCopy() PerTeamKeyGeneration {
@@ -970,6 +999,7 @@ type HiddenTeamChain struct {
 	Frozen            bool                           `codec:"frozen" json:"frozen"`
 	Tombstoned        bool                           `codec:"tombstoned" json:"tombstoned"`
 	Last              Seqno                          `codec:"last" json:"last"`
+	LastFull          Seqno                          `codec:"lastFull" json:"lastFull"`
 	LatestSeqnoHint   Seqno                          `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	LastPerTeamKeys   map[PTKType]Seqno              `codec:"lastPerTeamKeys" json:"lastPerTeamKeys"`
 	Outer             map[Seqno]LinkID               `codec:"outer" json:"outer"`
@@ -989,6 +1019,7 @@ func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 		Frozen:          o.Frozen,
 		Tombstoned:      o.Tombstoned,
 		Last:            o.Last.DeepCopy(),
+		LastFull:        o.LastFull.DeepCopy(),
 		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		LastPerTeamKeys: (func(x map[PTKType]Seqno) map[PTKType]Seqno {
 			if x == nil {
@@ -2510,8 +2541,8 @@ type LoadTeamArg struct {
 	ForceRepoll               bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK                   bool           `codec:"staleOK" json:"staleOK"`
 	AllowNameLookupBurstCache bool           `codec:"allowNameLookupBurstCache" json:"allowNameLookupBurstCache"`
-	SkipAudit                 bool           `codec:"skipAudit" json:"skipAudit"`
 	SkipNeedHiddenRotateCheck bool           `codec:"skipNeedHiddenRotateCheck" json:"skipNeedHiddenRotateCheck"`
+	AuditMode                 AuditMode      `codec:"auditMode" json:"auditMode"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -2526,8 +2557,8 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceRepoll:               o.ForceRepoll,
 		StaleOK:                   o.StaleOK,
 		AllowNameLookupBurstCache: o.AllowNameLookupBurstCache,
-		SkipAudit:                 o.SkipAudit,
 		SkipNeedHiddenRotateCheck: o.SkipNeedHiddenRotateCheck,
+		AuditMode:                 o.AuditMode.DeepCopy(),
 	}
 }
 

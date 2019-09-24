@@ -598,7 +598,7 @@ func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uid g
 	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
 		ID:        teamID,
 		Public:    conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
-		SkipAudit: true,
+		AuditMode: keybase1.AuditMode_SKIP,
 	})
 	if err != nil {
 		return nil, err
@@ -960,10 +960,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	var info types.NameInfo
 	var ierr error
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE:
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		info, ierr = infoSource.LookupName(ctx,
 			conversationLocal.Info.Triple.Tlfid,
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+			conversationLocal.Info.TlfName,
+		)
 	default:
 		if len(conversationLocal.Info.TlfName) == 0 {
 			conversationLocal.Error = chat1.NewConversationErrorLocal(

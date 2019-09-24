@@ -1,26 +1,26 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
-import {Props} from './index.types'
+import * as Styles from '../../../../styles'
+import {Props} from '.'
 import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={true}
-    gap="xtiny"
-    // @ts-ignore TODO fix styles
-    style={promptContainerStyle}
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={styles.promptContainer}>
     <Kb.Text type="BodySmallSemibold">Select attachment type</Kb.Text>
   </Kb.Box2>
 )
 
-const promptContainerStyle = {
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingBottom: 24,
-  paddingTop: 24,
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      promptContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingBottom: 24,
+        paddingTop: 24,
+      },
+    } as const)
+)
 
 class FilePickerPopup extends React.Component<Props> {
   render() {

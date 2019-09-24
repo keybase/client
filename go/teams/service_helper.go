@@ -337,7 +337,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		// It is limited to a few seconds and failure is non-fatal.
 		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
 		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
-			g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+			g.Log.CDebugf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
 		}
 		timeoutCancel()
 
@@ -1680,7 +1680,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		StaleOK:                   true,
 		Public:                    false, // assume private team
 		AllowNameLookupBurstCache: true,
-		SkipAudit:                 true,
+		AuditMode:                 keybase1.AuditMode_SKIP,
 	})
 	if err != nil {
 		// Note: we eat the error here, assuming it meant this user

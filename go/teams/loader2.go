@@ -595,7 +595,7 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		forceRepoll:                           false,
 		staleOK:                               true, // stale is fine, as long as get those seqnos.
 		skipSeedCheck:                         true,
-		skipAudit:                             true,
+		auditMode:                             keybase1.AuditMode_SKIP,
 
 		needSeqnos:    needParentSeqnos,
 		readSubteamID: &readSubteamID,

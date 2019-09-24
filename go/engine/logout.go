@@ -42,11 +42,16 @@ func (e *LogoutEngine) doSwitch(mctx libkb.MetaContext) (err error) {
 
 func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("Logout#Run", func() error { return err })()
-	err = mctx.G().Logout(mctx.Ctx())
+	err = mctx.Logout()
 	if err != nil {
 		return err
 	}
-	return e.doSwitch(mctx)
+	if err := e.doSwitch(mctx); err != nil {
+		// We don't care if user switching doesn't work here - user is logged
+		// out at this point. LogoutEngine is considered successful.
+		mctx.Debug("Cannot user-switch after Logout: %s", err)
+	}
+	return nil
 }
 
 var _ Engine2 = (*LogoutEngine)(nil)

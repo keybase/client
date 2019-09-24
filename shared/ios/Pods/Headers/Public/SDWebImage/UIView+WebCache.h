@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/UIView+WebCache.h
+../../../SDWebImage/SDWebImage/Core/UIView+WebCache.h

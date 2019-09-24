@@ -10,7 +10,7 @@ import {
 } from '../../../../common-adapters'
 import {assertionToDisplay} from '../../../../common-adapters/usernames'
 import * as Styles from '../../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24

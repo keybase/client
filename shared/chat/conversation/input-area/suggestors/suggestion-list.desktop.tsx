@@ -40,11 +40,14 @@ class SuggestionList extends React.Component<Props> {
   }
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  fullHeight: {
-    height: '100%',
-  },
-  listContainer: {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      fullHeight: {
+        height: '100%',
+      },
+      listContainer: {backgroundColor: Styles.globalColors.white, borderRadius: 4, maxHeight: 224},
+    } as const)
+)
 
 export default SuggestionList

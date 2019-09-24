@@ -12,7 +12,7 @@ import {
 } from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 import KeyHandler from '../../../util/key-handler.desktop'
 
 type State = {

@@ -426,6 +426,8 @@ const refreshMountDirs = async (
   ]
 }
 
+export const ensureDownloadPermissionPromise = () => Promise.resolve()
+
 function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)

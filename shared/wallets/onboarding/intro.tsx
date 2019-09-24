@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {WalletPopup} from '../common'
 
 type IntroProps = {
   headerBody: string
@@ -11,26 +10,47 @@ type IntroProps = {
 }
 
 const Intro = (props: IntroProps) => {
-  const buttons = [
-    <Kb.Button
-      style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
-      fullWidth={true}
-      key={0}
-      type="Dim"
-      onClick={props.onSeenIntro}
-      label="Open your wallet"
-      labelStyle={styles.labelStyle}
-    />,
-  ]
   return (
-    <WalletPopup
-      bottomButtons={buttons}
-      backButtonType="close"
-      onExit={props.onClose}
-      buttonBarDirection="column"
-      containerStyle={styles.container}
+    <Kb.Modal
+      mobileStyle={styles.background}
+      header={
+        Styles.isMobile
+          ? {
+              leftButton: (
+                <Kb.Button
+                  key={0}
+                  type="Dim"
+                  mode="Primary"
+                  small={true}
+                  label="Close"
+                  onClick={props.onClose}
+                  style={styles.closeButton}
+                  labelStyle={styles.closeLabelStyle}
+                />
+              ),
+              style: styles.background,
+            }
+          : undefined
+      }
+      footer={{
+        content: (
+          <Kb.ButtonBar direction="column" fullWidth={true}>
+            <Kb.Button
+              style={styles.buttonStyle}
+              fullWidth={true}
+              key={0}
+              type="Dim"
+              onClick={props.onSeenIntro}
+              label="Open your wallet"
+              labelStyle={styles.labelStyle}
+            />
+          </Kb.ButtonBar>
+        ),
+        style: styles.background,
+      }}
+      onClose={props.onClose}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
         <Kb.Text center={true} type="Header" style={styles.headerText}>
           {props.headerTitle || 'Keybase supports Stellar wallets.'}
         </Kb.Text>
@@ -46,26 +66,34 @@ const Intro = (props: IntroProps) => {
           type="icon-illustration-stellar-payments-200-188"
         />
       </Kb.Box2>
-    </WalletPopup>
+    </Kb.Modal>
   )
 }
 
-const bodyOverride = {
+const bodyOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
     textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: Styles.globalStyles.fontExtrabold,
-}
+}))
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      background: {backgroundColor: Styles.globalColors.purple},
       bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
-      buttonLabelStyle: {color: Styles.globalColors.purpleDark},
-      buttonStyle: {width: '100%'},
-      container: {backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.medium},
+      buttonStyle: {backgroundColor: Styles.globalColors.white},
+      closeButton: {backgroundColor: Styles.globalColors.transparent},
+      closeLabelStyle: {color: Styles.globalColors.white},
+      container: {
+        backgroundColor: Styles.globalColors.purple,
+        paddingBottom: Styles.globalMargins.medium,
+        paddingLeft: Styles.globalMargins.medium,
+        paddingRight: Styles.globalMargins.medium,
+        paddingTop: 0,
+      },
       headerText: {
         color: Styles.globalColors.white,
         marginBottom: Styles.globalMargins.small,
@@ -75,12 +103,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: -10,
       },
-      illustration: {
-        paddingBottom: Styles.globalMargins.mediumLarge,
-      },
-      labelStyle: {
-        color: Styles.globalColors.purpleDark,
-      },
+      illustration: {paddingBottom: Styles.globalMargins.mediumLarge},
+      labelStyle: {color: Styles.globalColors.purpleDark},
     } as const)
 )
 

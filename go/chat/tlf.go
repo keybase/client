@@ -95,8 +95,14 @@ func (t *KBFSNameInfoSource) LookupID(ctx context.Context, tlfName string, publi
 	return res, err
 }
 
-func (t *KBFSNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res types.NameInfo, err error) {
+func (t *KBFSNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
+	unverifiedTLFName string) (res types.NameInfo, err error) {
 	return res, fmt.Errorf("LookupName not implemented for KBFSNameInfoSource")
+}
+
+func (t *KBFSNameInfoSource) TeamBotSettings(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
+	return nil, errors.New("TeamBotSettings not implemented for KBFSNameInfoSource")
 }
 
 func (t *KBFSNameInfoSource) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {

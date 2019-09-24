@@ -12,7 +12,7 @@ export type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20}} />
+    <Kb.Icon type="icon-team-delete-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
     <Kb.Text style={styles.headerTeamname} type="BodySemibold">
       {props.teamname}
     </Kb.Text>

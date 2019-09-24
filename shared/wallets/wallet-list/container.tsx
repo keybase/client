@@ -13,7 +13,7 @@ type OwnProps = {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   accounts: Constants.getAccountIDs(state),
-  airdropIsLive: state.wallets.airdropDetails.isPromoted,
+  airdropIsLive: state.wallets.airdropDetails.isPromoted || state.wallets.airdropState === 'accepted',
   airdropSelected: Constants.getAirdropSelected(state),
   inAirdrop: state.wallets.airdropState === 'accepted',
   loading: anyWaiting(state, Constants.loadAccountsWaitingKey),

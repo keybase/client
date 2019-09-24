@@ -138,16 +138,10 @@ func (e *SelfProvisionEngine) loadUserAndActiveDeviceKeys(m libkb.MetaContext) (
 	}
 	e.perUserKeyring = pukRing
 
-	activeDevice := e.G().ActiveDevice
-	encKey, err := activeDevice.EncryptionKey()
+	keys, err := e.G().ActiveDevice.DeviceKeys()
 	if err != nil {
 		return nil, err
 	}
-	sigKey, err := activeDevice.SigningKey()
-	if err != nil {
-		return nil, err
-	}
-	keys := libkb.NewDeviceWithKeysOnly(sigKey, encKey)
 	if _, err := keys.Populate(m); err != nil {
 		return nil, err
 	}

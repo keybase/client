@@ -6,7 +6,6 @@ import Flags from '../util/feature-flags'
 
 export type Props = {
   filter: string
-  isLoading: boolean
   isSearching: boolean
   onBack: () => void
   onEnsureSelection: () => void
@@ -20,9 +19,9 @@ export type Props = {
 }
 
 class ConversationFilterInput extends React.PureComponent<Props> {
-  _input: any
+  private input = React.createRef<Kb.SearchFilter>()
 
-  _onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
+  private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
       this.props.onStopSearch()
     } else if (e.key === 'ArrowDown') {
@@ -36,18 +35,18 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     }
   }
 
-  _onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
+  private onEnterKeyDown = (e?: React.BaseSyntheticEvent) => {
     if (!Styles.isMobile) {
       if (e) {
         e.preventDefault()
         e.stopPropagation()
       }
       this.props.onEnsureSelection()
-      this._input && this._input.blur()
+      this.input.current && this.input.current.blur()
     }
   }
 
-  _onChange = (q: string) => {
+  private onChange = (q: string) => {
     if (q !== this.props.filter) {
       this.props.onSetFilter(q)
     }
@@ -55,16 +54,14 @@ class ConversationFilterInput extends React.PureComponent<Props> {
 
   componentDidUpdate(prevProps: Props) {
     if (!prevProps.isSearching && this.props.isSearching) {
-      this._input && this._input.focus()
+      this.input.current && this.input.current.focus()
     }
   }
-
-  _setRef = r => (this._input = r)
 
   render() {
     const searchInput = (
       <Kb.SearchFilter
-        ref={this._setRef}
+        ref={this.input}
         size="small"
         style={styles.searchBox}
         icon="iconfont-search"
@@ -80,14 +77,14 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         // Take care instead to only launch the keyboard from the isSearching=true mountpoint.
         dummyInput={Styles.isMobile && !this.props.isSearching}
         focusOnMount={Styles.isMobile && this.props.isSearching}
-        onChange={this._onChange}
+        onChange={this.onChange}
         onCancel={this.props.onStopSearch}
         onFocus={this.props.onStartSearch}
-        onKeyDown={this._onKeyDown}
-        onEnterKeyDown={this._onEnterKeyDown}
+        onKeyDown={this.onKeyDown}
+        onEnterKeyDown={this.onEnterKeyDown}
       />
     )
-    const children = (
+    return (
       <Kb.Box2
         direction="horizontal"
         centerChildren={true}
@@ -115,16 +112,6 @@ class ConversationFilterInput extends React.PureComponent<Props> {
           </Kb.Box>
         )}
       </Kb.Box2>
-    )
-    return (
-      <>
-        {children}
-        {this.props.isLoading && Styles.isMobile && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
-        )}
-      </>
     )
   }
 }
@@ -189,12 +176,6 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: 1,
       },
-      loadingContainer: {
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
       newChatButton: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
@@ -214,7 +195,9 @@ const styles = Styles.styleSheetCreate(
           padding: 2,
         },
         isElectron: {
-          background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
+          background: Styles.isDarkMode()
+            ? 'linear-gradient(rgba(255, 93, 93, 0.75), rgba(255, 247, 90, 0.75) 50%, rgba(58, 255, 172, 0.75))'
+            : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
           borderRadius: 6,
         },
         isMobile: {

@@ -64,11 +64,6 @@ func (h *LoginHandler) RecoverAccountFromEmailAddress(ctx context.Context, email
 	return nil
 }
 
-func (h *LoginHandler) ClearStoredSecret(ctx context.Context, arg keybase1.ClearStoredSecretArg) error {
-	m := libkb.NewMetaContext(ctx, h.G())
-	return libkb.ClearStoredSecret(m, libkb.NewNormalizedUsername(arg.Username))
-}
-
 func (h *LoginHandler) PaperKey(ctx context.Context, sessionID int) error {
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(sessionID),

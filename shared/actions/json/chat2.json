@@ -41,7 +41,8 @@
         "'teamChat'", // from team
         "'addedToChannel'", // just added people to this channel
         "'teamMention'" // from team mention
-      ]
+      ],
+      "navKey?": "string"
     },
     // Got an error while creating a conversation.
     "conversationErrored": {
@@ -555,7 +556,7 @@
     "setUnsentText": {
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString | null"
+      "text?": "HiddenString"
     },
     "setPrependText": {
       "_description": "Set prepend text for a conversation",

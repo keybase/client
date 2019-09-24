@@ -68,7 +68,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 		t.Logf("Created team public: %t, %s %s", public, createdTeam.ID, impTeamName)
 
 		for _, u := range []*kbtest.FakeUser{u1, u2, u0, nil} {
-			require.NoError(t, tc.G.Logout(context.TODO()))
+			require.NoError(t, tc.Logout())
 			if u != nil {
 				require.NoError(t, u.Login(tc.G))
 				t.Logf("Testing as user %s", u.Username)
@@ -95,7 +95,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 			}
 		}
 
-		require.NoError(t, tc.G.Logout(context.TODO()))
+		require.NoError(t, tc.Logout())
 		require.NoError(t, u2.Login(tc.G))
 	}
 }

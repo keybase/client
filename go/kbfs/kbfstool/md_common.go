@@ -117,7 +117,7 @@ func getTlfID(
 		return tlf.ID{}, err
 	}
 
-	return config.MDOps().GetIDForHandle(ctx, handle)
+	return handle.TlfID(), nil
 }
 
 func getBranchID(ctx context.Context, config libkbfs.Config,
@@ -260,10 +260,7 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 
 	fmt.Printf("Looking for unmerged branch...\n")
 
-	tlfID, err := config.MDOps().GetIDForHandle(ctx, handle)
-	if err != nil {
-		return libkbfs.ImmutableRootMetadata{}, err
-	}
+	tlfID := handle.TlfID()
 	if tlfID == tlf.NullID {
 		return libkbfs.ImmutableRootMetadata{}, errors.New("No TLF ID")
 	}

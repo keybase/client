@@ -35,7 +35,7 @@ func (d *hiddenDiskStorageItem) setVersion(i int) {
 func (d *hiddenDiskStorageItem) setValue(v teamDataGeneric) error {
 	typed, ok := v.(*keybase1.HiddenTeamChain)
 	if !ok {
-		return fmt.Errorf("teams.HiddenStorage#Put: Bad object for setValue; got type %T", v)
+		return fmt.Errorf("teams/storage.Hidden#Put: Bad object for setValue; got type %T", v)
 	}
 	d.State = typed
 	return nil
@@ -58,7 +58,7 @@ func (s *HiddenStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, publ
 	}
 	ret, ok := vp.(*keybase1.HiddenTeamChain)
 	if !ok {
-		mctx.Debug("teams.HiddenStorage#Get cast error: %T is wrong type", vp)
+		mctx.Debug("teams.storage/Hidden#Get cast error: %T is wrong type", vp)
 	}
 	if ret.Frozen {
 		mctx.Debug("returning frozen hidden team data")
@@ -66,5 +66,19 @@ func (s *HiddenStorage) Get(mctx libkb.MetaContext, teamID keybase1.TeamID, publ
 	if ret.Tombstoned {
 		mctx.Debug("returning tombstoned hidden team data")
 	}
+	s.upgrade(mctx, ret)
 	return ret, ret.Frozen, ret.Tombstoned
+}
+
+func (s *HiddenStorage) upgrade(mctx libkb.MetaContext, ret *keybase1.HiddenTeamChain) {
+	if ret == nil {
+		return
+	}
+	// We added LastFull after the fact, so go back and populate this field if it wasn't
+	// read in from the object.
+	if ret.Subversion < 1 {
+		mctx.Debug("HiddenStorage#upgrade: upgrading from 1.0 to 1.1 (running PopulateLastFull())")
+		ret.PopulateLastFull()
+		ret.Subversion = 1
+	}
 }

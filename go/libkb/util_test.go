@@ -185,3 +185,16 @@ func TestDecodeHexFixed(t *testing.T) {
 		}
 	}
 }
+
+func TestDownloadGetFilenames(t *testing.T) {
+	var tests = map[string]string{
+		"abc.def":       "abc.def",
+		"文件.def":        "文件.def",
+		"abc.\u202edef": "abc.%E2%80%AEdef",
+		"abc.\u200fdef": "abc.%E2%80%8Fdef",
+	}
+	for original, expected := range tests {
+		safeFilename := GetSafeFilename(original)
+		require.Equal(t, expected, safeFilename)
+	}
+}

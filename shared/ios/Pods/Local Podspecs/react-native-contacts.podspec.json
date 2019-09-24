@@ -1,11 +1,11 @@
 {
   "name": "react-native-contacts",
-  "version": "2.2.5",
+  "version": "5.0.2",
   "summary": "React Native Contacts (android & ios)",
   "homepage": "https://github.com/geektimecoil/react-native-onesignal",
   "license": "MIT",
   "authors": {
-    "rt2zz <zack@root-two.com>": "rt2zz <zack@root-two.com>"
+    "": null
   },
   "platforms": {
     "ios": "9.0"

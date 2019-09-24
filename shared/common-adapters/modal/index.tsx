@@ -36,9 +36,11 @@ type Props = {
   banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
-  onClose?: () => void
+  onClose?: () => void // desktop non-fullscreen only
   footer?: FooterProps
+  fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'Wide'
+  mobileStyle?: Styles.StylesCrossPlatform
 }
 
 const ModalInner = (props: Props) => (
@@ -47,17 +49,19 @@ const ModalInner = (props: Props) => (
     {!!props.banners && props.banners}
     <Kb.ScrollView
       alwaysBounceVertical={false}
-      style={props.mode === 'Wide' ? styles.scrollWide : undefined}
+      style={styles.scroll}
       contentContainerStyle={styles.scrollContentContainer}
     >
       {props.children}
     </Kb.ScrollView>
-    {!!props.footer && <Footer {...props.footer} wide={props.mode === 'Wide'} />}
+    {!!props.footer && (
+      <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
+    )}
   </>
 )
 const Modal = (props: Props) =>
-  Styles.isMobile ? (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+  Styles.isMobile || props.fullscreen ? (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={props.mobileStyle}>
       <ModalInner {...props} />
     </Kb.Box2>
   ) : (
@@ -91,6 +95,7 @@ const Header = (props: HeaderProps) => {
     },
     [measured, widerWidth]
   )
+  const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only
 
   const showTitle = measured || !Styles.isMobile
@@ -115,10 +120,7 @@ const Header = (props: HeaderProps) => {
         {/* Boxes on left and right side of header must exist even if leftButton and rightButton aren't used so title stays centered */}
         <Kb.Box2
           direction="horizontal"
-          style={Styles.collapseStyles([
-            styles.headerLeft,
-            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
-          ])}
+          style={Styles.collapseStyles([styles.headerLeft, useMeasuredStyles && {flex: 0, width: sideWidth}])}
         >
           <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
             {!!props.leftButton && props.leftButton}
@@ -139,7 +141,7 @@ const Header = (props: HeaderProps) => {
           direction="horizontal"
           style={Styles.collapseStyles([
             styles.headerRight,
-            useMeasuredStyles && {flex: 0, width: widerWidth + 24},
+            useMeasuredStyles && {flex: 0, width: sideWidth},
           ])}
         >
           <Kb.Box2 direction="horizontal" onLayout={onLayoutSide}>
@@ -151,14 +153,15 @@ const Header = (props: HeaderProps) => {
   )
 }
 
-const Footer = (props: FooterProps & {wide: boolean}) => (
+const Footer = (props: FooterProps & {fullscreen: boolean; wide: boolean}) => (
   <Kb.Box2
     centerChildren={true}
     direction="vertical"
     fullWidth={true}
     style={Styles.collapseStyles([
       styles.footer,
-      props.wide && !Styles.isMobile && styles.footerWide,
+      props.wide && styles.footerWide,
+      props.fullscreen && styles.footerFullscreen,
       !props.hideBorder && styles.footerBorder,
       props.style,
     ])}
@@ -166,6 +169,13 @@ const Footer = (props: FooterProps & {wide: boolean}) => (
     {props.content}
   </Kb.Box2>
 )
+
+// These must match the `sideWidth` calculation above
+const headerSidePadding = Styles.globalMargins.xsmall
+const headerPadding = {
+  paddingLeft: headerSidePadding,
+  paddingRight: headerSidePadding,
+}
 
 const styles = Styles.styleSheetCreate(() => {
   const headerCommon = {
@@ -191,9 +201,20 @@ const styles = Styles.styleSheetCreate(() => {
       borderTopColor: Styles.globalColors.black_10,
       borderTopWidth: 1,
     },
-    footerWide: {
-      ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
-    },
+    footerFullscreen: Styles.platformStyles({
+      isElectron: {
+        ...Styles.padding(
+          Styles.globalMargins.xsmall,
+          Styles.globalMargins.small,
+          Styles.globalMargins.xlarge
+        ),
+      },
+    }),
+    footerWide: Styles.platformStyles({
+      isElectron: {
+        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.medium),
+      },
+    }),
     header: {
       ...headerCommon,
       minHeight: 48,
@@ -202,16 +223,14 @@ const styles = Styles.styleSheetCreate(() => {
       borderBottomWidth: 0,
     },
     headerLeft: {
+      ...headerPadding,
       flex: 1,
       justifyContent: 'flex-start',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
     },
     headerRight: {
+      ...headerPadding,
       flex: 1,
       justifyContent: 'flex-end',
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
     },
     headerWithIcon: {
       ...headerCommon,
@@ -236,11 +255,12 @@ const styles = Styles.styleSheetCreate(() => {
         width: 560,
       },
     }),
-    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
-    scrollWide: Styles.platformStyles({
+    scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
     }),
+    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
   }
 })
 
 export default Modal
+export {Header}
