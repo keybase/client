@@ -120,6 +120,17 @@
     "metaRequestTrusted": {
       "force?": "boolean",
       "noWaiting?": "boolean",
+      "reason": [
+        "'refreshPreviousSelected'",
+        "'requestTeamsUnboxing'",
+        "'inboxSynced'",
+        "'setConvRetention'",
+        "'subTeamRename'",
+        "'tlfFinalize'",
+        "'threadStale'",
+        "'membersUpdate'",
+        "'scroll'"
+      ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },
     // Got some new inbox rows

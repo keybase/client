@@ -381,6 +381,16 @@ type _MetaReceivedErrorPayload = {
 type _MetaRequestTrustedPayload = {
   readonly force?: boolean
   readonly noWaiting?: boolean
+  readonly reason:
+    | 'refreshPreviousSelected'
+    | 'requestTeamsUnboxing'
+    | 'inboxSynced'
+    | 'setConvRetention'
+    | 'subTeamRename'
+    | 'tlfFinalize'
+    | 'threadStale'
+    | 'membersUpdate'
+    | 'scroll'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
 type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.ConversationIDKey>}

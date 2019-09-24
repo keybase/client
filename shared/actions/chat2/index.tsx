@@ -136,6 +136,7 @@ const requestTeamsUnboxing = (_: TypedState, action: Chat2Gen.MetasReceivedPaylo
   if (conversationIDKeys.length) {
     return Chat2Gen.createMetaRequestTrusted({
       conversationIDKeys,
+      reason: 'requestTeamsUnboxing',
     })
   }
   return undefined
@@ -171,7 +172,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
 
   const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
   const toUnboxActions = conversationIDKeys.length
-    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))]
+    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))]
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions =
@@ -269,10 +270,19 @@ const onGetInboxConvFailed = (
 // We want to unbox rows that have scroll into view
 function* unboxRows(
   state: TypedState,
-  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
+  logger: Saga.SagaLogger
 ) {
   if (!state.config.loggedIn) {
     return
+  }
+  switch (action.type) {
+    case Chat2Gen.metaRequestTrusted:
+      logger.info(`unboxRows: metaRequestTrusted: reason: ${action.payload.reason}`)
+      break
+    case Chat2Gen.selectConversation:
+      logger.info(`unboxRows: selectConversation`)
+      break
   }
   const conversationIDKeys = rpcMetaRequestConversationIDKeys(state, action)
   if (!conversationIDKeys.length) {
@@ -655,6 +665,7 @@ const onChatInboxSynced = (state: TypedState, action: EngineGen.Chat1NotifyChatC
             .filter(i => i.shouldUnbox)
             .map(i => Types.stringToConversationIDKey(i.conv.convID)),
           force: true,
+          reason: 'inboxSynced',
         })
       )
       break
@@ -730,6 +741,7 @@ const onChatSetConvRetention = (
   return Chat2Gen.createMetaRequestTrusted({
     conversationIDKeys: [Types.conversationIDToKey(convID)],
     force: true,
+    reason: 'setConvRetention',
   })
 }
 
@@ -792,6 +804,7 @@ const onChatSubteamRename = (_: TypedState, action: EngineGen.Chat1NotifyChatCha
   return Chat2Gen.createMetaRequestTrusted({
     conversationIDKeys,
     force: true,
+    reason: 'subTeamRename',
   })
 }
 
@@ -800,7 +813,10 @@ const onChatChatTLFFinalizePayload = (
   action: EngineGen.Chat1NotifyChatChatTLFFinalizePayload
 ) => {
   const {convID} = action.payload.params
-  return Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys: [Types.conversationIDToKey(convID)],
+    reason: 'tlfFinalize',
+  })
 }
 
 const onChatThreadStale = (
@@ -830,6 +846,7 @@ const onChatThreadStale = (
           Chat2Gen.createMetaRequestTrusted({
             conversationIDKeys,
             force: true,
+            reason: 'threadStale',
           }),
         ])
       } else if (conversationIDKeys.length > 0) {
@@ -846,6 +863,7 @@ const onChatThreadStale = (
           Chat2Gen.createMetaRequestTrusted({
             conversationIDKeys,
             force: true,
+            reason: 'threadStale',
           }),
         ])
       }
@@ -900,6 +918,7 @@ const onNewChatActivity = (
         Chat2Gen.createMetaRequestTrusted({
           conversationIDKeys: [Types.conversationIDToKey(activity.membersUpdate.convID)],
           force: true,
+          reason: 'membersUpdate',
         }),
       ]
       break
@@ -2416,6 +2435,7 @@ const refreshPreviousSelected = (state: TypedState) => {
       conversationIDKeys: [state.chat2.previousSelectedConversation],
       force: true,
       noWaiting: true,
+      reason: 'refreshPreviousSelected',
     })
   }
   return undefined
