@@ -102,8 +102,8 @@ const getTeamProfileAddList = async (_: TypedState, action: TeamsGen.GetTeamProf
 function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload) {
   yield RPCTypes.teamsTeamDeleteRpcSaga({
     customResponseIncomingCallMap: {
-      'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-      'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+      'keybase.1.teamsUi.confirmRootTeamDelete': (_1, response) => response.result(true),
+      'keybase.1.teamsUi.confirmSubteamDelete': (_1, response) => response.result(true),
     },
     incomingCallMap: {},
     params: {
@@ -387,7 +387,7 @@ function* removeMemberOrPendingInvite(
       ]
     )
   } finally {
-    yield Saga.put(TeamsGen.createSetTeamLoadingInvites({invitees, loadingInvites: false, teamname}))
+    yield Saga.put(TeamsGen.createSetTeamLoadingInvites({invitees, loadingInvites: 'stale', teamname}))
   }
 }
 
@@ -437,7 +437,7 @@ const ignoreRequest = async (_: TypedState, action: TeamsGen.IgnoreRequestPayloa
       Constants.teamWaitingKey(teamname)
     )
     return TeamsGen.createGetDetails({teamname})
-  } catch (_) {
+  } catch (_1) {
     // TODO handle error, but for now make sure loading is unset
     // TODO get rid of this once core sends us a notification for this (CORE-7125)
     return TeamsGen.createGetDetails({teamname}) // getDetails will unset loading
@@ -677,7 +677,7 @@ function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPaylo
         {name: teamname},
         Constants.teamTarsWaitingKey(teamname)
       )
-    } catch (_) {}
+    } catch (_1) {}
 
     const publicityMap = {
       anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
@@ -973,7 +973,7 @@ const setMemberPublicity = async (_: TypedState, action: TeamsGen.SetMemberPubli
       // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
       TeamsGen.createGetTeams(),
     ]
-  } catch (_) {
+  } catch (_1) {
     // TODO handle error, but for now make sure loading is unset
     return [
       TeamsGen.createGetDetails({teamname}),
@@ -1326,7 +1326,7 @@ const badgeAppForTeams = (state: TypedState, action: TeamsGen.BadgeAppForTeamsPa
   return actions
 }
 
-let _wasOnTeamsTab = () => Constants.isOnTeamsTab()
+const _wasOnTeamsTab = () => Constants.isOnTeamsTab()
 
 const receivedBadgeState = (_: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   TeamsGen.createBadgeAppForTeams({
@@ -1369,7 +1369,7 @@ const renameTeam = async (_: TypedState, action: TeamsGen.RenameTeamPayload) => 
   const newName = {parts: _newName.split('.')}
   try {
     await RPCTypes.teamsTeamRenameRpcPromise({newName, prevName}, Constants.teamRenameWaitingKey)
-  } catch (_) {
+  } catch (_1) {
     // err displayed from waiting store in component
   }
 }
