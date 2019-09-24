@@ -27,6 +27,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const inviteError = Constants.getEmailInviteError(state)
   return {
     _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : I.Set(),
+
     errorMessage: inviteError.message,
     loadingInvites: teamname ? Constants.getTeamLoadingInvites(state, teamname) : I.Map(),
     name: teamname,
@@ -128,12 +129,9 @@ export default Container.compose(
           return undefined
         })
         if (relevantInvite) {
-          if (relevantInvite.id === 'f1fa014b958a1e9bafb4600dad810c27') debugger;
+          if (relevantInvite.id === '1ecfeb20ee0aa80fb98d5a545c208d27') debugger;
           return loadingInvites.get(relevantInvite.id, false) !== false
-
-
         }
-
         return false
       },
       isSelected: ({_pendingInvites}) => (addr: string): boolean => {
