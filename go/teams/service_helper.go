@@ -1121,22 +1121,6 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 var errInviteRequired = errors.New("invite required for username")
 var errUserDeleted = errors.New("user is deleted")
 
-func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
-	// need username here as `username` parameter might be social assertion, also username
-	// is used for chat notification recipient
-	m := libkb.NewMetaContext(ctx, g)
-	upk, err := engine.ResolveAndCheck(m, username, useTracking)
-	if err != nil {
-		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
-			// couldn't find a keybase user for username assertion
-			return "", keybase1.UserVersion{}, errInviteRequired
-		}
-		return "", keybase1.UserVersion{}, err
-	}
-	uv, err := filterUserCornerCases(ctx, upk)
-	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
-}
-
 // loadUserVersionByUsername is a wrapper around `engine.ResolveAndCheck` to
 // return UV by username or assertion. When the argument does not resolve to a
 // Keybase user with PUK, `errInviteRequired` is returned.
