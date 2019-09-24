@@ -49,7 +49,7 @@ type SignupJoinEngineRunArg struct {
 	PDPKA5KID   keybase1.KID
 	SkipMail    bool
 	VerifyEmail bool
-	Bot         bool
+	BotToken    keybase1.BotToken
 }
 
 func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg) (err error) {
@@ -71,6 +71,9 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 		postArgs["email"] = libkb.S{Val: arg.Email}
 	} else {
 		postArgs["no_email"] = libkb.B{Val: true}
+	}
+	if arg.BotToken.Exists() {
+		postArgs["bot_token"] = libkb.S{Val: arg.BotToken.String()}
 	}
 	res, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint: "signup",
@@ -129,7 +132,7 @@ func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, arg SignupJoinEngineRun
 	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uv, nilDeviceID); err != nil {
 		return err
 	}
-	if arg.Bot {
+	if arg.BotToken.Exists() {
 		m.Debug("SignupJoinEngine#WriteOut: not saving config since in bot mode")
 		return nil
 	}

@@ -43,7 +43,7 @@ type SignupArg struct {
 	GenPaper    bool       `codec:"genPaper" json:"genPaper"`
 	RandomPw    bool       `codec:"randomPw" json:"randomPw"`
 	VerifyEmail bool       `codec:"verifyEmail" json:"verifyEmail"`
-	Bot         bool       `codec:"bot" json:"bot"`
+	BotToken    BotToken   `codec:"botToken" json:"botToken"`
 	SkipGPG     bool       `codec:"skipGPG" json:"skipGPG"`
 }
 

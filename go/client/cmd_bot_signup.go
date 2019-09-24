@@ -13,12 +13,12 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-func NewCmdBotSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdBotSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	cmd := cli.Command{
-		Name:  "bot-signup",
+		Name:  "signup",
 		Usage: "Signup a bot that will have a paper key but no device",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdBotSignupRunner(g), "bot-signup", c)
+			cl.ChooseCommand(NewCmdBotSignupRunner(g), "signup", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -33,6 +33,10 @@ func NewCmdBotSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Name:  "u, username",
 				Usage: "Specify a username.",
 			},
+			cli.StringFlag{
+				Name:  "t, token",
+				Usage: "Specify a bot token",
+			},
 		},
 	}
 	return cmd
@@ -45,6 +49,7 @@ type CmdBotSignup struct {
 	code     string
 	email    string
 	username string
+	token    keybase1.BotToken
 }
 
 func NewCmdBotSignupRunner(g *libkb.GlobalContext) *CmdBotSignup {
@@ -56,18 +61,22 @@ func NewCmdBotSignupRunner(g *libkb.GlobalContext) *CmdBotSignup {
 func (s *CmdBotSignup) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
 	if nargs != 0 {
-		err = BadArgsError{"Signup doesn't take arguments."}
+		return BadArgsError{"Signup doesn't take arguments."}
 	}
 
 	s.username = ctx.String("username")
 	if len(s.username) == 0 {
 		return BadArgsError{"must supply a username"}
 	}
+	s.token, err = keybase1.NewBotToken(ctx.String("token"))
+	if err != nil {
+		return BadArgsError{"bad bot token"}
+	}
 
 	s.code = ctx.String("invite-code")
 	s.email = ctx.String("email")
 
-	return err
+	return nil
 }
 
 func (s *CmdBotSignup) Run() (err error) {
@@ -82,7 +91,7 @@ func (s *CmdBotSignup) Run() (err error) {
 		RandomPw:    true,
 		StoreSecret: false,
 		SkipMail:    false,
-		Bot:         true,
+		BotToken:    s.token,
 		GenPGPBatch: false,
 		GenPaper:    false,
 		SkipGPG:     true,

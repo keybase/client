@@ -173,7 +173,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
         'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
       },
       params: {
-        bot: false,
+        botToken: '',
         deviceName: devicename,
         deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
         email: '',

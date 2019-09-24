@@ -1132,7 +1132,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.signup.signup': {
-    inParam: {readonly email: String; readonly inviteCode: String; readonly passphrase: String; readonly username: String; readonly deviceName: String; readonly deviceType: DeviceType; readonly storeSecret: Boolean; readonly skipMail: Boolean; readonly genPGPBatch: Boolean; readonly genPaper: Boolean; readonly randomPw: Boolean; readonly verifyEmail: Boolean; readonly bot: Boolean; readonly skipGPG: Boolean}
+    inParam: {readonly email: String; readonly inviteCode: String; readonly passphrase: String; readonly username: String; readonly deviceName: String; readonly deviceType: DeviceType; readonly storeSecret: Boolean; readonly skipMail: Boolean; readonly genPGPBatch: Boolean; readonly genPaper: Boolean; readonly randomPw: Boolean; readonly verifyEmail: Boolean; readonly botToken: BotToken; readonly skipGPG: Boolean}
     outParam: SignupRes
   }
   'keybase.1.streamUi.close': {
@@ -2378,6 +2378,8 @@ export type BlockRefNonce = string | null
 export type BlockReference = {readonly bid: BlockIdCombo; readonly nonce: BlockRefNonce; readonly chargedTo: UserOrTeamID}
 export type BlockReferenceCount = {readonly ref: BlockReference; readonly liveCount: Int}
 export type BootstrapStatus = {readonly registered: Boolean; readonly loggedIn: Boolean; readonly uid: UID; readonly username: String; readonly deviceID: DeviceID; readonly deviceName: String; readonly fullname: FullName; readonly userReacjis: UserReacjis; readonly httpSrvInfo?: HttpSrvInfo | null}
+export type BotToken = String
+export type BotTokenInfo = {readonly token: BotToken; readonly ctime: Time}
 export type BoxAuditAttempt = {readonly ctime: UnixTime; readonly error?: String | null; readonly result: BoxAuditAttemptResult; readonly generation?: PerTeamKeyGeneration | null; readonly rotated: Boolean}
 export type BoxNonce = string | null
 export type BoxPublicKey = string | null
@@ -3344,6 +3346,9 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.block.getUserQuotaInfo'
 // 'keybase.1.block.getTeamQuotaInfo'
 // 'keybase.1.block.blockPing'
+// 'keybase.1.bot.botTokenList'
+// 'keybase.1.bot.botTokenCreate'
+// 'keybase.1.bot.botTokenDelete'
 // 'keybase.1.BTC.registerBTC'
 // 'keybase.1.config.getCurrentStatus'
 // 'keybase.1.config.getClientStatus'
