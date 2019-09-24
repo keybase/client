@@ -228,7 +228,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		DiskCacheMode:                  DiskCacheModeLocal,
 		DiskBlockCacheFraction:         0.10,
 		SyncBlockCacheFraction:         1.00,
-		Mode:                           InitDefaultString,
+		Mode:                           "",
 	}
 }
 
@@ -623,7 +623,23 @@ func doInit(
 	ctx = CtxWithRandomIDReplayable(ctx, CtxInitKey, CtxInitID, log)
 
 	mode := InitDefault
-	switch params.Mode {
+
+	// Use the KBFS mode from the config file if none is provided on
+	// the command line.
+	modeString := params.Mode
+	if modeString == "" {
+		config := kbCtx.GetEnv().GetConfig()
+		configModeString, ok := config.GetStringAtPath("kbfs.mode")
+		if ok {
+			log.CDebugf(
+				ctx, "Using mode from config file: %s", configModeString)
+			modeString = configModeString
+		} else {
+			modeString = InitDefaultString
+		}
+	}
+
+	switch modeString {
 	case InitDefaultString:
 		log.CDebugf(ctx, "Initializing in default mode")
 		// Already the default

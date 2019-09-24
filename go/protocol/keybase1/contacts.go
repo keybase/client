@@ -100,9 +100,8 @@ func (o ProcessedContact) DeepCopy() ProcessedContact {
 }
 
 type LookupContactListArg struct {
-	SessionID      int        `codec:"sessionID" json:"sessionID"`
-	Contacts       []Contact  `codec:"contacts" json:"contacts"`
-	UserRegionCode RegionCode `codec:"userRegionCode" json:"userRegionCode"`
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Contacts  []Contact `codec:"contacts" json:"contacts"`
 }
 
 type SaveContactListArg struct {

@@ -126,15 +126,10 @@ const OnboardingOrWallets = Container.namedConnect(
 )(_OnboardingOrWallets)
 
 export const newRoutes = {
-  walletsRoot: {
-    getScreen: () => {
-      if (isMobile) {
-        return require('./wallet/container').default
-      } else {
-        return OnboardingOrWallets
-      }
-    },
-  },
+  walletsRoot: isMobile
+    ? {getScreen: () => require('./wallet/container').default}
+    : // MUST use screen and not getScreen for subnavs!
+      {screen: OnboardingOrWallets},
   ...sharedRoutes, // these are valid inside AND outside the subnav
 }
 

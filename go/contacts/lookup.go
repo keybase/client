@@ -11,7 +11,7 @@ import (
 )
 
 func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailAddress,
-	phoneNumberContacts []keybase1.RawPhoneNumber, userRegionCode keybase1.RegionCode, token Token) (res ContactLookupResults, err error) {
+	phoneNumberContacts []keybase1.RawPhoneNumber, token Token) (res ContactLookupResults, err error) {
 
 	type lookupArg struct {
 		Email       string `json:"e,omitempty"`
@@ -40,9 +40,6 @@ func BulkLookupContacts(mctx libkb.MetaContext, emailsContacts []keybase1.EmailA
 	payload["contacts"] = lookups
 	payload["token"] = token
 	payload["supports_tokens"] = 1
-	if !userRegionCode.IsNil() {
-		payload["user_region_code"] = userRegionCode
-	}
 
 	arg := libkb.APIArg{
 		Endpoint:    "contacts/lookup",

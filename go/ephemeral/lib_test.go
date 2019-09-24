@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/url"
@@ -409,7 +408,7 @@ func TestLoginOneshotWithEphemeral(t *testing.T) {
 	err := engine.RunEngine2(mctx, eng)
 	require.NoError(t, err)
 	require.NotZero(t, len(eng.Passphrase()))
-	require.NoError(t, tc.G.Logout(context.TODO()))
+	require.NoError(t, tc.Logout())
 
 	keygenWithOneshot := func() (keybase1.DeviceEk, keybase1.UserEk, keybase1.TeamEphemeralKey) {
 		tc := libkb.SetupTest(t, "ephemeral", 2)

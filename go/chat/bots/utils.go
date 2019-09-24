@@ -94,12 +94,16 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 	if !botSettings.Cmds {
 		return false, nil
 	}
+	unn, err := g.GetUPAKLoader().LookupUsername(ctx, keybase1.UID(botUID.String()))
+	if err != nil {
+		return false, err
+	}
 	cmds, err := g.BotCommandManager.ListCommands(ctx, conv.GetConvID())
 	if err != nil {
 		return false, nil
 	}
 	for _, cmd := range cmds {
-		if strings.HasPrefix(matchText, fmt.Sprintf("!%s", cmd.Name)) {
+		if unn.String() == cmd.Username && strings.HasPrefix(matchText, fmt.Sprintf("!%s", cmd.Name)) {
 			return true, nil
 		}
 	}

@@ -47,12 +47,6 @@ protocol login {
     */
   void loginWithPaperKey(int sessionID, string username);
 
-  /**
-    Removes any existing stored secret for the given username.
-    loginWithStoredSecret(_, username) will fail after this is called.
-    */
-  void clearStoredSecret(int sessionID, string username);
-
   void logout(int sessionID);
   void deprovision(int sessionID, string username, boolean doRevoke);
 

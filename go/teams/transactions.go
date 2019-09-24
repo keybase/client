@@ -191,7 +191,6 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 	case keybase1.TeamRole_OWNER:
 		payload.Owners = appendToInviteList(invite, payload.Owners)
 	default:
-		// TODO HOTPOT-460 add support for BOT invites
 		return fmt.Errorf("invalid role for invite %v", role)
 	}
 	return nil

@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -22,11 +23,20 @@ func (m MockBotCommandManager) ListCommands(context.Context, chat1.ConversationI
 	return mockCmdOutput, nil
 }
 
+type mockUPAKLoader struct {
+	libkb.UPAKLoader
+}
+
+func (m mockUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
+	return libkb.NewNormalizedUsername("botua"), nil
+}
+
 func TestApplyTeamBotSettings(t *testing.T) {
 	tc := externalstest.SetupTest(t, "chat-utils", 0)
 	defer tc.Cleanup()
 
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	tc.G.OverrideUPAKLoader(mockUPAKLoader{})
 	debugLabeler := utils.NewDebugLabeler(g.GetLog(), "ApplyTeamBotSettings", false)
 	ctx := context.TODO()
 	convID := chat1.ConversationID([]byte("conv"))
@@ -120,7 +130,8 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	g.BotCommandManager = &MockBotCommandManager{}
 	mockCmdOutput = []chat1.UserBotCommandOutput{
 		{
-			Name: "status",
+			Name:     "status",
+			Username: "botua",
 		},
 	}
 	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{

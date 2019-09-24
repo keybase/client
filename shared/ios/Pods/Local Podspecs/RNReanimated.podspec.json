@@ -1,6 +1,6 @@
 {
   "name": "RNReanimated",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "summary": "More powerful alternative to Animated library for React Native.",
   "description": "RNReanimated",
   "homepage": "https://github.com/kmagiera/react-native-reanimated",
@@ -13,7 +13,7 @@
   },
   "source": {
     "git": "https://github.com/kmagiera/react-native-reanimated.git",
-    "tag": "1.0.1"
+    "tag": "1.1.0"
   },
   "source_files": "ios/**/*.{h,m}",
   "requires_arc": true,

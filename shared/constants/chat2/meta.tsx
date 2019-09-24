@@ -462,7 +462,7 @@ const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin && commands.builtin) {
+  if (commands.typ === RPCChatTypes.ConversationCommandGroupsTyp.builtin) {
     return state.chat2.staticConfig
       ? state.chat2.staticConfig.builtinCommands[commands.builtin]
       : blankCommands
@@ -473,7 +473,7 @@ export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
 
 export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {botCommands} = getMeta(state, id)
-  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom && botCommands.custom) {
+  if (botCommands.typ === RPCChatTypes.ConversationCommandGroupsTyp.custom) {
     return botCommands.custom.commands || blankCommands
   } else {
     return blankCommands
@@ -493,17 +493,14 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   )
 }
 
-export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
-  const isError = meta.trustedState === 'error'
+export const getRowStyles = (isSelected: boolean, hasUnread: boolean) => {
   const backgroundColor = isSelected
     ? globalColors.blue
     : isMobile
     ? globalColors.fastBlank
     : globalColors.blueGrey
   const showBold = !isSelected && hasUnread
-  const subColor: AllowedColors = isError
-    ? globalColors.redDark
-    : isSelected
+  const subColor: AllowedColors = isSelected
     ? globalColors.white
     : hasUnread
     ? globalColors.black

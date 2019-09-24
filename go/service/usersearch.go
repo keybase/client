@@ -310,7 +310,7 @@ func (h *UserSearchHandler) imptofuSearch(mctx libkb.MetaContext, arg keybase1.U
 		return nil, fmt.Errorf("unexpected service=%q in imptofuSearch", arg.Service)
 	}
 
-	lookupRes, err := h.contactsProvider.LookupAll(mctx, emails, phones, keybase1.RegionCode(""))
+	lookupRes, err := h.contactsProvider.LookupAll(mctx, emails, phones)
 	if err != nil {
 		return nil, err
 	}

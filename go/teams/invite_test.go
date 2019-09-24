@@ -57,6 +57,8 @@ func TestObsoletingInvites1(t *testing.T) {
 	require.Equal(t, 0, len(members.Admins))
 	require.Equal(t, 1, len(members.Writers))
 	require.Equal(t, 0, len(members.Readers))
+	require.Equal(t, 0, len(members.Bots))
+	require.Equal(t, 0, len(members.RestrictedBots))
 }
 
 func TestObsoletingInvites2(t *testing.T) {
@@ -80,7 +82,7 @@ func setupPuklessInviteTest(t *testing.T) (tc libkb.TestContext, owner, other *k
 	tc.Tp.SkipSendingSystemChatMessages = true
 	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	tc.Tp.DisableUpgradePerUserKey = false
@@ -106,7 +108,7 @@ func TestKeybaseInviteAfterReset(t *testing.T) {
 	require.True(t, res.Invited)
 
 	// Reset account, should now have EldestSeqno=0
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, other.Login(tc.G))
 	kbtest.ResetAccount(tc, other)

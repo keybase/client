@@ -168,7 +168,7 @@ func TestShowcasePermissions(t *testing.T) {
 	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = user.Login(tc.G)
 	require.NoError(t, err)
@@ -224,7 +224,7 @@ func TestShowcaseAnyMember(t *testing.T) {
 	_, err = AddMember(context.TODO(), tc.G, team, user.Username, keybase1.TeamRole_READER, nil)
 	require.NoError(t, err)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = user.Login(tc.G)
 	require.NoError(t, err)

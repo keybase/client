@@ -103,12 +103,6 @@
     },
     {
       "type": "record",
-      "name": "RegionCode",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "LinkID",
       "fields": [],
       "typedef": "string"

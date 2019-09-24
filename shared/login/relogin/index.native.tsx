@@ -122,7 +122,7 @@ const styles = Styles.styleSheetCreate(
       container: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.fastBlank,
         flex: 1,
       },
       deviceNotSecureContainer: {

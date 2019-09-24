@@ -1,0 +1,31 @@
+{
+  "name": "RNFastImage",
+  "version": "7.0.2",
+  "summary": "🚩 FastImage, performant React Native image component.",
+  "authors": {
+    "Dylan Vann": "dylan@dylanvann.com"
+  },
+  "homepage": "https://github.com/DylanVann/react-native-fast-image#readme",
+  "license": "MIT",
+  "platforms": {
+    "ios": "8.0",
+    "tvos": "9.0"
+  },
+  "frameworks": "UIKit",
+  "requires_arc": true,
+  "source": {
+    "git": "https://github.com/DylanVann/react-native-fast-image.git"
+  },
+  "source_files": "ios/**/*.{h,m}",
+  "dependencies": {
+    "React": [
+
+    ],
+    "SDWebImage": [
+      "~> 5.0"
+    ],
+    "SDWebImageWebPCoder": [
+      "~> 0.2.3"
+    ]
+  }
+}

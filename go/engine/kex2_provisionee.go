@@ -627,7 +627,7 @@ func (e *Kex2Provisionee) saveConfig(m libkb.MetaContext, uv keybase1.UserVersio
 		deviceName = *e.device.Description
 	}
 
-	return m.SwitchUserNewConfigActiveDevice(uv, libkb.NewNormalizedUsername(e.username), e.salt, e.device.ID, e.eddsa, e.dh, deviceName)
+	return m.SwitchUserNewConfigActiveDevice(uv, libkb.NewNormalizedUsername(e.username), e.salt, e.device.ID, e.eddsa, e.dh, deviceName, libkb.KeychainModeOS)
 }
 
 func (e *Kex2Provisionee) SigningKey() (libkb.GenericKey, error) {

@@ -19,7 +19,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	context "golang.org/x/net/context"
 )
@@ -229,7 +228,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 			}
 			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
 				conv.Info.Triple.Tlfid,
-				conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+				headerQ.TlfName); err != nil {
 				return err
 			} else if info.CanonicalName != teamNameParsed.String() {
 				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
@@ -857,20 +857,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	}
 
 	// Fetch the bot settings, if any
-	teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
-	if err != nil {
-		// If we fail here the conversation could be a IMPTEAMUPGRADE conv that
-		// used the old KBFS tlfID, so we short circuit.
-		return nil, nil
-	}
-	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: msg.ClientHeader.TlfPublic,
-	})
-	if err != nil {
-		return nil, err
-	}
-	teamBotSettings, err := team.TeamBotSettings()
+	teamBotSettings, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).TeamBotSettings(ctx,
+		conv.Info.TlfName, conv.Info.Triple.Tlfid, conv.GetMembersType(), conv.IsPublic())
 	if err != nil {
 		return nil, err
 	}

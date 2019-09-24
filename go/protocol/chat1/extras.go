@@ -59,6 +59,21 @@ func (id TLFID) IsNil() bool {
 	return len(id) == 0
 }
 
+func (id TLFID) IsTeamID() bool {
+	if len(id) != keybase1.TEAMID_LEN {
+		return false
+	}
+	switch id[len(id)-1] {
+	case keybase1.TEAMID_PRIVATE_SUFFIX,
+		keybase1.TEAMID_PUBLIC_SUFFIX,
+		keybase1.SUB_TEAMID_PRIVATE_SUFFIX,
+		keybase1.SUB_TEAMID_PUBLIC_SUFFIX:
+		return true
+	default:
+		return false
+	}
+}
+
 func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }

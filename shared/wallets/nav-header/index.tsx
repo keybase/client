@@ -99,7 +99,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
-          marginTop: -Styles.globalMargins.xtiny,
+          marginTop: -Styles.globalMargins.xxtiny,
         },
       }),
       gear: {

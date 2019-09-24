@@ -52,11 +52,6 @@ protocol Common {
   @typedef("string")
   record RawPhoneNumber {}
 
-  // 2-letter country region code
-  // Used for phone number and email assertions
-  @typedef("string")
-  record RegionCode {}
-
   // Chain link IDs
   @typedef("string")
   record LinkID {}

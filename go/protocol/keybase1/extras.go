@@ -2853,10 +2853,6 @@ func (a BoxAuditAttempt) String() string {
 	return ret
 }
 
-func (r RegionCode) IsNil() bool {
-	return len(r) == 0
-}
-
 func (c ContactComponent) ValueString() string {
 	switch {
 	case c.Email != nil:
@@ -3061,6 +3057,32 @@ func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
 	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
 }
 
+func (d *HiddenTeamChain) PopulateLastFull() {
+	if d == nil {
+		return
+	}
+	if d.LastFull != Seqno(0) {
+		return
+	}
+	for i := Seqno(1); i <= d.Last; i++ {
+		_, found := d.Inner[i]
+		if !found {
+			break
+		}
+		d.LastFull = i
+	}
+}
+
+func (d *HiddenTeamChain) LastFullPopulateIfUnset() Seqno {
+	if d == nil {
+		return Seqno(0)
+	}
+	if d.LastFull == Seqno(0) {
+		d.PopulateLastFull()
+	}
+	return d.LastFull
+}
+
 func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err error) {
 
 	for seqno, link := range newData.Outer {
@@ -3086,6 +3108,12 @@ func (d *HiddenTeamChain) Merge(newData HiddenTeamChain) (updated bool, err erro
 		d.Inner[q] = i
 		if ptk, ok := i.Ptk[PTKType_READER]; ok {
 			d.ReaderPerTeamKeys[ptk.Ptk.Gen] = q
+		}
+
+		// If we previously loaded full links up to d.LastFull, but this is d.LastFull+1,
+		// then we can safely bump the pointer one foward.
+		if q == d.LastFull+Seqno(1) {
+			d.LastFull = q
 		}
 		updated = true
 	}
@@ -3127,6 +3155,7 @@ func (h HiddenTeamChain) HasSeqno(s Seqno) bool {
 func NewHiddenTeamChain(id TeamID) *HiddenTeamChain {
 	return &HiddenTeamChain{
 		Id:                id,
+		Subversion:        1, // We are now on Version 1.1
 		LastPerTeamKeys:   make(map[PTKType]Seqno),
 		ReaderPerTeamKeys: make(map[PerTeamKeyGeneration]Seqno),
 		Outer:             make(map[Seqno]LinkID),

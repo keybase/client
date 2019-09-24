@@ -72,7 +72,7 @@ func TestRotateWithBots(t *testing.T) {
 	err = SetRoleRestrictedBot(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamBotSettings{})
 	require.NoError(t, err)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherA.Login(tc.G))
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
@@ -86,7 +86,7 @@ func TestRotateWithBots(t *testing.T) {
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 	require.Error(t, err)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherB.Login(tc.G))
 	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
@@ -101,7 +101,7 @@ func TestRotateWithBots(t *testing.T) {
 	err = team.Rotate(context.TODO(), keybase1.RotationType_VISIBLE)
 	require.IsType(t, libkb.NotFoundError{}, err)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, owner.Login(tc.G))
 	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
@@ -110,7 +110,7 @@ func TestRotateWithBots(t *testing.T) {
 	require.NoError(t, err)
 
 	// otherA has 2 seeds
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherA.Login(tc.G))
 	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
@@ -119,7 +119,7 @@ func TestRotateWithBots(t *testing.T) {
 	require.Len(t, after.Data.PerTeamKeySeedsUnverified, 2)
 
 	// otherB has none
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherB.Login(tc.G))
 	after, err = GetForTestByStringName(context.TODO(), tc.G, name)
@@ -143,7 +143,7 @@ func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestCon
 	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 	usernames = append(usernames, other.Username)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
@@ -290,7 +290,7 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	// after the rotate
 
 	// switch to `otherA` user
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherA.Login(tc.G))
 
@@ -354,7 +354,7 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 
 	otherC, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	t.Logf("Created team %q", name)
@@ -397,14 +397,14 @@ func testRotateTeamSweeping(t *testing.T, open bool) {
 	// Reset otherA (writer) and otherB (admin). otherA should be
 	// removed if the team is open.
 	for _, u := range []*kbtest.FakeUser{otherA, otherB} {
-		err := tc.G.Logout(context.TODO())
+		err := tc.Logout()
 		require.NoError(t, err)
 		require.NoError(t, u.Login(tc.G))
 
 		kbtest.ResetAccount(tc, u)
 	}
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
@@ -477,13 +477,13 @@ func TestRotateWithBadUIDs(t *testing.T) {
 	require.NoError(t, SetRoleAdmin(context.Background(), tc.G, name, otherB.Username))
 
 	// Logout and reset (admin member).
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherB.Login(tc.G))
 	kbtest.ResetAccount(tc, otherB)
 
 	// Re-login as owner, simulate CLKR message.
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
@@ -532,7 +532,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 
 	otherC, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, owner.Login(tc.G))
 
@@ -555,7 +555,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 	}
 
 	for _, u := range []*kbtest.FakeUser{otherA, otherB, otherC} {
-		err := tc.G.Logout(context.TODO())
+		err := tc.Logout()
 		require.NoError(t, err)
 		require.NoError(t, u.Login(tc.G))
 
@@ -573,7 +573,7 @@ func TestRotateResetMultipleUsers(t *testing.T) {
 			})
 	}
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
@@ -610,14 +610,14 @@ func TestRotateResetSweepWithWriter(t *testing.T) {
 	require.NoError(t, SetRoleWriter(context.Background(), tc.G, name, otherB.Username))
 
 	// Login as otherB, reset account.
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherB.Login(tc.G))
 	kbtest.ResetAccount(tc, otherB)
 
 	// Login as otherA (writer), simulate CLKR with info about reset
 	// otherB.
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherA.Login(tc.G))
 
@@ -691,7 +691,7 @@ func TestRotateAsSubteamWriter(t *testing.T) {
 	// otherB should now be a writer
 	assertRole(tc, sub, otherB.Username, keybase1.TeamRole_WRITER)
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherB.Login(tc.G))
 
@@ -716,13 +716,13 @@ func TestDowngradeImplicitAdminAfterReset(t *testing.T) {
 	require.NoError(t, err)
 
 	// Reset and reprovision implicit admin
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherA.Login(tc.G))
 	kbtest.ResetAccount(tc, otherA)
 	require.NoError(t, otherA.Login(tc.G))
 
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, owner.Login(tc.G))
 
@@ -829,14 +829,14 @@ func TestOpenSweepHandler(t *testing.T) {
 	otherBUV := otherB.User.ToUserVersion()
 
 	// Login as otherB, reset account.
-	err := tc.G.Logout(context.TODO())
+	err := tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherB.Login(tc.G))
 	kbtest.ResetAccount(tc, otherB)
 
 	// Login as owner, try to simulate OPENSWEEP, should fail because it's a
 	// closed team.
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, owner.Login(tc.G))
 
@@ -868,7 +868,7 @@ func TestOpenSweepHandler(t *testing.T) {
 
 	// Login as otherA (writer), simulate OPENSWEEP, should fail
 	// because it only works with admins.
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, otherA.Login(tc.G))
 
@@ -876,7 +876,7 @@ func TestOpenSweepHandler(t *testing.T) {
 	require.Error(t, err)
 
 	// Back to owner, should work now.
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	require.NoError(t, owner.Login(tc.G))
 

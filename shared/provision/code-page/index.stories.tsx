@@ -23,7 +23,7 @@ const derivedProps = (
     currentDeviceType,
     error: '',
     onBack: Sb.action('onBack'),
-    onHeyWait: Sb.action('onHeyWait'),
+    onClose: Sb.action('onClose'),
     onSubmitTextCode: Sb.action('onSubmitTextCode'),
     otherDeviceName,
     otherDeviceType,
