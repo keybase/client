@@ -38,7 +38,7 @@ export const TeamInviteRow = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {
-    padding: Styles.globalMargins.tiny,
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
   },
   usernameRole: {
     flex: 1,
