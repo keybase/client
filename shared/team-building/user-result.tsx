@@ -99,7 +99,7 @@ const UserResult = (props: Props) => {
   )
 }
 
-const avatarSize = Styles.isMobile ? 64 : 32
+const avatarSize = Styles.isMobile ? 48 : 32
 const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
 const dotSeparator = '•'
 
