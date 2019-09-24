@@ -6987,18 +6987,6 @@ func TestTeamBotSettings(t *testing.T) {
 			require.NoError(t, err)
 			pollForSeqno(3)
 
-			gilres, err := ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-				Query: &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{created.Id},
-				},
-			})
-			require.NoError(t, err)
-			require.Equal(t, 1, len(gilres.Conversations))
-			require.Equal(t, created.Id, gilres.Conversations[0].GetConvID())
-			gconv := gilres.Conversations[0]
-			require.NotNil(t, gconv.ReaderInfo)
-			require.Equal(t, keybase1.TeamRole_RESTRICTEDBOT, gconv.ReaderInfo.UntrustedTeamRole)
-
 			botSettings2 := keybase1.TeamBotSettings{
 				Mentions: true,
 			}
@@ -7012,18 +7000,6 @@ func TestTeamBotSettings(t *testing.T) {
 			})
 			require.NoError(t, err)
 			pollForSeqno(5)
-
-			gilres, err = ctc.as(t, users[2]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-				Query: &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{created.Id},
-				},
-			})
-			require.NoError(t, err)
-			require.Equal(t, 1, len(gilres.Conversations))
-			require.Equal(t, created.Id, gilres.Conversations[0].GetConvID())
-			gconv = gilres.Conversations[0]
-			require.NotNil(t, gconv.ReaderInfo)
-			require.Equal(t, keybase1.TeamRole_RESTRICTEDBOT, gconv.ReaderInfo.UntrustedTeamRole)
 
 			var unboxed chat1.UIMessage
 			consumeBotMessage := func(botUID *gregor1.UID, msgTyp chat1.MessageType, l *serverChatListener) {
