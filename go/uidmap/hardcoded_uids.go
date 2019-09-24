@@ -153,6 +153,10 @@ func checkUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUsername) bool
 	if !found.IsNil() {
 		return found.Eq(un)
 	}
-	computed := libkb.UsernameToUID(un.String())
+	typ, err := uid.ToUserType()
+	if err != nil {
+		return false
+	}
+	computed := libkb.UsernameToUID(un.String(), typ)
 	return computed.Equal(uid)
 }

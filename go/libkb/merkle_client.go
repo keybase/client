@@ -1431,7 +1431,7 @@ func parseMerkleTeamLeaf(m MetaContext, jw *jsonw.Wrapper, g *GlobalContext) (le
 }
 
 func (vp *VerificationPath) verifyUsername(m MetaContext, userInfo merkleUserInfoT) (username string, err error) {
-	if CheckUIDAgainstUsername(userInfo.uid, userInfo.username) == nil {
+	if CheckUIDAgainstUsernameAnyType(userInfo.uid, userInfo.username) == nil {
 		m.VLogf(VLog1, "| Username %s mapped to %s via direct hash", userInfo.username, userInfo.uid)
 		username = userInfo.username
 		return
@@ -1441,7 +1441,7 @@ func (vp *VerificationPath) verifyUsername(m MetaContext, userInfo merkleUserInf
 
 	if userInfo.usernameCased != userInfo.username && strings.ToLower(userInfo.usernameCased) == userInfo.username {
 		m.VLogf(VLog1, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
-		if CheckUIDAgainstCasedUsername(userInfo.uid, userInfo.usernameCased) == nil {
+		if CheckUIDAgainstCasedUsernameAnyType(userInfo.uid, userInfo.usernameCased) == nil {
 			m.VLogf(VLog1, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
 			username = userInfo.username
 			return

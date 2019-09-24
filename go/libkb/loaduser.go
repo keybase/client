@@ -654,21 +654,24 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 		return true
 	}
 
-	// We already took care of the bad username casing in the harcoded exception list above,
-	// so it's ok to treat the NormalizedUsername as a cased string.
-	uid := UsernameToUIDPreserveCase(un.String())
+	chk := func(t keybase1.UserType) bool {
+		// We already took care of the bad username casing in the harcoded exception list above,
+		// so it's ok to treat the NormalizedUsername as a cased string.
+		uid := UsernameToUIDPreserveCase(un.String(), t)
 
-	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
-	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
-	_, _, err := m.G().GetUPAKLoader().LoadV2(arg)
+		// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
+		arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
+		_, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 
-	if err == nil {
-		return true
+		if err == nil {
+			return true
+		}
+
+		if _, ok := err.(UserNotFoundError); !ok {
+			m.Debug("IsUserByUsernameOffline(%s,t) squashing error: %s", un.String(), t.String(), err)
+		}
+		return false
 	}
 
-	if _, ok := err.(UserNotFoundError); !ok {
-		m.Debug("IsUserByUsernameOffline(%s) squashing error: %s", un.String(), err)
-	}
-
-	return false
+	return chk(keybase1.UserType_HUMAN) || chk(keybase1.UserType_BOT)
 }

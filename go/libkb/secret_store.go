@@ -129,7 +129,7 @@ func GetConfiguredAccountsFromProvisionedUsernames(m MetaContext, s SecretStoreA
 	for idx, username := range allUsernames {
 		uid := m.G().UIDMapper.MapHardcodedUsernameToUID(username)
 		if !uid.Exists() {
-			uid = UsernameToUIDPreserveCase(username.String())
+			uid = UsernameToUIDPreserveCase(username.String(), keybase1.UserType_HUMAN)
 		}
 		uids[idx] = uid
 	}

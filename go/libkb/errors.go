@@ -1075,6 +1075,20 @@ func NewUIDMismatchError(m string) UIDMismatchError {
 
 //=============================================================================
 
+type BadUIDError struct {
+	Msg string
+}
+
+func NewBadUIDError(e error) error {
+	return BadUIDError{Msg: e.Error()}
+}
+
+func (b BadUIDError) Error() string {
+	return fmt.Sprintf("Bad UID: %s", b.Msg)
+}
+
+//=============================================================================
+
 type KeyRevokedError struct {
 	msg string
 }

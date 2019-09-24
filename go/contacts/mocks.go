@@ -25,7 +25,7 @@ type MockLookupUser struct {
 func MakeMockLookupUser(username, fullname string) MockLookupUser {
 	return MockLookupUser{
 		Username: username,
-		UID:      libkb.UsernameToUID(username),
+		UID:      libkb.UsernameToUID(username, keybase1.UserType_HUMAN),
 		Fullname: fullname,
 	}
 }

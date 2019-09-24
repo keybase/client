@@ -79,18 +79,30 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 		Endpoint: "signup",
 		Args:     postArgs,
 	})
-	if err == nil {
-		s.username = libkb.NewNormalizedUsername(arg.Username)
-		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uv.Uid, &err)
-		res.Body.AtKey("session").GetStringVoid(&s.session, &err)
-		res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
-		res.Body.AtPath("me.basics.passphrase_generation").GetIntVoid(&ppGenTmp, &err)
+	if err != nil {
+		return err
 	}
-	if err == nil {
-		err = libkb.CheckUIDAgainstUsername(s.uv.Uid, arg.Username)
-		s.ppGen = libkb.PassphraseGeneration(ppGenTmp)
+	s.username = libkb.NewNormalizedUsername(arg.Username)
+
+	libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uv.Uid, &err)
+	res.Body.AtKey("session").GetStringVoid(&s.session, &err)
+	res.Body.AtKey("csrf_token").GetStringVoid(&s.csrf, &err)
+	res.Body.AtPath("me.basics.passphrase_generation").GetIntVoid(&ppGenTmp, &err)
+	if err != nil {
+		return err
 	}
-	return err
+
+	typ := keybase1.UserType_HUMAN
+	if arg.BotToken.Exists() {
+		typ = keybase1.UserType_BOT
+	}
+	err = libkb.CheckUIDAgainstUsernameAndType(s.uv.Uid, arg.Username, typ)
+	if err != nil {
+		return err
+	}
+
+	s.ppGen = libkb.PassphraseGeneration(ppGenTmp)
+	return nil
 }
 
 type SignupJoinEngineRunRes struct {

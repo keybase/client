@@ -26,23 +26,23 @@ import (
 )
 
 const (
-	UID_LEN                       = 16
-	UID_SUFFIX                    = 0x00
-	UID_SUFFIX_2                  = 0x19
-	UID_SUFFIX_HEX                = "00"
-	UID_SUFFIX_2_HEX              = "19"
-	UID_SUFFIX_BOT                = 0x3a
-	UID_SUFFIX_BOT_HEX            = "3a"
-	TEAMID_LEN                    = 16
-	TEAMID_PRIVATE_SUFFIX         = 0x24
-	TEAMID_PRIVATE_SUFFIX_HEX     = "24"
-	TEAMID_PUBLIC_SUFFIX          = 0x2e
-	TEAMID_PUBLIC_SUFFIX_HEX      = "2e"
-	SUB_TEAMID_PRIVATE_SUFFIX     = 0x25
-	SUB_TEAMID_PRIVATE_SUFFIX_HEX = "25"
-	SUB_TEAMID_PUBLIC_SUFFIX      = 0x2f
-	SUB_TEAMID_PUBLIC_SUFFIX_HEX  = "2f"
-	PUBLIC_UID                    = "ffffffffffffffffffffffffffffff00"
+	UID_LEN                            = 16
+	UID_SUFFIX                    byte = 0x00
+	UID_SUFFIX_2                  byte = 0x19
+	UID_SUFFIX_HEX                     = "00"
+	UID_SUFFIX_2_HEX                   = "19"
+	UID_SUFFIX_BOT                byte = 0x3a
+	UID_SUFFIX_BOT_HEX                 = "3a"
+	TEAMID_LEN                         = 16
+	TEAMID_PRIVATE_SUFFIX         byte = 0x24
+	TEAMID_PRIVATE_SUFFIX_HEX          = "24"
+	TEAMID_PUBLIC_SUFFIX          byte = 0x2e
+	TEAMID_PUBLIC_SUFFIX_HEX           = "2e"
+	SUB_TEAMID_PRIVATE_SUFFIX     byte = 0x25
+	SUB_TEAMID_PRIVATE_SUFFIX_HEX      = "25"
+	SUB_TEAMID_PUBLIC_SUFFIX      byte = 0x2f
+	SUB_TEAMID_PUBLIC_SUFFIX_HEX       = "2f"
+	PUBLIC_UID                         = "ffffffffffffffffffffffffffffff00"
 )
 
 // UID for the special "public" user.
@@ -3461,4 +3461,24 @@ func NewBotToken(s string) (BotToken, error) {
 		return BotToken(""), errors.New("bad bot token")
 	}
 	return BotToken(s), nil
+}
+
+func (u UID) ToUserType() (ret UserType, err error) {
+
+	if u.IsNil() {
+		return ret, errors.New("cannot find usertype of empty UID")
+	}
+	b := u.ToBytes()
+	if b == nil || len(b) != UID_LEN {
+		return ret, errors.New("cannot find usertype of bad UID")
+	}
+	c := b[UID_LEN-1]
+	switch c {
+	case UID_SUFFIX, UID_SUFFIX_2:
+		return UserType_HUMAN, nil
+	case UID_SUFFIX_BOT:
+		return UserType_BOT, nil
+	default:
+		return ret, fmt.Errorf("unknown user type (suffix 0x%x)", c)
+	}
 }
