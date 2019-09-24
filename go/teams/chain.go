@@ -2321,6 +2321,10 @@ func (t *teamSigchainPlayer) parseTeamBotSettings(bots []SCTeamBot, newState *Te
 		if bot.Convs != nil {
 			convs = *bot.Convs
 		}
+		if newState.inner.Bots == nil {
+			// If an old client cached this as nil, then just make a new map here for this link
+			newState.inner.Bots = make(map[keybase1.UserVersion]keybase1.TeamBotSettings)
+		}
 		newState.inner.Bots[bot.Bot.ToUserVersion()] = keybase1.TeamBotSettings{
 			Cmds:     bot.Cmds,
 			Mentions: bot.Mentions,

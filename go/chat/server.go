@@ -186,7 +186,6 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	if err != nil {
 		return res, err
 	}
-
 	// Retry helpers
 	retryInboxLoad := func() {
 		h.G().FetchRetrier.Failure(ctx, uid, NewFullInboxRetry(h.G(), arg.Query, arg.Pagination))
@@ -387,6 +386,13 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
+	}
+	// Ignore these requests on mobile
+	if h.G().IsMobileAppType() && arg.Query != nil && arg.Query.TopicType != nil &&
+		*arg.Query.TopicType == chat1.TopicType_KBFSFILEEDIT {
+		return chat1.GetInboxAndUnboxLocalRes{
+			IdentifyFailures: identBreaks,
+		}, nil
 	}
 
 	// Read inbox from the source
@@ -1789,7 +1795,7 @@ func (h *Server) GetAllResetConvMembers(ctx context.Context) (res chat1.GetAllRe
 	if err != nil {
 		return res, err
 	}
-	p := &chat1.Pagination{Num: 1000}
+	p := &chat1.Pagination{Num: 10000}
 	for {
 		h.Debug(ctx, "GetAllResetConvMembers: p: %s", p)
 		ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, p)
@@ -1920,7 +1926,8 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 		Policy:      arg.Policy,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID, false)
+	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID,
+		false, "")
 	if err != nil {
 		return err
 	}
@@ -2543,7 +2550,7 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	}
 
 	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
-		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC, "")
 	if err != nil {
 		return err
 	}
@@ -2873,14 +2880,28 @@ func (h *Server) validateBotRole(ctx context.Context, role keybase1.TeamRole) er
 }
 
 func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.ConversationMembersType,
-	tlfName string, isPublic bool) (keybase1.TeamID, error) {
+	tlfName string, isPublic bool) (res keybase1.TeamID, err error) {
 
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupID(ctx, tlfName, isPublic)
-	if err != nil {
-		return "", err
+	switch membersType {
+	case chat1.ConversationMembersType_KBFS:
+		return res, errors.New("unable to find a team for KBFS conv")
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		nameInfo, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupID(ctx, tlfName, isPublic)
+		if err != nil {
+			return "", err
+		}
+		if membersType == chat1.ConversationMembersType_IMPTEAMUPGRADE {
+			team, err := NewTeamLoader(h.G().ExternalG()).loadTeam(ctx, nameInfo.ID, tlfName,
+				membersType, isPublic, nil)
+			if err != nil {
+				return res, err
+			}
+			return team.ID, nil
+		}
+		return keybase1.TeamIDFromString(nameInfo.ID.String())
 	}
-
-	return keybase1.TeamIDFromString(nameInfo.ID.String())
+	return res, fmt.Errorf("unknown members type: %v", membersType)
 }
 
 func (h *Server) fixupTeamErrorWithTLFName(ctx context.Context, username, tlfName string, err error) error {

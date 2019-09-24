@@ -87,6 +87,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow({
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
+        navKey: this.props.navKey,
         teamname: row.teamname,
         type: row.type,
       })
@@ -248,6 +249,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
+          {!!this.props.isLoading && (
+            <Kb.Box style={styles.loadingContainer}>
+              <Kb.LoadingLine />
+            </Kb.Box>
+          )}
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <InboxSearch header={HeadComponent} />
@@ -284,6 +290,13 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.fastBlank,
         flex: 1,
         position: 'relative',
+      },
+      loadingContainer: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: 1000,
       },
     } as const)
 )

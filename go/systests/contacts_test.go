@@ -163,10 +163,6 @@ func TestBulkLookupContacts(t *testing.T) {
 	pvv1 := tt.addUser("blpvv")
 	pvv1Number := addPhoneNumber(pvv1, keybase1.IdentityVisibility_PUBLIC, true)
 	pvv1NumberRaw := keybase1.RawPhoneNumber(pvv1Number)
-	// Someone with a verified visible phone number #2, without prefix
-	pvv2 := tt.addUser("blpvv")
-	pvv2Number := addPhoneNumber(pvv2, keybase1.IdentityVisibility_PUBLIC, true)
-	pvv2NumberRaw := keybase1.RawPhoneNumber(pvv2Number[2:])
 	// Someone with a verified private phone number
 	pvp := tt.addUser("blpvp")
 	pvpNumber := addPhoneNumber(pvp, keybase1.IdentityVisibility_PRIVATE, false)
@@ -192,12 +188,10 @@ func TestBulkLookupContacts(t *testing.T) {
 		},
 		[]keybase1.RawPhoneNumber{
 			pvv1NumberRaw,
-			pvv2NumberRaw,
 			pvpNumberRaw,
 			ppvNumberRaw,
 			randomNumber,
 		},
-		keybase1.RegionCode("US"),
 		contacts.NoneToken,
 	)
 	require.NoError(t, err)
@@ -214,7 +208,6 @@ tableLoop:
 		{contacts.MakeEmailLookupKey(epvEmail), false, false},
 		{contacts.MakeEmailLookupKey(randomEmail), false, false},
 		{contacts.MakePhoneLookupKey(pvv1NumberRaw), true, false},
-		{contacts.MakePhoneLookupKey(pvv2NumberRaw), true, true},
 		{contacts.MakePhoneLookupKey(pvpNumberRaw), false, false},
 		{contacts.MakePhoneLookupKey(ppvNumberRaw), false, false},
 		{contacts.MakeEmailLookupKey(randomNumber), false, false},

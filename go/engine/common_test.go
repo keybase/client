@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
-	context "golang.org/x/net/context"
 	"testing"
 )
 
@@ -317,7 +316,8 @@ func LoggedIn(tc libkb.TestContext) bool {
 }
 
 func Logout(tc libkb.TestContext) {
-	if err := tc.G.Logout(context.TODO()); err != nil {
+	mctx := libkb.NewMetaContextForTest(tc)
+	if err := mctx.Logout(); err != nil {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+/// Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 //
@@ -302,93 +302,6 @@ func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 func (g *GlobalContext) simulateServiceRestart() {
 	defer g.switchUserMu.Acquire(NewMetaContext(context.TODO(), g), "simulateServiceRestart")()
 	_ = g.ActiveDevice.Clear()
-}
-
-func (g *GlobalContext) Logout(ctx context.Context) (err error) {
-	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
-	defer mctx.Trace("GlobalContext#Logout", func() error { return err })()
-	return g.LogoutCurrentUserWithSecretKill(mctx, true /* killSecrets */)
-}
-
-func (g *GlobalContext) ClearStateForSwitchUsers(mctx MetaContext) (err error) {
-	return g.LogoutCurrentUserWithSecretKill(mctx, false /* killSecrets */)
-}
-
-func (g *GlobalContext) logoutSecretStore(mctx MetaContext, username NormalizedUsername, killSecrets bool) {
-	g.secretStoreMu.Lock()
-	defer g.secretStoreMu.Unlock()
-
-	if g.secretStore == nil || username.IsNil() {
-		return
-	}
-
-	if !killSecrets {
-		g.switchedUsers[username] = true
-		return
-	}
-
-	if err := g.secretStore.ClearSecret(mctx, username); err != nil {
-		mctx.Debug("clear stored secret error: %s", err)
-		return
-	}
-
-	// If this user had previously switched into his account and wound up in the
-	// g.switchedUsers map (see just above), then now it's fine to delete them,
-	// since they are deleted from the secret store successfully.
-	delete(g.switchedUsers, username)
-}
-
-func (g *GlobalContext) LogoutCurrentUserWithSecretKill(mctx MetaContext, killSecrets bool) error {
-	return g.LogoutUsernameWithSecretKill(mctx, mctx.ActiveDevice().Username(mctx), killSecrets)
-}
-
-func (g *GlobalContext) LogoutUsernameWithSecretKill(mctx MetaContext, username NormalizedUsername, killSecrets bool) (err error) {
-
-	defer g.switchUserMu.Acquire(mctx, "Logout")()
-
-	mctx.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, secretKill: %v)", username, killSecrets)
-
-	err = g.ActiveDevice.Clear()
-	if err != nil {
-		return err
-	}
-
-	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
-
-	mctx.Debug("+ GlobalContext#logoutWithSecretKill: calling logout hooks")
-	g.CallLogoutHooks(mctx)
-	mctx.Debug("- GlobalContext#logoutWithSecretKill: called logout hooks")
-
-	g.ClearPerUserKeyring()
-
-	// NB: This will acquire and release the cacheMu lock, so we have to make
-	// sure nothing holding a cacheMu ever looks for the switchUserMu lock.
-	g.FlushCaches()
-
-	g.logoutSecretStore(mctx, username, killSecrets)
-
-	// reload config to clear anything in memory
-	if err := g.ConfigReload(); err != nil {
-		mctx.Debug("Logout ConfigReload error: %s", err)
-	}
-
-	// send logout notification
-	g.NotifyRouter.HandleLogout(mctx.Ctx())
-
-	g.FeatureFlags.Clear()
-
-	g.IdentifyDispatch.OnLogout()
-
-	g.Identify3State.OnLogout()
-
-	err = g.GetUPAKLoader().OnLogout()
-	if err != nil {
-		return err
-	}
-
-	g.Pegboard.OnLogout(mctx)
-
-	return nil
 }
 
 // ConfigureLogging should be given non-nil Usage if called by the main
@@ -1252,48 +1165,6 @@ func (g *GlobalContext) GetDataDir() string {
 
 func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
-}
-
-// LogoutSelfCheck checks with the API server to see if this uid+device pair should
-// logout.
-func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
-	mctx := NewMetaContext(ctx, g)
-	uid := g.ActiveDevice.UID()
-	if uid.IsNil() {
-		mctx.Debug("LogoutSelfCheck: no uid")
-		return nil
-	}
-	deviceID := g.ActiveDevice.DeviceID()
-	if deviceID.IsNil() {
-		mctx.Debug("LogoutSelfCheck: no device id")
-		return nil
-	}
-
-	arg := APIArg{
-		Endpoint: "selfcheck",
-		Args: HTTPArgs{
-			"uid":       S{Val: uid.String()},
-			"device_id": S{Val: deviceID.String()},
-		},
-		SessionType: APISessionTypeREQUIRED,
-	}
-	res, err := g.API.Post(mctx, arg)
-	if err != nil {
-		return err
-	}
-
-	logout, err := res.Body.AtKey("logout").GetBool()
-	if err != nil {
-		return err
-	}
-
-	mctx.Debug("LogoutSelfCheck: should log out? %v", logout)
-	if logout {
-		mctx.Debug("LogoutSelfCheck: logging out...")
-		return g.Logout(mctx.Ctx())
-	}
-
-	return nil
 }
 
 func (g *GlobalContext) MakeAssertionContext(mctx MetaContext) AssertionContext {

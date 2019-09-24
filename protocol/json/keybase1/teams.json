@@ -735,6 +735,10 @@
         },
         {
           "type": "Seqno",
+          "name": "lastFull"
+        },
+        {
+          "type": "Seqno",
           "name": "latestSeqnoHint"
         },
         {

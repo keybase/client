@@ -15,7 +15,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	defer tc.Cleanup()
 
 	// owner is logged in and created teamName
-	err := tc.G.Logout(context.TODO())
+	err := tc.Logout()
 	require.NoError(t, err)
 
 	// u1 requests access to the team
@@ -36,7 +36,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	require.Equal(t, teamName, myReqs[0].String())
 
 	// owner lists requests, sees u1 request
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = owner.Login(tc.G)
 	require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	assertNoRequests(tc)
 
 	// u1 requests access to the team again
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	err = u1.Login(tc.G)
 	require.NoError(t, err)
@@ -69,7 +69,7 @@ func TestAccessRequestAccept(t *testing.T) {
 	if aerr.Code != libkb.SCTeamMemberExists {
 		t.Errorf("status code: %d, expected %d", aerr.Code, libkb.SCTeamMemberExists)
 	}
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	// owner lists requests, sees no requests
@@ -83,7 +83,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	defer tc.Cleanup()
 
 	// owner is logged in and created teamName
-	err := tc.G.Logout(context.TODO())
+	err := tc.Logout()
 	require.NoError(t, err)
 
 	// u1 requests access to the team
@@ -95,7 +95,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	}
 
 	// owner lists requests, sees u1 request
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -123,7 +123,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	assertNoRequests(tc)
 
 	// u1 requests access to the team again
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 	if err := u1.Login(tc.G); err != nil {
 		t.Fatal(err)
@@ -139,7 +139,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	if aerr.Code != libkb.SCTeamTarDuplicate {
 		t.Errorf("status code: %d, expected %d", aerr.Code, libkb.SCTeamTarDuplicate)
 	}
-	err = tc.G.Logout(context.TODO())
+	err = tc.Logout()
 	require.NoError(t, err)
 
 	// owner lists requests, sees no requests

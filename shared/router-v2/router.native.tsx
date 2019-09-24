@@ -4,12 +4,12 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Shared from './router.shared'
 import * as Shim from './shim.native'
+import * as Stack from 'react-navigation-stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
-import Stack from 'react-navigation-stack'
 import logger from '../logger'
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -44,7 +44,7 @@ const defaultNavigationOptions: any = {
     ),
   headerStyle: {
     get backgroundColor() {
-      return Styles.globalColors.white
+      return Styles.globalColors.fastBlank
     },
     get borderBottomColor() {
       return Styles.globalColors.black_10

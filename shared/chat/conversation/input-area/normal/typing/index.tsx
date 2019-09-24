@@ -1,65 +1,48 @@
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-const Names = ({names}: {names: I.Set<string>}) => {
+type Props = {
+  names: Set<string>
+}
+
+const Names = (props: Props) => {
   const textType = 'BodyTinySemibold'
-  let ret
-  switch (names.size) {
+  const names = [...props.names]
+
+  switch (names.length) {
     case 0:
-      ret = ''
-      break
+      return <></>
     case 1:
-      ret = (
+      return (
         <>
-          <Kb.Text key={0} type={textType}>
-            {names.first()}
-          </Kb.Text>
+          <Kb.Text type={textType}>{names[0]}</Kb.Text>
           {' is typing'}
         </>
       )
-      break
     case 2:
-      ret = (
+      return (
         <>
-          <Kb.Text key={0} type={textType}>
-            {names.first()}
-          </Kb.Text>
+          <Kb.Text type={textType}>{names[0]}</Kb.Text>
           {' and '}
-          <Kb.Text key={1} type={textType}>
-            {names.skip(1).first()}
-          </Kb.Text>
+          <Kb.Text type={textType}>{names[1]}</Kb.Text>
           {' are typing'}
         </>
       )
-      break
     case 3:
-      ret = (
+      return (
         <>
-          <Kb.Text key={0} type={textType}>
-            {names.first()}
-          </Kb.Text>
+          <Kb.Text type={textType}>{names[0]}</Kb.Text>
           {', '}
-          <Kb.Text key={1} type={textType}>
-            {names.skip(1).first()}
-          </Kb.Text>
+          <Kb.Text type={textType}>{names[1]}</Kb.Text>
           {', and '}
-          <Kb.Text key={1} type={textType}>
-            {names.skip(2).first()}
-          </Kb.Text>
+          <Kb.Text type={textType}>{names[2]}</Kb.Text>
           {' are typing'}
         </>
       )
-      break
     default:
-      ret = 'multiple people are typing'
+      return <>multiple people are typing</>
   }
-  return ret
-}
-
-type Props = {
-  names: I.Set<string>
 }
 
 export const Typing = (props: Props) => (
@@ -71,7 +54,7 @@ export const Typing = (props: Props) => (
     )}
     {props.names.size > 0 && (
       <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
-        <Names names={props.names} />
+        <Names {...props} />
       </Kb.Text>
     )}
   </Kb.Box>

@@ -120,10 +120,6 @@
             "type": "array",
             "items": "Contact"
           }
-        },
-        {
-          "name": "userRegionCode",
-          "type": "RegionCode"
         }
       ],
       "response": {

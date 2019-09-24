@@ -12,13 +12,14 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.MessagingStyle;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.app.Person;
-import android.support.v4.app.RemoteInput;
-import android.support.v4.graphics.drawable.IconCompat;
+
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationCompat.MessagingStyle;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.Person;
+import androidx.core.app.RemoteInput;
+import androidx.core.graphics.drawable.IconCompat;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -246,4 +247,3 @@ public class KBPushNotifier implements PushNotifier {
   }
 
 }
-

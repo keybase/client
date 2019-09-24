@@ -326,3 +326,59 @@ func TestHiddenRotateOtherFTLThenSlowLoad(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, team.Generation(), keybase1.PerTeamKeyGeneration(3))
 }
+
+// See Y2K-679, the scenario we are testing is:
+//
+//    visible[1] - root - PTK[1]
+//    visible[2] - add member
+//    hidden[1] - rotate - PTK[2]
+//    hidden[2] - rotate - PTK[3]
+//    hidden[3] - rotate - PTK[4]
+//    hidden[4] - rotate - PTK[5]
+//
+// Then we:
+//   - FTL generations 1,2,4 (leaving a hole at 3)
+//   - Full load the team with hidden_low=1 and low=0
+//
+func TestHiddenFTLHole(t *testing.T) {
+
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, teamID := createTeam2(*tcs[0])
+
+	ctx := context.TODO()
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(ctx, tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	rot := func(typ keybase1.RotationType) {
+		team, err := GetForTestByID(ctx, tcs[0].G, teamID)
+		require.NoError(t, err)
+		err = team.rotate(ctx, typ)
+		require.NoError(t, err)
+	}
+
+	t.Logf("U0 rotates the team 4x (via hidden)")
+	for i := 0; i < 4; i++ {
+		rot(keybase1.RotationType_HIDDEN)
+	}
+
+	mctx := libkb.NewMetaContextForTest(*tcs[1])
+	farg := keybase1.FastTeamLoadArg{
+		ID:           teamID,
+		Applications: []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{
+			keybase1.PerTeamKeyGeneration(1),
+			keybase1.PerTeamKeyGeneration(2),
+			keybase1.PerTeamKeyGeneration(4),
+		},
+	}
+	_, err = tcs[1].G.GetFastTeamLoader().Load(mctx, farg)
+	require.NoError(t, err)
+	team, err := Load(ctx, tcs[1].G, keybase1.LoadTeamArg{ID: teamID, Public: false, ForceRepoll: true})
+	require.NoError(t, err)
+	require.Equal(t, team.Generation(), keybase1.PerTeamKeyGeneration(5))
+}

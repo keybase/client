@@ -1,18 +1,18 @@
 PODS:
   - boost-for-react-native (1.63.0)
   - DoubleConversion (1.1.6)
-  - EXAppLoaderProvider (5.0.0)
+  - EXAppLoaderProvider (5.0.1)
   - EXBarCodeScanner (5.0.1):
     - UMCore
     - UMImageLoaderInterface
-  - EXConstants (5.0.0):
+  - EXConstants (5.0.1):
     - UMConstantsInterface
     - UMCore
-  - EXContacts (5.0.1):
+  - EXContacts (5.0.2):
     - UMCore
     - UMFileSystemInterface
     - UMPermissionsInterface
-  - EXFileSystem (5.0.0):
+  - EXFileSystem (5.0.1):
     - UMCore
     - UMFileSystemInterface
   - EXImagePicker (5.0.2):
@@ -21,117 +21,149 @@ PODS:
   - EXPermissions (5.0.1):
     - UMCore
     - UMPermissionsInterface
-  - EXSMS (5.0.0):
+  - EXSMS (5.0.1):
     - UMCore
     - UMPermissionsInterface
   - Folly (2018.10.22.00):
     - boost-for-react-native
     - DoubleConversion
+    - Folly/Default (= 2018.10.22.00)
+    - glog
+  - Folly/Default (2018.10.22.00):
+    - boost-for-react-native
+    - DoubleConversion
     - glog
   - glog (0.3.5)
-  - lottie-ios (2.5.0)
-  - lottie-react-native (2.6.1):
-    - lottie-ios (~> 2.5.0)
+  - libwebp (1.0.3):
+    - libwebp/demux (= 1.0.3)
+    - libwebp/mux (= 1.0.3)
+    - libwebp/webp (= 1.0.3)
+  - libwebp/demux (1.0.3):
+    - libwebp/webp
+  - libwebp/mux (1.0.3):
+    - libwebp/demux
+  - libwebp/webp (1.0.3)
+  - lottie-ios (3.0.3)
+  - lottie-react-native (3.1.0):
+    - lottie-ios (~> 3.0.3)
     - React
-  - React (0.59.10):
-    - React/Core (= 0.59.10)
-  - react-native-contacts (2.2.5):
-    - React
-  - react-native-fast-image (6.1.1):
-    - React
-    - SDWebImage (~> 5.0)
-  - react-native-netinfo (1.2.3):
-    - React
-  - react-native-video (4.4.1):
-    - React
-    - react-native-video/Video (= 4.4.1)
-  - react-native-video/Video (4.4.1):
-    - React
-  - react-native-webview (5.8.2):
-    - React
-  - React/Core (0.59.10):
-    - yoga (= 0.59.10.React)
-  - React/CxxBridge (0.59.10):
+  - React (0.60.5):
+    - React-Core (= 0.60.5)
+    - React-DevSupport (= 0.60.5)
+    - React-RCTActionSheet (= 0.60.5)
+    - React-RCTAnimation (= 0.60.5)
+    - React-RCTBlob (= 0.60.5)
+    - React-RCTImage (= 0.60.5)
+    - React-RCTLinking (= 0.60.5)
+    - React-RCTNetwork (= 0.60.5)
+    - React-RCTSettings (= 0.60.5)
+    - React-RCTText (= 0.60.5)
+    - React-RCTVibration (= 0.60.5)
+    - React-RCTWebSocket (= 0.60.5)
+  - React-Core (0.60.5):
     - Folly (= 2018.10.22.00)
-    - React/Core
-    - React/cxxreact
-    - React/jsiexecutor
-  - React/cxxreact (0.59.10):
+    - React-cxxreact (= 0.60.5)
+    - React-jsiexecutor (= 0.60.5)
+    - yoga (= 0.60.5.React)
+  - React-cxxreact (0.60.5):
     - boost-for-react-native (= 1.63.0)
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
-    - React/jsinspector
-  - React/DevSupport (0.59.10):
-    - React/Core
-    - React/RCTWebSocket
-  - React/fishhook (0.59.10)
-  - React/jsi (0.59.10):
+    - React-jsinspector (= 0.60.5)
+  - React-DevSupport (0.60.5):
+    - React-Core (= 0.60.5)
+    - React-RCTWebSocket (= 0.60.5)
+  - React-jsi (0.60.5):
+    - boost-for-react-native (= 1.63.0)
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
-  - React/jsiexecutor (0.59.10):
+    - React-jsi/Default (= 0.60.5)
+  - React-jsi/Default (0.60.5):
+    - boost-for-react-native (= 1.63.0)
     - DoubleConversion
     - Folly (= 2018.10.22.00)
     - glog
-    - React/cxxreact
-    - React/jsi
-  - React/jsinspector (0.59.10)
-  - React/RCTActionSheet (0.59.10):
-    - React/Core
-  - React/RCTAnimation (0.59.10):
-    - React/Core
-  - React/RCTBlob (0.59.10):
-    - React/Core
-  - React/RCTCameraRoll (0.59.10):
-    - React/Core
-    - React/RCTImage
-  - React/RCTGeolocation (0.59.10):
-    - React/Core
-  - React/RCTImage (0.59.10):
-    - React/Core
-    - React/RCTNetwork
-  - React/RCTLinkingIOS (0.59.10):
-    - React/Core
-  - React/RCTNetwork (0.59.10):
-    - React/Core
-  - React/RCTPushNotification (0.59.10):
-    - React/Core
-  - React/RCTSettings (0.59.10):
-    - React/Core
-  - React/RCTText (0.59.10):
-    - React/Core
-  - React/RCTWebSocket (0.59.10):
-    - React/Core
-    - React/fishhook
-    - React/RCTBlob
-  - rn-fetch-blob (0.10.6):
-    - React/Core
-  - RNGestureHandler (1.1.0):
+  - React-jsiexecutor (0.60.5):
+    - DoubleConversion
+    - Folly (= 2018.10.22.00)
+    - glog
+    - React-cxxreact (= 0.60.5)
+    - React-jsi (= 0.60.5)
+  - React-jsinspector (0.60.5)
+  - react-native-contacts (5.0.2):
     - React
-  - RNReanimated (1.0.1):
+  - react-native-geolocation (2.0.2):
     - React
-  - RNScreens (1.0.0-alpha.22):
+  - react-native-netinfo (4.1.3):
     - React
-  - SDWebImage (5.0.6):
-    - SDWebImage/Core (= 5.0.6)
-  - SDWebImage/Core (5.0.6)
-  - UMBarCodeScannerInterface (2.0.0)
-  - UMCameraInterface (2.0.0)
-  - UMConstantsInterface (2.0.0)
-  - UMCore (2.0.0)
-  - UMFaceDetectorInterface (2.0.0)
-  - UMFileSystemInterface (2.0.0)
-  - UMFontInterface (2.0.0)
-  - UMImageLoaderInterface (2.0.0)
-  - UMPermissionsInterface (2.0.0)
-  - UMReactNativeAdapter (2.0.0):
+  - react-native-video (4.4.4):
+    - React
+    - react-native-video/Video (= 4.4.4)
+  - react-native-video/Video (4.4.4):
+    - React
+  - react-native-webview (5.12.1):
+    - React
+  - React-RCTActionSheet (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTAnimation (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTBlob (0.60.5):
+    - React-Core (= 0.60.5)
+    - React-RCTNetwork (= 0.60.5)
+    - React-RCTWebSocket (= 0.60.5)
+  - React-RCTImage (0.60.5):
+    - React-Core (= 0.60.5)
+    - React-RCTNetwork (= 0.60.5)
+  - React-RCTLinking (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTNetwork (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTPushNotification (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTSettings (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTText (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTVibration (0.60.5):
+    - React-Core (= 0.60.5)
+  - React-RCTWebSocket (0.60.5):
+    - React-Core (= 0.60.5)
+  - rn-fetch-blob (0.10.16):
+    - React-Core
+  - RNFastImage (7.0.2):
+    - React
+    - SDWebImage (~> 5.0)
+    - SDWebImageWebPCoder (~> 0.2.3)
+  - RNGestureHandler (1.3.0):
+    - React
+  - RNReanimated (1.1.0):
+    - React
+  - RNScreens (1.0.0-alpha.23):
+    - React
+  - SDWebImage (5.1.1):
+    - SDWebImage/Core (= 5.1.1)
+  - SDWebImage/Core (5.1.1)
+  - SDWebImageWebPCoder (0.2.4):
+    - libwebp (~> 1.0)
+    - SDWebImage/Core (~> 5.0)
+  - UMBarCodeScannerInterface (2.0.1)
+  - UMCameraInterface (2.0.1)
+  - UMConstantsInterface (2.0.1)
+  - UMCore (2.0.1)
+  - UMFaceDetectorInterface (2.0.1)
+  - UMFileSystemInterface (2.0.1)
+  - UMFontInterface (2.0.1)
+  - UMImageLoaderInterface (2.0.1)
+  - UMPermissionsInterface (2.0.1)
+  - UMReactNativeAdapter (2.0.1):
     - React
     - UMCore
     - UMFontInterface
-  - UMSensorsInterface (2.0.0)
-  - UMTaskManagerInterface (2.0.0)
-  - yoga (0.59.10.React)
+  - UMSensorsInterface (2.0.1)
+  - UMTaskManagerInterface (2.0.1)
+  - yoga (0.60.5.React)
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -147,26 +179,31 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - React (from `../node_modules/react-native/`)
+  - React-Core (from `../node_modules/react-native/React`)
+  - React-cxxreact (from `../node_modules/react-native/ReactCommon/cxxreact`)
+  - React-DevSupport (from `../node_modules/react-native/React`)
+  - React-jsi (from `../node_modules/react-native/ReactCommon/jsi`)
+  - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
+  - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-contacts (from `../node_modules/react-native-contacts`)
-  - react-native-fast-image (from `../node_modules/react-native-fast-image`)
+  - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
-  - React/Core (from `../node_modules/react-native`)
-  - React/CxxBridge (from `../node_modules/react-native`)
-  - React/DevSupport (from `../node_modules/react-native`)
-  - React/RCTActionSheet (from `../node_modules/react-native`)
-  - React/RCTAnimation (from `../node_modules/react-native`)
-  - React/RCTCameraRoll (from `../node_modules/react-native`)
-  - React/RCTGeolocation (from `../node_modules/react-native`)
-  - React/RCTImage (from `../node_modules/react-native`)
-  - React/RCTLinkingIOS (from `../node_modules/react-native`)
-  - React/RCTNetwork (from `../node_modules/react-native`)
-  - React/RCTPushNotification (from `../node_modules/react-native`)
-  - React/RCTSettings (from `../node_modules/react-native`)
-  - React/RCTText (from `../node_modules/react-native`)
-  - React/RCTWebSocket (from `../node_modules/react-native`)
+  - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
+  - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
+  - React-RCTBlob (from `../node_modules/react-native/Libraries/Blob`)
+  - React-RCTImage (from `../node_modules/react-native/Libraries/Image`)
+  - React-RCTLinking (from `../node_modules/react-native/Libraries/LinkingIOS`)
+  - React-RCTNetwork (from `../node_modules/react-native/Libraries/Network`)
+  - React-RCTPushNotification (from `../node_modules/react-native/Libraries/PushNotificationIOS`)
+  - React-RCTSettings (from `../node_modules/react-native/Libraries/Settings`)
+  - React-RCTText (from `../node_modules/react-native/Libraries/Text`)
+  - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
+  - React-RCTWebSocket (from `../node_modules/react-native/Libraries/WebSocket`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
+  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
@@ -187,7 +224,9 @@ DEPENDENCIES:
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - boost-for-react-native
+    - libwebp
     - SDWebImage
+    - SDWebImageWebPCoder
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -225,19 +264,55 @@ EXTERNAL SOURCES:
   lottie-react-native:
     :path: "../node_modules/lottie-react-native"
   React:
-    :path: "../node_modules/react-native"
+    :path: "../node_modules/react-native/"
+  React-Core:
+    :path: "../node_modules/react-native/React"
+  React-cxxreact:
+    :path: "../node_modules/react-native/ReactCommon/cxxreact"
+  React-DevSupport:
+    :path: "../node_modules/react-native/React"
+  React-jsi:
+    :path: "../node_modules/react-native/ReactCommon/jsi"
+  React-jsiexecutor:
+    :path: "../node_modules/react-native/ReactCommon/jsiexecutor"
+  React-jsinspector:
+    :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-contacts:
     :path: "../node_modules/react-native-contacts"
-  react-native-fast-image:
-    :path: "../node_modules/react-native-fast-image"
+  react-native-geolocation:
+    :path: "../node_modules/@react-native-community/geolocation"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
+  React-RCTActionSheet:
+    :path: "../node_modules/react-native/Libraries/ActionSheetIOS"
+  React-RCTAnimation:
+    :path: "../node_modules/react-native/Libraries/NativeAnimation"
+  React-RCTBlob:
+    :path: "../node_modules/react-native/Libraries/Blob"
+  React-RCTImage:
+    :path: "../node_modules/react-native/Libraries/Image"
+  React-RCTLinking:
+    :path: "../node_modules/react-native/Libraries/LinkingIOS"
+  React-RCTNetwork:
+    :path: "../node_modules/react-native/Libraries/Network"
+  React-RCTPushNotification:
+    :path: "../node_modules/react-native/Libraries/PushNotificationIOS"
+  React-RCTSettings:
+    :path: "../node_modules/react-native/Libraries/Settings"
+  React-RCTText:
+    :path: "../node_modules/react-native/Libraries/Text"
+  React-RCTVibration:
+    :path: "../node_modules/react-native/Libraries/Vibration"
+  React-RCTWebSocket:
+    :path: "../node_modules/react-native/Libraries/WebSocket"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
+  RNFastImage:
+    :path: "../node_modules/react-native-fast-image"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNReanimated:
@@ -285,44 +360,64 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
-  EXAppLoaderProvider: aa94f26f982453a23c69f382d2f013c9904df79a
+  DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
+  EXAppLoaderProvider: 8f2c04a0a8d9be91f7c37c2b8824077ee5d4bc01
   EXBarCodeScanner: cf3ebfef605cec340474b1c049c084bd7dfe924b
-  EXConstants: f1d63f5bcf9a790fea747ceba6411b7814005191
-  EXContacts: cba6db9b4d8ef590c2185711a648fa32d90041b9
-  EXFileSystem: fd395ff6286bbcc355088f606116d094262b0463
+  EXConstants: 9fe56eec8bf0a3ee9beb8f3381fa91340a5b1e57
+  EXContacts: e1031c9104bfc7174445e81e6a3d5b7f58a4c542
+  EXFileSystem: 96624bd4b93a0684335c421a6567a92b25bd7ddb
   EXImagePicker: 80ebecae5905b1d642ef5b12a592cf8af9f051dc
   EXPermissions: 8e05008ed4fc8c9be6c17ea95301fc3f3f005a7b
-  EXSMS: a9b5c82b4f290271779270eb51e2c3be80ab9dff
-  Folly: de497beb10f102453a1afa9edbf8cf8a251890de
-  glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
-  lottie-ios: d699fdee68d7b63e721d949388b015fef1aaa4ac
-  lottie-react-native: 3d8181d43619b1fe804c828bd5a09d20fe8bdea7
-  React: 36d0768f9e93be2473b37e7fa64f92c1d5341eef
-  react-native-contacts: f6e5c518598762081ff9cf7c70db36f71668538e
-  react-native-fast-image: fdfc612dba58fd73136cf5efdaeb8cfcad7f63b2
-  react-native-netinfo: 8b18f11bd389677d79eca48a07cedd4b3cc10f15
-  react-native-video: 9aecbfc4628128838187df9d9c9f630670cfb1d1
-  react-native-webview: 45010be37680adba5ffb0e5a9e8822c6ca117049
-  rn-fetch-blob: 766f85cabd2992300dfa1be2bc9e4e258abc6f04
-  RNGestureHandler: b65d391f4f570178d657b99a16ec99d09b8656b0
-  RNReanimated: c8dd490ca98a4edcba229bfa49f2516c95a43afb
-  RNScreens: 720a9e6968beb73e8196239801e887d8401f86ed
-  SDWebImage: 920f1a2ff1ca8296ad34f6e0510a1ef1d70ac965
-  UMBarCodeScannerInterface: 1004fe3df1ca78c364e2e51e036f3a33c461e8e4
-  UMCameraInterface: 56a8a7251c944deba01c889eb9dc33664bf8a42d
-  UMConstantsInterface: a51e2c8fa14a87862676e2d31fcff8d45cb1801b
-  UMCore: cf541dae7040ed03ba0a9210bff5d94a3bcb800d
-  UMFaceDetectorInterface: 1a9ed63bbee97126b38f21039f85565db4787472
-  UMFileSystemInterface: 17f9b2934940d1b95ee131d9bf13b0d0f194d3a5
-  UMFontInterface: 56c10376fa62fe971afc76474461a04f8819b82b
-  UMImageLoaderInterface: 7c8f3a63ad23388d7c396c9ab5fb8a99c4f980c7
-  UMPermissionsInterface: 1d04595aa0da20732ce33d78f6f6c1cf6ebf51d6
-  UMReactNativeAdapter: 90b3418908718243f8073b297a116c52a7a0fe5a
-  UMSensorsInterface: d438f93649e5467cb60ab2667d81e46e800b188b
-  UMTaskManagerInterface: 796307812a43ec8e12130eeb8bdab5114a4a33cd
-  yoga: 684513b14b03201579ba3cee20218c9d1298b0cc
+  EXSMS: 7db2c4d285ed550c1b5cf2e4305c220edcfb58eb
+  Folly: 30e7936e1c45c08d884aa59369ed951a8e68cf51
+  glog: 1f3da668190260b06b429bb211bfbee5cd790c28
+  libwebp: 057912d6d0abfb6357d8bb05c0ea470301f5d61e
+  lottie-ios: 6037add6441183d4ffd100d2ac78724aa8d919d4
+  lottie-react-native: 86aeee2caa9250e4c8027ac75711a59c6679e532
+  React: 53c53c4d99097af47cf60594b8706b4e3321e722
+  React-Core: ba421f6b4f4cbe2fb17c0b6fc675f87622e78a64
+  React-cxxreact: 8384287780c4999351ad9b6e7a149d9ed10a2395
+  React-DevSupport: 197fb409737cff2c4f9986e77c220d7452cb9f9f
+  React-jsi: 4d8c9efb6312a9725b18d6fc818ffc103f60fec2
+  React-jsiexecutor: 90ad2f9db09513fc763bc757fdc3c4ff8bde2a30
+  React-jsinspector: e08662d1bf5b129a3d556eb9ea343a3f40353ae4
+  react-native-contacts: b08f96846ebd82f16c92c039b0da7a379067498a
+  react-native-geolocation: c956aeb136625c23e0dce0467664af2c437888c9
+  react-native-netinfo: e2c8a843bb18ab6c3f1e6cbead694491b36e3ffd
+  react-native-video: 8c49eca5a6087de968a05b340933b10e3b58169a
+  react-native-webview: 5036ed4a973ad1deeeff118262d2df7b60b3419d
+  React-RCTActionSheet: b0f1ea83f4bf75fb966eae9bfc47b78c8d3efd90
+  React-RCTAnimation: 359ba1b5690b1e87cc173558a78e82d35919333e
+  React-RCTBlob: 5e2b55f76e9a1c7ae52b826923502ddc3238df24
+  React-RCTImage: f5f1c50922164e89bdda67bcd0153952a5cfe719
+  React-RCTLinking: d0ecbd791e9ddddc41fa1f66b0255de90e8ee1e9
+  React-RCTNetwork: e26946300b0ab7bb6c4a6348090e93fa21f33a9d
+  React-RCTPushNotification: 2ae0eaa3e6ac639aae536e3608b0fc184a034645
+  React-RCTSettings: d0d37cb521b7470c998595a44f05847777cc3f42
+  React-RCTText: b074d89033583d4f2eb5faf7ea2db3a13c7553a2
+  React-RCTVibration: 2105b2e0e2b66a6408fc69a46c8a7fb5b2fdade0
+  React-RCTWebSocket: cd932a16b7214898b6b7f788c8bddb3637246ac4
+  rn-fetch-blob: 651b8d076b43d0d7aa294a3d9ec16c00aab8bef9
+  RNFastImage: 9b0c22643872bb7494c8d87bbbb66cc4c0d9e7a2
+  RNGestureHandler: 5329a942fce3d41c68b84c2c2276ce06a696d8b0
+  RNReanimated: 7a52c90473b5e81c13408d40d797b98387eaddde
+  RNScreens: f28b48b8345f2f5f39ed6195518291515032a788
+  SDWebImage: 96d7f03415ccb28d299d765f93557ff8a617abd8
+  SDWebImageWebPCoder: cc72085bb20368b2f8dbb21b7e355c667e1309b7
+  UMBarCodeScannerInterface: d5602e23de37f95bb4ee49ee3b2711e128058ae9
+  UMCameraInterface: dde8491778ed062348e569bad33a890e60c32c9d
+  UMConstantsInterface: de48a63a5af572fc4dcc0e68051b00503b83e301
+  UMCore: 047dc01ae4ccdd0c993f2c190f2489e5409c3ad0
+  UMFaceDetectorInterface: badd9e3d206f5ba254c85a26afa43da06638575f
+  UMFileSystemInterface: ff9a18c26ee6321dc21a3f9663efe3a55313d4db
+  UMFontInterface: 0575f33184974a38f3528a4750729c7f5256b848
+  UMImageLoaderInterface: ee8642347161d66272e841377a888957feb1f48e
+  UMPermissionsInterface: 2238fe9d7f99457a5cfe7f3140c2521c5bf453a6
+  UMReactNativeAdapter: 110be971ff044f8cfd37cbf565a264cd79858391
+  UMSensorsInterface: cda3ec177c7ff0a138e3135414b4a29013389358
+  UMTaskManagerInterface: 296793ab2a7e181fe5ebe2ba9b40ae208ab4b8fa
+  yoga: 312528f5bbbba37b4dcea5ef00e8b4033fdd9411
 
-PODFILE CHECKSUM: 90218e8e6c119afcddcb8ab5948231bdc58d0574
+PODFILE CHECKSUM: 5028a6caee580b89357363b99f37b40346bcefd2
 
-COCOAPODS: 1.7.3
+COCOAPODS: 1.7.5

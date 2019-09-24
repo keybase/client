@@ -24,6 +24,9 @@ def VERSION_NAME = "4.6.0"
  *   // the entry file for bundle generation
  *   entryFile: "index.android.js",
  *
+ *   // https://facebook.github.io/react-native/docs/performance#enable-the-ram-format
+ *   bundleCommand: "ram-bundle",
+ *
  *   // whether to bundle JS and assets in debug mode
  *   bundleInDebug: false,
  *
@@ -82,37 +85,48 @@ def VERSION_NAME = "4.6.0"
 project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
+    enableHermes: false,  // clean and rebuild if changing
 ]
 
 
 apply from: "../../node_modules/react-native/react.gradle"
 
 /**
- * Set this to true to create two separate APKs instead of one:
- *   - An APK that only works on ARM devices
- *   - An APK that only works on x86 devices
- * The advantage is the size of the APK is reduced by about 4MB.
- * Upload all the APKs to the Play Store and people will download
- * the correct one based on the CPU architecture of their device.
- */
-// KB: split it
-def enableSeparateBuildPerCPUArchitecture = true
-
-/**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
 def enableProguardInReleaseBuilds = false
 
-// KB: Returns minutes from January 1 2016
-def Integer timestamp() {
-    def minutesSinceEpoch = (new Date()).getTime()/(1000 * 60)
-    def cal = new GregorianCalendar()
-    cal.clear()
-    cal.set(2016,0,1)
-    def minutesJan2016 = cal.getTimeInMillis()/(1000 * 60)
+/** The preferred build flavor of JavaScriptCore.
+ *
+ * For example, to use the international variant, you can use:
+ * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
+ *
+ * The international variant includes ICU i18n library and necessary data
+ * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
+ * give correct results when using with locales other than en-US.  Note that
+ * this variant is about 6MiB larger per architecture than default.
+ */
+def jscFlavor = 'org.webkit:android-jsc:+'
+/**
+ * Whether to enable the Hermes VM.
+ *
+ * This should be set on project.ext.react and mirrored here.  If it is not set
+ * on project.ext.react, JavaScript will not be compiled to Hermes Bytecode
+ * and the benefits of using Hermes will therefore be sharply reduced.
+ */
+def enableHermes = project.ext.react.get("enableHermes", false);
 
-    return minutesSinceEpoch - minutesJan2016 + 4200000 // This is to fix an accidental bumping of the code
+// KB: Number of commits, like ios
+def Integer getVersionCode() {
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-list', 'HEAD', '--count'
+        standardOutput = stdout
+    }
+    return Integer.parseInt(stdout.toString().trim()) + 10316799 // plus bump it so its above the old version code
 }
+
+project.logger.lifecycle('Version code: ' + getVersionCode().toString())
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -128,7 +142,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
     // KB:
-        versionCode timestamp()
+        versionCode getVersionCode()
     // KB:
         versionName VERSION_NAME
     // KB: our binary is too big
@@ -157,14 +171,6 @@ android {
         }
     }
 
-    splits {
-        abi {
-            reset()
-            enable enableSeparateBuildPerCPUArchitecture
-            universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
-        }
-    }
     buildTypes {
         // KB:
         debug {
@@ -176,7 +182,7 @@ android {
         // KB:
         storyBook {
             applicationIdSuffix ".storybook"
-            matchingFallbacks = ['release']
+            matchingFallbacks = ['debug']
         }
         release {
             // KB:
@@ -196,15 +202,17 @@ android {
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
-            // For each separate APK per architecture, set a unique version code as described here:
-            // http://tools.android.com/tech-docs/new-build-system/user-guide/apk-splits
-            def versionCodes = ["armeabi-v7a":1, "x86":2, "arm64-v8a": 3, "x86_64": 4]
-            def abi = output.getFilter(OutputFile.ABI)
-            if (abi != null) {  // null for the universal-debug, universal-release variants
-                output.versionCodeOverride =
-                        versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
-            }
+            output.versionCodeOverride = getVersionCode()
         }
+    }
+
+    packagingOptions {
+        pickFirst '**/armeabi-v7a/libc++_shared.so'
+        pickFirst '**/x86/libc++_shared.so'
+        pickFirst '**/arm64-v8a/libc++_shared.so'
+        pickFirst '**/x86_64/libc++_shared.so'
+        pickFirst '**/x86/libjsc.so'
+        pickFirst '**/armeabi-v7a/libjsc.so'
     }
 }
 
@@ -216,26 +224,23 @@ play {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
-    implementation "com.android.support:multidex:1.0.3"
-    implementation "com.google.firebase:firebase-messaging:17.3.0" // sync with firebaseVersion in gradle.properties
     implementation "com.facebook.react:react-native:+"  // From node_modules
+
+    if (enableHermes) {
+      def hermesPath = "../../node_modules/hermesvm/android/";
+      debugImplementation files(hermesPath + "hermes-debug.aar")
+      releaseImplementation files(hermesPath + "hermes-release.aar")
+    } else {
+      implementation jscFlavor
+    }
+
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation "com.google.firebase:firebase-messaging:17.3.0" // sync with firebaseVersion in gradle.properties
     implementation "com.facebook.fresco:animated-gif:1.13.0"
     implementation "com.facebook.fresco:fresco:1.13.0"
     implementation "com.evernote:android-job:1.2.6"
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation project(':keybaselib')
-    implementation project(':react-native-push-notification')
-    implementation project(':react-native-fetch-blob')
-    implementation project(':react-native-contacts')
-    implementation project(':react-native-fast-image')
-    implementation project(':lottie-react-native')
-    implementation project(':react-native-gesture-handler')
-    implementation project(':react-native-screens')
-    implementation project(':react-native-webview')
-    implementation project(':react-native-community-netinfo')
-    implementation project(':react-native-reanimated')
-    implementation project(':react-native-video')
 
     addUnimodulesDependencies([modulesPaths: ['../../node_modules']])
 }
@@ -246,3 +251,5 @@ task copyDownloadableDepsToLibs(type: Copy) {
     from configurations.compile
     into 'libs'
 }
+
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

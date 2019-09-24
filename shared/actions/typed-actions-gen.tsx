@@ -661,6 +661,7 @@ export type TypedActionsMap = {
   'provision:addNewDevice': provision.AddNewDevicePayload
   'provision:forgotUsername': provision.ForgotUsernamePayload
   'provision:forgotUsernameResult': provision.ForgotUsernameResultPayload
+  'provision:cancelProvision': provision.CancelProvisionPayload
   'push:rejectPermissions': push.RejectPermissionsPayload
   'push:requestPermissions': push.RequestPermissionsPayload
   'push:showPermissionsPrompt': push.ShowPermissionsPromptPayload
@@ -1018,4 +1019,5 @@ export type TypedActionsMap = {
   'wallets:setTrustlineExpanded': wallets.SetTrustlineExpandedPayload
   'wallets:staticConfigLoaded': wallets.StaticConfigLoadedPayload
   'wallets:setSEP6Message': wallets.SetSEP6MessagePayload
+  'common:resetStore': {type: 'common:resetStore'; payload: {}}
 }

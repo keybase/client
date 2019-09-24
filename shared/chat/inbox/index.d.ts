@@ -40,6 +40,7 @@ export type RouteState = I.RecordOf<{
 export type Props = {
   allowShowFloatingButton: boolean
   children?: React.ReactNode
+  navKey: string
   neverLoaded: boolean
   nowOverride?: number
   onEnsureSelection: () => void
@@ -53,6 +54,7 @@ export type Props = {
   toggleSmallTeamsExpanded: () => void
   unreadIndices: I.List<number>
   isSearching: boolean
+  isLoading: boolean
 }
 
 export default class Inbox extends React.Component<Props> {}

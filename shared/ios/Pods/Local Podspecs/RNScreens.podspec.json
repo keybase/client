@@ -1,6 +1,6 @@
 {
   "name": "RNScreens",
-  "version": "1.0.0-alpha.22",
+  "version": "1.0.0-alpha.23",
   "summary": "First incomplete navigation solution for your react-native app.",
   "description": "RNScreens - first incomplete navigation solution for your React Native app",
   "homepage": "https://github.com/kmagiera/react-native-screens",
@@ -13,7 +13,7 @@
   },
   "source": {
     "git": "https://github.com/kmagiera/react-native-screens.git",
-    "tag": "1.0.0-alpha.22"
+    "tag": "1.0.0-alpha.23"
   },
   "source_files": "ios/**/*.{h,m}",
   "requires_arc": true,

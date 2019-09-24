@@ -824,7 +824,7 @@ func (d *Service) slowChecks() {
 			<-ticker.C
 			m.Debug("+ slow checks loop")
 			m.Debug("| checking if current device should log out")
-			if err := d.G().LogoutSelfCheck(m.Ctx()); err != nil {
+			if err := m.LogoutSelfCheck(); err != nil {
 				m.Debug("LogoutSelfCheck error: %s", err)
 			}
 			m.Debug("| checking if current device is a clone")

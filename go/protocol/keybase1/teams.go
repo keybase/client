@@ -999,6 +999,7 @@ type HiddenTeamChain struct {
 	Frozen            bool                           `codec:"frozen" json:"frozen"`
 	Tombstoned        bool                           `codec:"tombstoned" json:"tombstoned"`
 	Last              Seqno                          `codec:"last" json:"last"`
+	LastFull          Seqno                          `codec:"lastFull" json:"lastFull"`
 	LatestSeqnoHint   Seqno                          `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	LastPerTeamKeys   map[PTKType]Seqno              `codec:"lastPerTeamKeys" json:"lastPerTeamKeys"`
 	Outer             map[Seqno]LinkID               `codec:"outer" json:"outer"`
@@ -1018,6 +1019,7 @@ func (o HiddenTeamChain) DeepCopy() HiddenTeamChain {
 		Frozen:          o.Frozen,
 		Tombstoned:      o.Tombstoned,
 		Last:            o.Last.DeepCopy(),
+		LastFull:        o.LastFull.DeepCopy(),
 		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		LastPerTeamKeys: (func(x map[PTKType]Seqno) map[PTKType]Seqno {
 			if x == nil {

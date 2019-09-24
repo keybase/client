@@ -607,8 +607,8 @@ func TestProvisionAutoreset(t *testing.T) {
 	require.NoError(t, RunEngine2(m, eng), "expected login engine to succeed")
 	require.NotNil(t, AssertLoggedIn(tcY), "should not be logged in")
 
-	// Travel 3 days into future + 1h to make sure that it all runs
-	require.NoError(t, timeTravelReset(tcX, time.Hour*73))
+	// Travel 5 days into future + 1h to make sure that it all runs
+	require.NoError(t, timeTravelReset(tcX, time.Hour*121))
 	require.NoError(t, processReset(tcX))
 
 	// Rather than sleeping we'll wait for autoreset by analyzing its state
@@ -4257,6 +4257,13 @@ func assertSecretStored(tc libkb.TestContext, username string) {
 	secret, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(tc), libkb.NewNormalizedUsername(username))
 	require.NoError(tc.T, err, "no error fetching secret")
 	require.False(tc.T, secret.IsNil(), "secret was non-nil")
+}
+
+func assertSecretNotStored(tc libkb.TestContext, username string) {
+	nun := libkb.NewNormalizedUsername(username)
+	_, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(tc), nun)
+	require.Error(tc.T, err, "no secret found")
+	require.Equal(tc.T, err, libkb.NewErrSecretForUserNotFound(nun))
 }
 
 func assertAutoreset(tc libkb.TestContext, uid keybase1.UID, expectedStatus int) error {

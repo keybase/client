@@ -347,7 +347,8 @@ func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public 
 	}, nil
 }
 
-func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
+	unverifiedTLFName string) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {
@@ -365,6 +366,15 @@ func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID,
 		ID:            tlfID,
 		CanonicalName: loadRes.Name.String(),
 	}, nil
+}
+
+func (t *TeamsNameInfoSource) TeamBotSettings(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
+	team, err := NewTeamLoader(t.G().ExternalG()).loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	if err != nil {
+		return nil, err
+	}
+	return team.TeamBotSettings()
 }
 
 func (t *TeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, public bool) (res types.AllCryptKeys, err error) {
@@ -555,18 +565,22 @@ type ImplicitTeamsNameInfoSource struct {
 	utils.DebugLabeler
 	*NameIdentifier
 
-	loader         *TeamLoader
-	lookupUpgraded bool
+	loader      *TeamLoader
+	membersType chat1.ConversationMembersType
 }
 
-func NewImplicitTeamsNameInfoSource(g *globals.Context, lookupUpgraded bool) *ImplicitTeamsNameInfoSource {
+func NewImplicitTeamsNameInfoSource(g *globals.Context, membersType chat1.ConversationMembersType) *ImplicitTeamsNameInfoSource {
 	return &ImplicitTeamsNameInfoSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "ImplicitTeamsNameInfoSource", false),
 		NameIdentifier: NewNameIdentifier(g),
 		loader:         NewTeamLoader(g.ExternalG()),
-		lookupUpgraded: lookupUpgraded,
+		membersType:    membersType,
 	}
+}
+
+func (t *ImplicitTeamsNameInfoSource) lookupUpgraded() bool {
+	return t.membersType == chat1.ConversationMembersType_IMPTEAMUPGRADE
 }
 
 // Identify participants of a conv.
@@ -653,7 +667,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 	}
 
 	var tlfID chat1.TLFID
-	if t.lookupUpgraded {
+	if t.lookupUpgraded() {
 		tlfIDs := team.KBFSTLFIDs()
 		if len(tlfIDs) > 0 {
 			// We pull the first TLF ID here for this lookup since it has the highest chance of being
@@ -676,16 +690,10 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 	return res, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
+	unverifiedTLFName string) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
-	teamID, err := keybase1.TeamIDFromString(tlfID.String())
-	if err != nil {
-		return res, err
-	}
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: public,
-	})
+	team, err := t.loader.loadTeam(ctx, tlfID, unverifiedTLFName, t.membersType, public, nil)
 	if err != nil {
 		return res, err
 	}
@@ -698,6 +706,15 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 		ID:            tlfID,
 		CanonicalName: impTeamName.String(),
 	}, nil
+}
+
+func (t *ImplicitTeamsNameInfoSource) TeamBotSettings(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (map[keybase1.UserVersion]keybase1.TeamBotSettings, error) {
+	team, err := NewTeamLoader(t.G().ExternalG()).loadTeam(ctx, tlfID, tlfName, membersType, public, nil)
+	if err != nil {
+		return nil, err
+	}
+	return team.TeamBotSettings()
 }
 
 func (t *ImplicitTeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, public bool) (res types.AllCryptKeys, err error) {

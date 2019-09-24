@@ -87,7 +87,7 @@ func (e *PaperKeyGen) DeviceID() keybase1.DeviceID {
 }
 
 func (e *PaperKeyGen) DeviceWithKeys() *libkb.DeviceWithKeys {
-	return libkb.NewDeviceWithKeysOnly(e.sigKey, e.encKey)
+	return libkb.NewDeviceWithKeysOnly(e.sigKey, e.encKey, libkb.KeychainModeNone)
 }
 
 // Run starts the engine.
