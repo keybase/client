@@ -38,8 +38,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         expanded: false,
       })
     ),
-  onDeposit: (accountID: string, code: string, issuerAccountID: string) =>
-    dispatch(WalletsGen.createAssetDeposit({accountID, code, issuerAccountID})),
   onDone: RouteTreeGen.createNavigateUp(),
   onExpand: () =>
     dispatch(
@@ -50,8 +48,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
     ),
   onRemove: () =>
     dispatch(WalletsGen.createDeleteTrustline({accountID: ownProps.accountID, assetID: ownProps.assetID})),
-  onWithdraw: (accountID: string, code: string, issuerAccountID: string) =>
-    dispatch(WalletsGen.createAssetWithdraw({accountID, code, issuerAccountID})),
 })
 
 export default Container.namedConnect(
@@ -60,8 +56,6 @@ export default Container.namedConnect(
   (s, d, o) => ({
     cannotAccept: o.cannotAccept,
     code: s.asset.code,
-    depositButtonText: s.asset.depositButtonText,
-    depositButtonWaitingKey: Constants.assetDepositWaitingKey(s.asset.issuerAccountID, s.asset.code),
     expanded: s.expandedAssets.includes(o.assetID),
     firstItem: o.firstItem,
     infoUrlText: s.asset.infoUrlText,
@@ -69,22 +63,14 @@ export default Container.namedConnect(
     issuerVerifiedDomain: s.asset.issuerVerifiedDomain,
     onAccept: d.onAccept,
     onCollapse: d.onCollapse,
-    onDeposit: s.asset.showDepositButton
-      ? () => d.onDeposit(o.accountID, s.asset.code, s.asset.issuerAccountID)
-      : undefined,
     onExpand: d.onExpand,
     onOpenInfoUrl: s.asset.infoUrl ? () => openUrl(s.asset.infoUrl) : undefined,
     onRemove: d.onRemove,
-    onWithdraw: s.asset.showWithdrawButton
-      ? () => d.onWithdraw(o.accountID, s.asset.code, s.asset.issuerAccountID)
-      : undefined,
     thisDeviceIsLockedOut: s.thisDeviceIsLockedOut,
     trusted: !!s.acceptedAssets.get(o.assetID, 0),
     waitingKeyAdd: Constants.addTrustlineWaitingKey(o.accountID, o.assetID),
     waitingKeyDelete: Constants.deleteTrustlineWaitingKey(o.accountID, o.assetID),
     waitingRefresh: s.waitingRefresh,
-    withdrawButtonText: s.asset.withdrawButtonText,
-    withdrawButtonWaitingKey: Constants.assetWithdrawWaitingKey(s.asset.issuerAccountID, s.asset.code),
   }),
   'Asset'
 )(Asset)

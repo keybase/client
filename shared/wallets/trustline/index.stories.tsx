@@ -7,17 +7,13 @@ import Asset from './asset'
 import Trustline from '.'
 
 const commonAssetProps = {
-  depositButtonText: 'Deposit',
   infoUrlText: 'View details',
   onAccept: Sb.action('onAccept'),
-  onDeposit: Sb.action('onDeposit'),
   onOpenInfoUrl: Sb.action('onOpenInfoUrl'),
   onRemove: Sb.action('onRemove'),
-  onWithdraw: Sb.action('onWithdraw'),
   waitingKeyAdd: false,
   waitingKeyDelete: false,
   waitingRefresh: false,
-  withdrawButtonText: 'Withdraw',
 }
 
 const AssetWrapper = props => {
