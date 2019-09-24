@@ -3,6 +3,7 @@ import * as Types from './types/recover-password'
 import HiddenString from '../util/hidden-string'
 
 export const waitingKey = 'recover-password:waiting'
+export const getPaperKeyOrPwWaitingKey = 'recover-password:submitPassword'
 
 export const makeState = I.Record<Types._State>({
   devices: I.List(),
