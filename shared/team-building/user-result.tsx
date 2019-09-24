@@ -324,6 +324,7 @@ const styles = Styles.styleSheetCreate(() => ({
     overflow: 'hidden',
   },
   bottomRowScrollContainer: {
+    alignItems: 'baseline',
     display: 'flex',
   },
   contactName: {
