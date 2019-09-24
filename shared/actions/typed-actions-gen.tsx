@@ -499,8 +499,6 @@ export type TypedActionsMap = {
   'fs:startManualConflictResolution': fs.StartManualConflictResolutionPayload
   'fs:finishManualConflictResolution': fs.FinishManualConflictResolutionPayload
   'fs:openSecurityPreferences': fs.OpenSecurityPreferencesPayload
-  'fs:refreshLocalHTTPServerInfo': fs.RefreshLocalHTTPServerInfoPayload
-  'fs:localHTTPServerInfo': fs.LocalHTTPServerInfoPayload
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
@@ -559,6 +557,8 @@ export type TypedActionsMap = {
   'fs:setPathItemActionMenuDownload': fs.SetPathItemActionMenuDownloadPayload
   'fs:finishedDownloadWithIntent': fs.FinishedDownloadWithIntentPayload
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
+  'fs:loadFileContext': fs.LoadFileContextPayload
+  'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

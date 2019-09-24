@@ -211,10 +211,6 @@ export type MessageTypes = {
     inParam: {readonly uid: UID}
     outParam: void
   }
-  'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken': {
-    inParam: void
-    outParam: SimpleFSGetHTTPAddressAndTokenResponse
-  }
   'keybase.1.SimpleFS.simpleFSAreWeConnectedToMDServer': {
     inParam: void
     outParam: Boolean
@@ -266,6 +262,10 @@ export type MessageTypes = {
   'keybase.1.SimpleFS.simpleFSGetDownloadStatus': {
     inParam: void
     outParam: DownloadStatus
+  }
+  'keybase.1.SimpleFS.simpleFSGetGUIFileContext': {
+    inParam: {readonly path: KBFSPath}
+    outParam: GUIFileContext
   }
   'keybase.1.SimpleFS.simpleFSList': {
     inParam: {readonly opID: OpID; readonly path: Path; readonly filter: ListFilter; readonly refreshSubscription: Boolean}
@@ -1555,6 +1555,15 @@ export enum GPGMethod {
   gpgSign = 2,
 }
 
+export enum GUIViewType {
+  default = 0,
+  text = 1,
+  image = 2,
+  audio = 3,
+  video = 4,
+  pdf = 5,
+}
+
 export enum GitLocalMetadataVersion {
   v1 = 1,
 }
@@ -2471,6 +2480,7 @@ export type FuseStatus = {readonly version: String; readonly bundleVersion: Stri
 export type GPGKey = {readonly algorithm: String; readonly keyID: String; readonly creation: String; readonly expiration: String; readonly identities?: Array<PGPIdentity> | null}
 export type GUIEntryArg = {readonly windowTitle: String; readonly prompt: String; readonly username: String; readonly submitLabel: String; readonly cancelLabel: String; readonly retryLabel: String; readonly type: PassphraseType; readonly features: GUIEntryFeatures}
 export type GUIEntryFeatures = {readonly showTyping: Feature}
+export type GUIFileContext = {readonly viewType: GUIViewType; readonly contentType: String; readonly url: String}
 export type GcOptions = {readonly maxLooseRefs: Int; readonly pruneMinLooseObjects: Int; readonly pruneExpireTime: Time; readonly maxObjectPacks: Int}
 export type GetBlockRes = {readonly blockKey: String; readonly buf: Bytes; readonly size: Int; readonly status: BlockStatus}
 export type GetLockdownResponse = {readonly history?: Array<LockdownHistory> | null; readonly status: Boolean}
@@ -2714,7 +2724,6 @@ export type SigVersion = Int
 export type SignatureMetadata = {readonly signingKID: KID; readonly prevMerkleRootSigned: MerkleRootV2; readonly firstAppearedUnverified: Seqno; readonly time: Time; readonly sigChainLocation: SigChainLocation}
 export type Signer = {readonly e: Seqno; readonly k: KID; readonly u: UID}
 export type SignupRes = {readonly passphraseOk: Boolean; readonly postOk: Boolean; readonly writeOk: Boolean}
-export type SimpleFSGetHTTPAddressAndTokenResponse = {readonly address: String; readonly token: String}
 export type SimpleFSListResult = {readonly entries?: Array<Dirent> | null; readonly progress: Progress}
 export type SimpleFSQuotaUsage = {readonly usageBytes: Int64; readonly archiveBytes: Int64; readonly limitBytes: Int64; readonly gitUsageBytes: Int64; readonly gitArchiveBytes: Int64; readonly gitLimitBytes: Int64}
 export type SimpleFSStats = {readonly processStats: ProcessRuntimeStats; readonly blockCacheDbStats?: Array<String> | null; readonly syncCacheDbStats?: Array<String> | null; readonly runtimeDbStats?: Array<DbStats> | null}
@@ -3121,7 +3130,7 @@ export const SimpleFSSimpleFSFinishResolvingConflictRpcPromise = (params: Messag
 export const SimpleFSSimpleFSFolderSyncConfigAndStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSFolderSyncConfigAndStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadInfoRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSGetDownloadStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetDownloadStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetDownloadStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSGetGUIFileContextRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSGetGUIFileContext']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSGetGUIFileContext']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSGetGUIFileContext', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListFavoritesRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSListFavorites']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSListFavorites']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListFavorites', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListRecursiveToDepthRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSListRecursiveToDepth']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSListRecursiveToDepth']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSListRecursiveToDepth', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSListRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSList']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSList']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

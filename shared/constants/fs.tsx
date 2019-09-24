@@ -69,14 +69,8 @@ export const makeFolder = I.Record<Types._FolderPathItem>({
   type: Types.PathType.Folder,
 })
 
-export const makeMime = I.Record<Types._Mime>({
-  displayPreview: false,
-  mimeType: '',
-})
-
 export const makeFile = I.Record<Types._FilePathItem>({
   ...pathItemMetadataDefault,
-  mimeType: null,
   type: Types.PathType.File,
 })
 
@@ -190,11 +184,6 @@ export const makeDownloads = I.Record<Types._Downloads>({
   info: I.Map(),
   regularDownloads: I.List(),
   state: I.Map(),
-})
-
-export const makeLocalHTTPServer = I.Record<Types._LocalHTTPServer>({
-  address: '',
-  token: '',
 })
 
 export const makeUploads = I.Record<Types._Uploads>({
@@ -323,15 +312,22 @@ export const makePathInfo = I.Record<Types._PathInfo>({
 
 export const emptyPathInfo = makePathInfo()
 
+export const makeFileContext = I.Record<Types._FileContext>({
+  contentType: '',
+  url: '',
+  viewType: RPCTypes.GUIViewType.default,
+})
+export const emptyFileContext = makeFileContext()
+
 export const makeState = I.Record<Types._State>({
   destinationPicker: makeDestinationPicker(),
   downloads: makeDownloads(),
   edits: I.Map(),
   errors: I.Map(),
+  fileContext: I.Map(),
   folderViewFilter: '',
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
   lastPublicBannerClosedTlf: '',
-  localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
   pathInfos: I.Map(),
   pathItemActionMenu: makePathItemActionMenu(),
@@ -471,70 +467,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
-const supportedImgMimeTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])
-export const viewTypeFromMimeType = (mime: Types.Mime | null): Types.FileViewType => {
-  if (mime && mime.displayPreview) {
-    const mimeType = mime.mimeType
-    if (mimeType === 'text/plain') {
-      return Types.FileViewType.Text
-    }
-    if (supportedImgMimeTypes.has(mimeType)) {
-      return Types.FileViewType.Image
-    }
-    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-      return Types.FileViewType.Av
-    }
-    if (mimeType === 'application/pdf') {
-      return Types.FileViewType.Pdf
-    }
-  }
-  return Types.FileViewType.Default
-}
-
-export const canSaveMedia = (pathItem: Types.PathItem): boolean => {
-  if (pathItem.type !== Types.PathType.File || !pathItem.mimeType) {
+export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileContext): boolean => {
+  if (pathItem.type !== Types.PathType.File || fileContext === emptyFileContext) {
     return false
   }
-  const mime = pathItem.mimeType
   return (
-    viewTypeFromMimeType(mime) === Types.FileViewType.Image ||
-    // Can't rely on viewType === av here because audios can't be saved to
-    // the camera roll.
-    mime.mimeType.startsWith('video/')
+    fileContext.viewType === RPCTypes.GUIViewType.image || fileContext.viewType === RPCTypes.GUIViewType.video
   )
 }
-
-const encodePathForURL = (path: Types.Path) =>
-  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))
-    .replace(
-      // We need to do this because otherwise encodeURIComponent would encode
-      // "/"s.  If we get a relative redirect (e.g. when requested resource is
-      // index.html, we get redirected to "./"), we'd end up redirect to a wrong
-      // resource.
-      /%2F/g,
-      '/'
-    )
-    // Additional characters that encodeURIComponent doesn't escape
-    .replace(
-      /[-_.!~*'()]/g,
-      old =>
-        `%${old
-          .charCodeAt(0)
-          .toString(16)
-          .toUpperCase()}`
-    )
-
-const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.LocalHTTPServer): string => {
-  const {address, token} = localHTTPServerInfo
-  if (!address || !token) {
-    return 'about:blank'
-  }
-  const encoded = encodePathForURL(path)
-  return `http://${address}/files/${encoded}?token=${token}`
-}
-
-export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
 export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
   const pathElems = Types.getPathElements(path)
@@ -694,6 +634,7 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
+const slashKeybaseSlashLength = '/keybase/'.length
 // TODO: move this to Go
 export const escapePath = (path: Types.Path): string =>
   'keybase://' +
@@ -1092,8 +1033,6 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
       return 'Failed to copy file(s).' + suffix
     case FsGen.favoritesLoad:
       return 'Failed to load TLF lists.' + suffix
-    case FsGen.refreshLocalHTTPServerInfo:
-      return 'Failed to get information about internal HTTP server.' + suffix
     case FsGen.loadPathMetadata:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
