@@ -163,7 +163,6 @@ export default connect(
         )
       }
       items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-      items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {
       if (stateProps._mapUnfurl) {
         const url = stateProps._mapUnfurl.url
@@ -175,7 +174,6 @@ export default connect(
       items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
       items.push({onClick: dispatchProps._onReply, title: 'Reply'})
       items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
-      items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     }
     return {
       attachTo: ownProps.attachTo,
