@@ -797,9 +797,8 @@ def testGo(prefix, packagesToTest) {
 
 def checkDiffs(dirs, addressMessage) {
   def joinedDirs = dirs.join(" ")
-  try {
-    sh "git diff --patience --exit-code HEAD -- ${joinedDirs}"
-  } catch (ex) {
+  def numChanges = sh (returnStdout: true, script: "git diff --patience --exit-code HEAD -- ${joinedDirs} | wc -l")
+  if (numChanges != 0) {
     sh """
         bash -c 'echo "ERROR: \\"git diff\\" detected changes. Some files in the directories {${dirs.join(", ")}} are stale. ${addressMessage}" && (exit 1)'
     """
