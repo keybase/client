@@ -285,6 +285,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             {!this.props.cannotWrite && (
               <>
                 <Kb.Icon
+                  onClick={this.props.onGiphyToggle}
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-gif"
+                />
+                <Kb.Icon
                   color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
                   onClick={this._emojiPickerToggle}
                   style={Kb.iconCastPlatformStyles(styles.icon)}

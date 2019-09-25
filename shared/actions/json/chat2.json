@@ -748,6 +748,10 @@
     "updateLastCoord": {
       "_description": "Update last known coordinate",
       "coord": "Types.Coordinate"
+    },
+    "toggleGiphyPrefill": {
+      "_description": "Toggle /giphy text to trigger preview window",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

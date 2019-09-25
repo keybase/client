@@ -204,6 +204,7 @@ export type TypedActionsMap = {
   'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
+  'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

@@ -124,6 +124,7 @@ export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
+export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleInboxSearch = 'chat2:toggleInboxSearch'
 export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
@@ -566,6 +567,7 @@ type _ThreadSearchResultsPayload = {
   readonly messages: Array<Types.Message>
   readonly clear: boolean
 }
+type _ToggleGiphyPrefillPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ToggleInboxSearchPayload = {readonly enabled: boolean}
 type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = {
@@ -994,6 +996,13 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateR
 export const createHandleSeeingWallets = (
   payload: _HandleSeeingWalletsPayload
 ): HandleSeeingWalletsPayload => ({payload, type: handleSeeingWallets})
+/**
+ * Toggle /giphy text to trigger preview window
+ */
+export const createToggleGiphyPrefill = (payload: _ToggleGiphyPrefillPayload): ToggleGiphyPrefillPayload => ({
+  payload,
+  type: toggleGiphyPrefill,
+})
 /**
  * Toggle Giphy search preview window
  */
@@ -1766,6 +1775,10 @@ export type ThreadSearchResultsPayload = {
   readonly payload: _ThreadSearchResultsPayload
   readonly type: typeof threadSearchResults
 }
+export type ToggleGiphyPrefillPayload = {
+  readonly payload: _ToggleGiphyPrefillPayload
+  readonly type: typeof toggleGiphyPrefill
+}
 export type ToggleInboxSearchPayload = {
   readonly payload: _ToggleInboxSearchPayload
   readonly type: typeof toggleInboxSearch
@@ -1980,6 +1993,7 @@ export type Actions =
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload
+  | ToggleGiphyPrefillPayload
   | ToggleInboxSearchPayload
   | ToggleInfoPanelPayload
   | ToggleLocalReactionPayload

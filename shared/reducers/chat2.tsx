@@ -1140,6 +1140,17 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.unsentTextMap = unsentTextMap
         return
       }
+      case Chat2Gen.toggleGiphyPrefill: {
+        // if the window is up, just blow it away
+        const unsentTextMap = new Map(draftState.unsentTextMap)
+        if (draftState.giphyWindowMap.get(action.payload.conversationIDKey, false)) {
+          unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
+        } else {
+          unsentTextMap.set(action.payload.conversationIDKey, new HiddenString('/giphy '))
+        }
+        draftState.unsentTextMap = unsentTextMap
+        return
+      }
       case Chat2Gen.setUnsentText: {
         const unsentTextMap = new Map(draftState.unsentTextMap)
         unsentTextMap.set(action.payload.conversationIDKey, action.payload.text)
