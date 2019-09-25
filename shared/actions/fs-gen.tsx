@@ -40,14 +40,15 @@ export const kbfsDaemonRpcStatusChanged = 'fs:kbfsDaemonRpcStatusChanged'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
 export const loadDownloadInfo = 'fs:loadDownloadInfo'
 export const loadDownloadStatus = 'fs:loadDownloadStatus'
+export const loadFileContext = 'fs:loadFileContext'
 export const loadPathInfo = 'fs:loadPathInfo'
 export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadSettings = 'fs:loadSettings'
 export const loadTlfSyncConfig = 'fs:loadTlfSyncConfig'
 export const loadedDownloadInfo = 'fs:loadedDownloadInfo'
 export const loadedDownloadStatus = 'fs:loadedDownloadStatus'
+export const loadedFileContext = 'fs:loadedFileContext'
 export const loadedPathInfo = 'fs:loadedPathInfo'
-export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const move = 'fs:move'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
@@ -62,7 +63,6 @@ export const pickAndUpload = 'fs:pickAndUpload'
 export const placeholderAction = 'fs:placeholderAction'
 export const pollJournalStatus = 'fs:pollJournalStatus'
 export const refreshDriverStatus = 'fs:refreshDriverStatus'
-export const refreshLocalHTTPServerInfo = 'fs:refreshLocalHTTPServerInfo'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
@@ -154,6 +154,7 @@ type _KbfsDaemonRpcStatusChangedPayload = {readonly rpcStatus: Types.KbfsDaemonR
 type _LetResetUserBackInPayload = {readonly id: RPCTypes.TeamID; readonly username: string}
 type _LoadDownloadInfoPayload = {readonly downloadID: string}
 type _LoadDownloadStatusPayload = void
+type _LoadFileContextPayload = {readonly path: Types.Path}
 type _LoadPathInfoPayload = {readonly path: Types.Path}
 type _LoadPathMetadataPayload = {readonly path: Types.Path}
 type _LoadSettingsPayload = void
@@ -163,8 +164,8 @@ type _LoadedDownloadStatusPayload = {
   readonly regularDownloads: I.List<string>
   readonly state: I.Map<string, Types.DownloadState>
 }
+type _LoadedFileContextPayload = {readonly path: Types.Path; readonly fileContext: Types.FileContext}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}
-type _LocalHTTPServerInfoPayload = {readonly address: string; readonly token: string}
 type _MovePayload = {readonly destinationParentPath: Types.Path}
 type _NewFolderNamePayload = {readonly editID: Types.EditID; readonly name: string}
 type _NewFolderRowPayload = {readonly parentPath: Types.Path}
@@ -182,7 +183,6 @@ type _PickAndUploadPayload = {readonly type: Types.MobilePickType; readonly pare
 type _PlaceholderActionPayload = void
 type _PollJournalStatusPayload = void
 type _RefreshDriverStatusPayload = void
-type _RefreshLocalHTTPServerInfoPayload = void
 type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path}
 type _SentAttachmentToChatPayload = void
@@ -349,6 +349,10 @@ export const createLoadDownloadStatus = (payload: _LoadDownloadStatusPayload): L
   payload,
   type: loadDownloadStatus,
 })
+export const createLoadFileContext = (payload: _LoadFileContextPayload): LoadFileContextPayload => ({
+  payload,
+  type: loadFileContext,
+})
 export const createLoadPathInfo = (payload: _LoadPathInfoPayload): LoadPathInfoPayload => ({
   payload,
   type: loadPathInfo,
@@ -372,13 +376,14 @@ export const createLoadedDownloadInfo = (payload: _LoadedDownloadInfoPayload): L
 export const createLoadedDownloadStatus = (
   payload: _LoadedDownloadStatusPayload
 ): LoadedDownloadStatusPayload => ({payload, type: loadedDownloadStatus})
+export const createLoadedFileContext = (payload: _LoadedFileContextPayload): LoadedFileContextPayload => ({
+  payload,
+  type: loadedFileContext,
+})
 export const createLoadedPathInfo = (payload: _LoadedPathInfoPayload): LoadedPathInfoPayload => ({
   payload,
   type: loadedPathInfo,
 })
-export const createLocalHTTPServerInfo = (
-  payload: _LocalHTTPServerInfoPayload
-): LocalHTTPServerInfoPayload => ({payload, type: localHTTPServerInfo})
 export const createMove = (payload: _MovePayload): MovePayload => ({payload, type: move})
 export const createNewFolderName = (payload: _NewFolderNamePayload): NewFolderNamePayload => ({
   payload,
@@ -426,9 +431,6 @@ export const createPollJournalStatus = (payload: _PollJournalStatusPayload): Pol
 export const createRefreshDriverStatus = (
   payload: _RefreshDriverStatusPayload
 ): RefreshDriverStatusPayload => ({payload, type: refreshDriverStatus})
-export const createRefreshLocalHTTPServerInfo = (
-  payload: _RefreshLocalHTTPServerInfoPayload
-): RefreshLocalHTTPServerInfoPayload => ({payload, type: refreshLocalHTTPServerInfo})
 export const createRefreshMountDirsAfter10s = (
   payload: _RefreshMountDirsAfter10sPayload
 ): RefreshMountDirsAfter10sPayload => ({payload, type: refreshMountDirsAfter10s})
@@ -675,6 +677,10 @@ export type LoadDownloadStatusPayload = {
   readonly payload: _LoadDownloadStatusPayload
   readonly type: typeof loadDownloadStatus
 }
+export type LoadFileContextPayload = {
+  readonly payload: _LoadFileContextPayload
+  readonly type: typeof loadFileContext
+}
 export type LoadPathInfoPayload = {readonly payload: _LoadPathInfoPayload; readonly type: typeof loadPathInfo}
 export type LoadPathMetadataPayload = {
   readonly payload: _LoadPathMetadataPayload
@@ -693,13 +699,13 @@ export type LoadedDownloadStatusPayload = {
   readonly payload: _LoadedDownloadStatusPayload
   readonly type: typeof loadedDownloadStatus
 }
+export type LoadedFileContextPayload = {
+  readonly payload: _LoadedFileContextPayload
+  readonly type: typeof loadedFileContext
+}
 export type LoadedPathInfoPayload = {
   readonly payload: _LoadedPathInfoPayload
   readonly type: typeof loadedPathInfo
-}
-export type LocalHTTPServerInfoPayload = {
-  readonly payload: _LocalHTTPServerInfoPayload
-  readonly type: typeof localHTTPServerInfo
 }
 export type MovePayload = {readonly payload: _MovePayload; readonly type: typeof move}
 export type NewFolderNamePayload = {
@@ -750,10 +756,6 @@ export type PollJournalStatusPayload = {
 export type RefreshDriverStatusPayload = {
   readonly payload: _RefreshDriverStatusPayload
   readonly type: typeof refreshDriverStatus
-}
-export type RefreshLocalHTTPServerInfoPayload = {
-  readonly payload: _RefreshLocalHTTPServerInfoPayload
-  readonly type: typeof refreshLocalHTTPServerInfo
 }
 export type RefreshMountDirsAfter10sPayload = {
   readonly payload: _RefreshMountDirsAfter10sPayload
@@ -941,14 +943,15 @@ export type Actions =
   | LetResetUserBackInPayload
   | LoadDownloadInfoPayload
   | LoadDownloadStatusPayload
+  | LoadFileContextPayload
   | LoadPathInfoPayload
   | LoadPathMetadataPayload
   | LoadSettingsPayload
   | LoadTlfSyncConfigPayload
   | LoadedDownloadInfoPayload
   | LoadedDownloadStatusPayload
+  | LoadedFileContextPayload
   | LoadedPathInfoPayload
-  | LocalHTTPServerInfoPayload
   | MovePayload
   | NewFolderNamePayload
   | NewFolderRowPayload
@@ -963,7 +966,6 @@ export type Actions =
   | PlaceholderActionPayload
   | PollJournalStatusPayload
   | RefreshDriverStatusPayload
-  | RefreshLocalHTTPServerInfoPayload
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
   | SentAttachmentToChatPayload

@@ -27,7 +27,7 @@ const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, _, ownProps) => {
   const hasUnread = stateProps._hasUnread
-  const styles = Constants.getRowStyles(stateProps._meta, ownProps.isSelected, hasUnread)
+  const styles = Constants.getRowStyles(ownProps.isSelected, hasUnread)
   const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
   const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
   const isLocked = participantNeedToRekey || youNeedToRekey
