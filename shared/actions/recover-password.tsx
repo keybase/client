@@ -147,7 +147,7 @@ const getPaperKeyOrPw = (
           RecoverPasswordGen.createSetPasswordError({error: new HiddenString(params.pinentry.retryLabel)})
         )
       } else {
-        // TODO wait for loggedIn, for now the service promises to send this after login.
+        // TODO maybe wait for loggedIn, for now the service promises to send this after login.
         yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
       }
       const action: RecoverPasswordGen.SubmitPasswordPayload = yield Saga.take([
