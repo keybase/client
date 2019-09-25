@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../../../constants/chat2/message'
-import {storiesOf} from '../../../../stories/storybook'
+import * as Sb from '../../../../stories/storybook'
 import SBSProvedNotice from '.'
 
 const rooter = Constants.makeMessageSystemSBSResolved({
@@ -25,7 +25,7 @@ const email = Constants.makeMessageSystemSBSResolved({
 })
 
 const load = () => {
-  storiesOf('Chat/Conversation/Rows/SBS', module)
+  Sb.storiesOf('Chat/Conversation/Rows/SBS', module)
     .add('Rooter', () => <SBSProvedNotice message={rooter} you="alice" />)
     .add('Phone', () => <SBSProvedNotice message={phone} you="alice" />)
     .add('Email', () => <SBSProvedNotice message={email} you="alice" />)
