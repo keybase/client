@@ -59,6 +59,7 @@ type DeprovisionArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
 	DoRevoke  bool   `codec:"doRevoke" json:"doRevoke"`
+	Force     bool   `codec:"force" json:"force"`
 }
 
 type RecoverAccountFromEmailAddressArg struct {

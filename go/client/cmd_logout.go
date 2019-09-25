@@ -39,7 +39,7 @@ func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "f, force",
-				Usage: "If there are any reasons not to logout right now, ignore them",
+				Usage: "If there are any reasons not to logout right now, ignore them (potentially dangerous)",
 			},
 		},
 	}

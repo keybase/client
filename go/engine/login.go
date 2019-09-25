@@ -292,7 +292,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 	case libkb.LoggedInWrongUserError:
 		m.Debug(err.Error())
 		if e.doUserSwitch {
-			err := m.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: true})
+			err := m.LogoutKeepSecrets()
 			if err != nil {
 				return false, err
 			}

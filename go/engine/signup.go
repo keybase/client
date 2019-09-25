@@ -94,7 +94,7 @@ func (s *SignupEngine) PaperKey() *libkb.PaperKeyPhrase {
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#Run", func() error { return err })()
 
-	if err = m.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: true}); err != nil {
+	if err = m.LogoutKeepSecrets(); err != nil {
 		return err
 	}
 
