@@ -1135,9 +1135,10 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.giphySend: {
         draftState.giphyWindowMap = draftState.giphyWindowMap.set(action.payload.conversationIDKey, false)
-        const unsentTextMap = new Map(draftState.unsentTextMap)
-        unsentTextMap.delete(action.payload.conversationIDKey)
-        draftState.unsentTextMap = unsentTextMap
+        draftState.unsentTextMap = draftState.unsentTextMap.set(
+          action.payload.conversationIDKey,
+          new HiddenString('')
+        )
         return
       }
       case Chat2Gen.setUnsentText: {
