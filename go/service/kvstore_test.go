@@ -2,13 +2,16 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/kvstore"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -249,4 +252,118 @@ func TestRevisionCache(t *testing.T) {
 	revCache.PutCheck(mctx, entryID, entryHash, generation, revision)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.NoError(t, err)
+}
+
+var _ kvstore.KVStoreBoxer = (*KVStoreTestBoxer)(nil)
+
+type KVStoreTestBoxer struct {
+	libkb.Contextified
+	BoxMutateRevision     func(currentRevision int) (newRevision int)
+	UnboxMutateCiphertext func(currentCiphertext string) (newCiphertext string)
+}
+
+func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string) (ciphertext string,
+	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, err error) {
+	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
+	if b.BoxMutateRevision != nil {
+		revision = b.BoxMutateRevision(revision)
+	}
+	return realBoxer.Box(mctx, entryID, revision, cleartextValue)
+}
+
+func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, formatVersion int,
+	senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
+	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
+	if b.UnboxMutateCiphertext != nil {
+		ciphertext = b.UnboxMutateCiphertext(ciphertext)
+	}
+	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
+}
+
+func TestEncryptionAndVerification(t *testing.T) {
+	ctx := context.TODO()
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	user, err := kbtest.CreateAndSignupFakeUser("kvs", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	// inject a test Boxer into the handler which, at this point,
+	// is just a passthrough to the real Boxer, but ensure that
+	// any expected errors later are not false negatives.
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified: libkb.NewContextified(tc.G),
+	}
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+	err = teams.RotateKeyVisible(context.TODO(), tc.G, *teamID)
+	require.NoError(t, err)
+	err = teams.RotateKeyVisible(context.TODO(), tc.G, *teamID)
+	require.NoError(t, err)
+	namespace := "myapp"
+	entryKey := "entry-key-entry-key"
+	secretData := "supersecret"
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: secretData,
+	}
+	putRes, err := handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 3, putRes.Revision)
+	getArg := keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	getRes, err := handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, secretData, getRes.EntryValue)
+	require.Equal(t, 3, getRes.Revision)
+	t.Logf("entry exists for team at revision 3 and key generation 3")
+
+	// attempt to decrypt with the wrong team key generation
+	// should fail to decrypt
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified: libkb.NewContextified(tc.G),
+		UnboxMutateCiphertext: func(currentCiphertext string) (newCiphertext string) {
+			decoded, err := base64.StdEncoding.DecodeString(currentCiphertext)
+			require.NoError(t, err)
+			var box keybase1.EncryptedKVEntry
+			err = msgpack.Decode(&box, decoded)
+			require.NoError(t, err)
+			existingGeneration := box.Gen
+			require.EqualValues(t, 3, existingGeneration, "generation should be 3 at this point")
+			box.Gen = keybase1.PerTeamKeyGeneration(2)
+			packed, err := msgpack.Encode(box)
+			require.NoError(t, err)
+			return base64.StdEncoding.EncodeToString(packed)
+		},
+	}
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, libkb.DecryptOpenError{}, err)
+	t.Logf("attempting to decrypt with the wrong key generation fails")
+
+	// sign over the wrong revision
+	// should cause a signing verification error
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified:      libkb.NewContextified(tc.G),
+		BoxMutateRevision: func(currentRevision int) (newRevision int) { return 2 },
+	}
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, kbcrypto.VerificationError{}, err)
+	t.Logf("verifying a signature with the wrong revision fails")
 }
