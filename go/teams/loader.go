@@ -724,6 +724,16 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 	}
 
+	if ret == nil {
+		return nil, fmt.Errorf("team loader fault: got nil from load2")
+	}
+
+	// reinitialize the hidden package once ret != nil
+	hiddenPackage, err = l.hiddenPackage(mctx, arg.teamID, ret, arg.me)
+	if err != nil {
+		return nil, err
+	}
+
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
 	if teamUpdate != nil {
 		err = hiddenPackage.Update(mctx, teamUpdate.GetHiddenChain())
@@ -760,10 +770,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
 			mctx.Debug("TeamLoader lkc cache hits: %v", lkc.cacheHits)
 		}
-	}
-
-	if ret == nil {
-		return nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
 	if !ret.Chain.LastLinkID.Eq(lastLinkID) {
