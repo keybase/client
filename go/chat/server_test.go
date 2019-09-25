@@ -3849,10 +3849,13 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 
+		timeout := 2 * time.Second
 		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
+		tc := ctc.world.Tcs[users[0].Username]
+		tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
@@ -3899,11 +3902,20 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return ri
 		})
-		ctc.world.Fc.Advance(time.Hour)
-
-		updates := consumeNewThreadsStale(t, listener)
-		require.Equal(t, 1, len(updates))
-		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
+		waitForThreadsStale := func() {
+			for i := 0; i < 5; i++ {
+				tc.Context().FetchRetrier.Force(ctx)
+				select {
+				case updates := <-listener0.threadsStale:
+					require.Equal(t, 1, len(updates))
+					require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
+					return
+				case <-time.After(timeout):
+					t.Logf("no threads stale yet, trying again")
+				}
+			}
+		}
+		waitForThreadsStale()
 
 		t.Logf("testing untrusted inbox load failure")
 		ttype := chat1.TopicType_CHAT
