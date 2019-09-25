@@ -1,6 +1,6 @@
 import * as Container from '../../util/container'
 import {StylesCrossPlatform} from '../../styles'
-import {createSearchSuggestions} from '../../actions/search-gen'
+import {appendPeopleBuilder} from '../../actions/typed-routes'
 import Bar from './bar'
 
 type OwnProps = {
@@ -8,12 +8,13 @@ type OwnProps = {
   whiteText?: boolean
 }
 
-const mapDispatchToProps = dispatch => ({
-  onSearch: () => {
-    dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-  },
-})
-
-const mergeProps = (_, dispatchProps, ownProps: OwnProps) => ({...ownProps, onSearch: dispatchProps.onSearch})
-
-export default Container.namedConnect(() => ({}), mapDispatchToProps, mergeProps, 'PeopleTabSearch')(Bar)
+export default Container.namedConnect(
+  () => ({}),
+  dispatch => ({
+    onSearch: () => {
+      dispatch(appendPeopleBuilder())
+    },
+  }),
+  (_, dispatchProps, ownProps: OwnProps) => ({...ownProps, onSearch: dispatchProps.onSearch}),
+  'PeopleTabSearch'
+)(Bar)
