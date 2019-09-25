@@ -22,12 +22,12 @@ const NewCard = (_: Props) => (
           <Kb.Text
             type="BodySmallSemiboldPrimaryLink"
             style={styles.link}
-            className="color_blueLighter hover_contained_color_white"
+            className="color_blueLighterOrWhite hover_contained_color_white"
           >
             Read more
           </Kb.Text>
           <Kb.Icon
-            color={Styles.globalColors.blueLighter}
+            color={Styles.globalColors.blueLighterOrWhite}
             sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"
