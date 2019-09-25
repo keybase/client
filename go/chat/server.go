@@ -365,8 +365,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		}, nil
 	}
 	if err = h.G().InboxSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
-		// just charge through here, the user doesn't need to see an error for this
-		h.Debug(ctx, "MarkAsReadLocal: failed to mark as read: %s", err)
+		return res, err
 	}
 	return chat1.MarkAsReadLocalRes{
 		Offline: h.G().InboxSource.IsOffline(ctx),
