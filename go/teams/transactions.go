@@ -899,10 +899,12 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 	// Add a single bot_settings link if we are adding any RESTRICTEDBOT members
 	if len(memSet.restrictedBotSettings) > 0 {
-		section, err := team.botSettingsSection(mctx.Ctx(), memSet.restrictedBotSettings, merkleRoot)
+		var section SCTeamSection
+		section, ratchet, err = team.botSettingsSection(mctx.Ctx(), memSet.restrictedBotSettings, ratchet, merkleRoot)
 		if err != nil {
 			return err
 		}
+
 		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, libkb.LinkTypeTeamBotSettings,
 			nextSeqno, latestLinkID, merkleRoot)
 		if err != nil {
