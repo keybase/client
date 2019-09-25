@@ -23,6 +23,7 @@ type Bounds = {
 }
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
+  console.error('aaa making menu')
   const mb = menubar({
     browserWindow: {
       hasShadow: true,
@@ -67,8 +68,11 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     }
   }
 
+  console.error('aaa making on ready')
   mb.on('ready', () => {
+    console.error('aaa on ready')
     SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
+      console.error('aaa on kbmenu', action)
       switch (action.type) {
         case 'showTray': {
           icon = action.payload.icon
@@ -83,6 +87,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       }
     })
 
+    console.error('aaa on dispatch want props')
     // ask for an update in case we missed one
     mainWindowDispatch(
       ConfigGen.createRemoteWindowWantsProps({

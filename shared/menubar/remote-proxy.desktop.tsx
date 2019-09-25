@@ -56,6 +56,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     subscriptionId: number | null = null
     _updateBadges = () => {
       const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
+      console.error('kbmenu from remote proxy')
       SafeElectron.getApp().emit('KBmenu', '', {
         payload: {
           desktopAppBadgeCount: this.props.desktopAppBadgeCount,
