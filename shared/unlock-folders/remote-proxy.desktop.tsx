@@ -30,7 +30,7 @@ const UnlockFolder = compose(
     },
     () => ({}),
     (stateProps, _, __) => ({
-      darkMode: Styles.isDarkMode(),
+      darkMode: stateProps.darkMode,
       devices: stateProps.devices.toJS(), // Never send immutable over the wire
       paperkeyError: stateProps.paperkeyError,
       phase: stateProps.phase,
@@ -53,7 +53,9 @@ type Props = {
 
 class UnlockFolders extends React.PureComponent<Props> {
   render() {
-    return this.props.show ? <UnlockFolder /> : null
+    // return this.props.show ? <UnlockFolder /> : null
+    // TEMP
+    return <UnlockFolder />
   }
 }
 

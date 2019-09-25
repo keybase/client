@@ -21,7 +21,7 @@ export type Props = {
 }
 
 const UnlockFolders = (props: Props) => {
-  _setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
+  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
 
   let innerComponent: React.ReactNode
 
@@ -48,8 +48,8 @@ const UnlockFolders = (props: Props) => {
   return (
     <div
       style={styles.container}
-      className={this.props.darkMode ? 'darkMode' : ''}
-      key={this.props.darkMode ? 'darkMode' : 'light'}
+      className={props.darkMode ? 'darkMode' : ''}
+      key={props.darkMode ? 'darkMode' : 'light'}
     >
       <div style={styles.header}>
         <Kb.Header icon={true} type="Default" title="" onClose={props.onClose} />
