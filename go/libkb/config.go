@@ -553,16 +553,10 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 	if username.IsNil() {
 		goto Fallback
 	}
-	{
-		i := f.jw.AtKey("remember_passphrase_map").GetDataOrNil()
-		m, ok := i.(map[string]interface{})
-		if ok {
-			ret, mOk := m[username.String()]
-			if mOk {
-				boolRet, boolOk := ret.(bool)
-				if boolOk {
-					return boolRet, true
-				}
+	if m, ok := f.jw.AtKey("remember_passphrase_map").GetDataOrNil().(map[string]interface{}); ok {
+		if ret, mOk := m[username.String()]; mOk {
+			if boolRet, boolOk := ret.(bool); boolOk {
+				return boolRet, true
 			}
 		}
 	}
