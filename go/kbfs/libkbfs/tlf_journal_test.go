@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/test/clocktest"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -39,6 +40,7 @@ type testBWDelegate struct {
 	testCtx    context.Context
 	stateCh    chan bwState
 	shutdownCh chan struct{}
+	testDoneCh chan struct{}
 }
 
 func (d testBWDelegate) GetBackgroundContext() context.Context {
@@ -48,6 +50,9 @@ func (d testBWDelegate) GetBackgroundContext() context.Context {
 func (d testBWDelegate) OnNewState(ctx context.Context, bws bwState) {
 	select {
 	case d.stateCh <- bws:
+	case <-d.testDoneCh:
+		// The test is over, so anything waiting on a state change is
+		// likely some errant race that's probably not worth fixing.
 	case <-ctx.Done():
 		assert.Fail(d.t, ctx.Err().Error())
 	}
@@ -249,7 +254,7 @@ func setupTLFJournalTest(
 
 	mockPublisher := NewMockSubscriptionManagerPublisher(gomock.NewController(t))
 	config = &testTLFJournalConfig{
-		newTestCodecGetter(), newTestLogMaker(t),
+		newTestCodecGetter(), newTestLogMakerWithVDebug(t, libkb.VLog1String),
 		newTestSyncedTlfGetterSetter(), t,
 		tlf.FakeID(1, tlf.Private), bsplitter, crypto,
 		nil, nil, NewMDCacheStandard(10), ver,
@@ -276,6 +281,7 @@ func setupTLFJournalTest(
 		testCtx:    ctx,
 		stateCh:    make(chan bwState),
 		shutdownCh: make(chan struct{}),
+		testDoneCh: make(chan struct{}),
 	}
 
 	tempdir, err = ioutil.TempDir(os.TempDir(), "tlf_journal")
@@ -325,6 +331,10 @@ func teardownTLFJournalTest(
 	ctx context.Context, tempdir string, config *testTLFJournalConfig,
 	cancel context.CancelFunc, tlfJournal *tlfJournal,
 	delegate testBWDelegate) {
+	// If there are any errant state changes left in the journal, this
+	// will cause them to be aborted.
+	close(delegate.testDoneCh)
+
 	// Shutdown first so we don't get the Done() signal (from the
 	// cancel() call) spuriously.
 	tlfJournal.shutdown(ctx)
