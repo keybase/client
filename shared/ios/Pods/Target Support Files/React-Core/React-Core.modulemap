@@ -1,0 +1,7 @@
+module React {
+  umbrella header "React-Core-umbrella.h"
+  exclude header "React-umbrella.h"
+
+  export *
+  module * { export * }
+}

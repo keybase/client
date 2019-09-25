@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/UIButton+WebCache.h
+../../../SDWebImage/SDWebImage/UIButton+WebCache.h

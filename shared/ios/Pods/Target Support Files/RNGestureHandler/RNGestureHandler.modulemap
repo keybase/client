@@ -1,0 +1,6 @@
+module RNGestureHandler {
+  umbrella header "RNGestureHandler-umbrella.h"
+
+  export *
+  module * { export * }
+}

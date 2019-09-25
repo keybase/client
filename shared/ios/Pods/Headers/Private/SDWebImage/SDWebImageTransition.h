@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/SDWebImageTransition.h
+../../../SDWebImage/SDWebImage/SDWebImageTransition.h

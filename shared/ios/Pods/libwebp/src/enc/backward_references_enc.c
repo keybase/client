@@ -191,14 +191,13 @@ void VP8LHashChainClear(VP8LHashChain* const p) {
 
 // -----------------------------------------------------------------------------
 
-static const uint32_t kHashMultiplierHi = 0xc6a4a793u;
-static const uint32_t kHashMultiplierLo = 0x5bd1e996u;
+#define HASH_MULTIPLIER_HI (0xc6a4a793ULL)
+#define HASH_MULTIPLIER_LO (0x5bd1e996ULL)
 
-static WEBP_UBSAN_IGNORE_UNSIGNED_OVERFLOW WEBP_INLINE
-uint32_t GetPixPairHash64(const uint32_t* const argb) {
+static WEBP_INLINE uint32_t GetPixPairHash64(const uint32_t* const argb) {
   uint32_t key;
-  key  = argb[1] * kHashMultiplierHi;
-  key += argb[0] * kHashMultiplierLo;
+  key  = (argb[1] * HASH_MULTIPLIER_HI) & 0xffffffffu;
+  key += (argb[0] * HASH_MULTIPLIER_LO) & 0xffffffffu;
   key = key >> (32 - HASH_BITS);
   return key;
 }

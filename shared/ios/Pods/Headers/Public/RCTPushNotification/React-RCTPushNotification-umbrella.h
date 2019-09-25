@@ -1,0 +1,1 @@
+../../../Target Support Files/React-RCTPushNotification/React-RCTPushNotification-umbrella.h

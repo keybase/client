@@ -166,7 +166,8 @@ static WEBP_INLINE void ExportRowExpand_0(const uint32_t* frow, uint8_t* dst,
     for (x_out = 0; x_out < length; ++x_out) {
       const uint32_t J = frow[x_out];
       const int v = (int)MULT_FIX(J, wrk->fy_scale);
-      dst[x_out] = (v > 255) ? 255u : (uint8_t)v;
+      assert(v >= 0 && v <= 255);
+      dst[x_out] = v;
     }
   }
 }
@@ -240,7 +241,8 @@ static WEBP_INLINE void ExportRowExpand_1(const uint32_t* frow, uint32_t* irow,
                        + (uint64_t)B * irow[x_out];
       const uint32_t J = (uint32_t)((I + ROUNDER) >> WEBP_RESCALER_RFIX);
       const int v = (int)MULT_FIX(J, wrk->fy_scale);
-      dst[x_out] = (v > 255) ? 255u : (uint8_t)v;
+      assert(v >= 0 && v <= 255);
+      dst[x_out] = v;
     }
   }
 }
@@ -340,9 +342,10 @@ static WEBP_INLINE void ExportRowShrink_0(const uint32_t* frow, uint32_t* irow,
       length -= 4;
     }
     for (x_out = 0; x_out < length; ++x_out) {
-      const uint32_t frac = (uint32_t)MULT_FIX_FLOOR(frow[x_out], yscale);
-      const int v = (int)MULT_FIX(irow[x_out] - frac, wrk->fxy_scale);
-      dst[x_out] = (v > 255) ? 255u : (uint8_t)v;
+      const uint32_t frac = (uint32_t)MULT_FIX(frow[x_out], yscale);
+      const int v = (int)MULT_FIX_FLOOR(irow[x_out] - frac, wrk->fxy_scale);
+      assert(v >= 0 && v <= 255);
+      dst[x_out] = v;
       irow[x_out] = frac;
     }
   }
@@ -403,7 +406,8 @@ static WEBP_INLINE void ExportRowShrink_1(uint32_t* irow, uint8_t* dst,
     }
     for (x_out = 0; x_out < length; ++x_out) {
       const int v = (int)MULT_FIX(irow[x_out], wrk->fxy_scale);
-      dst[x_out] = (v > 255) ? 255u : (uint8_t)v;
+      assert(v >= 0 && v <= 255);
+      dst[x_out] = v;
       irow[x_out] = 0;
     }
   }

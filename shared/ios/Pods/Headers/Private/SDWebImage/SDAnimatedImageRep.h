@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/SDAnimatedImageRep.h
+../../../SDWebImage/SDWebImage/SDAnimatedImageRep.h

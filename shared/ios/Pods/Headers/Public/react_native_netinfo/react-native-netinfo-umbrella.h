@@ -1,0 +1,1 @@
+../../../Target Support Files/react-native-netinfo/react-native-netinfo-umbrella.h

@@ -1,0 +1,3 @@
+## Escodegen with JSX
+
+Fork of **Escodegen** that implements JSX code generating. The support is ported from **Escodegen-jsx** and modified to support acorn-babel (former acorn-6to5).

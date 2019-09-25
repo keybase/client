@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/SDWebImageError.h
+../../../SDWebImage/SDWebImage/SDWebImageError.h
