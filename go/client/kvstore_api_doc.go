@@ -5,8 +5,8 @@ const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encryp
 EXAMPLES:
 
 Get an entry:
-	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entry-key": "geocities"}}}
+	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
 
 Put an entry (reads value from stdin):
-	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entry-key": "geocities", "entry-value": "all my secrets"}}}
+	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 `

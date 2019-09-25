@@ -62,7 +62,7 @@ func (t *kvStoreAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) e
 type getEntryOptions struct {
 	Team      string `json:"team"`
 	Namespace string `json:"namespace"`
-	EntryKey  string `json:"entry-key"`
+	EntryKey  string `json:"entryKey"`
 }
 
 func (a *getEntryOptions) Check() error {
@@ -73,7 +73,7 @@ func (a *getEntryOptions) Check() error {
 		return errors.New("`namespace` field required")
 	}
 	if len(a.EntryKey) == 0 {
-		return errors.New("`entry-key` field required")
+		return errors.New("`entryKey` field required")
 	}
 	return nil
 }
@@ -99,8 +99,8 @@ func (t *kvStoreAPIHandler) getEntry(ctx context.Context, c Call, w io.Writer) e
 type putEntryOptions struct {
 	Team       string `json:"team"`
 	Namespace  string `json:"namespace"`
-	EntryKey   string `json:"entry-key"`
-	EntryValue string `json:"entry-value"`
+	EntryKey   string `json:"entryKey"`
+	EntryValue string `json:"entryValue"`
 }
 
 func (a *putEntryOptions) Check() error {
@@ -111,10 +111,10 @@ func (a *putEntryOptions) Check() error {
 		return errors.New("`namespace` field required")
 	}
 	if len(a.EntryKey) == 0 {
-		return errors.New("`entry-key` field required")
+		return errors.New("`entryKey` field required")
 	}
 	if len(a.EntryValue) == 0 {
-		return errors.New("`entry-value` field required")
+		return errors.New("`entryValue` field required")
 	}
 	return nil
 }
