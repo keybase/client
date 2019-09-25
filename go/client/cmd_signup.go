@@ -256,11 +256,6 @@ func (s *CmdSignup) checkRegistered() (err error) {
 		return
 	}
 
-	err = ensureSetPassphraseFromRemote(libkb.NewMetaContextTODO(s.G()))
-	if err != nil {
-		return err
-	}
-
 	if !s.doPrompt {
 		return nil
 	}

@@ -249,7 +249,8 @@ func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error
 
 	if err := e.changePassword(mctx); err != nil {
 		// Log out before returning
-		if err2 := RunEngine2(mctx, NewLogout()); err2 != nil {
+		// TODO FIX ME
+		if err2 := RunEngine2(mctx, NewLogout(libkb.LogoutOptions{})); err2 != nil {
 			mctx.Warning("Unable to log out after password change failed: %v", err2)
 		}
 

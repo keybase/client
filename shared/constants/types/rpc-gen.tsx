@@ -856,7 +856,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.login.logout': {
-    inParam: void
+    inParam: {readonly force: Boolean}
     outParam: void
   }
   'keybase.1.login.paperKey': {

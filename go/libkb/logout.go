@@ -1,25 +1,49 @@
 package libkb
 
-func (m MetaContext) Logout() (err error) {
-	m = m.WithLogTag("LOGOUT")
-	defer m.Trace("GlobalContext#Logout", func() error { return err })()
-	return m.LogoutCurrentUserWithSecretKill(true /* killSecrets */)
+import (
+	"fmt"
+
+	"github.com/keybase/client/go/protocol/keybase1"
+)
+
+func (mctx MetaContext) LogoutKillSecrets() (err error) {
+	return mctx.LogoutWithOptions(LogoutOptions{KeepSecrets: false})
 }
 
-func (m MetaContext) ClearStateForSwitchUsers() (err error) {
-	return m.LogoutCurrentUserWithSecretKill(false /* killSecrets */)
+func (mctx MetaContext) LogoutKeepSecrets() (err error) {
+	return mctx.LogoutWithOptions(LogoutOptions{KeepSecrets: true})
 }
 
-func (m MetaContext) LogoutCurrentUserWithSecretKill(killSecrets bool) error {
-	return m.LogoutUsernameWithSecretKill(m.ActiveDevice().Username(m), killSecrets)
+type LogoutOptions struct {
+	KeepSecrets bool
+	Force       bool
 }
 
-func (m MetaContext) LogoutUsernameWithSecretKill(username NormalizedUsername, killSecrets bool) (err error) {
+func (mctx MetaContext) LogoutWithOptions(options LogoutOptions) (err error) {
+	username := mctx.ActiveDevice().Username(mctx)
+	return mctx.LogoutUsernameWithOptions(username, options)
+}
 
-	g := m.G()
-	defer g.switchUserMu.Acquire(m, "Logout")()
+func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, options LogoutOptions) (err error) {
+	mctx = mctx.WithLogTag("LOGOUT")
+	defer mctx.Trace(fmt.Sprintf("MetaContext#LogoutWithOptions(%#v)", options), func() error { return err })()
 
-	m.Debug("GlobalContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, secretKill: %v)", username, killSecrets)
+	g := mctx.G()
+	defer g.switchUserMu.Acquire(mctx, "Logout")()
+
+	mctx.Debug("MetaContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, options: %#v)",
+		username, options)
+
+	if options.KeepSecrets {
+		mctx.Debug("Keeping secrets after this login, so not checking HasRandomPW")
+	} else {
+		mctx.Debug("MetaContext#logoutWithSecretKill: checking if CanLogout")
+		canLogoutRes := CanLogout(mctx)
+		mctx.Debug("MetaContext#logoutWithSecretKill: CanLogout res: %#v", canLogoutRes)
+		if !canLogoutRes.CanLogout {
+			return fmt.Errorf("Cannot log out: %s", canLogoutRes.Reason)
+		}
+	}
 
 	var keychainMode KeychainMode
 	keychainMode, err = g.ActiveDevice.ClearGetKeychainMode()
@@ -27,11 +51,11 @@ func (m MetaContext) LogoutUsernameWithSecretKill(username NormalizedUsername, k
 		return err
 	}
 
-	g.LocalSigchainGuard().Clear(m.Ctx(), "Logout")
+	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
 
-	m.Debug("+ GlobalContext#logoutWithSecretKill: calling logout hooks")
-	g.CallLogoutHooks(m)
-	m.Debug("- GlobalContext#logoutWithSecretKill: called logout hooks")
+	mctx.Debug("+ MetaContext#logoutWithSecretKill: calling logout hooks")
+	g.CallLogoutHooks(mctx)
+	mctx.Debug("- MetaContext#logoutWithSecretKill: called logout hooks")
 
 	g.ClearPerUserKeyring()
 
@@ -40,18 +64,18 @@ func (m MetaContext) LogoutUsernameWithSecretKill(username NormalizedUsername, k
 	g.FlushCaches()
 
 	if keychainMode == KeychainModeOS {
-		m.logoutSecretStore(username, killSecrets)
+		mctx.logoutSecretStore(username, options.KeepSecrets)
 	} else {
-		m.Debug("Not clearing secret store in mode %d", keychainMode)
+		mctx.Debug("Not clearing secret store in mode %d", keychainMode)
 	}
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
-		m.Debug("Logout ConfigReload error: %s", err)
+		mctx.Debug("Logout ConfigReload error: %s", err)
 	}
 
 	// send logout notification
-	g.NotifyRouter.HandleLogout(m.Ctx())
+	g.NotifyRouter.HandleLogout(mctx.Ctx())
 
 	g.FeatureFlags.Clear()
 
@@ -64,12 +88,12 @@ func (m MetaContext) LogoutUsernameWithSecretKill(username NormalizedUsername, k
 		return err
 	}
 
-	g.Pegboard.OnLogout(m)
+	g.Pegboard.OnLogout(mctx)
 
 	return nil
 }
 
-func (m MetaContext) logoutSecretStore(username NormalizedUsername, killSecrets bool) {
+func (m MetaContext) logoutSecretStore(username NormalizedUsername, noKillSecrets bool) {
 
 	g := m.G()
 	g.secretStoreMu.Lock()
@@ -79,7 +103,7 @@ func (m MetaContext) logoutSecretStore(username NormalizedUsername, killSecrets 
 		return
 	}
 
-	if !killSecrets {
+	if noKillSecrets {
 		g.switchedUsers[username] = true
 		return
 	}
@@ -97,16 +121,16 @@ func (m MetaContext) logoutSecretStore(username NormalizedUsername, killSecrets 
 
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
-func (m MetaContext) LogoutSelfCheck() error {
-	g := m.G()
+func (mctx MetaContext) LogoutSelfCheck() error {
+	g := mctx.G()
 	uid := g.ActiveDevice.UID()
 	if uid.IsNil() {
-		m.Debug("LogoutSelfCheck: no uid")
+		mctx.Debug("LogoutSelfCheck: no uid")
 		return nil
 	}
 	deviceID := g.ActiveDevice.DeviceID()
 	if deviceID.IsNil() {
-		m.Debug("LogoutSelfCheck: no device id")
+		mctx.Debug("LogoutSelfCheck: no device id")
 		return nil
 	}
 
@@ -118,7 +142,7 @@ func (m MetaContext) LogoutSelfCheck() error {
 		},
 		SessionType: APISessionTypeREQUIRED,
 	}
-	res, err := g.API.Post(m, arg)
+	res, err := g.API.Post(mctx, arg)
 	if err != nil {
 		return err
 	}
@@ -128,10 +152,10 @@ func (m MetaContext) LogoutSelfCheck() error {
 		return err
 	}
 
-	m.Debug("LogoutSelfCheck: should log out? %v", logout)
+	mctx.Debug("LogoutSelfCheck: should log out? %v", logout)
 	if logout {
-		m.Debug("LogoutSelfCheck: logging out...")
-		return m.Logout()
+		mctx.Debug("LogoutSelfCheck: logging out...")
+		return mctx.LogoutKillSecrets()
 	}
 
 	return nil

@@ -82,7 +82,7 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 	}
 
 	m.UIs().LogUI.Info("Logging out...")
-	if err = m.Logout(); err != nil {
+	if err = m.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: false, Force: true}); err != nil {
 		m.Debug("DeprovisionEngine error during logout: %s", err)
 		return err
 	}

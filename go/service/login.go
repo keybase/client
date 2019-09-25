@@ -27,10 +27,10 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 	return h.G().GetConfiguredAccounts(context)
 }
 
-func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
+func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
 	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("LOGOUT")
-	eng := engine.NewLogout()
+	eng := engine.NewLogout(libkb.LogoutOptions{Force: arg.Force})
 	return engine.RunEngine2(mctx, eng)
 }
 

@@ -122,7 +122,7 @@ func (tc *TestContext) Cleanup() {
 }
 
 func (tc *TestContext) Logout() error {
-	return NewMetaContextForTest(*tc).Logout()
+	return NewMetaContextForTest(*tc).LogoutKillSecrets()
 }
 
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
