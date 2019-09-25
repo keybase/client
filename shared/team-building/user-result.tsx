@@ -55,7 +55,7 @@ const UserResult = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
-        style={styles.rowContainer}
+        style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
       >
         <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
         <Kb.Box2 direction="vertical" style={styles.username}>
@@ -330,6 +330,12 @@ const styles = Styles.styleSheetCreate(() => ({
   contactName: {
     lineHeight: 22,
   },
+  highlighted: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.blueLighter2,
+      borderRadius: Styles.borderRadius,
+    },
+  }),
   keybaseServiceIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
