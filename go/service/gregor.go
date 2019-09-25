@@ -222,6 +222,7 @@ type gregorHandler struct {
 	broadcastCh chan gregor1.Message
 	replayCh    chan replayThreadArg
 	pushStateCh chan struct{}
+	forcePingCh chan struct{}
 
 	// Testing
 	testingEvents       *testingEvents
@@ -243,6 +244,7 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		connectHappened:   make(chan struct{}),
 		replayCh:          make(chan replayThreadArg, 10),
 		pushStateCh:       make(chan struct{}, 100),
+		forcePingCh:       make(chan struct{}, 5),
 	}
 	return gh
 }
@@ -273,7 +275,7 @@ func (g *gregorHandler) monitorAppState() {
 		case state = <-g.G().MobileAppState.NextUpdate(&state):
 			switch state {
 			case keybase1.MobileAppState_FOREGROUND:
-				g.Shutdown()
+				g.forcePing(context.Background())
 				monitorAction = monitorConnect
 			case keybase1.MobileAppState_BACKGROUNDACTIVE:
 				monitorAction = monitorConnect
@@ -1447,8 +1449,72 @@ func (g *gregorHandler) Reconnect(ctx context.Context) (didShutdown bool, err er
 	return didShutdown, nil
 }
 
-func (g *gregorHandler) pingLoop() {
+func (g *gregorHandler) forcePing(ctx context.Context) {
+	select {
+	case g.forcePingCh <- struct{}{}:
+	default:
+		g.Debug(ctx, "forcePing: failed to write to channel, its full")
+	}
+}
 
+func (g *gregorHandler) pingOnce(ctx context.Context, id []byte, shutdownCancel context.CancelFunc) {
+	var err error
+	doneCh := make(chan error)
+	timeout := g.G().Env.GetGregorPingTimeout()
+	go func(ctx context.Context) {
+		if g.IsConnected() {
+			// If we are connected, subject the ping call to a fairly
+			// aggressive timeout so our chat stuff can be responsive
+			// to changes in connectivity
+			var timeoutCancel context.CancelFunc
+			var timeoutCtx context.Context
+			timeoutCtx, timeoutCancel = context.WithTimeout(ctx, timeout)
+			_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(timeoutCtx)
+			timeoutCancel()
+		} else {
+			// If we are not connected, we don't want to timeout anything
+			// Just hook into the normal reconnect chan stuff in the RPC
+			// library
+			g.chatLog.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
+			_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+			g.chatLog.Debug(ctx, "ping loop: id: %x normal ping success", id)
+		}
+		select {
+		case <-ctx.Done():
+			g.chatLog.Debug(ctx, "ping loop: id: %x context cancelled, so not sending err", id)
+		default:
+			doneCh <- err
+		}
+	}(ctx)
+
+	select {
+	case err = <-doneCh:
+	case <-g.shutdownCh:
+		g.chatLog.Debug(ctx, "ping loop: id: %x shutdown received", id)
+		shutdownCancel()
+		return
+	}
+	if err != nil {
+		g.Debug(ctx, "ping loop: id: %x error: %s", id, err)
+		if err == context.DeadlineExceeded {
+			g.chatLog.Debug(ctx, "ping loop: timeout: terminating connection")
+			var didShutdown bool
+			var err error
+			if didShutdown, err = g.Reconnect(ctx); err != nil {
+				g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id, err)
+			}
+			// It is possible that we have already reconnected by the time we call Reconnect
+			// above. If that is the case, we don't want to terminate the ping loop. Only
+			// if Reconnect has actually reset the connection do we stop this ping loop.
+			if didShutdown {
+				shutdownCancel()
+				return
+			}
+		}
+	}
+}
+
+func (g *gregorHandler) pingLoop() {
 	ctx := context.Background()
 	id, _ := libkb.RandBytes(4)
 	duration := g.G().Env.GetGregorPingInterval()
@@ -1458,71 +1524,18 @@ func (g *gregorHandler) pingLoop() {
 		g.chatLog.Debug(ctx, "ping loop: failed to parse server uri, exiting: %s", err.Error())
 		return
 	}
-
 	g.chatLog.Debug(ctx, "ping loop: starting up: id: %x duration: %v timeout: %v url: %s",
 		id, duration, timeout, url.Host)
 	defer g.chatLog.Debug(ctx, "ping loop: id: %x terminating", id)
-
 	ticker := time.NewTicker(duration)
 	for {
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
+		case <-g.forcePingCh:
+			g.chatLog.Debug(ctx, "ping loop: forced attempt")
+			g.pingOnce(ctx, id, shutdownCancel)
 		case <-ticker.C:
-			var err error
-
-			doneCh := make(chan error)
-			go func(ctx context.Context) {
-				if g.IsConnected() {
-					// If we are connected, subject the ping call to a fairly
-					// aggressive timeout so our chat stuff can be responsive
-					// to changes in connectivity
-					var timeoutCancel context.CancelFunc
-					var timeoutCtx context.Context
-					timeoutCtx, timeoutCancel = context.WithTimeout(ctx, timeout)
-					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(timeoutCtx)
-					timeoutCancel()
-				} else {
-					// If we are not connected, we don't want to timeout anything
-					// Just hook into the normal reconnect chan stuff in the RPC
-					// library
-					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
-					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
-					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping success", id)
-				}
-				select {
-				case <-ctx.Done():
-					g.chatLog.Debug(ctx, "ping loop: id: %x context cancelled, so not sending err", id)
-				default:
-					doneCh <- err
-				}
-			}(ctx)
-
-			select {
-			case err = <-doneCh:
-			case <-g.shutdownCh:
-				g.chatLog.Debug(ctx, "ping loop: id: %x shutdown received", id)
-				shutdownCancel()
-				return
-			}
-			if err != nil {
-				g.Debug(ctx, "ping loop: id: %x error: %s", id, err.Error())
-				if err == context.DeadlineExceeded {
-					g.chatLog.Debug(ctx, "ping loop: timeout: terminating connection")
-					var didShutdown bool
-					var err error
-					if didShutdown, err = g.Reconnect(ctx); err != nil {
-						g.chatLog.Debug(ctx, "ping loop: id: %x error reconnecting: %s", id,
-							err.Error())
-					}
-					// It is possible that we have already reconnected by the time we call Reconnect
-					// above. If that is the case, we don't want to terminate the ping loop. Only
-					// if Reconnect has actually reset the connection do we stop this ping loop.
-					if didShutdown {
-						shutdownCancel()
-						return
-					}
-				}
-			}
+			g.pingOnce(ctx, id, shutdownCancel)
 		case <-g.shutdownCh:
 			g.chatLog.Debug(ctx, "ping loop: id: %x shutdown received", id)
 			shutdownCancel()
