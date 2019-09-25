@@ -9,9 +9,10 @@ import (
 )
 
 type SignupRes struct {
-	PassphraseOk bool `codec:"passphraseOk" json:"passphraseOk"`
-	PostOk       bool `codec:"postOk" json:"postOk"`
-	WriteOk      bool `codec:"writeOk" json:"writeOk"`
+	PassphraseOk bool   `codec:"passphraseOk" json:"passphraseOk"`
+	PostOk       bool   `codec:"postOk" json:"postOk"`
+	WriteOk      bool   `codec:"writeOk" json:"writeOk"`
+	PaperKey     string `codec:"paperKey" json:"paperKey"`
 }
 
 func (o SignupRes) DeepCopy() SignupRes {
@@ -19,6 +20,7 @@ func (o SignupRes) DeepCopy() SignupRes {
 		PassphraseOk: o.PassphraseOk,
 		PostOk:       o.PostOk,
 		WriteOk:      o.WriteOk,
+		PaperKey:     o.PaperKey,
 	}
 }
 
@@ -41,6 +43,8 @@ type SignupArg struct {
 	GenPaper    bool       `codec:"genPaper" json:"genPaper"`
 	RandomPw    bool       `codec:"randomPw" json:"randomPw"`
 	VerifyEmail bool       `codec:"verifyEmail" json:"verifyEmail"`
+	BotToken    BotToken   `codec:"botToken" json:"botToken"`
+	SkipGPG     bool       `codec:"skipGPG" json:"skipGPG"`
 }
 
 type InviteRequestArg struct {

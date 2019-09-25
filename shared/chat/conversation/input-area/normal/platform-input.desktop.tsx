@@ -177,7 +177,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (this.props.cannotWrite) {
       hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
         this.props.minWriterRole
-      } to post`
+      } to post.`
     }
 
     return (
@@ -205,7 +205,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               },
             ])}
           >
-            {!this.props.isEditing && (
+            {!this.props.isEditing && !this.props.cannotWrite && (
               <HoverBox
                 className={Styles.classNames({expanded: this.props.showingMenu})}
                 onClick={this._toggleShowingMenu}

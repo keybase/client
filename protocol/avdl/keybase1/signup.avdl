@@ -11,10 +11,13 @@ protocol signup {
     boolean postOk;
     @lint("ignore")
     boolean writeOk;
+
+    // In bot signups, we'll get a paper key back
+    string paperKey;
   }
 
   void checkUsernameAvailable(int sessionID, string username);
-  SignupRes signup(int sessionID, string email, string inviteCode, string passphrase, string username, string deviceName, DeviceType deviceType, boolean storeSecret, boolean skipMail, boolean genPGPBatch, boolean genPaper, boolean randomPw, boolean verifyEmail);
+  SignupRes signup(int sessionID, string email, string inviteCode, string passphrase, string username, string deviceName, DeviceType deviceType, boolean storeSecret, boolean skipMail, boolean genPGPBatch, boolean genPaper, boolean randomPw, boolean verifyEmail, BotToken botToken, boolean skipGPG);
   void inviteRequest(int sessionID, string email, string fullname, string notes);
   void checkInvitationCode(int sessionID, string invitationCode);
   string getInvitationCode(int sessionID);

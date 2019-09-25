@@ -454,7 +454,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   render() {
     const props = this.props
 
-    let content
+    let content: React.ReactNode
     switch (props.selectedService) {
       case 'email':
         content = (
@@ -636,9 +636,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {overflow: 'hidden'},
       }),
       listContentContainer: Styles.platformStyles({
-        isMobile: {
-          paddingTop: Styles.globalMargins.xtiny,
-        },
+        isMobile: {paddingTop: Styles.globalMargins.xtiny},
       }),
       loadingContainer: {
         flex: 1,

@@ -25,6 +25,10 @@
           "type": "boolean",
           "name": "writeOk",
           "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "paperKey"
         }
       ]
     }
@@ -95,6 +99,14 @@
         },
         {
           "name": "verifyEmail",
+          "type": "boolean"
+        },
+        {
+          "name": "botToken",
+          "type": "BotToken"
+        },
+        {
+          "name": "skipGPG",
           "type": "boolean"
         }
       ],

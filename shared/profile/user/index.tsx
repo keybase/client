@@ -1,5 +1,5 @@
 import * as React from 'react'
-import * as SearchGen from '../../actions/search-gen'
+import {appendPeopleBuilder} from '../../actions/typed-routes'
 import * as Container from '../../util/container'
 import ProfileSearch from '../search/bar'
 import * as Kb from '../../common-adapters'
@@ -33,7 +33,6 @@ export type Props = {
   onAddIdentity: (() => void) | null
   onBack: () => void
   onReload: () => void
-  onSearch: () => void
   onEditAvatar: ((e?: React.BaseSyntheticEvent) => void) | null
   reason: string
   sbsAvatarUrl?: string
@@ -314,7 +313,7 @@ const Header = ({onSearch}) => (
 const ConnectedHeader = Container.connect(
   () => ({}),
   dispatch => ({
-    onSearch: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'})),
+    onSearch: () => dispatch(appendPeopleBuilder()),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )(Header)

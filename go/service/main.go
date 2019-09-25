@@ -4,6 +4,7 @@
 package service
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -93,9 +94,11 @@ type Service struct {
 	httpSrv         *manager.Srv
 	avatarSrv       *avatars.Srv
 
-	loginAttemptMu sync.Mutex
-	loginAttempt   loginAttempt
-	loginSuccess   bool
+	loginAttemptMu  sync.Mutex
+	loginAttempt    loginAttempt
+	loginSuccess    bool
+	oneshotUsername string
+	oneshotPaperkey string
 }
 
 type Shutdowner interface {
@@ -191,6 +194,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 		keybase1.AuditProtocol(NewAuditHandler(xp, g)),
 		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),
+		keybase1.BotProtocol(NewBotHandler(xp, g)),
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
@@ -263,6 +267,7 @@ func (d *Service) Handle(c net.Conn) {
 }
 
 func (d *Service) Run() (err error) {
+	mctx := libkb.NewMetaContextBackground(d.G()).WithLogTag("SVC")
 	defer func() {
 
 		d.stopProfile()
@@ -272,13 +277,13 @@ func (d *Service) Run() (err error) {
 		}
 		d.G().NotifyRouter.HandleServiceShutdown()
 		if err != nil {
-			d.G().Log.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
+			mctx.Info("Service#Run() exiting with error %s (code %d)", err.Error(), d.G().ExitCode)
 		} else {
-			d.G().Log.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
+			mctx.Debug("Service#Run() clean exit with code %d", d.G().ExitCode)
 		}
 	}()
 
-	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
+	mctx.Debug("+ service starting up; forkType=%v", d.ForkType)
 
 	d.startProfile()
 
@@ -299,9 +304,9 @@ func (d *Service) Run() (err error) {
 	if len(d.chdirTo) != 0 {
 		etmp := os.Chdir(d.chdirTo)
 		if etmp != nil {
-			d.G().Log.Warning("Could not change directory to %s: %s", d.chdirTo, etmp)
+			mctx.Warning("Could not change directory to %s: %s", d.chdirTo, etmp)
 		} else {
-			d.G().Log.Info("Changing runtime dir to %s", d.chdirTo)
+			mctx.Info("Changing runtime dir to %s", d.chdirTo)
 		}
 	}
 
@@ -313,7 +318,7 @@ func (d *Service) Run() (err error) {
 	case "systemd":
 		d.ForkType = keybase1.ForkType_SYSTEMD
 	default:
-		d.G().Log.Warning("Unknown service type: %q", d.G().Env.GetServiceType())
+		mctx.Warning("Unknown service type: %q", d.G().Env.GetServiceType())
 	}
 
 	if err = d.GetExclusiveLock(); err != nil {
@@ -336,6 +341,10 @@ func (d *Service) Run() (err error) {
 	}
 
 	if err = d.SetupCriticalSubServices(); err != nil {
+		return err
+	}
+
+	if err = d.runOneshot(mctx); err != nil {
 		return err
 	}
 
@@ -1166,6 +1175,43 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 	}
 }
 
+func (d *Service) runOneshot(mctx libkb.MetaContext) (err error) {
+	if len(d.oneshotUsername) == 0 {
+		return nil
+	}
+	mctx.Debug("Oneshot login with username: %s", d.oneshotUsername)
+	pk, err := d.getPaperKey(mctx)
+	if err != nil {
+		return err
+	}
+	eng := engine.NewLoginOneshot(mctx.G(), keybase1.LoginOneshotArg{
+		Username: d.oneshotUsername,
+		PaperKey: pk,
+	})
+	return engine.RunEngine2(mctx, eng)
+}
+
+func (d *Service) getPaperKey(mctx libkb.MetaContext) (key string, err error) {
+	if len(d.oneshotPaperkey) > 0 {
+		return d.oneshotPaperkey, nil
+	}
+	envVar := "KEYBASE_PAPERKEY"
+	key = os.Getenv(envVar)
+	if len(key) > 0 {
+		return key, nil
+	}
+	mctx.Info("Reading paperkey from standard input in oneshot mode")
+
+	key, err = bufio.NewReader(os.Stdin).ReadString('\n')
+	if err == io.EOF && len(key) > 0 {
+		err = nil
+	}
+	if len(key) < 5 {
+		return "", fmt.Errorf("bad paper key read from standard input in oneshot mode")
+	}
+	return key, err
+}
+
 func (d *Service) ParseArgv(ctx *cli.Context) error {
 	d.chdirTo = ctx.String("chdir")
 	if ctx.Bool("auto-forked") {
@@ -1175,12 +1221,18 @@ func (d *Service) ParseArgv(ctx *cli.Context) error {
 	} else if ctx.Bool("launchd-forked") {
 		d.ForkType = keybase1.ForkType_LAUNCHD
 	}
+	d.oneshotUsername = ctx.String("oneshot-username")
+	d.oneshotPaperkey = ctx.String("oneshot-paperkey")
+	if len(d.oneshotPaperkey) > 0 && len(d.oneshotUsername) == 0 {
+		return fmt.Errorf("Cannot use --oneshot-paperkey without the --oneshot-username option")
+	}
 	return nil
 }
 
 func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "service",
+		Name:  "service",
+		Usage: "start the Keybase service to power all other CLI options",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "chdir",
@@ -1198,7 +1250,24 @@ func NewCmdService(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "watchdog-forked",
 				Usage: "Specify if this binary was started by the watchdog",
 			},
+			cli.StringFlag{
+				Name:  "u, oneshot-username",
+				Usage: "In oneshot mode, startup with username",
+			},
+			cli.StringFlag{
+				Name:  "p, oneshot-paperkey",
+				Usage: "In oneshot mode, startup with paperkey; DANGEROUS to pass paperkey as a parameter",
+			},
 		},
+		Description: `"keybase service" starts up the "service" process that powers all of Keybase.
+   Usually it runs in the background as part of your OS's packaging of the Keybase, but it
+   can also run as a foreground process (useful in development or for bots).
+
+   There is special support for running the service and immediately logging in via "oneshot
+   mode", which is particularly userful for bots. Specify --onershot-username and a paper key
+   to enable this option. We recommend passing the paper key via standard input, or
+   the KEBASE_PAPERKEY= environment variable, but this subcommand will dangerously accept
+   the paper key via command line option.`,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewService(g, true /* isDaemon */), "service", c)
 			cl.SetService()
