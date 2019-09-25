@@ -253,7 +253,7 @@ const SwitchTab = (
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
       <Kb.Text
-        type={Styles.isMobile ? 'Body' : 'BodySmall'}
+        type="BodySmallPrimaryLink"
         negative={true}
         onClick={() => props.onSelect(tab)}
         style={styles.switchTab}
@@ -318,7 +318,7 @@ const Instructions = (p: Props) => (
     {p.currentDeviceAlreadyProvisioned ? (
       <>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Ready to provision using
+          Ready to authorize using
         </Kb.Text>
         <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
@@ -360,7 +360,7 @@ const Instructions = (p: Props) => (
           </Kb.Text>
           <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add device or paper key
+            Add a device or paper key
           </Kb.Text>
           <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
