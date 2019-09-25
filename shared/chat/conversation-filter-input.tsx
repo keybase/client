@@ -195,7 +195,9 @@ const styles = Styles.styleSheetCreate(
           padding: 2,
         },
         isElectron: {
-          background: 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
+          background: Styles.isDarkMode()
+            ? 'linear-gradient(rgba(255, 93, 93, 0.75), rgba(255, 247, 90, 0.75) 50%, rgba(58, 255, 172, 0.75))'
+            : 'linear-gradient(180deg, #ff5d5d, #fff75a 50%, #3AFFAC)',
           borderRadius: 6,
         },
         isMobile: {

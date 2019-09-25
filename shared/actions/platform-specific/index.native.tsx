@@ -169,50 +169,6 @@ const openAppSettings = async () => {
   }
 }
 
-export const getContentTypeFromURL = async (
-  url: string,
-  cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
-) => {
-  // For some reason HEAD doesn't work on Android. So just GET one byte.
-  // TODO: fix HEAD for Android and get rid of this hack.
-  if (isAndroid) {
-    try {
-      const response = await fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
-      let contentType = ''
-      let disposition = ''
-      let statusCode = response.status
-      if (
-        statusCode === 200 ||
-        statusCode === 206 ||
-        // 416 can happen if the file is empty.
-        statusCode === 416
-      ) {
-        contentType = response.headers.get('Content-Type') || ''
-        disposition = response.headers.get('Content-Disposition') || ''
-        statusCode = 200 // Treat 200, 206, and 416 as 200.
-      }
-      cb({contentType, disposition, statusCode})
-    } catch (error) {
-      console.log(error)
-      cb({error})
-    }
-  } else {
-    try {
-      const response = await fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-      let contentType = ''
-      let disposition = ''
-      if (response.status === 200) {
-        contentType = response.headers.get('Content-Type') || ''
-        disposition = response.headers.get('Content-Disposition') || ''
-      }
-      cb({contentType, disposition, statusCode: response.status})
-    } catch (error) {
-      console.log(error)
-      cb({error})
-    }
-  }
-}
-
 const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused: boolean
   let logState: RPCTypes.MobileAppState

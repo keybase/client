@@ -26,6 +26,9 @@ export const colors = {
   black_35: 'rgba(0, 0, 0, 0.35)',
   black_40: 'rgba(0, 0, 0, 0.40)',
   black_50: 'rgba(0, 0, 0, 0.50)',
+  get black_50OrBlack_60() {
+    return this.black_50
+  },
   get black_50OrWhite() {
     return this.black_50
   },
@@ -134,6 +137,9 @@ export const colors = {
   yellow: '#FFF75A',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
+  get yellowOrYellowLight() {
+    return this.yellow
+  },
 } as const
 
 export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
@@ -159,6 +165,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_35: 'rgba(255, 255, 255, 0.35)',
   black_40: 'rgba(255, 255, 255, 0.40)',
   black_50: 'rgba(255, 255, 255, 0.50)',
+  get black_50OrBlack_60() {
+    return colors.black_60
+  },
   get black_50OrWhite() {
     return colors.white
   },
@@ -264,6 +273,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   yellow: '#FFF75A',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
+  get yellowOrYellowLight() {
+    return colors.yellowLight
+  },
 }
 
 const partyFallbackColors = {

@@ -173,6 +173,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
         'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
       },
       params: {
+        botToken: '',
         deviceName: devicename,
         deviceType: isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop,
         email: '',
@@ -181,6 +182,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
         inviteCode,
         passphrase: '',
         randomPw: true,
+        skipGPG: true,
         skipMail: true,
         storeSecret: true,
         username,

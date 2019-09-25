@@ -15,6 +15,7 @@ export {default as Filename} from './filename'
 export {
   useFsPathMetadata,
   useFsChildren,
+  useFsFileContext,
   useFsDownloadInfo,
   useFsDownloadStatus,
   useFsJournalStatus,

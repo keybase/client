@@ -1118,18 +1118,6 @@ func (o OpProgress) DeepCopy() OpProgress {
 	}
 }
 
-type SimpleFSGetHTTPAddressAndTokenResponse struct {
-	Address string `codec:"address" json:"address"`
-	Token   string `codec:"token" json:"token"`
-}
-
-func (o SimpleFSGetHTTPAddressAndTokenResponse) DeepCopy() SimpleFSGetHTTPAddressAndTokenResponse {
-	return SimpleFSGetHTTPAddressAndTokenResponse{
-		Address: o.Address,
-		Token:   o.Token,
-	}
-}
-
 type SimpleFSQuotaUsage struct {
 	UsageBytes      int64 `codec:"usageBytes" json:"usageBytes"`
 	ArchiveBytes    int64 `codec:"archiveBytes" json:"archiveBytes"`
@@ -1435,6 +1423,58 @@ func (o DownloadStatus) DeepCopy() DownloadStatus {
 	}
 }
 
+type GUIViewType int
+
+const (
+	GUIViewType_DEFAULT GUIViewType = 0
+	GUIViewType_TEXT    GUIViewType = 1
+	GUIViewType_IMAGE   GUIViewType = 2
+	GUIViewType_AUDIO   GUIViewType = 3
+	GUIViewType_VIDEO   GUIViewType = 4
+	GUIViewType_PDF     GUIViewType = 5
+)
+
+func (o GUIViewType) DeepCopy() GUIViewType { return o }
+
+var GUIViewTypeMap = map[string]GUIViewType{
+	"DEFAULT": 0,
+	"TEXT":    1,
+	"IMAGE":   2,
+	"AUDIO":   3,
+	"VIDEO":   4,
+	"PDF":     5,
+}
+
+var GUIViewTypeRevMap = map[GUIViewType]string{
+	0: "DEFAULT",
+	1: "TEXT",
+	2: "IMAGE",
+	3: "AUDIO",
+	4: "VIDEO",
+	5: "PDF",
+}
+
+func (e GUIViewType) String() string {
+	if v, ok := GUIViewTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GUIFileContext struct {
+	ViewType    GUIViewType `codec:"viewType" json:"viewType"`
+	ContentType string      `codec:"contentType" json:"contentType"`
+	Url         string      `codec:"url" json:"url"`
+}
+
+func (o GUIFileContext) DeepCopy() GUIFileContext {
+	return GUIFileContext{
+		ViewType:    o.ViewType.DeepCopy(),
+		ContentType: o.ContentType,
+		Url:         o.Url,
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1574,9 +1614,6 @@ type SimpleFSSyncStatusArg struct {
 	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
-type SimpleFSGetHTTPAddressAndTokenArg struct {
-}
-
 type SimpleFSUserEditHistoryArg struct {
 }
 
@@ -1685,6 +1722,10 @@ type SimpleFSConfigureDownloadArg struct {
 	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
+type SimpleFSGetGUIFileContextArg struct {
+	Path KBFSPath `codec:"path" json:"path"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1759,17 +1800,6 @@ type SimpleFSInterface interface {
 	SimpleFSForceStuckConflict(context.Context, Path) error
 	// Get sync status.
 	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
-	// This RPC generates a random token to be used by a client that needs to
-	// access KBFS content through HTTP. It's fine to call this RPC more than once,
-	// but it's probably best to call this once and keep using it. Clients should
-	// be using HTTP GET methods, with requests in the form of:
-	//
-	// http://<address>/<kbfs_path>?token=<token>
-	//
-	// If the provided token is invalid, 403 Forbidden is returned, with a HTML
-	// document that has title of "KBFS HTTP Token Invalid". When receiving such
-	// response, client should call this RPC (again) to get a new token.
-	SimpleFSGetHTTPAddressAndToken(context.Context) (SimpleFSGetHTTPAddressAndTokenResponse, error)
 	// simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
 	// user can access.  Each returned history is corresponds to a unique
 	// writer-TLF pair.  They are in descending order by the modification time
@@ -1813,6 +1843,7 @@ type SimpleFSInterface interface {
 	SimpleFSCancelDownload(context.Context, string) error
 	SimpleFSDismissDownload(context.Context, string) error
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
+	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2224,16 +2255,6 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
-			"SimpleFSGetHTTPAddressAndToken": {
-				MakeArg: func() interface{} {
-					var ret [1]SimpleFSGetHTTPAddressAndTokenArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSGetHTTPAddressAndToken(ctx)
-					return
-				},
-			},
 			"simpleFSUserEditHistory": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSUserEditHistoryArg
@@ -2584,6 +2605,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSGetGUIFileContext": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSGetGUIFileContextArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSGetGUIFileContextArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSGetGUIFileContextArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSGetGUIFileContext(ctx, typedArgs[0].Path)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2787,21 +2823,6 @@ func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context, filter ListFilte
 	return
 }
 
-// This RPC generates a random token to be used by a client that needs to
-// access KBFS content through HTTP. It's fine to call this RPC more than once,
-// but it's probably best to call this once and keep using it. Clients should
-// be using HTTP GET methods, with requests in the form of:
-//
-// http://<address>/<kbfs_path>?token=<token>
-//
-// If the provided token is invalid, 403 Forbidden is returned, with a HTML
-// document that has title of "KBFS HTTP Token Invalid". When receiving such
-// response, client should call this RPC (again) to get a new token.
-func (c SimpleFSClient) SimpleFSGetHTTPAddressAndToken(ctx context.Context) (res SimpleFSGetHTTPAddressAndTokenResponse, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.SimpleFSGetHTTPAddressAndToken", []interface{}{SimpleFSGetHTTPAddressAndTokenArg{}}, &res)
-	return
-}
-
 // simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
 // user can access.  Each returned history is corresponds to a unique
 // writer-TLF pair.  They are in descending order by the modification time
@@ -2957,5 +2978,11 @@ func (c SimpleFSClient) SimpleFSDismissDownload(ctx context.Context, downloadID 
 
 func (c SimpleFSClient) SimpleFSConfigureDownload(ctx context.Context, __arg SimpleFSConfigureDownloadArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSConfigureDownload", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSGetGUIFileContext(ctx context.Context, path KBFSPath) (res GUIFileContext, err error) {
+	__arg := SimpleFSGetGUIFileContextArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetGUIFileContext", []interface{}{__arg}, &res)
 	return
 }

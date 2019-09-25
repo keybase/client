@@ -29,6 +29,7 @@ type PaperKeyGenArg struct {
 	SigningKey     libkb.GenericKey      // optional
 	EncryptionKey  libkb.NaclDHKeyPair   // optional
 	PerUserKeyring *libkb.PerUserKeyring // optional
+	IsEldest       bool
 }
 
 // PaperKeyGen is an engine.
@@ -60,7 +61,7 @@ func (e *PaperKeyGen) Name() string {
 func (e *PaperKeyGen) Prereqs() Prereqs {
 	// only need a device if pushing keys
 	return Prereqs{
-		Device: !e.arg.SkipPush,
+		Device: !e.arg.SkipPush && !e.arg.IsEldest,
 	}
 }
 
@@ -303,13 +304,17 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 
 	// push the paper signing key
 	sigDel := libkb.Delegator{
-		NewKey:         e.sigKey,
-		DelegationType: libkb.DelegationTypeSibkey,
-		Expire:         libkb.NaclEdDSAExpireIn,
-		ExistingKey:    e.arg.SigningKey,
-		Me:             e.arg.Me,
-		Device:         backupDev,
-		Contextified:   libkb.NewContextified(e.G()),
+		NewKey:       e.sigKey,
+		Expire:       libkb.NaclEdDSAExpireIn,
+		Me:           e.arg.Me,
+		Device:       backupDev,
+		Contextified: libkb.NewContextified(e.G()),
+	}
+	if e.arg.IsEldest {
+		sigDel.DelegationType = libkb.DelegationTypeEldest
+	} else {
+		sigDel.DelegationType = libkb.DelegationTypeSibkey
+		sigDel.ExistingKey = e.arg.SigningKey
 	}
 
 	// push the paper encryption key
