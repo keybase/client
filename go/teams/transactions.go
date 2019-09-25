@@ -510,6 +510,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 
 	if !doInvite {
 		username = libkb.NewNormalizedUsername(upak.Username)
+		uv = upak.ToUserVersion()
 		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
 		m.Debug("Adding keybase member: %s (isInvite=%v)", username, invite)
 		return username, uv, invite, err
