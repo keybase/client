@@ -120,7 +120,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     } else if (this.props.cannotWrite) {
       hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
         this.props.minWriterRole
-      } to post`
+      } to post.`
     }
 
     return (
@@ -164,7 +164,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          {!this.props.isEditing && (
+          {!this.props.isEditing && !this.props.cannotWrite && (
             <ExplodingIcon
               explodingModeSeconds={this.props.explodingModeSeconds}
               isExploding={this.props.isExploding}
