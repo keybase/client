@@ -1,0 +1,6 @@
+module react_native_netinfo {
+  umbrella header "react-native-netinfo-umbrella.h"
+
+  export *
+  module * { export * }
+}

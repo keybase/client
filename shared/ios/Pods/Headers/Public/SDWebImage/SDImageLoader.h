@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/SDImageLoader.h
+../../../SDWebImage/SDWebImage/SDImageLoader.h

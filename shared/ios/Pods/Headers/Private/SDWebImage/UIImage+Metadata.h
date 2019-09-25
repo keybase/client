@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/UIImage+Metadata.h
+../../../SDWebImage/SDWebImage/UIImage+Metadata.h

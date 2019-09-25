@@ -1,0 +1,1 @@
+../../../Target Support Files/RNFastImage/RNFastImage-umbrella.h

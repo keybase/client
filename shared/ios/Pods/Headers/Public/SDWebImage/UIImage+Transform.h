@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/UIImage+Transform.h
+../../../SDWebImage/SDWebImage/UIImage+Transform.h

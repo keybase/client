@@ -17,10 +17,6 @@
 #define SD_UNLOCK(lock) dispatch_semaphore_signal(lock);
 #endif
 
-#ifndef SD_OPTIONS_CONTAINS
-#define SD_OPTIONS_CONTAINS(options, value) (((options) & (value)) == (value))
-#endif
-
 #ifndef weakify
 #define weakify(...) \
 sd_keywordify \

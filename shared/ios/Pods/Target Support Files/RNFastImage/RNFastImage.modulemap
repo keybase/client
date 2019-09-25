@@ -1,0 +1,6 @@
+module RNFastImage {
+  umbrella header "RNFastImage-umbrella.h"
+
+  export *
+  module * { export * }
+}

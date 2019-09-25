@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/Core/SDWebImageCacheSerializer.h
+../../../SDWebImage/SDWebImage/SDWebImageCacheSerializer.h

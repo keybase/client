@@ -91,8 +91,7 @@ static int BuildHuffmanTable(HuffmanCode* const root_table, int root_bits,
 
   assert(code_lengths_size != 0);
   assert(code_lengths != NULL);
-  assert((root_table != NULL && sorted != NULL) ||
-         (root_table == NULL && sorted == NULL));
+  assert(root_table != NULL);
   assert(root_bits > 0);
 
   // Build histogram of code lengths.
@@ -121,22 +120,16 @@ static int BuildHuffmanTable(HuffmanCode* const root_table, int root_bits,
   for (symbol = 0; symbol < code_lengths_size; ++symbol) {
     const int symbol_code_length = code_lengths[symbol];
     if (code_lengths[symbol] > 0) {
-      if (sorted != NULL) {
-        sorted[offset[symbol_code_length]++] = symbol;
-      } else {
-        offset[symbol_code_length]++;
-      }
+      sorted[offset[symbol_code_length]++] = symbol;
     }
   }
 
   // Special case code with only one value.
   if (offset[MAX_ALLOWED_CODE_LENGTH] == 1) {
-    if (sorted != NULL) {
-      HuffmanCode code;
-      code.bits = 0;
-      code.value = (uint16_t)sorted[0];
-      ReplicateValue(table, 1, total_size, code);
-    }
+    HuffmanCode code;
+    code.bits = 0;
+    code.value = (uint16_t)sorted[0];
+    ReplicateValue(table, 1, total_size, code);
     return total_size;
   }
 
@@ -158,7 +151,6 @@ static int BuildHuffmanTable(HuffmanCode* const root_table, int root_bits,
       if (num_open < 0) {
         return 0;
       }
-      if (root_table == NULL) continue;
       for (; count[len] > 0; --count[len]) {
         HuffmanCode code;
         code.bits = (uint8_t)len;
@@ -177,7 +169,6 @@ static int BuildHuffmanTable(HuffmanCode* const root_table, int root_bits,
       if (num_open < 0) {
         return 0;
       }
-      if (root_table == NULL) continue;
       for (; count[len] > 0; --count[len]) {
         HuffmanCode code;
         if ((key & mask) != low) {
@@ -215,10 +206,7 @@ int VP8LBuildHuffmanTable(HuffmanCode* const root_table, int root_bits,
                           const int code_lengths[], int code_lengths_size) {
   int total_size;
   assert(code_lengths_size <= MAX_CODE_LENGTHS_SIZE);
-  if (root_table == NULL) {
-    total_size = BuildHuffmanTable(NULL, root_bits,
-                                   code_lengths, code_lengths_size, NULL);
-  } else if (code_lengths_size <= SORTED_SIZE_CUTOFF) {
+  if (code_lengths_size <= SORTED_SIZE_CUTOFF) {
     // use local stack-allocated array.
     uint16_t sorted[SORTED_SIZE_CUTOFF];
     total_size = BuildHuffmanTable(root_table, root_bits,

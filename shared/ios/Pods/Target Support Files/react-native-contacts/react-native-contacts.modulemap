@@ -1,0 +1,6 @@
+module react_native_contacts {
+  umbrella header "react-native-contacts-umbrella.h"
+
+  export *
+  module * { export * }
+}
