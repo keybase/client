@@ -79,6 +79,8 @@ export type TypedActionsMap = {
   'chat2:metaRequestingTrusted': chat2.MetaRequestingTrustedPayload
   'chat2:metaRequestTrusted': chat2.MetaRequestTrustedPayload
   'chat2:metasReceived': chat2.MetasReceivedPayload
+  'chat2:clearMetas': chat2.ClearMetasPayload
+  'chat2:clearMessages': chat2.ClearMessagesPayload
   'chat2:metaReceivedError': chat2.MetaReceivedErrorPayload
   'chat2:metaDelete': chat2.MetaDeletePayload
   'chat2:updateMoreToLoad': chat2.UpdateMoreToLoadPayload

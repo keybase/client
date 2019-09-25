@@ -549,6 +549,12 @@ type ReplyFiller interface {
 		msgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error)
 }
 
+type UIInboxLoader interface {
+	Resumable
+	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
+		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string

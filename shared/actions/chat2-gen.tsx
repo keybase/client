@@ -29,6 +29,8 @@ export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
+export const clearMessages = 'chat2:clearMessages'
+export const clearMetas = 'chat2:clearMetas'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
@@ -207,6 +209,8 @@ type _BlockConversationPayload = {
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _ClearMessagesPayload = void
+type _ClearMetasPayload = void
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
 type _ConversationErroredPayload = {readonly message: string}
@@ -377,15 +381,22 @@ type _MetaReceivedErrorPayload = {
 type _MetaRequestTrustedPayload = {
   readonly force?: boolean
   readonly noWaiting?: boolean
+  readonly reason:
+    | 'refreshPreviousSelected'
+    | 'requestTeamsUnboxing'
+    | 'inboxSynced'
+    | 'setConvRetention'
+    | 'subTeamRename'
+    | 'tlfFinalize'
+    | 'threadStale'
+    | 'membersUpdate'
+    | 'scroll'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
 type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.ConversationIDKey>}
 type _MetasReceivedPayload = {
   readonly metas: Array<Types.ConversationMeta>
   readonly removals?: Array<Types.ConversationIDKey>
-  readonly neverCreate?: boolean
-  readonly clearExistingMetas?: boolean
-  readonly clearExistingMessages?: boolean
   readonly fromInboxRefresh?: boolean
   readonly initialTrustedLoad?: boolean
 }
@@ -1157,6 +1168,14 @@ export const createBlockConversation = (payload: _BlockConversationPayload): Blo
   payload,
   type: blockConversation,
 })
+export const createClearMessages = (payload: _ClearMessagesPayload): ClearMessagesPayload => ({
+  payload,
+  type: clearMessages,
+})
+export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload => ({
+  payload,
+  type: clearMetas,
+})
 export const createConversationErrored = (
   payload: _ConversationErroredPayload
 ): ConversationErroredPayload => ({payload, type: conversationErrored})
@@ -1426,6 +1445,11 @@ export type ClearCommandStatusInfoPayload = {
   readonly payload: _ClearCommandStatusInfoPayload
   readonly type: typeof clearCommandStatusInfo
 }
+export type ClearMessagesPayload = {
+  readonly payload: _ClearMessagesPayload
+  readonly type: typeof clearMessages
+}
+export type ClearMetasPayload = {readonly payload: _ClearMetasPayload; readonly type: typeof clearMetas}
 export type ClearPaymentConfirmInfoPayload = {
   readonly payload: _ClearPaymentConfirmInfoPayload
   readonly type: typeof clearPaymentConfirmInfo
@@ -1884,6 +1908,8 @@ export type Actions =
   | ChangeFocusPayload
   | ClearAttachmentViewPayload
   | ClearCommandStatusInfoPayload
+  | ClearMessagesPayload
+  | ClearMetasPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
