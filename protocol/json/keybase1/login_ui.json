@@ -17,6 +17,39 @@
       ]
     },
     {
+      "type": "record",
+      "name": "ResetPromptInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hasWallet"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ResetPrompt",
+      "switch": {
+        "type": "ResetPromptType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "COMPLETE",
+            "def": false
+          },
+          "body": "ResetPromptInfo"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "PassphraseRecoveryPromptType",
       "symbols": [
@@ -84,8 +117,8 @@
           "type": "int"
         },
         {
-          "name": "kind",
-          "type": "ResetPromptType"
+          "name": "prompt",
+          "type": "ResetPrompt"
         }
       ],
       "response": "boolean",

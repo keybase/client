@@ -896,7 +896,7 @@ export type MessageTypes = {
     outParam: Bool
   }
   'keybase.1.loginUi.promptResetAccount': {
-    inParam: {readonly kind: ResetPromptType}
+    inParam: {readonly prompt: ResetPrompt}
     outParam: Boolean
   }
   'keybase.1.loginUi.promptRevokePaperKeys': {
@@ -2681,6 +2681,8 @@ export type RepoID = String
 export type ResetLink = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly prev: ResetPrev; readonly resetSeqno: Seqno; readonly type: ResetType; readonly uid: UID}
 export type ResetMerkleRoot = {readonly hashMeta: HashMeta; readonly seqno: Seqno}
 export type ResetPrev = {readonly eldestKID?: KID | null; readonly lastSeqno: Seqno; readonly reset: SHA512}
+export type ResetPrompt = {t: ResetPromptType.complete; complete: ResetPromptInfo} | {t: ResetPromptType.enterNoDevices} | {t: ResetPromptType.enterForgotPw}
+export type ResetPromptInfo = {readonly hasWallet: Boolean}
 export type ResetState = {readonly endTime: Time; readonly active: Boolean}
 export type ResetSummary = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly resetSeqno: Seqno; readonly eldestSeqno: Seqno; readonly type: ResetType}
 export type ResolveIdentifyImplicitTeamRes = {readonly displayName: String; readonly teamID: TeamID; readonly writers?: Array<UserVersion> | null; readonly trackBreaks: {[key: string]: IdentifyTrackBreaks}; readonly folderID: TLFID}
