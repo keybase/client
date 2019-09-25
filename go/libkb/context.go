@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -571,7 +572,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 
 	if doLogout {
 		username := m.G().Env.GetUsername()
-		if err := m.LogoutKillSecrets(); err != nil {
+		if err := m.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: false, Force: true}); err != nil {
 			return err
 		}
 		return ClearSecretsOnDeprovision(m, username)
