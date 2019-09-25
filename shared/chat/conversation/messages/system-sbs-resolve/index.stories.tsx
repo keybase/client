@@ -4,29 +4,29 @@ import * as Sb from '../../../../stories/storybook'
 import SBSProvedNotice from '.'
 
 const rooter = Constants.makeMessageSystemSBSResolved({
-  assertionUsername: 'michal',
   assertionService: 'rooter',
+  assertionUsername: 'michal',
   prover: 'zapu',
   timestamp: new Date('1/1/2000').getTime(),
 })
 
 const github = Constants.makeMessageSystemSBSResolved({
-  assertionUsername: 'michal',
   assertionService: 'github',
+  assertionUsername: 'michal',
   prover: 'zapu',
   timestamp: new Date('1/1/2000').getTime(),
 })
 
 const phone = Constants.makeMessageSystemSBSResolved({
-  assertionUsername: '12015550123',
   assertionService: 'phone',
+  assertionUsername: '12015550123',
   prover: 'zapu',
   timestamp: new Date('1/1/2000').getTime(),
 })
 
 const email = Constants.makeMessageSystemSBSResolved({
-  assertionUsername: 'michal@keybase.io',
   assertionService: 'email',
+  assertionUsername: 'michal@keybase.io',
   prover: 'zapu',
   timestamp: new Date('1/1/2000').getTime(),
 })
