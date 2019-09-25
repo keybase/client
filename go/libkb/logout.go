@@ -95,7 +95,7 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 	return nil
 }
 
-func (m MetaContext) logoutSecretStore(username NormalizedUsername, noKillSecrets bool) {
+func (m MetaContext) logoutSecretStore(username NormalizedUsername, keepSecrets bool) {
 
 	g := m.G()
 	g.secretStoreMu.Lock()
@@ -105,7 +105,7 @@ func (m MetaContext) logoutSecretStore(username NormalizedUsername, noKillSecret
 		return
 	}
 
-	if noKillSecrets {
+	if keepSecrets {
 		g.switchedUsers[username] = true
 		return
 	}
