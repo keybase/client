@@ -10,6 +10,13 @@ const rooter = Constants.makeMessageSystemSBSResolved({
   timestamp: new Date('1/1/2000').getTime(),
 })
 
+const github = Constants.makeMessageSystemSBSResolved({
+  assertionUsername: 'michal',
+  assertionService: 'github',
+  prover: 'zapu',
+  timestamp: new Date('1/1/2000').getTime(),
+})
+
 const phone = Constants.makeMessageSystemSBSResolved({
   assertionUsername: '12015550123',
   assertionService: 'phone',
@@ -27,9 +34,11 @@ const email = Constants.makeMessageSystemSBSResolved({
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Rows/SBS', module)
     .add('Rooter', () => <SBSProvedNotice message={rooter} you="alice" />)
+    .add('GitHub', () => <SBSProvedNotice message={github} you="alice" />)
     .add('Phone', () => <SBSProvedNotice message={phone} you="alice" />)
     .add('Email', () => <SBSProvedNotice message={email} you="alice" />)
     .add('Self rooter', () => <SBSProvedNotice message={rooter} you="zapu" />)
+    .add('Self GitHub', () => <SBSProvedNotice message={github} you="zapu" />)
     .add('Self phone', () => <SBSProvedNotice message={phone} you="zapu" />)
     .add('Self email', () => <SBSProvedNotice message={email} you="zapu" />)
 }

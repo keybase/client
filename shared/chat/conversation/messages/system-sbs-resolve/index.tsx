@@ -3,6 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
 import {formatTimeForChat} from '../../../../util/timestamp'
 import {e164ToDisplay} from '../../../../util/phone-numbers'
+import {serviceIdToService} from '../../../../constants/search'
 
 type Props = {
   message: Types.MessageSystemSBSResolved
@@ -27,7 +28,7 @@ const formatAssertion = (serviceUser: string, service: string, isYou: boolean): 
     case 'email':
       return `verified their email address ${serviceUser}`
     default:
-      return `proved they are ${serviceUser} on ${service}`
+      return `proved they are ${serviceUser} on ${serviceIdToService(service) || service}`
   }
 }
 
@@ -38,7 +39,7 @@ const formatAssertionYou = (serviceUser: string, service: string): string => {
     case 'email':
       return `verified your email address ${serviceUser}`
     default:
-      return `proved you are ${serviceUser} on ${service}`
+      return `proved you are ${serviceUser} on ${serviceIdToService(service) || service}`
   }
 }
 
