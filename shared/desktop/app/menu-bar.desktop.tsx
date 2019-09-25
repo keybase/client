@@ -1,10 +1,12 @@
 // Entrypoint for the menubar node part
-import {menubar} from 'menubar'
+import * as ConfigGen from '../../actions/config-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
+import {mainWindowDispatch} from '../remote/util.desktop'
+import {menubar} from 'menubar'
 import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
-import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
@@ -80,6 +82,14 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         }
       }
     })
+
+    // ask for an update in case we missed one
+    mainWindowDispatch(
+      ConfigGen.createRemoteWindowWantsProps({
+        component: 'menubar',
+        param: '',
+      })
+    )
 
     mb.window && menubarWindowIDCallback(mb.window.id)
 

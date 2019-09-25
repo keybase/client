@@ -3137,6 +3137,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-gif': {
+    charCode: 0xe99c,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-hamburger': {
     charCode: 0xe92a,
     gridSize: 16,
@@ -3284,6 +3289,11 @@ const iconMeta_ = {
   },
   'iconfont-nav-2-people': {
     charCode: 0xe97c,
+    gridSize: 24,
+    isFont: true,
+  },
+  'iconfont-nav-2-robot': {
+    charCode: 0xe99b,
     gridSize: 24,
     isFont: true,
   },

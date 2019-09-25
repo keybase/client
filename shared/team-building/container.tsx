@@ -400,27 +400,30 @@ export const sortAndSplitRecommendations = memoize(
       if (rec.prettyName || rec.displayLabel) {
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
-        const letter = unidecode(rec.prettyName || rec.displayLabel)[0].toLowerCase()
-        if (isAlpha(letter)) {
-          // offset 1 to skip recommendations
-          const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
-          if (!sections[sectionIdx]) {
-            sections[sectionIdx] = {
-              data: [],
-              label: letter.toUpperCase(),
-              shortcut: true,
+        const decodedLetter = unidecode(rec.prettyName || rec.displayLabel)
+        if (decodedLetter && decodedLetter[0]) {
+          const letter = decodedLetter[0].toLowerCase()
+          if (isAlpha(letter)) {
+            // offset 1 to skip recommendations
+            const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
+            if (!sections[sectionIdx]) {
+              sections[sectionIdx] = {
+                data: [],
+                label: letter.toUpperCase(),
+                shortcut: true,
+              }
             }
-          }
-          sections[sectionIdx].data.push(rec)
-        } else {
-          if (!sections[numSectionIdx]) {
-            sections[numSectionIdx] = {
-              data: [],
-              label: numSectionLabel,
-              shortcut: true,
+            sections[sectionIdx].data.push(rec)
+          } else {
+            if (!sections[numSectionIdx]) {
+              sections[numSectionIdx] = {
+                data: [],
+                label: numSectionLabel,
+                shortcut: true,
+              }
             }
+            sections[numSectionIdx].data.push(rec)
           }
-          sections[numSectionIdx].data.push(rec)
         }
       }
     })
