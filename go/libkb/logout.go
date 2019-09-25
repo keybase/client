@@ -34,15 +34,17 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 	mctx.Debug("MetaContext#logoutWithSecretKill: after switchUserMu acquisition (username: %s, options: %#v)",
 		username, options)
 
-	if options.KeepSecrets {
-		mctx.Debug("Keeping secrets after this login, so not checking HasRandomPW")
-	} else {
+	if !options.Force && !options.KeepSecrets {
+		mctx.Debug("either not forcing logout or not keeping secrets, so check if we're allowed to log out")
 		mctx.Debug("MetaContext#logoutWithSecretKill: checking if CanLogout")
 		canLogoutRes := CanLogout(mctx)
 		mctx.Debug("MetaContext#logoutWithSecretKill: CanLogout res: %#v", canLogoutRes)
 		if !canLogoutRes.CanLogout {
 			return fmt.Errorf("Cannot log out: %s", canLogoutRes.Reason)
 		}
+	} else {
+		mctx.Debug("not checking if we are allowed to logout (force=%t, keepSecrets=%t)",
+			options.Force, options.KeepSecrets)
 	}
 
 	var keychainMode KeychainMode
