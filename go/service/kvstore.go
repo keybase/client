@@ -127,10 +127,13 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 		mctx.Debug("error fetching %+v from server: %v", entryID, err)
 		return res, err
 	}
-	cleartext, err := h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
-	if err != nil {
-		mctx.Debug("error unboxing %+v: %v", entryID, err)
-		return res, err
+	var cleartext string
+	if apiRes.Ciphertext != "" {
+		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
+		if err != nil {
+			mctx.Debug("error unboxing %+v: %v", entryID, err)
+			return res, err
+		}
 	}
 	res = keybase1.KVGetResult{
 		TeamName:   arg.TeamName,

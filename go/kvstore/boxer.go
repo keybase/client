@@ -162,7 +162,7 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 	// get current key and team generation
 	appKey, err := b.fetchEncryptionKey(mctx, entryID, nil)
 	if err != nil {
-		mctx.Debug("error fetching encryption key for entry %+v: %v", err)
+		mctx.Debug("error fetching encryption key for entry %+v: %v", entryID, err)
 		return "", keybase1.PerTeamKeyGeneration(0), 0, err
 	}
 	teamGen := keybase1.PerTeamKeyGeneration(appKey.Generation())

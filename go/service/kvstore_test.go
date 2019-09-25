@@ -37,6 +37,17 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	namespace := "ye-namespace"
 	entryKey := "lookmeup"
 
+	// fetch nonexistent
+	getArg := keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	getRes, err := handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, "", getRes.EntryValue)
+	require.Equal(t, 0, getRes.Revision)
+
 	// put a secret
 	cleartextSecret := "lorem ipsum blah blah blah"
 	putArg := keybase1.PutKVEntryArg{
@@ -50,13 +61,8 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, putRes.Revision)
 
-	// fetch it and assert that it's the same
-	getArg := keybase1.GetKVEntryArg{
-		TeamName:  teamName,
-		Namespace: namespace,
-		EntryKey:  entryKey,
-	}
-	getRes, err := handler.GetKVEntry(ctx, getArg)
+	// fetch it and assert that it's now correct
+	getRes, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
 	require.Equal(t, cleartextSecret, getRes.EntryValue)
 
