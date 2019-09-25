@@ -68,6 +68,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
           (props.ignored ? (
             <CaptionedDangerIcon
               caption="Unhide this conversation"
+              icon="iconfont-unhide"
               onClick={props.onUnhideConv}
               noDanger={true}
               spinner={props.spinnerForHide}
