@@ -53,9 +53,7 @@ type Props = {
 
 class UnlockFolders extends React.PureComponent<Props> {
   render() {
-    // return this.props.show ? <UnlockFolder /> : null
-    // TEMP
-    return <UnlockFolder />
+    return this.props.show ? <UnlockFolder /> : null
   }
 }
 

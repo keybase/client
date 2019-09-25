@@ -322,7 +322,9 @@ class MenubarRender extends React.Component<Props, State> {
             ])}
           >
             <Kb.Icon
-              color={Styles.isDarkMode() ? 'rgba(0, 0, 0, 0.6)' : Styles.globalColors.blueDarker}
+              color={
+                Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker
+              }
               hoverColor={Styles.globalColors.whiteOrWhite}
               onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
               type="iconfont-nav-2-hamburger"
@@ -396,7 +398,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
   return (
     <Kb.Box style={{...Styles.desktopStyles.clickable, position: 'relative'}}>
       <Kb.Icon
-        color={Styles.isDarkMode() ? 'rgba(0, 0, 0, 0.6)' : Styles.globalColors.blueDarker}
+        color={Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker}
         hoverColor={Styles.globalColors.whiteOrWhite}
         onClick={() => openApp(tab)}
         sizeType="Big"
