@@ -455,15 +455,19 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 		// Send chat welcome message
 		if team.IsImplicit() {
-			iteamName, err := team.ImplicitTeamDisplayNameString(ctx)
-			if err != nil {
-				return err
+			// Do not send messages about keybase-type invites being resolved.
+			// They are supposed to be transparent for the users and look like
+			// a real members even though they have to be SBS-ed in.
+			if category != keybase1.TeamInviteCategory_KEYBASE {
+				iteamName, err := team.ImplicitTeamDisplayNameString(ctx)
+				if err != nil {
+					return err
+				}
+				g.Log.CDebugf(ctx,
+					"sending resolution message for successful SBS handle")
+				SendChatSBSResolutionMessage(ctx, g, iteamName,
+					string(invite.Name), ityp, verifiedInvitee.Uid)
 			}
-			g.Log.CDebugf(ctx,
-				"sending resolution message for successful SBS handle")
-			SendChatSBSResolutionMessage(ctx, g, iteamName,
-				string(invite.Name), ityp, verifiedInvitee.Uid)
-
 		} else {
 			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
 			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
