@@ -217,6 +217,8 @@ const plumbEvents = () => {
         appStartedUp = true
         if (menubarWindowID) {
           mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
+          // reset it
+          menubarWindowID = 0
         }
         if (startupURL) {
           // Mac calls open-url for a launch URL before redux is up, so we
@@ -337,7 +339,13 @@ const start = () => {
 
   // Load menubar and get its browser window id so we can tell the main window
   menuBar(id => {
-    menubarWindowID = id
+    // its possible the app started up way before we get this id in rare cases
+    if (appStartedUp && id) {
+      mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id}))
+    } else {
+      // else stash it for later
+      menubarWindowID = id
+    }
   })
 
   plumbEvents()
