@@ -1,10 +1,13 @@
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RecoverPasswordGen from '../actions/recover-password-gen'
+import * as RecoverPasswordGen from './recover-password-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as WaitingGen from './waiting-gen'
 import * as ProvisionConstants from '../constants/provision'
+import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
+import {anyWaiting} from '../constants/waiting'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
@@ -110,6 +113,7 @@ const getPaperKeyOrPw = (
   return Saga.callUntyped(function*() {
     if (params.pinentry.type === RPCTypes.PassphraseType.paperKey) {
       if (params.pinentry.retryLabel) {
+        yield Saga.put(WaitingGen.createClearWaiting({key: Constants.getPaperKeyWaitingKey}))
         yield Saga.put(
           RecoverPasswordGen.createSetPaperKeyError({
             error: new HiddenString(params.pinentry.retryLabel),
@@ -134,6 +138,7 @@ const getPaperKeyOrPw = (
           passphrase: action.payload.paperKey.stringValue(),
           storeSecret: false,
         })
+        yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.getPaperKeyWaitingKey}))
       } else {
         response.error({
           code: RPCTypes.StatusCode.scinputcanceled,
@@ -142,7 +147,12 @@ const getPaperKeyOrPw = (
         yield Saga.put(RecoverPasswordGen.createRestartRecovery())
       }
     } else {
+      const state = yield* Saga.selectState()
+      if (anyWaiting(state, Constants.getPaperKeyWaitingKey)) {
+        yield Saga.put(WaitingGen.createClearWaiting({key: Constants.getPaperKeyWaitingKey}))
+      }
       if (params.pinentry.retryLabel) {
+        yield Saga.put(WaitingGen.createClearWaiting({key: Constants.getPasswordWaitingKey}))
         yield Saga.put(
           RecoverPasswordGen.createSetPasswordError({error: new HiddenString(params.pinentry.retryLabel)})
         )
@@ -154,6 +164,7 @@ const getPaperKeyOrPw = (
         RecoverPasswordGen.submitPassword,
       ])
       response.result({passphrase: action.payload.password.stringValue(), storeSecret: true})
+      yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.getPasswordWaitingKey}))
     }
   })
 }
@@ -183,7 +194,7 @@ function* startRecoverPassword(
     })
   } catch (e) {
     hadError = true
-    logger.warn('RPC returned error: ' + e.toString())
+    logger.warn('RPC returned error: ' + e.message)
     if (
       !(
         e instanceof RPCError &&
@@ -192,7 +203,7 @@ function* startRecoverPassword(
     ) {
       yield Saga.put(
         RecoverPasswordGen.createDisplayError({
-          error: new HiddenString(e.toString()),
+          error: new HiddenString(e.message),
         })
       )
     }
@@ -201,6 +212,9 @@ function* startRecoverPassword(
   if (!hadError) {
     yield Saga.put(RouteTreeGen.createClearModals())
   }
+  yield Saga.put(
+    WaitingGen.createClearWaiting({key: [Constants.getPaperKeyWaitingKey, Constants.getPasswordWaitingKey]})
+  )
 }
 
 const displayDeviceSelect = () => {
