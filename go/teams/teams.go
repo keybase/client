@@ -854,7 +854,7 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 
 	// If we are adding any restricted bots add a bot_settings link
 	if len(req.RestrictedBots) > 0 {
-		section, err := t.botSettingsSection(ctx, req.RestrictedBots, merkleRoot)
+		section, _, err := t.botSettingsSection(ctx, req.RestrictedBots, ratchet, merkleRoot)
 		if err != nil {
 			return err
 		}
@@ -2208,19 +2208,25 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 }
 
 func (t *Team) botSettingsSection(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings,
-	merkleRoot *libkb.MerkleRoot) (SCTeamSection, error) {
+	ratchet *hidden.Ratchet, merkleRoot *libkb.MerkleRoot) (SCTeamSection, *hidden.Ratchet, error) {
 	if _, err := t.SharedSecret(ctx); err != nil {
-		return SCTeamSection{}, err
+		return SCTeamSection{}, nil, err
 	}
 
 	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
-		return SCTeamSection{}, err
+		return SCTeamSection{}, nil, err
 	}
 
 	scBotSettings, err := CreateTeamBotSettings(bots)
 	if err != nil {
-		return SCTeamSection{}, err
+		return SCTeamSection{}, nil, err
+	}
+	if ratchet == nil {
+		ratchet, err = t.makeRatchet(ctx)
+		if err != nil {
+			return SCTeamSection{}, nil, err
+		}
 	}
 
 	section := SCTeamSection{
@@ -2229,8 +2235,9 @@ func (t *Team) botSettingsSection(ctx context.Context, bots map[keybase1.UserVer
 		Public:      t.IsPublic(),
 		Admin:       admin,
 		BotSettings: &scBotSettings,
+		Ratchets:    ratchet.ToTeamSection(),
 	}
-	return section, nil
+	return section, ratchet, nil
 }
 
 func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVersion]keybase1.TeamBotSettings) error {
@@ -2240,12 +2247,14 @@ func (t *Team) PostTeamBotSettings(ctx context.Context, bots map[keybase1.UserVe
 		return err
 	}
 
-	section, err := t.botSettingsSection(ctx, bots, mr)
+	section, ratchet, err := t.botSettingsSection(ctx, bots, nil, mr)
 	if err != nil {
 		return err
 	}
 
-	var payloadArgs sigPayloadArgs
+	payloadArgs := sigPayloadArgs{
+		ratchetBlindingKeys: ratchet.ToSigPayload(),
+	}
 	_, err = t.postChangeItem(ctx, section, libkb.LinkTypeTeamBotSettings, mr, payloadArgs)
 	return err
 }
