@@ -364,7 +364,7 @@ const Instructions = (p: Props) => (
           </Kb.Text>
           <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
-            Add {currentDeviceType === 'desktop' ? 'computer' : 'phone'}
+            Add {currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
         </Kb.Box2>
       </>
@@ -452,6 +452,7 @@ const styles = Styles.styleSheetCreate(
       hamburger: Styles.platformStyles({
         isMobile: {
           bottom: 1,
+          marginRight: Styles.globalMargins.xtiny,
           position: 'relative',
           right: 1,
         },
