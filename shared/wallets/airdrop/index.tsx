@@ -302,7 +302,7 @@ const styles = Styles.styleSheetCreate(
       },
       signedUpHeader: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.greenLighter,
+          backgroundColor: Styles.globalColors.greenLighterOrGreenDark,
           borderRadius: Styles.borderRadius,
           flexShrink: 1,
           marginLeft: Styles.globalMargins.medium,
@@ -314,7 +314,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {alignItems: 'flex-start'},
       }),
       yourIn: {
-        color: Styles.globalColors.greenDark,
+        color: Styles.globalColors.greenDarkOrWhite,
         flexShrink: 1,
       },
     } as const)
