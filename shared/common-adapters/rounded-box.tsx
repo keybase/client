@@ -9,6 +9,7 @@ const Kb = {
 type Props = {
   children: React.ReactNode
   side?: 'bottom' | 'middle' | 'top'
+  style?: Styles.StylesCrossPlatform
 }
 
 const RoundedBox = (props: Props) => (
@@ -19,6 +20,7 @@ const RoundedBox = (props: Props) => (
       props.side === 'bottom' && styles.bottom,
       props.side === 'middle' && styles.middle,
       props.side === 'top' && styles.top,
+      props.style
     ])}
   >
     {props.children}
