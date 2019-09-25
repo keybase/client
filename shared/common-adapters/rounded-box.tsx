@@ -20,7 +20,7 @@ const RoundedBox = (props: Props) => (
       props.side === 'bottom' && styles.bottom,
       props.side === 'middle' && styles.middle,
       props.side === 'top' && styles.top,
-      props.style
+      props.style,
     ])}
   >
     {props.children}

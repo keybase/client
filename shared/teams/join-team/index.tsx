@@ -19,7 +19,7 @@ const JoinTeam = (props: Props) => (
         <Kb.Banner color="red">
           <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
         </Kb.Banner>
-      )
+      ),
     ]}
     footer={{
       content: (
@@ -38,7 +38,7 @@ const JoinTeam = (props: Props) => (
           Cancel
         </Kb.Text>
       ) : null,
-      title: 'Join a team'
+      title: 'Join a team',
     }}
     onClose={props.onBack}
   >
