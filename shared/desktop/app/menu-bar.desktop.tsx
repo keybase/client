@@ -96,6 +96,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       })
     )
 
+console.log('aaa callback id', mb.window.id)
     mb.window && menubarWindowIDCallback(mb.window.id)
 
     if (showDevTools && !skipSecondaryDevtools) {

@@ -214,6 +214,7 @@ const plumbEvents = () => {
   Electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
     switch (action.type) {
       case 'appStartedUp':
+console.log('aaa got app startup id',menubarWindowID) 
         appStartedUp = true
         if (menubarWindowID) {
           mainWindowDispatch(ConfigGen.createUpdateMenubarWindowID({id: menubarWindowID}))
@@ -337,6 +338,7 @@ const start = () => {
 
   // Load menubar and get its browser window id so we can tell the main window
   menuBar(id => {
+console.log('aaa got id', appStartedUp)
     menubarWindowID = id
   })
 
