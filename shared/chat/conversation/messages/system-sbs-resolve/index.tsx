@@ -44,7 +44,7 @@ const formatAssertionYou = (serviceUser: string, service: string): string => {
 
 const SBSProvedNotice = (props: Props) => {
   const {timestamp, prover, assertionUsername, assertionService} = props.message
-  const isYou = props.you === props.message.prover
+  const isYou = props.you === prover
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Text type="BodyTiny">{formatTimeForChat(timestamp)}</Kb.Text>
