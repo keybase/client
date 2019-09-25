@@ -11,8 +11,17 @@ import {NullComponent, connect, mapProps, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
 const dataToProps = mapProps(
-  ({data, remoteWindowNeedsProps}: {data: Types.PinentryState; remoteWindowNeedsProps: number}) => ({
+  ({
+    data,
+    remoteWindowNeedsProps,
+    darkMode,
+  }: {
+    darkMode: boolean
+    data: Types.PinentryState
+    remoteWindowNeedsProps: number
+  }) => ({
     cancelLabel: data.cancelLabel,
+    darkMode,
     prompt: data.prompt,
     remoteWindowNeedsProps,
     retryLabel: data.retryLabel,
