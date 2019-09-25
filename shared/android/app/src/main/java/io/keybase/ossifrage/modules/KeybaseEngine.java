@@ -3,7 +3,6 @@ package io.keybase.ossifrage.modules;
 import android.app.KeyguardManager;
 import android.content.Context;
 
-import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -18,7 +17,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,13 +24,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
-import io.keybase.ossifrage.modules.NativeLogger;
+import keybase.Keybase;
 
+import static io.keybase.ossifrage.MainActivity.isTestDevice;
 import static keybase.Keybase.readB64;
-import static keybase.Keybase.writeB64;
 import static keybase.Keybase.version;
+import static keybase.Keybase.writeB64;
 
 @ReactModule(name = "KeybaseEngine")
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
@@ -45,6 +43,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private Boolean started = false;
     private ReactApplicationContext reactContext;
     private WritableMap initialIntent;
+    private boolean misTestDevice;
 
     private static void relayReset(ReactApplicationContext reactContext) {
         if (!reactContext.hasActiveCatalystInstance()) {
@@ -91,6 +90,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         super(reactContext);
         NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
+        this.misTestDevice = isTestDevice(reactContext);
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
@@ -191,6 +191,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
+        constants.put("isTestDevice", misTestDevice);
         constants.put("serverConfig", serverConfig);
         return constants;
     }
