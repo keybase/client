@@ -136,3 +136,53 @@ func (m MetaContext) LogoutSelfCheck() error {
 
 	return nil
 }
+
+func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
+	if !mctx.G().ActiveDevice.Valid() {
+		mctx.Debug("CanLogout: looks like user is not logged in")
+		res.CanLogout = true
+		return res
+	}
+
+	if mctx.G().ActiveDevice.KeychainMode() == KeychainModeNone {
+		mctx.Debug("CanLogout: ok to logout since the key used doesn't user the keychain")
+		res.CanLogout = true
+		return res
+	}
+
+	if err := CheckCurrentUIDDeviceID(mctx); err != nil {
+		switch err.(type) {
+		case DeviceNotFoundError, UserNotFoundError,
+			KeyRevokedError, NoDeviceError, NoUIDError:
+			mctx.Debug("CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
+			return keybase1.CanLogoutRes{CanLogout: true}
+		default:
+			// Unexpected error like network connectivity issue, fall through.
+			// Even if we are offline here, we may be able to get cached value
+			// `false` from LoadHasRandomPw and be allowed to log out.
+			mctx.Debug("CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
+		}
+	}
+
+	hasRandomPW, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{
+		ForceRepoll: false,
+	})
+
+	if err != nil {
+		return keybase1.CanLogoutRes{
+			CanLogout: false,
+			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
+		}
+	}
+
+	if hasRandomPW {
+		return keybase1.CanLogoutRes{
+			CanLogout:     false,
+			SetPassphrase: true,
+			Reason:        "You signed up without a password and need to set a password first",
+		}
+	}
+
+	res.CanLogout = true
+	return res
+}
