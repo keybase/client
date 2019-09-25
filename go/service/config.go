@@ -370,7 +370,6 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 		return err
 	}
 
-	// replace the secret store
 	if err := h.G().ReplaceSecretStore(ctx); err != nil {
 		m.Debug("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
 		return err
