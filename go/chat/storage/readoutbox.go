@@ -58,6 +58,7 @@ func (o *ReadOutbox) clear(ctx context.Context) Error {
 }
 
 func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox, err Error) {
+	defer func() { o.maybeNuke(err, o.dbKey()) }()
 	found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
 	if ierr != nil {
 		return res, NewInternalError(ctx, o.DebugLabeler, "failure to read chat read outbox: %s", ierr)
