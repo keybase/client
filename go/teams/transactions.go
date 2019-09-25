@@ -421,8 +421,7 @@ func (tx *AddMemberTx) AddMemberByUV(ctx context.Context, uv keybase1.UserVersio
 func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string, role keybase1.TeamRole,
 	botSettings *keybase1.TeamBotSettings) (err error) {
 	team := tx.team
-	g := team.G()
-	m := libkb.NewMetaContext(ctx, g)
+	m := team.MetaContext(ctx)
 
 	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByUsername(%s,%v) to team %q", username, role, team.Name()), func() error { return err })()
 
@@ -469,7 +468,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
 	g := team.G()
-	m := libkb.NewMetaContext(ctx, g)
+	m := team.MetaContext(ctx)
 
 	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
 
@@ -516,16 +515,34 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 		return username, uv, invite, err
 	}
 
+	// We are on invite path here.
+
 	if single == nil {
+		// Compound assertions are invalid at this point.
 		return "", uv, false, NewCompoundInviteError(assertion)
 	}
 
 	typ, name := single.ToKeyValuePair()
 	m.Debug("team %s invite sbs member %s/%s", team.Name(), typ, name)
+
+	// Sanity checks:
+	// Can't do SBS invite with role=OWNER.
 	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return "", uv, false, NewAttemptedInviteSocialOwnerError(assertion)
 	}
-	if err = tx.createInvite(typ, keybase1.TeamInviteName(name), role, "" /* uid */); err != nil {
+	inviteName := keybase1.TeamInviteName(name)
+	// Can't invite if invite for same SBS assertion already exists in that
+	// team.
+	existing, err := tx.team.HasActiveInvite(m, inviteName, typ)
+	if err != nil {
+		return "", uv, false, err
+	}
+	if existing {
+		return "", uv, false, libkb.ExistsError{Msg: fmt.Sprintf("Invite for %q already exists", single.String())}
+	}
+
+	// All good - add invite to tx.
+	if err = tx.createInvite(typ, inviteName, role, "" /* uid */); err != nil {
 		return "", uv, false, err
 	}
 	return "", uv, true, nil
