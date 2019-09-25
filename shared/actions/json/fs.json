@@ -57,41 +57,11 @@
       "path": "Types.Path",
       "sortSetting": "Types.SortSetting"
     },
-    "download": {
-      "path": "Types.Path",
-      "key": "string"
-    },
     "shareNative": {
-      "path": "Types.Path",
-      "key": "string"
+      "path": "Types.Path"
     },
     "saveMedia": {
-      "path": "Types.Path",
-      "key": "string"
-    },
-    "downloadStarted": {
-      "entryType?": "Types.PathType",
-      "key": "string",
-      "path": "Types.Path",
-      "localPath": "Types.LocalPath",
-      "intent": "Types.DownloadIntent",
-      "opID": "RPCTypes.OpID"
-    },
-    "downloadSuccess": {
-      "intent": "Types.DownloadIntent",
-      "key": "string",
-      "mimeType": "string"
-    },
-    "downloadProgress": {
-      "key": "string",
-      "completePortion": "number",
-      "endEstimate?": "number"
-    },
-    "cancelDownload": {
-      "key": "string"
-    },
-    "dismissDownload": {
-      "key": "string"
+      "path": "Types.Path"
     },
     "upload": {
       "parentPath": "Types.Path",
@@ -137,11 +107,6 @@
     },
 
     "openSecurityPreferences": {},
-    "refreshLocalHTTPServerInfo": {},
-    "localHTTPServerInfo": {
-      "address": "string",
-      "token": "string"
-    },
     "favoriteIgnore": {
       "path": "Types.Path"
     },
@@ -233,9 +198,6 @@
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
-    "setPathItemActionMenuDownloadKey": {
-      "key": "string | null"
-    },
     "waitForKbfsDaemon": {},
     "kbfsDaemonRpcStatusChanged": {
       "rpcStatus": "Types.KbfsDaemonRpcStatus"
@@ -272,6 +234,37 @@
     "setPreferredMountDirs": {"preferredMountDirs": "I.List<string>"},
     "loadPathInfo": {"path": "Types.Path"},
     "loadedPathInfo": {"path": "Types.Path", "pathInfo": "Types.PathInfo"},
+    "download": {"path": "Types.Path"},
+    "loadDownloadStatus": {},
+    "loadDownloadInfo": {"downloadID": "string"},
+    "loadedDownloadStatus": {
+      "regularDownloads": "I.List<string>",
+      "state": "I.Map<string, Types.DownloadState>"
+    },
+    "loadedDownloadInfo": {"downloadID": "string", "info": "Types.DownloadInfo"},
+    "cancelDownload": {"downloadID": "string"},
+    "dismissDownload": {"downloadID": "string"},
+    "setPathItemActionMenuDownload": {
+      "downloadID": "string | null",
+      "intent": "Types.DownloadIntent | null"
+    },
+    "finishedDownloadWithIntent": {
+      "downloadID": "string",
+      "downloadIntent": "Types.DownloadIntent",
+      "mimeType": "string"
+    },
+    "finishedRegularDownload": {
+      "downloadID": "string",
+      "mimeType": "string"
+    },
+    "loadFileContext": {
+      "path": "Types.Path"
+    },
+    "loadedFileContext": {
+      "path": "Types.Path",
+      "fileContext": "Types.FileContext"
+    },
+
     "setDebugLevel": {
       "level": "string"
     }

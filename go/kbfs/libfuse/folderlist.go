@@ -345,3 +345,17 @@ func (fl *FolderList) userChanged(ctx context.Context, _, newUser kbname.Normali
 		fl.fs.config.KBFSOps().ForceFastForward(ctx)
 	}
 }
+
+func (fl *FolderList) openFileCount() (ret int64) {
+	fl.mu.Lock()
+	defer fl.mu.Unlock()
+	for _, tlf := range fl.folders {
+		ret += tlf.openFileCount()
+	}
+	return ret + int64(len(fl.folders))
+}
+
+// Forget kernel reference to this node.
+func (fl *FolderList) Forget() {
+	fl.fs.root.forgetFolderList(fl.tlfType)
+}

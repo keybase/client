@@ -1,4 +1,4 @@
-export {default as PathItemAction} from './path-item-action/container'
+export {default as PathItemAction} from './path-item-action'
 export {default as OpenInSystemFileManager} from './open-in-system-file-manager-container'
 export {default as LastModifiedLine} from './last-modified-line-container'
 export {default as TlfInfoLine} from './tlf-info-line-container'
@@ -15,9 +15,14 @@ export {default as Filename} from './filename'
 export {
   useFsPathMetadata,
   useFsChildren,
-  useFsTlfs,
+  useFsFileContext,
+  useFsDownloadInfo,
+  useFsDownloadStatus,
   useFsJournalStatus,
   useFsOnlineStatus,
   useFsPathInfo,
   useFsSoftError,
+  useFsTlfs,
+  useFsWatchDownloadForMobile,
+  useDispatchWhenConnected as useDispatchWhenKbfsIsConnected,
 } from './hooks'

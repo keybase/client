@@ -972,8 +972,15 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	go func() {
 		var err error
 		topicName := m.gameTopicNameFromGameID(gameID)
+		membersType := hostConv.GetMembersType()
+		if membersType == chat1.ConversationMembersType_IMPTEAMUPGRADE {
+			// just override this to use native
+			membersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+			tlfName = utils.AddUserToTLFName(m.G(), tlfName, keybase1.TLFVisibility_PRIVATE,
+				membersType)
+		}
 		conv, err = NewConversationWithMemberSourceConv(ctx, m.G(), uid, tlfName, &topicName,
-			chat1.TopicType_DEV, hostConv.GetMembersType(),
+			chat1.TopicType_DEV, membersType,
 			keybase1.TLFVisibility_PRIVATE, m.ri, NewConvFindExistingSkip, &hostConvID)
 		convCreatedCh <- err
 	}()

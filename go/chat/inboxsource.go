@@ -341,7 +341,7 @@ func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	} else if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		if lquery.Name.TlfID != nil {
 			return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupName(ctx, *lquery.Name.TlfID,
-				lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+				lquery.Visibility() == keybase1.TLFVisibility_PUBLIC, lquery.Name.Name)
 		}
 		return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)

@@ -102,7 +102,7 @@ func matchPaperKey(m libkb.MetaContext, me *libkb.User, paper string) (*libkb.De
 	if device.Description != nil {
 		deviceName = *device.Description
 	}
-	return libkb.NewDeviceWithKeys(sigKey, encKey, device.ID, deviceName), nil
+	return libkb.NewDeviceWithKeys(sigKey, encKey, device.ID, deviceName, libkb.KeychainModeNone), nil
 }
 
 // fetchLKS gets the encrypted LKS client half from the server.

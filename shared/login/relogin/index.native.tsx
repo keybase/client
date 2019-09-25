@@ -112,26 +112,29 @@ class LoginRender extends React.Component<Props> {
   }
 }
 
-const styles = {
-  card: {
-    marginTop: Styles.globalMargins.medium,
-    width: '100%',
-  },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    flex: 1,
-  },
-  deviceNotSecureContainer: {
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.yellow,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-  },
-  deviceNotSecureText: {
-    color: Styles.globalColors.brown_75,
-  },
-}
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      card: {
+        marginTop: Styles.globalMargins.medium,
+        width: '100%',
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        backgroundColor: Styles.globalColors.fastBlank,
+        flex: 1,
+      },
+      deviceNotSecureContainer: {
+        alignSelf: 'stretch',
+        backgroundColor: Styles.globalColors.yellow,
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+      deviceNotSecureText: {
+        color: Styles.globalColors.brown_75,
+      },
+    } as const)
+)
 
 export default LoginRender

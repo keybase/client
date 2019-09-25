@@ -377,7 +377,7 @@ function parseVariant(t, project) {
         } else if (c.body.type === 'array') {
           bodyType = `Array<${capitalize(c.body.items)}>`
         }
-        const bodyStr = c.body ? `, ${label}: ${bodyType} | null` : ''
+        const bodyStr = c.body ? `, ${label}: ${bodyType}` : ''
         return `{ ${t.switch.name}: ${type}.${label}${bodyStr} }`
       }
     })

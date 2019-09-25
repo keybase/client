@@ -397,7 +397,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer func() {
 		f.closeReq(req, err)
 		if changed {
-			f.config.SubscriptionManagerPublisher().FavoritesChanged()
+			f.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_FAVORITES)
 			f.config.Reporter().NotifyFavoritesChanged(req.ctx)
 		}
 	}()

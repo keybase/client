@@ -128,63 +128,66 @@ const boxStyle = {
       }),
 }
 
-const styles = Styles.styleSheetCreate(() => ({
-  avatar: {
-    ...Styles.globalStyles.flexBoxColumn,
-    height: 16,
-    marginRight: Styles.globalMargins.xtiny,
-    marginTop: Styles.isMobile ? 1 : 0,
-    width: 16,
-  },
-  boxNotSelected: {
-    ...boxStyle,
-  },
-  boxSelected: {
-    ...boxStyle,
-    backgroundColor: Styles.globalColors.blueLighter2,
-  },
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  divider: {
-    ...Styles.globalStyles.fillAbsolute,
-    left: Styles.isMobile ? 68 : 56,
-    maxHeight: Styles.hairlineWidth,
-    minHeight: Styles.hairlineWidth,
-    top: undefined,
-  },
-  icon: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-  leftBox: {
-    ...Styles.globalStyles.flexBoxCenter,
-    width: Styles.isMobile ? 48 : 32,
-  },
-  rightBox: {
-    ...Styles.globalStyles.flexBoxColumn,
-    marginLeft: Styles.globalMargins.small,
-  },
-  rightUsername: Styles.platformStyles({
-    common: {
-      flex: 1,
-      overflow: 'hidden',
-    },
-    isElectron: {
-      whiteSpace: 'pre-wrap',
-      wordWrap: 'break-word',
-    },
-  }),
-  row: {
-    ...boxStyle,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    position: 'relative',
-  },
-}))
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      avatar: {
+        ...Styles.globalStyles.flexBoxColumn,
+        height: 16,
+        marginRight: Styles.globalMargins.xtiny,
+        marginTop: Styles.isMobile ? 1 : 0,
+        width: 16,
+      },
+      boxNotSelected: {
+        ...boxStyle,
+      },
+      boxSelected: {
+        ...boxStyle,
+        backgroundColor: Styles.globalColors.blueLighter2,
+      },
+      container: {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'center',
+        flex: 1,
+        height: '100%',
+        paddingLeft: Styles.globalMargins.tiny,
+      },
+      divider: {
+        ...Styles.globalStyles.fillAbsolute,
+        left: Styles.isMobile ? 68 : 56,
+        maxHeight: Styles.hairlineWidth,
+        minHeight: Styles.hairlineWidth,
+        top: undefined,
+      },
+      icon: {
+        marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
+      },
+      leftBox: {
+        ...Styles.globalStyles.flexBoxCenter,
+        width: Styles.isMobile ? 48 : 32,
+      },
+      rightBox: {
+        ...Styles.globalStyles.flexBoxColumn,
+        marginLeft: Styles.globalMargins.small,
+      },
+      rightUsername: Styles.platformStyles({
+        common: {
+          flex: 1,
+          overflow: 'hidden',
+        },
+        isElectron: {
+          whiteSpace: 'pre-wrap',
+          wordWrap: 'break-word',
+        },
+      }),
+      row: {
+        ...boxStyle,
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        position: 'relative',
+      },
+    } as const)
+)
 
 export default SearchResultRow

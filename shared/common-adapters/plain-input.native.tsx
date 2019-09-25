@@ -9,6 +9,7 @@ import {
   padding,
   platformStyles,
   styleSheetCreate,
+  isDarkMode,
 } from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
@@ -200,6 +201,7 @@ class PlainInput extends Component<InternalProps> {
       autoFocus: this.props.autoFocus,
       children: this.props.children,
       editable: !this.props.disabled,
+      keyboardAppearance: isIOS ? (isDarkMode() ? 'dark' : 'light') : undefined,
       keyboardType: this.props.keyboardType,
       multiline: false,
       onBlur: this._onBlur,
@@ -217,7 +219,8 @@ class PlainInput extends Component<InternalProps> {
       style: this._getStyle(),
       textContentType: this.props.textContentType,
       underlineColorAndroid: 'transparent',
-    }
+    } as const
+
     if (this.props.multiline) {
       return {
         ...common,

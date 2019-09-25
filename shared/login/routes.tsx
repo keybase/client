@@ -42,6 +42,7 @@ export const newRoutes = {
   feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},
   login: {getScreen: () => RootLogin},
   ...require('../provision/routes').newRoutes,
+  ...require('./recover-password/routes').newRoutes,
   ...require('./signup/routes').newRoutes,
 }
 export const newModalRoutes = {

@@ -7,7 +7,7 @@ import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
 import logger from '../../../../logger'
 import * as Styles from '../../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 import JumpToRecent from './jump-to-recent'
 
 const debugEnabled = false

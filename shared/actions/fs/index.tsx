@@ -11,8 +11,7 @@ import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
 import {TypedState} from '../../util/container'
 import logger from '../../logger'
-import platformSpecificSaga from './platform-specific'
-import {getContentTypeFromURL} from '../platform-specific'
+import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
@@ -365,107 +364,28 @@ function* folderList(_: TypedState, action: FsGen.FolderListLoadPayload | FsGen.
   }
 }
 
-function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
-  // This loop doesn't finish on its own, but it's in a Saga.race with
-  // `SimpleFSWait`, so it's "canceled" when the other finishes.
-  while (true) {
-    yield Saga.delay(500)
-    const progress: Saga.RPCPromiseType<
-      typeof RPCTypes.SimpleFSSimpleFSCheckRpcPromise
-    > = yield RPCTypes.SimpleFSSimpleFSCheckRpcPromise({opID})
-    if (progress.bytesTotal === 0) {
-      continue
-    }
-    yield Saga.put(
-      FsGen.createDownloadProgress({
-        completePortion: progress.bytesWritten / progress.bytesTotal,
-        endEstimate: progress.endEstimate,
-        key,
-      })
-    )
-  }
-}
-
-function* download(
+const download = async (
   _: TypedState,
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
-) {
-  const {path, key} = action.payload
-  const intent = Constants.getDownloadIntentFromAction(action)
-  const opID = Constants.makeUUID()
-
-  // Figure out the local path we are downloading into.
-  let localPath = ''
-  switch (intent) {
-    case Types.DownloadIntent.None:
-      // This adds " (1)" suffix to the base name, if the destination path
-      // already exists.
-      localPath = yield Constants.downloadFilePathFromPath(path)
-      break
-    case Types.DownloadIntent.CameraRoll:
-    case Types.DownloadIntent.Share:
-      // For saving to camera roll or sharing to other apps, we are
-      // downloading to the app's local storage. So don't bother trying to
-      // avoid overriding existing files. Just download over them.
-      localPath = Constants.downloadFilePathFromPathNoSearch(path)
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      localPath = yield Constants.downloadFilePathFromPath(path)
-      break
-  }
-
-  yield Saga.put(
-    FsGen.createDownloadStarted({
-      intent,
-      key,
-      localPath,
-      opID,
-      path,
-      // Omit entryType to let reducer figure out.
-    })
-  )
-
-  yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
-    dest: {
-      PathType: RPCTypes.PathType.local,
-      local: localPath,
-    },
-    opID,
-    src: Constants.pathToRPCPath(path),
+) => {
+  await ensureDownloadPermissionPromise()
+  const downloadID = await RPCTypes.SimpleFSSimpleFSStartDownloadRpcPromise({
+    isRegularDownload: action.type === FsGen.download,
+    path: Constants.pathToRPCPath(action.payload.path).kbfs,
   })
-
-  try {
-    yield Saga.race({
-      monitor: Saga.callUntyped(monitorDownloadProgress, key, opID),
-      wait: Saga.callUntyped(RPCTypes.SimpleFSSimpleFSWaitRpcPromise, {opID}),
-    })
-
-    // No error, so the download has finished successfully. Set the
-    // completePortion to 1.
-    yield Saga.put(FsGen.createDownloadProgress({completePortion: 1, key}))
-
-    const mimeType = yield* _loadMimeType(path)
-    yield Saga.put(
-      FsGen.createDownloadSuccess({
-        intent,
-        key,
-        mimeType: (mimeType && mimeType.mimeType) || '',
+  return action.type === FsGen.download
+    ? null
+    : FsGen.createSetPathItemActionMenuDownload({
+        downloadID,
+        intent: Constants.getDownloadIntentFromAction(action),
       })
-    )
-  } catch (error) {
-    // This needs to be before the dismiss below, so that if it's a legit
-    // error we'd show the red bar.
-    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
-  } finally {
-    if (intent !== Types.DownloadIntent.None) {
-      // If it's a normal download, we show a red card for the user to dismiss.
-      // TODO: when we get rid of download cards on Android, check isMobile
-      // here.
-      yield Saga.put(FsGen.createDismissDownload({key}))
-    }
-  }
 }
+
+const cancelDownload = (_: TypedState, action: FsGen.CancelDownloadPayload) =>
+  RPCTypes.SimpleFSSimpleFSCancelDownloadRpcPromise({downloadID: action.payload.downloadID})
+
+const dismissDownload = (_: TypedState, action: FsGen.DismissDownloadPayload) =>
+  RPCTypes.SimpleFSSimpleFSDismissDownloadRpcPromise({downloadID: action.payload.downloadID})
 
 function* upload(_: TypedState, action: FsGen.UploadPayload) {
   const {parentPath, localPath} = action.payload
@@ -488,17 +408,6 @@ function* upload(_: TypedState, action: FsGen.UploadPayload) {
   } catch (error) {
     yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
   }
-}
-
-const cancelDownload = async (state: TypedState, action: FsGen.CancelDownloadPayload) => {
-  const download = state.fs.downloads.get(action.payload.key)
-  if (!download) {
-    return
-  }
-  const {
-    meta: {opID},
-  } = download
-  await RPCTypes.SimpleFSSimpleFSCancelRpcPromise({opID})
 }
 
 const getWaitDuration = (endEstimate: number | null, lower: number, upper: number): number => {
@@ -579,100 +488,6 @@ function* ignoreFavoriteSaga(_: TypedState, action: FsGen.FavoriteIgnorePayload)
   }
 }
 
-// Return a header till first semicolon in lower case.
-const headerTillSemiLower = (header: string): string => {
-  const idx = header.indexOf(';')
-  return (idx > -1 ? header.slice(0, idx) : header).toLowerCase()
-}
-
-// Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
-//   text/html;charset=utf-8
-//   text/html;charset=UTF-8
-//   Text/HTML;Charset="utf-8"
-//   text/html; charset="utf-8"
-// The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
-  const mimeType = headerTillSemiLower(contentType)
-  const displayPreview = headerTillSemiLower(disposition) !== 'attachment'
-  return Constants.makeMime({displayPreview, mimeType})
-}
-
-const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Types.Path) =>
-  new Promise((resolve, reject) =>
-    getContentTypeFromURL(
-      Constants.generateFileURL(path, localHTTPServerInfo),
-      ({error, statusCode, contentType, disposition}) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        switch (statusCode) {
-          case 200:
-            resolve(extractMimeFromContentType(contentType || '', disposition || ''))
-            return
-          case 403:
-            reject(Constants.invalidTokenError)
-            return
-          case 404:
-            reject(Constants.notFoundError)
-            return
-          default:
-            reject(new Error(`unexpected HTTP status code: ${statusCode || ''}`))
-        }
-      }
-    )
-  )
-
-const refreshLocalHTTPServerInfo = async (_: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) => {
-  try {
-    const {address, token} = await RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
-    return FsGen.createLocalHTTPServerInfo({address, token})
-  } catch (e) {
-    return makeUnretriableErrorHandler(action, null)(e)
-  }
-}
-// loadMimeType uses HEAD request to load mime type from the KBFS HTTP server.
-// If the server address/token are not populated yet, or if the token turns out
-// to be invalid, it automatically uses
-// SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise to refresh that. The
-// generator function returns the loaded mime type for the given path.
-function* _loadMimeType(path: Types.Path) {
-  const state = yield* Saga.selectState()
-  let localHTTPServerInfo = state.fs.localHTTPServerInfo
-  // This should finish within 2 iterations at most. But just in case we bound
-  // it at 3.
-  for (let i = 0; i < 3; ++i) {
-    if (!localHTTPServerInfo.address || !localHTTPServerInfo.token) {
-      const r: Saga.RPCPromiseType<
-        typeof RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise
-      > = yield RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
-      const {address, token} = r
-      yield Saga.put(
-        FsGen.createLocalHTTPServerInfo({
-          address,
-          token,
-        })
-      )
-      localHTTPServerInfo = Constants.makeLocalHTTPServer({address, token})
-    }
-    try {
-      const mimeType: Types.Mime = yield Saga.callUntyped(getMimeTypePromise, localHTTPServerInfo, path)
-      return mimeType
-    } catch (err) {
-      if (err === Constants.notFoundError) {
-        // This file or its parent folder has been removed. So just stop here.
-        // This could happen when there are KBFS updates if user has previously
-        // inspected mime type, and we tracked the path through a refresh tag,
-        // but the path has been removed since then.
-        return
-      }
-      err !== Constants.invalidTokenError && logger.info(`_loadMimeType i=${i} error:`, err)
-      localHTTPServerInfo = Constants.makeLocalHTTPServer()
-    }
-  }
-  throw new Error('exceeded max retries')
-}
-
 const commitEdit = async (state: TypedState, action: FsGen.CommitEditPayload) => {
   const {editID} = action.payload
   const edit = state.fs.edits.get(editID)
@@ -707,10 +522,6 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
       refreshSubscription: false,
     })
     let pathItem = makeEntry(dirent)
-    if (pathItem.type === Types.PathType.File) {
-      const mimeType = yield* _loadMimeType(path)
-      pathItem = pathItem.set('mimeType', mimeType || null)
-    }
     yield Saga.put(
       FsGen.createPathItemLoaded({
         path,
@@ -867,16 +678,18 @@ const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
 // timer we have at process restart (which is there to avoid surging server
 // load around app releases). So only do that when OS network status changes
 // after we're up.
-const checkKbfsServerReachabilityIfNeeded = (
+const checkKbfsServerReachabilityIfNeeded = async (
   _: TypedState,
   action: ConfigGen.OsNetworkStatusChangedPayload
 ) => {
   if (!action.payload.isInit) {
-    return RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise().catch(err =>
+    try {
+      await RPCTypes.SimpleFSSimpleFSCheckReachabilityRpcPromise()
+    } catch (err) {
       logger.warn(`failed to check KBFS reachability: ${err.message}`)
-    )
+    }
   }
-  return undefined
+  return null
 }
 
 const onNotifyFSOverallSyncSyncStatusChanged = (
@@ -890,7 +703,7 @@ const onNotifyFSOverallSyncSyncStatusChanged = (
     ? Types.DiskSpaceStatus.Warning
     : Types.DiskSpaceStatus.Ok
   // We need to type this separately since otherwise we can't concat to it.
-  let actions: Array<
+  const actions: Array<
     | NotificationsGen.BadgeAppPayload
     | FsGen.OverallSyncStatusChangedPayload
     | FsGen.ShowHideDiskSpaceBannerPayload
@@ -945,22 +758,34 @@ const setDebugLevel = (_: TypedState, action: FsGen.SetDebugLevelPayload) =>
 
 const subscriptionDeduplicateIntervalSecond = 1
 
-const subscribePath = (_: TypedState, action: FsGen.SubscribePathPayload) =>
-  RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
-    deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-    kbfsPath: Types.pathToString(action.payload.path),
-    subscriptionID: action.payload.subscriptionID,
-    topic: action.payload.topic,
-  }).catch(makeUnretriableErrorHandler(action, action.payload.path))
+const subscribePath = async (_: TypedState, action: FsGen.SubscribePathPayload) => {
+  try {
+    await RPCTypes.SimpleFSSimpleFSSubscribePathRpcPromise({
+      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+      kbfsPath: Types.pathToString(action.payload.path),
+      subscriptionID: action.payload.subscriptionID,
+      topic: action.payload.topic,
+    })
+    return null
+  } catch (err) {
+    return makeUnretriableErrorHandler(action, action.payload.path)(err)
+  }
+}
 
-const subscribeNonPath = (_: TypedState, action: FsGen.SubscribeNonPathPayload) =>
-  RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
-    deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
-    identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
-    subscriptionID: action.payload.subscriptionID,
-    topic: action.payload.topic,
-  }).catch(makeUnretriableErrorHandler(action))
+const subscribeNonPath = async (_: TypedState, action: FsGen.SubscribeNonPathPayload) => {
+  try {
+    await RPCTypes.SimpleFSSimpleFSSubscribeNonPathRpcPromise({
+      deduplicateIntervalSecond: subscriptionDeduplicateIntervalSecond,
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
+      subscriptionID: action.payload.subscriptionID,
+      topic: action.payload.topic,
+    })
+    return null
+  } catch (err) {
+    return makeUnretriableErrorHandler(action)(err)
+  }
+}
 
 const unsubscribe = async (_: TypedState, action: FsGen.UnsubscribePayload) => {
   try {
@@ -990,6 +815,8 @@ const onNonPathChange = (_: TypedState, action: EngineGen.Keybase1NotifyFSFSSubs
       return FsGen.createPollJournalStatus()
     case RPCTypes.SubscriptionTopic.onlineStatus:
       return checkIfWeReConnectedToMDServerUpToNTimes(1)
+    case RPCTypes.SubscriptionTopic.downloadStatus:
+      return FsGen.createLoadDownloadStatus()
   }
 }
 
@@ -1008,13 +835,60 @@ const loadPathInfo = async (_: TypedState, action: FsGen.LoadPathInfoPayload) =>
   })
 }
 
+const loadDownloadInfo = async (_: TypedState, action: FsGen.LoadDownloadInfoPayload) => {
+  try {
+    const res = await RPCTypes.SimpleFSSimpleFSGetDownloadInfoRpcPromise({
+      downloadID: action.payload.downloadID,
+    })
+    return FsGen.createLoadedDownloadInfo({
+      downloadID: action.payload.downloadID,
+      info: Constants.makeDownloadInfo({
+        filename: res.filename,
+        isRegularDownload: res.isRegularDownload,
+        path: '/keybase' + res.path.path,
+        startTime: res.startTime,
+      }),
+    })
+  } catch {
+    return undefined
+  }
+}
+
+const loadDownloadStatus = async () => {
+  const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
+  return FsGen.createLoadedDownloadStatus({
+    regularDownloads: I.List(res.regularDownloadIDs || []),
+    state: I.Map(
+      (res.states || []).map(s => [
+        s.downloadID,
+        Constants.makeDownloadState({
+          canceled: s.canceled,
+          done: s.done,
+          endEstimate: s.endEstimate,
+          error: s.error,
+          localPath: s.localPath,
+          progress: s.progress,
+        }),
+      ])
+    ),
+  })
+}
+
+const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPayload) => {
+  const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.path).kbfs,
+  })
+  return FsGen.createLoadedFileContext({
+    fileContext: Constants.makeFileContext({
+      contentType: res.contentType,
+      url: res.url,
+      viewType: res.viewType,
+    }),
+    path: action.payload.path,
+  })
+}
+
 function* fsSaga() {
-  yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
-  yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
-  yield* Saga.chainGenerator<FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload>(
-    [FsGen.download, FsGen.shareNative, FsGen.saveMedia],
-    download
-  )
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload>(
     [FsGen.folderListLoad, FsGen.editSuccess],
@@ -1056,6 +930,13 @@ function* fsSaga() {
     yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
   }
   yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
+  yield* Saga.chainAction2(FsGen.loadFileContext, loadFileContext)
+
+  yield* Saga.chainAction2([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
+  yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)
+  yield* Saga.chainAction2(FsGen.dismissDownload, dismissDownload)
+  yield* Saga.chainAction2(FsGen.loadDownloadStatus, loadDownloadStatus)
+  yield* Saga.chainAction2(FsGen.loadDownloadInfo, loadDownloadInfo)
 
   yield* Saga.chainAction2(FsGen.subscribePath, subscribePath)
   yield* Saga.chainAction2(FsGen.subscribeNonPath, subscribeNonPath)

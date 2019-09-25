@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/wallets'
 import * as Styles from '../../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 
 const makePickerItems = (currencies: I.List<Types.Currency>) =>
   currencies.map(c => ({label: c.description, value: c.code})).toArray()

@@ -32,9 +32,9 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.whiteOrGreenDark,
   },
   highlight: {
-    backgroundColor: Styles.globalColors.yellow,
+    backgroundColor: Styles.globalColors.yellowOrYellowLight,
     borderRadius: 2,
-    color: Styles.globalColors.blackOrWhite,
+    color: Styles.globalColors.blackOrBlack,
   },
   nonFollow: {
     backgroundColor: Styles.globalColors.blueLighter2,

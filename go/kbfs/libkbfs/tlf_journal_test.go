@@ -257,8 +257,8 @@ func setupTLFJournalTest(
 		mdserver, defaultDiskLimitMaxDelay + time.Second,
 		mockPublisher,
 	}
-	mockPublisher.EXPECT().FavoritesChanged().AnyTimes()
-	mockPublisher.EXPECT().JournalStatusChanged().AnyTimes()
+	mockPublisher.EXPECT().PublishChange(keybase1.SubscriptionTopic_FAVORITES).AnyTimes()
+	mockPublisher.EXPECT().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
 
 	ctx, cancel = context.WithTimeout(
 		context.Background(), individualTestTimeout)

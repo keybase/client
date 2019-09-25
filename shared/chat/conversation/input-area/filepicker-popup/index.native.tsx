@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (

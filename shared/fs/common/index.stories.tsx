@@ -31,12 +31,6 @@ const PathItemActionMenuHeaderProps = (props: any) => ({
   type: Types.PathType.Folder,
 })
 
-const pathItemActionProps = (props: any) => ({
-  ...props,
-  init: Sb.action('init'),
-  onHidden: Sb.action('onHidden'),
-})
-
 const pathItemActionChooseViewProps = (props: any) => ({
   ...props,
   view: Types.PathItemActionMenuView.Root,
@@ -99,7 +93,6 @@ export const commonProvider = {
   OpenChat: ({path}: {path: Types.Path}) => ({
     onChat: Constants.canChat(path) ? Sb.action('onChat') : null,
   }),
-  PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
   PathItemActionMenu: PathItemActionMenuProps,
   PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
@@ -151,8 +144,7 @@ export const provider = Sb.createPropProviderWithCommon(commonProvider)
 
 const pathItemActionCommonProps = {
   clickable: {type: 'icon'} as const,
-  init: Sb.action('init'),
-  onHidden: Sb.action('onHidden'),
+  initView: Types.PathItemActionMenuView.Root,
 }
 
 const pieSlices = [0, 20, 90, 179, 180, 181, 270, 359, 360]

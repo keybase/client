@@ -14,7 +14,7 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
+  download: () => dispatch(FsGen.createDownload({path})),
   showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 

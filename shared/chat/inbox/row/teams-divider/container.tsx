@@ -2,7 +2,7 @@ import {TeamsDivider} from '.'
 import {namedConnect} from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import {StylesCrossPlatform} from '../../../../styles'
-import {RowItem} from '../../index.types'
+import {RowItem} from '../..'
 import {memoize} from '../../../../util/memoize'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 

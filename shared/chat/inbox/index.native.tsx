@@ -1,20 +1,20 @@
 import * as I from 'immutable'
-import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
+import * as React from 'react'
+import * as RowSizes from './row/sizes'
 import * as Styles from '../../styles'
-import {makeRow} from './row'
+import * as T from './index.d'
+import * as Types from '../../constants/types/chat2'
+import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
-import BigTeamsDivider from './row/big-teams-divider/container'
-import TeamsDivider from './row/teams-divider/container'
-import {virtualListMarks} from '../../local-debug'
-import {debounce} from 'lodash-es'
-import UnreadShortcut from './unread-shortcut'
-import * as RowSizes from './row/sizes'
-import InboxSearch from '../inbox-search/container'
-import * as T from './index.types.d'
-import * as Types from '../../constants/types/chat2'
 import Flags from '../../util/feature-flags'
+import InboxSearch from '../inbox-search/container'
+import TeamsDivider from './row/teams-divider/container'
+import UnreadShortcut from './unread-shortcut'
+import {debounce} from 'lodash-es'
+import {makeRow} from './row'
+import {virtualListMarks} from '../../local-debug'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2
@@ -87,6 +87,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
       element = makeRow({
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
+        navKey: this.props.navKey,
         teamname: row.teamname,
         type: row.type,
       })
@@ -248,6 +249,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
+          {!!this.props.isLoading && (
+            <Kb.Box style={styles.loadingContainer}>
+              <Kb.LoadingLine />
+            </Kb.Box>
+          )}
           {this.props.isSearching ? (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <InboxSearch header={HeadComponent} />
@@ -284,6 +290,13 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.fastBlank,
         flex: 1,
         position: 'relative',
+      },
+      loadingContainer: {
+        left: 0,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        zIndex: 1000,
       },
     } as const)
 )

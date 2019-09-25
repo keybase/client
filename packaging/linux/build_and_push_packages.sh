@@ -14,7 +14,6 @@ build_dir="$2"
 
 here="$(dirname "${BASH_SOURCE[0]}")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
-kbfs_dir="$client_dir/../kbfs"
 
 if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ]  || [ "${KEYBASE_TEST:-}" = 1 ] ; then
   default_bucket_name="jack-testing.keybase.io"
@@ -65,10 +64,6 @@ export GITHUB_TOKEN="$token"
 if [ ! "${NOWAIT:-}" = "1" ]; then
   echo "Checking client CI"
   "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  if [ "$mode" != "production" ] ; then
-    echo "Checking kbfs CI"
-    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C "$kbfs_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
-  fi
 fi
 
 # Build all the packages!

@@ -1,4 +1,10 @@
 import * as React from 'react'
-import {Props} from './download'
+
+type Props = {
+  dismiss: () => void
+  done: boolean
+  isFirst: boolean
+  children: React.ReactNode
+}
 
 export default class extends React.PureComponent<Props> {}

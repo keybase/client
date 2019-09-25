@@ -3,7 +3,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import {Props} from './index.types'
+import {Props} from '.'
 import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
@@ -192,7 +192,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       ashBox: {
-        backgroundColor: Styles.globalColors.fastBlank, // exploded messages don't have hover effects and we need to cover the message
+        backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
         backgroundImage: explodedIllustrationUrl,
         backgroundRepeat: 'repeat',
         backgroundSize: '400px 68px',
@@ -233,13 +233,15 @@ const styles = Styles.styleSheetCreate(
 )
 
 // @ts-ignore
-const AshBox = Styles.styled.div({
-  '&.full-width': {
-    overflow: 'visible',
-    transition: `width ${animationDuration}ms linear`,
-    width: '100%',
+const AshBox = Styles.styled.div(
+  {
+    '&.full-width': {
+      overflow: 'visible',
+      transition: `width ${animationDuration}ms linear`,
+      width: '100%',
+    },
   },
-  ...styles.ashBox,
-})
+  () => styles.ashBox
+)
 
 export default ExplodingHeightRetainer

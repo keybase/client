@@ -226,12 +226,12 @@ const Value = (p: Props) => {
   return content
 }
 
-const HoverOpacity = Styles.styled(Kb.Box)({
+const HoverOpacity = Styles.styled(Kb.Box)(() => ({
   '&:hover': {
     opacity: 1,
   },
   opacity: 0.5,
-})
+}))
 
 type State = {
   showingMenu: boolean

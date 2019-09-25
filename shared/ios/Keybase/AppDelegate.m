@@ -128,16 +128,13 @@
 {
   [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
-// Required for the registrationError event.
-- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
-{
-  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
-}
+
 // Required for the notification event.
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
 {
   [RCTPushNotificationManager didReceiveRemoteNotification:notification];
 }
+
 // Require for handling silent notifications
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
   NSString* type = notification[@"type"];
@@ -185,13 +182,16 @@
     completionHandler(UIBackgroundFetchResultNewData);
   }
 }
-
+// Required for the registrationError event.
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+  [RCTPushNotificationManager didFailToRegisterForRemoteNotificationsWithError:error];
+}
 // Required for the localNotification event.
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
 {
   [RCTPushNotificationManager didReceiveLocalNotification:notification];
 }
-
 - (void)applicationWillTerminate:(UIApplication *)application {
   self.window.rootViewController.view.hidden = YES;
   KeybaseAppWillExit([[PushNotifier alloc] init]);

@@ -186,11 +186,11 @@ const ContactsImportButton = (props: ContactProps) => {
         gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-contact-book" color="Styles.globalColors.black" />
+        <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import your phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color="Styles.globalColors.black" />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -320,7 +320,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   )
 
   _listBody = () => {
-    const showRecPending = !this.props.searchString && !this.props.recommendations
+    const showRecPending =
+      !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
     const showLoading = !!this.props.searchString && !this.props.searchResults
     if (showRecPending || showLoading) {
       return (
@@ -375,15 +376,12 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         this.props.recommendations
       )
       return (
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([Styles.globalStyles.flexOne, {position: 'relative'}])}
-        >
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
           <Kb.SectionList
             ref={this.sectionListRef}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
+            stickySectionHeadersEnabled={false}
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
             keyExtractor={(item: SearchResult | ImportContactsEntry) => {
@@ -456,7 +454,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   render() {
     const props = this.props
 
-    let content
+    let content: React.ReactNode
     switch (props.selectedService) {
       case 'email':
         content = (
@@ -507,7 +505,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       />
     )
 
-    // Handle when team-buiding is making a new chat v.s. adding members to a team.
+    // Handle when team-building is making a new chat v.s. adding members to a team.
     const chatHeader = props.rolePickerProps ? (
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
         <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
@@ -578,9 +576,7 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.xtiny,
         },
-        isMobile: {
-          zIndex: -1, // behind ServiceTabBar
-        },
+        isMobile: {zIndex: -1}, // behind ServiceTabBar
       }),
       bannerButtonContainer: {
         alignSelf: 'flex-start',
@@ -588,9 +584,7 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
-      bannerIcon: {
-        maxHeight: 112,
-      },
+      bannerIcon: {maxHeight: 112},
       bannerText: {
         flexWrap: 'wrap',
         marginTop: Styles.globalMargins.tiny,
@@ -608,21 +602,18 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderRadius: 4,
           height: 560,
+          maxHeight: 560,
           overflow: 'visible',
           width: 400,
         },
       }),
       emptyContainer: Styles.platformStyles({
-        common: {
-          flex: 1,
-        },
+        common: {flex: 1},
         isElectron: {
           maxWidth: 290,
           paddingBottom: 40,
         },
-        isMobile: {
-          maxWidth: '80%',
-        },
+        isMobile: {maxWidth: '80%'},
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {
@@ -635,14 +626,17 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.xsmall,
       },
       list: Styles.platformStyles({
+        common: {paddingBottom: Styles.globalMargins.small},
+      }),
+      listContainer: Styles.platformStyles({
         common: {
-          paddingBottom: Styles.globalMargins.small,
+          flex: 1,
+          position: 'relative',
         },
+        isElectron: {overflow: 'hidden'},
       }),
       listContentContainer: Styles.platformStyles({
-        isMobile: {
-          paddingTop: Styles.globalMargins.xtiny,
-        },
+        isMobile: {paddingTop: Styles.globalMargins.xtiny},
       }),
       loadingContainer: {
         flex: 1,

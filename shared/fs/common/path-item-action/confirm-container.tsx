@@ -17,13 +17,7 @@ const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch, {path}: OwnProps) => ({
   _confirm: ({view, previousView}) => {
-    const key = Constants.makeDownloadKey(path)
-    dispatch(
-      view === 'confirm-save-media'
-        ? FsGen.createSaveMedia({key, path})
-        : FsGen.createShareNative({key, path})
-    )
-    dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key}))
+    dispatch(view === 'confirm-save-media' ? FsGen.createSaveMedia({path}) : FsGen.createShareNative({path}))
     dispatch(FsGen.createSetPathItemActionMenuView({view: previousView}))
   },
 })

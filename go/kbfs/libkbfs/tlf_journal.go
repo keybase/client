@@ -1095,7 +1095,7 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 	// TODO: Check storedFiles also.
 
-	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
+	j.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	flushedBytes, err := j.blockJournal.removeFlushedEntries(
 		ctx, entries, j.tlfID, j.config.Reporter())
 	if err != nil {
@@ -2181,7 +2181,7 @@ func (j *tlfJournal) putBlockData(
 		j.unsquashedBytes += uint64(bufLen)
 	}
 
-	j.config.SubscriptionManagerPublisher().JournalStatusChanged()
+	j.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS)
 	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
 		FolderType: j.tlfID.Type().FolderType(),
 		// Path: TODO,

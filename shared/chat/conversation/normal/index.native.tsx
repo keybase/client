@@ -5,7 +5,7 @@ import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
-import {Props} from './index.types'
+import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 

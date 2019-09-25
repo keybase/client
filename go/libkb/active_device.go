@@ -23,6 +23,7 @@ type ActiveDevice struct {
 	// provisioning.
 	provisioningKey         *SelfDestructingDeviceWithKeys
 	secretPromptCancelTimer CancelTimer
+	keychainMode            KeychainMode
 	sync.RWMutex
 }
 
@@ -41,13 +42,14 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	}
 	m.Debug("%sPassphraseCache: cacheObj=%v; valid=%v", prefix, (a.passphrase != nil), (a.passphrase != nil && a.passphrase.ValidPassphraseStream()))
 	m.Debug("%sProvisioningKeyCache: %v", prefix, (a.provisioningKey != nil && a.provisioningKey.DeviceWithKeys() != nil))
+	m.Debug("%sKeychainMode: %v", prefix, a.keychainMode)
 }
 
 // NewProvisionalActiveDevice creates an ActiveDevice that is "provisional", in
 // that it should not be considered the global ActiveDevice. Instead, it should
 // reside in thread-local context, and can be weaved through the login
 // machinery without trampling the actual global ActiveDevice.
-func NewProvisionalActiveDevice(m MetaContext, uv keybase1.UserVersion, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string) *ActiveDevice {
+func NewProvisionalActiveDevice(m MetaContext, uv keybase1.UserVersion, d keybase1.DeviceID, sigKey GenericKey, encKey GenericKey, deviceName string, keychainMode KeychainMode) *ActiveDevice {
 	return &ActiveDevice{
 		uv:            uv,
 		deviceID:      d,
@@ -56,6 +58,7 @@ func NewProvisionalActiveDevice(m MetaContext, uv keybase1.UserVersion, d keybas
 		encryptionKey: encKey,
 		nistFactory:   NewNISTFactory(m.G(), uv.Uid, d, sigKey),
 		secretSyncer:  NewSecretSyncer(m.G()),
+		keychainMode:  keychainMode,
 	}
 }
 
@@ -78,6 +81,7 @@ func NewActiveDeviceWithDeviceWithKeys(m MetaContext, uv keybase1.UserVersion, d
 		encryptionKey: d.encryptionKey,
 		nistFactory:   NewNISTFactory(m.G(), uv.Uid, d.deviceID, d.signingKey),
 		secretSyncer:  NewSecretSyncer(m.G()),
+		keychainMode:  d.keychainMode,
 	}
 }
 
@@ -101,9 +105,10 @@ func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 	encKey := src.encryptionKey
 	name := src.deviceName
 	ctime := src.deviceCtime
+	keychainMode := src.keychainMode
 	src.Unlock()
 
-	return a.Set(m, uv, deviceID, sigKey, encKey, name, ctime)
+	return a.Set(m, uv, deviceID, sigKey, encKey, name, ctime, keychainMode)
 }
 
 func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
@@ -122,7 +127,7 @@ func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LoginState account request.
 func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID,
-	sigKey, encKey GenericKey, deviceName string, deviceCtime keybase1.Time) error {
+	sigKey, encKey GenericKey, deviceName string, deviceCtime keybase1.Time, keychainMode KeychainMode) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -136,8 +141,15 @@ func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keyb
 	a.deviceCtime = deviceCtime
 	a.nistFactory = NewNISTFactory(m.G(), uv.Uid, deviceID, sigKey)
 	a.secretSyncer = NewSecretSyncer(m.G())
+	a.keychainMode = keychainMode
 
 	return nil
+}
+
+func (a *ActiveDevice) KeychainMode() KeychainMode {
+	a.Lock()
+	defer a.Unlock()
+	return a.keychainMode
 }
 
 // setSigningKey acquires the write lock and sets the signing key.
@@ -198,11 +210,16 @@ func (a *ActiveDevice) internalUpdateUserVersionDeviceID(uv keybase1.UserVersion
 }
 
 func (a *ActiveDevice) Clear() error {
+	_, err := a.clear()
+	return err
+}
+
+func (a *ActiveDevice) ClearGetKeychainMode() (KeychainMode, error) {
 	return a.clear()
 }
 
 // Clear acquires the write lock and resets all the fields to zero values.
-func (a *ActiveDevice) clear() error {
+func (a *ActiveDevice) clear() (KeychainMode, error) {
 	a.Lock()
 	defer a.Unlock()
 
@@ -214,8 +231,9 @@ func (a *ActiveDevice) clear() error {
 	a.passphrase = nil
 	a.provisioningKey = nil
 	a.secretPromptCancelTimer.Reset()
-
-	return nil
+	ret := a.keychainMode
+	a.keychainMode = KeychainModeNone
+	return ret, nil
 }
 
 func (a *ActiveDevice) SecretPromptCancelTimer() *CancelTimer {
@@ -420,7 +438,17 @@ func (a *ActiveDevice) deviceKeys(deviceID keybase1.DeviceID) (*DeviceWithKeys, 
 		return nil, errors.New("active device changed")
 	}
 
-	return NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey), nil
+	return NewDeviceWithKeysOnly(a.signingKey, a.encryptionKey, a.keychainMode), nil
+}
+
+func (a *ActiveDevice) DeviceKeys() (*DeviceWithKeys, error) {
+	a.RLock()
+	defer a.RUnlock()
+
+	if !a.valid() {
+		return nil, errors.New("active device is not valid")
+	}
+	return NewDeviceWithKeysOnly(a.signingKey, a.encryptionKey, a.keychainMode), nil
 }
 
 func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {

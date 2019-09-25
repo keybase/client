@@ -5,7 +5,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles, transition} f
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
 
-import {Props as _Props} from './index.types'
+import {Props as _Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 

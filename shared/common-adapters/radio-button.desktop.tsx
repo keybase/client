@@ -12,15 +12,15 @@ export const RADIOBUTTON_MARGIN = 8
 
 // @ts-ignore this type is wrong
 const StyledRadio = Styles.styled.div(
-  {
+  // @ts-ignore
+  () => ({
     ...Styles.transition('background'),
-    // @ts-ignore
     borderRadius: '100%',
     height: RADIOBUTTON_SIZE,
     marginRight: RADIOBUTTON_MARGIN,
     position: 'relative',
     width: RADIOBUTTON_SIZE,
-  },
+  }),
   ({disabled, selected}) => ({
     '&:hover': {border: (selected || !disabled) && `solid 1px ${Styles.globalColors.blue}`},
     backgroundColor: selected ? Styles.globalColors.blue : 'inherit',

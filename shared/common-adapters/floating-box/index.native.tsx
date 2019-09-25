@@ -2,7 +2,7 @@ import * as React from 'react'
 import Box from '../box'
 import {NativeKeyboard} from '../native-wrappers.native'
 import {Gateway} from 'react-gateway'
-import {Props} from './index.types'
+import {Props} from '.'
 import {globalStyles} from '../../styles'
 
 export default class FloatingBox extends React.Component<Props> {

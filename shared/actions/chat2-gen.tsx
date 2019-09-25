@@ -489,6 +489,7 @@ type _SelectConversationPayload = {
     | 'teamChat'
     | 'addedToChannel'
     | 'teamMention'
+  readonly navKey?: string
 }
 type _SendTypingPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly typing: boolean}
 type _SetAttachmentViewStatusPayload = {
@@ -551,7 +552,7 @@ type _SetThreadSearchStatusPayload = {
 }
 type _SetUnsentTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly text: HiddenString | null
+  readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}

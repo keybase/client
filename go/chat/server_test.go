@@ -5928,6 +5928,11 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	}
 }
 
+func logout(g *libkb.GlobalContext) error {
+	m := libkb.NewMetaContextBackground(g)
+	return m.Logout()
+}
+
 func TestChatSrvUserResetAndDeleted(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for teams
@@ -6050,7 +6055,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 		// Once deleted we can't log back in or send
 		g3 := ctc.as(t, users[3]).h.G().ExternalG()
-		require.NoError(t, g3.Logout(context.TODO()))
+		require.NoError(t, logout(g3))
 		require.Error(t, users[3].Login(g3))
 		_, err = ctc.as(t, users[3]).chatLocalHandler().PostLocal(ctx3, chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -6088,10 +6093,10 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 		t.Logf("get a PUK for user 1 and not for user 2")
 		g1 := ctc.as(t, users[1]).h.G().ExternalG()
-		require.NoError(t, g1.Logout(context.TODO()))
+		require.NoError(t, logout(g1))
 		require.NoError(t, users[1].Login(g1))
 		g2 := ctc.as(t, users[2]).h.G().ExternalG()
-		require.NoError(t, g2.Logout(context.TODO()))
+		require.NoError(t, logout(g2))
 
 		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().AddTeamMemberAfterReset(ctx,
 			chat1.AddTeamMemberAfterResetArg{

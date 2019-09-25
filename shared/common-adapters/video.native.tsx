@@ -48,9 +48,7 @@ const Video = (props: Props) => {
               logger.error(`Error loading vid: ${JSON.stringify(e)}`)
             }}
             controls={true}
-            onFullscreenPlayerWillPresent={() => console.log({songgao: 'onFullscreenPlayerWillPresent'})}
             onFullscreenPlayerDidDismiss={() => {
-              console.log({songgao: 'onFullscreenPlayerDidDismiss'})
               StatusBar.setHidden(false)
             }}
             onLoad={loaded =>

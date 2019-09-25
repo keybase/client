@@ -185,16 +185,22 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           items={this.state.items}
           position="top center"
         />
-        <Kb.Box style={headingStyle}>
+        <Kb.Box style={styles.heading}>
           <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
         </Kb.Box>
         <Kb.ClickableBox
           onClick={this.props.toggleShowingMenu}
           ref={this.props.setAttachmentRef}
-          style={Styles.collapseStyles([retentionDropdownStyle, this.props.dropdownStyle])}
+          style={Styles.collapseStyles([styles.retentionDropdown, this.props.dropdownStyle])}
           underlayColor={Styles.globalColors.white_40}
         >
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={labelStyle}>
+          <Kb.Box2
+            direction="horizontal"
+            alignItems="center"
+            gap="tiny"
+            fullWidth={true}
+            style={styles.label}
+          >
             {this._label()}
           </Kb.Box2>
           <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
@@ -211,7 +217,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
         {this.props.showSaveIndicator && (
           <SaveIndicator
             saving={this.state.saving}
-            style={saveStateStyle}
+            style={styles.saveState}
             minSavingTimeMs={300}
             savedTimeoutMs={2500}
           />
@@ -244,7 +250,7 @@ const RetentionDisplay = (
   const text = policyToExplanation(convType, props.policy, props.teamPolicy)
   return (
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
-      <Kb.Box style={displayHeadingStyle}>
+      <Kb.Box style={Styles.collapseStyles([styles.heading, styles.displayHeading])}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
       </Kb.Box>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
@@ -252,57 +258,53 @@ const RetentionDisplay = (
   )
 }
 
-const headingStyle = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  marginBottom: Styles.globalMargins.tiny,
-}
-
-const displayHeadingStyle = {
-  ...headingStyle,
-  marginBottom: 2,
-}
-
-const labelStyle = {
-  justifyContent: 'center',
-  minHeight: Styles.isMobile ? 40 : 32,
-} as const
-
-const progressIndicatorStyle = {
-  height: 30,
-  marginTop: Styles.globalMargins.small,
-  width: 30,
-}
-
-const retentionDropdownStyle = Styles.platformStyles({
-  common: {
+const styles = Styles.styleSheetCreate(() => ({
+  displayHeading: {
+    marginBottom: 2,
+  },
+  heading: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    borderColor: Styles.globalColors.grey,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
     marginBottom: Styles.globalMargins.tiny,
-    minWidth: 220,
-    paddingRight: Styles.globalMargins.small,
   },
-  isElectron: {
-    width: 220,
-  },
-})
-
-const saveStateStyle = Styles.platformStyles({
-  common: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    height: 17,
+  label: {
     justifyContent: 'center',
-    marginTop: Styles.globalMargins.tiny,
+    minHeight: Styles.isMobile ? 40 : 32,
   },
-  isMobile: {
-    height: Styles.globalMargins.medium,
+  progressIndicator: {
+    height: 30,
+    marginTop: Styles.globalMargins.small,
+    width: 30,
   },
-})
+  retentionDropdown: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      borderColor: Styles.globalColors.grey,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginBottom: Styles.globalMargins.tiny,
+      minWidth: 220,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      width: 220,
+    },
+  }),
+  saveState: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      height: 17,
+      justifyContent: 'center',
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      height: Styles.globalMargins.medium,
+    },
+  }),
+}))
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: RetentionPolicy, parent: RetentionPolicy | null) => {
@@ -421,7 +423,7 @@ const RetentionSwitcher = (
   } & Props
 ) => {
   if (props.loading) {
-    return <Kb.ProgressIndicator style={progressIndicatorStyle} />
+    return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
   const {entityType, ...pickerProps} = props
   return props.canSetPolicy ? <RetentionPicker {...pickerProps} /> : <RetentionDisplay {...props} />

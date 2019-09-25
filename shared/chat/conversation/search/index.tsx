@@ -17,9 +17,11 @@ export type Props = {
   conversationIDKey: Types.ConversationIDKey
   hits: Array<SearchHit>
   initialText?: string
-  loadSearchHit: (arg0: number) => void
+  loadSearchHit: (hit: number) => void
   onCancel: () => void
-  onSearch: (arg0: string) => void
+  onSearch: (toFind: string) => void
+  hotkeys?: Array<string>
+  onHotkey?: (cmd: string) => void
   selfHide: () => void
   status: Types.ThreadSearchStatus
   style?: Styles.StylesCrossPlatform

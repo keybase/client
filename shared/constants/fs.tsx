@@ -10,7 +10,6 @@ import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
-import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
@@ -69,14 +68,8 @@ export const makeFolder = I.Record<Types._FolderPathItem>({
   type: Types.PathType.Folder,
 })
 
-export const makeMime = I.Record<Types._Mime>({
-  displayPreview: false,
-  mimeType: '',
-})
-
 export const makeFile = I.Record<Types._FilePathItem>({
   ...pathItemMetadataDefault,
-  mimeType: null,
   type: Types.PathType.File,
 })
 
@@ -166,31 +159,30 @@ export const defaultTlfListPathUserSetting = makePathUserSetting({
   sort: Types.SortSetting.TimeAsc,
 })
 
-export const makeDownloadMeta = I.Record<Types._DownloadMeta>({
-  entryType: Types.PathType.Unknown,
-  intent: Types.DownloadIntent.None,
-  localPath: '',
-  opID: null,
-  path: Types.stringToPath(''),
-})
-
 export const makeDownloadState = I.Record<Types._DownloadState>({
   canceled: false,
-  completePortion: 0,
-  endEstimate: undefined,
-  error: undefined,
-  isDone: false,
-  startedAt: 0,
+  done: false,
+  endEstimate: 0,
+  error: '',
+  localPath: '',
+  progress: 0,
 })
 
-export const makeDownload = I.Record<Types._Download>({
-  meta: makeDownloadMeta(),
-  state: makeDownloadState(),
+export const emptyDownloadState = makeDownloadState()
+
+export const makeDownloadInfo = I.Record<Types._DownloadInfo>({
+  filename: '',
+  isRegularDownload: false,
+  path: defaultPath,
+  startTime: 0,
 })
 
-export const makeLocalHTTPServer = I.Record<Types._LocalHTTPServer>({
-  address: '',
-  token: '',
+export const emptyDownloadInfo = makeDownloadInfo()
+
+export const makeDownloads = I.Record<Types._Downloads>({
+  info: I.Map(),
+  regularDownloads: I.List(),
+  state: I.Map(),
 })
 
 export const makeUploads = I.Record<Types._Uploads>({
@@ -263,7 +255,8 @@ export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
 })
 
 export const makePathItemActionMenu = I.Record<Types._PathItemActionMenu>({
-  downloadKey: null,
+  downloadID: null,
+  downloadIntent: null,
   previousView: Types.PathItemActionMenuView.Root,
   view: Types.PathItemActionMenuView.Root,
 })
@@ -318,15 +311,22 @@ export const makePathInfo = I.Record<Types._PathInfo>({
 
 export const emptyPathInfo = makePathInfo()
 
+export const makeFileContext = I.Record<Types._FileContext>({
+  contentType: '',
+  url: '',
+  viewType: RPCTypes.GUIViewType.default,
+})
+export const emptyFileContext = makeFileContext()
+
 export const makeState = I.Record<Types._State>({
   destinationPicker: makeDestinationPicker(),
-  downloads: I.Map(),
+  downloads: makeDownloads(),
   edits: I.Map(),
   errors: I.Map(),
+  fileContext: I.Map(),
   folderViewFilter: '',
   kbfsDaemonStatus: makeKbfsDaemonStatus(),
   lastPublicBannerClosedTlf: '',
-  localHTTPServerInfo: makeLocalHTTPServer(),
   overallSyncStatus: makeOverallSyncStatus(),
   pathInfos: I.Map(),
   pathItemActionMenu: makePathItemActionMenu(),
@@ -344,7 +344,9 @@ export const makeState = I.Record<Types._State>({
 // RPC expects a string that's interpreted as [16]byte on Go side.
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
 
-export const pathToRPCPath = (path: Types.Path): RPCTypes.Path => ({
+export const pathToRPCPath = (
+  path: Types.Path
+): {PathType: RPCTypes.PathType.kbfs; kbfs: RPCTypes.KBFSPath} => ({
   PathType: RPCTypes.PathType.kbfs,
   kbfs: {
     identifyBehavior: RPCTypes.TLFIdentifyBehavior.fsGui,
@@ -390,7 +392,6 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-export const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
@@ -399,11 +400,6 @@ export const getDownloadIntentFromAction = (
     : action.type === FsGen.shareNative
     ? Types.DownloadIntent.Share
     : Types.DownloadIntent.CameraRoll
-
-export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
-  downloadFilePath(Types.getPathName(p))
-export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
-  downloadFilePathNoSearch(Types.getPathName(p))
 
 export const makeTlfUpdate = I.Record<Types._TlfUpdate>({
   history: I.List(),
@@ -465,70 +461,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
-const supportedImgMimeTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])
-export const viewTypeFromMimeType = (mime: Types.Mime | null): Types.FileViewType => {
-  if (mime && mime.displayPreview) {
-    const mimeType = mime.mimeType
-    if (mimeType === 'text/plain') {
-      return Types.FileViewType.Text
-    }
-    if (supportedImgMimeTypes.has(mimeType)) {
-      return Types.FileViewType.Image
-    }
-    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-      return Types.FileViewType.Av
-    }
-    if (mimeType === 'application/pdf') {
-      return Types.FileViewType.Pdf
-    }
-  }
-  return Types.FileViewType.Default
-}
-
-export const canSaveMedia = (pathItem: Types.PathItem): boolean => {
-  if (pathItem.type !== Types.PathType.File || !pathItem.mimeType) {
+export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileContext): boolean => {
+  if (pathItem.type !== Types.PathType.File || fileContext === emptyFileContext) {
     return false
   }
-  const mime = pathItem.mimeType
   return (
-    viewTypeFromMimeType(mime) === Types.FileViewType.Image ||
-    // Can't rely on viewType === av here because audios can't be saved to
-    // the camera roll.
-    mime.mimeType.startsWith('video/')
+    fileContext.viewType === RPCTypes.GUIViewType.image || fileContext.viewType === RPCTypes.GUIViewType.video
   )
 }
-
-const encodePathForURL = (path: Types.Path) =>
-  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))
-    .replace(
-      // We need to do this because otherwise encodeURIComponent would encode
-      // "/"s.  If we get a relative redirect (e.g. when requested resource is
-      // index.html, we get redirected to "./"), we'd end up redirect to a wrong
-      // resource.
-      /%2F/g,
-      '/'
-    )
-    // Additional characters that encodeURIComponent doesn't escape
-    .replace(
-      /[-_.!~*'()]/g,
-      old =>
-        `%${old
-          .charCodeAt(0)
-          .toString(16)
-          .toUpperCase()}`
-    )
-
-const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.LocalHTTPServer): string => {
-  const {address, token} = localHTTPServerInfo
-  if (!address || !token) {
-    return 'about:blank'
-  }
-  const encoded = encodePathForURL(path)
-  return `http://${address}/files/${encoded}?token=${token}`
-}
-
-export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
 export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
   const pathElems = Types.getPathElements(path)
@@ -649,9 +589,6 @@ export const resetBannerType = (state: TypedState, path: Types.Path): Types.Rese
   return resetParticipants.size
 }
 
-export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
-  download.meta.path === path && download.meta.intent === intent && !download.state.isDone
-
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
   Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
 
@@ -691,6 +628,7 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
+const slashKeybaseSlashLength = '/keybase/'.length
 // TODO: move this to Go
 export const escapePath = (path: Types.Path): string =>
   'keybase://' +
@@ -876,20 +814,6 @@ export const getChatTarget = (path: Types.Path, me: string): string => {
     return 'group conversation'
   }
   return 'conversation'
-}
-
-const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
-  switch (intent) {
-    case Types.DownloadIntent.CameraRoll:
-      return 'save'
-    case Types.DownloadIntent.Share:
-      return 'prepare to share'
-    case Types.DownloadIntent.None:
-      return 'download'
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
-      return ''
-  }
 }
 
 export const getDestinationPickerPathName = (picker: Types.DestinationPicker): string =>
@@ -1085,6 +1009,9 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
   Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
 
+export const downloadIsOngoing = (dlState: Types.DownloadState) =>
+  dlState !== emptyDownloadState && !dlState.error && !dlState.done && !dlState.canceled
+
 export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline
   // scenarios, but we still need to keep this timeout check here in case we
@@ -1100,14 +1027,13 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
       return 'Failed to copy file(s).' + suffix
     case FsGen.favoritesLoad:
       return 'Failed to load TLF lists.' + suffix
-    case FsGen.refreshLocalHTTPServerInfo:
-      return 'Failed to get information about internal HTTP server.' + suffix
     case FsGen.loadPathMetadata:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.download:
-      return `Failed to download: ${Types.getPathName(action.payload.path)}.` + suffix
+    case FsGen.finishedDownloadWithIntent:
+      return `Failed to download.` + suffix
     case FsGen.shareNative:
       return `Failed to share: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.saveMedia:
@@ -1122,11 +1048,6 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
       return `Failed to open path: ${action.payload.localPath}.` + suffix
     case FsGen.deleteFile:
       return `Failed to delete file: ${Types.pathToString(action.payload.path)}.` + suffix
-    case FsGen.downloadSuccess:
-      return (
-        `Failed to ${humanizeDownloadIntent(action.payload.intent)}. ` +
-        (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
-      )
     case FsGen.pickAndUpload:
       return 'Failed to upload. ' + (errorIsTimeout ? timeoutExplain : `Error: ${error}.`)
     case FsGen.driverEnable:

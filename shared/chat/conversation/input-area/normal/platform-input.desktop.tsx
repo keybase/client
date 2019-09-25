@@ -441,14 +441,18 @@ const styles = Styles.styleSheetCreate(
       input: {
         backgroundColor: Styles.globalColors.transparent,
         height: 21,
+        // Line height change is so that emojis (unicode characters inside
+        // textarea) are not clipped at the top. This change is accompanied by
+        // a change in padding to offset the increased line height
+        lineHeight: '22px',
         minHeight: 21,
       },
       inputBox: {
         flex: 1,
-        paddingBottom: Styles.globalMargins.xxtiny,
+        paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny - 2,
         textAlign: 'left',
       },
       inputEditing: {
@@ -487,10 +491,10 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const HoverBox = Styles.styled(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)(() => ({
   ':hover .timer, &.expanded .timer': {
     color: Styles.globalColors.black,
   },
-})
+}))
 
 export default Kb.OverlayParentHOC(PlatformInput)

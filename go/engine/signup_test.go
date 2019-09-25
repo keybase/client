@@ -5,10 +5,15 @@ package engine
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 
+	"encoding/base64"
+	"github.com/keybase/client/go/bot"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -397,4 +402,110 @@ func TestSignupWithBadSecretStore(t *testing.T) {
 	_, err = libkb.LoadUser(loadArg)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+}
+
+func assertNoFiles(t *testing.T, dir string, files []string) {
+	err := filepath.Walk(dir,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			for _, f := range files {
+				require.NotEqual(t, f, filepath.Base(path))
+
+			}
+			return nil
+		},
+	)
+	require.NoError(t, err)
+}
+
+func TestBotSignup(t *testing.T) {
+	tc := SetupEngineTest(t, "signup_bot")
+	defer tc.Cleanup()
+	_ = CreateAndSignupFakeUser(tc, "own")
+
+	mctx := NewMetaContextForTest(tc)
+	botToken, err := bot.CreateToken(mctx)
+	require.NoError(t, err)
+
+	fuBot, err := NewFakeUser("bot")
+	require.NoError(t, err)
+	botName := fuBot.Username
+
+	// Signup tc2 in Bot mode
+	tc2 := SetupEngineTest(t, "signup_bot")
+	defer tc2.Cleanup()
+
+	twiddle := func(tok keybase1.BotToken) keybase1.BotToken {
+		b, err := base64.URLEncoding.DecodeString(string(tok))
+		require.NoError(t, err)
+		b[0] ^= 0x1
+		return keybase1.BotToken(base64.URLEncoding.EncodeToString(b))
+	}
+
+	arg := SignupEngineRunArg{
+		Username:                 botName,
+		InviteCode:               libkb.TestInvitationCode,
+		StoreSecret:              false,
+		GenerateRandomPassphrase: true,
+		SkipGPG:                  true,
+		SkipMail:                 true,
+		SkipPaper:                true,
+		BotToken:                 twiddle(botToken),
+	}
+
+	uis := libkb.UIs{
+		LogUI: tc.G.UI.GetLogUI(),
+	}
+
+	// First fail the signup since we put up a bad bot Token
+	signupEng := NewSignupEngine(tc2.G, &arg)
+	m := NewMetaContextForTest(tc2).WithUIs(uis)
+	err = RunEngine2(m, signupEng)
+	require.Error(t, err)
+	appErr, ok := err.(SignupJoinEngineRunRes).Err.(libkb.AppStatusError)
+	require.True(t, ok)
+	require.Equal(t, appErr.Code, int(keybase1.StatusCode_SCBotSignupTokenNotFound))
+
+	// Next success since we have a good bot token
+	arg.BotToken = botToken
+	signupEng = NewSignupEngine(tc2.G, &arg)
+	err = RunEngine2(m, signupEng)
+	require.NoError(tc2.T, err)
+	pk := signupEng.PaperKey()
+
+	// Check that it worked to sign in
+	testSign(t, tc2)
+	trackAlice(tc2, fuBot, 2)
+	err = m.LogoutAndDeprovisionIfRevoked()
+	require.NoError(t, err)
+
+	// Check that we didn't write a config.json or anything
+	assertNoDurableFiles := func() {
+		assertNoFiles(t, tc2.G.Env.GetConfigDir(),
+			[]string{
+				"config.json",
+				filepath.Base(tc2.G.SKBFilenameForUser(libkb.NewNormalizedUsername(botName))),
+			})
+	}
+	assertNoDurableFiles()
+
+	Logout(tc2)
+
+	// Now check that we can log back in via oneshot
+	oneshotEng := NewLoginOneshot(tc2.G, keybase1.LoginOneshotArg{
+		Username: botName,
+		PaperKey: pk.String(),
+	})
+	m = NewMetaContextForTest(tc2)
+	err = RunEngine2(m, oneshotEng)
+	require.NoError(t, err)
+	err = AssertProvisioned(tc2)
+	require.NoError(t, err)
+	testSign(t, tc2)
+	untrackAlice(tc2, fuBot, 2)
+	err = m.LogoutAndDeprovisionIfRevoked()
+	require.NoError(t, err)
+	assertNoDurableFiles()
 }

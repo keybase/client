@@ -194,7 +194,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const ItemBox = Styles.styled(Box)({
+const ItemBox = Styles.styled(Box)(() => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {}
@@ -208,7 +208,7 @@ const ItemBox = Styles.styled(Box)({
   borderStyle: 'solid',
   minHeight: Styles.isMobile ? 40 : 32,
   width: '100%',
-})
+}))
 
 // @ts-ignore styled can have more than one argument
 const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({

@@ -4,13 +4,14 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import {isMobile} from '../../constants/platform'
 import uuidv1 from 'uuid/v1'
 import flags from '../../util/feature-flags'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
 
-const useDispatchWhenConnected = () => {
+export const useDispatchWhenConnected = () => {
   const kbfsDaemonConnected =
     Container.useSelector(state => state.fs.kbfsDaemonStatus.rpcStatus) ===
     Types.KbfsDaemonRpcStatus.Connected
@@ -111,3 +112,62 @@ export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
   const softErrors = Container.useSelector(state => state.fs.softErrors)
   return Constants.getSoftError(softErrors, path)
 }
+
+export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
+  const info = Container.useSelector(state =>
+    state.fs.downloads.info.get(downloadID, Constants.emptyDownloadInfo)
+  )
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    // This never changes, so simply just load it once.
+    downloadID && dispatch(FsGen.createLoadDownloadInfo({downloadID}))
+  }, [downloadID, dispatch])
+  return info
+}
+
+export const useFsDownloadStatus = () => {
+  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
+  const dispatch = useDispatchWhenConnected()
+  React.useEffect(() => {
+    dispatch(FsGen.createLoadDownloadStatus())
+  }, [dispatch])
+}
+
+export const useFsFileContext = (path: Types.Path) => {
+  const dispatch = useDispatchWhenConnected()
+  const pathItem = Container.useSelector(state => state.fs.pathItems.get(path, Constants.unknownPathItem))
+  React.useEffect(() => {
+    pathItem.type === Types.PathType.File && dispatch(FsGen.createLoadFileContext({path}))
+  }, [
+    dispatch,
+    path,
+    // Intentionally depend on pathItem instead of only pathItem.type so we
+    // load when timestamp changes.
+    pathItem,
+  ])
+}
+
+export const useFsWatchDownloadForMobile = isMobile
+  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
+      const dlState = Container.useSelector(state =>
+        state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
+      )
+      const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
+
+      const dlInfo = useFsDownloadInfo(downloadID)
+      useFsFileContext(dlInfo.path)
+      const mimeType = Container.useSelector(state =>
+        state.fs.fileContext.get(dlInfo.path, Constants.emptyFileContext)
+      ).contentType
+
+      const dispatch = useDispatchWhenConnected()
+      React.useEffect(() => {
+        if (!downloadID || !downloadIntent || !finished || !mimeType) {
+          return
+        }
+        downloadIntent === Types.DownloadIntent.None
+          ? dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
+          : dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+      }, [finished, mimeType, downloadID, downloadIntent, dispatch])
+    }
+  : () => {}

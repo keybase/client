@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsedits"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -142,8 +143,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 
 	config.mockSubscriptionManagerPublisher = NewMockSubscriptionManagerPublisher(gomock.NewController(ctr.t))
 	config.subscriptionManagerPublisher = config.mockSubscriptionManagerPublisher
-	config.mockSubscriptionManagerPublisher.EXPECT().FavoritesChanged().AnyTimes()
-	config.mockSubscriptionManagerPublisher.EXPECT().JournalStatusChanged().AnyTimes()
+	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(keybase1.SubscriptionTopic_FAVORITES).AnyTimes()
+	config.mockSubscriptionManagerPublisher.EXPECT().PublishChange(keybase1.SubscriptionTopic_JOURNAL_STATUS).AnyTimes()
 
 	return config
 }

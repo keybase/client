@@ -2,6 +2,9 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as Kbfs from '../../common'
+import * as FsGen from '../../../actions/fs-gen'
 import {FloatingMenuProps} from './types'
 import {fileUIName} from '../../../constants/platform'
 import Header from './header'
@@ -11,7 +14,7 @@ type ActionOrInProgress = (() => void) | 'in-progress'
 type Props = {
   floatingMenuProps: FloatingMenuProps
   path: Types.Path
-  shouldHideMenu: boolean
+  shouldAutoHide: boolean
   copyPath?: (() => void) | null
   delete?: (() => void) | null
   download?: (() => void) | null
@@ -51,139 +54,159 @@ const hideMenuOnClick = (onClick: (evt?: React.SyntheticEvent) => void, hideMenu
   hideMenu()
 }
 
-const makeMenuItems = (props: Props, hideMenu: () => void) => [
-  'Divider' as const,
-  ...(props.newFolder
-    ? [
-        {
-          onClick: hideMenuOnClick(props.newFolder, hideMenu),
-          title: 'New folder',
-        },
-      ]
-    : []),
-  ...(props.openChatTeam
-    ? [
-        {
-          onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
-          title: 'Chat with team',
-        },
-      ]
-    : []),
-  ...(props.openChatNonTeam
-    ? [
-        {
-          onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
-          title: 'Chat with them',
-        },
-      ]
-    : []),
-  ...(props.showInSystemFileManager
-    ? [
-        {
-          onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
-          title: 'Show in ' + fileUIName,
-        },
-      ]
-    : []),
-  ...(props.saveMedia
-    ? [
-        {
-          disabled: props.saveMedia === 'in-progress',
-          onClick: props.saveMedia !== 'in-progress' ? props.saveMedia : undefined,
-          title: 'Save',
-          view:
-            props.saveMedia === 'in-progress' ? (
-              <InProgressMenuEntry text="Save" />
-            ) : (
-              <ActionableMenuEntry text="Save" />
-            ),
-        },
-      ]
-    : []),
-  ...(props.copyPath
-    ? [
-        {
-          onClick: hideMenuOnClick(props.copyPath, hideMenu),
-          title: 'Copy universal path',
-        },
-      ]
-    : []),
-  ...(props.share
-    ? [
-        {
-          onClick: props.share,
-          title: 'Share...',
-        },
-      ]
-    : []),
-  ...(props.sendAttachmentToChat
-    ? [
-        {
-          onClick: () => {
-            props.floatingMenuProps.hideOnce()
-            props.sendAttachmentToChat && props.sendAttachmentToChat()
+const makeMenuItems = (props: Props, hideMenu: () => void) => {
+  const items = [
+    ...(props.newFolder
+      ? [
+          {
+            onClick: hideMenuOnClick(props.newFolder, hideMenu),
+            title: 'New folder',
           },
-          subTitle: `The ${
-            props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
-          } will be sent as an attachment.`,
-          title: 'Attach in other conversation',
-        },
-      ]
-    : []),
-  ...(props.sendToOtherApp
-    ? [
-        {
-          disabled: props.sendToOtherApp === 'in-progress',
-          onClick: props.sendToOtherApp !== 'in-progress' ? props.sendToOtherApp : undefined,
-          title: 'Send to other app',
-          view:
-            props.sendToOtherApp === 'in-progress' ? (
-              <InProgressMenuEntry text="Send to other app" />
-            ) : (
-              <ActionableMenuEntry text="Send to other app" />
-            ),
-        },
-      ]
-    : []),
-  ...(props.download
-    ? [
-        {
-          onClick: hideMenuOnClick(props.download, hideMenu),
-          title: 'Download',
-        },
-      ]
-    : []),
-  ...(props.ignoreTlf
-    ? [
-        {
-          danger: true,
-          onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
-          subTitle: 'Will hide the folder from your list.',
-          title: 'Ignore this folder',
-        },
-      ]
-    : []),
-  ...(props.moveOrCopy
-    ? [
-        {
-          onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
-          title: 'Move or Copy',
-        },
-      ]
-    : []),
-  ...(props.delete
-    ? [
-        {
-          danger: true,
-          onClick: hideMenuOnClick(props.delete, hideMenu),
-          title: 'Delete',
-        },
-      ]
-    : []),
-]
+        ]
+      : []),
+    ...(props.openChatTeam
+      ? [
+          {
+            onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
+            title: 'Chat with team',
+          },
+        ]
+      : []),
+    ...(props.openChatNonTeam
+      ? [
+          {
+            onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
+            title: 'Chat with them',
+          },
+        ]
+      : []),
+    ...(props.showInSystemFileManager
+      ? [
+          {
+            onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
+            title: 'Show in ' + fileUIName,
+          },
+        ]
+      : []),
+    ...(props.saveMedia
+      ? [
+          {
+            disabled: props.saveMedia === 'in-progress',
+            onClick: props.saveMedia !== 'in-progress' ? props.saveMedia : undefined,
+            title: 'Save',
+            view:
+              props.saveMedia === 'in-progress' ? (
+                <InProgressMenuEntry text="Save" />
+              ) : (
+                <ActionableMenuEntry text="Save" />
+              ),
+          },
+        ]
+      : []),
+    ...(props.copyPath
+      ? [
+          {
+            onClick: hideMenuOnClick(props.copyPath, hideMenu),
+            title: 'Copy universal path',
+          },
+        ]
+      : []),
+    ...(props.share
+      ? [
+          {
+            onClick: props.share,
+            title: 'Share...',
+          },
+        ]
+      : []),
+    ...(props.sendAttachmentToChat
+      ? [
+          {
+            onClick: () => {
+              props.floatingMenuProps.hide()
+              props.sendAttachmentToChat && props.sendAttachmentToChat()
+            },
+            subTitle: `The ${
+              props.pathItemType === Types.PathType.Folder ? 'folder' : 'file'
+            } will be sent as an attachment.`,
+            title: 'Attach in other conversation',
+          },
+        ]
+      : []),
+    ...(props.sendToOtherApp
+      ? [
+          {
+            disabled: props.sendToOtherApp === 'in-progress',
+            onClick: props.sendToOtherApp !== 'in-progress' ? props.sendToOtherApp : undefined,
+            title: 'Send to other app',
+            view:
+              props.sendToOtherApp === 'in-progress' ? (
+                <InProgressMenuEntry text="Send to other app" />
+              ) : (
+                <ActionableMenuEntry text="Send to other app" />
+              ),
+          },
+        ]
+      : []),
+    ...(props.download
+      ? [
+          {
+            onClick: hideMenuOnClick(props.download, hideMenu),
+            title: 'Download',
+          },
+        ]
+      : []),
+    ...(props.ignoreTlf
+      ? [
+          {
+            danger: true,
+            onClick: hideMenuOnClick(props.ignoreTlf, hideMenu),
+            subTitle: 'Will hide the folder from your list.',
+            title: 'Ignore this folder',
+          },
+        ]
+      : []),
+    ...(props.moveOrCopy
+      ? [
+          {
+            onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
+            title: 'Move or Copy',
+          },
+        ]
+      : []),
+    ...(props.delete
+      ? [
+          {
+            danger: true,
+            onClick: hideMenuOnClick(props.delete, hideMenu),
+            title: 'Delete',
+          },
+        ]
+      : []),
+  ]
+  return items.length ? ['Divider' as const, ...items] : items
+}
 
 export default (props: Props) => {
-  props.shouldHideMenu && props.floatingMenuProps.hideOnce()
+  Kbfs.useFsFileContext(props.path)
+  const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
+  Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
+
+  const {
+    floatingMenuProps: {hide},
+    shouldAutoHide,
+  } = props
+
+  React.useEffect(() => {
+    shouldAutoHide && hide()
+  }, [shouldAutoHide, hide])
+
+  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const userInitiatedHide = React.useCallback(() => {
+    hide()
+    downloadID && dispatch(FsGen.createDismissDownload({downloadID}))
+  }, [downloadID, hide, dispatch])
+
   return (
     <Kb.FloatingMenu
       closeText="Cancel"
@@ -191,13 +214,13 @@ export default (props: Props) => {
       containerStyle={props.floatingMenuProps.containerStyle}
       attachTo={props.floatingMenuProps.attachTo}
       visible={props.floatingMenuProps.visible}
-      onHidden={props.floatingMenuProps.hideOnce}
+      onHidden={userInitiatedHide}
       position="left center"
       header={{
         title: 'unused',
         view: <Header path={props.path} />,
       }}
-      items={makeMenuItems(props, props.floatingMenuProps.hideOnce)}
+      items={makeMenuItems(props, props.floatingMenuProps.hide)}
     />
   )
 }

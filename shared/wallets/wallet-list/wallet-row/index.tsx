@@ -14,22 +14,23 @@ export type Props = {
   unreadPayments: number
 }
 
-const rightColumnStyle = Styles.platformStyles({
-  isElectron: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  },
-})
+const rightColumnStyle = () =>
+  Styles.platformStyles({
+    isElectron: {
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+  })
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       amount: {
-        ...rightColumnStyle,
+        ...rightColumnStyle(),
       },
       amountSelected: {
-        ...rightColumnStyle,
+        ...rightColumnStyle(),
         color: Styles.globalColors.white,
       },
       avatar: {marginRight: Styles.globalMargins.xtiny},
@@ -46,15 +47,15 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.tiny,
       },
 
-      rightColumn: rightColumnStyle,
+      rightColumn: rightColumnStyle(),
 
       title: {
-        ...rightColumnStyle,
+        ...rightColumnStyle(),
         color: Styles.globalColors.black,
       },
       titleSelected: {
         ...Styles.globalStyles.fontSemibold,
-        ...rightColumnStyle,
+        ...rightColumnStyle(),
         color: Styles.globalColors.white,
       },
       unread: {
@@ -76,9 +77,9 @@ const styles = Styles.styleSheetCreate(
 
 const HoverBox = Styles.isMobile
   ? Kb.Box2
-  : Styles.styled(Kb.Box2)({
+  : Styles.styled(Kb.Box2)(() => ({
       ':hover': {backgroundColor: Styles.globalColors.blueGreyDark},
-    })
+    }))
 
 const WalletRow = (props: Props) => {
   return (

@@ -1,19 +1,19 @@
 import * as Types from '../constants/types/search'
-import {globalColors} from '../styles'
+import * as Styles from '../styles'
 
 const followingStateToStyle = (followingState: Types.FollowingState) => {
   return {
     Following: {
-      color: globalColors.greenDark,
+      color: Styles.globalColors.greenDark,
     },
     NoState: {
-      color: globalColors.black,
+      color: Styles.globalColors.black,
     },
     NotFollowing: {
-      color: globalColors.blueDark,
+      color: Styles.globalColors.blueDark,
     },
     You: {
-      color: globalColors.black,
+      color: Styles.globalColors.black,
     },
   }[followingState]
 }

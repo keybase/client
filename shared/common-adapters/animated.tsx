@@ -1,3 +1,3 @@
-import {Spring} from 'react-spring'
+import {Spring} from 'react-spring/renderprops'
 
 export default Spring

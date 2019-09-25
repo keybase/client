@@ -23,9 +23,9 @@ type State = {
 
 const HoverBox = Styles.isMobile
   ? Kb.ClickableBox
-  : Styles.styled(Kb.ClickableBox)({
+  : Styles.styled(Kb.ClickableBox)(() => ({
       ':hover .text': {textDecoration: 'underline'},
-    })
+    }))
 
 class LogOut extends React.Component<Props, State> {
   state = {

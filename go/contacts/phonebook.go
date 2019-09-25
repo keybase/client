@@ -71,7 +71,7 @@ type assertionToNameCache struct {
 const assertionToNameCurrentVer = 1
 
 func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (newlyResolved []keybase1.ProcessedContact, err error) {
-	resolveResults, err := ResolveContacts(mctx, provider, contacts, keybase1.RegionCode(""))
+	resolveResults, err := ResolveContacts(mctx, provider, contacts)
 	if err != nil {
 		return nil, err
 	}
@@ -82,17 +82,24 @@ func ResolveAndSaveContacts(mctx libkb.MetaContext, provider ContactsProvider, c
 
 	newlyResolvedMap := make(map[string]keybase1.ProcessedContact)
 	if err == nil {
-		unres := make(map[string]struct{})
+		unresolved := make(map[string]bool)
+		resolved := make(map[string]bool)
 		for _, contact := range currentContacts {
-			if !contact.Resolved {
+			if contact.Resolved {
+				resolved[contact.ContactName] = true
+			}
+			if resolved[contact.ContactName] {
+				// If any contact by this name is resolved, we dedupe.
+				delete(unresolved, contact.ContactName)
+			} else {
 				// We resolve based on display name, not assertion, so we don't
 				// duplicate multiple assertions for the same contact.
-				unres[contact.ContactName] = struct{}{}
+				unresolved[contact.ContactName] = true
 			}
 		}
 
 		for _, resolution := range resolveResults {
-			if _, wasUnresolved := unres[resolution.ContactName]; wasUnresolved && resolution.Resolved {
+			if unresolved[resolution.ContactName] && resolution.Resolved && !resolution.Following {
 				// We only want to show one resolution per username.
 				newlyResolvedMap[resolution.Username] = resolution
 			}

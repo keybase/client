@@ -93,7 +93,7 @@ const AccountPayment = (props: Props) => {
         {props.canceled && <Kb.Text type="BodySmall">CANCELED</Kb.Text>}
         {!Styles.isMobile && balanceChange}
       </Kb.Box2>
-      <MarkdownMemo memo={props.memo} />
+      <MarkdownMemo memo={props.memo} style={styles.memo} />
       {Styles.isMobile && balanceChange}
       {!!props.sendButtonLabel && (
         <Kb.Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
@@ -155,6 +155,11 @@ const styles = Styles.styleSheetCreate(
       lineThrough: {
         textDecorationLine: 'line-through',
       },
+      memo: Styles.platformStyles({
+        isMobile: {
+          paddingRight: Styles.globalMargins.small,
+        },
+      }),
       progressIndicator: Styles.platformStyles({
         // Match height of a line of text
         isElectron: {

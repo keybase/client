@@ -9,6 +9,7 @@ import SystemGitPush from '../system-git-push/container'
 import SystemInviteAccepted from '../system-invite-accepted/container'
 import SystemJoined from '../system-joined/container'
 import SystemLeft from '../system-left/container'
+import SystemSBSResolved from '../system-sbs-resolve/container'
 import SystemSimpleToComplex from '../system-simple-to-complex/container'
 import SystemText from '../system-text/container'
 import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
@@ -292,6 +293,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemGitPush' ||
       this.props.message.type === 'systemInviteAccepted' ||
       this.props.message.type === 'systemSimpleToComplex' ||
+      this.props.message.type === 'systemSBSResolved' ||
       this.props.message.type === 'systemText' ||
       this.props.message.type === 'systemUsersAddedToConversation') &&
     this.props.shouldShowPopup &&
@@ -428,6 +430,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemInviteAccepted':
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
+        break
+      case 'systemSBSResolved':
+        child = <SystemSBSResolved key="systemSbsResolved" message={message} />
         break
       case 'systemSimpleToComplex':
         child = <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />

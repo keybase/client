@@ -45,7 +45,7 @@ const methodPrefixReg = /^(\+\+Chat: )?/
 const methodResultReg = / -> .*$/
 const typeAndMethodReg = /^(gui|[+\-|])/
 // gui regs
-const guiCountTypeTimeReg = /\["(Info|Warn|Action)","([^"]+)","(.*)"]/
+const guiCountTypeTimeReg = /(Error|Info|Warn|Action),([^,]+),(.*)/
 const actionReg = /type: ([^ ]+) (.*)/
 const actionPayloadReg = /\\"/g
 
@@ -65,6 +65,9 @@ const convertGuiLine = (line: string): Info | undefined => {
   let name = ''
   let args = {}
   switch (type) {
+    case 'Error':
+      name = `E: ${_data}`
+      break
     case 'Warn':
       name = `W: ${_data}`
       break

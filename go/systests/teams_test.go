@@ -860,7 +860,7 @@ func (u *userPlusDevice) delete() {
 }
 
 func (u *userPlusDevice) logout() {
-	err := u.tc.G.Logout(context.TODO())
+	err := u.tc.Logout()
 	require.NoError(u.tc.T, err)
 }
 

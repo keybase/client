@@ -78,9 +78,8 @@ const userSearchMock = {
   },
 }
 
-const mockUserSearchRpcPromiseRpcPromise = (
-  params: RPCTypes.MessageTypes['keybase.1.userSearch.userSearch']['inParam']
-) => {
+type searchPromiseParams = RPCTypes.MessageTypes['keybase.1.userSearch.userSearch']['inParam']
+const mockUserSearchRpcPromiseRpcPromise = (params: searchPromiseParams) => {
   const {query, maxResults, service, includeServicesSummary} = params
   let result
   try {
@@ -256,5 +255,93 @@ describe('Search Actions', () => {
       expect(getState().chat2.teamBuilding.teamBuildingTeamSoFar).toEqual(I.OrderedSet())
       expect(getState().chat2.teamBuilding.teamBuildingFinishedTeam).toEqual(I.OrderedSet())
     })
+  })
+})
+
+describe('Extra search', () => {
+  let init: ReturnType<typeof startReduxSaga>
+  let rpc
+  beforeEach(() => {
+    init = startReduxSaga()
+    rpc = jest.spyOn(RPCTypes, 'userSearchUserSearchRpcPromise')
+  })
+  afterEach(() => {
+    rpc && rpc.mockRestore()
+  })
+
+  it('does not fire additional search for non-keybase or non-phone/email queries', () => {
+    const {dispatch} = init
+    rpc.mockImplementation(async (params: searchPromiseParams) => {
+      if (params.service === 'phone' || params.service === 'email') {
+        throw new Error('Unexpected mock call')
+      }
+      return []
+    })
+    for (let service of ['twitter', 'keybase'] as Types.ServiceIdWithContact[]) {
+      dispatch(
+        TeamBuildingGen.createSearch({
+          includeContacts: false,
+          namespace: testNamespace,
+          query: 'marco',
+          service,
+        })
+      )
+      expect(rpc).toBeCalled()
+    }
+  })
+
+  it('prepends extra search result', async () => {
+    const {dispatch, getState} = init
+    rpc.mockImplementation(
+      async (params: searchPromiseParams): Promise<RPCTypes.APIUserSearchResult[]> => {
+        if (params.service === 'email' && params.query === 'marco@keyba.se') {
+          return [
+            {
+              imptofu: {
+                assertion: '[marco@keyba.se]@email',
+                assertionKey: 'phone',
+                assertionValue: 'marco@keyba.se',
+                keybaseUsername: '',
+                label: '',
+                prettyName: '',
+              },
+              rawScore: 1,
+              score: 0.5,
+              servicesSummary: {},
+            },
+          ]
+        }
+        return []
+      }
+    )
+    for (let query of ['marco@keyba.se', 'michal@keyba.se']) {
+      dispatch(
+        TeamBuildingGen.createSearch({
+          includeContacts: false,
+          namespace: testNamespace,
+          query,
+          service: 'keybase',
+        })
+      )
+      await Testing.flushPromises()
+    }
+    const results = getState().chat2.teamBuilding.teamBuildingSearchResults
+    const expected = I.Map()
+      .mergeIn(['michal@keyba.se'], {
+        keybase: [],
+      })
+      .mergeIn(['marco@keyba.se'], {
+        keybase: [
+          {
+            id: '[marco@keyba.se]@email',
+            label: '',
+            prettyName: 'marco@keyba.se',
+            serviceId: 'phone',
+            serviceMap: {keybase: ''},
+            username: 'marco@keyba.se',
+          },
+        ],
+      })
+    expect(results).toEqual(expected)
   })
 })

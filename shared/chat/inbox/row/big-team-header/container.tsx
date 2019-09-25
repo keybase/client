@@ -7,6 +7,7 @@ import * as ChatTypes from '../../../../constants/types/chat2'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
+  navKey: string
   teamname: string
 }
 
@@ -16,9 +17,14 @@ const mapStateToProps = (state, {teamname, conversationIDKey}: OwnProps) => ({
   teamname,
 })
 
-const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navKey, teamname}: OwnProps) => ({
   onClick: () =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamname}, selected: 'team'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        fromKey: navKey,
+        path: [teamsTab, {props: {teamname}, selected: 'team'}],
+      })
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

@@ -11,6 +11,7 @@ import * as Types from '../../../constants/types/chat2'
 type MakeRowOptions = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
+  navKey: string
   teamname: string
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
 }
@@ -30,6 +31,7 @@ const makeRow = (options: MakeRowOptions) => {
           key={options.teamname}
           teamname={options.teamname}
           conversationIDKey={options.conversationIDKey}
+          navKey={options.navKey}
         />
       )
     case 'big':
@@ -38,10 +40,17 @@ const makeRow = (options: MakeRowOptions) => {
           key={options.conversationIDKey}
           conversationIDKey={options.conversationIDKey}
           channelname={options.channelname}
+          navKey={options.navKey}
         />
       )
     case 'small':
-      return <SmallTeam key={options.conversationIDKey} conversationIDKey={options.conversationIDKey} />
+      return (
+        <SmallTeam
+          key={options.conversationIDKey}
+          conversationIDKey={options.conversationIDKey}
+          navKey={options.navKey}
+        />
+      )
   }
   logger.error(`Unhandled row type ${options.type}`)
   return null

@@ -232,6 +232,10 @@ func (s *SecretStoreLocked) isNil() bool {
 	return s.mem == nil && s.disk == nil
 }
 
+func (s *SecretStoreLocked) ClearMem() {
+	s.mem = NewSecretStoreMem()
+}
+
 func (s *SecretStoreLocked) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	if s == nil || s.isNil() {
 		return LKSecFullSecret{}, nil

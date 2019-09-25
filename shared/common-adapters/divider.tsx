@@ -1,22 +1,32 @@
-import React, {Component} from 'react'
+import React from 'react'
 import Box from './box'
-import {collapseStyles, globalColors} from '../styles'
+import * as Styles from '../styles'
 
 import {Props} from './divider.d'
 
-class Divider extends Component<Props> {
-  render() {
-    const orientationStyle = this.props.vertical ? {maxWidth: 1, minWidth: 1} : {maxHeight: 1, minHeight: 1}
+const Divider = (props: Props) => (
+  <Box
+    style={Styles.collapseStyles([
+      styles.divider,
+      props.vertical ? styles.vertical : styles.horizontal,
+      props.style,
+    ])}
+  />
+)
 
-    return <Box style={collapseStyles([styles.divider, orientationStyle, this.props.style])} />
-  }
-}
-
-const styles = {
+const styles = Styles.styleSheetCreate(() => ({
   divider: {
-    backgroundColor: globalColors.black_10,
+    backgroundColor: Styles.globalColors.black_10,
     flex: 1,
   },
-}
+  horizontal: {
+    maxHeight: 1,
+    minHeight: 1,
+  },
+  vertical: {
+    maxWidth: 1,
+    minWidth: 1,
+  },
+}))
 
 export default Divider

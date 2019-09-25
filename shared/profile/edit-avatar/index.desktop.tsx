@@ -214,11 +214,14 @@ class EditAvatar extends React.Component<_Props, State> {
   _onMouseDown = (e: React.MouseEvent) => {
     if (!this.state.hasPreview || !this._image) return
 
+    // Grab the values now. The event object will be nullified by the time setState is called.
+    const {pageX, pageY} = e
+
     const img = this._image.current
 
     this.setState(s => ({
-      dragStartX: e.pageX,
-      dragStartY: e.pageY,
+      dragStartX: pageX,
+      dragStartY: pageY,
       // @ts-ignore codemode issue
       dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : s.dragStopX,
       // @ts-ignore codemode issue
@@ -244,16 +247,19 @@ class EditAvatar extends React.Component<_Props, State> {
   _onMouseMove = (e: React.MouseEvent) => {
     if (!this.state.dragging || this.props.submitting) return
 
+    // Grab the values now. The event object will be nullified by the time setState is called.
+    const {pageX, pageY} = e
+
     const offsetLeft = clamp(
       // eslint-disable-next-line
-      this.state.dragStopX + e.pageX - this.state.dragStartX,
+      this.state.dragStopX + pageX - this.state.dragStartX,
       // eslint-disable-next-line
       AVATAR_SIZE - this.state.scaledImageWidth,
       0
     )
     const offsetTop = clamp(
       // eslint-disable-next-line
-      this.state.dragStopY + e.pageY - this.state.dragStartY,
+      this.state.dragStopY + pageY - this.state.dragStartY,
       // eslint-disable-next-line
       AVATAR_SIZE - this.state.scaledImageHeight,
       0
@@ -298,8 +304,6 @@ class EditAvatar extends React.Component<_Props, State> {
             cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
           },
         ])}
-        onMouseUp={this._onMouseUp}
-        onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
       >
         {!!this.props.error && (
@@ -318,6 +322,9 @@ class EditAvatar extends React.Component<_Props, State> {
               paddingTop: this.props.createdTeam ? 0 : Styles.globalMargins.xlarge,
             },
           ])}
+          onMouseUp={this._onMouseUp}
+          onMouseDown={this._onMouseDown}
+          onMouseMove={this._onMouseMove}
         >
           {this.props.createdTeam && (
             <Kb.Box style={styles.createdBanner}>
@@ -449,7 +456,7 @@ const hoverStyles = Styles.styleSheetCreate(
     } as const)
 )
 
-const HoverBox = Styles.styled(Kb.Box)({
+const HoverBox = Styles.styled(Kb.Box)(() => ({
   '&.filled': hoverStyles.filled,
   '&.filled:active': {cursor: '-webkit-grabbing'},
   '&.filled:hover': hoverStyles.filledHover,
@@ -458,7 +465,7 @@ const HoverBox = Styles.styled(Kb.Box)({
   '.dropping &': hoverStyles.dropping,
   '.dropping & .icon': hoverStyles.droppingIcon,
   ...hoverStyles.hoverContainer,
-})
+}))
 
 const styles = Styles.styleSheetCreate(() => ({
   container: {

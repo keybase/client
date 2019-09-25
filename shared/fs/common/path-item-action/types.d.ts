@@ -3,7 +3,7 @@ import * as Styles from '../../../styles'
 
 export type FloatingMenuProps = {
   containerStyle?: Styles.StylesCrossPlatform | null
-  hideOnce: () => void
+  hide: () => void
   visible: boolean
   attachTo?: () => React.Component<any> | null
 }

@@ -1,20 +1,20 @@
-import * as I from 'immutable'
-import * as Types from '../../constants/types/chat2'
 import * as Constants from '../../constants/chat2'
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
+import * as T from './index.d'
+import * as Types from '../../constants/types/chat2'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import {VariableSizeList} from 'react-window'
-import {ErrorBoundary} from '../../common-adapters'
-import {makeRow} from './row'
-import BuildTeam from './row/build-team/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
+import BuildTeam from './row/build-team/container'
 import TeamsDivider from './row/teams-divider/container'
-import {debounce, throttle} from 'lodash-es'
-import * as T from './index.types.d'
 import UnreadShortcut from './unread-shortcut'
-import {virtualListMarks} from '../../local-debug'
+import {ErrorBoundary} from '../../common-adapters'
+import {VariableSizeList} from 'react-window'
+import {debounce, throttle} from 'lodash-es'
 import {inboxWidth, getRowHeight} from './row/sizes'
+import {makeRow} from './row'
+import {virtualListMarks} from '../../local-debug'
 
 type State = {
   showFloating: boolean
@@ -100,6 +100,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
+          navKey: this.props.navKey,
           teamname,
           type: row.type,
         })}

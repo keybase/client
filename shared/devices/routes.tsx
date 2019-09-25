@@ -1,5 +1,6 @@
 import {newRoutes as provisionNewRoutes} from '../provision/routes'
 import {modalizeRoute} from '../router-v2/modal-helper'
+import {mapValues} from 'lodash-es'
 import DevicePage from './device-page/container'
 import DeviceRevoke from './device-revoke/container'
 import DevicesRoot from './container'
@@ -14,7 +15,7 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  ...provisionNewRoutes,
+  ...mapValues(provisionNewRoutes, (val, key) => (key === 'error' ? modalizeRoute(val) : val)),
   deviceAdd: {getScreen: (): typeof DeviceAdd => require('./add-device/container').default},
   devicePaperKey: modalizeRoute({
     getScreen: (): typeof DevicePaperKey => require('./paper-key').default,

@@ -2,7 +2,7 @@ import * as React from 'react'
 import {findDOMNode} from 'react-dom'
 import {Box} from '..'
 import {ModalPositionRelative} from '../relative-popup-hoc.desktop'
-import {Props} from './index.types'
+import {Props} from '.'
 import logger from '../../logger'
 
 const StyleOnlyBox = (props: any) => <Box children={props.children} />
@@ -24,7 +24,11 @@ class FloatingBox extends React.Component<Props, State> {
     let targetRect: ClientRect | null = null
     if (this.props.attachTo) {
       const attachTo = this.props.attachTo()
+      if (attachTo instanceof HTMLElement) {
+        return attachTo.getBoundingClientRect()
+      }
       if (attachTo) {
+        console.warn('Non html element passed to floating box, deprecate this soon', attachTo)
         let node
         try {
           // @ts-ignore this is fine

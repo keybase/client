@@ -41,7 +41,7 @@ const platform = argv.platform ? argv.platform.toString() : os.platform()
 const appVersion: string = (argv.appVersion as any) || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
-const appCopyright = 'Copyright (c) 2018, Keybase'
+const appCopyright = 'Copyright (c) 2019, Keybase'
 const companyName = 'Keybase, Inc.'
 
 const packagerOpts: any = {
@@ -51,6 +51,11 @@ const packagerOpts: any = {
   asar: shouldUseAsar,
   buildVersion: String(appVersion) + String(comment),
   dir: desktopPath('./build'),
+  download: {
+    mirrorOptions: {
+      mirror: 'https://kbelectron.keybase.pub/electron-download/',
+    },
+  },
   electronVersion: 0,
   helperBundleId: 'keybase.ElectronHelper',
   icon: null,

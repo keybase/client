@@ -95,11 +95,7 @@ func fillResolvedUserInfo(mctx libkb.MetaContext, provider ContactsProvider, uid
 // ResolveContacts resolves contacts with cache for UI. See API documentation
 // in phone_numbers.avdl
 //
-// regionCode is optional, user region should be provided if it's known. It's
-// used when resolving local phone numbers, they are assumed to be local to the
-// user, so in the same region.
-func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact,
-	regionCode keybase1.RegionCode) (res []keybase1.ProcessedContact, err error) {
+func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts []keybase1.Contact) (res []keybase1.ProcessedContact, err error) {
 
 	if len(contacts) == 0 {
 		mctx.Debug("`contacts` is empty, nothing to resolve")
@@ -152,7 +148,7 @@ func ResolveContacts(mctx libkb.MetaContext, provider ContactsProvider, contacts
 	for email := range emailSet {
 		emails = append(emails, email)
 	}
-	providerRes, err := provider.LookupAll(mctx, emails, phones, regionCode)
+	providerRes, err := provider.LookupAll(mctx, emails, phones)
 	if err != nil {
 		return res, err
 	}

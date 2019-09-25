@@ -709,9 +709,7 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 	bob.readChats(team, 1)
 }
 
-func testTeamResetOpen(t *testing.T, openSweep bool) {
-	t.Logf(":: testTeamResetOpen(openSweep=%t)", openSweep)
-
+func TestResetInOpenTeam(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -727,31 +725,22 @@ func testTeamResetOpen(t *testing.T, openSweep bool) {
 	ann.openTeam(team, keybase1.TeamRole_WRITER)
 	ann.assertMemberActive(team, bob)
 
-	if openSweep {
-		enableOpenSweepForTeam(ann.getPrimaryGlobalContext(), t, team.ID)
-	}
+	enableOpenSweepForTeam(ann.getPrimaryGlobalContext(), t, team.ID)
 
 	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
-	if openSweep {
-		// Wait for OPENSWEEP which will remove bob from the team posting link 4.
-		ann.pollForTeamSeqnoLink(team, keybase1.Seqno(4))
-	} else {
-		// Expecting that CLKR handler will remove bob from the team.
-		details := ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
-		t.Logf("details from poll: %+v", details)
-	}
+	// Wait for OPENSWEEP which will remove bob from the team posting link 4.
+	ann.pollForTeamSeqnoLink(team, keybase1.Seqno(4))
+
 	teamObj := ann.loadTeam(team.name, false)
 	_, err := teamObj.UserVersionByUID(context.Background(), bob.uid())
 	require.Error(t, err, "expecting reset user to be removed from the team")
 	require.Contains(t, err.Error(), "did not find user")
 	require.EqualValues(t, 4, teamObj.CurrentSeqno())
-	if openSweep {
-		// Generation shouldn't change during OPENSWEEPing.
-		require.Equal(t, keybase1.PerTeamKeyGeneration(1), teamObj.Generation())
-	}
+	// Generation shouldn't change during OPENSWEEPing.
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), teamObj.Generation())
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
@@ -763,18 +752,7 @@ func testTeamResetOpen(t *testing.T, openSweep bool) {
 	ann.assertMemberActive(team, bob)
 
 	teamObj = ann.loadTeam(team.name, false)
-	if openSweep {
-		require.Equal(t, keybase1.PerTeamKeyGeneration(1), teamObj.Generation())
-	} else {
-		// Generation should still be 2 - expecting just one rotate when bob is
-		// kicked out, and after he requests access again, he is just added in.
-		require.Equal(t, keybase1.PerTeamKeyGeneration(2), teamObj.Generation())
-	}
-}
-
-func TestResetInOpenTeam(t *testing.T) {
-	testTeamResetOpen(t, true /* openSweep */)
-	testTeamResetOpen(t, false /* openSweep */)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), teamObj.Generation())
 }
 
 func TestTeamListAfterReset(t *testing.T) {

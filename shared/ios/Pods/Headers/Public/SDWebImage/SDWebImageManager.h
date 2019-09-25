@@ -1,1 +1,1 @@
-../../../SDWebImage/SDWebImage/SDWebImageManager.h
+../../../SDWebImage/SDWebImage/Core/SDWebImageManager.h

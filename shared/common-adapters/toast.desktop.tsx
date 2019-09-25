@@ -8,13 +8,13 @@ const Kb = {
 }
 
 // @ts-ignore codemod-issue
-const FadeBox = Styles.styled.div({
+const FadeBox = Styles.styled.div(() => ({
   ...Styles.transition('opacity'),
   // @ts-ignore
   '&.active': {opacity: 1},
   '&.visible': {display: 'flex', opacity: 1},
   opacity: 0,
-})
+}))
 
 export default (props: Props) => (
   <Kb.FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>

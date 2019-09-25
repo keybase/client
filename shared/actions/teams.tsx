@@ -543,7 +543,7 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
         let username = ''
         const t = invite.type
         if (t.c === RPCTypes.TeamInviteCategory.sbs) {
-          const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
+          const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs
           username = `${invite.name}@${sbs}`
         }
         arr.push(

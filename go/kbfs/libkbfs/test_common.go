@@ -49,7 +49,12 @@ const (
 // TODO: Move more common code here.
 func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger.Logger) *ConfigLocal {
 	mode := modeTest{NewInitModeFromType(modeType)}
-	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, &env.KBFSContext{})
+	config := NewConfigLocal(mode, loggerFn, "", DiskCacheModeOff, env.NewContextFromGlobalContext(&libkb.GlobalContext{
+		// Env is needed by simplefs.
+		Env: libkb.NewEnv(nil, nil, func() logger.Logger {
+			return loggerFn("G")
+		}),
+	}))
 	config.SetVLogLevel(libkb.VLog1String)
 
 	bops := NewBlockOpsStandard(

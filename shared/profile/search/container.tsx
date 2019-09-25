@@ -2,6 +2,7 @@ import Search from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
+// TODO deprecate NNOW
 
 type OwnProps = {onClose?: () => void}
 

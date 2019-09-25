@@ -5,7 +5,7 @@ import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
 import {memoize} from '../../../util/memoize'
-import {RowItem} from '../index.types'
+import {RowItem} from '..'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 const smallTeamsCollapsedMaxShown = 5

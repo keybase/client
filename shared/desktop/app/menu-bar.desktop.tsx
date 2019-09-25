@@ -1,5 +1,5 @@
 // Entrypoint for the menubar node part
-import menubar from 'menubar'
+import {menubar} from 'menubar'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
@@ -8,8 +8,10 @@ import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
-let icon = ''
-let selectedIcon = ''
+let icon = isWindows
+  ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
+  : 'icon-keybase-menubar-regular-white-22@2x.png'
+let selectedIcon = icon
 
 type Bounds = {
   x: number
@@ -20,8 +22,17 @@ type Bounds = {
 
 export default (menubarWindowIDCallback: (id: number) => void) => {
   const mb = menubar({
-    hasShadow: true,
-    height: 480,
+    browserWindow: {
+      hasShadow: true,
+      height: 480,
+      resizable: false,
+      transparent: true,
+      webPreferences: {
+        nodeIntegration: true,
+        nodeIntegrationInWorker: false,
+      },
+      width: 360,
+    },
     icon: resolveImage(
       'menubarIcon',
       isWindows
@@ -30,21 +41,19 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     ),
     index: htmlFile,
     preloadWindow: true,
-    resizable: false,
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
-    transparent: true,
-    webPreferences: {
-      nodeIntegration: true,
-      nodeIntegrationInWorker: false,
-    },
-    width: 360,
   })
 
   const updateIcon = (selected: boolean) => {
-    mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
+    const i = selected ? selectedIcon : icon
+    try {
+      i && mb.tray.setImage(resolveImage('menubarIcon', i))
+    } catch (err) {
+      console.error('menu icon err: ' + err)
+    }
   }
 
   type Action = {
@@ -72,10 +81,10 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       }
     })
 
-    menubarWindowIDCallback(mb.window.id)
+    mb.window && menubarWindowIDCallback(mb.window.id)
 
     if (showDevTools && !skipSecondaryDevtools) {
-      mb.window.webContents.openDevTools({mode: 'detach'})
+      mb.window && mb.window.webContents.openDevTools({mode: 'detach'})
     }
 
     // Hack: open widget when left/right/double clicked
@@ -87,11 +96,12 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
-    mb.window.removeAllListeners('close')
-    mb.window.on('close', (event: Electron.Event) => {
-      event.preventDefault()
-      mb.hideWindow()
-    })
+    mb.window && mb.window.removeAllListeners('close')
+    mb.window &&
+      mb.window.on('close', event => {
+        event.preventDefault()
+        mb.hideWindow()
+      })
 
     if (isLinux) {
       mb.tray.setToolTip('Show Keybase')

@@ -4,6 +4,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as SettingsConstants from '../../constants/settings'
 import * as PushConstants from '../../constants/push'
 import * as ConfigGen from '../config-gen'
+import * as Chat2Gen from '../chat2-gen'
 import * as ProfileGen from '../profile-gen'
 import * as SettingsGen from '../settings-gen'
 import * as WaitingGen from '../waiting-gen'
@@ -12,6 +13,8 @@ import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
+import * as Types from '../../constants/types/chat2'
+import {getEngine} from '../../engine/require'
 // this CANNOT be an import *, totally screws up the packager
 import {
   Alert,
@@ -23,7 +26,6 @@ import {
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
-// eslint-ignore-next-line messed up export in module. fixed in the next update
 import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
@@ -33,6 +35,7 @@ import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
+import Geolocation from '@react-native-community/geolocation'
 
 const requestPermissionsToWrite = async () => {
   if (isAndroid) {
@@ -166,50 +169,6 @@ const openAppSettings = async () => {
   }
 }
 
-export const getContentTypeFromURL = async (
-  url: string,
-  cb: (arg0: {error?: any; statusCode?: number; contentType?: string; disposition?: string}) => void
-) => {
-  // For some reason HEAD doesn't work on Android. So just GET one byte.
-  // TODO: fix HEAD for Android and get rid of this hack.
-  if (isAndroid) {
-    try {
-      const response = await fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
-      let contentType = ''
-      let disposition = ''
-      let statusCode = response.status
-      if (
-        statusCode === 200 ||
-        statusCode === 206 ||
-        // 416 can happen if the file is empty.
-        statusCode === 416
-      ) {
-        contentType = response.headers.get('Content-Type') || ''
-        disposition = response.headers.get('Content-Disposition') || ''
-        statusCode = 200 // Treat 200, 206, and 416 as 200.
-      }
-      cb({contentType, disposition, statusCode})
-    } catch (error) {
-      console.log(error)
-      cb({error})
-    }
-  } else {
-    try {
-      const response = await fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
-      let contentType = ''
-      let disposition = ''
-      if (response.status === 200) {
-        contentType = response.headers.get('Content-Type') || ''
-        disposition = response.headers.get('Content-Disposition') || ''
-      }
-      cb({contentType, disposition, statusCode: response.status})
-    } catch (error) {
-      console.log(error)
-      cb({error})
-    }
-  }
-}
-
 const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileAppStatePayload) => {
   let appFocused: boolean
   let logState: RPCTypes.MobileAppState
@@ -286,13 +245,13 @@ const updateMobileNetState = async (
 }
 
 const initOsNetworkStatus = async () => {
-  const {type} = await NetInfo.getConnectionInfo()
+  const {type} = await NetInfo.fetch()
   return ConfigGen.createOsNetworkStatusChanged({isInit: true, online: type !== 'none', type})
 }
 
 function* setupNetInfoWatcher() {
   const channel = Saga.eventChannel(emitter => {
-    NetInfo.addEventListener('connectionChange', ({type}) => emitter(type))
+    NetInfo.addEventListener(({type}) => emitter(type))
     return () => {}
   }, Saga.buffers.sliding(1))
 
@@ -579,6 +538,114 @@ function* setupDarkMode() {
   }
 }
 
+let locationEmitter: ((input: unknown) => void) | null = null
+
+function* setupLocationUpdateLoop() {
+  if (locationEmitter) {
+    return
+  }
+  const locationChannel = yield Saga.eventChannel(emitter => {
+    locationEmitter = emitter
+    // we never unsubscribe
+    return () => {}
+  }, Saga.buffers.expanding(10))
+  while (true) {
+    const action = yield Saga.take(locationChannel)
+    yield Saga.put(action)
+  }
+}
+
+const setLocationDeniedCommandStatus = (conversationIDKey: Types.ConversationIDKey, text: string) =>
+  Chat2Gen.createSetCommandStatusInfo({
+    conversationIDKey,
+    info: {
+      actions: [RPCChatTypes.UICommandStatusActionTyp.appsettings],
+      displayText: text,
+      displayType: RPCChatTypes.UICommandStatusDisplayTyp.error,
+    },
+  })
+
+const onChatWatchPosition = async (
+  _: Container.TypedState,
+  action: EngineGen.Chat1ChatUiChatWatchPositionPayload,
+  logger: Saga.SagaLogger
+) => {
+  const response = action.payload.response
+  try {
+    await requestLocationPermission(action.payload.params.perm)
+  } catch (err) {
+    logger.info('failed to get location perms: ' + err)
+    return setLocationDeniedCommandStatus(
+      Types.conversationIDToKey(action.payload.params.convID),
+      `Failed to access location. ${err.message}`
+    )
+  }
+  const watchID = Geolocation.watchPosition(
+    pos => {
+      if (locationEmitter) {
+        locationEmitter(
+          Chat2Gen.createUpdateLastCoord({
+            coord: {accuracy: pos.coords.accuracy, lat: pos.coords.latitude, lon: pos.coords.longitude},
+          })
+        )
+      }
+    },
+    err => {
+      logger.warn(err.message)
+      if (err.code && err.code === 1 && locationEmitter) {
+        locationEmitter(
+          setLocationDeniedCommandStatus(
+            Types.conversationIDToKey(action.payload.params.convID),
+            `Failed to access location. ${err.message}`
+          )
+        )
+      }
+    },
+    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+  )
+  response.result(watchID)
+  return []
+}
+
+export const clearWatchPosition = (watchID: number) => {
+  Geolocation.clearWatch(watchID)
+}
+
+const onChatClearWatch = (_: Container.TypedState, action: EngineGen.Chat1ChatUiChatClearWatchPayload) => {
+  clearWatchPosition(action.payload.params.id)
+}
+
+export const watchPositionForMap = async (errFn: () => void): Promise<number> => {
+  try {
+    await requestLocationPermission(RPCChatTypes.UIWatchPositionPerm.base)
+  } catch (e) {
+    errFn()
+    return 0
+  }
+  const watchID = Geolocation.watchPosition(
+    pos => {
+      if (locationEmitter) {
+        locationEmitter(
+          Chat2Gen.createUpdateLastCoord({
+            coord: {
+              accuracy: Math.floor(pos.coords.accuracy),
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+            },
+          })
+        )
+      }
+    },
+    err => {
+      if (err.code && err.code === 1) {
+        errFn()
+      }
+    },
+    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+  )
+  return watchID
+}
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
@@ -608,6 +675,16 @@ export function* platformConfigSaga() {
     manageContactsCache,
     'manageContactsCache'
   )
+
+  // Location
+  getEngine().registerCustomResponse('chat.1.chatUi.chatWatchPosition')
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatWatchPosition, onChatWatchPosition, 'onChatWatchPosition')
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatClearWatch, onChatClearWatch, 'onChatClearWatch')
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    setupLocationUpdateLoop
+  )
+
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)

@@ -102,7 +102,8 @@ protocol local {
     GITPUSH_4,
     CHANGEAVATAR_5,
     CHANGERETENTION_6,
-    BULKADDTOCONV_7
+    BULKADDTOCONV_7,
+    SBSRESOLVE_8
   }
 
   record MessageSystemAddedToTeam {
@@ -161,6 +162,12 @@ protocol local {
     array<string> usernames;
   }
 
+  record MessageSystemSbsResolve {
+    string assertionService;
+    string assertionUsername;
+    string prover;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -170,6 +177,7 @@ protocol local {
     case CHANGEAVATAR: MessageSystemChangeAvatar;
     case CHANGERETENTION: MessageSystemChangeRetention;
     case BULKADDTOCONV: MessageSystemBulkAddToConv;
+    case SBSRESOLVE: MessageSystemSbsResolve;
   }
 
   record MessageDeleteHistory {

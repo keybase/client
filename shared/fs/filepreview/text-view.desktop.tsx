@@ -50,7 +50,7 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.xlarge,
         paddingRight: Styles.globalMargins.xlarge,
         paddingTop: Styles.globalMargins.large,
-        width: 680,
+        width: 800,
       },
       text: Styles.platformStyles({
         isElectron: {

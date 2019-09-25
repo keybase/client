@@ -3,7 +3,7 @@ import Box from '../box'
 import * as Styles from '../../styles'
 import {resolveRootAsURL} from '../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../icon.desktop'
-import {Props} from './index.types'
+import {Props} from '.'
 
 const BackgroundRepeatBox = (props: Props) => {
   let pattern = ''

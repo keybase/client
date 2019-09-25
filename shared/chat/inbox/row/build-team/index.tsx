@@ -7,7 +7,7 @@ type Props = {
   showBuildATeam: boolean
 }
 
-const DividerBox = Styles.styled(Kb.Box)({
+const DividerBox = Styles.styled(Kb.Box)(() => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {backgroundColor: Styles.globalColors.fastBlank}
@@ -27,7 +27,7 @@ const DividerBox = Styles.styled(Kb.Box)({
   paddingRight: Styles.globalMargins.tiny,
   position: 'relative',
   width: '100%',
-})
+}))
 
 const BuildTeam = ({showBuildATeam, onBuildTeam}: Props) =>
   showBuildATeam ? (
