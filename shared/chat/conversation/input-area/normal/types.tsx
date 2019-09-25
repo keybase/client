@@ -19,6 +19,7 @@ type CommonProps = {
   onCancelEditing: () => void
   onCancelReply: () => void
   onFilePickerError: (error: Error) => void
+  onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
