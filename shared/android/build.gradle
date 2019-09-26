@@ -5,6 +5,8 @@ project.ext {
     glideVersion = "4.9.0"
 }
 
+def enableV8 = KB_USEV8 == 'true'
+
 buildscript {
     ext {
         buildToolsVersion = "28.0.3"
@@ -49,20 +51,28 @@ subprojects {project ->
 
 allprojects {
     repositories {
+        // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+        if (enableV8) {
+            maven {
+                // Replace AAR from original RN with AAR from react-native-v8
+                url("$rootDir/../node_modules/react-native-v8/dist")
+            }
+            maven {
+                // prebuilt libv8.so
+                url("$rootDir/../node_modules/v8-android-nointl/dist")
+            }
+        } else {
+            maven {
+                url("$rootDir/../node_modules/react-native/android")
+            }
+        }
+
         mavenLocal()
-        maven {
-            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            // url("$rootDir/../node_modules/react-native/android")
-            // Replace AAR from original RN with AAR from react-native-v8
-            url("$rootDir/../node_modules/react-native-v8/dist")
-        }
-        maven {
-            // prebuilt libv8.so
-            url("$rootDir/../node_modules/v8-android/dist")
-        }
-        maven {
-            // Android JSC is installed from npm
-            url("$rootDir/../node_modules/jsc-android/dist")
+        if (!enableV8) {
+            maven {
+                // Android JSC is installed from npm
+                url("$rootDir/../node_modules/jsc-android/dist")
+            }
         }
 
         google()
