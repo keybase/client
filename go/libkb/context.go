@@ -692,8 +692,8 @@ func (m MetaContext) Keyring() (ret *SKBKeyringFile, err error) {
 	return m.ActiveDevice().Keyring(m)
 }
 
-var _ logger.CtxAndLogger = MetaContext{}
+var _ logger.ContextInterface = MetaContext{}
 
-func (m MetaContext) UpdateContext(c context.Context) logger.CtxAndLogger {
+func (m MetaContext) UpdateContextToLoggerContext(c context.Context) logger.ContextInterface {
 	return m.WithContext(c)
 }

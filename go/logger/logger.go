@@ -19,10 +19,10 @@ type BaseLogger interface {
 	Error(format string, args ...interface{})
 }
 
-type CtxAndLogger interface {
+type ContextInterface interface {
 	BaseLogger
 	Ctx() context.Context
-	UpdateContext(context.Context) CtxAndLogger
+	UpdateContextToLoggerContext(context.Context) ContextInterface
 }
 
 type Logger interface {

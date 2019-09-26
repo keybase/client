@@ -14,7 +14,7 @@ func NewMerkleProofVerifier(c Config) MerkleProofVerifier {
 	return MerkleProofVerifier{cfg: c}
 }
 
-func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.CtxAndLogger, kvp KeyValuePair, proof MerkleInclusionProof, expRootHash Hash) error {
+func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof MerkleInclusionProof, expRootHash Hash) error {
 
 	// Hash the key value pair
 	kvpHash, err := m.cfg.Encoder.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)

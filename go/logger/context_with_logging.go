@@ -11,7 +11,7 @@ type Context struct {
 	Logger
 }
 
-var _ CtxAndLogger = Context{}
+var _ ContextInterface = Context{}
 
 func (c Context) Ctx() context.Context {
 	return c.ctx
@@ -21,7 +21,7 @@ func NewContext(c context.Context, l Logger) Context {
 	return Context{ctx: c, Logger: l}
 }
 
-func (c Context) UpdateContext(ctx context.Context) CtxAndLogger {
+func (c Context) UpdateContextToLoggerContext(ctx context.Context) ContextInterface {
 	return NewContext(ctx, c.Logger)
 }
 
@@ -53,6 +53,6 @@ func (c Context) Fatal(format string, args ...interface{}) {
 	c.Logger.CloneWithAddedDepth(1).CFatalf(c.ctx, format, args)
 }
 
-func NewContextTodoWithLoggingForTesting(t *testing.T) CtxAndLogger {
+func NewLoggerContextTodoForTesting(t *testing.T) ContextInterface {
 	return &Context{ctx: context.TODO(), Logger: NewTestLogger(t)}
 }

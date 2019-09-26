@@ -63,7 +63,7 @@ func NewInMemoryStorageEngine(cfg Config) *InMemoryStorageEngine {
 	return &i
 }
 
-func (i *InMemoryStorageEngine) ExecTransaction(ctx logger.CtxAndLogger, txFn func(logger.CtxAndLogger, Transaction) error) error {
+func (i *InMemoryStorageEngine) ExecTransaction(ctx logger.ContextInterface, txFn func(logger.ContextInterface, Transaction) error) error {
 	return fmt.Errorf("Transactions are not supported by this engine!")
 }
 
@@ -77,7 +77,7 @@ func (i *InMemoryStorageEngine) findKVPR(k Key) *KVPRecord {
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreKEVPairs(c logger.CtxAndLogger, t Transaction, s Seqno, kevps []KeyEncodedValuePair) error {
+func (i *InMemoryStorageEngine) StoreKEVPairs(c logger.ContextInterface, t Transaction, s Seqno, kevps []KeyEncodedValuePair) error {
 	newSKVPR := make([]*KVPRecord, len(kevps))
 
 	for j, kevp := range kevps {
@@ -93,7 +93,7 @@ func (i *InMemoryStorageEngine) StoreKEVPairs(c logger.CtxAndLogger, t Transacti
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreNodes(c logger.CtxAndLogger, t Transaction, s Seqno, phps []PositionHashPair) error {
+func (i *InMemoryStorageEngine) StoreNodes(c logger.ContextInterface, t Transaction, s Seqno, phps []PositionHashPair) error {
 	for _, php := range phps {
 		err := i.StoreNode(c, t, s, &php.Position, php.Hash)
 		if err != nil {
@@ -103,7 +103,7 @@ func (i *InMemoryStorageEngine) StoreNodes(c logger.CtxAndLogger, t Transaction,
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreNode(c logger.CtxAndLogger, t Transaction, s Seqno, p *Position, h Hash) error {
+func (i *InMemoryStorageEngine) StoreNode(c logger.ContextInterface, t Transaction, s Seqno, p *Position, h Hash) error {
 	strKey := p.AsString()
 	oldNodeRec := i.Nodes[strKey]
 	i.Nodes[strKey] = &NodeRecord{s: s, p: *p, h: h, next: oldNodeRec}
@@ -113,12 +113,12 @@ func (i *InMemoryStorageEngine) StoreNode(c logger.CtxAndLogger, t Transaction, 
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.CtxAndLogger, t Transaction, r RootMetadata) error {
+func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.ContextInterface, t Transaction, r RootMetadata) error {
 	i.Roots[r.Seqno] = r
 	return nil
 }
 
-func (i *InMemoryStorageEngine) LookupLatestRoot(c logger.CtxAndLogger, t Transaction) (Seqno, RootMetadata, error) {
+func (i *InMemoryStorageEngine) LookupLatestRoot(c logger.ContextInterface, t Transaction) (Seqno, RootMetadata, error) {
 	if len(i.Roots) == 0 {
 		return 0, RootMetadata{}, NewNoLatestRootFoundError()
 	}
@@ -131,7 +131,7 @@ func (i *InMemoryStorageEngine) LookupLatestRoot(c logger.CtxAndLogger, t Transa
 	return max, i.Roots[max], nil
 }
 
-func (i *InMemoryStorageEngine) LookupRoot(c logger.CtxAndLogger, t Transaction, s Seqno) (RootMetadata, error) {
+func (i *InMemoryStorageEngine) LookupRoot(c logger.ContextInterface, t Transaction, s Seqno) (RootMetadata, error) {
 	r, found := i.Roots[s]
 	if found {
 		return r, nil
@@ -139,7 +139,7 @@ func (i *InMemoryStorageEngine) LookupRoot(c logger.CtxAndLogger, t Transaction,
 	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
 }
 
-func (i *InMemoryStorageEngine) LookupNode(c logger.CtxAndLogger, t Transaction, s Seqno, p *Position) (Hash, error) {
+func (i *InMemoryStorageEngine) LookupNode(c logger.ContextInterface, t Transaction, s Seqno, p *Position) (Hash, error) {
 	node, found := i.Nodes[string(p.GetBytes())]
 	if !found {
 		return nil, errors.New("No node found")
@@ -152,7 +152,7 @@ func (i *InMemoryStorageEngine) LookupNode(c logger.CtxAndLogger, t Transaction,
 	return nil, errors.New("No node version found")
 }
 
-func (i *InMemoryStorageEngine) LookupNodes(c logger.CtxAndLogger, t Transaction, s Seqno, positions []Position) (res []PositionHashPair, err error) {
+func (i *InMemoryStorageEngine) LookupNodes(c logger.ContextInterface, t Transaction, s Seqno, positions []Position) (res []PositionHashPair, err error) {
 	for _, p := range positions {
 		h, err := i.LookupNode(c, t, s, &p)
 		if err == nil {
@@ -162,7 +162,7 @@ func (i *InMemoryStorageEngine) LookupNodes(c logger.CtxAndLogger, t Transaction
 	return res, nil
 }
 
-func (i *InMemoryStorageEngine) LookupKEVPair(c logger.CtxAndLogger, t Transaction, s Seqno, k Key) (EncodedValue, Seqno, error) {
+func (i *InMemoryStorageEngine) LookupKEVPair(c logger.ContextInterface, t Transaction, s Seqno, k Key) (EncodedValue, Seqno, error) {
 	kvpr := i.findKVPR(k)
 	if kvpr == nil {
 		return nil, 0, NewKeyNotFoundError()
@@ -175,7 +175,7 @@ func (i *InMemoryStorageEngine) LookupKEVPair(c logger.CtxAndLogger, t Transacti
 	return nil, 0, NewKeyNotFoundError()
 }
 
-func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.CtxAndLogger, t Transaction, s Seqno, p *Position) (kvps []KeyEncodedValuePair, seqnos []Seqno, err error) {
+func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.ContextInterface, t Transaction, s Seqno, p *Position) (kvps []KeyEncodedValuePair, seqnos []Seqno, err error) {
 	pBytes := p.GetBytes()
 
 	minIndex := sort.Search(len(i.SortedKVPRs), func(n int) bool {
@@ -227,12 +227,12 @@ func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.CtxAndLog
 	return kvps, seqnos, nil
 }
 
-func (i *InMemoryStorageEngine) StoreMasterSecret(ctx logger.CtxAndLogger, t Transaction, s Seqno, ms MasterSecret) (err error) {
+func (i *InMemoryStorageEngine) StoreMasterSecret(ctx logger.ContextInterface, t Transaction, s Seqno, ms MasterSecret) (err error) {
 	i.MasterSecretsMap[s] = MasterSecret(append([]byte{}, []byte(ms)...))
 	return nil
 }
 
-func (i *InMemoryStorageEngine) LookupMasterSecrets(ctx logger.CtxAndLogger, t Transaction, seqnos []Seqno) (msMap map[Seqno]MasterSecret, err error) {
+func (i *InMemoryStorageEngine) LookupMasterSecrets(ctx logger.ContextInterface, t Transaction, seqnos []Seqno) (msMap map[Seqno]MasterSecret, err error) {
 	if i.MasterSecretsMap == nil {
 		i.MasterSecretsMap = make(map[Seqno]MasterSecret)
 	}

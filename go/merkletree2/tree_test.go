@@ -37,7 +37,7 @@ func TestEmptyTree(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg))
 			require.NoError(t, err)
 
-			seq, root, hash, err := tree.GetLatestRoot(logger.NewContextTodoWithLoggingForTesting(t), nil)
+			seq, root, hash, err := tree.GetLatestRoot(logger.NewLoggerContextTodoForTesting(t), nil)
 			require.Error(t, err)
 			require.IsType(t, NoLatestRootFoundError{}, err)
 			require.Equal(t, Seqno(0), seq, "Tree should have Seqno 0 as no insertions were made, got %v instead", seq)
@@ -45,17 +45,17 @@ func TestEmptyTree(t *testing.T) {
 			require.Nil(t, hash, "Tree root should not have a root hash as no insertions were made")
 
 			for _, kvp := range test.kvps1 {
-				_, err := tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, err := tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				_, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				_, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 			}
@@ -92,96 +92,96 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 			// This kvp has a key which is not part of test.kvps1
 			kvpAddedAtSeqno2 := test.kvps2[len(test.kvps2)-2]
 
-			_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-			_, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 
-			_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-			_, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-			_, _, err = tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps1)
+			_, _, err = tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps1)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
-				_, err := tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, err := tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				kvpRet, err := tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, err := tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				kvpRet, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				kvpRet, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
 
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				kvpRet, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 			}
 
-			_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
-			_, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-			_, _, err = tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps2)
+			_, _, err = tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps2)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
-				kvpRet, err := tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, err := tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
 
-				kvpRet, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Value, kvpRet.Value)
 			}
 
-			_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
-			_, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
 			for _, kvp := range test.kvps2 {
-				_, err := tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, err := tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				kvpRet, err := tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 2, kvp.Key)
+				kvpRet, err := tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 2, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				kvpRet, err = tree.GetKeyValuePairUnsafe(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				kvpRet, err = tree.GetKeyValuePairUnsafe(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
 
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				kvpRet, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 2, kvp.Key)
+				kvpRet, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 2, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 			}
@@ -218,56 +218,56 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 			// This kvp has a key which is not part of test.kvps1
 			kvpAddedAtSeqno2 := test.kvps2[len(test.kvps2)-2]
 
-			_, _, err = tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvpAddedAtSeqno2.Key)
+			_, _, err = tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 
-			_, _, err = tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, _, err = tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 
-			_, _, err = tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps1)
+			_, _, err = tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps1)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
-				_, _, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, _, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				kvpRet, _, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, _, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 			}
 
-			_, _, err = tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, _, err = tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-			_, _, err = tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps2)
+			_, _, err = tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps2)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
-				kvpRet, _, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, _, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
 			}
-			_, _, err = tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
+			_, _, err = tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvpAddedAtSeqno2.Key)
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
 			for _, kvp := range test.kvps2 {
-				_, _, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 0, kvp.Key)
+				_, _, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 0, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
-				kvpRet, _, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 2, kvp.Key)
+				kvpRet, _, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 2, kvp.Key)
 				require.NoError(t, err, "Unexpected error for key %v: %v", kvp.Key, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				_, err = tree.GetKeyValuePair(logger.NewContextTodoWithLoggingForTesting(t), nil, 7, kvp.Key)
+				_, err = tree.GetKeyValuePair(logger.NewLoggerContextTodoForTesting(t), nil, 7, kvp.Key)
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 			}
@@ -308,36 +308,36 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			s1, rootHash1, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps1)
+			s1, rootHash1, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps1)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
 			for _, kvp := range test.kvps1 {
-				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.True(t, kvp.Key.Equal(kvpRet.Key))
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
 			}
 
-			s2, rootHash2, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps2)
+			s2, rootHash2, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps2)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
 			for _, kvp := range test.kvps2 {
-				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 2, kvp.Key)
+				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 2, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash2))
+				require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash2))
 			}
 
 			for _, kvp := range test.kvps1 {
-				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.True(t, kvp.Key.Equal(kvpRet.Key))
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
 			}
 
 		})
@@ -392,35 +392,35 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 			kvp2, err := makeRandomKVPFromKeysForTesting(keys)
 			require.NoError(t, err)
 
-			s1, rootHash1, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, kvp1)
+			s1, rootHash1, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, kvp1)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
 			for i, key := range keys {
-				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, key)
+				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, key)
 				require.NoError(t, err)
 				require.True(t, key.Equal(kvpRet.Key))
 				require.Equal(t, kvp1[i].Value, kvpRet.Value)
-				err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp1[i], proof, rootHash1)
+				err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp1[i], proof, rootHash1)
 				require.NoErrorf(t, err, "Error verifying proof for key %v: %v", key, err)
 			}
 
-			s2, rootHash2, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, kvp2)
+			s2, rootHash2, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, kvp2)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
 			for i, key := range keys {
-				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 2, key)
+				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 2, key)
 				require.NoError(t, err)
 				require.True(t, key.Equal(kvpRet.Key))
 				require.Equal(t, kvp2[i].Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp2[i], proof, rootHash2))
+				require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp2[i], proof, rootHash2))
 
-				kvpRet, proof, err = tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, key)
+				kvpRet, proof, err = tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, key)
 				require.NoError(t, err)
 				require.True(t, key.Equal(kvpRet.Key))
 				require.Equal(t, kvp1[i].Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp1[i], proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp1[i], proof, rootHash1))
 			}
 		})
 	}
@@ -460,20 +460,20 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			s1, rootHash1, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps1)
+			s1, rootHash1, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps1)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
 			for _, kvp := range test.kvps1 {
 				// First, sanity check that honest proofs pass
-				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+				kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
 
 				// Change the value
 				kvpFakeVal := KeyValuePair{Key: kvp.Key, Value: "ALTERED_VALUE"}
-				err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvpFakeVal, proof, rootHash1)
+				err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvpFakeVal, proof, rootHash1)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
@@ -481,24 +481,24 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 				keyFake := Key(append([]byte(nil), ([]byte(kvp.Key))...))
 				([]byte(keyFake))[0] = 1 + ([]byte(keyFake))[0]
 				kvpFakeKey := KeyValuePair{Key: keyFake, Value: kvp.Value}
-				err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvpFakeKey, proof, rootHash1)
+				err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvpFakeKey, proof, rootHash1)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// Change the root hash
 				rootHashFake := Hash(append([]byte(nil), ([]byte(rootHash1))...))
 				([]byte(rootHashFake))[0] = 1 + ([]byte(rootHashFake))[0]
-				err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHashFake)
+				err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHashFake)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// nil root hash
-				err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, nil)
+				err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, nil)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// empty proof
-				err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, MerkleInclusionProof{}, rootHash1)
+				err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, MerkleInclusionProof{}, rootHash1)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
@@ -511,7 +511,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 					([]byte(fakeKSS))[0] = 1 + ([]byte(fakeKSS))[0]
 					fakeProof := proof
 					fakeProof.KeySpecificSecret = fakeKSS
-					err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, fakeProof, rootHash1)
+					err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
 					require.Error(t, err)
 					require.IsType(t, ProofVerificationFailedError{}, err)
 				}
@@ -540,21 +540,21 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	require.NoError(t, err)
 	verifier := MerkleProofVerifier{cfg: cfg}
 
-	s1, rootHash1, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, kvps)
+	s1, rootHash1, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, kvps)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, s1)
 
 	// First, sanity check that honest proofs pass
 	kvp := kvps[1]
-	kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+	kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 	require.NoError(t, err)
 	require.Equal(t, kvp.Value, kvpRet.Value)
-	require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash1))
+	require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
 
 	// Wrong key length
 	fakeKvp := kvp
 	fakeKvp.Key = []byte{0x00}
-	err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), fakeKvp, proof, rootHash1)
+	err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), fakeKvp, proof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Key has wrong length")
@@ -562,7 +562,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	// Proof has too many key hash pairs
 	fakeProof := proof
 	fakeProof.OtherPairsInLeaf = make([]KeyHashPair, cfg.MaxValuesPerLeaf)
-	err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, fakeProof, rootHash1)
+	err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Too many keys in leaf")
@@ -572,7 +572,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	fakeProof.OtherPairsInLeaf = make([]KeyHashPair, len(proof.OtherPairsInLeaf))
 	copy(fakeProof.OtherPairsInLeaf, proof.OtherPairsInLeaf)
 	fakeProof.OtherPairsInLeaf[0], fakeProof.OtherPairsInLeaf[1] = fakeProof.OtherPairsInLeaf[1], fakeProof.OtherPairsInLeaf[0]
-	err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, fakeProof, rootHash1)
+	err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Error in Leaf Key ordering or duplicated key")
@@ -580,7 +580,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	// wrong number of siblings
 	fakeProof = proof
 	fakeProof.SiblingHashesOnPath = fakeProof.SiblingHashesOnPath[1:]
-	err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, fakeProof, rootHash1)
+	err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Invalid number of SiblingHashes")
@@ -588,7 +588,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	// Change the root hash
 	rootHashFake := Hash(append([]byte(nil), ([]byte(rootHash1))...))
 	([]byte(rootHashFake))[0] = 1 + ([]byte(rootHashFake))[0]
-	err = verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHashFake)
+	err = verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHashFake)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
@@ -619,16 +619,16 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 				{Key: []byte{0x00, 0x00}, Value: "key0x0000Seqno1"},
 			}
 
-			s1, rootHash1, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, kvps1)
+			s1, rootHash1, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, kvps1)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
 			kvp := kvps1[0]
-			kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 1, kvp.Key)
+			kvpRet, proof, err := tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 			require.NoError(t, err)
 			require.True(t, kvp.Key.Equal(kvpRet.Key))
 			require.Equal(t, kvp.Value, kvpRet.Value)
-			require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash1))
+			require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
 
 			kvps2 := []KeyValuePair{
 				{Key: []byte{0x00, 0x00}, Value: "key0x0000Seqno2"},
@@ -636,16 +636,16 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 				{Key: []byte{0x00, 0x02}, Value: "key0x0002Seqno2"},
 			}
 
-			s2, rootHash2, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, kvps2)
+			s2, rootHash2, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, kvps2)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
 			kvp = kvps2[1]
-			kvpRet, proof, err = tree.GetKeyValuePairWithProof(logger.NewContextTodoWithLoggingForTesting(t), nil, 2, kvp.Key)
+			kvpRet, proof, err = tree.GetKeyValuePairWithProof(logger.NewLoggerContextTodoForTesting(t), nil, 2, kvp.Key)
 			require.NoError(t, err)
 			require.True(t, kvp.Key.Equal(kvpRet.Key))
 			require.Equal(t, kvp.Value, kvpRet.Value)
-			require.NoError(t, verifier.VerifyInclusionProof(logger.NewContextTodoWithLoggingForTesting(t), kvp, proof, rootHash2))
+			require.NoError(t, verifier.VerifyInclusionProof(logger.NewLoggerContextTodoForTesting(t), kvp, proof, rootHash2))
 		})
 	}
 }
@@ -682,19 +682,19 @@ func TestGetLatestRoot(t *testing.T) {
 			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg))
 			require.NoError(t, err)
 
-			s1, rootHash1Exp, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps1)
+			s1, rootHash1Exp, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps1)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
-			_, _, rootHash1, err := tree.GetLatestRoot(logger.NewContextTodoWithLoggingForTesting(t), nil)
+			_, _, rootHash1, err := tree.GetLatestRoot(logger.NewLoggerContextTodoForTesting(t), nil)
 			require.NoError(t, err)
 			require.True(t, rootHash1Exp.Equal(rootHash1))
 
-			s2, rootHash2Exp, err := tree.Build(logger.NewContextTodoWithLoggingForTesting(t), nil, test.kvps2)
+			s2, rootHash2Exp, err := tree.Build(logger.NewLoggerContextTodoForTesting(t), nil, test.kvps2)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
-			_, _, rootHash2, err := tree.GetLatestRoot(logger.NewContextTodoWithLoggingForTesting(t), nil)
+			_, _, rootHash2, err := tree.GetLatestRoot(logger.NewLoggerContextTodoForTesting(t), nil)
 			require.NoError(t, err)
 			require.True(t, rootHash2Exp.Equal(rootHash2))
 
