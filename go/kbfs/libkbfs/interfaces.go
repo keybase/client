@@ -823,6 +823,10 @@ type KBPKI interface {
 
 	// NotifyPathUpdated sends a path updated notification.
 	NotifyPathUpdated(ctx context.Context, path string) error
+
+	// InvalidateTeamCacheForID instructs KBPKI to discard any cached
+	// information about the given team ID.
+	InvalidateTeamCacheForID(tid keybase1.TeamID)
 }
 
 // KeyMetadataWithRootDirEntry is like KeyMetadata, but can also

@@ -1918,6 +1918,18 @@ func (mr *MockKBPKIMockRecorder) IdentifyImplicitTeam(arg0, arg1, arg2, arg3, ar
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IdentifyImplicitTeam", reflect.TypeOf((*MockKBPKI)(nil).IdentifyImplicitTeam), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
+// InvalidateTeamCacheForID mocks base method
+func (m *MockKBPKI) InvalidateTeamCacheForID(arg0 keybase1.TeamID) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "InvalidateTeamCacheForID", arg0)
+}
+
+// InvalidateTeamCacheForID indicates an expected call of InvalidateTeamCacheForID
+func (mr *MockKBPKIMockRecorder) InvalidateTeamCacheForID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvalidateTeamCacheForID", reflect.TypeOf((*MockKBPKI)(nil).InvalidateTeamCacheForID), arg0)
+}
+
 // IsTeamReader mocks base method
 func (m *MockKBPKI) IsTeamReader(arg0 context.Context, arg1 keybase1.TeamID, arg2 keybase1.UID, arg3 keybase1.OfflineAvailability) (bool, error) {
 	m.ctrl.T.Helper()
