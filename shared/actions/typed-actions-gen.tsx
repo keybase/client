@@ -207,6 +207,7 @@ export type TypedActionsMap = {
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
+  'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

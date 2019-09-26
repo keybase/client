@@ -30,7 +30,7 @@ func (t *DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStep
 	client := t.rpcClient()
 	cbArg := keybase1.SecondStepArg{Val: arg.Val + 1, SessionID: arg.SessionID}
 	var cbReply int
-	err = client.Call(ctx, "keybase.1.debugging.secondStep", []interface{}{cbArg}, &cbReply)
+	err = client.Call(ctx, "keybase.1.debugging.secondStep", []interface{}{cbArg}, &cbReply, 0)
 	if err != nil {
 		return
 	}

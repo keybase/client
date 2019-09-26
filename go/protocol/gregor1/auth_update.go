@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/gregor1/auth_update.avdl
 
 package gregor1
@@ -6,6 +6,7 @@ package gregor1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type RevokeSessionIDsArg struct {
@@ -45,6 +46,6 @@ type AuthUpdateClient struct {
 
 func (c AuthUpdateClient) RevokeSessionIDs(ctx context.Context, sessionIDs []SessionID) (err error) {
 	__arg := RevokeSessionIDsArg{SessionIDs: sessionIDs}
-	err = c.Cli.Call(ctx, "gregor.1.authUpdate.revokeSessionIDs", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "gregor.1.authUpdate.revokeSessionIDs", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

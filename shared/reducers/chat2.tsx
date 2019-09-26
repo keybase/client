@@ -407,6 +407,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.changeFocus:
         draftState.focus = action.payload.nextFocus
         return
+      case Chat2Gen.setChannelSearchText:
+        draftState.channelSearchText = action.payload.text.toLowerCase()
+        return
       case Chat2Gen.selectConversation:
         {
           // ignore non-changing
