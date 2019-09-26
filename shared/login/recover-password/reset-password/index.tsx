@@ -21,6 +21,7 @@ const ResetPassword = () => {
           type: 'Default' as ButtonType,
         },
       ]}
+      noBackground={true}
       onBack={() => onContinue(false)}
       title="Reset password"
     >
