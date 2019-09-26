@@ -125,7 +125,7 @@ const getTlfRowsFromTlfs = memoize(
 )
 
 const getTlfItemsFromStateProps = (stateProps, path): Array<RowTypes.NamedRowItem> => {
-  if (stateProps._tlfs.private.count() === 0) {
+  if (stateProps._tlfs.private.size === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
     // unintialized.
     return folderPlaceholderRows

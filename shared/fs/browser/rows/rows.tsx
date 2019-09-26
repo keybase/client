@@ -92,13 +92,13 @@ class Rows extends React.PureComponent<Props> {
   }
   _getVariableRowLayout = (items, index) => ({
     index,
-    length: getRowHeight(items.get(index, _unknownEmptyRowItem)),
+    length: getRowHeight(items[index] || _unknownEmptyRowItem),
     offset: items.slice(0, index).reduce((offset, row) => offset + getRowHeight(row), 0),
   })
   _getTopVariableRowCountAndTotalHeight = memoize(items => {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return index === -1
-      ? {count: items.size, totalHeight: -1}
+      ? {count: items.length, totalHeight: -1}
       : {count: index, totalHeight: this._getVariableRowLayout(items, index).offset}
   })
   _getItemLayout = index => {
@@ -120,9 +120,9 @@ class Rows extends React.PureComponent<Props> {
     const index = items.findIndex(row => row.rowType !== RowTypes.RowType.Header)
     return (
       items
-        .slice(0, index === -1 ? items.size : index)
+        .slice(0, index === -1 ? items.length : index)
         .map(row => getRowHeight(row).toString())
-        .join('-') + `:${items.size}`
+        .join('-') + `:${items.length}`
     )
   })
 
