@@ -322,6 +322,7 @@ class ThreadWrapper extends React.Component<Props, State> {
           containsLatestMessage={true}
           conversationIDKey={this.state.conversationIDKey}
           hasPinnedMessage={false}
+          hasStatus={false}
           messageOrdinals={this.state.messageOrdinals}
           loadOlderMessages={this.onLoadMoreMessages}
           loadNewerMessages={this.onLoadMoreMessages}

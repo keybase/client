@@ -19,5 +19,6 @@ export type Props = {
   scrollListToBottomCounter: number
   scrollListUpCounter: number
   hasPinnedMessage: boolean
+  hasStatus: boolean
 }
 export default class ConversationList extends React.Component<Props> {}
