@@ -175,12 +175,13 @@ type JournalManager struct {
 	serverConfig        journalManagerConfig
 	// Real TLF ID -> time that conflict was cleared -> fake TLF ID
 	clearedConflictTlfs map[clearedConflictKey]clearedConflictVal
+	delegateMaker       func(tlf.ID) tlfJournalBWDelegate
 }
 
 func makeJournalManager(
 	config Config, log logger.Logger, dir string,
-	bcache data.BlockCache, dirtyBcache data.DirtyBlockCache, bserver BlockServer,
-	mdOps MDOps, onBranchChange branchChangeListener,
+	bcache data.BlockCache, dirtyBcache data.DirtyBlockCache,
+	bserver BlockServer, mdOps MDOps, onBranchChange branchChangeListener,
 	onMDFlush mdFlushListener) *JournalManager {
 	if len(dir) == 0 {
 		panic("journal root path string unexpectedly empty")
@@ -458,10 +459,15 @@ func (j *JournalManager) makeJournalForConflictTlfLocked(
 		return nil, tlf.ID{}, time.Time{}, err
 	}
 
+	var delegate tlfJournalBWDelegate
+	if j.delegateMaker != nil {
+		delegate = j.delegateMaker(fakeTlfID)
+	}
+
 	tj, err := makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, dir,
 		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
-		j.delegateBlockServer, TLFJournalBackgroundWorkPaused, nil,
+		j.delegateBlockServer, TLFJournalBackgroundWorkPaused, delegate,
 		j.onBranchChange, j.onMDFlush, j.config.DiskLimiter(), fakeTlfID)
 	if err != nil {
 		return nil, tlf.ID{}, time.Time{}, err
@@ -825,12 +831,17 @@ func (j *JournalManager) enableLocked(
 			err)
 	}
 
+	var delegate tlfJournalBWDelegate
+	if j.delegateMaker != nil {
+		delegate = j.delegateMaker(tlfID)
+	}
+
 	tlfDir := j.tlfJournalPathLocked(tlfID)
 	tj, err = makeTLFJournal(
 		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, chargedTo, tlfJournalConfigAdapter{j.config},
-		j.delegateBlockServer,
-		bws, nil, j.onBranchChange, j.onMDFlush, j.config.DiskLimiter(),
+		j.delegateBlockServer, bws, delegate, j.onBranchChange, j.onMDFlush,
+		j.config.DiskLimiter(),
 		tlf.NullID)
 	if err != nil {
 		return nil, err
@@ -1401,4 +1412,10 @@ func (j *JournalManager) shutdown(ctx context.Context) {
 
 	// Leave all the tlfJournals in j.tlfJournals, so that any
 	// access to them errors out instead of mutating the journal.
+}
+
+func (j *JournalManager) setDelegateMaker(f func(tlf.ID) tlfJournalBWDelegate) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.delegateMaker = f
 }

@@ -45,6 +45,27 @@ const onConnect = async () => {
   }
 }
 
+const onGetInboxUnverifiedConvs = (
+  _: TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxUnverifiedPayload
+) => {
+  const inbox = action.payload.params.inbox
+  const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
+  const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
+  // We get a subset of meta information from the cache even in the untrusted payload
+  const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
+    const m = Constants.unverifiedInboxUIItemToConversationMeta(item)
+    m && arr.push(m)
+    return arr
+  }, [])
+  // Check if some of our existing stored metas might no longer be valid
+  return Chat2Gen.createMetasReceived({
+    fromInboxRefresh: true,
+    initialTrustedLoad: true,
+    metas,
+  })
+}
+
 // Ask the service to refresh the inbox
 function* inboxRefresh(
   state: TypedState,
@@ -89,29 +110,14 @@ function* inboxRefresh(
 
   logger.info(`Inbox refresh due to ${reason || '???'}`)
 
-  const onUnverified = function({inbox}) {
-    const result: RPCChatTypes.UnverifiedInboxUIItems = JSON.parse(inbox)
-    const items: Array<RPCChatTypes.UnverifiedInboxUIItem> = result.items || []
-    // We get a subset of meta information from the cache even in the untrusted payload
-    const metas = items.reduce<Array<Types.ConversationMeta>>((arr, item) => {
-      const m = Constants.unverifiedInboxUIItemToConversationMeta(item)
-      m && arr.push(m)
-      return arr
-    }, [])
-    // Check if some of our existing stored metas might no longer be valid
-    return Saga.put(
-      Chat2Gen.createMetasReceived({
-        clearExistingMessages,
-        clearExistingMetas,
-        fromInboxRefresh: true,
-        initialTrustedLoad: reason === 'initialTrustedLoad',
-        metas,
-      })
-    )
+  if (clearExistingMetas) {
+    yield Saga.put(Chat2Gen.createClearMetas())
   }
-
+  if (clearExistingMessages) {
+    yield Saga.put(Chat2Gen.createClearMessages())
+  }
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {'chat.1.chatUi.chatInboxUnverified': onUnverified},
+    incomingCallMap: {},
     params: {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       maxUnbox: 0,
@@ -130,6 +136,7 @@ const requestTeamsUnboxing = (_: TypedState, action: Chat2Gen.MetasReceivedPaylo
   if (conversationIDKeys.length) {
     return Chat2Gen.createMetaRequestTrusted({
       conversationIDKeys,
+      reason: 'requestTeamsUnboxing',
     })
   }
   return undefined
@@ -165,7 +172,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
 
   const conversationIDKeys = untrustedConversationIDKeys(state, maybeUnbox.toArray())
   const toUnboxActions = conversationIDKeys.length
-    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys}))]
+    ? [Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys, reason: 'scroll'}))]
     : []
   const unboxSomeMoreActions = metaQueue.size ? [Saga.put(Chat2Gen.createMetaHandleQueue())] : []
   const delayBeforeUnboxingMoreActions =
@@ -181,10 +188,7 @@ function* requestMeta(state: TypedState, _: Chat2Gen.MetaHandleQueuePayload) {
 // Get valid keys that we aren't already loading or have loaded
 const rpcMetaRequestConversationIDKeys = (
   state: TypedState,
-  action:
-    | Chat2Gen.MetaRequestTrustedPayload
-    | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.MetasReceivedPayload
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload
 ) => {
   let keys: Array<Types.ConversationIDKey>
   switch (action.type) {
@@ -197,9 +201,6 @@ const rpcMetaRequestConversationIDKeys = (
     case Chat2Gen.selectConversation:
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
-    case Chat2Gen.metasReceived:
-      keys = [Constants.getSelectedConversation(state)]
-      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       throw new Error('Invalid action passed to unboxRows')
@@ -207,100 +208,90 @@ const rpcMetaRequestConversationIDKeys = (
   return Constants.getConversationIDKeyMetasToLoad(keys, state.chat2.metaMap)
 }
 
+const onGetInboxConvsUnboxed = (
+  state: TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxConversationPayload
+) => {
+  const infoMap = state.users.infoMap
+  const actions: Array<TypedActions> = []
+  const convs = action.payload.params.convs
+  const inboxUIItems: Array<RPCChatTypes.InboxUIItem> = JSON.parse(convs)
+  const metas: Array<Types.ConversationMeta> = []
+  let added = false
+  const usernameToFullname: {[username: string]: string} = {}
+  inboxUIItems.forEach(inboxUIItem => {
+    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem, true)
+    if (meta) {
+      metas.push(meta)
+    }
+    ;(inboxUIItem.participants || []).forEach((part: RPCChatTypes.UIParticipant) => {
+      if (!infoMap.get(part.assertion) && part.fullName) {
+        added = true
+        usernameToFullname[part.assertion] = part.fullName
+      }
+    })
+  })
+  if (added) {
+    actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
+  }
+  if (metas.length > 0) {
+    actions.push(
+      Chat2Gen.createMetasReceived({
+        metas,
+      })
+    )
+  }
+  return actions
+}
+
+const onGetInboxConvFailed = (
+  state: TypedState,
+  action: EngineGen.Chat1ChatUiChatInboxFailedPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {convID, error} = action.payload.params
+  const conversationIDKey = Types.conversationIDToKey(convID)
+  switch (error.typ) {
+    case RPCChatTypes.ConversationErrorType.transient:
+      logger.info(
+        `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
+      )
+      return undefined
+    default:
+      logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
+      return Chat2Gen.createMetaReceivedError({
+        conversationIDKey: conversationIDKey,
+        error,
+        username: state.config.username,
+      })
+  }
+}
+
 // We want to unbox rows that have scroll into view
 function* unboxRows(
   state: TypedState,
-  action:
-    | Chat2Gen.MetaRequestTrustedPayload
-    | Chat2Gen.SelectConversationPayload
-    | Chat2Gen.MetasReceivedPayload,
+  action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
   logger: Saga.SagaLogger
 ) {
   if (!state.config.loggedIn) {
     return
   }
-
+  switch (action.type) {
+    case Chat2Gen.metaRequestTrusted:
+      logger.info(`unboxRows: metaRequestTrusted: reason: ${action.payload.reason}`)
+      break
+    case Chat2Gen.selectConversation:
+      logger.info(`unboxRows: selectConversation`)
+      break
+  }
   const conversationIDKeys = rpcMetaRequestConversationIDKeys(state, action)
   if (!conversationIDKeys.length) {
     return
   }
-
-  const onUnboxed = function({conv}) {
-    const inboxUIItem: RPCChatTypes.InboxUIItem = JSON.parse(conv)
-    // We allow empty conversations now since we create them and they're empty now
-    const allowEmpty = action.type === Chat2Gen.selectConversation
-    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem, allowEmpty)
-    const actions: Array<Saga.PutEffect> = []
-    if (meta) {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createMetasReceived({
-            metas: [meta],
-            neverCreate: action.type === Chat2Gen.metaRequestTrusted,
-          })
-        )
-      )
-    } else {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createMetaReceivedError({
-            conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
-            error: null, // just remove this item, not a real server error
-            username: null,
-          })
-        )
-      )
-    }
-
-    const infoMap = state.users.infoMap
-    let added = false
-    // We get some info about users also so update that too
-    const usernameToFullname = (inboxUIItem.participants || []).reduce<{[key: string]: string}>(
-      (map, part) => {
-        if (!infoMap.get(part.assertion) && part.fullName) {
-          added = true
-          map[part.assertion] = part.fullName
-        }
-        return map
-      },
-      {}
-    )
-    if (added) {
-      actions.push(Saga.put(UsersGen.createUpdateFullnames({usernameToFullname})))
-    }
-    return Saga.all(actions)
-  }
-
-  const onFailed = ({convID, error}) => {
-    const conversationIDKey = Types.conversationIDToKey(convID)
-    switch (error.typ) {
-      case RPCChatTypes.ConversationErrorType.transient:
-        logger.info(
-          `onFailed: ignoring transient error for convID: ${conversationIDKey} error: ${error.message}`
-        )
-        return undefined
-      default:
-        logger.info(`onFailed: displaying error for convID: ${conversationIDKey} error: ${error.message}`)
-        return Saga.callUntyped(function*() {
-          const state: TypedState = yield* Saga.selectState()
-          yield Saga.put(
-            Chat2Gen.createMetaReceivedError({
-              conversationIDKey: conversationIDKey,
-              error,
-              username: state.config.username,
-            })
-          )
-        })
-    }
-  }
-
+  logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
   yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {
-      'chat.1.chatUi.chatInboxConversation': onUnboxed,
-      'chat.1.chatUi.chatInboxFailed': onFailed,
-      'chat.1.chatUi.chatInboxUnverified': () => {},
-    },
+    incomingCallMap: {},
     params: {
       identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
       query: Constants.makeInboxQuery(conversationIDKeys),
@@ -675,6 +666,7 @@ const onChatInboxSynced = (state: TypedState, action: EngineGen.Chat1NotifyChatC
             .filter(i => i.shouldUnbox)
             .map(i => Types.stringToConversationIDKey(i.conv.convID)),
           force: true,
+          reason: 'inboxSynced',
         })
       )
       break
@@ -750,6 +742,7 @@ const onChatSetConvRetention = (
   return Chat2Gen.createMetaRequestTrusted({
     conversationIDKeys: [Types.conversationIDToKey(convID)],
     force: true,
+    reason: 'setConvRetention',
   })
 }
 
@@ -812,6 +805,7 @@ const onChatSubteamRename = (_: TypedState, action: EngineGen.Chat1NotifyChatCha
   return Chat2Gen.createMetaRequestTrusted({
     conversationIDKeys,
     force: true,
+    reason: 'subTeamRename',
   })
 }
 
@@ -820,7 +814,10 @@ const onChatChatTLFFinalizePayload = (
   action: EngineGen.Chat1NotifyChatChatTLFFinalizePayload
 ) => {
   const {convID} = action.payload.params
-  return Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys: [Types.conversationIDToKey(convID)],
+    reason: 'tlfFinalize',
+  })
 }
 
 const onChatThreadStale = (
@@ -850,6 +847,7 @@ const onChatThreadStale = (
           Chat2Gen.createMetaRequestTrusted({
             conversationIDKeys,
             force: true,
+            reason: 'threadStale',
           }),
         ])
       } else if (conversationIDKeys.length > 0) {
@@ -866,6 +864,7 @@ const onChatThreadStale = (
           Chat2Gen.createMetaRequestTrusted({
             conversationIDKeys,
             force: true,
+            reason: 'threadStale',
           }),
         ])
       }
@@ -920,6 +919,7 @@ const onNewChatActivity = (
         Chat2Gen.createMetaRequestTrusted({
           conversationIDKeys: [Types.conversationIDToKey(activity.membersUpdate.convID)],
           force: true,
+          reason: 'membersUpdate',
         }),
       ]
       break
@@ -1020,7 +1020,6 @@ function* loadMoreMessages(
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | Chat2Gen.MetasReceivedPayload
     | ConfigGen.ChangedFocusPayload,
   logger: Saga.SagaLogger
 ) {
@@ -1056,13 +1055,6 @@ function* loadMoreMessages(
     case Chat2Gen.selectConversation:
       key = action.payload.conversationIDKey
       reason = action.payload.reason || 'selected'
-      break
-    case Chat2Gen.metasReceived:
-      if (!action.payload.clearExistingMessages) {
-        // we didn't clear anything out, we don't need to fetch anything
-        return
-      }
-      key = Constants.getSelectedConversation(state)
       break
     case Chat2Gen.loadOlderMessagesDueToScroll:
       key = action.payload.conversationIDKey
@@ -2444,6 +2436,7 @@ const refreshPreviousSelected = (state: TypedState) => {
       conversationIDKeys: [state.chat2.previousSelectedConversation],
       force: true,
       noWaiting: true,
+      reason: 'refreshPreviousSelected',
     })
   }
   return undefined
@@ -3368,13 +3361,22 @@ function* chat2Saga() {
   )
 
   // Actually try and unbox conversations
-  yield* Saga.chainGenerator<
-    Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
-  >(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation, Chat2Gen.metasReceived],
+  yield* Saga.chainGenerator<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
+    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
     unboxRows,
     'unboxRows'
   )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatInboxConversation,
+    onGetInboxConvsUnboxed,
+    'onGetInboxConvsUnboxed'
+  )
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatInboxUnverified,
+    onGetInboxUnverifiedConvs,
+    'onGetInboxUnverifiedConvs'
+  )
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed, 'onGetInboxConvFailed')
 
   // Load the selected thread
   yield* Saga.chainGenerator<
@@ -3384,7 +3386,6 @@ function* chat2Saga() {
     | Chat2Gen.LoadNewerMessagesDueToScrollPayload
     | Chat2Gen.LoadMessagesCenteredPayload
     | Chat2Gen.MarkConversationsStalePayload
-    | Chat2Gen.MetasReceivedPayload
     | ConfigGen.ChangedFocusPayload
   >(
     [
@@ -3394,7 +3395,6 @@ function* chat2Saga() {
       Chat2Gen.loadNewerMessagesDueToScroll,
       Chat2Gen.loadMessagesCentered,
       Chat2Gen.markConversationsStale,
-      Chat2Gen.metasReceived,
       ConfigGen.changedFocus,
     ],
     loadMoreMessages,

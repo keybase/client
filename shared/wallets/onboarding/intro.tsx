@@ -55,7 +55,7 @@ const Intro = (props: IntroProps) => {
           {props.headerTitle || 'Keybase supports Stellar wallets.'}
         </Kb.Text>
 
-        <Kb.Markdown styleOverride={bodyOverride} style={styles.bodyText}>
+        <Kb.Markdown style={styles.bodyText} styleOverride={bodyOverride}>
           {props.headerBody ||
             'You can now send or request Stellar Lumens to any Keybase user on *Earth*. Transactions settle in seconds, and cost a fraction of a penny.\n\nWhen sending and receiving Lumens, we automatically do the conversion in your favorite currency. We went ahead and set it to *USD*.'}
         </Kb.Markdown>
@@ -73,7 +73,8 @@ const Intro = (props: IntroProps) => {
 const bodyOverride = Styles.styleSheetCreate(() => ({
   paragraph: {
     color: Styles.globalColors.white,
-    fontSize: Styles.isMobile ? 16 : 13,
+    fontSize: Styles.isMobile ? 16 : 14,
+    fontWeight: '600',
     textAlign: Styles.isMobile ? ('center' as const) : ('left' as const),
   },
   strong: Styles.globalStyles.fontExtrabold,
@@ -83,7 +84,11 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       background: {backgroundColor: Styles.globalColors.purple},
-      bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.xsmall},
+      bodyText: {
+        color: Styles.globalColors.white,
+        marginBottom: Styles.globalMargins.xsmall,
+        marginTop: Styles.globalMargins.small,
+      },
       buttonStyle: {backgroundColor: Styles.globalColors.white},
       closeButton: {backgroundColor: Styles.globalColors.transparent},
       closeLabelStyle: {color: Styles.globalColors.white},
@@ -103,7 +108,7 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         top: -10,
       },
-      illustration: {paddingBottom: Styles.globalMargins.mediumLarge},
+      illustration: {marginTop: Styles.globalMargins.medium, paddingBottom: Styles.globalMargins.mediumLarge},
       labelStyle: {color: Styles.globalColors.purpleDark},
     } as const)
 )

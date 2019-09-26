@@ -326,7 +326,7 @@ const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInvi
   type: 'systemInviteAccepted',
 })
 
-const makeMessageSystemSBSResolved = I.Record<MessageTypes._MessageSystemSBSResolved>({
+export const makeMessageSystemSBSResolved = I.Record<MessageTypes._MessageSystemSBSResolved>({
   ...makeMessageCommonNoDeleteNoEdit,
   assertionService: '',
   assertionUsername: '',

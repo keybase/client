@@ -97,7 +97,7 @@ export default Container.connect(
   dispatch => ({
     _onForgotPassword: (username: string) =>
       flags.resetPipeline
-        ? dispatch(RecoverPasswordGen.createStartRecoverPassword({username: username}))
+        ? dispatch(RecoverPasswordGen.createStartRecoverPassword({username}))
         : dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
     onFeedback: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']})),
     onLogin: (username: string, password: string) =>

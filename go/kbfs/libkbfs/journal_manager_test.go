@@ -728,6 +728,9 @@ func TestJournalManagerMultiUser(t *testing.T) {
 }
 
 func TestJournalManagerEnableAuto(t *testing.T) {
+	delegateCtx, delegateCancel := context.WithCancel(context.Background())
+	defer delegateCancel()
+
 	tempdir, ctx, cancel, config, _, jManager := setupJournalManagerTest(t)
 	defer teardownJournalManagerTest(ctx, t, tempdir, cancel, config)
 
@@ -739,6 +742,16 @@ func TestJournalManagerEnableAuto(t *testing.T) {
 	require.Zero(t, status.JournalCount)
 	require.Len(t, tlfIDs, 0)
 
+	delegate := testBWDelegate{
+		t:          t,
+		testCtx:    delegateCtx,
+		stateCh:    make(chan bwState),
+		shutdownCh: make(chan struct{}, 1),
+	}
+	jManager.setDelegateMaker(func(_ tlf.ID) tlfJournalBWDelegate {
+		return delegate
+	})
+
 	blockServer := config.BlockServer()
 	h, err := tlfhandle.ParseHandle(
 		ctx, config.KBPKI(), config.MDOps(), nil, "test_user1", tlf.Private)
@@ -746,7 +759,13 @@ func TestJournalManagerEnableAuto(t *testing.T) {
 	id := h.ResolvedWriters()[0]
 	tlfID := h.TlfID()
 
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwIdle)
+
+	t.Log("Pause journal, and wait for it to pause")
 	jManager.PauseBackgroundWork(ctx, tlfID)
+	delegate.requireNextState(ctx, bwPaused)
 
 	bCtx := kbfsblock.MakeFirstContext(id, keybase1.BlockType_DATA)
 	data := []byte{1, 2, 3, 4}
