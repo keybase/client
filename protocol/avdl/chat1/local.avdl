@@ -1038,7 +1038,6 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  @timeout_msec(360000) // 1000 * 60 * 60 = 1h
   SearchRegexpRes searchRegexp(int sessionID, ConversationID convID, string query,
     SearchOpts opts, keybase1.TLFIdentifyBehavior identifyBehavior);
   void cancelActiveInboxSearch();
@@ -1050,7 +1049,6 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  @timeout_msec(360000) // 1000 * 60 * 60 = 1h
   SearchInboxRes searchInbox(int sessionID, string query,
     SearchOpts opts, boolean namesOnly, keybase1.TLFIdentifyBehavior identifyBehavior);
 
