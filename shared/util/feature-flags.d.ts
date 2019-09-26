@@ -16,6 +16,7 @@ export type FeatureFlags = {
   resetPipeline: boolean
   stellarExternalPartners: boolean
   lagRadar: boolean
+  whatsNew: boolean
   wonderland: boolean
 }
 

@@ -27,6 +27,7 @@ const ff: FeatureFlags = {
   proofProviders: true,
   resetPipeline: false,
   stellarExternalPartners: true,
+  whatsNew: false,
   wonderland: false,
 }
 
