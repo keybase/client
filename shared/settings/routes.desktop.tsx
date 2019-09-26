@@ -6,7 +6,6 @@ import * as Shim from '../router-v2/shim'
 import FsTab from './files/container'
 import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
-import DeleteMeTab from './delete/container'
 import InvitationsTab from './invites/container'
 import AccountTab from './account/container'
 import FeedbackTab from './feedback/container'
@@ -25,7 +24,6 @@ const settingsSubRoutes = {
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
-  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   // TODO connect broken
   [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
@@ -36,7 +34,6 @@ const settingsSubRoutes = {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,
   },
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
-  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
   removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
 }
@@ -81,6 +78,7 @@ export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   // TODO connect broken
   changePassword: {getScreen: (): typeof ChangePassword => require('./password/container').default},
+  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
