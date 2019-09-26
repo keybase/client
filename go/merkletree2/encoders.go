@@ -4,9 +4,7 @@ import (
 	"crypto/hmac"
 	cryptorand "crypto/rand"
 	"crypto/sha512"
-	"fmt"
 
-	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/go-codec/codec"
 )
 
@@ -112,59 +110,4 @@ func (e BlindedSHA512_256v1Encoder) ComputeKeySpecificSecret(ms MasterSecret, k 
 		panic("Error hashing")
 	}
 	return hasher.Sum(nil)
-}
-
-type SHA512_256Encoder struct{}
-
-var _ Encoder = SHA512_256Encoder{}
-
-func (e SHA512_256Encoder) Encode(o interface{}) ([]byte, error) {
-	return msgpack.EncodeCanonical(o)
-}
-
-func (e SHA512_256Encoder) Decode(dest interface{}, src []byte) error {
-	return msgpack.Decode(dest, src)
-}
-
-func (e SHA512_256Encoder) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
-	enc, err := e.Encode(o)
-	if err != nil {
-		return nil, nil, err
-	}
-	hasher := sha512.New512_256()
-	_, err = hasher.Write(enc)
-	if err != nil {
-		return nil, nil, err
-	}
-	return enc, hasher.Sum(nil), nil
-}
-
-func (e SHA512_256Encoder) HashKeyValuePairWithKeySpecificSecret(kvp KeyValuePair, kss KeySpecificSecret) (Hash, error) {
-	encVal, err := e.Encode(kvp.Value)
-	if err != nil {
-		return nil, err
-	}
-	return e.HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair{Key: kvp.Key, Value: encVal}, kss)
-}
-
-func (e SHA512_256Encoder) HashKeyEncodedValuePairWithKeySpecificSecret(kevp KeyEncodedValuePair, kss KeySpecificSecret) (Hash, error) {
-	// TODO this double encoding is unnecessary. Consider removing.
-	enc, err := e.Encode(kevp)
-	if err != nil {
-		return nil, err
-	}
-	hasher := sha512.New512_256()
-	_, err = hasher.Write(enc)
-	if err != nil {
-		return nil, err
-	}
-	return hasher.Sum(nil), nil
-}
-
-func (e SHA512_256Encoder) GenerateMasterSecret(_ Seqno) (MasterSecret, error) {
-	return nil, fmt.Errorf("This encoder does not support blinding")
-}
-
-func (e SHA512_256Encoder) ComputeKeySpecificSecret(_ MasterSecret, _ Key) KeySpecificSecret {
-	return nil
 }

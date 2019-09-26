@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/logger"
-
+	logger "github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -696,7 +695,5 @@ func (m MetaContext) Keyring() (ret *SKBKeyringFile, err error) {
 var _ logger.CtxAndLogger = MetaContext{}
 
 func (m MetaContext) UpdateContext(c context.Context) logger.CtxAndLogger {
-	mClone := m
-	mClone.ctx = c
-	return mClone
+	return m.WithContext(c)
 }
