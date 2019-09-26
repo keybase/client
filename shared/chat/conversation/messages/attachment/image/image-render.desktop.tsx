@@ -34,7 +34,7 @@ export class ImageRender extends React.Component<Props> {
         onLoadStart={this.props.onLoad}
         onLoadedMetadata={this.props.onLoadedVideo}
         controlsList="nodownload nofullscreen noremoteplayback"
-        style={collapseStyles([this.props.style, !this.props.loaded && {opacity: 0}])}
+        style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       >
         <source src={this.props.videoSrc} />
       </video>
@@ -43,7 +43,7 @@ export class ImageRender extends React.Component<Props> {
         onLoad={this.props.onLoad}
         draggable={false}
         src={this.props.src}
-        style={collapseStyles([this.props.style, !this.props.loaded && {opacity: 0}])}
+        style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       />
     )
   }
