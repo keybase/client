@@ -9,7 +9,7 @@ const Password = () => {
   const dispatch = Container.useDispatch()
   const error = Container.useSelector(s => s.recoverPassword.passwordError)
   const errErr = React.useMemo(() => new Error(error.stringValue()), [error])
-  const waiting = Container.useAnyWaiting(Constants.getPasswordWaitingKey)
+  const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
   const onSave = React.useCallback((pw: string) => {
     dispatch(RecoverPasswordGen.createSubmitPassword({password: new HiddenString(pw)}))
