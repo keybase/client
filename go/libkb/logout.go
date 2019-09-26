@@ -35,7 +35,7 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 		username, options)
 
 	if !options.Force && !options.KeepSecrets {
-		mctx.Debug("either not forcing logout or not keeping secrets, so check if we're allowed to log out")
+		mctx.Debug("force=%t; keepSecrets=%t, so check if we're allowed to log out", options.Force, options.KeepSecrets)
 		mctx.Debug("MetaContext#logoutWithSecretKill: checking if CanLogout")
 		canLogoutRes := CanLogout(mctx)
 		mctx.Debug("MetaContext#logoutWithSecretKill: CanLogout res: %#v", canLogoutRes)
@@ -95,9 +95,9 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 	return nil
 }
 
-func (m MetaContext) logoutSecretStore(username NormalizedUsername, keepSecrets bool) {
+func (mctx MetaContext) logoutSecretStore(username NormalizedUsername, keepSecrets bool) {
 
-	g := m.G()
+	g := mctx.G()
 	g.secretStoreMu.Lock()
 	defer g.secretStoreMu.Unlock()
 
@@ -110,8 +110,8 @@ func (m MetaContext) logoutSecretStore(username NormalizedUsername, keepSecrets 
 		return
 	}
 
-	if err := g.secretStore.ClearSecret(m, username); err != nil {
-		m.Debug("clear stored secret error: %s", err)
+	if err := g.secretStore.ClearSecret(mctx, username); err != nil {
+		mctx.Debug("clear stored secret error: %s", err)
 		return
 	}
 

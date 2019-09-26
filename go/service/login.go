@@ -35,7 +35,7 @@ func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err 
 }
 
 func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) error {
-	eng := engine.NewDeprovisionEngine(h.G(), arg.Username, arg.DoRevoke, arg.Force)
+	eng := engine.NewDeprovisionEngine(h.G(), arg.Username, arg.DoRevoke, libkb.LogoutOptions{KeepSecrets: false, Force: arg.Force})
 	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),

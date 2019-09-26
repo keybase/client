@@ -13,17 +13,17 @@ import (
 // use this engine.
 type DeprovisionEngine struct {
 	libkb.Contextified
-	username libkb.NormalizedUsername
-	doRevoke bool // requires being logged in already
-	force    bool
+	username      libkb.NormalizedUsername
+	doRevoke      bool // requires being logged in already
+	logoutOptions libkb.LogoutOptions
 }
 
-func NewDeprovisionEngine(g *libkb.GlobalContext, username string, doRevoke bool, force bool) *DeprovisionEngine {
+func NewDeprovisionEngine(g *libkb.GlobalContext, username string, doRevoke bool, logoutOptions libkb.LogoutOptions) *DeprovisionEngine {
 	return &DeprovisionEngine{
-		Contextified: libkb.NewContextified(g),
-		username:     libkb.NewNormalizedUsername(username),
-		doRevoke:     doRevoke,
-		force:        force,
+		Contextified:  libkb.NewContextified(g),
+		username:      libkb.NewNormalizedUsername(username),
+		doRevoke:      doRevoke,
+		logoutOptions: logoutOptions,
 	}
 }
 
@@ -84,7 +84,7 @@ func (e *DeprovisionEngine) attemptLoggedInRevoke(m libkb.MetaContext) error {
 	}
 
 	m.UIs().LogUI.Info("Logging out...")
-	if err = m.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: false, Force: e.force}); err != nil {
+	if err = m.LogoutWithOptions(e.logoutOptions); err != nil {
 		m.Debug("DeprovisionEngine error during logout: %s", err)
 		return err
 	}
