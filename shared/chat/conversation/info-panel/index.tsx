@@ -260,6 +260,19 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     let tabsSection = this._tabsSection()
     sections.push(this._headerSection())
     let itemSizeEstimator
+    if (!this.props.selectedConversationIDKey) {
+      // if we dont have a valid conversation ID, just render a spinner
+      return (
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
+          fullWidth={true}
+          centerChildren
+        >
+          <Kb.ProgressIndicator type="Large" />
+        </Kb.Box2>
+      )
+    }
     switch (this.props.selectedTab) {
       case 'settings':
         tabsSection.renderItem = () => {
