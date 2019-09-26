@@ -2513,7 +2513,7 @@ type ChatInboxUnverifiedArg struct {
 
 type ChatInboxConversationArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Conv      string `codec:"conv" json:"conv"`
+	Convs     string `codec:"convs" json:"convs"`
 }
 
 type ChatInboxFailedArg struct {

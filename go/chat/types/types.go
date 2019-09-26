@@ -603,3 +603,17 @@ func (d DummyBotCommandManager) Stop(ctx context.Context) chan struct{} {
 	close(ch)
 	return ch
 }
+
+type DummyUIInboxLoader struct{}
+
+func (d DummyUIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
+
+func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
+	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
+	return nil
+}
