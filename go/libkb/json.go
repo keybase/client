@@ -400,6 +400,10 @@ func getInt(w *jsonw.Wrapper) (interface{}, error) {
 	return w.GetInt()
 }
 
+func getFloat(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetFloat()
+}
+
 func (f *JSONFile) GetFilename() string {
 	return f.filename
 }
@@ -436,6 +440,16 @@ func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
 	i, isSet := f.getValueAtPath(p, getInt)
 	if isSet {
 		ret = i.(int)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetFloatAtPath(p string) (ret float64, isSet bool) {
+	f.setMutex.RLock()
+	defer f.setMutex.RUnlock()
+	v, isSet := f.getValueAtPath(p, getFloat)
+	if isSet {
+		ret = v.(float64)
 	}
 	return ret, isSet
 }
