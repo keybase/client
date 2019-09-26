@@ -4,7 +4,6 @@ import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
 import FsTab from './files/container'
 import WalletsTab from '../wallets/wallet/container'
-import DeleteMeTab from './delete/container'
 import FeedbackTab from './feedback/container'
 import InvitationsTab from './invites/container'
 import AccountTab from './account/container'
@@ -33,7 +32,6 @@ export const newRoutes = {
   [Constants.walletsTab]: {
     getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,
   },
-  [Constants.deleteMeTab]: {getScreen: (): typeof DeleteMeTab => require('./delete/container').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   // TODO connect broken
   [Constants.invitationsTab]: {
@@ -49,7 +47,6 @@ export const newRoutes = {
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
   dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
-  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
@@ -64,6 +61,7 @@ export const newRoutes = {
 export const newModalRoutes = {
   [Constants.logOutTab]: {getScreen: (): typeof LogOutTab => require('./logout/container').default},
   [Constants.passwordTab]: {getScreen: (): typeof PasswordTab => require('./password/container').default},
+  deleteConfirm: {getScreen: (): typeof DeleteConfirm => require('./delete-confirm/container').default},
   disableCertPinningModal: {
     getScreen: (): typeof DisableCertPinningModal =>
       require('./disable-cert-pinning-modal/container').default,
