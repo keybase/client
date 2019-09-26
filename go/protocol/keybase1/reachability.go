@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/reachability.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type Reachable int
@@ -115,19 +116,19 @@ type ReachabilityClient struct {
 
 func (c ReachabilityClient) ReachabilityChanged(ctx context.Context, reachability Reachability) (err error) {
 	__arg := ReachabilityChangedArg{Reachability: reachability}
-	err = c.Cli.Notify(ctx, "keybase.1.reachability.reachabilityChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.reachability.reachabilityChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 // Start reachability checks and return current status, which
 // may be cached.
 func (c ReachabilityClient) StartReachability(ctx context.Context) (res Reachability, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.reachability.startReachability", []interface{}{StartReachabilityArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.reachability.startReachability", []interface{}{StartReachabilityArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 // Performs a reachability check. This is not a cached response.
 func (c ReachabilityClient) CheckReachability(ctx context.Context) (res Reachability, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.reachability.checkReachability", []interface{}{CheckReachabilityArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.reachability.checkReachability", []interface{}{CheckReachabilityArg{}}, &res, 0*time.Millisecond)
 	return
 }

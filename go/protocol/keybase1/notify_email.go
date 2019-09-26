@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_email.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type EmailAddressVerifiedArg struct {
@@ -67,11 +68,11 @@ type NotifyEmailAddressClient struct {
 
 func (c NotifyEmailAddressClient) EmailAddressVerified(ctx context.Context, emailAddress EmailAddress) (err error) {
 	__arg := EmailAddressVerifiedArg{EmailAddress: emailAddress}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailAddressVerified", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailAddressVerified", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyEmailAddressClient) EmailsChanged(ctx context.Context, __arg EmailsChangedArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailsChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEmailAddress.emailsChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

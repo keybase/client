@@ -93,7 +93,7 @@ const _rowBox = {
 
 const ManageChannels = (props: Props) => {
   let channelDisplay
-  if (props.channels.length === 0 || props.waitingForGet) {
+  if (!props.isFiltered && (props.channels.length === 0 || props.waitingForGet)) {
     channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
   } else {
     channelDisplay = (
@@ -127,6 +127,17 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Kb.Text>
         {channelDisplay}
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchBox}>
+          <Kb.SearchFilter
+            size="full-width"
+            icon="iconfont-search"
+            placeholderText={`Search channels in ${props.teamname}`}
+            placeholderCentered={true}
+            mobileCancelButton={true}
+            hotkey="f"
+            onChange={props.onChangeSearch}
+          />
+        </Kb.Box2>
         <Kb.ScrollView style={{flex: 1, width: '100%'}}>
           {props.channels.map(c => (
             <Row
@@ -191,6 +202,11 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {marginRight: Styles.globalMargins.xtiny},
     isElectron: {display: 'block'},
   }),
+  searchBox: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
 }))
 
 export default ManageChannels

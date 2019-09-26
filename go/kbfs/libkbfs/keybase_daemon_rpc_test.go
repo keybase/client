@@ -69,11 +69,13 @@ type fakeKeybaseClient struct {
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
 
-func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{},
+	res interface{}, _ time.Duration) error {
 	return c.call(ctx, s, args, res)
 }
 
-func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{}, res interface{}, _ rpc.CompressionType) error {
+func (c *fakeKeybaseClient) CallCompressed(ctx context.Context, s string, args interface{},
+	res interface{}, _ rpc.CompressionType, _ time.Duration) error {
 	return c.call(ctx, s, args, res)
 }
 
@@ -150,7 +152,7 @@ func (c *fakeKeybaseClient) call(ctx context.Context, s string, args interface{}
 	}
 }
 
-func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}) error {
+func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}, timeout time.Duration) error {
 	return fmt.Errorf("Unknown notify: %s %v", s, args)
 }
 

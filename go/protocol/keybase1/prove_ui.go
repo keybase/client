@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/prove_ui.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type PromptOverwriteType int
@@ -284,47 +285,47 @@ type ProveUiClient struct {
 }
 
 func (c ProveUiClient) PromptOverwrite(ctx context.Context, __arg PromptOverwriteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptOverwrite", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) PromptUsername(ctx context.Context, __arg PromptUsernameArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.promptUsername", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) OutputPrechecks(ctx context.Context, __arg OutputPrechecksArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputPrechecks", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) PreProofWarning(ctx context.Context, __arg PreProofWarningArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.preProofWarning", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) OutputInstructions(ctx context.Context, __arg OutputInstructionsArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.outputInstructions", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) OkToCheck(ctx context.Context, __arg OkToCheckArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) Checking(ctx context.Context, __arg CheckingArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.checking", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.checking", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) ContinueChecking(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := ContinueCheckingArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.continueChecking", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.continueChecking", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveUiClient) DisplayRecheckWarning(ctx context.Context, __arg DisplayRecheckWarningArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.displayRecheckWarning", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

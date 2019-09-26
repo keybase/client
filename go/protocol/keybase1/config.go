@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/config.avdl
 
 package keybase1
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type CurrentStatus struct {
@@ -1401,36 +1402,36 @@ type ConfigClient struct {
 
 func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res CurrentStatus, err error) {
 	__arg := GetCurrentStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetClientStatus(ctx context.Context, sessionID int) (res []ClientStatus, err error) {
 	__arg := GetClientStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getClientStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getClientStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *FullStatus, err error) {
 	__arg := GetFullStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) LogSend(ctx context.Context, __arg LogSendArg) (res LogSendID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.logSend", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.logSend", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res AllProvisionedUsernames, err error) {
 	__arg := GetAllProvisionedUsernamesArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getAllProvisionedUsernames", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getAllProvisionedUsernames", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config, err error) {
 	__arg := GetConfigArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getConfig", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getConfig", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1438,125 +1439,125 @@ func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config,
 // For example, to update primary picture source:
 // key=picture.source, value=twitter (or github)
 func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetPath(ctx context.Context, __arg SetPathArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setPath", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.setPath", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err error) {
 	__arg := HelloIAmArg{Details: details}
-	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetValue(ctx context.Context, __arg SetValueArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) ClearValue(ctx context.Context, path string) (err error) {
 	__arg := ClearValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValue, err error) {
 	__arg := GetValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GuiSetValue(ctx context.Context, __arg GuiSetValueArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.guiSetValue", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.guiSetValue", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GuiClearValue(ctx context.Context, path string) (err error) {
 	__arg := GuiClearValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.guiClearValue", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.guiClearValue", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GuiGetValue(ctx context.Context, path string) (res ConfigValue, err error) {
 	__arg := GuiGetValueArg{Path: path}
-	err = c.Cli.Call(ctx, "keybase.1.config.guiGetValue", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.guiGetValue", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // Check whether the API server has told us we're out of date.
 func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res OutOfDateInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []interface{}{CheckAPIServerOutOfDateWarningArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []interface{}{CheckAPIServerOutOfDateWarningArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetUpdateInfo(ctx context.Context) (res UpdateInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []interface{}{GetUpdateInfoArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []interface{}{GetUpdateInfoArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 // Wait for client type to connect to service.
 func (c ConfigClient) WaitForClient(ctx context.Context, __arg WaitForClientArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.waitForClient", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.waitForClient", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (res BootstrapStatus, err error) {
 	__arg := GetBootstrapStatusArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getBootstrapStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getBootstrapStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) RequestFollowerInfo(ctx context.Context, uid UID) (err error) {
 	__arg := RequestFollowerInfoArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetRememberPassphrase(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := GetRememberPassphraseArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.getRememberPassphrase", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getRememberPassphrase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememberPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.setRememberPassphrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.setRememberPassphrase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
 // you are critically out of date.
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) SetProxyData(ctx context.Context, proxyData ProxyData) (err error) {
 	__arg := SetProxyDataArg{ProxyData: proxyData}
-	err = c.Cli.Call(ctx, "keybase.1.config.setProxyData", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.setProxyData", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) GetProxyData(ctx context.Context) (res ProxyData, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []interface{}{GetProxyDataArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.config.getProxyData", []interface{}{GetProxyDataArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) ToggleRuntimeStats(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []interface{}{ToggleRuntimeStatsArg{}}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.toggleRuntimeStats", []interface{}{ToggleRuntimeStatsArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err error) {
 	__arg := AppendGUILogsArg{Content: content}
-	err = c.Cli.Call(ctx, "keybase.1.config.appendGUILogs", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.config.appendGUILogs", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
