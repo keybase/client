@@ -4802,8 +4802,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "SearchRegexpRes",
-      "timeout_msec": 360000
+      "response": "SearchRegexpRes"
     },
     "cancelActiveInboxSearch": {
       "request": [],
@@ -4832,8 +4831,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "SearchInboxRes",
-      "timeout_msec": 360000
+      "response": "SearchInboxRes"
     },
     "cancelActiveSearch": {
       "request": [],

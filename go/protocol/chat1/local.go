@@ -7768,7 +7768,7 @@ func (c LocalClient) UpgradeKBFSConversationToImpteam(ctx context.Context, convI
 }
 
 func (c LocalClient) SearchRegexp(ctx context.Context, __arg SearchRegexpArg) (res SearchRegexpRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.searchRegexp", []interface{}{__arg}, &res, 360000*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.searchRegexp", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -7778,7 +7778,7 @@ func (c LocalClient) CancelActiveInboxSearch(ctx context.Context) (err error) {
 }
 
 func (c LocalClient) SearchInbox(ctx context.Context, __arg SearchInboxArg) (res SearchInboxRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.searchInbox", []interface{}{__arg}, &res, 360000*time.Millisecond)
+	err = c.Cli.Call(ctx, "chat.1.local.searchInbox", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
