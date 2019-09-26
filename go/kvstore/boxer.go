@@ -135,6 +135,9 @@ func (b *KVStoreRealBoxer) fetchEncryptionKey(mctx libkb.MetaContext, entryID ke
 		loadArg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{*generation}
 	}
 	teamLoadRes, err := mctx.G().GetFastTeamLoader().Load(mctx, loadArg)
+	if err != nil {
+		return res, err
+	}
 	if len(teamLoadRes.ApplicationKeys) != 1 {
 		return res, fmt.Errorf("wrong number of keys from fast-team-loading encryption key; wanted 1, got %d", len(teamLoadRes.ApplicationKeys))
 	}

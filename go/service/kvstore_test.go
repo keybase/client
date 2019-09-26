@@ -82,6 +82,18 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	getRes, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
 	require.Equal(t, updatedSecret, getRes.EntryValue)
+
+	// another user cannot see or edit this entry
+	tcEve := kvTestSetup(t)
+	defer tcEve.Cleanup()
+	_, err = kbtest.CreateAndSignupFakeUser("kvs", tcEve.G)
+	require.NoError(t, err)
+	eveHandler := NewKVStoreHandler(nil, tcEve.G)
+	getRes, err = eveHandler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, teams.PrecheckAppendError{}, err)
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
 }
 
 func TestKvStoreMultiUserTeam(t *testing.T) {
@@ -228,7 +240,8 @@ func TestRevisionCache(t *testing.T) {
 	// bump the revision in the cache and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
 	revCache = tc.G.GetKVRevisionCache()
-	revCache.PutCheck(mctx, entryID, entryHash, generation, 2)
+	err = revCache.PutCheck(mctx, entryID, entryHash, generation, 2)
+	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
 	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
@@ -237,7 +250,8 @@ func TestRevisionCache(t *testing.T) {
 	// bump the team key generation and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
 	revCache = tc.G.GetKVRevisionCache()
-	revCache.PutCheck(mctx, entryID, entryHash, keybase1.PerTeamKeyGeneration(2), revision)
+	err = revCache.PutCheck(mctx, entryID, entryHash, keybase1.PerTeamKeyGeneration(2), revision)
+	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
 	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
@@ -246,7 +260,8 @@ func TestRevisionCache(t *testing.T) {
 	// mutate the entry hash and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
 	revCache = tc.G.GetKVRevisionCache()
-	revCache.PutCheck(mctx, entryID, "this-is-wrong", generation, revision)
+	err = revCache.PutCheck(mctx, entryID, "this-is-wrong", generation, revision)
+	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
 	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
@@ -255,7 +270,8 @@ func TestRevisionCache(t *testing.T) {
 	// verify that it does not error with the right things in the cache
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
 	revCache = tc.G.GetKVRevisionCache()
-	revCache.PutCheck(mctx, entryID, entryHash, generation, revision)
+	err = revCache.PutCheck(mctx, entryID, entryHash, generation, revision)
+	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.NoError(t, err)
 }

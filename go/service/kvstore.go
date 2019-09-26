@@ -48,7 +48,11 @@ func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName s
 	if strings.Contains(userInputTeamName, ",") {
 		// it's an implicit team that might not exist yet
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false /*public*/)
-		return team.ID, err
+		if err != nil {
+			mctx.Debug("error loading implicit team %s: %v", userInputTeamName, err)
+			return teamID, err
+		}
+		return team.ID, nil
 	}
 	return teams.GetTeamIDByNameRPC(mctx, userInputTeamName)
 }
