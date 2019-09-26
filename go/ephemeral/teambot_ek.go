@@ -49,7 +49,7 @@ func (k *TeambotEphemeralKeyer) Type() keybase1.TeamEphemeralKeyType {
 
 func publishNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
 	teamEK keybase1.TeamEk, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeambotEkMetadata, err error) {
-	defer mctx.TraceTimed("publishNewTeambotEK", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("publishNewTeambotEK teamID: %v, botUID %v", teamID, botUID), func() error { return err })()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 		ID: teamID,
