@@ -61,7 +61,7 @@ const promptReset = (
     result: (reset: boolean) => void
   }
 ) => {
-  if (params.kind === RPCTypes.ResetPromptType.enterResetPw) {
+  if (params.prompt.t === RPCTypes.ResetPromptType.enterResetPw) {
     return Saga.callUntyped(function*() {
       yield Saga.put(
         RouteTreeGen.createNavigateAppend({
