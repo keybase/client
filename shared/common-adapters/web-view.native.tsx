@@ -24,7 +24,6 @@ const KBWebView = (props: WebViewProps) => {
   return (
     <NativeWebView
       allowsInlineMediaPlayback={true}
-      useWebKit={true}
       source={{uri: props.url}}
       injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
       style={props.style}

@@ -27,6 +27,7 @@ module.exports = {
     __STORYBOOK__: false,
     __STORYSHOT__: false,
   },
+  reportUnusedDisableDirectives: true,
   plugins: ['promise', 'react', 'filenames', 'import', 'react-hooks'],
   settings: {
     'import/core-modules': ['electron', 'react-native'],
