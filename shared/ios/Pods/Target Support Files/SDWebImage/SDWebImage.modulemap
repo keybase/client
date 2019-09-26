@@ -1,6 +1,0 @@
-module SDWebImage {
-  umbrella header "SDWebImage.h"
-
-  export *
-  module * { export * }
-}

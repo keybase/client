@@ -1,1 +1,0 @@
-../../../Target Support Files/React-jsinspector/React-jsinspector-umbrella.h

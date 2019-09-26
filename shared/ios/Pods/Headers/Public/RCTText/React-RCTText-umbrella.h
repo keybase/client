@@ -1,1 +1,0 @@
-../../../Target Support Files/React-RCTText/React-RCTText-umbrella.h

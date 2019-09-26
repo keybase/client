@@ -1,1 +1,0 @@
-../../../Target Support Files/react-native-geolocation/react-native-geolocation-umbrella.h

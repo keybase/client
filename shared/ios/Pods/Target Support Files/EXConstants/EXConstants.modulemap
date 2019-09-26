@@ -1,6 +1,0 @@
-module EXConstants {
-  umbrella header "EXConstants-umbrella.h"
-
-  export *
-  module * { export * }
-}

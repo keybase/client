@@ -1,6 +1,0 @@
-module RCTSettings {
-  umbrella header "React-RCTSettings-umbrella.h"
-
-  export *
-  module * { export * }
-}

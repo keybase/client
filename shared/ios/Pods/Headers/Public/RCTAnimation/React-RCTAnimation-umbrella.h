@@ -1,1 +1,0 @@
-../../../Target Support Files/React-RCTAnimation/React-RCTAnimation-umbrella.h

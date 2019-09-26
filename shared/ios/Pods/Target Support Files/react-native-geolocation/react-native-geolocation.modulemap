@@ -1,6 +1,0 @@
-module react_native_geolocation {
-  umbrella header "react-native-geolocation-umbrella.h"
-
-  export *
-  module * { export * }
-}

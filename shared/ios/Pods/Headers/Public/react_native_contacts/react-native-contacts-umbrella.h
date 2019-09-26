@@ -1,1 +1,0 @@
-../../../Target Support Files/react-native-contacts/react-native-contacts-umbrella.h
