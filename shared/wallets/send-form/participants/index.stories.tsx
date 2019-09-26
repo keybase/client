@@ -148,6 +148,7 @@ const keybaseUserProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onRemoveProfile: Sb.action('onRemoveProfile'),
   onScanQRCode: null,
+  onSearch: Sb.action('onSearch'),
   onShowProfile: Sb.action('onShowProfile'),
   onShowSuggestions: Sb.action('onShowSuggestions'),
   recipientUsername: '',

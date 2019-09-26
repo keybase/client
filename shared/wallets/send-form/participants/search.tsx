@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import ResultsList from '../../../search/results-list/container'
-import UserInput from '../../../search/user-input/container'
 import {ParticipantsRow} from '../../common'
 import {searchKey} from '../../../constants/wallets'
 
@@ -12,11 +11,11 @@ export type SearchProps = {
   onShowSuggestions: () => void
   onShowTracker: (username: string) => void
   onScanQRCode: (() => void) | null
+  onSearch: () => void
 }
 
 type SearchState = {
   displayResultsList: boolean
-  hideClearSearch: boolean
   searchText: string
 }
 
@@ -28,7 +27,6 @@ class Search extends React.Component<SearchProps, SearchState> {
   _row: ParticipantsRow | null = null
   state = {
     displayResultsList: false,
-    hideClearSearch: true,
     searchText: '',
   }
 
@@ -39,18 +37,16 @@ class Search extends React.Component<SearchProps, SearchState> {
   onFocus = () => {
     this.setState({
       displayResultsList: true,
-      hideClearSearch: false,
     })
   }
 
   onChangeSearchText = (text: string) => {
     if (text) {
-      this.setState({hideClearSearch: true})
     }
     this.setState({searchText: text})
   }
 
-  closeResultsList = () => this.setState({displayResultsList: false, hideClearSearch: true})
+  closeResultsList = () => this.setState({displayResultsList: false})
 
   _onScanQRCode = () => {
     this.closeResultsList()
@@ -70,17 +66,7 @@ class Search extends React.Component<SearchProps, SearchState> {
           headingStyle={styles.rowHeading}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            <UserInput
-              disableListBuilding={true}
-              onExitSearch={this.closeResultsList}
-              onFocus={this.onFocus}
-              onChangeSearchText={this.onChangeSearchText}
-              placeholder={placeholder}
-              searchKey={searchKey}
-              hideClearSearch={this.state.hideClearSearch}
-              showServiceFilter={false}
-              style={styles.input}
-            />
+            <Kb.PlainInput placeholder={placeholder} style={styles.input} onFocus={this.props.onSearch} />
             {!this.state.searchText && this.props.onScanQRCode && (
               <Kb.Icon
                 color={Styles.globalColors.black_50}
@@ -130,6 +116,7 @@ const styles = Styles.styleSheetCreate(
         borderBottomWidth: 0,
         borderWidth: 0,
         flexGrow: 1,
+        marginLeft: Styles.globalMargins.xtiny,
         paddingLeft: 0,
       },
       list: {
