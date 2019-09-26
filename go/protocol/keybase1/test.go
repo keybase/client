@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/test.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 // Result from calling test(..).
@@ -106,20 +107,20 @@ type TestClient struct {
 // Will trigger the testCallback method, whose result will be set in the
 // returned Test object, reply property.
 func (c TestClient) Test(ctx context.Context, __arg TestArg) (res Test, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.test.test", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.test.test", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // This is a service callback triggered from test(..).
 // The name param is what was passed into test.
 func (c TestClient) TestCallback(ctx context.Context, __arg TestCallbackArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.test.testCallback", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.test.testCallback", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // For testing crashes.
 func (c TestClient) Panic(ctx context.Context, message string) (err error) {
 	__arg := PanicArg{Message: message}
-	err = c.Cli.Call(ctx, "keybase.1.test.panic", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.test.panic", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

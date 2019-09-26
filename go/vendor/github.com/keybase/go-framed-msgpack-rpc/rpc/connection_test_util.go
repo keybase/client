@@ -92,6 +92,10 @@ type testErrorUnwrapper struct{}
 
 var _ ErrorUnwrapper = testErrorUnwrapper{}
 
+func (eu testErrorUnwrapper) Timeout() time.Duration {
+	return 0
+}
+
 func (eu testErrorUnwrapper) MakeArg() interface{} {
 	return &testStatus{}
 }

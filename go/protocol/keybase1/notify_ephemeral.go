@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_ephemeral.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type NewTeamEkArg struct {
@@ -88,16 +89,16 @@ type NotifyEphemeralClient struct {
 }
 
 func (c NotifyEphemeralClient) NewTeamEk(ctx context.Context, __arg NewTeamEkArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyEphemeral.newTeamEk", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyEphemeral.newTeamEk", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyEphemeralClient) NewTeambotEk(ctx context.Context, __arg NewTeambotEkArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.newTeambotEk", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.newTeambotEk", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyEphemeralClient) TeambotEkNeeded(ctx context.Context, __arg TeambotEkNeededArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.teambotEkNeeded", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyEphemeral.teambotEkNeeded", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

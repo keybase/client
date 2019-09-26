@@ -762,6 +762,10 @@
     "toggleGiphyPrefill": {
       "_description": "Toggle /giphy text to trigger preview window",
       "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "setChannelSearchText": {
+      "_description": "Set filter for channel search",
+      "text": "string"
     }
   }
 }
