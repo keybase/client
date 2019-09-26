@@ -11,10 +11,6 @@ export function tmpFile(suffix: string): string {
   return `${tmpDir()}/${suffix}`
 }
 
-export function downloadFilePathNoSearch(filename: string): string {
-  return `${tmpDir()}/${filename}`
-}
-
 export function downloadFilePath(suffix: string): Promise<string> {
   return findAvailableFilename(exists, `${tmpDir()}/${suffix}`)
 }

@@ -21,6 +21,10 @@ func (n nullChatUI) ChatCommandStatus(context.Context, chat1.ConversationID, str
 	return nil
 }
 
+func (n nullChatUI) ChatCommandMarkdown(context.Context, chat1.ConversationID, *chat1.UICommandMarkdown) error {
+	return nil
+}
+
 type baseCommand struct {
 	globals.Contextified
 	utils.DebugLabeler

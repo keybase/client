@@ -86,17 +86,22 @@ function getPathType(openPath: string): Promise<pathType> {
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
 const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean): Promise<void> =>
-  new Promise((resolve, reject) =>
-    isFolder
-      ? isWindows
-        ? SafeElectron.getShell().openItem(openPath)
-          ? resolve()
-          : reject(new Error('unable to open item'))
-        : openInDefaultDirectory(openPath).then(resolve, reject)
-      : SafeElectron.getShell().showItemInFolder(openPath)
-      ? resolve()
-      : reject(new Error('unable to open item in folder'))
-  )
+  new Promise((resolve, reject) => {
+    if (isFolder) {
+      if (isWindows) {
+        if (SafeElectron.getShell().openItem(openPath)) {
+          resolve()
+        } else {
+          reject(new Error('unable to open item'))
+        }
+      } else {
+        openInDefaultDirectory(openPath).then(resolve, reject)
+      }
+    } else {
+      SafeElectron.getShell().showItemInFolder(openPath)
+      resolve()
+    }
+  })
 
 const openLocalPathInSystemFileManager = async (
   _: TypedState,
@@ -259,16 +264,15 @@ const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload
 
 const uninstallKBFSConfirm = async () => {
   const action = await new Promise<TypedActions | false>(resolve =>
-    SafeElectron.getDialog().showMessageBox(
-      {
+    SafeElectron.getDialog()
+      .showMessageBox({
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
         message: `Remove Keybase from ${fileUIName}`,
         type: 'question',
-      },
+      })
       // resp is the index of the button that's clicked
-      resp => (resp === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false))
-    )
+      .then(({response}) => (response === 0 ? resolve(FsGen.createDriverDisabling()) : resolve(false)))
   )
   return action
 }
@@ -286,16 +290,15 @@ const uninstallDokanConfirm = async (state: TypedState) => {
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve =>
-      SafeElectron.getDialog().showMessageBox(
-        {
+      SafeElectron.getDialog()
+        .showMessageBox({
           buttons: ['Got it'],
           detail:
             'We looked everywhere but did not find a Dokan uninstaller. Please remove it from the Control Panel.',
           message: 'Please uninstall Dokan from the Control Panel.',
           type: 'info',
-        },
-        () => resolve(FsGen.createRefreshDriverStatus())
-      )
+        })
+        .then(() => resolve(FsGen.createRefreshDriverStatus()))
     )
     return action
   }

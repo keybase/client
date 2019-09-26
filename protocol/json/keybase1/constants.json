@@ -47,6 +47,7 @@
         "SCEmailLimitExceeded_715",
         "SCEmailCannotDeletePrimary_716",
         "SCEmailUnknown_717",
+        "SCBotSignupTokenNotFound_719",
         "SCMissingResult_801",
         "SCKeyNotFound_901",
         "SCKeyCorrupted_905",

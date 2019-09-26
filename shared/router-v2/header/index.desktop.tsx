@@ -150,10 +150,11 @@ class Header extends React.PureComponent<Props> {
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
     // out, in which case there's no nav bar and they overlap. So, if we're on Mac, and logged out,
     // push the back arrow down below the system icons.
-    const backArrowStyle = {
-      ...(this.props.allowBack ? styles.icon : styles.disabledIcon),
-      ...(!this.props.loggedIn && Platform.isDarwin ? {position: 'relative', top: 30} : {}),
-    }
+    const iconContainerStyle = Styles.collapseStyles([
+      styles.iconContainer,
+      !this.props.allowBack && styles.iconContainerInactive,
+      !this.props.loggedIn && Platform.isDarwin && styles.iconContainerDarwin,
+    ])
     const iconColor =
       opt.headerBackIconColor ||
       (this.props.allowBack
@@ -187,12 +188,20 @@ class Header extends React.PureComponent<Props> {
           >
             {/* TODO have headerLeft be the back button */}
             {opt.headerLeft !== null && (
-              <Kb.Icon
-                type="iconfont-arrow-left"
-                style={backArrowStyle}
-                color={iconColor}
+              <Kb.Box
+                className={Styles.classNames('hover_container', {
+                  hover_background_color_black_10: this.props.allowBack,
+                })}
                 onClick={this.props.allowBack ? this.props.onPop : null}
-              />
+                style={iconContainerStyle}
+              >
+                <Kb.Icon
+                  type="iconfont-arrow-left"
+                  color={iconColor}
+                  className={Styles.classNames({hover_contained_color_black: this.props.allowBack})}
+                  boxStyle={styles.icon}
+                />
+              </Kb.Box>
             )}
             <Kb.Box2 direction="horizontal" style={styles.topRightContainer}>
               {flags.kbfsOfflineMode && (
@@ -253,13 +262,6 @@ const styles = Styles.styleSheetCreate(
       bottom: {height: 40 - 1, maxHeight: 40 - 1}, // for border
       bottomExpandable: {minHeight: 40 - 1},
       bottomTitle: {flexGrow: 1, height: '100%', maxHeight: '100%', overflow: 'hidden'},
-      disabledIcon: Styles.platformStyles({
-        isElectron: {
-          cursor: 'default',
-          marginRight: 6,
-          padding: Styles.globalMargins.xtiny,
-        },
-      }),
       flexOne: {
         flex: 1,
       },
@@ -284,9 +286,32 @@ const styles = Styles.styleSheetCreate(
       }),
       icon: Styles.platformStyles({
         isElectron: {
+          display: 'inline-block',
+          height: 14,
+          width: 14,
+        },
+      }),
+      iconContainer: Styles.platformStyles({
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
           ...Styles.desktopStyles.windowDraggingClickable,
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          borderRadius: Styles.borderRadius,
+          marginLeft: 4,
           marginRight: 6,
           padding: Styles.globalMargins.xtiny,
+        },
+      }),
+      iconContainerDarwin: Styles.platformStyles({
+        isElectron: {
+          position: 'relative',
+          top: 30,
+        },
+      }),
+      iconContainerInactive: Styles.platformStyles({
+        isElectron: {
+          cursor: 'default',
         },
       }),
       plainContainer: {

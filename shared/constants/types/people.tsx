@@ -1,5 +1,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
+import * as TeamBuildingTypes from './team-building'
+
 import {IconType} from '../../common-adapters/icon.constants-gen'
 
 export type ItemTypeEnum = RPCTypes.HomeScreenItemType
@@ -81,6 +83,7 @@ export type _State = {
   oldItems: I.List<PeopleScreenItem>
   followSuggestions: I.List<FollowSuggestion>
   resentEmail: string
+  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
 }
 
 export type State = I.RecordOf<_State>

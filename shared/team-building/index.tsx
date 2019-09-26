@@ -320,7 +320,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   )
 
   _listBody = () => {
-    const showRecPending = !this.props.searchString && !this.props.recommendations
+    const showRecPending =
+      !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
     const showLoading = !!this.props.searchString && !this.props.searchResults
     if (showRecPending || showLoading) {
       return (
@@ -453,7 +454,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   render() {
     const props = this.props
 
-    let content
+    let content: React.ReactNode
     switch (props.selectedService) {
       case 'email':
         content = (
@@ -504,7 +505,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       />
     )
 
-    // Handle when team-buiding is making a new chat v.s. adding members to a team.
+    // Handle when team-building is making a new chat v.s. adding members to a team.
     const chatHeader = props.rolePickerProps ? (
       <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
         <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
@@ -635,9 +636,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {overflow: 'hidden'},
       }),
       listContentContainer: Styles.platformStyles({
-        isMobile: {
-          paddingTop: Styles.globalMargins.xtiny,
-        },
+        isMobile: {paddingTop: Styles.globalMargins.xtiny},
       }),
       loadingContainer: {
         flex: 1,

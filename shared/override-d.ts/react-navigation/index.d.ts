@@ -419,6 +419,11 @@ declare module 'react-navigation' {
     headerBackTitleVisible?: boolean
     headerTransitionPreset?: 'fade-in-place' | 'uikit'
     headerLayoutPreset?: 'left' | 'center'
+    // Marco made this. Only show the background while transitioning.
+    // Only works on stack navigator
+    // Future versions of react-navigation will use reanimated, so we can define
+    // the background color as an animated value. And remove this value.
+    bgOnlyDuringTransition?: boolean
     cardShadowEnabled?: boolean
     cardOverlayEnabled?: boolean
     cardStyle?: StyleProp<ViewStyle>

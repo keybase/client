@@ -39,6 +39,7 @@ type OwnProps = {
   changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
   showServiceResultCount: boolean
+  title: string
 }
 
 type LocalState = {
@@ -399,27 +400,30 @@ export const sortAndSplitRecommendations = memoize(
       if (rec.prettyName || rec.displayLabel) {
         // Use the first letter of the name we will display, but first normalize out
         // any diacritics.
-        const letter = unidecode(rec.prettyName || rec.displayLabel)[0].toLowerCase()
-        if (isAlpha(letter)) {
-          // offset 1 to skip recommendations
-          const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
-          if (!sections[sectionIdx]) {
-            sections[sectionIdx] = {
-              data: [],
-              label: letter.toUpperCase(),
-              shortcut: true,
+        const decodedLetter = unidecode(rec.prettyName || rec.displayLabel)
+        if (decodedLetter && decodedLetter[0]) {
+          const letter = decodedLetter[0].toLowerCase()
+          if (isAlpha(letter)) {
+            // offset 1 to skip recommendations
+            const sectionIdx = letterToAlphaIndex(letter) + recSectionIdx + 1
+            if (!sections[sectionIdx]) {
+              sections[sectionIdx] = {
+                data: [],
+                label: letter.toUpperCase(),
+                shortcut: true,
+              }
             }
-          }
-          sections[sectionIdx].data.push(rec)
-        } else {
-          if (!sections[numSectionIdx]) {
-            sections[numSectionIdx] = {
-              data: [],
-              label: numSectionLabel,
-              shortcut: true,
+            sections[sectionIdx].data.push(rec)
+          } else {
+            if (!sections[numSectionIdx]) {
+              sections[numSectionIdx] = {
+                data: [],
+                label: numSectionLabel,
+                shortcut: true,
+              }
             }
+            sections[numSectionIdx].data.push(rec)
           }
-          sections[numSectionIdx].data.push(rec)
         }
       }
     })
@@ -541,7 +545,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = rolePickerProps ? `Add to ${ownProps.teamname}` : 'New chat'
+  const title = ownProps.title
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
@@ -631,7 +635,11 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
   Container.isMobile ? HeaderHoc : PopupDialogHoc
 )(TeamBuilding)
 
-type RealOwnProps = Container.RouteProps<{namespace: Types.AllowedNamespace; teamname?: string}>
+type RealOwnProps = Container.RouteProps<{
+  namespace: Types.AllowedNamespace
+  teamname?: string
+  title: string
+}>
 
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
@@ -679,6 +687,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         showServiceResultCount={false}
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
+        title={Container.getRouteProps(this.props, 'title', '')}
       />
     )
   }
