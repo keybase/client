@@ -416,7 +416,7 @@ func (l *LoaderPackage) CheckUpdatesAgainstSeedsWithMap(mctx libkb.MetaContext, 
 // recent keyers knew the old keys.
 func (l *LoaderPackage) CheckUpdatesAgainstSeeds(mctx libkb.MetaContext, f func(keybase1.PerTeamKeyGeneration) *keybase1.PerTeamSeedCheck) (err error) {
 	defer mctx.Trace("LoaderPackage#CheckUpdatesAgainstSeeds", func() error { return err })()
-	// BOTs are excluded since they do not have any seed access
+	// RESTRICTEDBOTs are excluded since they do not have any seed access
 	if l.newData == nil || l.role.IsRestrictedBot() {
 		return nil
 	}
@@ -462,7 +462,7 @@ func (l *LoaderPackage) MaxRatchet() (ret keybase1.Seqno) {
 // HasReaderPerTeamKeyAtGeneration returns true if the LoaderPackage has a sigchain entry for
 // the PTK at the given generation. Whether in the preloaded data or the update.
 func (l *LoaderPackage) HasReaderPerTeamKeyAtGeneration(gen keybase1.PerTeamKeyGeneration) bool {
-	// BOTs are excluded since they do not have any PTK access
+	// RESTRICTEDBOTs are excluded since they do not have any PTK access
 	if l.data == nil || l.role.IsRestrictedBot() {
 		return false
 	}
@@ -489,7 +489,7 @@ func (l *LoaderPackage) ChainData() *keybase1.HiddenTeamChain {
 // MaxReaderTeamKeyGeneration returns the highest Reader PTK generation from the preloaded and hidden
 // data.
 func (l *LoaderPackage) MaxReaderPerTeamKeyGeneration() keybase1.PerTeamKeyGeneration {
-	// BOTs are excluded since they do not have any PTK access
+	// RESTRICTEDBOTs are excluded since they do not have any PTK access
 	if l.data == nil || l.role.IsRestrictedBot() {
 		return keybase1.PerTeamKeyGeneration(0)
 	}

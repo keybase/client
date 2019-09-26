@@ -732,7 +732,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if err != nil {
 		return nil, err
 	}
-	// update the hidden package once ret != nil
+	// Update the hidden package with team metadata once we process all of the
+	// links. This is necessary since we need the role to be up to date to know
+	// if we should skip seed checks on the hidden chain if we are loading as a
+	// RESTRICTEDBOT.
 	hiddenPackage.UpdateTeamMetadata(encKID, gen, role)
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
