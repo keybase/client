@@ -451,6 +451,7 @@ func (d *Service) startChatModules() {
 		g.TeamMentionLoader.Start(context.Background(), uid)
 		g.LiveLocationTracker.Start(context.Background(), uid)
 		g.BotCommandManager.Start(context.Background(), uid)
+		g.UIInboxLoader.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -466,6 +467,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) error {
 	<-d.ChatG().TeamMentionLoader.Stop(m.Ctx())
 	<-d.ChatG().LiveLocationTracker.Stop(m.Ctx())
 	<-d.ChatG().BotCommandManager.Stop(m.Ctx())
+	<-d.ChatG().UIInboxLoader.Stop(m.Ctx())
 	return nil
 }
 
@@ -540,6 +542,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri)
+	g.UIInboxLoader = chat.NewUIInboxLoader(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

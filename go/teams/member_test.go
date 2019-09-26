@@ -159,6 +159,11 @@ func TestMemberAddBot(t *testing.T) {
 	tc, _, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
+	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+	require.NoError(t, err)
+
 	assertRole(tc, name, otherA.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, name, otherB.Username, keybase1.TeamRole_NONE)
 
@@ -186,7 +191,7 @@ func TestMemberAddBot(t *testing.T) {
 	assertRole(tc, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	// make sure the bot settings links are present
-	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:        name,
 		ForceRepoll: true,
 	})

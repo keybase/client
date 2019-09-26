@@ -19,6 +19,7 @@ const _windowOpts = {}
 type Props = {
   desktopAppBadgeCount: number
   externalRemoteWindow: SafeElectron.BrowserWindowType
+  remoteWindowNeedsProps: number
   widgetBadge: BadgeType
   windowComponent: string
   windowOpts?: Object
@@ -76,7 +77,8 @@ function RemoteMenubarWindow(ComposedComponent: any) {
     componentDidUpdate(prevProps: Props) {
       if (
         this.props.widgetBadge !== prevProps.widgetBadge ||
-        this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount
+        this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount ||
+        this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps
       ) {
         this._updateBadges()
       }

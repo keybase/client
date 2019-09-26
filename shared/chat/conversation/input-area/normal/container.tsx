@@ -132,6 +132,8 @@ export default namedConnect(
           text: new HiddenString(body),
         })
       ),
+    _onGiphyToggle: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createToggleGiphyPrefill({conversationIDKey})),
     _onPostMessage: (
       conversationIDKey: Types.ConversationIDKey,
       text: string,
@@ -190,6 +192,7 @@ export default namedConnect(
     onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
     onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
     onFilePickerError: dispatchProps.onFilePickerError,
+    onGiphyToggle: () => dispatchProps._onGiphyToggle(stateProps.conversationIDKey),
     onRequestScrollDown: ownProps.onRequestScrollDown,
     onRequestScrollUp: ownProps.onRequestScrollUp,
 
