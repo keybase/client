@@ -103,72 +103,75 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               >
                 {!!this.props.path && (
                   <Kb.Box2 direction="vertical" alignItems="center">
-                    <ImageRender
-                      ref={ref => {
-                        this.imageRef = ref
+                    <Kb.Box2
+                      direction="vertical"
+                      alignItems="center"
+                      style={{
+                        height: this.props.height,
+                        margin: 3,
+                        overflow: 'hidden',
+                        width: this.props.width,
                       }}
-                      src={this.props.path}
-                      videoSrc={this.props.fullPath}
-                      onLoad={this._setLoaded}
-                      onLoadedVideo={this._setVideoLoaded}
-                      loaded={this.state.loaded}
-                      inlineVideoPlayable={this.props.inlineVideoPlayable}
-                      height={this.props.height}
-                      width={this.props.width}
-                      style={Styles.collapseStyles([
-                        styles.image,
-                        {
-                          backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
-                          height: this.props.height,
-                          width: this.props.width,
-                        },
-                      ])}
-                    />
-                    {!this.state.playingVideo && (
-                      <Kb.Box
+                    >
+                      <ImageRender
+                        ref={ref => {
+                          this.imageRef = ref
+                        }}
+                        src={this.props.path}
+                        videoSrc={this.props.fullPath}
+                        onLoad={this._setLoaded}
+                        onLoadedVideo={this._setVideoLoaded}
+                        loaded={this.state.loaded}
+                        inlineVideoPlayable={this.props.inlineVideoPlayable}
+                        height={this.props.height}
+                        width={this.props.width}
                         style={Styles.collapseStyles([
-                          styles.absoluteContainer,
+                          styles.image,
                           {
+                            backgroundColor: this.state.loaded ? undefined : Styles.globalColors.fastBlank,
                             height: this.props.height,
                             width: this.props.width,
                           },
                         ])}
-                      >
-                        {!!this.props.showButton && (
-                          <Kb.Icon
-                            type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                            style={Kb.iconCastPlatformStyles(styles.playButton)}
-                          />
-                        )}
-                        {this.props.videoDuration.length > 0 && this.state.loaded && (
-                          <Kb.Box style={styles.durationContainer}>
-                            <Kb.Text type="BodyTinyBold" style={styles.durationText}>
-                              {this.props.videoDuration}
-                            </Kb.Text>
-                          </Kb.Box>
-                        )}
-                        {!!this.props.arrowColor && (
-                          <Kb.Box style={styles.downloadedIconWrapper}>
+                      />
+                      {!this.state.playingVideo && (
+                        <Kb.Box
+                          style={Styles.collapseStyles([
+                            styles.absoluteContainer,
+                            {
+                              height: this.props.height,
+                              width: this.props.width,
+                            },
+                          ])}
+                        >
+                          {!!this.props.showButton && (
                             <Kb.Icon
-                              type="iconfont-download"
-                              style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
-                              color={this.props.arrowColor}
+                              type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                              style={Kb.iconCastPlatformStyles(styles.playButton)}
                             />
-                          </Kb.Box>
-                        )}
-                        {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
-                      </Kb.Box>
-                    )}
+                          )}
+                          {this.props.videoDuration.length > 0 && this.state.loaded && (
+                            <Kb.Box style={styles.durationContainer}>
+                              <Kb.Text type="BodyTinyBold" style={styles.durationText}>
+                                {this.props.videoDuration}
+                              </Kb.Text>
+                            </Kb.Box>
+                          )}
+                          {!!this.props.arrowColor && (
+                            <Kb.Box style={styles.downloadedIconWrapper}>
+                              <Kb.Icon
+                                type="iconfont-download"
+                                style={Kb.iconCastPlatformStyles(styles.downloadIcon)}
+                                color={this.props.arrowColor}
+                              />
+                            </Kb.Box>
+                          )}
+                          {!this.state.loaded && <Kb.ProgressIndicator style={styles.progress} />}
+                        </Kb.Box>
+                      )}
+                    </Kb.Box2>
                     {this.props.title.length > 0 && (
-                      <Kb.Text
-                        type="Body"
-                        style={Styles.collapseStyles([
-                          styles.title,
-                          {
-                            marginTop: !this.state.loaded && !isMobile ? this.props.height : undefined,
-                          },
-                        ])}
-                      >
+                      <Kb.Text type="Body" style={Styles.collapseStyles([styles.title])}>
                         {this.props.title}
                       </Kb.Text>
                     )}
