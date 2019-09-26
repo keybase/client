@@ -310,6 +310,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PassphraseState",
+      "symbols": [
+        "KNOWN_0",
+        "RANDOM_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "CanLogoutRes",
       "fields": [
@@ -322,8 +330,8 @@
           "name": "reason"
         },
         {
-          "type": "boolean",
-          "name": "setPassphrase"
+          "type": "PassphraseState",
+          "name": "passphraseState"
         }
       ]
     }
@@ -664,23 +672,6 @@
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
     },
-    "loadHasRandomPw": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
-        },
-        {
-          "name": "noShortTimeout",
-          "type": "boolean"
-        }
-      ],
-      "response": "boolean"
-    },
     "canLogout": {
       "request": [
         {
@@ -689,6 +680,19 @@
         }
       ],
       "response": "CanLogoutRes"
+    },
+    "loadPassphraseState": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        }
+      ],
+      "response": "PassphraseState"
     },
     "userCard": {
       "request": [

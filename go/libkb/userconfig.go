@@ -24,10 +24,11 @@ func NewNormalizedUsername(s string) NormalizedUsername {
 //==================================================================
 
 type UserConfig struct {
-	ID     string             `json:"id"`
-	Name   NormalizedUsername `json:"name"`
-	Salt   string             `json:"salt"`
-	Device *string            `json:"device"`
+	ID              string                    `json:"id"`
+	Name            NormalizedUsername        `json:"name"`
+	Salt            string                    `json:"salt"`
+	Device          *string                   `json:"device"`
+	PassphraseState *keybase1.PassphraseState `json:"passphrase_state,omitempty"`
 
 	importedID       keybase1.UID
 	importedSalt     []byte
@@ -38,10 +39,11 @@ type UserConfig struct {
 
 //==================================================================
 
-func (u UserConfig) GetUID() keybase1.UID            { return u.importedID }
-func (u UserConfig) GetUsername() NormalizedUsername { return u.Name }
-func (u UserConfig) GetDeviceID() keybase1.DeviceID  { return u.importedDeviceID }
-func (u UserConfig) IsOneshot() bool                 { return u.isOneshot }
+func (u UserConfig) GetUID() keybase1.UID                          { return u.importedID }
+func (u UserConfig) GetUsername() NormalizedUsername               { return u.Name }
+func (u UserConfig) GetDeviceID() keybase1.DeviceID                { return u.importedDeviceID }
+func (u UserConfig) GetPassphraseState() *keybase1.PassphraseState { return u.PassphraseState }
+func (u UserConfig) IsOneshot() bool                               { return u.isOneshot }
 
 //==================================================================
 
@@ -114,6 +116,12 @@ func (u *UserConfig) SetDevice(d keybase1.DeviceID) {
 		s = &tmp
 	}
 	u.Device = s
+}
+
+//==================================================================
+
+func (u *UserConfig) SetPassphraseState(passphraseState keybase1.PassphraseState) {
+	u.PassphraseState = &passphraseState
 }
 
 //==================================================================

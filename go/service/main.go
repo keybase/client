@@ -19,7 +19,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/backoff"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/badges"
@@ -385,7 +384,9 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
+	d.G().Log.Warning("RunBackgroundOperations: starting")
 	ctx := context.Background()
+	setupRandomPwPrefetcher(d.G())
 	d.tryLogin(ctx, loginAttemptOnline)
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
@@ -408,7 +409,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runHomePoller(ctx)
 	d.runMerkleAudit(ctx)
 	go d.identifySelf()
-	setupRandomPwPrefetcher(d.G())
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
@@ -1509,73 +1509,8 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	return nil
 }
 
-// hasRandomPWPrefetcher implements LoginHook and LogoutHook interfaces and is
-// used to ensure that we know current user's NOPW status.
-type hasRandomPWPrefetcher struct {
-	// cancel func for randompw prefetching context, if currently active.
-	hasRPWCancelFn context.CancelFunc
-}
-
-func (d *hasRandomPWPrefetcher) prefetchHasRandomPW(g *libkb.GlobalContext, uid keybase1.UID) {
-	ctx, cancel := context.WithCancel(context.Background())
-	d.hasRPWCancelFn = cancel
-
-	mctx := libkb.NewMetaContext(ctx, g).WithLogTag("P_HASRPW")
-	go func() {
-		defer func() { d.hasRPWCancelFn = nil }()
-		mctx.Debug("prefetchHasRandomPW: starting prefetch after two seconds")
-		select {
-		case <-time.After(2 * time.Second):
-		case <-ctx.Done():
-			mctx.Debug("prefetchHasRandomPW: return before starting: %v", ctx.Err())
-			return
-		}
-		err := backoff.RetryNotifyWithContext(ctx, func() error {
-			mctx.Debug("prefetchHasRandomPW: trying for uid=%q", uid)
-			if !mctx.CurrentUID().Equal(uid) {
-				// Do not return an error, so backoff does not retry.
-				mctx.Debug("prefetchHasRandomPW: current uid has changed, aborting")
-				return nil
-			}
-
-			// We don't want to force repoll if there's cache, but we can also
-			// wait longer than few seconds.
-			arg := keybase1.LoadHasRandomPwArg{
-				ForceRepoll:    false,
-				NoShortTimeout: true,
-			}
-			randomPW, err := libkb.LoadHasRandomPw(mctx, arg)
-			if err != nil {
-				mctx.Debug("Prefetching HasRandomPW failed: %s", err)
-				return err
-			}
-
-			mctx.Debug("Prefetching HasRandomPW, result is HasRandomPW=%t", randomPW)
-			return nil
-		}, backoff.NewExponentialBackOff(), nil)
-		mctx.Debug("prefetchHasRandomPW: backoff loop returned: %v", err)
-	}()
-}
-
-func (d *hasRandomPWPrefetcher) OnLogin(mctx libkb.MetaContext) error {
-	g := mctx.G()
-	uid := g.GetEnv().GetUID()
-	if !uid.IsNil() {
-		d.prefetchHasRandomPW(g, uid)
-	}
-	return nil
-}
-
-func (d *hasRandomPWPrefetcher) OnLogout(mctx libkb.MetaContext) error {
-	if d.hasRPWCancelFn != nil {
-		mctx.Debug("Cancelling prefetcher in OnLogout hook (P_HASRPW)")
-		d.hasRPWCancelFn()
-	}
-	return nil
-}
-
 func setupRandomPwPrefetcher(g *libkb.GlobalContext) {
-	prefetcher := &hasRandomPWPrefetcher{}
-	g.AddLoginHook(prefetcher)
-	g.AddLogoutHook(prefetcher, "service/hasRandomPWPrefetcher")
+	g.SetHasRandomPWPrefetcher(&libkb.HasRandomPWPrefetcher{})
+	g.AddLoginHook(g.HasRandomPWPrefetcher)
+	g.AddLogoutHook(g.HasRandomPWPrefetcher, "HasRandomPWPrefetcher")
 }

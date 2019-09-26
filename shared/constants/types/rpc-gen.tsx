@@ -1311,10 +1311,6 @@ export type MessageTypes = {
     inParam: {readonly assertion: String; readonly reverse: Boolean}
     outParam: UserSummary2Set
   }
-  'keybase.1.user.loadHasRandomPw': {
-    inParam: {readonly forceRepoll: Boolean; readonly noShortTimeout: Boolean}
-    outParam: Boolean
-  }
   'keybase.1.user.loadMySettings': {
     inParam: void
     outParam: UserSettings
@@ -1752,6 +1748,11 @@ export enum PTKType {
 
 export enum PassphraseRecoveryPromptType {
   encryptedPgpKeys = 0,
+}
+
+export enum PassphraseState {
+  known = 0,
+  random = 1,
 }
 
 export enum PassphraseType {
@@ -2392,7 +2393,7 @@ export type BoxPublicKey = string | null
 export type BoxSummaryHash = String
 export type BulkRes = {readonly invited?: Array<String> | null; readonly alreadyInvited?: Array<String> | null; readonly malformed?: Array<String> | null}
 export type Bytes32 = string | null
-export type CanLogoutRes = {readonly canLogout: Boolean; readonly reason: String; readonly setPassphrase: Boolean}
+export type CanLogoutRes = {readonly canLogout: Boolean; readonly reason: String; readonly passphraseState: PassphraseState}
 export type CanonicalTLFNameAndIDWithBreaks = {readonly tlfID: TLFID; readonly CanonicalName: CanonicalTlfName; readonly breaks: TLFBreak}
 export type CanonicalTlfName = String
 export type ChallengeInfo = {readonly now: Long; readonly challenge: String}
@@ -3322,7 +3323,6 @@ export const userBlockUserRpcPromise = (params: MessageTypes['keybase.1.user.blo
 export const userCanLogoutRpcPromise = (params: MessageTypes['keybase.1.user.canLogout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.canLogout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.canLogout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userInterestingPeopleRpcPromise = (params: MessageTypes['keybase.1.user.interestingPeople']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.interestingPeople']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.interestingPeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userListTrackers2RpcPromise = (params: MessageTypes['keybase.1.user.listTrackers2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.listTrackers2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTrackers2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const userLoadHasRandomPwRpcPromise = (params: MessageTypes['keybase.1.user.loadHasRandomPw']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.loadHasRandomPw']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadHasRandomPw', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userLoadMySettingsRpcPromise = (params: MessageTypes['keybase.1.user.loadMySettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.loadMySettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadMySettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProfileEditRpcPromise = (params: MessageTypes['keybase.1.user.profileEdit']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.profileEdit']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.profileEdit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProofSuggestionsRpcPromise = (params: MessageTypes['keybase.1.user.proofSuggestions']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.proofSuggestions']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.proofSuggestions', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3715,4 +3715,5 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.user.getUPAKLite'
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
+// 'keybase.1.user.loadPassphraseState'
 // 'keybase.1.user.userCard'
