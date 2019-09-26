@@ -267,7 +267,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           direction="vertical"
           style={Styles.collapseStyles([styles.container, {alignItems: 'center'}])}
           fullWidth={true}
-          centerChildren
+          centerChildren={true}
         >
           <Kb.ProgressIndicator type="Large" />
         </Kb.Box2>
