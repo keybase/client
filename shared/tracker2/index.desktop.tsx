@@ -3,12 +3,14 @@ import * as Kb from '../common-adapters'
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
+import {_setDarkModePreference} from '../styles/dark-mode'
 import Assertion from './assertion/remote-container'
 import Bio from './bio/remote-container'
 
 type Props = {
   assertionKeys: ReadonlyArray<string> | null
   bio: string | null
+  darkMode: boolean
   followThem: boolean | null
   followersCount: number | null
   followingCount: number | null
@@ -110,6 +112,7 @@ const TeamShowcase = ({name}) => (
 )
 
 const Tracker = (props: Props) => {
+  _setDarkModePreference(props.darkMode ? 'alwaysDark' : 'alwaysLight')
   let assertions
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
@@ -132,7 +135,14 @@ const Tracker = (props: Props) => {
   // In order to keep the 'effect' of the card sliding up on top of the text the text is below the scroll area. We still need the spacing so we draw the text inside the scroll but invisible
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      fullHeight={true}
+      style={styles.container}
+      className={props.darkMode ? 'darkMode' : ''}
+      key={props.darkMode ? 'darkMode' : 'light'}
+    >
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>

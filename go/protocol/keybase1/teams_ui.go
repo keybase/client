@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/teams_ui.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ConfirmRootTeamDeleteArg struct {
@@ -66,11 +67,11 @@ type TeamsUiClient struct {
 }
 
 func (c TeamsUiClient) ConfirmRootTeamDelete(ctx context.Context, __arg ConfirmRootTeamDeleteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmRootTeamDelete", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmRootTeamDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c TeamsUiClient) ConfirmSubteamDelete(ctx context.Context, __arg ConfirmSubteamDeleteArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmSubteamDelete", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmSubteamDelete", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
