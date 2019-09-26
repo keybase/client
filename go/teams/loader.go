@@ -728,11 +728,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
-	// reinitialize the hidden package once ret != nil
-	hiddenPackage, err = l.hiddenPackage(mctx, arg.teamID, ret, arg.me)
+	encKID, gen, role, err := l.hiddenPackageGetter(mctx, arg.teamID, ret, arg.me)()
 	if err != nil {
 		return nil, err
 	}
+	// update the hidden package once ret != nil
+	hiddenPackage.UpdateTeamMetadata(encKID, gen, role)
 
 	// Be sure to update the hidden chain after the main chain, since the latter can "ratchet" the former
 	if teamUpdate != nil {
@@ -969,25 +970,29 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	return &load2res, nil
 }
 
-func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData, me keybase1.UserVersion) (ret *hidden.LoaderPackage, err error) {
-	return hidden.NewLoaderPackage(mctx, id,
-		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration,
-			role keybase1.TeamRole, err error) {
-			if team == nil {
-				return encKID, gen, keybase1.TeamRole_NONE, nil
-			}
-			state := TeamSigChainState{inner: team.Chain}
+func (l *TeamLoader) hiddenPackageGetter(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData, me keybase1.UserVersion) func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole, err error) {
+	return func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration,
+		role keybase1.TeamRole, err error) {
+		if team == nil {
+			return encKID, gen, keybase1.TeamRole_NONE, nil
+		}
+		state := TeamSigChainState{inner: team.Chain}
 
-			ptk, err := state.GetLatestPerTeamKey(mctx)
-			if err != nil {
-				return encKID, gen, keybase1.TeamRole_NONE, err
-			}
-			role, err = state.GetUserRole(me)
-			if err != nil {
-				return encKID, gen, keybase1.TeamRole_NONE, err
-			}
-			return ptk.EncKID, ptk.Gen, role, nil
-		})
+		ptk, err := state.GetLatestPerTeamKey(mctx)
+		if err != nil {
+			return encKID, gen, keybase1.TeamRole_NONE, err
+		}
+		role, err = state.GetUserRole(me)
+		if err != nil {
+			return encKID, gen, keybase1.TeamRole_NONE, err
+		}
+		return ptk.EncKID, ptk.Gen, role, nil
+	}
+}
+
+func (l *TeamLoader) hiddenPackage(mctx libkb.MetaContext, id keybase1.TeamID, team *keybase1.TeamData, me keybase1.UserVersion) (ret *hidden.LoaderPackage, err error) {
+	getter := l.hiddenPackageGetter(mctx, id, team, me)
+	return hidden.NewLoaderPackage(mctx, id, getter)
 }
 
 func (l *TeamLoader) isAllowedKeyerOf(mctx libkb.MetaContext, chain *keybase1.TeamData, me keybase1.UserVersion, them keybase1.UserVersion) (ret bool, err error) {

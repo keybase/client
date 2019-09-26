@@ -212,6 +212,12 @@ func (l *LoaderPackage) CheckNoPTK(mctx libkb.MetaContext, g keybase1.PerTeamKey
 	return nil
 }
 
+func (l *LoaderPackage) UpdateTeamMetadata(encKID keybase1.KID, encKIDGen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole) {
+	l.encKID = encKID
+	l.encKIDGen = encKIDGen
+	l.role = role
+}
+
 // Update combines the preloaded data with any downloaded updates from the server, and stores
 // the result local to this object.
 func (l *LoaderPackage) Update(mctx libkb.MetaContext, update []sig3.ExportJSON) (err error) {
