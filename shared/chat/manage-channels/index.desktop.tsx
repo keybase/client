@@ -176,6 +176,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
+    height: '100%',
     paddingBottom: Styles.globalMargins.medium,
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
