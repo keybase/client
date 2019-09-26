@@ -140,9 +140,11 @@ func (b *KVStoreRealBoxer) fetchEncryptionKey(mctx libkb.MetaContext, entryID ke
 	}
 	appKey := teamLoadRes.ApplicationKeys[0]
 	if generation != nil && appKey.KeyGeneration != *generation {
-		return res, fmt.Errorf("expected app key generation %d, got %d", *generation, appKey.KeyGeneration)
+		return res, fmt.Errorf("wrong app key generation; wanted %d but got %d", *generation, appKey.KeyGeneration)
 	}
-	// TODO: a little more sanity checking on this key. see chat/teams.go#147
+	if appKey.Application != keybase1.TeamApplication_KVSTORE {
+		return res, fmt.Errorf("wrong app key application; wanted %d but got %d", keybase1.TeamApplication_KVSTORE, appKey.Application)
+	}
 	return appKey, nil
 }
 
