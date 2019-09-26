@@ -1,9 +1,10 @@
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RecoverPasswordGen from '../actions/recover-password-gen'
+import * as RecoverPasswordGen from './recover-password-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as ProvisionConstants from '../constants/provision'
+import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
@@ -147,7 +148,7 @@ const getPaperKeyOrPw = (
           RecoverPasswordGen.createSetPasswordError({error: new HiddenString(params.pinentry.retryLabel)})
         )
       } else {
-        // TODO wait for loggedIn, for now the service promises to send this after login.
+        // TODO maybe wait for loggedIn, for now the service promises to send this after login.
         yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
       }
       const action: RecoverPasswordGen.SubmitPasswordPayload = yield Saga.take([
@@ -180,10 +181,11 @@ function* startRecoverPassword(
       params: {
         username: action.payload.username,
       },
+      waitingKey: Constants.waitingKey,
     })
   } catch (e) {
     hadError = true
-    logger.warn('RPC returned error: ' + e.toString())
+    logger.warn('RPC returned error: ' + e.message)
     if (
       !(
         e instanceof RPCError &&
@@ -192,7 +194,7 @@ function* startRecoverPassword(
     ) {
       yield Saga.put(
         RecoverPasswordGen.createDisplayError({
-          error: new HiddenString(e.toString()),
+          error: new HiddenString(e.message),
         })
       )
     }

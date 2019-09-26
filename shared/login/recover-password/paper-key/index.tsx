@@ -23,7 +23,7 @@ const PaperKey = (props: Props) => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
-          waitingKey: Constants.getPaperKeyOrPwWaitingKey,
+          waitingKey: Constants.waitingKey,
         },
       ]}
       onBack={props.onBack}
