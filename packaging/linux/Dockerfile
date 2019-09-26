@@ -11,6 +11,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - python and pip for recent versions of s3cmd
 #   - libc6-dev-i386 for the i386 cgo part of the build
 #   - gnupg1 to avoid a password issue in key import
+#   - unzip because electron6 packager requires it
 RUN apt-get update
 RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
   build-essential curl python python-pip libc6-dev-i386 gnupg1 unzip
