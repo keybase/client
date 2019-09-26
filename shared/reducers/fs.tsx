@@ -27,7 +27,12 @@ const initialState: Types.State = {
   sfmi: Constants.makeSystemFileManagerIntegration(),
   softErrors: Constants.makeSoftErrors(),
   tlfUpdates: I.List(),
-  tlfs: Constants.makeTlfs({}),
+  tlfs: {
+    loaded: false,
+    private: new Map(),
+    public: new Map(),
+    team: new Map(),
+  },
   uploads: Constants.makeUploads(),
 }
 
@@ -123,35 +128,22 @@ const updatePathItem = (
 
 const updateTlf = (oldTlf: Types.Tlf | undefined, newTlf: Types.Tlf): Types.Tlf =>
   oldTlf
-    ? produce(oldTlf, draftTlf => {
-        const {
-          conflictState,
-          isFavorite,
-          isIgnored,
-          isNew,
-          name,
-          resetParticipants,
-          syncConfig,
-          teamId,
-          tlfMtime,
-          // ...rest
-        } = newTlf
-        // TODO: check rest is empty in tsc?
-        if (!isEqual(syncConfig, oldTlf.syncConfig)) {
-          draftTlf.syncConfig = syncConfig
+    ? produce(oldTlf, () => {
+        if (isEqual(oldTlf, newTlf)) {
+          return oldTlf
         }
-        if (!isEqual(resetParticipants, oldTlf.resetParticipants)) {
-          draftTlf.resetParticipants = resetParticipants
+        const copiedNewTlf = {...newTlf}
+        const {conflictState, resetParticipants, syncConfig} = oldTlf
+        if (!isEqual(syncConfig, copiedNewTlf.syncConfig)) {
+          copiedNewTlf.syncConfig = syncConfig
         }
-        if (!isEqual(conflictState, oldTlf.conflictState)) {
-          draftTlf.conflictState = conflictState
+        if (!isEqual(resetParticipants, copiedNewTlf.resetParticipants)) {
+          copiedNewTlf.resetParticipants = resetParticipants
         }
-        draftTlf.isFavorite = isFavorite
-        draftTlf.isIgnored = isIgnored
-        draftTlf.isNew = isNew
-        draftTlf.name = name
-        draftTlf.teamId = teamId
-        draftTlf.tlfMtime = tlfMtime
+        if (!isEqual(conflictState, copiedNewTlf.conflictState)) {
+          copiedNewTlf.conflictState = conflictState
+        }
+        return copiedNewTlf
       })
     : newTlf
 
@@ -292,16 +284,11 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     if (!visibility) {
       return
     }
-    draftState.tlfs[visibility] = new Map([
-      ...draftState.tlfs[visibility],
-      [
-        elems[2],
-        {
-          ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
-          isIgnored: true,
-        },
-      ],
-    ])
+    draftState.tlfs[visibility] = new Map(draftState.tlfs[visibility])
+    draftState.tlfs[visibility].set(elems[2], {
+      ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
+      isIgnored: true,
+    })
   },
   [FsGen.favoriteIgnoreError]: (draftState, action) => {
     const elems = Types.getPathElements(action.payload.path)
@@ -309,16 +296,11 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     if (!visibility) {
       return
     }
-    draftState.tlfs[visibility] = new Map([
-      ...draftState.tlfs[visibility],
-      [
-        elems[2],
-        {
-          ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
-          isIgnored: false,
-        },
-      ],
-    ])
+    draftState.tlfs[visibility] = new Map(draftState.tlfs[visibility])
+    draftState.tlfs[visibility].set(elems[2], {
+      ...(draftState.tlfs[visibility].get(elems[2]) || Constants.unknownTlf),
+      isIgnored: false,
+    })
   },
   [FsGen.newFolderRow]: (draftState, action) => {
     const {parentPath} = action.payload

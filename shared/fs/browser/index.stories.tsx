@@ -11,6 +11,7 @@ import {commonProvider} from '../common/index.stories'
 import {topBarProvider} from '../top-bar/index.stories'
 import {footerProvider} from '../footer/index.stories'
 import {bannerProvider} from '../banner/index.stories'
+import {produce} from 'immer'
 
 const _provider = {
   ...rowsProvider,
@@ -27,16 +28,9 @@ const _provider = {
 }
 
 const storeCommon = Sb.createStoreWithCommon()
-const storeShowingSfmi = {
-  ...storeCommon,
-  fs: {
-    ...storeCommon.fs,
-    sfmi: {
-      ...storeCommon.fs.sfmi,
-      showingBanner: true,
-    },
-  },
-}
+const storeShowingSfmi = produce(storeCommon, draftStoreCommon => {
+  draftStoreCommon.fs.sfmi.showingBanner = true
+})
 
 const provider = Sb.createPropProviderWithCommon(_provider)
 // @ts-ignore

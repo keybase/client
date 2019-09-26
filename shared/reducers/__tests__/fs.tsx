@@ -151,7 +151,8 @@ describe('fs reducer', () => {
     }
     const state0 = {
       ..._initialStateForTest,
-      tlfs: Constants.makeTlfs({
+      tlfs: {
+        ..._initialStateForTest.tlfs,
         private: new Map([
           [
             'foo',
@@ -161,7 +162,7 @@ describe('fs reducer', () => {
             }),
           ],
         ]),
-      }),
+      },
     }
     const state1 = reducer(
       state0,

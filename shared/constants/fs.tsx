@@ -206,13 +206,6 @@ export const makeUploads = I.Record<Types._Uploads>({
   writingToJournal: I.Set(),
 })
 
-export const makeTlfs = (partial: Partial<Types.Tlfs>): Types.Tlfs => ({
-  loaded: partial.loaded || false,
-  private: partial.private || new Map(),
-  public: partial.public || new Map(),
-  team: partial.team || new Map(),
-})
-
 const placeholderAction = FsGen.createPlaceholderAction()
 
 const _makeError = I.Record<Types._FsError>({
