@@ -512,7 +512,10 @@ class Thread extends React.PureComponent<Props, State> {
           <style>{realCSS}</style>
           <div
             key={this.props.conversationIDKey}
-            style={styles.list}
+            style={Styles.collapseStyles([
+              styles.list,
+              this.props.hasPinnedMessage && {marginTop: Styles.globalMargins.large},
+            ])}
             ref={this._listRef}
             onScroll={this._onScroll}
           >
