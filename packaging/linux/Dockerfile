@@ -13,7 +13,7 @@ LABEL maintainer="Keybase <admin@keybase.io>"
 #   - gnupg1 to avoid a password issue in key import
 RUN apt-get update
 RUN apt-get install -y fakeroot reprepro rpm createrepo git wget \
-  build-essential curl python python-pip libc6-dev-i386 gnupg1
+  build-essential curl python python-pip libc6-dev-i386 gnupg1 unzip
 
 # Install s3cmd. See this issue for why we need a version newer than what's in
 # the Debian repos: https://github.com/s3tools/s3cmd/issues/437
