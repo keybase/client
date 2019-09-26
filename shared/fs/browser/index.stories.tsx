@@ -29,7 +29,13 @@ const _provider = {
 const storeCommon = Sb.createStoreWithCommon()
 const storeShowingSfmi = {
   ...storeCommon,
-  fs: storeCommon.fs.update('sfmi', sfmi => sfmi.set('showingBanner', true)),
+  fs: {
+    ...storeCommon.fs,
+    sfmi: {
+      ...storeCommon.fs.sfmi,
+      showingBanner: true,
+    },
+  },
 }
 
 const provider = Sb.createPropProviderWithCommon(_provider)

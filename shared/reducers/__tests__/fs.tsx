@@ -3,7 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as I from 'immutable'
-import reducer from '../fs'
+import reducer, {_initialStateForTest} from '../fs'
 
 jest.unmock('immutable')
 
@@ -18,7 +18,8 @@ const getFolderOrFail = (pathItems, path): Types.FolderPathItem => {
   return pathItem && pathItem.type === Types.PathType.Folder ? pathItem : Constants.makeFolder()
 }
 
-const state0 = Constants.makeState({
+const state0 = {
+  ..._initialStateForTest,
   pathItems: I.Map({
     [file0Path || '']: Constants.makeFile({
       lastModifiedTimestamp: 1,
@@ -37,7 +38,7 @@ const state0 = Constants.makeState({
       progress: Types.ProgressType.Loaded,
     }),
   }),
-})
+}
 
 describe('fs reducer', () => {
   test('pathItemLoaded: reuse old pathItem if new one remains the same', () => {
@@ -134,39 +135,40 @@ describe('fs reducer', () => {
   test('favorritesLoaded: reuse tlf', () => {
     const tlfFields = {
       conflictState: Constants.makeConflictStateNormalView({
-        localViewTlfPaths: I.List([
+        localViewTlfPaths: [
           Types.stringToPath('/keybase/private/bla (conflict 1)'),
           Types.stringToPath('/keybase/private/bla (conflict 2)'),
-        ]),
+        ],
       }),
       isFavorite: true,
       isIgnored: true,
       isNew: true,
       name: 'foo',
-      resetParticipants: I.List(['foo', 'bar']),
-      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
+      resetParticipants: ['foo', 'bar'],
+      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: [Constants.defaultPath]}),
       teamId: '123',
       tlfMtime: 123123123,
     }
-    const state0 = Constants.makeState({
+    const state0 = {
+      ..._initialStateForTest,
       tlfs: Constants.makeTlfs({
-        private: I.Map([
+        private: new Map([
           [
             'foo',
             Constants.makeTlf({
               ...tlfFields,
-              syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
+              syncConfig: Constants.makeTlfSyncPartial({enabledPaths: [Constants.defaultPath]}),
             }),
           ],
         ]),
       }),
-    })
+    }
     const state1 = reducer(
       state0,
       FsGen.createFavoritesLoaded({
-        private: I.Map([['foo', Constants.makeTlf(tlfFields)]]),
-        public: I.Map(),
-        team: I.Map(),
+        private: new Map([['foo', Constants.makeTlf(tlfFields)]]),
+        public: new Map(),
+        team: new Map(),
       })
     )
     expect(state1.tlfs.private.get('foo')).toBe(state0.tlfs.private.get('foo'))

@@ -65,21 +65,18 @@ export enum TlfSyncMode {
   Partial = 'partial',
 }
 
-export type _TlfSyncEnabled = {
+export type TlfSyncEnabled = {
   mode: TlfSyncMode.Enabled
 }
-export type TlfSyncEnabled = I.RecordOf<_TlfSyncEnabled>
 
-export type _TlfSyncDisabled = {
+export type TlfSyncDisabled = {
   mode: TlfSyncMode.Disabled
 }
-export type TlfSyncDisabled = I.RecordOf<_TlfSyncDisabled>
 
-export type _TlfSyncPartial = {
+export type TlfSyncPartial = {
   mode: TlfSyncMode.Partial
-  enabledPaths: I.List<Path>
+  enabledPaths: Array<Path>
 }
-export type TlfSyncPartial = I.RecordOf<_TlfSyncPartial>
 
 export type TlfSyncConfig = TlfSyncEnabled | TlfSyncDisabled | TlfSyncPartial
 
@@ -88,31 +85,27 @@ export enum ConflictStateType {
   ManualResolvingLocalView = 'manual-resolving-local-view',
 }
 
-export type _ConflictStateNormalView = {
-  localViewTlfPaths: I.List<Path>
+export type ConflictStateNormalView = {
+  localViewTlfPaths: Array<Path>
   resolvingConflict: boolean
   stuckInConflict: boolean
   type: ConflictStateType.NormalView
 }
-export type ConflictStateNormalView = I.RecordOf<_ConflictStateNormalView>
 
-export type _ConflictStateManualResolvingLocalView = {
+export type ConflictStateManualResolvingLocalView = {
   normalViewTlfPath: Path
   type: ConflictStateType.ManualResolvingLocalView
 }
-export type ConflictStateManualResolvingLocalView = I.RecordOf<_ConflictStateManualResolvingLocalView>
 
 export type ConflictState = ConflictStateNormalView | ConflictStateManualResolvingLocalView
 
-export type _Tlf = {
+export type Tlf = {
   conflictState: ConflictState
   isFavorite: boolean
   isIgnored: boolean
   isNew: boolean
   name: string
-  resetParticipants: I.List<string> // usernames
-  // TODO: when we move this stuff into SimpleFS, this should no longer need
-  //  to be nullable
+  resetParticipants: Array<string> // usernames
   syncConfig: TlfSyncConfig
   teamId: RPCTypes.TeamID
   tlfMtime: number // tlf mtime stored in core db based on notification from mdserver
@@ -132,18 +125,16 @@ export type _Tlf = {
    * youCanUnlock?: I.List<Device>
    */
 }
-export type Tlf = I.RecordOf<_Tlf>
 
 // name -> Tlf
-export type TlfList = I.Map<string, Tlf>
+export type TlfList = Map<string, Tlf>
 
-export type _Tlfs = {
+export type Tlfs = {
   loaded: boolean
   private: TlfList
   public: TlfList
   team: TlfList
 }
-export type Tlfs = I.RecordOf<_Tlfs>
 
 export enum PathKind {
   Root = 'root',
@@ -584,7 +575,7 @@ export type _FileContext = {
 }
 export type FileContext = I.RecordOf<_FileContext>
 
-export type _State = {
+export type State = {
   destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits
@@ -606,7 +597,6 @@ export type _State = {
   tlfs: Tlfs
   uploads: Uploads
 }
-export type State = I.RecordOf<_State>
 
 export type Visibility = TlfType | null
 

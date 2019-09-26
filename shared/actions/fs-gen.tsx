@@ -124,9 +124,9 @@ type _FavoriteIgnoreErrorPayload = {readonly path: Types.Path; readonly error: T
 type _FavoriteIgnorePayload = {readonly path: Types.Path}
 type _FavoritesLoadPayload = void
 type _FavoritesLoadedPayload = {
-  readonly private: I.Map<string, Types.Tlf>
-  readonly public: I.Map<string, Types.Tlf>
-  readonly team: I.Map<string, Types.Tlf>
+  readonly private: Types.TlfList
+  readonly public: Types.TlfList
+  readonly team: Types.TlfList
 }
 type _FinishManualConflictResolutionPayload = {readonly localViewTlfPath: Types.Path}
 type _FinishedDownloadWithIntentPayload = {

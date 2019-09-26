@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
@@ -18,7 +17,7 @@ import {useFsChildren} from '../../common'
 export type Props = {
   emptyMode: 'empty' | 'not-empty-but-no-match' | 'not-empty'
   destinationPickerIndex?: number
-  items: I.List<RowTypes.RowItem>
+  items: Array<RowTypes.RowItem>
   path: Types.Path
 }
 
@@ -109,7 +108,7 @@ class Rows extends React.PureComponent<Props> {
     }
     return {
       index,
-      length: getRowHeight(this.props.items.get(index, _unknownEmptyRowItem)),
+      length: getRowHeight(this.props.items[index] || _unknownEmptyRowItem),
       offset: (index - top.count) * normalRowHeight + top.totalHeight,
     }
   }
@@ -144,7 +143,7 @@ class Rows extends React.PureComponent<Props> {
       <Kb.BoxGrow>
         <Kb.List2
           key={this._getListKey(this.props.items)}
-          items={this.props.items.toArray()}
+          items={this.props.items}
           bounces={true}
           itemHeight={{
             getItemLayout: this._getItemLayout,
