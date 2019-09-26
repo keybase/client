@@ -456,6 +456,31 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 	return isServerTrustInvite, single, nil
 }
 
+func resolveServerTrustAssertion(mctx libkb.MetaContext, assertion string) (upak keybase1.UserPlusKeysV2, doInvite bool, err error) {
+	user, resolveRes, err := mctx.G().Resolver.ResolveUser(mctx, assertion)
+	if err != nil {
+		if shouldPreventTeamCreation(err) {
+			// Resolution failed because of rate limit or similar, do not try
+			// to invite because it might be a resolvable assertion.
+			return upak, false, err
+		}
+		// Assertion did not resolve, but we didn't get error preventing us
+		// from inviting either. Invite assertion to the team.
+		return upak, true, nil
+	}
+
+	if !resolveRes.IsServerTrust() {
+		return upak, false, fmt.Errorf("Unexpected non server-trust resolution returned: %q", assertion)
+	}
+	upak, err = engine.ResolveAndCheck(mctx, user.Username, true /* useTracking */)
+	if err != nil {
+		return upak, false, err
+	}
+	// Success - assertion server-trust resolves to upak, we can just add
+	// them as a member.
+	return upak, false, nil
+}
+
 // AddMemberByAssertionOrEmail adds an assertion to the team. It can handle
 // three major cases:
 //  1. joe OR joe+foo@reddit WHERE joe is already a keybase user, or the assertions map to a unique keybase user
@@ -467,7 +492,6 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
 	username libkb.NormalizedUsername, uv keybase1.UserVersion, invite bool, err error) {
 	team := tx.team
-	g := team.G()
 	m := team.MetaContext(ctx)
 
 	defer m.Trace(fmt.Sprintf("AddMemberTx.AddMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
@@ -481,24 +505,14 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	var upak keybase1.UserPlusKeysV2
 
 	if isServerTrustInvite {
-		user, resolveRes, err := g.Resolver.ResolveUser(m, assertion)
-		if err == nil {
-			if !resolveRes.IsServerTrust() {
-				return "", uv, false, fmt.Errorf("Unexpected non server-trust resolution returned: %q", assertion)
-			}
-			upak, err = engine.ResolveAndCheck(m, user.Username, true /* useTracking */)
-			if err != nil {
-				return "", uv, false, err
-			}
-		} else {
-			if shouldPreventTeamCreation(err) {
-				// Resolution failed because of rate limit or similar, do not
-				// try to invite because it might be a resolvable assertion.
-				return "", uv, false, err
-			}
-			doInvite = true
+		// Server-trust assertions (`phone`/`email`): ask server if it resolves
+		// to a user.
+		upak, doInvite, err = resolveServerTrustAssertion(m, assertion)
+		if err != nil {
+			return "", uv, false, err
 		}
 	} else {
+		// Normal assertion: resolve and verify.
 		upak, err = engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
 			if rErr, ok := err.(libkb.ResolutionError); !ok || (rErr.Kind != libkb.ResolutionErrorNotFound) {
@@ -509,6 +523,7 @@ func (tx *AddMemberTx) AddMemberByAssertionOrEmail(ctx context.Context, assertio
 	}
 
 	if !doInvite {
+		// We have a user and can add them to a team, no invite required.
 		username = libkb.NewNormalizedUsername(upak.Username)
 		uv = upak.ToUserVersion()
 		invite, err = tx.addMemberByUPKV2(ctx, upak, role, botSettings)
