@@ -17,7 +17,6 @@ import (
 type CmdDeprovision struct {
 	libkb.Contextified
 	loggedIn bool
-	force    bool
 }
 
 func NewCmdDeprovision(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,12 +27,6 @@ func NewCmdDeprovision(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			cl.ChooseCommand(&CmdDeprovision{
 				Contextified: libkb.NewContextified(g),
 			}, "deprovision", c)
-		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "f, force",
-				Usage: "If there are any reasons not to deprovision right now, ignore them (potentially dangerous)",
-			},
 		},
 	}
 }
@@ -69,7 +62,6 @@ func (c *CmdDeprovision) Run() (err error) {
 		SessionID: 0,
 		Username:  username,
 		DoRevoke:  c.loggedIn,
-		Force:     c.force,
 	})
 }
 
@@ -82,9 +74,7 @@ func (c *CmdDeprovision) GetUsage() libkb.Usage {
 }
 
 func (c *CmdDeprovision) ParseArgv(ctx *cli.Context) error {
-	c.force = ctx.Bool("force")
 	return nil
-
 }
 
 func (c *CmdDeprovision) getUsernameToDeprovision() (string, error) {
