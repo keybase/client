@@ -8,6 +8,7 @@ import * as Window from '../../util/window-management'
 import {BrowserWindow} from '../../util/safe-electron.desktop'
 import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
+import WhatsNewIcon from '../../whats-new/header-icon'
 import flags from '../../util/feature-flags'
 import * as ReactIs from 'react-is'
 
@@ -214,6 +215,7 @@ class Header extends React.PureComponent<Props> {
                   }
                 />
               )}
+              <WhatsNewIcon newFeatures={false} />
               {!title && rightActions}
               {windowDecorationsAreNeeded && !windowDecorationsDrawnByBanner && <SystemButtons />}
             </Kb.Box2>
