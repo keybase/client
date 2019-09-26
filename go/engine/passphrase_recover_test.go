@@ -216,7 +216,8 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	}
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Nil(t, loginUI.lastExplain)
-	require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
+	// TODO Y2K-710
+	// require.Nil(t, assertAutoreset(tc, u.UID(), libkb.AutoresetEventStart))
 }
 
 func TestPassphraseRecoverChangeWithPaper(t *testing.T) {

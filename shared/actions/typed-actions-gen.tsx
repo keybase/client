@@ -81,6 +81,8 @@ export type TypedActionsMap = {
   'chat2:metaRequestingTrusted': chat2.MetaRequestingTrustedPayload
   'chat2:metaRequestTrusted': chat2.MetaRequestTrustedPayload
   'chat2:metasReceived': chat2.MetasReceivedPayload
+  'chat2:clearMetas': chat2.ClearMetasPayload
+  'chat2:clearMessages': chat2.ClearMessagesPayload
   'chat2:metaReceivedError': chat2.MetaReceivedErrorPayload
   'chat2:metaDelete': chat2.MetaDeletePayload
   'chat2:updateMoreToLoad': chat2.UpdateMoreToLoadPayload
@@ -206,6 +208,7 @@ export type TypedActionsMap = {
   'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
+  'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -501,8 +504,6 @@ export type TypedActionsMap = {
   'fs:startManualConflictResolution': fs.StartManualConflictResolutionPayload
   'fs:finishManualConflictResolution': fs.FinishManualConflictResolutionPayload
   'fs:openSecurityPreferences': fs.OpenSecurityPreferencesPayload
-  'fs:refreshLocalHTTPServerInfo': fs.RefreshLocalHTTPServerInfoPayload
-  'fs:localHTTPServerInfo': fs.LocalHTTPServerInfoPayload
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
@@ -561,6 +562,8 @@ export type TypedActionsMap = {
   'fs:setPathItemActionMenuDownload': fs.SetPathItemActionMenuDownloadPayload
   'fs:finishedDownloadWithIntent': fs.FinishedDownloadWithIntentPayload
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
+  'fs:loadFileContext': fs.LoadFileContextPayload
+  'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload

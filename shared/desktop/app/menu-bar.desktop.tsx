@@ -1,15 +1,19 @@
 // Entrypoint for the menubar node part
-import {menubar} from 'menubar'
+import * as ConfigGen from '../../actions/config-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
+import {mainWindowDispatch} from '../remote/util.desktop'
+import {menubar} from 'menubar'
 import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
-import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
-let icon = ''
-let selectedIcon = ''
+let icon = isWindows
+  ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
+  : 'icon-keybase-menubar-regular-white-22@2x.png'
+let selectedIcon = icon
 
 type Bounds = {
   x: number
@@ -46,7 +50,12 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   })
 
   const updateIcon = (selected: boolean) => {
-    mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
+    const i = selected ? selectedIcon : icon
+    try {
+      i && mb.tray.setImage(resolveImage('menubarIcon', i))
+    } catch (err) {
+      console.error('menu icon err: ' + err)
+    }
   }
 
   type Action = {
@@ -73,6 +82,14 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         }
       }
     })
+
+    // ask for an update in case we missed one
+    mainWindowDispatch(
+      ConfigGen.createRemoteWindowWantsProps({
+        component: 'menubar',
+        param: '',
+      })
+    )
 
     mb.window && menubarWindowIDCallback(mb.window.id)
 

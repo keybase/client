@@ -58,7 +58,7 @@ const AdhocHeader = (props: AdhocHeaderProps) => (
         commaColor={Styles.globalColors.black_50}
         inline={false}
         skipSelf={props.participants.length > 1}
-        containerStyle={styles.maybeLongText}
+        containerStyle={Styles.collapseStyles([styles.maybeLongText, styles.adhocUsernames])}
         type="BodyBig"
         underline={false}
         usernames={props.participants}
@@ -220,6 +220,9 @@ class InfoPanelMenu extends React.Component<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      adhocUsernames: {
+        justifyContent: 'center',
+      },
       badge: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.blue,

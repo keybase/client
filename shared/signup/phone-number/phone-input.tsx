@@ -508,7 +508,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
           display: 'block',
-          maxHeight: 160,
+          maxHeight: 130,
           overflowX: 'hidden',
           overflowY: 'auto',
           paddingBottom: 0,

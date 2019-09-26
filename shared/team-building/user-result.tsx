@@ -21,14 +21,6 @@ export type Props = {
   onRemove: () => void
 }
 
-// Desktop hover styling
-const realCSS = (inTeam: boolean) => `
-    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blueLighter2};}
-`
-
-// TODO
-// * Use ListItem2
-
 /*
  * Case 1: the service is 'keybase' (isKeybaseResult = true)
  *
@@ -41,7 +33,7 @@ const realCSS = (inTeam: boolean) => `
  *    Bottom: "{keybaseUsername} • {prettyName} • {services icons}"
  *
  *    {keybaseUsername} if the user is also a keybase user
- *    {prettyName} if the user added it
+ *    {prettyName} if the user added it. Can fallback to username if no prettyName is set
  *    {service icons} if the user has proofs
  */
 const UserResult = (props: Props) => {
@@ -59,16 +51,12 @@ const UserResult = (props: Props) => {
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
       <Kb.Box2
-        className={Styles.classNames({
-          hoverRow: !props.inTeam,
-          hoverRowinTeam: props.inTeam,
-        })}
+        className="hover_background_color_blueLighter2"
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
-        style={styles.rowContainer}
+        style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
       >
-        {!Styles.isMobile && <Kb.DesktopStyle style={realCSS(props.inTeam)} />}
         <Avatar resultForService={props.resultForService} keybaseUsername={keybaseUsername} />
         <Kb.Box2 direction="vertical" style={styles.username}>
           {serviceUsername ? (
@@ -111,11 +99,12 @@ const UserResult = (props: Props) => {
   )
 }
 
-const AvatarSize = 48
+const avatarSize = Styles.isMobile ? 48 : 32
+const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
 const dotSeparator = '•'
 
-const isPreExistingTeamMemberText = (prettyName: string) =>
-  `${prettyName ? prettyName + ` ${dotSeparator} ` : ''} Already in team`
+const isPreExistingTeamMemberText = (prettyName: string, username: string) =>
+  `${prettyName && prettyName !== username ? prettyName + ` ${dotSeparator} ` : ''}Already in team`
 
 const textWithConditionalSeparator = (text: string, conditional: boolean) =>
   `${text}${conditional ? ` ${dotSeparator}` : ''}`
@@ -128,14 +117,14 @@ const Avatar = ({
   resultForService: Types.ServiceIdWithContact
 }) => {
   if (keybaseUsername) {
-    return <Kb.Avatar size={AvatarSize} username={keybaseUsername} />
+    return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
   } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
-    return <Kb.Avatar size={AvatarSize} username="invalid username for placeholder avatar" />
+    return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (
     <Kb.Icon
-      fontSize={AvatarSize}
+      fontSize={avatarSize}
       type={serviceIdToIconFont(resultForService)}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
@@ -153,38 +142,37 @@ const ServicesIcons = (props: {
   const serviceIds = serviceMapToArray(props.services)
   // When the result is from a non-keybase service, we could have:
   //  1. keybase username
-  //  2. pretty name or display label
+  //  2. pretty name or display label. prettyName can fallback to username if no prettyName is set.
   //
   // When the result is from the keybase service, we could have:
-  //  1. pretty name or display name
+  //  1. prettyName that matches the username - in which case it will be hidden
+  //  1. No prettyName and also no displayLabel
   const firstIconNoMargin = !props.isKeybaseResult
     ? !props.keybaseUsername && !props.prettyName && !props.displayLabel
-    : !props.prettyName && !props.displayLabel
+    : props.prettyName
+    ? props.prettyName === props.keybaseUsername
+    : !props.displayLabel
   return (
     <Kb.Box2 direction="horizontal" fullWidth={Styles.isMobile} style={styles.services}>
-      {serviceIds.map((serviceName, index) => (
-        <Kb.WithTooltip
-          key={serviceName}
-          tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
-          position="top center"
-        >
-          {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
-          <Kb.Icon
-            fontSize={14}
-            type={serviceIdToIconFont(serviceName)}
-            style={
-              firstIconNoMargin && index === 0
-                ? null
-                : Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)
-            }
-            boxStyle={
-              firstIconNoMargin && index === 0
-                ? null
-                : !Styles.isMobile && Kb.iconCastPlatformStyles(styles.serviceIcon)
-            }
-          />
-        </Kb.WithTooltip>
-      ))}
+      {serviceIds.map((serviceName, index) => {
+        const iconStyle =
+          firstIconNoMargin && index === 0 ? null : Kb.iconCastPlatformStyles(styles.serviceIcon)
+        return (
+          <Kb.WithTooltip
+            key={serviceName}
+            tooltip={`${props.services[serviceName]} on ${capitalize(serviceName)}`}
+            position="top center"
+          >
+            {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
+            <Kb.Icon
+              fontSize={14}
+              type={serviceIdToIconFont(serviceName)}
+              style={Styles.isMobile && iconStyle}
+              boxStyle={!Styles.isMobile && iconStyle}
+            />
+          </Kb.WithTooltip>
+        )
+      })}
     </Kb.Box2>
   )
 }
@@ -192,10 +180,11 @@ const ServicesIcons = (props: {
 const FormatPrettyName = (props: {
   displayLabel: string
   prettyName: string
+  username: string
   services: Array<Types.ServiceIdWithContact>
   showServicesIcons: boolean
 }) =>
-  props.prettyName ? (
+  props.prettyName && props.prettyName !== props.username ? (
     <Kb.Text type="BodySmall" lineClamp={1}>
       {textWithConditionalSeparator(props.prettyName, props.showServicesIcons && !!props.services.length)}
     </Kb.Text>
@@ -243,13 +232,14 @@ const BottomRow = (props: {
         {keybaseUsernameComponent}
         {props.isPreExistingTeamMember ? (
           <Kb.Text type="BodySmall" lineClamp={1}>
-            {isPreExistingTeamMemberText(props.prettyName)}
+            {isPreExistingTeamMemberText(props.prettyName, props.username)}
           </Kb.Text>
         ) : (
           <>
             <FormatPrettyName
               displayLabel={props.displayLabel}
               prettyName={props.prettyName}
+              username={props.username}
               services={serviceMapToArray(props.services)}
               showServicesIcons={showServicesIcons}
             />
@@ -294,7 +284,6 @@ const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () =
   return (
     <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
       <Kb.Box2
-        className="actionButton"
         direction="vertical"
         centerChildren={true}
         style={Styles.collapseStyles([styles.actionButton, props.inTeam && {backgroundColor: null}])}
@@ -305,48 +294,50 @@ const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () =
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-circle" fontSize={22} color={Styles.globalColors.black_10} />
-
-const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-success" fontSize={22} color={Styles.globalColors.blue} />
+const AddButton = () => (
+  <Kb.Icon type="iconfont-circle" fontSize={actionButtonSize} color={Styles.globalColors.black_10} />
 )
 
-const ActionButtonSize = 40
-export const userResultHeight = Styles.globalMargins.xlarge
+const AlreadyAddedIconButton = () => (
+  <Kb.Icon type="iconfont-success" fontSize={actionButtonSize} color={Styles.globalColors.blue} />
+)
+
+export const userResultHeight = Styles.isMobile ? Styles.globalMargins.xlarge : 48
 const styles = Styles.styleSheetCreate(() => ({
   actionButton: Styles.platformStyles({
     common: {
-      height: ActionButtonSize,
       marginLeft: Styles.globalMargins.tiny,
-      width: ActionButtonSize,
+    },
+    isElectron: {
+      height: Styles.globalMargins.small,
+      width: Styles.globalMargins.small,
     },
     isMobile: {
-      marginRight: 0,
+      height: Styles.globalMargins.large,
+      marginRight: Styles.globalMargins.tiny,
+      width: Styles.globalMargins.large,
     },
   }),
-  addToTeamIcon: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
-  },
   bottomRowContainer: {
     alignItems: 'baseline',
     flexWrap: 'nowrap',
     overflow: 'hidden',
   },
   bottomRowScrollContainer: {
+    alignItems: 'baseline',
     display: 'flex',
   },
   contactName: {
     lineHeight: 22,
   },
+  highlighted: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.blueLighter2,
+      borderRadius: Styles.borderRadius,
+    },
+  }),
   keybaseServiceIcon: {
     marginRight: Styles.globalMargins.xtiny,
-  },
-  removeButton: {
-    ...Styles.globalStyles.rounded,
-    height: ActionButtonSize,
-    width: ActionButtonSize,
   },
   rowContainer: {
     ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),

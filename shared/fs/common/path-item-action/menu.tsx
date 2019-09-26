@@ -188,6 +188,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
 }
 
 export default (props: Props) => {
+  Kbfs.useFsFileContext(props.path)
   const {downloadID, downloadIntent} = Container.useSelector(state => state.fs.pathItemActionMenu)
   Kbfs.useFsWatchDownloadForMobile(downloadID || '', downloadIntent)
 

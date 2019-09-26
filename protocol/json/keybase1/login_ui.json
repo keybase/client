@@ -13,7 +13,41 @@
       "symbols": [
         "COMPLETE_0",
         "ENTER_NO_DEVICES_1",
-        "ENTER_FORGOT_PW_2"
+        "ENTER_FORGOT_PW_2",
+        "ENTER_RESET_PW_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetPromptInfo",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hasWallet"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ResetPrompt",
+      "switch": {
+        "type": "ResetPromptType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "COMPLETE",
+            "def": false
+          },
+          "body": "ResetPromptInfo"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
       ]
     },
     {
@@ -84,8 +118,8 @@
           "type": "int"
         },
         {
-          "name": "kind",
-          "type": "ResetPromptType"
+          "name": "prompt",
+          "type": "ResetPrompt"
         }
       ],
       "response": "boolean",

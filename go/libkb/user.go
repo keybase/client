@@ -944,8 +944,15 @@ func LoadHasRandomPw(mctx MetaContext, arg keybase1.LoadHasRandomPwArg) (res boo
 }
 
 func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
+
 	if !mctx.G().ActiveDevice.Valid() {
 		mctx.Debug("CanLogout: looks like user is not logged in")
+		res.CanLogout = true
+		return res
+	}
+
+	if mctx.G().ActiveDevice.KeychainMode() == KeychainModeNone {
+		mctx.Debug("CanLogout: ok to logout since the key used doesn't user the keychain")
 		res.CanLogout = true
 		return res
 	}

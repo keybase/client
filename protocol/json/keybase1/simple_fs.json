@@ -615,21 +615,6 @@
     },
     {
       "type": "record",
-      "name": "SimpleFSGetHTTPAddressAndTokenResponse",
-      "fields": [
-        {
-          "type": "string",
-          "name": "address"
-        },
-        {
-          "type": "string",
-          "name": "token"
-        }
-      ],
-      "lint": "ignore"
-    },
-    {
-      "type": "record",
       "name": "SimpleFSQuotaUsage",
       "fields": [
         {
@@ -869,6 +854,36 @@
             "items": "DownloadState"
           },
           "name": "states"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GUIViewType",
+      "symbols": [
+        "DEFAULT_0",
+        "TEXT_1",
+        "IMAGE_2",
+        "AUDIO_3",
+        "VIDEO_4",
+        "PDF_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GUIFileContext",
+      "fields": [
+        {
+          "type": "GUIViewType",
+          "name": "viewType"
+        },
+        {
+          "type": "string",
+          "name": "contentType"
+        },
+        {
+          "type": "string",
+          "name": "url"
         }
       ]
     }
@@ -1260,12 +1275,6 @@
       "response": "FSSyncStatus",
       "doc": "Get sync status."
     },
-    "SimpleFSGetHTTPAddressAndToken": {
-      "request": [],
-      "response": "SimpleFSGetHTTPAddressAndTokenResponse",
-      "doc": "This RPC generates a random token to be used by a client that needs to\n   access KBFS content through HTTP. It's fine to call this RPC more than once,\n   but it's probably best to call this once and keep using it. Clients should\n   be using HTTP GET methods, with requests in the form of:\n\n     http://<address>/<kbfs_path>?token=<token>\n\n   If the provided token is invalid, 403 Forbidden is returned, with a HTML\n   document that has title of \"KBFS HTTP Token Invalid\". When receiving such\n   response, client should call this RPC (again) to get a new token.",
-      "lint": "ignore"
-    },
     "simpleFSUserEditHistory": {
       "request": [],
       "response": {
@@ -1531,6 +1540,15 @@
         }
       ],
       "response": null
+    },
+    "simpleFSGetGUIFileContext": {
+      "request": [
+        {
+          "name": "path",
+          "type": "KBFSPath"
+        }
+      ],
+      "response": "GUIFileContext"
     }
   },
   "namespace": "keybase.1"

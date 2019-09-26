@@ -574,6 +574,7 @@ class Input extends React.Component<InputProps, InputState> {
           setHeight={this._setHeight}
           inputSetRef={this._inputSetRef}
           onChangeText={this._onChangeText}
+          onGiphyToggle={this.props.onGiphyToggle}
         />
       </Kb.Box2>
     )

@@ -160,7 +160,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.chatUi.chatInboxConversation': {
-    inParam: {readonly conv: String}
+    inParam: {readonly convs: String}
     outParam: void
   }
   'chat.1.chatUi.chatInboxFailed': {
