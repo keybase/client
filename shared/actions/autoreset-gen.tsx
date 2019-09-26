@@ -13,7 +13,7 @@ export const startAccountReset = 'autoreset:startAccountReset'
 export const submittedReset = 'autoreset:submittedReset'
 
 // Payload Types
-type _ResetAccountPayload = {readonly password?: HiddenString; readonly phoneNumberOrEmail?: string}
+type _ResetAccountPayload = {readonly password?: HiddenString}
 type _ResetErrorPayload = {readonly error: RPCError}
 type _SetUsernamePayload = {readonly username: string}
 type _StartAccountResetPayload = {readonly skipPassword: boolean; readonly username?: string}

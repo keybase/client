@@ -13,9 +13,8 @@ const load = () => {
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Do you know your password?', () => <KnowPassword />)
     .add('Enter password', () => <EnterPassword />)
-    .add('Waiting', () => <Waiting time="7 days" pipelineStarted={true} />)
-    .add('Check phone', () => <Waiting pipelineStarted={false} />)
-    .add('Waiting more', () => <Waiting time="2 days" pipelineStarted={true} />)
+    .add('Waiting', () => <Waiting {...Sb.createNavigator({pipelineStarted: true})} />)
+    .add('Check phone', () => <Waiting {...Sb.createNavigator({pipelineStarted: false})} />)
     .add('Confirm w/out wallet', () => <ConfirmReset hasWallet={false} />)
     .add('Confirm w/ wallet', () => <ConfirmReset hasWallet={true} />)
 }

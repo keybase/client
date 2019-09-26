@@ -5,8 +5,7 @@
   ],
   "actions": {
     "resetAccount": {
-      "password?": "HiddenString",
-      "phoneNumberOrEmail?": "string"
+      "password?": "HiddenString"
     },
     "resetError": {
       "error": "RPCError"
