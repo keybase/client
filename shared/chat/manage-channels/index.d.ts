@@ -20,6 +20,7 @@ export type Props = {
       convID: ConversationIDKey
     }
   >
+  isFiltered: boolean
   onCreate: () => void
   onToggle: (convID: ConversationIDKey) => void
   onEdit: (convID: ConversationIDKey) => void

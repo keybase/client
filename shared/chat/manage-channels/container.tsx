@@ -10,7 +10,7 @@ import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import {isEqual} from 'lodash-es'
+import {isEqual, debounce} from 'lodash-es'
 import {makeInsertMatcher} from '../../util/string'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
@@ -33,6 +33,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamSize = generalCh ? generalCh.numParticipants : 0
 
   const searchText = state.chat2.channelSearchText
+  const isFiltered = !!searchText
 
   const channels = channelInfos
     .map((info, convID) => ({
@@ -56,6 +57,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     canCreateChannels,
     canEditChannels,
     channels,
+    isFiltered,
     selectedChatID,
     teamname,
     waitingForGet,
@@ -109,7 +111,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
     },
-    onChangeSearch: text => dispatch(Chat2Gen.createSetChannelSearchText({text})),
+    onChangeSearch: debounce((text: string) => dispatch(Chat2Gen.createSetChannelSearchText({text})), 500),
     onClose: () => {
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
@@ -148,6 +150,7 @@ type Props = {
   canCreateChannels: boolean
   canEditChannels: boolean
   channels: Array<RowProps & {convID: ChatTypes.ConversationIDKey}>
+  isFiltered: boolean
   onChangeSearch: (text: string) => void
   onClose: () => void
   onCreate: () => void
@@ -231,6 +234,7 @@ const Wrapper = (p: Props) => {
       onClose={rest.onClose}
       onCreate={rest.onCreate}
       canEditChannels={rest.canEditChannels}
+      isFiltered={rest.isFiltered}
       canCreateChannels={rest.canCreateChannels}
       channels={channels}
       nextChannelState={nextChannelState}

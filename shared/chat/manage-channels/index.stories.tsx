@@ -91,6 +91,7 @@ const load = () => {
           canEditChannels={true}
           canCreateChannels={true}
           channels={channels}
+          isFiltered={false}
           onChangeSearch={Sb.action('onChangeSearch')}
           onClose={Sb.action('onClose')}
           onToggle={Sb.action('onToggle')}
@@ -112,6 +113,7 @@ const load = () => {
           canEditChannels={true}
           canCreateChannels={true}
           channels={[]}
+          isFiltered={false}
           onChangeSearch={Sb.action('onChangeSearch')}
           onClose={Sb.action('onClose')}
           onToggle={Sb.action('onToggle')}
@@ -130,6 +132,7 @@ const load = () => {
       <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
         <ManageChannels
           teamname="stripe.usa"
+          isFiltered={false}
           canEditChannels={false}
           canCreateChannels={false}
           channels={channels}

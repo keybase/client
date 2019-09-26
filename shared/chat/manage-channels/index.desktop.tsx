@@ -93,7 +93,7 @@ const _rowBox = {
 
 const ManageChannels = (props: Props) => {
   let channelDisplay
-  if (props.channels.length === 0 || props.waitingForGet) {
+  if (!props.isFiltered && (props.channels.length === 0 || props.waitingForGet)) {
     channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
   } else {
     channelDisplay = (
@@ -127,7 +127,7 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Kb.Text>
         {channelDisplay}
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchBox}>
           <Kb.SearchFilter
             size="full-width"
             icon="iconfont-search"
@@ -201,6 +201,11 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {marginRight: Styles.globalMargins.xtiny},
     isElectron: {display: 'block'},
   }),
+  searchBox: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
 }))
 
 export default ManageChannels
