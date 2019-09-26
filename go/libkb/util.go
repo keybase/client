@@ -1069,8 +1069,8 @@ var kbfsPathInnerRegExp = func() *regexp.Regexp {
 	const usernames = user + `(?:,` + user + `)*`
 	const teamName = kbun.UsernameRE + `(?:\.` + kbun.UsernameRE + `)*`
 	const tlfType = "/(?:private|public|team)$"
-	// TODO support name suffix e.g. conflict
-	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + `)(?:/|$)`
+	const suffix = `(?: \([-_a-zA-Z0-9 ]+\))?`
+	const tlf = "/(?:(?:private|public)/" + usernames + "(?:#" + usernames + ")?|team/" + teamName + ")" + suffix + "(?:/|$)"
 	const specialFiles = "/(?:.kbfs_.+)"
 	return regexp.MustCompile(`^(?:(?:` + tlf + `)|(?:` + tlfType + `)|(?:` + specialFiles + `))`)
 }()
