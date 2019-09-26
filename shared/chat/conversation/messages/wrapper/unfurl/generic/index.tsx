@@ -21,81 +21,76 @@ export type Props = {
   showImageOnSide: boolean
 }
 
-class UnfurlGeneric extends React.Component<Props> {
-  render() {
-    const showBottomImage =
-      !!this.props.imageURL &&
-      !!this.props.imageHeight &&
-      !!this.props.imageWidth &&
-      !this.props.showImageOnSide
-    return (
-      <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
-        {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
-        <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
-          <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
-            {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
-            <Kb.BoxGrow>
-              <Kb.Text type="BodySmall" lineClamp={1}>
-                {this.props.siteName}
-                {!!this.props.publishTime && (
-                  <Kb.Text type="BodySmall">
-                    {' '}
-                    • Published {formatTimeForMessages(this.props.publishTime)}
-                  </Kb.Text>
-                )}
-              </Kb.Text>
-            </Kb.BoxGrow>
-            {!!this.props.onClose && (
-              <Kb.Icon
-                type="iconfont-close"
-                onClick={this.props.onClose}
-                style={styles.closeBox}
-                className="unfurl-closebox"
-                fontSize={12}
-              />
-            )}
-          </Kb.Box2>
-          <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={this.props.url}>
-            {this.props.title}
-          </Kb.Text>
-          {!!this.props.description && (
-            <Kb.Text type="Body" lineClamp={5} selectable={true}>
-              {this.props.description}
-              {showBottomImage && (
-                <>
-                  {' '}
-                  <Kb.Icon
-                    boxStyle={styles.collapseBox}
-                    noContainer={Styles.isMobile}
-                    onClick={this.props.onCollapse}
-                    sizeType="Tiny"
-                    type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-                  />
-                </>
+const UnfurlGeneric = (props: Props) => {
+  const {imageURL, imageHeight, imageWidth, showImageOnSide, siteName, publishTime} = props
+  const {onClose, title, description, isCollapsed, url, imageIsVideo, onCollapse, faviconURL} = props
+  const showBottomImage = !!imageHeight && !!imageWidth && !showImageOnSide
+  return (
+    <Kb.Box2 style={styles.container} gap="tiny" direction="horizontal">
+      {!Styles.isMobile && <Kb.Box2 direction="horizontal" style={styles.quoteContainer} />}
+      <Kb.Box2 style={styles.innerContainer} gap="xxtiny" direction="vertical">
+        <Kb.Box2 style={styles.siteNameContainer} gap="tiny" fullWidth={true} direction="horizontal">
+          {!!faviconURL && <Kb.Image src={faviconURL} style={styles.favicon} />}
+          <Kb.BoxGrow>
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {siteName}
+              {!!publishTime && (
+                <Kb.Text type="BodySmall"> • Published {formatTimeForMessages(publishTime)}</Kb.Text>
               )}
             </Kb.Text>
-          )}
-          {showBottomImage && !this.props.isCollapsed && (
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <UnfurlImage
-                url={this.props.imageURL || ''}
-                linkURL={this.props.url}
-                height={this.props.imageHeight || 0}
-                width={this.props.imageWidth || 0}
-                widthPadding={Styles.isMobile ? Styles.globalMargins.tiny : undefined}
-                style={styles.bottomImage}
-                isVideo={this.props.imageIsVideo || false}
-                autoplayVideo={false}
-              />
-            </Kb.Box2>
+          </Kb.BoxGrow>
+          {!!onClose && (
+            <Kb.Icon
+              type="iconfont-close"
+              onClick={onClose}
+              style={styles.closeBox}
+              className="unfurl-closebox"
+              fontSize={12}
+            />
           )}
         </Kb.Box2>
-        {!!this.props.imageURL && !Styles.isMobile && this.props.showImageOnSide && (
-          <Kb.Image src={this.props.imageURL} style={styles.sideImage} />
+        <Kb.Text type="BodyPrimaryLink" style={styles.url} onClickURL={url}>
+          {title}
+        </Kb.Text>
+        {!!description && (
+          <Kb.Text type="Body" lineClamp={5} selectable={true}>
+            {description}
+            {showBottomImage && (
+              <>
+                {' '}
+                <Kb.Icon
+                  boxStyle={styles.collapseBox}
+                  noContainer={Styles.isMobile}
+                  onClick={onCollapse}
+                  sizeType="Tiny"
+                  type={isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+                />
+              </>
+            )}
+          </Kb.Text>
+        )}
+        {showBottomImage && !isCollapsed && (
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <UnfurlImage
+              url={imageURL || ''}
+              linkURL={url}
+              height={imageHeight || 0}
+              width={imageWidth || 0}
+              widthPadding={Styles.isMobile ? Styles.globalMargins.tiny : undefined}
+              style={styles.bottomImage}
+              isVideo={imageIsVideo || false}
+              autoplayVideo={false}
+            />
+          </Kb.Box2>
         )}
       </Kb.Box2>
-    )
-  }
+      {!Styles.isMobile && showImageOnSide && (
+        <Kb.Box2 direction="vertical" style={styles.sideImage}>
+          {!!imageURL && <Kb.Image src={imageURL} style={styles.sideImage} />}
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
@@ -156,8 +151,8 @@ const styles = Styles.styleSheetCreate(
       }),
       sideImage: Styles.platformStyles({
         isElectron: {
-          maxHeight: 80,
-          maxWidth: 80,
+          height: 80,
+          width: 80,
         },
       }),
       siteNameContainer: Styles.platformStyles({
