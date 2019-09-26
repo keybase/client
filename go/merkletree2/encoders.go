@@ -25,8 +25,6 @@ func (e EncodingType) GetEncoder() Encoder {
 	switch e {
 	case EncodingTypeBlindedSHA512_256v1:
 		return NewBlindedSHA512_256v1Encoder()
-	case EncodingTypeSHA512_256ForTesting:
-		return SHA512_256Encoder{}
 	default:
 		panic("Invalid EncodingType")
 	}
