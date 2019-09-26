@@ -3,6 +3,8 @@ package systests
 import (
 	"testing"
 
+	"github.com/keybase/client/go/teams"
+
 	"github.com/keybase/client/go/emails"
 
 	"github.com/keybase/client/go/externals"
@@ -226,4 +228,42 @@ func TestTeamInviteExistingUserSBSEmail(t *testing.T) {
 
 func TestTeamInviteExistingUserSBSRooter(t *testing.T) {
 	testTeamInviteExistingUserSBS(t, &userSBSRooter{})
+}
+
+// ------------------
+
+func TestTeamInviteSBSError(t *testing.T) {
+	// Make sure we can't add invites for assertions if we can't attempt to
+	// resolve them.
+
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	ann.disableTOFUSearch()
+
+	teamID, teamName := ann.createTeam2()
+
+	sbsProviders := []userSBSProvider{
+		&userSBSEmail{},
+		&userSBSPhoneNumber{},
+	}
+
+	for _, sbs := range sbsProviders {
+		sbs.SetUser(bob)
+		sbs.Verify()
+
+		key, value := sbs.GetAssertionKV()
+		assertionURL := assertionFromKV(t, key, value)
+		assertion := assertionURL.String()
+
+		_, err := teams.AddMemberByID(context.TODO(), ann.tc.G, teamID, assertion, keybase1.TeamRole_WRITER, nil)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "error 602") // user cannot search for assertions
+	}
+
+	t0 := ann.loadTeam(teamName.String(), true /* admin */)
+	require.Equal(t, 0, t0.NumActiveInvites())
 }
