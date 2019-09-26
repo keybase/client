@@ -54,6 +54,108 @@
     },
     {
       "type": "record",
+      "name": "UIInboxSmallTeamRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "snippet"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "snippetDecoration"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeam"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UIInboxBigTeamRowTyp",
+      "symbols": [
+        "LABEL_1",
+        "CHANNEL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIInboxBigTeamChannelRow",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "string",
+          "name": "channelname"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIInboxBigTeamRow",
+      "switch": {
+        "type": "UIInboxBigTeamRowTyp",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LABEL",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "CHANNEL",
+            "def": false
+          },
+          "body": "UIInboxBigTeamChannelRow"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIInboxLayout",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxSmallTeamRow"
+          },
+          "name": "smallTeams"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxBigTeamRow"
+          },
+          "name": "bigTeams"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnverifiedInboxUIItemMetadata",
       "fields": [
         {
@@ -1759,6 +1861,19 @@
         {
           "name": "sessionID",
           "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatInboxLayout": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "layout",
+          "type": "string"
         }
       ],
       "response": null

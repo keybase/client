@@ -551,6 +551,7 @@ type ReplyFiller interface {
 
 type UIInboxLoader interface {
 	Resumable
+	UpdateLayout(ctx context.Context)
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
 }

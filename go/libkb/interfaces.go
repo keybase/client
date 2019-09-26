@@ -412,6 +412,7 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
+	ChatInboxLayout(context.Context, string) error
 	ChatThreadCached(context.Context, *string) error
 	ChatThreadFull(context.Context, string) error
 	ChatThreadStatus(context.Context, chat1.UIChatThreadStatus) error

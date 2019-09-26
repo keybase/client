@@ -3707,6 +3707,22 @@
       ],
       "response": "GetInboxAndUnboxUILocalRes"
     },
+    "requestInboxLayout": {
+      "request": [],
+      "response": null
+    },
+    "requestInboxUnbox": {
+      "request": [
+        {
+          "name": "convIDs",
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          }
+        }
+      ],
+      "response": null
+    },
     "getInboxNonblockLocal": {
       "request": [
         {

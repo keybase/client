@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"golang.org/x/sync/errgroup"
 )
@@ -30,9 +33,11 @@ type UIInboxLoader struct {
 
 	clock             clockwork.Clock
 	transmitCh        chan interface{}
+	layoutCh          chan struct{}
 	convTransmitBatch map[string]chat1.ConversationLocal
 	batchDelay        time.Duration
 	lastBatchFlush    time.Time
+	lastLayoutFlush   time.Time
 }
 
 func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
@@ -53,10 +58,12 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 		return
 	}
 	h.transmitCh = make(chan interface{}, 1000)
+	h.layoutCh = make(chan struct{}, 1000)
 	h.stopCh = make(chan struct{})
 	h.started = true
 	h.uid = uid
 	h.eg.Go(func() error { return h.transmitLoop(h.stopCh) })
+	h.eg.Go(func() error { return h.layoutLoop(h.stopCh) })
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
@@ -332,4 +339,141 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 		}(convRes)
 	}
 	return nil
+}
+
+func (h *UIInboxLoader) Query() chat1.GetInboxLocalQuery {
+	topicType := chat1.TopicType_CHAT
+	vis := keybase1.TLFVisibility_PRIVATE
+	return chat1.GetInboxLocalQuery{
+		ComputeActiveList: true,
+		TopicType:         &topicType,
+		TlfVisibility:     &vis,
+		Status: []chat1.ConversationStatus{
+			chat1.ConversationStatus_UNFILED,
+			chat1.ConversationStatus_FAVORITE,
+			chat1.ConversationStatus_MUTED,
+		},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
+		},
+	}
+}
+
+type bigTeam struct {
+	name  string
+	convs []types.RemoteConversation
+}
+
+func (b *bigTeam) sort() {
+	sort.Slice(b.convs, func(i, j int) bool {
+		return strings.Compare(b.convs[i].GetTopicName(), b.convs[j].GetTopicName()) < 0
+	})
+}
+
+type bigTeamCollector struct {
+	teams map[string]*bigTeam
+}
+
+func newBigTeamCollector() *bigTeamCollector {
+	return &bigTeamCollector{
+		teams: make(map[string]*bigTeam),
+	}
+}
+
+func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
+	name := conv.GetTLFName()
+	bt, ok := c.teams[name]
+	if !ok {
+		bt = &bigTeam{name: name}
+	}
+	bt.convs = append(bt.convs, conv)
+}
+
+func (c *bigTeamCollector) finalize() (res []chat1.UIInboxBigTeamRow) {
+	var bts []*bigTeam
+	for _, bt := range c.teams {
+		bt.sort()
+		bts = append(bts, bt)
+	}
+	sort.Slice(bts, func(i, j int) bool {
+		return strings.Compare(bts[i].name, bts[j].name) < 0
+	})
+	for _, bt := range bts {
+		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(bt.name))
+		for _, conv := range bt.convs {
+			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(conv))
+		}
+	}
+	return res
+}
+
+func (h *UIInboxLoader) buildLayout(inbox types.Inbox) (res chat1.UIInboxLayout) {
+	btcollector := newBigTeamCollector()
+	for _, conv := range inbox.ConvsUnverified {
+		switch conv.GetTeamType() {
+		case chat1.TeamType_COMPLEX:
+			btcollector.appendConv(conv)
+		default:
+			res.SmallTeams = append(res.SmallTeams, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv))
+		}
+	}
+	res.BigTeams = btcollector.finalize()
+}
+
+func (h *UIInboxLoader) flushLayout() (err error) {
+	ctx := globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "flushLayout")()
+
+	query := h.Query()
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, &query, nil)
+	if err != nil {
+		return err
+	}
+
+	layout := h.buildLayout(inbox)
+	ui, err := h.getChatUI(ctx)
+	if err != nil {
+		h.Debug(ctx, "flushLayout: no chat UI available, skipping send")
+		return nil
+	}
+	dat, err := json.Marshal(layout)
+	if err != nil {
+		return err
+	}
+	if err := ui.ChatInboxLayout(ctx, string(dat)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
+	shouldFlush := false
+	for {
+		select {
+		case <-h.layoutCh:
+			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay {
+				_ = h.flushLayout()
+				shouldFlush = false
+			} else {
+				shouldFlush = true
+			}
+		case <-h.clock.After(h.batchDelay):
+			if shouldFlush {
+				_ = h.flushLayout()
+				shouldFlush = false
+			}
+		case <-shutdownCh:
+			return nil
+		}
+	}
+}
+
+func (h *UIInboxLoader) UpdateLayout(ctx context.Context) error {
+	select {
+	case h.layoutCh <- struct{}{}:
+	default:
+		return errors.New("failed to queue layout update, queue full")
+	}
 }
