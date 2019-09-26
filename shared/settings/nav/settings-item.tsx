@@ -1,14 +1,16 @@
 import React from 'react'
-import {Badge, ClickableBox, Text, Icon, IconType, ProgressIndicator} from '../../common-adapters'
+import {Box2, Badge, ClickableBox, Text, Icon, IconType, ProgressIndicator} from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type SettingsItemProps = {
   badgeNumber?: number
   icon?: IconType
+  iconComponent?: React.ComponentType
   inProgress?: boolean
   largerBadgeMinWidthFix?: boolean
   onClick: () => void
   text: string
+  subText?: string
   textColor?: Styles.Color
   selected?: boolean
 }
@@ -28,22 +30,31 @@ export default function SettingsItem(props: SettingsItemProps) {
           : {},
       ])}
     >
-      {props.icon && (
+      {props.iconComponent ? (
+        <props.iconComponent />
+      ) : props.icon ? (
         <Icon
           type={props.icon}
           color={Styles.globalColors.black_20}
           style={{marginRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny}}
         />
-      )}
-      <Text
-        type="BodySemibold"
-        style={Styles.collapseStyles([
-          props.selected ? styles.selectedText : styles.itemText,
-          props.textColor ? {color: props.textColor} : {},
-        ])}
-      >
-        {props.text}
-      </Text>
+      ) : null}
+      <Box2 direction="vertical">
+        <Text
+          type="BodySemibold"
+          style={Styles.collapseStyles([
+            props.selected ? styles.selectedText : styles.itemText,
+            props.textColor ? {color: props.textColor} : {},
+          ])}
+        >
+          {props.text}
+        </Text>
+        {props.text && props.subText && (
+          <Text type="BodySecondaryLink" style={styles.subText}>
+            {props.subText}
+          </Text>
+        )}
+      </Box2>
       {props.inProgress && <ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (
         <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
@@ -87,5 +98,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   selectedText: {
     color: Styles.globalColors.black,
+  },
+  subText: {
+    color: Styles.globalColors.black_50,
   },
 }))

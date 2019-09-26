@@ -67,6 +67,11 @@ const config = (_, {mode}) => {
         use: [fileLoaderRule],
       },
       {
+        include: path.resolve(__dirname, '../images/releases'),
+        test: [/.*\.(png)$/],
+        use: [fileLoaderRule],
+      },
+      {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
       },

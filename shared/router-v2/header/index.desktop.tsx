@@ -8,6 +8,7 @@ import * as Window from '../../util/window-management'
 import {BrowserWindow} from '../../util/safe-electron.desktop'
 import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
+import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
 import flags from '../../util/feature-flags'
 import * as ReactIs from 'react-is'
 
@@ -163,6 +164,8 @@ class Header extends React.PureComponent<Props> {
         ? Styles.globalColors.black_10
         : Styles.globalColors.transparent)
 
+    const whatsNewAttachToRef = React.createRef<Kb.Box2>()
+
     return (
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
         <Kb.Box2
@@ -185,6 +188,7 @@ class Header extends React.PureComponent<Props> {
             fullWidth={true}
             style={styles.headerBack}
             alignItems="center"
+            ref={whatsNewAttachToRef}
           >
             {/* TODO have headerLeft be the back button */}
             {opt.headerLeft !== null && (
@@ -212,6 +216,13 @@ class Header extends React.PureComponent<Props> {
                     this.props.style.backgroundColor !== Styles.globalColors.transparent &&
                     this.props.style.backgroundColor !== Styles.globalColors.white
                   }
+                />
+              )}
+              {flags.whatsNew && this.props.loggedIn && (
+                <WhatsNewIconWithPopup
+                  color={opt.whatsNewIconColor}
+                  badgeColor={opt.whatsNewIconColor}
+                  attachToRef={whatsNewAttachToRef}
                 />
               )}
               {!title && rightActions}
@@ -292,6 +303,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       iconContainer: Styles.platformStyles({
+        common: {
+          // Needed to position blue badge
+          position: 'relative',
+        },
         isElectron: {
           ...Styles.desktopStyles.clickable,
           ...Styles.desktopStyles.windowDraggingClickable,

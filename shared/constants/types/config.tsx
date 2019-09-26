@@ -81,4 +81,5 @@ export type State = {
   username: string
   userSwitching: boolean
   useNativeFrame: boolean
+  whatsNewLastSeenVersion: string
 }

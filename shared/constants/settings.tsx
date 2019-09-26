@@ -280,6 +280,7 @@ export const logOutTab = 'settingsTabs.logOutTab'
 export const updatePaymentTab = 'settingsTabs.updatePaymentTab'
 export const walletsTab = 'settingsTabs.walletsTab'
 export const contactsTab = 'settingsTabs.contactsTab'
+export const whatsNewTab = 'settingsTabs.whatsNewTab'
 
 export type SettingsTab =
   | typeof accountTab
@@ -300,3 +301,4 @@ export type SettingsTab =
   | typeof walletsTab
   | typeof chatTab
   | typeof contactsTab
+  | typeof whatsNewTab
