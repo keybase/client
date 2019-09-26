@@ -404,7 +404,7 @@ func (p CommandLine) GetMountDirDefault() string {
 	return p.GetGString("mountdirdefault")
 }
 
-func (p CommandLine) GetRememberPassphrase() (bool, bool) {
+func (p CommandLine) GetRememberPassphrase(libkb.NormalizedUsername) (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
 }
 
