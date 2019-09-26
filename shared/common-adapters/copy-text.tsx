@@ -35,6 +35,9 @@ const CopyText = (props: Props) => {
   const dispatch = Container.useDispatch()
   const copyToClipboard = (text: string) => dispatch(ConfigGen.createCopyToClipboard({text}))
   const copy = () => {
+    if (props.withReveal && !revealed) {
+      reveal()
+    }
     setShowingToast(true)
     textRef.current && textRef.current.highlightText()
     copyToClipboard(props.text)
@@ -84,16 +87,14 @@ const CopyText = (props: Props) => {
           Reveal
         </Text>
       )}
-      {isRevealed && (
-        <Button
-          type={props.buttonType || 'Default'}
-          style={styles.button}
-          onClick={copy}
-          labelContainerStyle={styles.buttonLabelContainer}
-        >
-          <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
-        </Button>
-      )}
+      <Button
+        type={props.buttonType || 'Default'}
+        style={styles.button}
+        onClick={copy}
+        labelContainerStyle={styles.buttonLabelContainer}
+      >
+        <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
+      </Button>
     </Box2>
   )
 }
