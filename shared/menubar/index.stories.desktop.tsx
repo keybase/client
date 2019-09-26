@@ -26,6 +26,7 @@ const props = {
     // TODO: fill in a few.
   ],
   daemonHandshakeState: 'done' as 'done',
+  darkMode: false,
 
   diskSpaceStatus: Types.DiskSpaceStatus.Ok,
   fileName: null,

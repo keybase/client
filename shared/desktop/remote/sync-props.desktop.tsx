@@ -95,6 +95,14 @@ function SyncPropsFactory(serializer: Serializer) {
       }
 
       componentDidUpdate(prevProps: Props) {
+        // @ts-ignore yes, making an assumption
+        if (this.props.darkMode !== prevProps.darkMode) {
+          if (debugSerializer) {
+            console.log('[Serializer]: clear cache due to dark mode')
+          }
+          this._lastProps = null
+          this.forceUpdate()
+        }
         if (this.props.clearCacheTrigger !== prevProps.clearCacheTrigger) {
           this._lastProps = null
         }

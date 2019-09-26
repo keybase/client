@@ -4,6 +4,7 @@
 import * as React from 'react'
 import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
+import * as Styles from '../styles'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
@@ -17,67 +18,69 @@ type OwnProps = {
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
 
-const trackerMapStateToProps = (state, ownProps) => {
-  const d = Constants.getDetails(state, ownProps.username)
-  return {
-    airdropIsLive: state.wallets.airdropDetails.isPromoted,
-    assertions: d.assertions,
-    bio: d.bio,
-    followThem: Constants.followThem(state, ownProps.username),
-    followersCount: d.followersCount,
-    followingCount: d.followingCount,
-    followsYou: Constants.followsYou(state, ownProps.username),
-    fullname: d.fullname,
-    guiID: d.guiID,
-    location: d.location,
-    loggedIn: state.config.loggedIn,
-    reason: d.reason,
-    registeredForAirdrop: d.registeredForAirdrop,
-    remoteWindowNeedsProps: ConfigConstants.getRemoteWindowPropsCount(
-      state.config,
-      'tracker2',
-      ownProps.username
-    ),
-    state: d.state,
-    teamShowcase: d.teamShowcase,
-    waiting: Container.anyWaiting(state, Constants.waitingKey),
-    youAreInAirdrop: false,
-    yourUsername: state.config.username,
-  }
-}
-
-const trackerMergeProps = (stateProps, _, ownProps: OwnProps) => {
-  return {
-    assertions: stateProps.assertions,
-    bio: stateProps.bio,
-    followThem: stateProps.followThem,
-    followersCount: stateProps.followersCount,
-    followingCount: stateProps.followingCount,
-    followsYou: stateProps.followsYou,
-    fullname: stateProps.fullname,
-    guiID: stateProps.guiID,
-    isYou: stateProps.yourUsername === ownProps.username,
-    location: stateProps.location,
-    reason: stateProps.reason,
-    registeredForAirdrop: stateProps.registeredForAirdrop,
-    remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
-    state: stateProps.state,
-    teamShowcase: stateProps.teamShowcase,
-    username: ownProps.username,
-    waiting: stateProps.waiting,
-    windowComponent: 'tracker2',
-    windowOpts,
-    windowParam: ownProps.username,
-    windowPositionBottomRight: true,
-    windowTitle: `Tracker - ${ownProps.username}`,
-  }
-}
-
 const Empty = () => null
 
 // Actions are handled by remote-container
 const RemoteTracker2 = Container.compose(
-  Container.connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
+  Container.connect(
+    (state, ownProps: OwnProps) => {
+      const d = Constants.getDetails(state, ownProps.username)
+      return {
+        airdropIsLive: state.wallets.airdropDetails.isPromoted,
+        assertions: d.assertions,
+        bio: d.bio,
+        darkMode: Styles.isDarkMode(),
+        followThem: Constants.followThem(state, ownProps.username),
+        followersCount: d.followersCount,
+        followingCount: d.followingCount,
+        followsYou: Constants.followsYou(state, ownProps.username),
+        fullname: d.fullname,
+        guiID: d.guiID,
+        location: d.location,
+        loggedIn: state.config.loggedIn,
+        reason: d.reason,
+        registeredForAirdrop: d.registeredForAirdrop,
+        remoteWindowNeedsProps: ConfigConstants.getRemoteWindowPropsCount(
+          state.config,
+          'tracker2',
+          ownProps.username
+        ),
+        state: d.state,
+        teamShowcase: d.teamShowcase,
+        waiting: Container.anyWaiting(state, Constants.waitingKey),
+        youAreInAirdrop: false,
+        yourUsername: state.config.username,
+      }
+    },
+    () => ({}),
+    (stateProps, _, ownProps: OwnProps) => {
+      return {
+        assertions: stateProps.assertions,
+        bio: stateProps.bio,
+        darkMode: stateProps.darkMode,
+        followThem: stateProps.followThem,
+        followersCount: stateProps.followersCount,
+        followingCount: stateProps.followingCount,
+        followsYou: stateProps.followsYou,
+        fullname: stateProps.fullname,
+        guiID: stateProps.guiID,
+        isYou: stateProps.yourUsername === ownProps.username,
+        location: stateProps.location,
+        reason: stateProps.reason,
+        registeredForAirdrop: stateProps.registeredForAirdrop,
+        remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
+        state: stateProps.state,
+        teamShowcase: stateProps.teamShowcase,
+        username: ownProps.username,
+        waiting: stateProps.waiting,
+        windowComponent: 'tracker2',
+        windowOpts,
+        windowParam: ownProps.username,
+        windowPositionBottomRight: true,
+        windowTitle: `Tracker - ${ownProps.username}`,
+      }
+    }
+  ),
   SyncBrowserWindow,
   SyncAvatarProps,
   SyncProps(serialize)
@@ -94,20 +97,20 @@ class RemoteTracker2s extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = state => ({
-  _users: state.tracker2.usernameToDetails,
-  // TODO
-  // _nonUserTrackers: state.tracker.nonUserTrackers,
-  // _trackers: state.tracker.userTrackers,
-})
-
-const mergeProps = (stateProps, _, __) => ({
-  users: stateProps._users
-    .filter(d => d.showTracker)
-    .map(d => d.username)
-    .take(MAX_TRACKERS)
-    .toList()
-    .toArray(),
-})
-
-export default Container.connect(mapStateToProps, () => ({}), mergeProps)(RemoteTracker2s)
+export default Container.connect(
+  state => ({
+    _users: state.tracker2.usernameToDetails,
+    // TODO
+    // _nonUserTrackers: state.tracker.nonUserTrackers,
+    // _trackers: state.tracker.userTrackers,
+  }),
+  () => ({}),
+  (stateProps, _, __) => ({
+    users: stateProps._users
+      .filter(d => d.showTracker)
+      .map(d => d.username)
+      .take(MAX_TRACKERS)
+      .toList()
+      .toArray(),
+  })
+)(RemoteTracker2s)
