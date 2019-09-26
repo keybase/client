@@ -1,8 +1,6 @@
 package logger
 
 import (
-	"testing"
-
 	"golang.org/x/net/context"
 )
 
@@ -51,8 +49,4 @@ func (c Context) Critical(format string, args ...interface{}) {
 
 func (c Context) Fatal(format string, args ...interface{}) {
 	c.Logger.CloneWithAddedDepth(1).CFatalf(c.ctx, format, args)
-}
-
-func NewLoggerContextTodoForTesting(t *testing.T) ContextInterface {
-	return &Context{ctx: context.TODO(), Logger: NewTestLogger(t)}
 }
