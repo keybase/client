@@ -6,14 +6,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeviceEKStorage(t *testing.T) {
-	tc, mctx, _ := ephemeralKeyTestSetup(t)
+	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	s := NewDeviceEKStorage(mctx)
 
 	now := time.Now()
 	testKeys := []keybase1.DeviceEk{
@@ -62,8 +68,6 @@ func TestDeviceEKStorage(t *testing.T) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(mctx, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-
-	s := NewDeviceEKStorage(mctx)
 
 	for _, test := range testKeys {
 		err := s.Put(mctx, test.Metadata.Generation, test)
