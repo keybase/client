@@ -175,6 +175,9 @@ class Thread extends React.PureComponent<Props, State> {
     if (this._isLockedToBottom()) {
       setImmediate(() => this._scrollToBottom('componentDidMount'))
     }
+    if (this._listRef.current) {
+      this._listRef.current.addEventListener('scroll', this._onScroll, {passive: true})
+    }
   }
 
   getSnapshotBeforeUpdate(prevProps: Props) {
@@ -257,7 +260,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (snapshot && list && !this._isLockedToBottom()) {
       // onResize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
-      this._onResize({scroll: {height: list.scrollHeight}})
+      // this._onScroll({target: {scrollHeight: list.scrollHeight} as any})
     } else if (
       this.props.containsLatestMessage &&
       this.props.messageOrdinals.size !== prevProps.messageOrdinals.size
@@ -286,6 +289,9 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this._cleanupDebounced()
+    if (this._listRef.current) {
+      this._listRef.current.removeEventListener('scroll', this._onScroll)
+    }
   }
 
   _cleanupDebounced = () => {
@@ -294,20 +300,40 @@ class Thread extends React.PureComponent<Props, State> {
     this._checkForLoadMoreThrottled.cancel()
   }
 
-  _onScroll = () => {
-    if (this._ignoreScrollOnetime) {
-      this._logIgnoreScroll('_onScroll', () => {
-        this._ignoreScrollOnetime = false
-      })
-      return
+  _onScroll = (e: Event) => {
+    const target: HTMLDivElement = e.target as any
+    const {scrollHeight} = target
+    if (this._scrollHeight) {
+      // if the size changes adjust our scrolltop
+      if (this._isLockedToBottom()) {
+        requestAnimationFrame(() => {
+          this._scrollToBottom('_onResize')
+        })
+      } else {
+        const list = this._listRef.current
+        if (list) {
+          this._logAll(list, '_onResize', () => {
+            this._ignoreScrollRefCount++
+            list.scrollTop += scrollHeight - this._scrollHeight
+          })
+        }
+      }
     }
+    this._scrollHeight = scrollHeight
+
+    // if (this._ignoreScrollOnetime) {
+    // this._logIgnoreScroll('_onScroll', () => {
+    // this._ignoreScrollOnetime = false
+    // })
+    // return
+    // }
     this._checkForLoadMoreThrottled()
-    if (this._ignoreScrollRefCount > 0) {
-      this._logIgnoreScroll('_onScroll', () => {
-        this._ignoreScrollRefCount--
-      })
-      return
-    }
+    // if (this._ignoreScrollRefCount > 0) {
+    // this._logIgnoreScroll('_onScroll', () => {
+    // this._ignoreScrollRefCount--
+    // })
+    // return
+    // }
     this._onScrollThrottled()
   }
 
@@ -480,24 +506,6 @@ class Thread extends React.PureComponent<Props, State> {
     return items
   })
 
-  _onResize = ({scroll}) => {
-    if (this._scrollHeight) {
-      // if the size changes adjust our scrolltop
-      if (this._isLockedToBottom()) {
-        this._scrollToBottom('_onResize')
-      } else {
-        const list = this._listRef.current
-        if (list) {
-          this._logAll(list, '_onResize', () => {
-            this._ignoreScrollRefCount++
-            list.scrollTop += scroll.height - this._scrollHeight
-          })
-        }
-      }
-    }
-    this._scrollHeight = scroll.height
-  }
-
   render() {
     const items = this._makeItems()
 
@@ -510,19 +518,8 @@ class Thread extends React.PureComponent<Props, State> {
         {debugInfo}
         <div style={styles.container} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
-          <div
-            key={this.props.conversationIDKey}
-            style={styles.list}
-            ref={this._listRef}
-            onScroll={this._onScroll}
-          >
-            <Measure scroll={true} onResize={this._onResize}>
-              {({measureRef}) => (
-                <div ref={measureRef}>
-                  <div ref={this._pointerWrapperRef}>{items}</div>
-                </div>
-              )}
-            </Measure>
+          <div key={this.props.conversationIDKey} style={styles.list} ref={this._listRef}>
+            {items}
           </div>
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this._jumpToRecent} style={styles.jumpToRecent} />
