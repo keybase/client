@@ -4,7 +4,6 @@ import {getShowAirdropBanner} from '../../constants/wallets'
 import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
-import * as SearchGen from '../../actions/search-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Types from '../../constants/types/tracker2'
 import Profile2 from '.'
@@ -119,9 +118,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   },
   onAddIdentity: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileProofsList']})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onSearch: () => {
-    dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
-  },
 })
 
 const followToArray = memoize((followers?: I.OrderedSet<string>, following?: I.OrderedSet<string>) => ({
@@ -174,7 +170,6 @@ const connected = Container.namedConnect(
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
-      onSearch: dispatchProps.onSearch,
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
       service: stateProps.service,

@@ -329,7 +329,7 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 
 func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
 	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+		Prompt: keybase1.NewResetPromptDefault(keybase1.ResetPromptType_ENTER_FORGOT_PW),
 	})
 	if err != nil {
 		return err

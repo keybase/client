@@ -12,7 +12,7 @@ import * as SettingsGen from './settings-gen'
 import * as WaitingGen from './waiting-gen'
 import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
-import {isAndroidNewerThanN, pprofDir, version} from '../constants/platform'
+import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {TypedState} from '../util/container'
 
@@ -530,6 +530,10 @@ const setLockdownMode = async (state: TypedState, action: SettingsGen.OnChangeLo
 }
 
 const sendFeedback = async (state: TypedState, action: SettingsGen.SendFeedbackPayload) => {
+  // We don't want test devices (pre-launch reports) to send us log sends.
+  if (isTestDevice) {
+    return
+  }
   const {feedback, sendLogs, sendMaxBytes} = action.payload
   try {
     if (sendLogs) {

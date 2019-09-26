@@ -57,23 +57,24 @@ func (o *ReadOutbox) clear(ctx context.Context) Error {
 	return nil
 }
 
-func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox, err Error) {
+func (o *ReadOutbox) readStorage(ctx context.Context) (res diskReadOutbox) {
 	found, ierr := o.readDiskBox(ctx, o.dbKey(), &res)
 	if ierr != nil {
-		return res, NewInternalError(ctx, o.DebugLabeler, "failure to read chat read outbox: %s", ierr)
+		o.maybeNuke(NewInternalError(ctx, o.DebugLabeler, ierr.Error()), o.dbKey())
+		return diskReadOutbox{Version: readOutboxVersion}
 	}
 	if !found {
-		return diskReadOutbox{Version: readOutboxVersion}, nil
+		return diskReadOutbox{Version: readOutboxVersion}
 	}
 	if res.Version != readOutboxVersion {
 		o.Debug(ctx, "on disk version not equal to program version, clearing: disk :%d program: %d",
 			res.Version, readOutboxVersion)
 		if cerr := o.clear(ctx); cerr != nil {
-			return res, cerr
+			return diskReadOutbox{Version: readOutboxVersion}
 		}
-		return diskReadOutbox{Version: readOutboxVersion}, nil
+		return diskReadOutbox{Version: readOutboxVersion}
 	}
-	return res, nil
+	return res
 }
 
 func (o *ReadOutbox) writeStorage(ctx context.Context, do diskReadOutbox) (err Error) {
@@ -86,10 +87,7 @@ func (o *ReadOutbox) writeStorage(ctx context.Context, do diskReadOutbox) (err E
 func (o *ReadOutbox) PushRead(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID) (err Error) {
 	locks.ReadOutbox.Lock()
 	defer locks.ReadOutbox.Unlock()
-	obox, err := o.readStorage(ctx)
-	if err != nil {
-		return err
-	}
+	obox := o.readStorage(ctx)
 	id, ierr := NewOutboxID()
 	if ierr != nil {
 		return NewInternalError(ctx, o.DebugLabeler, "failed to generate id: %s", ierr)
@@ -105,20 +103,14 @@ func (o *ReadOutbox) PushRead(ctx context.Context, convID chat1.ConversationID, 
 func (o *ReadOutbox) GetRecords(ctx context.Context) (res []ReadOutboxRecord, err Error) {
 	locks.ReadOutbox.Lock()
 	defer locks.ReadOutbox.Unlock()
-	obox, err := o.readStorage(ctx)
-	if err != nil {
-		return res, err
-	}
+	obox := o.readStorage(ctx)
 	return obox.Records, nil
 }
 
 func (o *ReadOutbox) RemoveRecord(ctx context.Context, id chat1.OutboxID) Error {
 	locks.ReadOutbox.Lock()
 	defer locks.ReadOutbox.Unlock()
-	obox, err := o.readStorage(ctx)
-	if err != nil {
-		return err
-	}
+	obox := o.readStorage(ctx)
 	var newrecs []ReadOutboxRecord
 	for _, rec := range obox.Records {
 		if !rec.ID.Eq(&id) {

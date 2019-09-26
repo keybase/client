@@ -296,6 +296,7 @@ class AccountSettings extends React.Component<SettingsProps> {
               )}
               {!!props.canSubmitTx && (
                 <Kb.Button
+                  disabled={props.thisDeviceIsLockedOut}
                   mode="Secondary"
                   label={props.inflationDestination ? 'Change' : 'Set up'}
                   onClick={props.onSetupInflation}
@@ -305,6 +306,11 @@ class AccountSettings extends React.Component<SettingsProps> {
               {!props.canSubmitTx && (
                 <Kb.Text type="BodySmall">
                   Your account needs more funds to set an inflation destination.
+                </Kb.Text>
+              )}
+              {props.thisDeviceIsLockedOut && (
+                <Kb.Text type="BodySmall">
+                  The inflation destination can only be changed from a mobile device over 7 days old.
                 </Kb.Text>
               )}
             </Kb.Box2>

@@ -52,6 +52,10 @@ const Troubleshooting = (props: Props) => {
   const deviceId = Container.useSelector(state => state.provision.codePageOtherDeviceId)
   const deviceIconNo = DevicesConstants.getDeviceIconNumberInner(deviceMap, deviceId)
 
+  const otherDeviceIcon = `icon-${
+    Styles.isMobile ? 'phone' : 'computer'
+  }-background-${deviceIconNo}-64` as Kb.IconType
+
   return (
     <Kb.Modal
       onClose={onBack}

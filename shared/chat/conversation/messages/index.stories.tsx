@@ -15,6 +15,7 @@ import coinflip from './coinflip/index.stories'
 import gitPush from './system-git-push/index.stories'
 import cards from './cards/index.stories'
 import systemText from './system-text/index.stories'
+import sbsText from './system-sbs-resolve/index.stories'
 
 const load = () => {
   ;[
@@ -30,6 +31,7 @@ const load = () => {
     wrapper,
     gitPush,
     systemText,
+    sbsText,
   ].forEach(load => load())
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (

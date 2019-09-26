@@ -4,6 +4,7 @@ import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 
 const nativeBridge = NativeModules.KeybaseEngine || {
   isDeviceSecure: 'fallback',
+  isTestDevice: false,
   serverConfig: '',
   usingSimulator: 'fallback',
   version: 'fallback',
@@ -15,6 +16,7 @@ export const isDeviceSecureAndroid: boolean =
   typeof nativeBridge.isDeviceSecure === 'boolean'
     ? nativeBridge.isDeviceSecure
     : nativeBridge.isDeviceSecure === 'true' || false
+export const isTestDevice = nativeBridge.isTestDevice
 
 export const runMode = 'prod'
 export const isIOS = Platform.OS === 'ios'

@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {_setDarkModePreference} from '../styles/dark-mode'
 import {autoResize} from '../desktop/remote/util.desktop'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
+  darkMode: boolean
   onSubmit: (password: string) => void
   onCancel: () => void
   showTyping: RPCTypes.Feature
@@ -51,6 +53,7 @@ class Pinentry extends React.Component<Props, State> {
   }
 
   render() {
+    _setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
     const isPaperKey = this.props.type === RPCTypes.PassphraseType.paperKey
     const typeStyle = {
       [RPCTypes.PassphraseType.verifyPassPhrase]: {
@@ -77,7 +80,11 @@ class Pinentry extends React.Component<Props, State> {
     }[this.props.type]
 
     return (
-      <Kb.Box style={styles.container}>
+      <Kb.Box
+        style={styles.container}
+        className={this.props.darkMode ? 'darkMode' : ''}
+        key={this.props.darkMode ? 'darkMode' : 'light'}
+      >
         <Kb.Header icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Kb.Text type="Body" center={true}>

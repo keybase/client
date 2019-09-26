@@ -258,15 +258,8 @@ export type _SymlinkPathItem = {
 } & _PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
-export type _Mime = {
-  mimeType: string
-  displayPreview: boolean
-}
-export type Mime = I.RecordOf<_Mime>
-
 export type _FilePathItem = {
   type: PathType.File
-  mimeType: Mime | null
 } & _PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
@@ -584,15 +577,22 @@ export type _PathInfo = {
 }
 export type PathInfo = I.RecordOf<_PathInfo>
 
+export type _FileContext = {
+  contentType: string
+  viewType: RPCTypes.GUIViewType
+  url: string
+}
+export type FileContext = I.RecordOf<_FileContext>
+
 export type _State = {
   destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits
   errors: I.Map<string, FsError>
+  fileContext: I.Map<Path, FileContext>
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
-  localHTTPServerInfo: LocalHTTPServer
   overallSyncStatus: OverallSyncStatus
   pathItemActionMenu: PathItemActionMenu
   pathItems: PathItems

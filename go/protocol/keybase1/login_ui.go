@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -14,6 +15,7 @@ const (
 	ResetPromptType_COMPLETE         ResetPromptType = 0
 	ResetPromptType_ENTER_NO_DEVICES ResetPromptType = 1
 	ResetPromptType_ENTER_FORGOT_PW  ResetPromptType = 2
+	ResetPromptType_ENTER_RESET_PW   ResetPromptType = 3
 )
 
 func (o ResetPromptType) DeepCopy() ResetPromptType { return o }
@@ -22,12 +24,14 @@ var ResetPromptTypeMap = map[string]ResetPromptType{
 	"COMPLETE":         0,
 	"ENTER_NO_DEVICES": 1,
 	"ENTER_FORGOT_PW":  2,
+	"ENTER_RESET_PW":   3,
 }
 
 var ResetPromptTypeRevMap = map[ResetPromptType]string{
 	0: "COMPLETE",
 	1: "ENTER_NO_DEVICES",
 	2: "ENTER_FORGOT_PW",
+	3: "ENTER_RESET_PW",
 }
 
 func (e ResetPromptType) String() string {
@@ -35,6 +39,68 @@ func (e ResetPromptType) String() string {
 		return v
 	}
 	return ""
+}
+
+type ResetPromptInfo struct {
+	HasWallet bool `codec:"hasWallet" json:"hasWallet"`
+}
+
+func (o ResetPromptInfo) DeepCopy() ResetPromptInfo {
+	return ResetPromptInfo{
+		HasWallet: o.HasWallet,
+	}
+}
+
+type ResetPrompt struct {
+	T__        ResetPromptType  `codec:"t" json:"t"`
+	Complete__ *ResetPromptInfo `codec:"complete,omitempty" json:"complete,omitempty"`
+}
+
+func (o *ResetPrompt) T() (ret ResetPromptType, err error) {
+	switch o.T__ {
+	case ResetPromptType_COMPLETE:
+		if o.Complete__ == nil {
+			err = errors.New("unexpected nil value for Complete__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o ResetPrompt) Complete() (res ResetPromptInfo) {
+	if o.T__ != ResetPromptType_COMPLETE {
+		panic("wrong case accessed")
+	}
+	if o.Complete__ == nil {
+		return
+	}
+	return *o.Complete__
+}
+
+func NewResetPromptWithComplete(v ResetPromptInfo) ResetPrompt {
+	return ResetPrompt{
+		T__:        ResetPromptType_COMPLETE,
+		Complete__: &v,
+	}
+}
+
+func NewResetPromptDefault(t ResetPromptType) ResetPrompt {
+	return ResetPrompt{
+		T__: t,
+	}
+}
+
+func (o ResetPrompt) DeepCopy() ResetPrompt {
+	return ResetPrompt{
+		T__: o.T__.DeepCopy(),
+		Complete__: (func(x *ResetPromptInfo) *ResetPromptInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Complete__),
+	}
 }
 
 type PassphraseRecoveryPromptType int
@@ -81,8 +147,8 @@ type DisplayPrimaryPaperKeyArg struct {
 }
 
 type PromptResetAccountArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Kind      ResetPromptType `codec:"kind" json:"kind"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Prompt    ResetPrompt `codec:"prompt" json:"prompt"`
 }
 
 type DisplayResetProgressArg struct {

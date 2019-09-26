@@ -121,20 +121,14 @@ const metaMapReducer = (metaMap: Container.Draft<Types.State['metaMap']>, action
         return metaMap.delete(action.payload.conversationIDKey)
       }
     }
+    case Chat2Gen.clearMetas:
+      return metaMap.clear()
     case Chat2Gen.metasReceived:
       return metaMap.withMutations(map => {
-        if (action.payload.clearExistingMetas) {
-          map.clear()
-        }
-        const neverCreate = !!action.payload.neverCreate
         map.deleteAll(action.payload.removals || [])
         action.payload.metas.forEach(meta => {
           map.update(meta.conversationIDKey, old => {
-            if (old) {
-              return Constants.updateMeta(old, meta)
-            } else {
-              return neverCreate ? old : meta
-            }
+            return old ? Constants.updateMeta(old, meta) : meta
           })
         })
       })
@@ -314,11 +308,8 @@ const messageMapReducer = (
             .set('fileURLCached', true) // assume we have this on the service now
         }
       )
-    case Chat2Gen.metasReceived:
-      if (action.payload.clearExistingMessages) {
-        return messageMap.clear()
-      }
-      return messageMap
+    case Chat2Gen.clearMessages:
+      return messageMap.clear()
     case Chat2Gen.updateMessages: {
       const updateOrdinals = action.payload.messages.reduce<
         Array<{msg: Types.Message; ordinal: Types.Ordinal}>
@@ -391,8 +382,8 @@ const messageOrdinalsReducer = (
       return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
         ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
         : messageOrdinals
-    case Chat2Gen.metasReceived:
-      return action.payload.clearExistingMessages ? messageOrdinals.clear() : messageOrdinals
+    case Chat2Gen.clearMessages:
+      return messageOrdinals.clear()
     default:
       return messageOrdinals
   }
@@ -1136,7 +1127,18 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.giphySend: {
         draftState.giphyWindowMap = draftState.giphyWindowMap.set(action.payload.conversationIDKey, false)
         const unsentTextMap = new Map(draftState.unsentTextMap)
-        unsentTextMap.delete(action.payload.conversationIDKey)
+        unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
+        draftState.unsentTextMap = unsentTextMap
+        return
+      }
+      case Chat2Gen.toggleGiphyPrefill: {
+        // if the window is up, just blow it away
+        const unsentTextMap = new Map(draftState.unsentTextMap)
+        if (draftState.giphyWindowMap.get(action.payload.conversationIDKey, false)) {
+          unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
+        } else {
+          unsentTextMap.set(action.payload.conversationIDKey, new HiddenString('/giphy '))
+        }
         draftState.unsentTextMap = unsentTextMap
         return
       }
@@ -1517,6 +1519,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.messagesExploded:
       case Chat2Gen.saveMinWriterRole:
       case Chat2Gen.updateMessages:
+      case Chat2Gen.clearMessages:
+      case Chat2Gen.clearMetas:
         draftState.metaMap = metaMapReducer(draftState.metaMap, action)
         draftState.messageMap = messageMapReducer(
           draftState.messageMap,

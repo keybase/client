@@ -214,12 +214,6 @@ func (e *DeviceKeygen) setup(m libkb.MetaContext) {
 		return
 	}
 
-	if m.G().Env.GetRunMode() != libkb.DevelRunMode &&
-		(e.args.naclSigningKeyPair != nil || e.args.naclEncryptionKeyPair != nil) {
-		e.runErr = errors.New("trying to pass a key pair agument to device keygen")
-		return
-	}
-
 	e.naclSignGen = e.newNaclKeyGen(m, func() (libkb.NaclKeyPair, error) {
 		if e.args.naclSigningKeyPair != nil {
 			return e.args.naclSigningKeyPair, nil
@@ -271,6 +265,10 @@ func (e *DeviceKeygen) generate(m libkb.MetaContext) {
 func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 	defer m.Trace("DeviceKeygen#localSave", func() error { return e.runErr })()
 	if e.runErr != nil {
+		return
+	}
+	if e.args.DeviceType == libkb.DeviceTypePaper {
+		m.Debug("Not writing out paper key to local storage")
 		return
 	}
 	if e.runErr = e.naclSignGen.SaveLKS(m, e.args.Lks); e.runErr != nil {

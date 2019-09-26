@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.os.Looper;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -14,12 +13,16 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
+import static io.keybase.ossifrage.MainActivity.isTestDevice;
+
 public class ScreenProtector extends ReactContextBaseJavaModule {
     private ReactApplicationContext reactContext;
+    private boolean misTestDevice;
 
     public ScreenProtector(final ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        this.misTestDevice = isTestDevice(reactContext);
         this.setSecureFlag();
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
@@ -49,13 +52,13 @@ public class ScreenProtector extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getSecureFlagSetting(Promise promise) {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
-        final boolean setSecure = prefs.getBoolean("setSecure", true);
+        final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
         promise.resolve(setSecure);
     }
 
     private void setSecureFlag() {
         final SharedPreferences prefs = this.reactContext.getSharedPreferences("SecureFlag", Context.MODE_PRIVATE);
-        final boolean setSecure = prefs.getBoolean("setSecure", true);
+        final boolean setSecure = prefs.getBoolean("setSecure", !misTestDevice);
         final Activity activity = this.reactContext.getCurrentActivity();
         if (activity != null) {
             activity.runOnUiThread(new Runnable() {
