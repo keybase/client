@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_fs.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type FSActivityArg struct {
@@ -224,55 +225,55 @@ type NotifyFSClient struct {
 
 func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotification) (err error) {
 	__arg := FSActivityArg{Notification: notification}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSPathUpdated(ctx context.Context, path string) (err error) {
 	__arg := FSPathUpdatedArg{Path: path}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSPathUpdated", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSPathUpdated", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSSyncActivity(ctx context.Context, status FSPathSyncStatus) (err error) {
 	__arg := FSSyncActivityArg{Status: status}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSyncActivity", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSyncActivity", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSEditListResponse(ctx context.Context, __arg FSEditListResponseArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSEditListResponse", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSEditListResponse", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSSyncStatusResponse(ctx context.Context, __arg FSSyncStatusResponseArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSyncStatusResponse", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSyncStatusResponse", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSOverallSyncStatusChanged(ctx context.Context, status FolderSyncStatus) (err error) {
 	__arg := FSOverallSyncStatusChangedArg{Status: status}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOverallSyncStatusChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOverallSyncStatusChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSFavoritesChanged(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSFavoritesChanged", []interface{}{FSFavoritesChangedArg{}})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSFavoritesChanged", []interface{}{FSFavoritesChangedArg{}}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSOnlineStatusChanged(ctx context.Context, online bool) (err error) {
 	__arg := FSOnlineStatusChangedArg{Online: online}
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOnlineStatusChanged", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSOnlineStatusChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSSubscriptionNotifyPath(ctx context.Context, __arg FSSubscriptionNotifyPathArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSubscriptionNotifyPath", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSubscriptionNotifyPath", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyFSClient) FSSubscriptionNotify(ctx context.Context, __arg FSSubscriptionNotifyArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSubscriptionNotify", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSSubscriptionNotify", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

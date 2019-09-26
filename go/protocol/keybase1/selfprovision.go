@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/selfprovision.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type SelfProvisionArg struct {
@@ -49,6 +50,6 @@ type SelfprovisionClient struct {
 // Performs self provision. If the current device is clone, this function
 // will provision it as a new device.
 func (c SelfprovisionClient) SelfProvision(ctx context.Context, __arg SelfProvisionArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.selfprovision.selfProvision", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.selfprovision.selfProvision", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
