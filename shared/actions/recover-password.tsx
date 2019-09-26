@@ -2,6 +2,7 @@ import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as AutoresetGen from '../actions/autoreset-gen'
 import * as Constants from '../constants/provision'
 import * as Container from '../util/container'
 import {RPCError} from '../util/errors'
@@ -54,31 +55,7 @@ const explainDevice = (
   ])
 }
 
-const promptReset = (
-  _: any,
-  response: {
-    result: (reset: boolean) => void
-  }
-) => {
-  return Saga.callUntyped(function*() {
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordPromptReset'],
-        replace: true,
-      })
-    )
-    const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
-      RecoverPasswordGen.submitResetPrompt
-    )
-    response.result(action.payload.action)
-    if (action.payload.action) {
-      // todo new screen?
-      yield Saga.put(RouteTreeGen.createNavigateUp())
-    } else {
-      yield Saga.put(RecoverPasswordGen.createRestartRecovery())
-    }
-  })
-}
+const promptReset = () => Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
 
 const inputPaperKey = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],

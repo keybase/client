@@ -210,6 +210,14 @@
         {
           "name": "usernameOrEmail",
           "type": "string"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        },
+        {
+          "name": "interactive",
+          "type": "boolean"
         }
       ],
       "response": null,

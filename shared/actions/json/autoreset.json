@@ -1,6 +1,25 @@
 {
-  "prelude": [],
+  "prelude": [
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
+  ],
   "actions": {
-    "dummy": {"_description": "Remove this when this file gets a real action."}
+    "resetAccount": {
+      "password?": "HiddenString",
+      "phoneNumberOrEmail?": "string"
+    },
+    "resetError": {
+      "error": "RPCError"
+    },
+    "submittedReset": {
+      "checkEmail": "boolean"
+    },
+    "setUsername": {
+      "username": "string"
+    },
+    "startAccountReset": {
+      "skipPassword": "boolean",
+      "username?": "string"
+    }
   }
 }

@@ -110,6 +110,8 @@ type RecoverUsernameWithPhoneArg struct {
 type EnterResetPipelineArg struct {
 	SessionID       int    `codec:"sessionID" json:"sessionID"`
 	UsernameOrEmail string `codec:"usernameOrEmail" json:"usernameOrEmail"`
+	Passphrase      string `codec:"passphrase" json:"passphrase"`
+	Interactive     bool   `codec:"interactive" json:"interactive"`
 }
 
 type CancelResetArg struct {

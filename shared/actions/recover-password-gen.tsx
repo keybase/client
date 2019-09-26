@@ -16,7 +16,6 @@ export const showExplainDevice = 'recover-password:showExplainDevice'
 export const startRecoverPassword = 'recover-password:startRecoverPassword'
 export const submitDeviceSelect = 'recover-password:submitDeviceSelect'
 export const submitPaperKey = 'recover-password:submitPaperKey'
-export const submitResetPrompt = 'recover-password:submitResetPrompt'
 
 // Payload Types
 type _AbortDeviceSelectPayload = void
@@ -29,7 +28,6 @@ type _ShowExplainDevicePayload = {readonly type: RPCTypes.DeviceType; readonly n
 type _StartRecoverPasswordPayload = {readonly username: string}
 type _SubmitDeviceSelectPayload = {readonly id: string}
 type _SubmitPaperKeyPayload = {readonly paperKey: string}
-type _SubmitResetPromptPayload = {readonly action: boolean}
 
 // Action Creators
 export const createAbortDeviceSelect = (payload: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
@@ -70,10 +68,6 @@ export const createSubmitPaperKey = (payload: _SubmitPaperKeyPayload): SubmitPap
   payload,
   type: submitPaperKey,
 })
-export const createSubmitResetPrompt = (payload: _SubmitResetPromptPayload): SubmitResetPromptPayload => ({
-  payload,
-  type: submitResetPrompt,
-})
 
 // Action Payloads
 export type AbortDeviceSelectPayload = {
@@ -113,10 +107,6 @@ export type SubmitPaperKeyPayload = {
   readonly payload: _SubmitPaperKeyPayload
   readonly type: typeof submitPaperKey
 }
-export type SubmitResetPromptPayload = {
-  readonly payload: _SubmitResetPromptPayload
-  readonly type: typeof submitResetPrompt
-}
 
 // All Actions
 // prettier-ignore
@@ -131,5 +121,4 @@ export type Actions =
   | StartRecoverPasswordPayload
   | SubmitDeviceSelectPayload
   | SubmitPaperKeyPayload
-  | SubmitResetPromptPayload
   | {type: 'common:resetStore', payload: {}}

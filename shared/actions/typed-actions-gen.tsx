@@ -64,7 +64,11 @@ export type TypedActions =
   | wallets.Actions
 
 export type TypedActionsMap = {
-  'autoreset:dummy': autoreset.DummyPayload
+  'autoreset:resetAccount': autoreset.ResetAccountPayload
+  'autoreset:resetError': autoreset.ResetErrorPayload
+  'autoreset:submittedReset': autoreset.SubmittedResetPayload
+  'autoreset:setUsername': autoreset.SetUsernamePayload
+  'autoreset:startAccountReset': autoreset.StartAccountResetPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -674,7 +678,6 @@ export type TypedActionsMap = {
   'recover-password:submitDeviceSelect': recoverpassword.SubmitDeviceSelectPayload
   'recover-password:abortDeviceSelect': recoverpassword.AbortDeviceSelectPayload
   'recover-password:showExplainDevice': recoverpassword.ShowExplainDevicePayload
-  'recover-password:submitResetPrompt': recoverpassword.SubmitResetPromptPayload
   'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
   'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
