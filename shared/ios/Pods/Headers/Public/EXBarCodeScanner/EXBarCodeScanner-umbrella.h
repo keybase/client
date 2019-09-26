@@ -1,1 +1,0 @@
-../../../Target Support Files/EXBarCodeScanner/EXBarCodeScanner-umbrella.h

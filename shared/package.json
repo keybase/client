@@ -184,7 +184,7 @@
     "recompose": "0.30.0",
     "redux": "4.0.4",
     "redux-saga": "0.16.2",
-    "rn-fetch-blob": "0.10.16",
+    "rn-fetch-blob": "0.11.1",
     "shallowequal": "1.1.0",
     "simple-markdown": "0.5.2",
     "tlds": "1.203.1",

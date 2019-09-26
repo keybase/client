@@ -8,7 +8,7 @@
  *
  * @flow
  */
-'use strict';
+'use strict'
 
 // Export React, plus some native additions.
 //
@@ -88,11 +88,11 @@ var ReactNative = Object.assign(Object.create(require('React')), {
     createFragment: require('ReactFragment').create,
     update: require('update'),
   },
-});
+})
 
 if (__DEV__) {
-  ReactNative.addons.Perf = require('ReactDefaultPerf');
-  ReactNative.addons.TestUtils = require('ReactTestUtils');
+  ReactNative.addons.Perf = require('ReactDefaultPerf')
+  ReactNative.addons.TestUtils = require('ReactTestUtils')
 }
 
-module.exports = ReactNative;
+module.exports = ReactNative

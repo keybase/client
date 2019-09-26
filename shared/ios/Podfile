@@ -4,7 +4,7 @@ platform :ios, '10.0'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
 
-use_modular_headers!
+# use_modular_headers!
 
 target 'Keybase' do
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
