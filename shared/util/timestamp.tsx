@@ -1,4 +1,5 @@
 import moment from 'moment'
+import {pluralize} from './string'
 
 export function formatTimeForChat(time: number): string | null {
   const m = moment(time)
@@ -123,10 +124,7 @@ export const formatDurationForAutoreset = (duration: number): string => {
     amt = d.seconds()
     label = 'second'
   }
-  if (amt > 1) {
-    label += 's'
-  }
-  return `${amt} ${label}`
+  return `${amt} ${pluralize(label, amt)}`
 }
 
 export const formatDurationForLocation = (duration: number): string => {

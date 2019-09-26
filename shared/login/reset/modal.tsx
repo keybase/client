@@ -67,7 +67,6 @@ const ResetModal = (_: Props) => {
   )
 }
 
-// @ts-ignore
 ResetModal.navigationOptions = {
   gesturesEnabled: false,
 }

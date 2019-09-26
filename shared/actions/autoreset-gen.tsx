@@ -10,7 +10,7 @@ export const updateAutoresetState = 'autoreset:updateAutoresetState'
 // Payload Types
 type _CancelResetPayload = void
 type _ResetCancelledPayload = void
-type _UpdateAutoresetStatePayload = {readonly active: Boolean; readonly endTime: number}
+type _UpdateAutoresetStatePayload = {readonly active: boolean; readonly endTime: number}
 
 // Action Creators
 /**

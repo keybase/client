@@ -3,6 +3,6 @@
   "actions": {
     "cancelReset": {"_description": "Cancel an autoreset for the currently logged-in account."},
     "resetCancelled": {"_description": "Cancelled an account reset."},
-    "updateAutoresetState": {"active": "Boolean", "endTime": "number"}
+    "updateAutoresetState": {"active": "boolean", "endTime": "number"}
   }
 }
