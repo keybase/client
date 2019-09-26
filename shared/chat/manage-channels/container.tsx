@@ -10,7 +10,7 @@ import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import {isEqual, debounce} from 'lodash-es'
+import {isEqual} from 'lodash-es'
 import {makeInsertMatcher} from '../../util/string'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
@@ -111,7 +111,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
     },
-    onChangeSearch: debounce((text: string) => dispatch(Chat2Gen.createSetChannelSearchText({text})), 500),
+    onChangeSearch: (text: string) => dispatch(Chat2Gen.createSetChannelSearchText({text})),
     onClose: () => {
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
