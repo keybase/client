@@ -1,1 +1,0 @@
-../../../../../React/React/Views/RCTTabBarItemManager.h
