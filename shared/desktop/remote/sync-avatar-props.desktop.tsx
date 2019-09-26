@@ -82,10 +82,8 @@ function SyncAvatarProps(ComposedComponent: any) {
   // use an immutable equals to not rerender if its the same
   const immutableCached = memoize(
     (followers: Set<string>, following: Set<string>) => ({followers, following}),
-    (
-      [newFollowers, newFollowing]: [Set<string>, Set<string>],
-      [oldFollowers, oldFollowing]: [Set<string>, Set<string>]
-    ) => isEqual(newFollowers, oldFollowers) && isEqual(newFollowing, oldFollowing)
+    ([newFollowers, newFollowing]: Array<Set<string>>, [oldFollowers, oldFollowing]: Array<Set<string>>) =>
+      isEqual(newFollowers, oldFollowers) && isEqual(newFollowing, oldFollowing)
   )
 
   const Connected = Container.connect(
