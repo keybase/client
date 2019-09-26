@@ -549,9 +549,12 @@ func (f *JSONConfigFile) GetVDebugSetting() string {
 func (f *JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
+
 func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (bool, bool) {
+	const legacyRememberPassphraseKey = "remember_passphrase"
+
 	if username.IsNil() {
-		goto Fallback
+		return f.GetTopLevelBool(legacyRememberPassphraseKey)
 	}
 	if m, ok := f.jw.AtKey("remember_passphrase_map").GetDataOrNil().(map[string]interface{}); ok {
 		if ret, mOk := m[username.String()]; mOk {
@@ -560,8 +563,7 @@ func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (boo
 			}
 		}
 	}
-Fallback:
-	return f.GetTopLevelBool("remember_passphrase")
+	return f.GetTopLevelBool(legacyRememberPassphraseKey)
 }
 func (f *JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
