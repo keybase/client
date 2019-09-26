@@ -443,3 +443,8 @@ func (k *KBPKIClient) PutGitMetadata(
 	return k.serviceOwner.KeybaseService().PutGitMetadata(
 		ctx, folder, repoID, metadata)
 }
+
+// InvalidateTeamCacheForID implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) InvalidateTeamCacheForID(tid keybase1.TeamID) {
+	k.idToUserCache.Remove(tid.AsUserOrTeam())
+}

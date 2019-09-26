@@ -1531,6 +1531,12 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 	defer timeTrackerDone()
 
 	fs.log.CDebugf(ctx, "Got TeamNameChanged for %s", tid)
+
+	// Invalidate any cached ID->name mapping for the team if its name
+	// changed, since team names can change due to SBS resolutions
+	// (for implicit teams) or for subteam renames.
+	fs.config.KBPKI().InvalidateTeamCacheForID(tid)
+
 	fbo := fs.findTeamByID(ctx, tid)
 	if fbo != nil {
 		go fbo.TeamNameChanged(ctx, tid)
