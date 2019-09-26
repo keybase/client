@@ -19,6 +19,7 @@ import org.unimodules.adapters.react.ReactAdapterPackage;
 import org.unimodules.adapters.react.ReactModuleRegistryProvider;
 import org.unimodules.core.interfaces.Package;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -78,24 +79,25 @@ public class MainApplication extends Application implements ReactApplication {
      * @param context
      */
     private static void initializeFlipper(Context context) {
-      if (BuildConfig.DEBUG) {
-        try {
+        if (BuildConfig.DEBUG) {
+            try {
           /*
            We use reflection here to pick up the class that initializes Flipper,
           since Flipper library is not available in release mode
           */
-          Class<?> aClass = Class.forName("com.facebook.flipper.ReactNativeFlipper");
-          aClass.getMethod("initializeFlipper", Context.class).invoke(null, context);
-        } catch (ClassNotFoundException e) {
-          e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-          e.printStackTrace();
-        } catch (IllegalAccessException e) {
-          e.printStackTrace();
-        } catch (InvocationTargetException e) {
-          e.printStackTrace();
+                Class<?> aClass = Class.forName("com.facebook.flipper.ReactNativeFlipper");
+                aClass.getMethod("initializeFlipper", Context.class).invoke(null, context);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
-      }
+    }
 
     private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
 
