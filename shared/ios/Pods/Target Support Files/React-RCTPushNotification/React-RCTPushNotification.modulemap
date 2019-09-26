@@ -1,6 +1,0 @@
-module RCTPushNotification {
-  umbrella header "React-RCTPushNotification-umbrella.h"
-
-  export *
-  module * { export * }
-}

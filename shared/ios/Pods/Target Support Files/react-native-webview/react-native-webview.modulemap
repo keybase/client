@@ -1,6 +1,0 @@
-module react_native_webview {
-  umbrella header "react-native-webview-umbrella.h"
-
-  export *
-  module * { export * }
-}

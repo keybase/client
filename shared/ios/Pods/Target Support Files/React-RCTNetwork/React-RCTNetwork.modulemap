@@ -1,6 +1,0 @@
-module RCTNetwork {
-  umbrella header "React-RCTNetwork-umbrella.h"
-
-  export *
-  module * { export * }
-}
