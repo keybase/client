@@ -291,7 +291,7 @@ PODS:
     - React-cxxreact (= 0.61.1)
     - React-jsi (= 0.61.1)
     - ReactCommon/jscallinvoker (= 0.61.1)
-  - rn-fetch-blob (0.10.16):
+  - rn-fetch-blob (0.11.1):
     - React-Core
   - RNFastImage (7.0.2):
     - React
@@ -577,7 +577,7 @@ SPEC CHECKSUMS:
   React-RCTText: 81b62b4e7f11531a5154e4daa5617670d5a2d5de
   React-RCTVibration: 8be61459e3749d1fb02cf414edd05b3007622882
   ReactCommon: 4fba5be89efdf0b5720e0adb3d8d7edf6e532db0
-  rn-fetch-blob: 651b8d076b43d0d7aa294a3d9ec16c00aab8bef9
+  rn-fetch-blob: 2509def10b0fd8ff10e22da284264be34b2231f6
   RNFastImage: 9b0c22643872bb7494c8d87bbbb66cc4c0d9e7a2
   RNGestureHandler: 4cb47a93019c1a201df2644413a0a1569a51c8aa
   RNReanimated: 1b52415c4302f198cb581282a0166690bad62c43
@@ -598,6 +598,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 1e70fe58b872355f0ecb44fb81bb1a16484047f0
   Yoga: d8c572ddec8d05b7dba08e4e5f1924004a177078
 
-PODFILE CHECKSUM: 89f8bee40ac5e273f37fbc49d3c5e0ce11b5ca98
+PODFILE CHECKSUM: c9f78310a50ebd3d2c7d0eddebb1c4a58433ea24
 
 COCOAPODS: 1.7.4
