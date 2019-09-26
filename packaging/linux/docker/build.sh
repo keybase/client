@@ -15,6 +15,7 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Build all three variants
 docker build \
+  --pull \
   --build-arg SOURCE_COMMIT="$source_commit" \
   --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
   -f "$client_dir/packaging/linux/docker/standard/Dockerfile" \
@@ -22,6 +23,7 @@ docker build \
   "$client_dir"
 
 docker build \
+  --pull \
   --build-arg BASE_IMAGE="keybaseio/client:$tag" \
   -f "$client_dir/packaging/linux/docker/slim/Dockerfile" \
   -t "keybaseio/client:$tag-slim" \
