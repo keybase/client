@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/appstate.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type MobileAppState int
@@ -132,12 +133,12 @@ type AppStateClient struct {
 
 func (c AppStateClient) UpdateMobileNetState(ctx context.Context, state string) (err error) {
 	__arg := UpdateMobileNetStateArg{State: state}
-	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.appState.updateMobileNetState", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AppStateClient) PowerMonitorEvent(ctx context.Context, event string) (err error) {
 	__arg := PowerMonitorEventArg{Event: event}
-	err = c.Cli.Call(ctx, "keybase.1.appState.powerMonitorEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.appState.powerMonitorEvent", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

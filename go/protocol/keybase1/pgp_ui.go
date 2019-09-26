@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/pgp_ui.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type OutputSignatureSuccessArg struct {
@@ -132,27 +133,27 @@ type PGPUiClient struct {
 }
 
 func (c PGPUiClient) OutputSignatureSuccess(ctx context.Context, __arg OutputSignatureSuccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccess", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccess", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) OutputSignatureSuccessNonKeybase(ctx context.Context, __arg OutputSignatureSuccessNonKeybaseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccessNonKeybase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputSignatureSuccessNonKeybase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) KeyGenerated(ctx context.Context, __arg KeyGeneratedArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.keyGenerated", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.keyGenerated", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) ShouldPushPrivate(ctx context.Context, __arg ShouldPushPrivateArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.shouldPushPrivate", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.shouldPushPrivate", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c PGPUiClient) Finished(ctx context.Context, sessionID int) (err error) {
 	__arg := FinishedArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.pgpUi.finished", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.finished", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
