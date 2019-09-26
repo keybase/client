@@ -219,7 +219,7 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 
 func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+		Prompt: keybase1.NewResetPromptDefault(keybase1.ResetPromptType_ENTER_FORGOT_PW),
 	})
 	if err != nil {
 		return err
