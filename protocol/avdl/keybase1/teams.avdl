@@ -792,6 +792,9 @@ protocol teams {
     UID uid;
     @jsonkey("eldest_seqno")
     Seqno eldestSeqno;
+    // NOTE: This comes from gregor, but should not be used during actual SBS
+    // resolution - always take inviteID and look at the actual invite from the
+    // sigchain.
     TeamRole role;
   }
 

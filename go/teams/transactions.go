@@ -145,7 +145,7 @@ func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	// Preconditions: UV is a PUKful user, role is valid and not NONE, invite
 	// exists. Role is not RESTRICTEDBOT as botSettings are set to nil.
 	payload := tx.changeMembershipPayload(uv.Uid)
-	err := payload.AddUVWithRole(uv, role, nil)
+	err := payload.AddUVWithRole(uv, role, nil /* botSettings */)
 	payload.CompleteInviteID(inviteID, uv.PercentForm())
 	return err
 }

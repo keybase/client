@@ -378,7 +378,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		invite, found := team.chain().FindActiveInviteByID(untrustedInviteeFromGregor.InviteID)
 		if !found {
 			g.Log.CDebugf(ctx, "FindActiveInviteByID failed for invite %s", untrustedInviteeFromGregor.InviteID)
-			return libkb.NotFoundError{}
+			return libkb.NotFoundError{Msg: "Invite not found"}
 		}
 		g.Log.CDebugf(ctx, "Found invite: %+v", invite)
 		category, err := invite.Type.C()
