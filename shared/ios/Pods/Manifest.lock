@@ -76,8 +76,19 @@ PODS:
     - Folly (= 2018.10.22.00)
     - RCTRequired (= 0.61.1)
     - React-Core (= 0.61.1)
-  - React (0.11.0):
-    - React/Core (= 0.11.0)
+  - React (0.61.1):
+    - React-Core (= 0.61.1)
+    - React-Core/DevSupport (= 0.61.1)
+    - React-Core/RCTWebSocket (= 0.61.1)
+    - React-RCTActionSheet (= 0.61.1)
+    - React-RCTAnimation (= 0.61.1)
+    - React-RCTBlob (= 0.61.1)
+    - React-RCTImage (= 0.61.1)
+    - React-RCTLinking (= 0.61.1)
+    - React-RCTNetwork (= 0.61.1)
+    - React-RCTSettings (= 0.61.1)
+    - React-RCTText (= 0.61.1)
+    - React-RCTVibration (= 0.61.1)
   - React-Core (0.61.1):
     - Folly (= 2018.10.22.00)
     - glog
@@ -267,7 +278,6 @@ PODS:
     - React-Core/RCTTextHeaders (= 0.61.1)
   - React-RCTVibration (0.61.1):
     - React-Core/RCTVibrationHeaders (= 0.61.1)
-  - React/Core (0.11.0)
   - ReactCommon/jscallinvoker (0.61.1):
     - DoubleConversion
     - Folly (= 2018.10.22.00)
@@ -334,6 +344,7 @@ DEPENDENCIES:
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
+  - React (from `../node_modules/react-native/`)
   - React-Core (from `../node_modules/react-native/`)
   - React-Core/DevSupport (from `../node_modules/react-native/`)
   - React-Core/RCTWebSocket (from `../node_modules/react-native/`)
@@ -382,7 +393,6 @@ SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - boost-for-react-native
     - libwebp
-    - React
     - SDWebImage
     - SDWebImageWebPCoder
 
@@ -429,6 +439,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTTypeSafety:
     :path: "../node_modules/react-native/Libraries/TypeSafety"
+  React:
+    :path: "../node_modules/react-native/"
   React-Core:
     :path: "../node_modules/react-native/"
   React-CoreModules:
@@ -542,7 +554,7 @@ SPEC CHECKSUMS:
   lottie-react-native: d8caf2aa9ab8bb76312e44997c1c91804a23d44d
   RCTRequired: 53825815218847d3e9c7b6d92ad2d197a926d51e
   RCTTypeSafety: d886540c518e53064dfa081bf7693fd650699b92
-  React: ab1a2e21deb34965c38328d5ec40cc7d12c6050a
+  React: 5dea58967c421bd1fdf6b94c18b9ed0f5134683c
   React-Core: b381e65aa0da9b94b9dcdc4a99298075b1c3876c
   React-CoreModules: 4ed224e29848ba76d26aacb8e3fe85712d3c4fe1
   React-cxxreact: 52c98f5c1fb4e4d9f4b588742718350a55f4f088
@@ -586,6 +598,6 @@ SPEC CHECKSUMS:
   UMTaskManagerInterface: 1e70fe58b872355f0ecb44fb81bb1a16484047f0
   Yoga: d8c572ddec8d05b7dba08e4e5f1924004a177078
 
-PODFILE CHECKSUM: 38ccab2921d3645a5008f497c5991243045c8c5c
+PODFILE CHECKSUM: 89f8bee40ac5e273f37fbc49d3c5e0ce11b5ca98
 
 COCOAPODS: 1.7.4
