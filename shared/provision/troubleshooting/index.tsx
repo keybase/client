@@ -10,7 +10,13 @@ type Props = {
   onCancel: () => void
 }
 
-type BigButtonProps = {onClick: () => void; icon: Kb.IconType; mainText: string; subText: string}
+type BigButtonProps = {
+  icon: Kb.IconType
+  mainText: string
+  onClick: () => void
+  subText: string
+}
+
 const BigButton = ({onClick, icon, mainText, subText}: BigButtonProps) => (
   <Kb.ClickableBox onClick={onClick}>
     <Kb.Box2
@@ -86,9 +92,7 @@ const Troubleshooting = (props: Props) => {
         >
           <BigButton
             onClick={onBack}
-            icon={
-              `icon-${Styles.isMobile ? 'phone' : 'computer'}-background-${deviceIconNo}-64` as Kb.IconType
-            }
+            icon={otherDeviceIcon}
             mainText={`I have my old "${deviceName}," let me use it to authorize.`}
             subText={`Back to ${props.mode} code`}
           />
