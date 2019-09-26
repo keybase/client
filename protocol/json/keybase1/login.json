@@ -137,10 +137,6 @@
         {
           "name": "doRevoke",
           "type": "boolean"
-        },
-        {
-          "name": "force",
-          "type": "boolean"
         }
       ],
       "response": null

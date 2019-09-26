@@ -840,7 +840,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.login.deprovision': {
-    inParam: {readonly username: String; readonly doRevoke: Boolean; readonly force: Boolean}
+    inParam: {readonly username: String; readonly doRevoke: Boolean}
     outParam: void
   }
   'keybase.1.login.getConfiguredAccounts': {
