@@ -412,7 +412,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   arrowTick: {
-    borderBottomColor: Styles.globalColors.blueDark,
+    borderBottomColor: Styles.isDarkMode() ? '#2d2d2d' : Styles.globalColors.blueDark,
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderLeftWidth: 6,
