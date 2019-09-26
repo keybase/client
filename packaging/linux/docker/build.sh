@@ -13,9 +13,12 @@ code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
 gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
+# Clear all existing base images
+docker rmi golang:1.12.4-stretch
+docker rmi debian:stretch
+
 # Build all three variants
 docker build \
-  --pull \
   --build-arg SOURCE_COMMIT="$source_commit" \
   --build-arg SIGNING_FINGERPRINT="$code_signing_fingerprint" \
   -f "$client_dir/packaging/linux/docker/standard/Dockerfile" \
@@ -23,7 +26,6 @@ docker build \
   "$client_dir"
 
 docker build \
-  --pull \
   --build-arg BASE_IMAGE="keybaseio/client:$tag" \
   -f "$client_dir/packaging/linux/docker/slim/Dockerfile" \
   -t "keybaseio/client:$tag-slim" \
