@@ -127,6 +127,17 @@ const ManageChannels = (props: Props) => {
           {props.teamname}
         </Kb.Text>
         {channelDisplay}
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          <Kb.SearchFilter
+            size="full-width"
+            icon="iconfont-search"
+            placeholderText={`Search channels in ${props.teamname}`}
+            placeholderCentered={true}
+            mobileCancelButton={true}
+            hotkey="f"
+            onChange={props.onChangeSearch}
+          />
+        </Kb.Box2>
         <Kb.ScrollView style={{flex: 1, width: '100%'}}>
           {props.channels.map(c => (
             <Row

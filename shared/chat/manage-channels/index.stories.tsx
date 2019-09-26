@@ -91,6 +91,7 @@ const load = () => {
           canEditChannels={true}
           canCreateChannels={true}
           channels={channels}
+          onChangeSearch={Sb.action('onChangeSearch')}
           onClose={Sb.action('onClose')}
           onToggle={Sb.action('onToggle')}
           onEdit={Sb.action('onEdit')}
@@ -111,6 +112,7 @@ const load = () => {
           canEditChannels={true}
           canCreateChannels={true}
           channels={[]}
+          onChangeSearch={Sb.action('onChangeSearch')}
           onClose={Sb.action('onClose')}
           onToggle={Sb.action('onToggle')}
           onEdit={Sb.action('onEdit')}
@@ -131,6 +133,7 @@ const load = () => {
           canEditChannels={false}
           canCreateChannels={false}
           channels={channels}
+          onChangeSearch={Sb.action('onChangeSearch')}
           onClose={Sb.action('onClose')}
           onToggle={Sb.action('onToggle')}
           onEdit={Sb.action('onEdit')}

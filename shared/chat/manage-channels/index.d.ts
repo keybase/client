@@ -25,6 +25,7 @@ export type Props = {
   onEdit: (convID: ConversationIDKey) => void
   onClose?: () => void
   onClickChannel: (channelname: string) => void
+  onChangeSearch: (text: string) => void
   teamname: string
   unsavedSubscriptions: boolean
   onSaveSubscriptions: () => void
