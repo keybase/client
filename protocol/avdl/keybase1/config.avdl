@@ -195,6 +195,7 @@ protocol config {
     boolean isNull;
     union { null, boolean } b;
     union { null, int } i;
+    union { null, double } d;
     union { null, string } s;
     union { null, string } o;
   }

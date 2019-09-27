@@ -226,6 +226,7 @@ type JSONWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetFloatAtPath(string, float64) error
 	SetNullAtPath(string) error
 	SetWrapperAtPath(string, *jsonw.Wrapper) error
 	DeleteAtPath(string)

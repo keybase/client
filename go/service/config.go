@@ -105,6 +105,8 @@ func (h ConfigHandler) setValue(_ context.Context, arg keybase1.SetValueArg, w l
 		err = w.SetStringAtPath(arg.Path, *arg.Value.S)
 	case arg.Value.I != nil:
 		err = w.SetIntAtPath(arg.Path, *arg.Value.I)
+	case arg.Value.D != nil:
+		err = w.SetFloatAtPath(arg.Path, *arg.Value.D)
 	case arg.Value.B != nil:
 		err = w.SetBoolAtPath(arg.Path, *arg.Value.B)
 	case arg.Value.O != nil:
