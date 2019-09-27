@@ -59,9 +59,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       banner: {
-        left: 0,
         padding: Styles.globalMargins.xxtiny,
-        top: 0,
       },
     } as const)
 )
