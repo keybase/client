@@ -3496,7 +3496,8 @@ func (nodeChildrenMap) addFileChange(
 
 func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 	lState *kbfssync.LockState, currDir data.Path, children nodeChildrenMap,
-	kmd KeyMetadataWithRootDirEntry) (
+	kmd KeyMetadataWithRootDirEntry,
+	updates map[data.BlockPointer]data.BlockPointer) (
 	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
 	fbo.blockLock.AssertLocked(lState)
 
@@ -3526,6 +3527,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 			child.BlockPointer, entry.BlockPointer)
 		fbo.updatePointer(kmd, child.BlockPointer,
 			entry.BlockPointer, true)
+		updates[child.BlockPointer] = entry.BlockPointer
 		node := fbo.nodeCache.Get(entry.BlockPointer.Ref())
 		if node == nil {
 			fbo.vlog.CLogf(
@@ -3540,7 +3542,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 
 			childChanges, childAffectedNodeIDs, err :=
 				fbo.fastForwardDirAndChildrenLocked(
-					ctx, lState, newPath, children, kmd)
+					ctx, lState, newPath, children, kmd, updates)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -3624,6 +3626,20 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 		rootPath.Path[0].BlockPointer, md.data.Dir.BlockPointer)
 	fbo.updatePointer(md, rootPath.Path[0].BlockPointer,
 		md.data.Dir.BlockPointer, false)
+
+	// Keep track of all the pointer updates done, and unwind them if
+	// there's any error.
+	updates := make(map[data.BlockPointer]data.BlockPointer)
+	updates[rootPath.Path[0].BlockPointer] = md.data.Dir.BlockPointer
+	defer func() {
+		if err == nil {
+			return
+		}
+		for oldID, newID := range updates {
+			fbo.updatePointer(md, newID, oldID, false)
+		}
+	}()
+
 	rootPath.Path[0].BlockPointer = md.data.Dir.BlockPointer
 	rootNode := fbo.nodeCache.Get(md.data.Dir.BlockPointer.Ref())
 	if rootNode != nil {
@@ -3637,7 +3653,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 
 	childChanges, childAffectedNodeIDs, err :=
 		fbo.fastForwardDirAndChildrenLocked(
-			ctx, lState, rootPath, children, md)
+			ctx, lState, rootPath, children, md, updates)
 	if err != nil {
 		return nil, nil, err
 	}
