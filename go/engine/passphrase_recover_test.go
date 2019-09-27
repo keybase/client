@@ -68,7 +68,7 @@ func TestPassphraseRecoverLegacy(t *testing.T) {
 		PaperKey: paperkey,
 	}
 	m = m.WithUIs(uis)
-	require.IsType(t, libkb.PassphraseError{},
+	require.IsType(t, libkb.RetryExhaustedError{},
 		NewPassphraseRecover(tc.G, arg).Run(m))
 	// We should not be logged in even though paperKey login succeeded
 	AssertLoggedInLPK(&tc, false)
