@@ -47,7 +47,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           backgroundColor: Styles.globalColors.blueDark,
           borderRadius: Styles.borderRadius,
-          overflow: 'hidden',
+          marginTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
         },
         isElectron: {
           height: 100,
@@ -72,7 +72,7 @@ const styles = Styles.styleSheetCreate(
       image: {
         alignSelf: Styles.isMobile ? 'center' : undefined,
         paddingRight: Styles.globalMargins.medium,
-        paddingTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xsmall,
+        marginTop: Styles.isMobile ? Styles.globalMargins.tiny : -Styles.globalMargins.xsmall,
       },
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
