@@ -74,7 +74,9 @@ const load = () => {
       {story()}
     </Box>
   ))
-  examples.forEach(ex => story.add(`${ex.emoji}${ex.active ? ' active' : ''}`, () => <ReactButton {...ex} />))
+  examples.forEach((ex, index) =>
+    story.add(`${ex.emoji}${ex.active ? ' active' : ''} ${index}`, () => <ReactButton {...ex} />)
+  )
   story.add('New reaction', () => (
     <NewReactionButton
       onAddReaction={Sb.action('onAddReaction')}
