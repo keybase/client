@@ -52,9 +52,10 @@ const Troubleshooting = (props: Props) => {
   const deviceId = Container.useSelector(state => state.provision.codePageOtherDeviceId)
   const deviceIconNo = DevicesConstants.getDeviceIconNumberInner(deviceMap, deviceId)
 
-  const otherDeviceIcon = `icon-${
-    Styles.isMobile ? 'phone' : 'computer'
-  }-background-${deviceIconNo}-64` as Kb.IconType
+  // If we can't load the device icon, show the wrong one instead of erroring the whole page.
+  const otherDeviceIcon = `icon-${Styles.isMobile ? 'phone' : 'computer'}-background-${
+    deviceIconNo === -1 ? 1 : deviceIconNo
+  }-64` as Kb.IconType
 
   return (
     <Kb.Modal
