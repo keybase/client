@@ -5,9 +5,11 @@
 package libkbfs
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
@@ -16,7 +18,10 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
+)
+
+const (
+	idToUserCacheSize = 50
 )
 
 // keybaseServiceOwner is a wrapper around a KeybaseService, to allow
@@ -28,8 +33,9 @@ type keybaseServiceOwner interface {
 
 // KBPKIClient uses a KeybaseService.
 type KBPKIClient struct {
-	serviceOwner keybaseServiceOwner
-	log          logger.Logger
+	serviceOwner  keybaseServiceOwner
+	log           logger.Logger
+	idToUserCache *lru.Cache
 }
 
 var _ KBPKI = (*KBPKIClient)(nil)
@@ -37,7 +43,13 @@ var _ KBPKI = (*KBPKIClient)(nil)
 // NewKBPKIClient returns a new KBPKIClient with the given service.
 func NewKBPKIClient(
 	serviceOwner keybaseServiceOwner, log logger.Logger) *KBPKIClient {
-	return &KBPKIClient{serviceOwner, log}
+	cache, err := lru.New(idToUserCacheSize)
+	if err != nil {
+		cache = nil
+		log.CDebugf(context.TODO(), "Error creating LRU cache: %+v", err)
+	}
+
+	return &KBPKIClient{serviceOwner, log, cache}
 }
 
 // GetCurrentSession implements the KBPKI interface for KBPKIClient.
@@ -133,17 +145,28 @@ func (k *KBPKIClient) IdentifyImplicitTeam(
 func (k *KBPKIClient) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID,
 	offline keybase1.OfflineAvailability) (
-	kbname.NormalizedUsername, error) {
+	username kbname.NormalizedUsername, err error) {
+	if k.idToUserCache != nil {
+		tmp, ok := k.idToUserCache.Get(id)
+		if ok {
+			username, ok = tmp.(kbname.NormalizedUsername)
+			if ok {
+				return username, nil
+			}
+		}
+	}
+
 	var assertion string
 	if id.IsUser() {
 		assertion = fmt.Sprintf("uid:%s", id)
 	} else {
 		assertion = fmt.Sprintf("tid:%s", id)
 	}
-	username, _, err := k.Resolve(ctx, assertion, offline)
+	username, _, err = k.Resolve(ctx, assertion, offline)
 	if err != nil {
 		return kbname.NormalizedUsername(""), err
 	}
+	k.idToUserCache.Add(id, username)
 	return username, nil
 }
 
@@ -419,4 +442,9 @@ func (k *KBPKIClient) PutGitMetadata(
 	metadata keybase1.GitLocalMetadata) error {
 	return k.serviceOwner.KeybaseService().PutGitMetadata(
 		ctx, folder, repoID, metadata)
+}
+
+// InvalidateTeamCacheForID implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) InvalidateTeamCacheForID(tid keybase1.TeamID) {
+	k.idToUserCache.Remove(tid.AsUserOrTeam())
 }

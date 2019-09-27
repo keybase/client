@@ -102,7 +102,7 @@ type configGetter interface {
 	GetLevelDBNumFiles() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
-	GetRememberPassphrase() (bool, bool)
+	GetRememberPassphrase(NormalizedUsername) (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
@@ -241,7 +241,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
-	SetRememberPassphrase(bool) error
+	SetRememberPassphrase(NormalizedUsername, bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
