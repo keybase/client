@@ -31,34 +31,37 @@ export type WrapperProps = {
   onOpenEmojiPicker: () => void
 } & OwnProps
 
-const Wrapper = (props: WrapperProps) => {
-  return props.emoji ? (
-    <ReactButton
-      active={props.active}
-      cannotWrite={props.cannotWrite}
-      className={props.className}
-      conversationIDKey={props.conversationIDKey}
-      count={props.count}
-      getAttachmentRef={props.getAttachmentRef}
-      emoji={props.emoji}
-      onClick={props.onClick}
-      onLongPress={props.onLongPress}
-      onMouseLeave={props.onMouseLeave}
-      onMouseOver={props.onMouseOver}
-      ordinal={props.ordinal}
-      style={props.style}
-    />
-  ) : (
-    <NewReactionButton
-      getAttachmentRef={props.getAttachmentRef}
-      onAddReaction={props.onAddReaction}
-      onLongPress={props.onLongPress}
-      onOpenEmojiPicker={props.onOpenEmojiPicker}
-      onShowPicker={props.onShowPicker}
-      showBorder={props.showBorder || false}
-      style={props.style}
-    />
-  )
+class Wrapper extends React.Component<WrapperProps> {
+  render() {
+    const props = this.props
+    return props.emoji ? (
+      <ReactButton
+        active={props.active}
+        cannotWrite={props.cannotWrite}
+        className={props.className}
+        conversationIDKey={props.conversationIDKey}
+        count={props.count}
+        getAttachmentRef={props.getAttachmentRef}
+        emoji={props.emoji}
+        onClick={props.onClick}
+        onLongPress={props.onLongPress}
+        onMouseLeave={props.onMouseLeave}
+        onMouseOver={props.onMouseOver}
+        ordinal={props.ordinal}
+        style={props.style}
+      />
+    ) : (
+      <NewReactionButton
+        getAttachmentRef={props.getAttachmentRef}
+        onAddReaction={props.onAddReaction}
+        onLongPress={props.onLongPress}
+        onOpenEmojiPicker={props.onOpenEmojiPicker}
+        onShowPicker={props.onShowPicker}
+        showBorder={props.showBorder || false}
+        style={props.style}
+      />
+    )
+  }
 }
 
 const noEmoji = {
