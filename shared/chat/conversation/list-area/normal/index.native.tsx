@@ -188,7 +188,13 @@ class ConversationList extends React.PureComponent<Props> {
   render() {
     return (
       <ErrorBoundary>
-        <Box style={styles.container}>
+        <Box
+          style={Styles.collapseStyles([
+            styles.container,
+            this.props.hasStatus && {marginTop: 28},
+            this.props.hasPinnedMessage && {marginTop: 46},
+          ])}
+        >
           <NativeVirtualizedList
             contentContainerStyle={styles.contentContainer}
             data={this.props.messageOrdinals}
