@@ -37,6 +37,13 @@ func (r *RemoteChatUI) ChatInboxConversation(ctx context.Context, arg chat1.Chat
 	return r.cli.ChatInboxConversation(ctx, arg)
 }
 
+func (r *RemoteChatUI) ChatInboxLayout(ctx context.Context, layout string) error {
+	return r.cli.ChatInboxLayout(ctx, chat1.ChatInboxLayoutArg{
+		SessionID: r.sessionID,
+		Layout:    layout,
+	})
+}
+
 func (r *RemoteChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	return r.cli.ChatInboxFailed(ctx, arg)
 }

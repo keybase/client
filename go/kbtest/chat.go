@@ -1067,6 +1067,10 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 	return nil
 }
 
+func (c *ChatUI) ChatInboxLayout(ctx context.Context, layout string) error {
+	return nil
+}
+
 func (c *ChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	c.InboxCb <- NonblockInboxResult{
 		Err: fmt.Errorf("%s", arg.Error.Message),

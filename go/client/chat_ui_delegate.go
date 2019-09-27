@@ -94,6 +94,13 @@ func (c *DelegateChatUI) ChatInboxConversation(ctx context.Context, arg chat1.Ch
 	return nil
 }
 
+func (c *DelegateChatUI) ChatInboxLayout(ctx context.Context, arg chat1.ChatInboxLayoutArg) error {
+	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
+		return (*chatUI).ChatInboxLayout(ctx, arg)
+	}
+	return nil
+}
+
 func (c *DelegateChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	if chatUI := c.getChatUI(arg.SessionID); chatUI != nil {
 		return (*chatUI).ChatInboxFailed(ctx, arg)

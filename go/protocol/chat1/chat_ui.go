@@ -3426,7 +3426,7 @@ func (c ChatUiClient) ChatAttachmentDownloadDone(ctx context.Context, sessionID 
 }
 
 func (c ChatUiClient) ChatInboxLayout(ctx context.Context, __arg ChatInboxLayoutArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxLayout", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxLayout", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

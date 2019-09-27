@@ -7538,13 +7538,13 @@ func (c LocalClient) GetInboxAndUnboxUILocal(ctx context.Context, __arg GetInbox
 }
 
 func (c LocalClient) RequestInboxLayout(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.requestInboxLayout", []interface{}{RequestInboxLayoutArg{}}, nil)
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxLayout", []interface{}{RequestInboxLayoutArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LocalClient) RequestInboxUnbox(ctx context.Context, convIDs []ConversationID) (err error) {
 	__arg := RequestInboxUnboxArg{ConvIDs: convIDs}
-	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

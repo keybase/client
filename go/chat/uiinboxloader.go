@@ -391,7 +391,7 @@ func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
 	bt.convs = append(bt.convs, conv)
 }
 
-func (c *bigTeamCollector) finalize() (res []chat1.UIInboxBigTeamRow) {
+func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBigTeamRow) {
 	var bts []*bigTeam
 	for _, bt := range c.teams {
 		bt.sort()
@@ -403,13 +403,14 @@ func (c *bigTeamCollector) finalize() (res []chat1.UIInboxBigTeamRow) {
 	for _, bt := range bts {
 		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(bt.name))
 		for _, conv := range bt.convs {
-			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(conv))
+			row := utils.PresentRemoteConversationAsBigTeamChannelRow(ctx, conv)
+			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(row))
 		}
 	}
 	return res
 }
 
-func (h *UIInboxLoader) buildLayout(inbox types.Inbox) (res chat1.UIInboxLayout) {
+func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res chat1.UIInboxLayout) {
 	btcollector := newBigTeamCollector()
 	for _, conv := range inbox.ConvsUnverified {
 		switch conv.GetTeamType() {
@@ -419,20 +420,25 @@ func (h *UIInboxLoader) buildLayout(inbox types.Inbox) (res chat1.UIInboxLayout)
 			res.SmallTeams = append(res.SmallTeams, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv))
 		}
 	}
-	res.BigTeams = btcollector.finalize()
+	res.BigTeams = btcollector.finalize(ctx)
+	return res
 }
 
 func (h *UIInboxLoader) flushLayout() (err error) {
-	ctx := globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
 	defer h.Trace(ctx, func() error { return err }, "flushLayout")()
 
 	query := h.Query()
-	inbox, err := h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, &query, nil)
+	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, &query)
+	if err != nil {
+		return err
+	}
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery, nil)
 	if err != nil {
 		return err
 	}
 
-	layout := h.buildLayout(inbox)
+	layout := h.buildLayout(ctx, inbox)
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
 		h.Debug(ctx, "flushLayout: no chat UI available, skipping send")
@@ -470,10 +476,19 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	}
 }
 
-func (h *UIInboxLoader) UpdateLayout(ctx context.Context) error {
+func (h *UIInboxLoader) UpdateLayout(ctx context.Context) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateLayout")()
 	select {
 	case h.layoutCh <- struct{}{}:
 	default:
 		return errors.New("failed to queue layout update, queue full")
 	}
+	return nil
+}
+
+func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
+	query := h.Query()
+	query.ConvIDs = convIDs
+	return h.LoadNonblock(ctx, &query, nil, nil, true)
 }

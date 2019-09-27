@@ -617,3 +617,11 @@ func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetIn
 	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
 	return nil
 }
+
+func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {
+	return nil
+}
