@@ -44,6 +44,10 @@ class Conversation extends React.PureComponent<Props> {
         <Kb.DragAndDrop onAttach={this.props.onAttach}>
           {this.props.threadLoadedOffline && <Offline />}
           <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.innerContainer}>
+            <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+            {!this.props.showThreadSearch && (
+              <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
+            )}
             <ListArea
               onFocusInput={this.props.onFocusInput}
               scrollListDownCounter={this.props.scrollListDownCounter}
@@ -51,16 +55,13 @@ class Conversation extends React.PureComponent<Props> {
               scrollListUpCounter={this.props.scrollListUpCounter}
               conversationIDKey={this.props.conversationIDKey}
             />
-            {!this.props.showThreadSearch && (
-              <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
-            )}
+
             {this.props.showThreadSearch && (
               <ThreadSearch
                 style={styles.threadSearchStyle}
                 conversationIDKey={this.props.conversationIDKey}
               />
             )}
-            <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
             {this.props.showLoader && <Kb.LoadingLine />}
           </Kb.Box2>
           <Banner conversationIDKey={this.props.conversationIDKey} />
