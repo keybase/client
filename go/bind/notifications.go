@@ -80,7 +80,7 @@ func HandlePostTextReply(strConvID, tlfName string, intMessageID int, body strin
 
 func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender string, intMembersType int,
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
-	pusher PushNotifier, dontShowIfStale bool) (err error) {
+	pusher PushNotifier, showIfStale bool) (err error) {
 	if err := waitForInit(10 * time.Second); err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	// can come later and cause duplicate notifications. On Android, both silent
 	// and non-silent notifications go through this function; and Java checks if we
 	// have already seen a notification. We don't need this stale logic.
-	if dontShowIfStale && age >= 2*time.Minute {
+	if !showIfStale && age >= 2*time.Minute {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
 		return errors.New("stale notification")
 	}
