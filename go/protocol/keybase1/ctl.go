@@ -102,6 +102,35 @@ func (o DbValue) DeepCopy() DbValue {
 	})(o)
 }
 
+type OnLoginStartupStatus int
+
+const (
+	OnLoginStartupStatus_UNKNOWN  OnLoginStartupStatus = 0
+	OnLoginStartupStatus_DISABLED OnLoginStartupStatus = 1
+	OnLoginStartupStatus_ENABLED  OnLoginStartupStatus = 2
+)
+
+func (o OnLoginStartupStatus) DeepCopy() OnLoginStartupStatus { return o }
+
+var OnLoginStartupStatusMap = map[string]OnLoginStartupStatus{
+	"UNKNOWN":  0,
+	"DISABLED": 1,
+	"ENABLED":  2,
+}
+
+var OnLoginStartupStatusRevMap = map[OnLoginStartupStatus]string{
+	0: "UNKNOWN",
+	1: "DISABLED",
+	2: "ENABLED",
+}
+
+func (e OnLoginStartupStatus) String() string {
+	if v, ok := OnLoginStartupStatusRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type StopArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
@@ -150,6 +179,13 @@ type DbGetArg struct {
 	Key       DbKey `codec:"key" json:"key"`
 }
 
+type SetNixOnLoginStartupArg struct {
+	Enabled bool `codec:"enabled" json:"enabled"`
+}
+
+type GetNixOnLoginStartupArg struct {
+}
+
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
 	StopService(context.Context, StopServiceArg) error
@@ -161,6 +197,8 @@ type CtlInterface interface {
 	DbDelete(context.Context, DbDeleteArg) error
 	DbPut(context.Context, DbPutArg) error
 	DbGet(context.Context, DbGetArg) (*DbValue, error)
+	SetNixOnLoginStartup(context.Context, bool) error
+	GetNixOnLoginStartup(context.Context) (OnLoginStartupStatus, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc.Protocol {
@@ -317,6 +355,31 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setNixOnLoginStartup": {
+				MakeArg: func() interface{} {
+					var ret [1]SetNixOnLoginStartupArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetNixOnLoginStartupArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetNixOnLoginStartupArg)(nil), args)
+						return
+					}
+					err = i.SetNixOnLoginStartup(ctx, typedArgs[0].Enabled)
+					return
+				},
+			},
+			"getNixOnLoginStartup": {
+				MakeArg: func() interface{} {
+					var ret [1]GetNixOnLoginStartupArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetNixOnLoginStartup(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -376,5 +439,16 @@ func (c CtlClient) DbPut(ctx context.Context, __arg DbPutArg) (err error) {
 
 func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c CtlClient) SetNixOnLoginStartup(ctx context.Context, enabled bool) (err error) {
+	__arg := SetNixOnLoginStartupArg{Enabled: enabled}
+	err = c.Cli.Call(ctx, "keybase.1.ctl.setNixOnLoginStartup", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) GetNixOnLoginStartup(ctx context.Context) (res OnLoginStartupStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.getNixOnLoginStartup", []interface{}{GetNixOnLoginStartupArg{}}, &res)
 	return
 }
