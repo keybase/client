@@ -105,7 +105,7 @@ const mergeProps = (
   let bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
   const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
   let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
-  const smallTeamsBelowTheFold = showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
+  const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
   if (showAllSmallRows) {
     bigTeams = []
   } else {
