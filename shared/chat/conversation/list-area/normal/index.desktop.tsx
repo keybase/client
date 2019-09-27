@@ -49,12 +49,6 @@ class Thread extends React.PureComponent<Props, State> {
   // Not a state so we don't rerender, just mutate the dom
   private isScrolling = false
 
-  // Set to ignore the the next scroll event
-  private ignoreScrollOnetime = false
-
-  // last height we saw from resize
-  private scrollHeight: number = 0
-
   private lockedToBottom: boolean = true
 
   private logAll = debug
@@ -72,7 +66,6 @@ class Thread extends React.PureComponent<Props, State> {
         // grab the waypoint we made for the centered ordinal and scroll to it
         const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
         if (scrollWaypoint.length > 0) {
-          this.ignoreScrollOnetime = true
           scrollWaypoint[0].scrollIntoView({block: 'center', inline: 'nearest'})
         }
       })
@@ -119,7 +112,6 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   private jumpToRecent = () => {
-    this.ignoreScrollOnetime = true
     this.lockedToBottom = true
     this.scrollToBottom('jump to recent')
     this.props.onJumpToRecent()
@@ -198,14 +190,12 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.messageOrdinals.first() === prevProps.messageOrdinals.first()
     ) {
       // do nothing do scroll position if this is true
-      this.scrollHeight = 0 // setting this causes us to skip next resize
       return
     }
 
     // Check to see if our centered ordinal has changed, and if so, scroll to it
     if (!!this.props.centeredOrdinal && this.props.centeredOrdinal !== prevProps.centeredOrdinal) {
       this.lockedToBottom = false
-      this.scrollHeight = 0 // setting this causes us to skip next resize
       this.scrollToCentered()
       return
     }
@@ -219,14 +209,7 @@ class Thread extends React.PureComponent<Props, State> {
           current.scrollTop = current.scrollHeight - fromBottom
         }
       })
-    } else if (
-      this.props.containsLatestMessage &&
-      this.props.messageOrdinals.size !== prevProps.messageOrdinals.size
-    ) {
-      // someone else sent something? then ignore next resize
-      this.scrollHeight = 0
     }
-
     if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
       const ordinal = this.props.editingOrdinal
       const idx = this.props.messageOrdinals.indexOf(ordinal)
