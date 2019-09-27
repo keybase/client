@@ -492,6 +492,12 @@ func (f *JSONFile) SetIntAtPath(p string, v int) error {
 	return f.setValueAtPath(p, getInt, v)
 }
 
+func (f *JSONFile) SetFloatAtPath(p string, v float64) error {
+	f.setMutex.Lock()
+	defer f.setMutex.Unlock()
+	return f.setValueAtPath(p, getFloat, v)
+}
+
 func (f *JSONFile) SetInt64AtPath(p string, v int64) error {
 	f.setMutex.Lock()
 	defer f.setMutex.Unlock()
