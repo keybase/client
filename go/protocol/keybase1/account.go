@@ -148,6 +148,7 @@ type AccountInterface interface {
 	// Start reset process for the user based on their username or email.  If
 	// neither are known the user will be prompted for their passphrase to start
 	// the process.
+	// TODO: change this to just username
 	EnterResetPipeline(context.Context, EnterResetPipelineArg) error
 	// Aborts the reset process
 	CancelReset(context.Context, int) error
@@ -427,6 +428,7 @@ func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg Recov
 // Start reset process for the user based on their username or email.  If
 // neither are known the user will be prompted for their passphrase to start
 // the process.
+// TODO: change this to just username
 func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetPipelineArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil)
 	return

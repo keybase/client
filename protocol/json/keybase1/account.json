@@ -221,7 +221,7 @@
         }
       ],
       "response": null,
-      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process."
+      "doc": "Start reset process for the user based on their username or email.  If\n    neither are known the user will be prompted for their passphrase to start\n    the process.\n    TODO: change this to just username"
     },
     "cancelReset": {
       "request": [
