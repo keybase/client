@@ -3,6 +3,7 @@
 // RemotePinentry is a single remote window
 import * as I from 'immutable'
 import * as React from 'react'
+import * as Styles from '../styles'
 import * as Types from '../constants/types/pinentry'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
@@ -10,8 +11,17 @@ import {NullComponent, connect, mapProps, compose} from '../util/container'
 import {serialize} from './remote-serializer.desktop'
 
 const dataToProps = mapProps(
-  ({data, remoteWindowNeedsProps}: {data: Types.PinentryState; remoteWindowNeedsProps: number}) => ({
+  ({
+    data,
+    remoteWindowNeedsProps,
+    darkMode,
+  }: {
+    darkMode: boolean
+    data: Types.PinentryState
+    remoteWindowNeedsProps: number
+  }) => ({
     cancelLabel: data.cancelLabel,
+    darkMode,
     prompt: data.prompt,
     remoteWindowNeedsProps,
     retryLabel: data.retryLabel,
@@ -36,6 +46,7 @@ const RemotePinentry = compose(
 )(NullComponent)
 
 type Props = {
+  darkMode: boolean
   remoteWindowNeedsProps?: Map<string, number>
   sessionIDToPinentry: I.Map<number, Types.PinentryState>
 }
@@ -49,7 +60,12 @@ class RemotePinentrys extends React.PureComponent<Props> {
       if (data) {
         arr.push(
           // @ts-ignore
-          <RemotePinentry key={String(id)} data={data} remoteWindowNeedsProps={remoteWindowNeedsProps} />
+          <RemotePinentry
+            key={String(id)}
+            data={data}
+            remoteWindowNeedsProps={remoteWindowNeedsProps}
+            darkMode={this.props.darkMode}
+          />
         )
       }
       return arr
@@ -61,6 +77,7 @@ type OwnProps = {}
 
 export default connect(
   state => ({
+    darkMode: Styles.isDarkMode(),
     remoteWindowNeedsProps: state.config.remoteWindowNeedsProps.get('pinentry'),
     sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
   }),

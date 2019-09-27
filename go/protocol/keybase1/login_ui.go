@@ -1,11 +1,13 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/login_ui.avdl
 
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ResetPromptType int
@@ -38,6 +40,68 @@ func (e ResetPromptType) String() string {
 		return v
 	}
 	return ""
+}
+
+type ResetPromptInfo struct {
+	HasWallet bool `codec:"hasWallet" json:"hasWallet"`
+}
+
+func (o ResetPromptInfo) DeepCopy() ResetPromptInfo {
+	return ResetPromptInfo{
+		HasWallet: o.HasWallet,
+	}
+}
+
+type ResetPrompt struct {
+	T__        ResetPromptType  `codec:"t" json:"t"`
+	Complete__ *ResetPromptInfo `codec:"complete,omitempty" json:"complete,omitempty"`
+}
+
+func (o *ResetPrompt) T() (ret ResetPromptType, err error) {
+	switch o.T__ {
+	case ResetPromptType_COMPLETE:
+		if o.Complete__ == nil {
+			err = errors.New("unexpected nil value for Complete__")
+			return ret, err
+		}
+	}
+	return o.T__, nil
+}
+
+func (o ResetPrompt) Complete() (res ResetPromptInfo) {
+	if o.T__ != ResetPromptType_COMPLETE {
+		panic("wrong case accessed")
+	}
+	if o.Complete__ == nil {
+		return
+	}
+	return *o.Complete__
+}
+
+func NewResetPromptWithComplete(v ResetPromptInfo) ResetPrompt {
+	return ResetPrompt{
+		T__:        ResetPromptType_COMPLETE,
+		Complete__: &v,
+	}
+}
+
+func NewResetPromptDefault(t ResetPromptType) ResetPrompt {
+	return ResetPrompt{
+		T__: t,
+	}
+}
+
+func (o ResetPrompt) DeepCopy() ResetPrompt {
+	return ResetPrompt{
+		T__: o.T__.DeepCopy(),
+		Complete__: (func(x *ResetPromptInfo) *ResetPromptInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Complete__),
+	}
 }
 
 type PassphraseRecoveryPromptType int
@@ -84,8 +148,8 @@ type DisplayPrimaryPaperKeyArg struct {
 }
 
 type PromptResetAccountArg struct {
-	SessionID int             `codec:"sessionID" json:"sessionID"`
-	Kind      ResetPromptType `codec:"kind" json:"kind"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Prompt    ResetPrompt `codec:"prompt" json:"prompt"`
 }
 
 type DisplayResetProgressArg struct {
@@ -255,22 +319,22 @@ type LoginUiClient struct {
 
 func (c LoginUiClient) GetEmailOrUsername(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := GetEmailOrUsernameArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.getEmailOrUsername", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) PromptRevokePaperKeys(ctx context.Context, __arg PromptRevokePaperKeysArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptRevokePaperKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) DisplayPaperKeyPhrase(ctx context.Context, __arg DisplayPaperKeyPhraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPaperKeyPhrase", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg DisplayPrimaryPaperKeyArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -278,24 +342,24 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 // would like to either enter the autoreset pipeline and perform the reset
 // of the account.
 func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // In some flows the user will get notified of the reset progress
 func (c LoginUiClient) DisplayResetProgress(ctx context.Context, __arg DisplayResetProgressArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetProgress", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayResetProgress", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // During recovery the service might want to explain to the user how they can change
 // their password by using the "change password" functionality on other devices.
 func (c LoginUiClient) ExplainDeviceRecovery(ctx context.Context, __arg ExplainDeviceRecoveryArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.explainDeviceRecovery", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.explainDeviceRecovery", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c LoginUiClient) PromptPassphraseRecovery(ctx context.Context, __arg PromptPassphraseRecoveryArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptPassphraseRecovery", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptPassphraseRecovery", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

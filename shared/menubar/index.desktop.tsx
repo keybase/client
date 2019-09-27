@@ -4,6 +4,7 @@ import * as ConfigTypes from '../constants/types/config'
 import * as FsTypes from '../constants/types/fs'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
+import {_setDarkModePreference} from '../styles/dark-mode'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
@@ -17,6 +18,7 @@ import flags from '../util/feature-flags'
 
 export type Props = {
   daemonHandshakeState: ConfigTypes.DaemonHandshakeState
+  darkMode: boolean
   diskSpaceStatus: FsTypes.DiskSpaceStatus
   logIn: () => void
   loggedIn: boolean
@@ -77,6 +79,7 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   render() {
+    _setDarkModePreference(this.props.darkMode ? 'alwaysDark' : 'alwaysLight')
     // TODO: refactor all this duplicated code!
     if (this.props.daemonHandshakeState !== 'done') {
       return this._renderDaemonHandshakeWait()
@@ -86,7 +89,11 @@ class MenubarRender extends React.Component<Props, State> {
 
   _renderLoggedOut() {
     return (
-      <Kb.Box style={styles.widgetContainer}>
+      <Kb.Box
+        className={this.props.darkMode ? 'darkMode' : ''}
+        key={this.props.darkMode ? 'darkMode' : 'light'}
+        style={styles.widgetContainer}
+      >
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box
@@ -97,7 +104,7 @@ class MenubarRender extends React.Component<Props, State> {
           ])}
         >
           <Kb.Icon
-            color={Styles.globalColors.blueDarker}
+            color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
             type="iconfont-nav-2-hamburger"
             sizeType="Big"
@@ -151,7 +158,11 @@ class MenubarRender extends React.Component<Props, State> {
         : `Starting up Keybase...`
 
     return (
-      <Kb.Box style={styles.widgetContainer}>
+      <Kb.Box
+        style={styles.widgetContainer}
+        className={this.props.darkMode ? 'darkMode' : ''}
+        key={this.props.darkMode ? 'darkMode' : 'light'}
+      >
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box
@@ -288,7 +299,11 @@ class MenubarRender extends React.Component<Props, State> {
     )
 
     return (
-      <Kb.Box style={styles.widgetContainer}>
+      <Kb.Box
+        style={styles.widgetContainer}
+        className={this.props.darkMode ? 'darkMode' : ''}
+        key={this.props.darkMode ? 'darkMode' : 'light'}
+      >
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={styles.topRow}>
@@ -307,8 +322,10 @@ class MenubarRender extends React.Component<Props, State> {
             ])}
           >
             <Kb.Icon
-              color={Styles.globalColors.blueDarker}
-              hoverColor={Styles.globalColors.white}
+              color={
+                Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker
+              }
+              hoverColor={Styles.globalColors.whiteOrWhite}
               onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
               type="iconfont-nav-2-hamburger"
               sizeType="Big"
@@ -381,8 +398,8 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
   return (
     <Kb.Box style={{...Styles.desktopStyles.clickable, position: 'relative'}}>
       <Kb.Icon
-        color={Styles.globalColors.blueDarker}
-        hoverColor={Styles.globalColors.white}
+        color={Styles.isDarkMode() ? Styles.globalColors.black_50OrBlack_60 : Styles.globalColors.blueDarker}
+        hoverColor={Styles.globalColors.whiteOrWhite}
         onClick={() => openApp(tab)}
         sizeType="Big"
         style={styles.navIcons}
@@ -395,7 +412,7 @@ const BadgeIcon = ({tab, countMap, openApp}) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   arrowTick: {
-    borderBottomColor: Styles.globalColors.blueDark,
+    borderBottomColor: Styles.isDarkMode() ? '#2d2d2d' : Styles.globalColors.blueDark,
     borderBottomWidth: 6,
     borderLeftColor: 'transparent',
     borderLeftWidth: 6,
@@ -435,7 +452,7 @@ const styles = Styles.styleSheetCreate(() => ({
   topRow: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.blueDark,
+    backgroundColor: Styles.isDarkMode() ? '#2d2d2d' : Styles.globalColors.blueDark,
     borderTopLeftRadius: Styles.globalMargins.xtiny,
     borderTopRightRadius: Styles.globalMargins.xtiny,
     flex: 1,
@@ -450,8 +467,10 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopLeftRadius: Styles.globalMargins.xtiny,
     borderTopRightRadius: Styles.globalMargins.xtiny,
     flex: 1,
+    height: '100%',
     marginTop: isDarwin ? 13 : 0,
     position: 'relative',
+    width: '100%',
   },
 }))
 

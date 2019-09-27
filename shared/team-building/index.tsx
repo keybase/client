@@ -541,7 +541,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Text>
         )}
         <ServiceTabBar
-          services={Constants.servicesForNamespace(props.namespace)}
+          services={Constants.allServices}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
           serviceResultCount={props.serviceResultCount}

@@ -101,6 +101,7 @@ const allAssertions = [
 const trackerOnlyProps = {
   bio:
     'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch.',
+  darkMode: false,
   followThem: false,
   followersCount: 1871,
   followingCount: 356,

@@ -820,7 +820,11 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 
 func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
 	var msg string
-	switch arg.Kind {
+	kind, err := arg.Prompt.T()
+	if err != nil {
+		return false, err
+	}
+	switch kind {
 	case keybase1.ResetPromptType_COMPLETE:
 		msg = "Would you like to complete the reset of your account?"
 	case keybase1.ResetPromptType_ENTER_NO_DEVICES:
@@ -841,7 +845,7 @@ username, but lose all your data, including all of your uploaded encrypted PGP k
 
 Would you like to request a reset of your account?`
 	default:
-		return false, fmt.Errorf("Unknown prompt type - got %v", arg.Kind)
+		return false, fmt.Errorf("Unknown prompt type - got %v", kind)
 	}
 	return l.parent.PromptYesNo(PromptDescriptorResetAccount, msg, libkb.PromptDefaultNo)
 }

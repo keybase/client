@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Styles from '../styles'
 import * as Constants from '../constants/config'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
@@ -15,6 +16,7 @@ const UnlockFolder = compose(
     state => {
       const {devices, phase, paperkeyError, waiting} = state.unlockFolders
       return {
+        darkMode: Styles.isDarkMode(),
         devices,
         paperkeyError,
         phase,
@@ -28,6 +30,7 @@ const UnlockFolder = compose(
     },
     () => ({}),
     (stateProps, _, __) => ({
+      darkMode: stateProps.darkMode,
       devices: stateProps.devices.toJS(), // Never send immutable over the wire
       paperkeyError: stateProps.paperkeyError,
       phase: stateProps.phase,

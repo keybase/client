@@ -69,6 +69,7 @@ FROM keybaseio/client
 ENV KEYBASE_SERVICE=1
 COPY bot.sh /bot.sh
 RUN chmod +x /bot.sh
+CMD /bot.sh
 ```
 
 Running the provisioning one-off container
@@ -81,8 +82,7 @@ $ docker run --rm \
     -e KEYBASE_USERNAME="botname" \
     -e KEYBASE_PAPERKEY="paper key" \
     -e KEYBASE_SERVICE="1" \
-    yournewimage \
-    /bot.sh
+    yournewimage
 ```
 
 ### automatically provision a new device

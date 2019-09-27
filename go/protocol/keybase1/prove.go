@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/prove.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type CheckProofStatus struct {
@@ -147,26 +148,26 @@ type ProveClient struct {
 }
 
 func (c ProveClient) StartProof(ctx context.Context, __arg StartProofArg) (res StartProofResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.startProof", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.prove.startProof", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) CheckProof(ctx context.Context, __arg CheckProofArg) (res CheckProofStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.checkProof", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.prove.checkProof", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) ListSomeProofServices(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.listSomeProofServices", []interface{}{ListSomeProofServicesArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.prove.listSomeProofServices", []interface{}{ListSomeProofServicesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) ListProofServices(ctx context.Context) (res []string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.listProofServices", []interface{}{ListProofServicesArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.prove.listProofServices", []interface{}{ListProofServicesArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c ProveClient) ValidateUsername(ctx context.Context, __arg ValidateUsernameArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.prove.validateUsername", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.prove.validateUsername", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

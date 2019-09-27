@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/account.avdl
 
 package keybase1
@@ -7,6 +7,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type HasServerKeysRes struct {
@@ -363,12 +364,12 @@ type AccountClient struct {
 // then prompt at the UI for it. If old isn't set and force is true, then
 // we'll try to force a passphrase change.
 func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseChangeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseChange", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePromptArg) (res GetPassphraseRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -376,13 +377,13 @@ func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePro
 // * passphrase argument is empty. Returns `true` if passphrase is correct,
 // * false if not, or an error if something else went wrong.
 func (c AccountClient) PassphraseCheck(ctx context.Context, __arg PassphraseCheckArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.account.passphraseCheck", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // * change email to the new given email by signing a statement.
 func (c AccountClient) EmailChange(ctx context.Context, __arg EmailChangeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.emailChange", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.emailChange", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -390,35 +391,35 @@ func (c AccountClient) EmailChange(ctx context.Context, __arg EmailChangeArg) (e
 // * Will error if not logged in.
 func (c AccountClient) HasServerKeys(ctx context.Context, sessionID int) (res HasServerKeysRes, err error) {
 	__arg := HasServerKeysArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.hasServerKeys", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.account.hasServerKeys", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 // resetAccount resets the user's account; it's meant only for devel and tests.
 // passphrase is optional and will be prompted for if not supplied.
 func (c AccountClient) ResetAccount(ctx context.Context, __arg ResetAccountArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) GetLockdownMode(ctx context.Context, sessionID int) (res GetLockdownResponse, err error) {
 	__arg := GetLockdownModeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.getLockdownMode", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.account.getLockdownMode", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) SetLockdownMode(ctx context.Context, __arg SetLockdownModeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.setLockdownMode", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.setLockdownMode", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) RecoverUsernameWithEmail(ctx context.Context, __arg RecoverUsernameWithEmailArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithEmail", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithEmail", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg RecoverUsernameWithPhoneArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithPhone", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.recoverUsernameWithPhone", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -426,18 +427,18 @@ func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg Recov
 // neither are known the user will be prompted for their passphrase to start
 // the process.
 func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetPipelineArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 // Aborts the reset process
 func (c AccountClient) CancelReset(ctx context.Context, sessionID int) (err error) {
 	__arg := CancelResetArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.cancelReset", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c AccountClient) TimeTravelReset(ctx context.Context, __arg TimeTravelResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.account.timeTravelReset", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

@@ -738,8 +738,79 @@ func testTeamInviteSweepOldMembers(t *testing.T, startPUKless bool) {
 }
 
 func TestTeamInviteSweepOldMembers(t *testing.T) {
-	testTeamInviteSweepOldMembers(t, false)
-	testTeamInviteSweepOldMembers(t, true)
+	testTeamInviteSweepOldMembers(t, false /* startPUKless */)
+	testTeamInviteSweepOldMembers(t, true /* startPUKless */)
+}
+
+func TestSBSInviteReuse(t *testing.T) {
+	// Test if server can reuse TOFU invites.
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	makeUser := func(name string) *userPlusDevice {
+		user := makeUserStandalone(t, name, standaloneUserArgs{
+			disableGregor:            true,
+			suppressTeamChatAnnounce: true,
+		})
+		tt.users = append(tt.users, user)
+		return user
+	}
+
+	ann := makeUser("ann")
+	bob := makeUser("bob")
+	joe := makeUser("joe")
+
+	teamID, teamName := ann.createTeam2()
+	t.Logf("Team created (%s)", teamID)
+
+	// Use sbs_test.go code to verify email.
+	sbsEmail := &userSBSEmail{}
+	sbsEmail.SetUser(bob)
+
+	email := bob.userInfo.email
+	ann.addTeamMemberEmail(teamName.String(), email, keybase1.TeamRole_WRITER)
+
+	sbsEmail.Verify()
+
+	// Get first invite ID, will be the one we've just added.
+	teamObj := ann.loadTeamByID(teamID, true /* admin */)
+	allInvites := teamObj.GetActiveAndObsoleteInvites()
+	require.Len(t, allInvites, 1)
+	var inviteID keybase1.TeamInviteID
+	for _, invite := range allInvites {
+		inviteID = invite.Id
+		require.True(t, invite.Type.Eq(keybase1.NewTeamInviteTypeDefault(keybase1.TeamInviteCategory_EMAIL)))
+	}
+
+	// Create a SBS message payload that we will be using to give directly to
+	// the SBS handler function for given user. So it will appear as if it
+	// comes from gregor.
+	sbsMsg := keybase1.TeamSBSMsg{
+		TeamID: teamID,
+		Invitees: []keybase1.TeamInvitee{
+			{
+				InviteID:    inviteID,
+				Uid:         bob.uid,
+				EldestSeqno: 1,
+				// Role can be whatever - client should not trust it.
+				Role: keybase1.TeamRole_ADMIN,
+			},
+		},
+	}
+
+	err := teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
+	require.NoError(t, err)
+
+	// Invite should have been completed.
+	teamObj = ann.loadTeamByID(teamID, true /* admin */)
+	require.Len(t, teamObj.GetActiveAndObsoleteInvites(), 0)
+
+	// Try to send the same message but with different UID.
+	sbsMsg.Invitees[0].Uid = joe.uid
+	err = teams.HandleSBSRequest(context.Background(), ann.tc.G, sbsMsg)
+	require.Error(t, err)
+	require.IsType(t, libkb.NotFoundError{}, err)
+	require.Contains(t, err.Error(), "Invite not found")
 }
 
 func proveGubbleUniverse(tc *libkb.TestContext, serviceName, endpoint string, username string, secretUI libkb.SecretUI) keybase1.SigID {

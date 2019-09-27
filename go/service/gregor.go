@@ -1905,33 +1905,35 @@ type timeoutClient struct {
 
 var _ rpc.GenericClient = (*timeoutClient)(nil)
 
-func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
-	var timeoutCancel context.CancelFunc
-	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
-	defer timeoutCancel()
-	err := t.inner.Call(ctx, method, arg, res)
+func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{},
+	res interface{}, timeout time.Duration) error {
+	if timeout == 0 {
+		timeout = t.timeout
+	}
+	err := t.inner.Call(ctx, method, arg, res, timeout)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
 	}
 	return err
 }
 
-func (t *timeoutClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
-	var timeoutCancel context.CancelFunc
-	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
-	defer timeoutCancel()
-	err := t.inner.CallCompressed(ctx, method, arg, res, ctype)
+func (t *timeoutClient) CallCompressed(ctx context.Context, method string, arg interface{},
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
+	if timeout == 0 {
+		timeout = t.timeout
+	}
+	err := t.inner.CallCompressed(ctx, method, arg, res, ctype, timeout)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
 	}
 	return err
 }
 
-func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}) error {
-	var timeoutCancel context.CancelFunc
-	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
-	defer timeoutCancel()
-	err := t.inner.Notify(ctx, method, arg)
+func (t *timeoutClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
+	if timeout == 0 {
+		timeout = t.timeout
+	}
+	err := t.inner.Notify(ctx, method, arg, timeout)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
 	}

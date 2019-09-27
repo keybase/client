@@ -445,12 +445,12 @@ const styles = Styles.styleSheetCreate(
       },
       input: {
         backgroundColor: Styles.globalColors.transparent,
-        height: 21,
+        height: 22,
         // Line height change is so that emojis (unicode characters inside
         // textarea) are not clipped at the top. This change is accompanied by
         // a change in padding to offset the increased line height
         lineHeight: '22px',
-        minHeight: 21,
+        minHeight: 22,
       },
       inputBox: {
         flex: 1,

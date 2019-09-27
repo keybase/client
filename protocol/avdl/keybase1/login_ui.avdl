@@ -14,12 +14,19 @@ protocol loginUi {
     ENTER_FORGOT_PW_2,  // forgot the password, suggest entering the pipeline w/o pw
     ENTER_RESET_PW_3    // forgot the password and no devices (web user)
   }
+  record ResetPromptInfo {
+    boolean hasWallet;
+  }
+  variant ResetPrompt switch (ResetPromptType t) {
+    case COMPLETE: ResetPromptInfo;
+    default: void;
+  }
   /**
    Called during login / provisioning flows to ask the user whether they
    would like to either enter the autoreset pipeline and perform the reset
    of the account.
    */
-  boolean promptResetAccount(int sessionID, ResetPromptType kind);
+  boolean promptResetAccount(int sessionID, ResetPrompt prompt);
 
   /**
    In some flows the user will get notified of the reset progress

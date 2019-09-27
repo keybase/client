@@ -1437,13 +1437,14 @@ func (fs *KBFSOpsStandard) SyncFromServer(ctx context.Context,
 }
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
-	folderBranch data.FolderBranch) (history TLFUpdateHistory, err error) {
+func (fs *KBFSOpsStandard) GetUpdateHistory(
+	ctx context.Context, folderBranch data.FolderBranch,
+	start, end kbfsmd.Revision) (history TLFUpdateHistory, err error) {
 	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
 	defer timeTrackerDone()
 
 	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
-	return ops.GetUpdateHistory(ctx, folderBranch)
+	return ops.GetUpdateHistory(ctx, folderBranch, start, end)
 }
 
 // GetEditHistory implements the KBFSOps interface for KBFSOpsStandard
@@ -1530,6 +1531,12 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 	defer timeTrackerDone()
 
 	fs.log.CDebugf(ctx, "Got TeamNameChanged for %s", tid)
+
+	// Invalidate any cached ID->name mapping for the team if its name
+	// changed, since team names can change due to SBS resolutions
+	// (for implicit teams) or for subteam renames.
+	fs.config.KBPKI().InvalidateTeamCacheForID(tid)
+
 	fbo := fs.findTeamByID(ctx, tid)
 	if fbo != nil {
 		go fbo.TeamNameChanged(ctx, tid)
