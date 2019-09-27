@@ -3078,15 +3078,10 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 		return keybase1.GUIFileContext{}, err
 	}
 
-	segments := strings.Split(kbfsPath.Path, "/")
-	encodedSegments := append(make([]string, 0, len(segments)+1), "/files")
-	for _, segment := range segments {
-		encodedSegments = append(encodedSegments, url.PathEscape(segment))
-	}
 	u := url.URL{
 		Scheme:   "http",
 		Host:     address,
-		Path:     path.Join(encodedSegments...),
+		Path:     path.Join("/files", kbfsPath.Path),
 		RawQuery: "token=" + token + "&viewTypeInvariance=" + invariance,
 	}
 

@@ -128,6 +128,7 @@ export type State = Readonly<{
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   badgeMap: ConversationCountMap // id to the badge count,
   botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  channelSearchText: string
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: I.Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
