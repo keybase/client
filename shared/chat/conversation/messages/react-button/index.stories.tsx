@@ -8,6 +8,7 @@ import ReactButton, {NewReactionButton} from '.'
 
 // Common props for these stories and fallbacks for the prop provider
 const common = {
+  cannotWrite: false,
   conversationIDKey: Constants.noConversationIDKey,
   onMouseLeave: Sb.action('onMouseLeave'),
   onMouseOver: Sb.action('onMouseOver'),
@@ -47,6 +48,22 @@ const examples = [
     active: true,
     count: 4,
     emoji: ':face_with_cowboy_hat:',
+    onClick: Sb.action('onClick'),
+  },
+  {
+    ...common,
+    active: false,
+    cannotWrite: true,
+    count: 2,
+    emoji: ':+1:',
+    onClick: Sb.action('onClick'),
+  },
+  {
+    ...common,
+    active: true,
+    cannotWrite: true,
+    count: 2,
+    emoji: ':+1:',
     onClick: Sb.action('onClick'),
   },
 ]

@@ -23,6 +23,7 @@ export type OwnProps = {
 
 export type WrapperProps = {
   active: boolean
+  cannotWrite: boolean
   count: number
   emoji: string
   onAddReaction: (emoji: string) => void
@@ -30,45 +31,44 @@ export type WrapperProps = {
   onOpenEmojiPicker: () => void
 } & OwnProps
 
-class Wrapper extends React.Component<WrapperProps> {
-  render() {
-    const props = this.props
-    return props.emoji ? (
-      <ReactButton
-        active={props.active}
-        className={props.className}
-        conversationIDKey={props.conversationIDKey}
-        count={props.count}
-        getAttachmentRef={props.getAttachmentRef}
-        emoji={props.emoji}
-        onClick={props.onClick}
-        onLongPress={props.onLongPress}
-        onMouseLeave={props.onMouseLeave}
-        onMouseOver={props.onMouseOver}
-        ordinal={props.ordinal}
-        style={props.style}
-      />
-    ) : (
-      <NewReactionButton
-        getAttachmentRef={props.getAttachmentRef}
-        onAddReaction={props.onAddReaction}
-        onLongPress={props.onLongPress}
-        onOpenEmojiPicker={props.onOpenEmojiPicker}
-        onShowPicker={props.onShowPicker}
-        showBorder={props.showBorder || false}
-        style={props.style}
-      />
-    )
-  }
+const Wrapper = (props: WrapperProps) => {
+  return props.emoji ? (
+    <ReactButton
+      active={props.active}
+      cannotWrite={props.cannotWrite}
+      className={props.className}
+      conversationIDKey={props.conversationIDKey}
+      count={props.count}
+      getAttachmentRef={props.getAttachmentRef}
+      emoji={props.emoji}
+      onClick={props.onClick}
+      onLongPress={props.onLongPress}
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      ordinal={props.ordinal}
+      style={props.style}
+    />
+  ) : (
+    <NewReactionButton
+      getAttachmentRef={props.getAttachmentRef}
+      onAddReaction={props.onAddReaction}
+      onLongPress={props.onLongPress}
+      onOpenEmojiPicker={props.onOpenEmojiPicker}
+      onShowPicker={props.onShowPicker}
+      showBorder={props.showBorder || false}
+      style={props.style}
+    />
+  )
 }
 
 const noEmoji = {
   active: false,
+  cannotWrite: true,
   count: 0,
   emoji: '',
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const me = state.config.username
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || !Constants.isDecoratedMessage(message)) {
@@ -81,12 +81,16 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const active = reaction.some(r => r.username === me)
   return {
     active,
+    cannotWrite: Constants.getMeta(state, ownProps.conversationIDKey).cannotWrite,
     count: reaction.size,
     emoji: ownProps.emoji || '',
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Container.TypedDispatch,
+  {conversationIDKey, emoji, ordinal}: OwnProps
+) => ({
   onAddReaction: (emoji: string) =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>
@@ -99,8 +103,13 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnPr
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => ({
   active: stateProps.active,
+  cannotWrite: stateProps.cannotWrite,
   className: ownProps.className,
   conversationIDKey: ownProps.conversationIDKey,
   count: stateProps.count,
