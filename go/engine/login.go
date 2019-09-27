@@ -285,7 +285,7 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 		return false, err
 	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
 		m.Debug("Login on revoked or reset device: %s", err.Error())
-		if err = m.LogoutUsernameWithOptions(username, libkb.LogoutOptions{KeepSecrets: false}); err != nil {
+		if err = m.LogoutUsernameWithOptions(username, libkb.LogoutOptions{KeepSecrets: false, Force: true}); err != nil {
 			m.Debug("logout error: %s", err)
 		}
 		return false, err
