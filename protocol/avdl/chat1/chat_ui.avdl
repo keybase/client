@@ -32,6 +32,7 @@ protocol chatUi {
 
   record UIInboxBigTeamChannelRow {
     string convID;
+    string teamname;
     string channelname;
   }
 

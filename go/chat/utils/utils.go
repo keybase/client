@@ -1115,6 +1115,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.RemoteConversation) (res chat1.UIInboxBigTeamChannelRow) {
 	res.ConvID = rc.GetConvID().String()
 	res.Channelname = rc.GetTopicName()
+	res.Teamname = rc.GetTLFName()
 	return res
 }
 

@@ -4,41 +4,41 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
-import {Props as _Props, RowItemSmall, RowItemBig} from '..'
-import normalRowData from './normal'
+import {Props as _Props, RowItemSmall, RowItemBig, RowItemBigHeader, RowItemDivider, RowItem} from '..'
 import * as Kb from '../../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
 type OwnProps = Container.PropsWithSafeNavigation
 
-const mapStateToProps = state => {
-  const metaMap = state.chat2.metaMap
-  const {allowShowFloatingButton, rows, smallTeamsExpanded} = normalRowData(
-    metaMap,
-    state.chat2.smallTeamsExpanded,
-    state.chat2.selectedConversation
-  )
+const smallTeamsCollapsedMaxShown = 5
+
+const mapStateToProps = (state: Container.TypedState) => {
+  const inboxLayout = state.chat2.inboxLayout
   const neverLoaded = !state.chat2.inboxHasLoaded
   const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
-
+  const allowShowFloatingButton = inboxLayout
+    ? (inboxLayout.smallTeams || []).length > smallTeamsCollapsedMaxShown &&
+      !!(inboxLayout.bigTeams || []).length
+    : false
   return {
     _badgeMap: state.chat2.badgeMap,
     _canRefreshOnMount,
     _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
+    _inboxLayout: inboxLayout,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
     isLoading: Constants.anyChatWaitingKeys(state),
     isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
-    rows,
-    smallTeamsExpanded,
+    smallTeamsExpanded: state.chat2.smallTeamsExpanded,
   }
 }
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   // a hack to have it check for marked as read when we mount as the focus events don't fire always
   _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
@@ -72,11 +72,54 @@ const mapDispatchToProps = dispatch => ({
   toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
 })
 
+const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall> => {
+  return smallTeams.map(t => {
+    return {conversationIDKey: Types.stringToConversationIDKey(t.convID), type: 'small'}
+  })
+}
+
+const makeBigRows = (
+  bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
+): Array<RowItemBig | RowItemBigHeader> => {
+  return bigTeams.map(t => {
+    switch (t.state) {
+      case RPCChatTypes.UIInboxBigTeamRowTyp.channel:
+        return {
+          channelname: t.channel.channelname,
+          conversationIDKey: Types.stringToConversationIDKey(t.channel.convID),
+          teamname: t.channel.teamname,
+          type: 'big',
+        }
+      case RPCChatTypes.UIInboxBigTeamRowTyp.label:
+        return {teamname: t.label, type: 'bigHeader'}
+    }
+  })
+}
+
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => {
+  let bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
+  const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
+  let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
+  const smallTeamsBelowTheFold = showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
+  if (showAllSmallRows) {
+    bigTeams = []
+  } else {
+    smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+  }
+  const smallRows = makeSmallRows(smallTeams)
+  const bigRows = makeBigRows(bigTeams)
+  const divider: Array<RowItemDivider> =
+    bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
+  const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
+
   const unreadIndices: Array<number> = []
-  for (let i = stateProps.rows.length - 1; i >= 0; i--) {
-    const row = stateProps.rows[i]
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i]
     if (!['big', 'bigHeader'].includes(row.type)) {
       // only check big teams for large inbox perf
       break
@@ -102,21 +145,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     navKey: ownProps.navKey,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {
-      if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
+      if (rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
         return
       }
-      const first = stateProps.rows[0]
+      const first = rows[0]
       if ((first && first.type === 'small') || first.type === 'big') {
         dispatchProps._onSelect(first.conversationIDKey)
       }
     },
     onNewChat: dispatchProps.onNewChat,
-    onSelectDown: () =>
-      dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
-    onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
+    onSelectDown: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, 1),
+    onSelectUp: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rightActions: [{label: 'New chat', onPress: () => {}}],
-    rows: stateProps.rows,
+    rows,
     selectedConversationIDKey: isMobile
       ? Constants.noConversationIDKey
       : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates

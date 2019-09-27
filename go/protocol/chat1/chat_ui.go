@@ -89,12 +89,14 @@ func (e UIInboxBigTeamRowTyp) String() string {
 
 type UIInboxBigTeamChannelRow struct {
 	ConvID      string `codec:"convID" json:"convID"`
+	Teamname    string `codec:"teamname" json:"teamname"`
 	Channelname string `codec:"channelname" json:"channelname"`
 }
 
 func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
 	return UIInboxBigTeamChannelRow{
 		ConvID:      o.ConvID,
+		Teamname:    o.Teamname,
 		Channelname: o.Channelname,
 	}
 }

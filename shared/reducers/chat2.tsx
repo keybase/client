@@ -941,6 +941,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case EngineGen.chat1ChatUiChatInboxLayout: {
         const layout = JSON.parse(action.payload.params.layout)
         draftState.inboxLayout = layout
+        draftState.inboxHasLoaded = true
         return
       }
       case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
