@@ -176,11 +176,12 @@ type OpSummary struct {
 
 // UpdateSummary describes the operations done by a single MD revision.
 type UpdateSummary struct {
-	Revision  kbfsmd.Revision
-	Date      time.Time
-	Writer    string
-	LiveBytes uint64 // the "DiskUsage" for the TLF as of this revision
-	Ops       []OpSummary
+	Revision    kbfsmd.Revision
+	Date        time.Time
+	Writer      string
+	LiveBytes   uint64 // the "DiskUsage" for the TLF as of this revision
+	Ops         []OpSummary
+	RootBlockID string
 }
 
 // TLFUpdateHistory gives all the summaries of all updates in a TLF's
