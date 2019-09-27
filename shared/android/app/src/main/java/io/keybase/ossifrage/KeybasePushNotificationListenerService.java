@@ -125,6 +125,33 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
         }
     }
 
+    interface DoTask {
+        void task();
+    }
+
+    // Run some task while in backgroundActive.
+    // If already foreground, just runs the task.
+    void whileActive(Context context, DoTask task) throws Exception {
+        // We are foreground we don't need to change to background active
+        if (Keybase.isAppStateForeground()) {
+            task.task();
+        } else {
+            Keybase.setAppStateBackgroundActive();
+            task.task();
+
+            // Check if we are foreground now for some reason. In that case we don't want to go background again
+            if (Keybase.isAppStateForeground()) {
+                return;
+            }
+
+            if (Keybase.appDidEnterBackground()) {
+                Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(context, new Bundle()));
+            } else {
+                Keybase.setAppStateBackground();
+            }
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1)
     @Override
     public void onMessageReceived(RemoteMessage message) {
@@ -180,19 +207,18 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     boolean dontNotify = (type.equals("chat.newmessageSilent_2") && !n.displayPlaintext);
 
                     notifier.setMsgCache(msgCache.get(n.convID));
-                    WithBackgroundActive withBackgroundActive = () -> {
-                      try {
-                          Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
-                            n.membersType, n.displayPlaintext, n.messageId, n.pushId,
-                            n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier);
-                          if (!dontNotify) {
-                              seenChatNotifications.add(n.convID + n.messageId);
-                          }
-                      } catch (Exception ex) {
-                        NativeLogger.error("Go Couldn't handle background notification: " + ex.getMessage());
-                      }
-                    };
-                    withBackgroundActive.whileActive(getApplicationContext());
+                    this.whileActive(getApplicationContext(), () -> {
+                        try {
+                            Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                                    n.membersType, n.displayPlaintext, n.messageId, n.pushId,
+                                    n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier);
+                            if (!dontNotify) {
+                                seenChatNotifications.add(n.convID + n.messageId);
+                            }
+                        } catch (Exception ex) {
+                            NativeLogger.error("Go Couldn't handle background notification: " + ex.getMessage());
+                        }
+                    });
 
                 }
                 break;
@@ -294,33 +320,4 @@ class NotificationData {
         }
 
     }
-}
-
-// Interface to run some task while in backgroundActive.
-// If already foreground, just runs the task.
-interface WithBackgroundActive {
-    abstract void task() throws Exception;
-
-    default void whileActive(Context context) throws Exception {
-        // We are foreground we don't need to change to background active
-        if (Keybase.isAppStateForeground()) {
-            this.task();
-        } else {
-          Keybase.setAppStateBackgroundActive();
-          this.task();
-
-          // Check if we are foreground now for some reason. In that case we don't want to go background again
-          if (Keybase.isAppStateForeground()) {
-              return;
-          }
-
-          if (Keybase.appDidEnterBackground()) {
-              Keybase.appBeginBackgroundTaskNonblock(new KBPushNotifier(context, new Bundle()));
-          } else {
-              Keybase.setAppStateBackground();
-          }
-        }
-    }
-
-
 }
