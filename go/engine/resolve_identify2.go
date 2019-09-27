@@ -5,6 +5,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
@@ -190,7 +191,7 @@ func (e *ResolveThenIdentify2) GetIdentifyOutcome() *libkb.IdentifyOutcome {
 func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
 
 	m = m.WithLogTag("RAC")
-	defer m.TraceTimed("ResolveAndCheck", func() error { return err })()
+	defer m.TraceTimed(fmt.Sprintf("ResolveAndCheck(%q,%t)", s, useTracking), func() error { return err })()
 
 	arg := keybase1.Identify2Arg{
 		UserAssertion:         s,
