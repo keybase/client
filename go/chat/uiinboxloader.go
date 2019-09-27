@@ -387,6 +387,7 @@ func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
 	bt, ok := c.teams[name]
 	if !ok {
 		bt = &bigTeam{name: name}
+		c.teams[name] = bt
 	}
 	bt.convs = append(bt.convs, conv)
 }

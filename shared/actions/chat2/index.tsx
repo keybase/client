@@ -79,12 +79,10 @@ function* inboxRefresh(
   if (!state.config.loggedIn) {
     return
   }
-
   const username = state.config.username
   if (!username) {
     return
   }
-
   let reason: string = ''
   let clearExistingMetas = false
   let clearExistingMessages = false
@@ -109,23 +107,13 @@ function* inboxRefresh(
   }
 
   logger.info(`Inbox refresh due to ${reason || '???'}`)
-
   if (clearExistingMetas) {
     yield Saga.put(Chat2Gen.createClearMetas())
   }
   if (clearExistingMessages) {
     yield Saga.put(Chat2Gen.createClearMessages())
   }
-  yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {},
-    params: {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      maxUnbox: 0,
-      query: Constants.makeInboxQuery([]),
-      skipUnverified: false,
-    },
-    waitingKey: Constants.waitingKeyInboxRefresh,
-  })
+  yield RPCChatTypes.localRequestInboxLayoutRpcPromise()
 }
 
 // When we get info on a team we need to unbox immediately so we can get the channel names

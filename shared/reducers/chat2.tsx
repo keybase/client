@@ -17,6 +17,7 @@ import {actionHasError} from '../util/container'
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
+  | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -935,6 +936,11 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           }
           return message
         })
+        return
+      }
+      case EngineGen.chat1ChatUiChatInboxLayout: {
+        const layout = JSON.parse(action.payload.params.layout)
+        draftState.inboxLayout = layout
         return
       }
       case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:

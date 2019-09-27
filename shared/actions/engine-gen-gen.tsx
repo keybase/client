@@ -21,6 +21,7 @@ export const chat1ChatUiChatGiphySearchResults = 'engine-gen:chat1ChatUiChatGiph
 export const chat1ChatUiChatGiphyToggleResultWindow = 'engine-gen:chat1ChatUiChatGiphyToggleResultWindow'
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
 export const chat1ChatUiChatInboxFailed = 'engine-gen:chat1ChatUiChatInboxFailed'
+export const chat1ChatUiChatInboxLayout = 'engine-gen:chat1ChatUiChatInboxLayout'
 export const chat1ChatUiChatInboxUnverified = 'engine-gen:chat1ChatUiChatInboxUnverified'
 export const chat1ChatUiChatLoadGalleryHit = 'engine-gen:chat1ChatUiChatLoadGalleryHit'
 export const chat1ChatUiChatMaybeMentionUpdate = 'engine-gen:chat1ChatUiChatMaybeMentionUpdate'
@@ -333,6 +334,13 @@ type _Chat1ChatUiChatInboxFailedPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxFailed']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatInboxLayoutPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatInboxUnverifiedPayload = {
@@ -1836,6 +1844,9 @@ export const createChat1ChatUiChatInboxConversation = (
 export const createChat1ChatUiChatInboxFailed = (
   payload: _Chat1ChatUiChatInboxFailedPayload
 ): Chat1ChatUiChatInboxFailedPayload => ({payload, type: chat1ChatUiChatInboxFailed})
+export const createChat1ChatUiChatInboxLayout = (
+  payload: _Chat1ChatUiChatInboxLayoutPayload
+): Chat1ChatUiChatInboxLayoutPayload => ({payload, type: chat1ChatUiChatInboxLayout})
 export const createChat1ChatUiChatInboxUnverified = (
   payload: _Chat1ChatUiChatInboxUnverifiedPayload
 ): Chat1ChatUiChatInboxUnverifiedPayload => ({payload, type: chat1ChatUiChatInboxUnverified})
@@ -2538,6 +2549,10 @@ export type Chat1ChatUiChatInboxConversationPayload = {
 export type Chat1ChatUiChatInboxFailedPayload = {
   readonly payload: _Chat1ChatUiChatInboxFailedPayload
   readonly type: typeof chat1ChatUiChatInboxFailed
+}
+export type Chat1ChatUiChatInboxLayoutPayload = {
+  readonly payload: _Chat1ChatUiChatInboxLayoutPayload
+  readonly type: typeof chat1ChatUiChatInboxLayout
 }
 export type Chat1ChatUiChatInboxUnverifiedPayload = {
   readonly payload: _Chat1ChatUiChatInboxUnverifiedPayload
@@ -3274,6 +3289,7 @@ export type Actions =
   | Chat1ChatUiChatGiphyToggleResultWindowPayload
   | Chat1ChatUiChatInboxConversationPayload
   | Chat1ChatUiChatInboxFailedPayload
+  | Chat1ChatUiChatInboxLayoutPayload
   | Chat1ChatUiChatInboxUnverifiedPayload
   | Chat1ChatUiChatLoadGalleryHitPayload
   | Chat1ChatUiChatMaybeMentionUpdatePayload

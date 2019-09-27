@@ -45,6 +45,8 @@
   "chat.1.local.previewConversationByIDLocal": {"promise": true},
   "chat.1.local.profileChatSearch": {"promise": true},
   "chat.1.local.resolveMaybeMention": {"promise": true},
+  "chat.1.local.requestInboxLayout": {"promise": true},
+  "chat.1.local.requestInboxUnbox": {"promise": true},
   "chat.1.local.resolveUnfurlPrompt": {"promise": true},
   "chat.1.local.saveUnfurlSettings": {"promise": true},
   "chat.1.local.searchInbox": {"engineSaga": true},
