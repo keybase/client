@@ -610,11 +610,19 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     return null
   }
 
+  // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
+  private lastVisibleChildrenOrdinals: Array<Types.Ordinal> = []
+  private lastVisibleChildren: React.ReactNode = null
   render() {
     // Apply data-key to the dom node so we can search for editing messages
     const renderMessages = !this.state.height || this.state.isVisible
     let content: React.ReactNode
     if (renderMessages) {
+      if (this.props.ordinals === this.lastVisibleChildrenOrdinals && this.lastVisibleChildren) {
+        // cache children to skip re-rendering
+        return this.lastVisibleChildren
+      }
+
       const messages = this.props.ordinals.map((o, idx) => {
         const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
         return this.props.rowRenderer(o, previous, this.measure)
@@ -628,6 +636,8 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
           )}
         </Measure>
       )
+      this.lastVisibleChildrenOrdinals = this.props.ordinals
+      this.lastVisibleChildren = content
     } else {
       content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
