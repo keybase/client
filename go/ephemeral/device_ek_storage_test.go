@@ -15,10 +15,11 @@ import (
 func TestDeviceEKStorage(t *testing.T) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
-	mctx := libkb.NewMetaContextForTest(tc)
+
 	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
+	mctx := libkb.NewMetaContextForTest(tc)
 	s := NewDeviceEKStorage(mctx)
 
 	now := time.Now()
@@ -192,10 +193,15 @@ func TestDeviceEKStorage(t *testing.T) {
 // migration or versioning between the keys. This test should blow up if we
 // break it unintentionally.
 func TestDeviceEKStorageKeyFormat(t *testing.T) {
-	tc, mctx, _ := ephemeralKeyTestSetup(t)
+	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
 
+	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	mctx := libkb.NewMetaContextForTest(tc)
 	s := NewDeviceEKStorage(mctx)
+
 	generation := keybase1.EkGeneration(1)
 	uv, err := tc.G.GetMeUV(context.TODO())
 	require.NoError(t, err)
@@ -207,8 +213,12 @@ func TestDeviceEKStorageKeyFormat(t *testing.T) {
 }
 
 func TestDeleteExpiredOffline(t *testing.T) {
-	tc, mctx, _ := ephemeralKeyTestSetup(t)
+	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
+	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	mctx := libkb.NewMetaContextForTest(tc)
+	s := NewDeviceEKStorage(mctx)
 
 	now := time.Now()
 	expiredTestKeys := []keybase1.DeviceEk{
@@ -246,8 +256,6 @@ func TestDeleteExpiredOffline(t *testing.T) {
 		},
 	}
 
-	s := NewDeviceEKStorage(mctx)
-
 	for _, test := range expiredTestKeys {
 		err := s.Put(mctx, test.Metadata.Generation, test)
 		require.NoError(t, err)
@@ -267,8 +275,10 @@ func TestDeleteExpiredOffline(t *testing.T) {
 func TestDeviceEKStorageDeleteExpiredKeys(t *testing.T) {
 	tc := libkb.SetupTest(t, "ephemeral", 2)
 	defer tc.Cleanup()
+
 	mctx := libkb.NewMetaContextForTest(tc)
 	s := NewDeviceEKStorage(mctx)
+
 	now := time.Now()
 
 	// Test empty
