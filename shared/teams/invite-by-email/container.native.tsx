@@ -12,12 +12,12 @@ import {getContacts} from './permissions'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
 
-const cleanPhoneNumber: (arg0: string) => string = (dirty: string) => {
+const cleanPhoneNumber = (dirty: string) => {
   return dirty.replace(/\D/g, '')
 }
 
 // we get invite name as `[name] ([phone number]), this extracts [phone number]
-const extractPhoneNumber: (arg0: string) => string | null = (name: string) => {
+const extractPhoneNumber = (name: string) => {
   const matches = /\((.*)\)/.exec(name)
   return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
