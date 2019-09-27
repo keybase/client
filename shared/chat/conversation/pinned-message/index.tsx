@@ -137,7 +137,7 @@ const styles = Styles.styleSheetCreate(
         borderColor: Styles.globalColors.black_10,
         borderStyle: 'solid',
         left: 0,
-        position: 'absolute',
+        // position: 'absolute',
         top: 0,
         width: '100%',
       },

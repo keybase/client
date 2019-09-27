@@ -27,17 +27,11 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
     lastMessageIsOurs = !!m && m.author === state.config.username
   }
 
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const hasPinnedMessage = meta && meta.pinnedMsg
-  const hasStatus = !!state.chat2.threadLoadStatus.get(conversationIDKey)
-
   return {
     centeredOrdinal,
     containsLatestMessage,
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
-    hasPinnedMessage,
-    hasStatus,
     lastMessageIsOurs,
     messageOrdinals,
   }
@@ -60,8 +54,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   conversationIDKey: stateProps.conversationIDKey,
   copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,
-  hasPinnedMessage: stateProps.hasPinnedMessage,
-  hasStatus: stateProps.hasStatus,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
