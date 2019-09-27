@@ -82,7 +82,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 	displayPlaintext bool, intMessageID int, pushID string, badgeCount, unixTime int, soundName string,
 	pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
-		return nil
+		return err
 	}
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := globals.ChatCtx(context.Background(), gc,
@@ -170,7 +170,7 @@ func HandleBackgroundNotification(strConvID, body, serverMessageBody, sender str
 		// and we don't want to accidentally ack the plaintext notification when we didn't really
 		// display it.
 		if len(serverMessageBody) == 0 {
-			return nil
+			return errors.New("Unbox failed; nothing to display")
 		}
 	}
 

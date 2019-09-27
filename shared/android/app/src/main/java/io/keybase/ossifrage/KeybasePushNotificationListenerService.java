@@ -180,14 +180,20 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                     boolean dontNotify = (type.equals("chat.newmessageSilent_2") && !n.displayPlaintext);
 
                     notifier.setMsgCache(msgCache.get(n.convID));
-                    WithBackgroundActive withBackgroundActive = () -> Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
+                    WithBackgroundActive withBackgroundActive = () -> {
+                      try {
+                          Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                             n.membersType, n.displayPlaintext, n.messageId, n.pushId,
                             n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier);
+                          if (!dontNotify) {
+                              seenChatNotifications.add(n.convID + n.messageId);
+                          }
+                      } catch (Exception ex) {
+                        NativeLogger.error("Go Couldn't handle background notification: " + ex.getMessage());
+                      }
+                    };
                     withBackgroundActive.whileActive(getApplicationContext());
 
-                    if (!dontNotify) {
-                        seenChatNotifications.add(n.convID + n.messageId);
-                    }
                 }
                 break;
                 case "follow": {
