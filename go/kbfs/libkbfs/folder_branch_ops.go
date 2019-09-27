@@ -7578,18 +7578,16 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 }
 
 func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
-	lState *kbfssync.LockState, currHead ImmutableRootMetadata) error {
+	lState *kbfssync.LockState, currHead ImmutableRootMetadata) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
 		fbo.latestMergedRevision, currHead.Revision())
-	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
-		ctx, lState, currHead.ReadOnly())
-	if err != nil {
-		return err
-	}
 
+	// Fetch root block and set the head first, because if it fails we
+	// don't want to have to undo a bunch of pointer updates.  (That
+	// is, follow the same order as when usually updating the head.)
 	latestRootBlockFetch := fbo.kickOffRootBlockFetch(ctx, currHead)
 	err = fbo.waitForRootBlockFetch(ctx, currHead, latestRootBlockFetch)
 	if err != nil {
@@ -7597,6 +7595,27 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 	}
 
 	err = fbo.setHeadSuccessorLocked(ctx, lState, currHead, true /*rebase*/)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err == nil {
+			return
+		}
+
+		// If updating the pointers failed, we need to revert the head
+		// as well.
+		fbo.log.CDebugf(ctx, "Fast-forward failed: %+v; reverting the head")
+		revertErr := fbo.setHeadLocked(
+			ctx, lState, currHead, headTrusted, mdToCommitType(currHead))
+		if revertErr != nil {
+			fbo.log.CDebugf(ctx, "Couldn't revert head: %+v", err)
+		}
+	}()
+
+	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
+		ctx, lState, currHead.ReadOnly())
 	if err != nil {
 		return err
 	}
