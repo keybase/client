@@ -484,7 +484,7 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	logout := client.NewCmdLogoutRunner(G)
 	err = logout.Run()
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Cannot logout")
+	require.Contains(t, err.Error(), "Cannot log out")
 
 	logout = client.NewCmdLogoutRunner(G)
 	logout.Force = true
