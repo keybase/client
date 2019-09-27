@@ -38,11 +38,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._autoResize()
   }
 
-  _smartAutoresize = {
-    pivotLength: -1,
-    width: -1,
-  }
-
+  _autoResizeLast = ''
   _autoResize = () => {
     if (!this.props.multiline) {
       // no resizing height on single-line inputs
@@ -52,6 +48,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (!n) {
       return
     }
+
+    // ignore if value hasn't changed
+    if (n.value === this._autoResizeLast) {
+      return
+    }
+    this._autoResizeLast = n.value
 
     n.style.height = '1px'
     n.style.height = `${n.scrollHeight}px`
