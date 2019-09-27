@@ -40,7 +40,7 @@ You can set environment variables for debugging:
 | NO_DASHBOARD | Don't show dashboard |
 
 You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
-`$HOME/.cache/keybase.app.debug` on Linux, or
+`$HOME/.cache/keybase/keybase.app.debug` on Linux, or
 `%localappdata%\Keybase\keybase.app.debug` on Windows (see
 `platform.desktop.js`) to add debug flags. In particular, you probably want
 ```json

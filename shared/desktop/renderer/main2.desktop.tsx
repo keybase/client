@@ -99,11 +99,15 @@ const FontLoader = () => (
 let store
 
 const DarkCSSInjector = () => {
-  const className = useSelector(state => isDarkMode(state.config)) ? 'darkMode' : ''
+  const isDark = useSelector(state => isDarkMode(state.config))
   React.useEffect(() => {
     // inject it in body so modals get darkMode also
-    document.body.className = className
-  }, [className])
+    if (isDark) {
+      document.body.classList.add('darkMode')
+    } else {
+      document.body.classList.remove('darkMode')
+    }
+  }, [isDark])
   return null
 }
 

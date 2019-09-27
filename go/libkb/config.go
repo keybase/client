@@ -549,8 +549,21 @@ func (f *JSONConfigFile) GetVDebugSetting() string {
 func (f *JSONConfigFile) GetAutoFork() (bool, bool) {
 	return f.GetTopLevelBool("auto_fork")
 }
-func (f *JSONConfigFile) GetRememberPassphrase() (bool, bool) {
-	return f.GetTopLevelBool("remember_passphrase")
+
+func (f *JSONConfigFile) GetRememberPassphrase(username NormalizedUsername) (bool, bool) {
+	const legacyRememberPassphraseKey = "remember_passphrase"
+
+	if username.IsNil() {
+		return f.GetTopLevelBool(legacyRememberPassphraseKey)
+	}
+	if m, ok := f.jw.AtKey("remember_passphrase_map").GetDataOrNil().(map[string]interface{}); ok {
+		if ret, mOk := m[username.String()]; mOk {
+			if boolRet, boolOk := ret.(bool); boolOk {
+				return boolRet, true
+			}
+		}
+	}
+	return f.GetTopLevelBool(legacyRememberPassphraseKey)
 }
 func (f *JSONConfigFile) GetLogFormat() string {
 	return f.GetTopLevelString("log_format")
@@ -873,8 +886,11 @@ func (f *JSONConfigFile) GetReadDeletedSigChain() (bool, bool) {
 	return f.GetBoolAtPath("read_deleted_sigchain")
 }
 
-func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
-	return f.SetBoolAtPath("remember_passphrase", remember)
+func (f *JSONConfigFile) SetRememberPassphrase(username NormalizedUsername, remember bool) error {
+	if username.IsNil() {
+		return f.SetBoolAtPath("remember_passphrase", remember)
+	}
+	return f.SetBoolAtPath(fmt.Sprintf("remember_passphrase_map.%s", username.String()), remember)
 }
 
 func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {

@@ -945,6 +945,14 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
 }
 
+func (u *userPlusDevice) disableTOFUSearch() {
+	mctx := u.MetaContext()
+	arg := libkb.NewAPIArg("test/disable_tofu_search_for_uid")
+	arg.SessionType = libkb.APISessionTypeREQUIRED
+	_, err := u.tc.G.API.Post(mctx, arg)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) MetaContext() libkb.MetaContext {
 	return libkb.NewMetaContextForTest(*u.tc)
 }

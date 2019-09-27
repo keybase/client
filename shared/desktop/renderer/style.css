@@ -226,6 +226,65 @@ body {
   overflow: hidden;
 }
 
+:root {
+  --scrollbar-size: 0.375rem;
+  --scrollbar-minlength: 0.5rem;
+  --scrollbar-ff-width: thin;
+  --scrollbar-track-color: transparent;
+  --scrollbar-color: rgba(0, 0, 0, 0.2);
+  --scrollbar-color-dark: rgba(255, 255, 255, 0.2);
+  --scrollbar-color-hover: rgba(0, 0, 0, 0.3);
+  --scrollbar-color-hover-dark: rgba(255, 255, 255, 0.3);
+  --scrollbar-color-active: rgb(0, 0, 0);
+  --scrollbar-color-active-dark: rgb(255, 255, 255, 0.5);
+}
+
+/* Used to customize scrollbars and enable testing the auto hide behavior on os x */
+body {
+  scrollbar-color: var(--scrollbar-color) var(--scrollbar-track-color);
+}
+.layout-scrollbar-obtrusive ::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+.scrollbar-test {
+  overscroll-behavior: contain;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+  scrollbar-width: var(--scrollbar-ff-width);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track-color);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+  border-radius: 3px;
+}
+.darkMode ::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color-dark);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-color-hover);
+}
+.darkMode ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-color-hover-dark);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-color-active);
+}
+.darkMode ::-webkit-scrollbar-thumb:active {
+  background-color: var(--scrollbar-color-active-dark);
+}
+::-webkit-scrollbar-thumb:vertical {
+  min-height: var(--scrollbar-minlength);
+}
+::-webkit-scrollbar-thumb:horizontal {
+  min-width: var(--scrollbar-minlength);
+}
+
 .darkMode input {
   background-color: #191919;
 }
