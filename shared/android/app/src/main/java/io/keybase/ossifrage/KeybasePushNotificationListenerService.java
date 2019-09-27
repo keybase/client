@@ -184,7 +184,7 @@ public class KeybasePushNotificationListenerService extends FirebaseMessagingSer
                       try {
                           Keybase.handleBackgroundNotification(n.convID, payload, n.serverMessageBody, n.sender,
                             n.membersType, n.displayPlaintext, n.messageId, n.pushId,
-                            n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier);
+                            n.badgeCount, n.unixTime, n.soundName, dontNotify ? null : notifier, false);
                           if (!dontNotify) {
                               seenChatNotifications.add(n.convID + n.messageId);
                           }
