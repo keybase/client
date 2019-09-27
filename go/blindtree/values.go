@@ -57,12 +57,8 @@ func (t *BlindMerkleValue) CodecDecodeSelf(d *codec.Decoder) {
 }
 
 type SigID []byte
-type Teamv1HiddenTail struct {
-	_struct struct{} `codec:",toarray"` //nolint
-	SigID   SigID
-	LinkID  sig3.LinkID
-	Seqno   keybase1.Seqno
-}
+
+type Teamv1HiddenTail sig3.LinkID
 
 type Teamv1Value struct {
 	_struct struct{} `codec:",toarray"` //nolint
