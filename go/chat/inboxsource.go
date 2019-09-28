@@ -459,6 +459,10 @@ func (s *RemoteInboxSource) NewConversation(ctx context.Context, uid gregor1.UID
 	return nil
 }
 
+func (s *RemoteInboxSource) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res types.InboxSyncRes, err error) {
+	return res, nil
+}
+
 func (s *RemoteInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (*chat1.ConversationLocal, error) {
 	return nil, nil
@@ -1252,6 +1256,11 @@ func (s *HybridInboxSource) getConvsLocal(ctx context.Context, uid gregor1.UID,
 			ConvIDs: convIDs,
 		}, nil)
 	return ib.Convs, err
+}
+
+func (s *HybridInboxSource) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res types.InboxSyncRes, err error) {
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
+	return s.createInbox().Sync(ctx, uid, vers, convs)
 }
 
 func (s *HybridInboxSource) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,

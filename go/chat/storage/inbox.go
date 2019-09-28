@@ -1615,19 +1615,6 @@ func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, e
 	return vers, nil
 }
 
-type InboxSyncRes struct {
-	FilteredConvs      []types.RemoteConversation
-	TeamTypeChanged    bool
-	MembersTypeChanged []chat1.ConversationID
-	Expunges           []InboxSyncResExpunge
-	TopicNameChanged   []chat1.ConversationID
-}
-
-type InboxSyncResExpunge struct {
-	ConvID  chat1.ConversationID
-	Expunge chat1.Expunge
-}
-
 func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Conversation) bool {
 	oldMsg, oldErr := oldConv.GetMaxMessage(chat1.MessageType_METADATA)
 	newMsg, newErr := newConv.GetMaxMessage(chat1.MessageType_METADATA)
@@ -1640,7 +1627,7 @@ func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Con
 	return oldMsg.GetMessageID() != newMsg.GetMessageID()
 }
 
-func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
+func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res types.InboxSyncRes, err Error) {
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
@@ -1679,7 +1666,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			if oldConv.Expunge != newConv.Expunge {
 				// The earliest point in non-deleted history has moved up.
 				// Point it out so that convsource can get updated.
-				res.Expunges = append(res.Expunges, InboxSyncResExpunge{
+				res.Expunges = append(res.Expunges, types.InboxSyncResExpunge{
 					ConvID:  newConv.Metadata.ConversationID,
 					Expunge: newConv.Expunge,
 				})

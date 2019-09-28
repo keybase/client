@@ -174,6 +174,19 @@ type Inbox struct {
 	Pagination      *chat1.Pagination
 }
 
+type InboxSyncRes struct {
+	FilteredConvs      []RemoteConversation
+	TeamTypeChanged    bool
+	MembersTypeChanged []chat1.ConversationID
+	Expunges           []InboxSyncResExpunge
+	TopicNameChanged   []chat1.ConversationID
+}
+
+type InboxSyncResExpunge struct {
+	ConvID  chat1.ConversationID
+	Expunge chat1.Expunge
+}
+
 type ConvLoaderPriority int
 
 var (

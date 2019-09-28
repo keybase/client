@@ -179,6 +179,7 @@ type InboxSource interface {
 	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
 
+	Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (InboxSyncRes, error)
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
 	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)

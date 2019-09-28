@@ -209,7 +209,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	return s.sync(ctx, cli, uid, syncRes)
 }
 
-func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes storage.InboxSyncRes,
+func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes types.InboxSyncRes,
 	convs []chat1.Conversation) bool {
 	if syncRes.TeamTypeChanged {
 		s.Debug(ctx, "shouldDoFullReloadFromIncremental: team type changed")
@@ -437,9 +437,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
 			vers, incr.Vers, len(incr.Convs))
 
-		var iboxSyncRes storage.InboxSyncRes
+		var iboxSyncRes types.InboxSyncRes
 		expunges := make(map[string]chat1.Expunge)
-		if iboxSyncRes, err = ibox.Sync(ctx, uid, incr.Vers, incr.Convs); err != nil {
+		if iboxSyncRes, err = s.G().InboxSource.Sync(ctx, uid, incr.Vers, incr.Convs); err != nil {
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
