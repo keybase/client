@@ -939,7 +939,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case EngineGen.chat1ChatUiChatInboxLayout: {
-        const layout = JSON.parse(action.payload.params.layout)
+        const layout: RPCChatTypes.UIInboxLayout = JSON.parse(action.payload.params.layout)
         draftState.inboxLayout = layout
         draftState.inboxHasLoaded = true
         return
@@ -1286,10 +1286,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           return
         }
         const results = action.payload.results.reduce((l, r) => {
-          if (draftState.metaMap.get(r.conversationIDKey)) {
-            return l.push(r)
-          }
-          return l
+          return l.push(r)
         }, I.List())
         draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
           nameResults: results,

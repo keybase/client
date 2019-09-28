@@ -318,7 +318,8 @@ func TestInboxSourceMarkAsRead(t *testing.T) {
 	inboxSource.SetRemoteInterface(func() chat1.RemoteInterface {
 		return chat1.RemoteClient{Cli: OfflineClient{}}
 	})
-	require.NoError(t, inboxSource.MarkAsRead(ctx1, conv.Id, uid1, msg.GetMessageID()))
+	msgID := msg.GetMessageID()
+	require.NoError(t, inboxSource.MarkAsRead(ctx1, conv.Id, uid1, &msgID))
 	syncer.Disconnected(context.TODO())
 	pusher.testingIgnoreBroadcasts = true
 

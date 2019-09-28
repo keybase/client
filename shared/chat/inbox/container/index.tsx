@@ -74,7 +74,14 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 
 const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Array<RowItemSmall> => {
   return smallTeams.map(t => {
-    return {conversationIDKey: Types.stringToConversationIDKey(t.convID), type: 'small'}
+    return {
+      conversationIDKey: Types.stringToConversationIDKey(t.convID),
+      isTeam: t.isTeam,
+      snippet: t.snippet || undefined,
+      snippetDecoration: t.snippetDecoration || undefined,
+      teamname: t.name,
+      type: 'small',
+    }
   })
 }
 
@@ -92,6 +99,8 @@ const makeBigRows = (
         }
       case RPCChatTypes.UIInboxBigTeamRowTyp.label:
         return {teamname: t.label, type: 'bigHeader'}
+      default:
+        throw new Error('unknown row typ')
     }
   })
 }

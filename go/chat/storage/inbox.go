@@ -90,12 +90,36 @@ type SharedInboxItem struct {
 	MembersType chat1.ConversationMembersType
 }
 
+type InboxLayoutChangedNotifier interface {
+	UpdateLayout(ctx context.Context) error
+	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
+		msgType chat1.MessageType, firstConv bool) error
+}
+
+type dummyInboxLayoutChangedNotifier struct{}
+
+func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context) error {
+	return nil
+}
+
+func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
+	conv types.RemoteConversation, msgType chat1.MessageType, firstConv bool) error {
+	return nil
+}
+
+func LayoutChangedNotifier(notifier InboxLayoutChangedNotifier) func(*Inbox) {
+	return func(i *Inbox) {
+		i.SetInboxLayoutChangedNotifier(notifier)
+	}
+}
+
 type Inbox struct {
 	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
 
-	flushMode InboxFlushMode
+	flushMode      InboxFlushMode
+	layoutNotifier InboxLayoutChangedNotifier
 }
 
 func FlushMode(mode InboxFlushMode) func(*Inbox) {
@@ -106,10 +130,11 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	i := &Inbox{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
-		baseBox:      newBaseBox(g),
-		flushMode:    InboxFlushModeActive,
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
+		baseBox:        newBaseBox(g),
+		flushMode:      InboxFlushModeActive,
+		layoutNotifier: dummyInboxLayoutChangedNotifier{},
 	}
 	for _, c := range config {
 		c(i)
@@ -119,6 +144,10 @@ func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 
 func (i *Inbox) SetFlushMode(mode InboxFlushMode) {
 	i.flushMode = mode
+}
+
+func (i *Inbox) SetInboxLayoutChangedNotifier(notifier InboxLayoutChangedNotifier) {
+	i.layoutNotifier = notifier
 }
 
 func (i *Inbox) dbKey(uid gregor1.UID) libkb.DbKey {
@@ -1110,6 +1139,13 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 
 	// Slot in at the top
 	mconv := *conv
+	// if we have a conv at all, then we want to let any layout engine know about this
+	// new message
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg.GetMessageType(), index == 0)
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))
 	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)
@@ -1168,6 +1204,11 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx)
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1469,6 +1510,11 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx)
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1599,6 +1645,11 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx)
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {

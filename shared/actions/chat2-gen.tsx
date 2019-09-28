@@ -393,6 +393,8 @@ type _MetaRequestTrustedPayload = {
     | 'threadStale'
     | 'membersUpdate'
     | 'scroll'
+    | 'ensureSelectedMeta'
+    | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
 type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.ConversationIDKey>}

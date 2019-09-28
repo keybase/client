@@ -418,27 +418,34 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res
 		case chat1.TeamType_COMPLEX:
 			btcollector.appendConv(conv)
 		default:
-			res.SmallTeams = append(res.SmallTeams, utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv))
+			res.SmallTeams = append(res.SmallTeams,
+				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv, len(res.SmallTeams) < 50))
 		}
 	}
+	sort.Slice(res.SmallTeams, func(i, j int) bool {
+		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
+	})
 	res.BigTeams = btcollector.finalize(ctx)
 	return res
+}
+
+func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {
+	defer h.Trace(ctx, func() error { return err }, "getInboxFromQuery")()
+	query := h.Query()
+	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, &query)
+	if err != nil {
+		return inbox, err
+	}
+	return h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery, nil)
 }
 
 func (h *UIInboxLoader) flushLayout() (err error) {
 	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
 	defer h.Trace(ctx, func() error { return err }, "flushLayout")()
-
-	query := h.Query()
-	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, &query)
+	inbox, err := h.getInboxFromQuery(ctx)
 	if err != nil {
 		return err
 	}
-	inbox, err := h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery, nil)
-	if err != nil {
-		return err
-	}
-
 	layout := h.buildLayout(ctx, inbox)
 	ui, err := h.getChatUI(ctx)
 	if err != nil {
@@ -485,6 +492,20 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context) (err error) {
 		return errors.New("failed to queue layout update, queue full")
 	}
 	return nil
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
+	msgType chat1.MessageType, firstConv bool) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateLayoutFromNewMessage")()
+	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout for big team")
+		return nil
+	}
+	if firstConv {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
+		return nil
+	}
+	return h.UpdateLayout(ctx)
 }
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {

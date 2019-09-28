@@ -1577,6 +1577,23 @@ const onToggleInboxSearch = (state: TypedState) => {
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
 
+const onInboxSearchNameResults = (state: TypedState, action: Chat2Gen.InboxSearchNameResultsPayload) => {
+  const missingMetas = action.payload.results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
+    if (!state.chat2.metaMap.get(r.conversationIDKey)) {
+      arr.push(r.conversationIDKey)
+    }
+    return arr
+  }, [])
+  if (missingMetas.length > 0) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: missingMetas,
+      force: true,
+      reason: 'inboxSearchResults',
+    })
+  }
+  return undefined
+}
+
 function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger: Saga.SagaLogger) {
   const {query} = action.payload
   const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
@@ -1917,9 +1934,6 @@ const _maybeAutoselectNewestConversation = (
     return
   }
   const selectedMeta = state.chat2.metaMap.get(selected)
-  if (!selectedMeta) {
-    selected = Constants.noConversationIDKey
-  }
 
   let avoidConversationID = Constants.noConversationIDKey
   if (action.type === Chat2Gen.hideConversation) {
@@ -2250,16 +2264,12 @@ const markThreadAsRead = async (
   }
   const conversationIDKey = Constants.getSelectedConversation(state)
 
-  if (!conversationIDKey) {
+  if (!conversationIDKey || conversationIDKey === Constants.noConversationIDKey) {
     logger.info('bail on no selected conversation')
     return
   }
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
-    logger.info('bail on not in meta list. preview?')
-    return
-  }
 
   if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
     if (action.payload.conversationIDKey !== conversationIDKey) {
@@ -2291,7 +2301,10 @@ const markThreadAsRead = async (
     message = ordinal ? mmap.get(ordinal) : undefined
   }
 
-  const readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+  let readMsgID: number | null = null
+  if (meta) {
+    readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+  }
   logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
@@ -2414,6 +2427,19 @@ const navigateToThread = (state: TypedState) => {
     return
   }
   return navigateToThreadRoute(state.chat2.selectedConversation)
+}
+
+const ensureSelectedMeta = (state: TypedState) => {
+  const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
+  if (!meta) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: [state.chat2.selectedConversation],
+      force: true,
+      noWaiting: true,
+      reason: 'ensureSelectedMeta',
+    })
+  }
+  return undefined
 }
 
 const refreshPreviousSelected = (state: TypedState) => {
@@ -3628,6 +3654,11 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onToggleInboxSearch, 'onToggleInboxSearch')
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld, 'onMarkInboxSearchOld')
   yield* Saga.chainAction2(Chat2Gen.inboxSearchSelect, onInboxSearchSelect, 'onInboxSearchSelect')
+  yield* Saga.chainAction2(
+    Chat2Gen.inboxSearchNameResults,
+    onInboxSearchNameResults,
+    'onInboxSearchNameResults'
+  )
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(
     Chat2Gen.threadSearch,
     threadSearch,
@@ -3651,6 +3682,7 @@ function* chat2Saga() {
   )
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
+  yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 

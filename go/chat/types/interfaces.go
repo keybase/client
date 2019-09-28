@@ -173,7 +173,8 @@ type InboxSource interface {
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
-	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
+	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgID *chat1.MessageID) error
 	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
 	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
@@ -552,6 +553,8 @@ type ReplyFiller interface {
 type UIInboxLoader interface {
 	Resumable
 	UpdateLayout(ctx context.Context) error
+	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
+		msgType chat1.MessageType, firstConv bool) error
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error

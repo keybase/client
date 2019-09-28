@@ -625,3 +625,8 @@ func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context) error {
 func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {
 	return nil
 }
+
+func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
+	msgType chat1.MessageType, firstConv bool) error {
+	return nil
+}

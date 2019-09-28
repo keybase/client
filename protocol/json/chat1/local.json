@@ -4496,7 +4496,10 @@
         },
         {
           "name": "msgID",
-          "type": "MessageID"
+          "type": [
+            null,
+            "MessageID"
+          ]
         }
       ],
       "response": "MarkAsReadLocalRes"

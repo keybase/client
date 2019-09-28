@@ -7,7 +7,11 @@ import {AllowedColors} from '../../../../common-adapters/text'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
+  isTeam: boolean
   navKey: string
+  name: string
+  snippet?: string
+  snippetDecoration?: string
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
@@ -15,7 +19,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const _meta = Constants.getMeta(state, _conversationIDKey)
   const youAreReset = _meta.membershipType === 'youAreReset'
   const typers = state.chat2.typingMap.get(_conversationIDKey)
-  let snippet = _meta.snippet
+  let snippet = _meta.snippet || ownProps.snippet || ''
+  let snippetDecoration = _meta.snippetDecoration || ownProps.snippetDecoration || ''
   let isTypingSnippet = false
   if (typers && typers.size > 0) {
     isTypingSnippet = true
@@ -29,7 +34,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
     isTypingSnippet,
     snippet,
-    snippetDecoration: _meta.snippetDecoration,
+    snippetDecoration,
     youAreReset,
   }
 }
@@ -45,16 +50,20 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKe
 export default Container.namedConnect(
   mapStateToProps,
   mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     const isSelected = stateProps.isSelected
     const hasUnread = stateProps.hasUnread
     const styles = Constants.getRowStyles(isSelected, hasUnread)
     const participantNeedToRekey = stateProps._meta.rekeyers.size > 0
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
-      (hasUnread || stateProps._meta.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
+      (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
     const hasResetUsers = !stateProps._meta.resetParticipants.isEmpty()
-
+    const participants = stateProps._meta.participants.size
+      ? Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray()
+      : !ownProps.isTeam
+      ? ownProps.name.split(',')
+      : [ownProps.name]
     return {
       backgroundColor: styles.backgroundColor,
       channelname: undefined,
@@ -80,12 +89,16 @@ export default Container.namedConnect(
       isMuted: stateProps._meta.isMuted,
       isSelected,
       isTypingSnippet: stateProps.isTypingSnippet,
+      layoutIsTeam: ownProps.isTeam,
+      layoutName: ownProps.name,
+      layoutSnippet: ownProps.snippet,
+      layoutSnippetDecoration: ownProps.snippetDecoration,
       onHideConversation: dispatchProps.onHideConversation,
       onMuteConversation: () => dispatchProps.onMuteConversation(stateProps._meta.isMuted),
       // Don't allow you to select yourself
       onSelectConversation: isSelected ? () => {} : dispatchProps.onSelectConversation,
       participantNeedToRekey,
-      participants: Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray(),
+      participants,
       showBold: styles.showBold,
       snippet: stateProps.snippet,
       snippetDecoration: stateProps.snippetDecoration,
