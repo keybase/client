@@ -284,6 +284,7 @@ const uninstallKBFS = () =>
     SafeElectron.getApp().exit(0)
   })
 
+// @ts-ignore
 const uninstallDokanConfirm = async (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
@@ -449,7 +450,7 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield* Saga.chainAction2(FsGen.driverEnable, installCachedDokan)
-    yield* Saga.chainAction2(FsGen.driverDisable, uninstallDokanConfirm)
+    yield* Saga.chainAction2(FsGen.driverDisable as any, uninstallDokanConfirm as any)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
   } else {
     yield* Saga.chainAction2(FsGen.driverEnable, driverEnableFuse)
