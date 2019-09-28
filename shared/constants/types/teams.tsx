@@ -65,6 +65,7 @@ export type MemberInfo = I.RecordOf<_MemberInfo>
 
 export type _InviteInfo = {
   email: string
+  phone: string
   name: string
   role: TeamRoleType
   username: string

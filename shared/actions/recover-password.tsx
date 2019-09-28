@@ -1,10 +1,12 @@
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RecoverPasswordGen from '../actions/recover-password-gen'
+import * as RecoverPasswordGen from './recover-password-gen'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as Constants from '../constants/provision'
+import * as RouteTreeGen from './route-tree-gen'
+import * as ProvisionConstants from '../constants/provision'
+import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
+import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
 const chooseDevice = (
@@ -15,7 +17,7 @@ const chooseDevice = (
   }
 ) => {
   return Saga.callUntyped(function*() {
-    const devices = (params.devices || []).map(d => Constants.rpcDeviceToDevice(d))
+    const devices = (params.devices || []).map(d => ProvisionConstants.rpcDeviceToDevice(d))
     yield Saga.put(RecoverPasswordGen.createDisplayDeviceSelect({devices}))
 
     const action:
@@ -99,7 +101,7 @@ const promptReset = (
   })
 }
 
-const inputPaperKey = (
+const getPaperKeyOrPw = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],
   response: {
     result: (res: {passphrase: string; storeSecret: boolean}) => void
@@ -107,52 +109,71 @@ const inputPaperKey = (
   }
 ) => {
   return Saga.callUntyped(function*() {
-    if (params.pinentry.retryLabel) {
+    if (params.pinentry.type === RPCTypes.PassphraseType.paperKey) {
+      if (params.pinentry.retryLabel) {
+        yield Saga.put(
+          RecoverPasswordGen.createSetPaperKeyError({
+            error: new HiddenString(params.pinentry.retryLabel),
+          })
+        )
+      }
       yield Saga.put(
-        RecoverPasswordGen.createSetPaperKeyError({
-          error: params.pinentry.retryLabel,
+        RouteTreeGen.createNavigateAppend({
+          path: ['recoverPasswordPaperKey'],
+          replace: true,
         })
       )
-    }
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordPaperKey'],
-        replace: true,
-      })
-    )
-    const action:
-      | RecoverPasswordGen.SubmitPaperKeyPayload
-      | RecoverPasswordGen.AbortPaperKeyPayload = yield Saga.take([
-      RecoverPasswordGen.submitPaperKey,
-      RecoverPasswordGen.abortPaperKey,
-    ])
+      const action:
+        | RecoverPasswordGen.SubmitPaperKeyPayload
+        | RecoverPasswordGen.AbortPaperKeyPayload = yield Saga.take([
+        RecoverPasswordGen.submitPaperKey,
+        RecoverPasswordGen.abortPaperKey,
+      ])
 
-    if (action.type === RecoverPasswordGen.submitPaperKey) {
-      response.result({
-        passphrase: action.payload.paperKey,
-        storeSecret: false,
-      })
+      if (action.type === RecoverPasswordGen.submitPaperKey) {
+        response.result({
+          passphrase: action.payload.paperKey.stringValue(),
+          storeSecret: false,
+        })
+      } else {
+        response.error({
+          code: RPCTypes.StatusCode.scinputcanceled,
+          desc: 'Input canceled',
+        })
+        yield Saga.put(RecoverPasswordGen.createRestartRecovery())
+      }
     } else {
-      response.error({
-        code: RPCTypes.StatusCode.scinputcanceled,
-        desc: 'Input canceled',
-      })
-      yield Saga.put(RecoverPasswordGen.createRestartRecovery())
+      if (params.pinentry.retryLabel) {
+        yield Saga.put(
+          RecoverPasswordGen.createSetPasswordError({error: new HiddenString(params.pinentry.retryLabel)})
+        )
+      } else {
+        // TODO maybe wait for loggedIn, for now the service promises to send this after login.
+        yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['recoverPasswordSetPassword']}))
+      }
+      const action: RecoverPasswordGen.SubmitPasswordPayload = yield Saga.take([
+        RecoverPasswordGen.submitPassword,
+      ])
+      response.result({passphrase: action.payload.password.stringValue(), storeSecret: true})
     }
   })
 }
 
-function* startRecoverPassword(_: any, action: RecoverPasswordGen.StartRecoverPasswordPayload) {
+function* startRecoverPassword(
+  _: any,
+  action: RecoverPasswordGen.StartRecoverPasswordPayload,
+  logger: Saga.SagaLogger
+) {
   if (action.payload.abortProvisioning) {
     yield Saga.put(ProvisionGen.createCancelProvision())
   }
-
+  let hadError = false
   try {
     yield RPCTypes.loginRecoverPassphraseRpcSaga({
       customResponseIncomingCallMap: {
         'keybase.1.loginUi.promptResetAccount': promptReset,
         'keybase.1.provisionUi.chooseDevice': chooseDevice,
-        'keybase.1.secretUi.getPassphrase': inputPaperKey,
+        'keybase.1.secretUi.getPassphrase': getPaperKeyOrPw,
       },
       incomingCallMap: {
         'keybase.1.loginUi.explainDeviceRecovery': explainDevice,
@@ -160,8 +181,11 @@ function* startRecoverPassword(_: any, action: RecoverPasswordGen.StartRecoverPa
       params: {
         username: action.payload.username,
       },
+      waitingKey: Constants.waitingKey,
     })
   } catch (e) {
+    hadError = true
+    logger.warn('RPC returned error: ' + e.message)
     if (
       !(
         e instanceof RPCError &&
@@ -170,10 +194,14 @@ function* startRecoverPassword(_: any, action: RecoverPasswordGen.StartRecoverPa
     ) {
       yield Saga.put(
         RecoverPasswordGen.createDisplayError({
-          error: e.toString(),
+          error: new HiddenString(e.message),
         })
       )
     }
+  }
+  logger.info(`finished ${hadError ? 'with error' : 'without error'}`)
+  if (!hadError) {
+    yield Saga.put(RouteTreeGen.createClearModals())
   }
 }
 
@@ -202,11 +230,12 @@ const restartRecovery = (state: Container.TypedState) => {
 function* recoverPasswordSaga() {
   yield* Saga.chainGenerator<RecoverPasswordGen.StartRecoverPasswordPayload>(
     RecoverPasswordGen.startRecoverPassword,
-    startRecoverPassword
+    startRecoverPassword,
+    'startRecoverPassword'
   )
-  yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect)
-  yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError)
-  yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery)
+  yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect, 'displayDeviceSelect')
+  yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError, 'displayError')
+  yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery, 'restartRecovery')
 }
 
 export default recoverPasswordSaga

@@ -37,6 +37,8 @@ class Conversation extends React.PureComponent<Props> {
           conversationIDKey={this.props.conversationIDKey}
         />
         <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
+          <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
           <ListArea
             scrollListDownCounter={this.props.scrollListDownCounter}
             scrollListToBottomCounter={this.props.scrollListToBottomCounter}
@@ -44,8 +46,6 @@ class Conversation extends React.PureComponent<Props> {
             onFocusInput={this.props.onFocusInput}
             conversationIDKey={this.props.conversationIDKey}
           />
-          <PinnedMessage conversationIDKey={this.props.conversationIDKey} />
-          <ThreadLoadStatus conversationIDKey={this.props.conversationIDKey} />
           {this.props.showLoader && <LoadingLine />}
         </Box2>
         <Banner conversationIDKey={this.props.conversationIDKey} />

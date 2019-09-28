@@ -11,7 +11,7 @@ export type Props = {
   onCancel: () => void
   onCheckPassword: (password: string) => void
   onLogout: () => void
-  onSavePassword: (password: string, passwordConfirm: string) => void
+  onSavePassword: (password: string) => void
   waitingForResponse: boolean
 }
 

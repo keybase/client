@@ -179,22 +179,22 @@ export const createStoreWithCommon = () => {
       following: new Set(['max', 'cnojima', 'cdixon', 'following', 'both']),
       username: 'ayoubd',
     },
-    fs: root.fs
-      .update('sfmi', sfmi =>
-        sfmi.merge({
-          directMountDir: '/Volumes/Keybase (meatball)',
-          driverStatus: FsConstants.makeDriverStatusEnabled(),
-          preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
-        })
-      )
-      .update('pathInfos', pathInfos =>
-        pathInfos.set(
+    fs: {
+      ...root.fs,
+      pathInfos: I.Map([
+        [
           '/keybase/private/meatball/folder/treat',
           FsConstants.makePathInfo({
             deeplinkPath: 'keybase://private/meatball/folder/treat',
             platformAfterMountPath: '/private/meatball/folder/treat',
-          })
-        )
-      ),
+          }),
+        ],
+      ]),
+      sfmi: FsConstants.makeSystemFileManagerIntegration({
+        directMountDir: '/Volumes/Keybase (meatball)',
+        driverStatus: FsConstants.makeDriverStatusEnabled(),
+        preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
+      }),
+    },
   }
 }

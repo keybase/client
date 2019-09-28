@@ -683,6 +683,8 @@ export type TypedActionsMap = {
   'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
   'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
+  'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
+  'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload

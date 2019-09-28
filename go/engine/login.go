@@ -95,11 +95,6 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return libkb.NewBadUsernameErrorWithFullMessage("Logging in with e-mail address is not supported")
 	}
 
-	var currentUsername libkb.NormalizedUsername
-	if dev := m.ActiveDevice(); dev != nil {
-		currentUsername = m.ActiveDevice().Username(m)
-	}
-
 	// check to see if already logged in
 	var loggedInOK bool
 	loggedInOK, err = e.checkLoggedInAndNotRevoked(m)
@@ -111,10 +106,6 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return nil
 	}
 	m.Debug("Login: not currently logged in")
-
-	if e.doUserSwitch && !currentUsername.IsNil() {
-		defer e.restoreSession(m, currentUsername, func() error { return err })
-	}
 
 	// First see if this device is already provisioned and it is possible to log in.
 	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
