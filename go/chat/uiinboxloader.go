@@ -422,8 +422,13 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res
 			}
 			btcollector.appendConv(conv)
 		default:
+			// filter empty convs we didn't create
+			if utils.IsConvEmpty(conv.Conv) && !conv.Conv.CreatorInfo.Uid.Eq(h.uid) {
+				continue
+			}
 			res.SmallTeams = append(res.SmallTeams,
-				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv, len(res.SmallTeams) < 50))
+				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
+					h.G().GetEnv().GetUsername().String(), len(res.SmallTeams) < 50))
 		}
 	}
 	sort.Slice(res.SmallTeams, func(i, j int) bool {

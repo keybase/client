@@ -1101,10 +1101,12 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 }
 
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
-	useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
+	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
 	res.ConvID = rc.GetConvID().String()
 	res.IsTeam = rc.GetTeamType() == chat1.TeamType_SIMPLE
 	res.Name = rc.GetName()
+	res.Name = strings.Replace(res.Name, fmt.Sprintf(",%s", username), "", -1)
+	res.Name = strings.Replace(res.Name, fmt.Sprintf("%s,", username), "", -1)
 	res.Time = GetConvMtime(rc.Conv)
 	if useSnippet && rc.LocalMetadata != nil {
 		res.Snippet = &rc.LocalMetadata.Snippet
