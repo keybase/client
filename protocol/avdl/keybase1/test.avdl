@@ -25,4 +25,9 @@ protocol test {
     For testing crashes.
     */
   void panic(string message);
+
+  /**
+    For testing airdrop reg.
+   */
+  void testAirdropReg();
 }
