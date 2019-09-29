@@ -25,7 +25,7 @@ export default namedConnect(
       dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxBig'})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    channelname: ownProps.channelname,
+    channelname: stateProps._meta.channelname || ownProps.channelname,
     hasBadge: stateProps.hasBadge,
     hasDraft: !!stateProps._meta.draft && !stateProps.isSelected,
     hasUnread: stateProps.hasUnread,

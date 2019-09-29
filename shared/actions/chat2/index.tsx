@@ -69,12 +69,7 @@ const onGetInboxUnverifiedConvs = (
 // Ask the service to refresh the inbox
 function* inboxRefresh(
   state: TypedState,
-  action:
-    | Chat2Gen.InboxRefreshPayload
-    | EngineGen.Chat1NotifyChatChatInboxStalePayload
-    | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
-    | EngineGen.Chat1NotifyChatChatLeftConversationPayload,
-  logger: Saga.SagaLogger
+  action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
 ) {
   if (!state.config.loggedIn) {
     return
@@ -95,13 +90,6 @@ function* inboxRefresh(
     case EngineGen.chat1NotifyChatChatInboxStale:
       reason = 'inboxStale'
       break
-    case EngineGen.chat1NotifyChatChatJoinedConversation:
-      reason = 'joinedAConversation'
-      break
-    case EngineGen.chat1NotifyChatChatLeftConversation:
-      clearExistingMetas = true
-      reason = 'leftAConversation'
-      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
@@ -114,20 +102,6 @@ function* inboxRefresh(
     yield Saga.put(Chat2Gen.createClearMessages())
   }
   yield RPCChatTypes.localRequestInboxLayoutRpcPromise()
-}
-
-// When we get info on a team we need to unbox immediately so we can get the channel names
-const requestTeamsUnboxing = (_: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const conversationIDKeys = action.payload.metas
-    .filter(meta => meta.trustedState === 'untrusted' && meta.teamType === 'big' && !meta.channelname)
-    .map(meta => meta.conversationIDKey)
-  if (conversationIDKeys.length) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys,
-      reason: 'requestTeamsUnboxing',
-    })
-  }
-  return undefined
 }
 
 // Only get the untrusted conversations out
@@ -919,9 +893,6 @@ const onNewChatActivity = (
           }),
         ]
       }
-      break
-    case RPCChatTypes.ChatActivityType.teamtype:
-      actions = [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
       break
     case RPCChatTypes.ChatActivityType.expunge: {
       actions = expungeToActions(state, activity.expunge)
@@ -3357,23 +3328,11 @@ function* chat2Saga() {
     'changeSelectedConversation'
   )
   // Refresh the inbox
-  yield* Saga.chainGenerator<
-    | Chat2Gen.InboxRefreshPayload
-    | EngineGen.Chat1NotifyChatChatInboxStalePayload
-    | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
-    | EngineGen.Chat1NotifyChatChatLeftConversationPayload
-  >(
-    [
-      Chat2Gen.inboxRefresh,
-      EngineGen.chat1NotifyChatChatInboxStale,
-      EngineGen.chat1NotifyChatChatJoinedConversation,
-      EngineGen.chat1NotifyChatChatLeftConversation,
-    ],
+  yield* Saga.chainGenerator<Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload>(
+    [Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale],
     inboxRefresh,
     'inboxRefresh'
   )
-  // Load teams
-  yield* Saga.chainAction2(Chat2Gen.metasReceived, requestTeamsUnboxing, 'requestTeamsUnboxing')
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest, 'queueMetaToRequest')
   // We have some items in the queue to process

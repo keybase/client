@@ -1708,6 +1708,14 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	layoutChanged := false
+	defer func() {
+		if layoutChanged {
+			go func(ctx context.Context) {
+				_ = i.layoutNotifier.UpdateLayout(ctx)
+			}(globals.BackgroundChatCtx(ctx, i.G()))
+		}
+	}()
 
 	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
 		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
@@ -1731,12 +1739,14 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		ujs = append(ujs, types.RemoteConversation{
 			Conv: uj,
 		})
+		layoutChanged = true
 	}
 	convs := i.mergeConvs(ujs, ibox.Conversations)
 	removedMap := make(map[string]bool)
 	for _, r := range userRemoved {
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
 		removedMap[r.ConvID.String()] = true
+		layoutChanged = true
 	}
 	resetMap := make(map[string]bool)
 	for _, r := range userReset {

@@ -412,10 +412,14 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 }
 
 func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res chat1.UIInboxLayout) {
+	var btunboxes []chat1.ConversationID
 	btcollector := newBigTeamCollector()
 	for _, conv := range inbox.ConvsUnverified {
 		switch conv.GetTeamType() {
 		case chat1.TeamType_COMPLEX:
+			if conv.LocalMetadata == nil {
+				btunboxes = append(btunboxes, conv.GetConvID())
+			}
 			btcollector.appendConv(conv)
 		default:
 			res.SmallTeams = append(res.SmallTeams,
@@ -426,6 +430,15 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
 	})
 	res.BigTeams = btcollector.finalize(ctx)
+	if len(btunboxes) > 0 {
+		h.Debug(ctx, "buildLayout: big teams missing names, unboxing: %v", len(btunboxes))
+		go func(ctx context.Context) {
+			doneCh, _ := h.UpdateConvs(ctx, btunboxes)
+			<-doneCh
+			// update layout again after we have done all this work to get everything in the right order
+			_ = h.UpdateLayout(ctx)
+		}(globals.BackgroundChatCtx(ctx, h.G()))
+	}
 	return res
 }
 
@@ -515,9 +528,14 @@ func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv typ
 	return h.UpdateLayout(ctx)
 }
 
-func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
+func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (doneCh chan struct{}, err error) {
 	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
 	query := h.Query()
 	query.ConvIDs = convIDs
-	return h.LoadNonblock(ctx, &query, nil, nil, true)
+	doneCh = make(chan struct{})
+	go func(ctx context.Context) {
+		_ = h.LoadNonblock(ctx, &query, nil, nil, true)
+		close(doneCh)
+	}(globals.BackgroundChatCtx(ctx, h.G()))
+	return doneCh, nil
 }
