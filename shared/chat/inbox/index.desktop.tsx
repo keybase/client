@@ -102,9 +102,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
           conversationIDKey,
           isTeam: row.isTeam || false,
           navKey: this.props.navKey,
-          teamname,
           snippet: row.snippet,
           snippetDecoration: row.snippetDecoration,
+          teamname,
+          time: row.time || undefined,
           type: row.type,
         })}
       </div>

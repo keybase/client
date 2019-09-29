@@ -92,6 +92,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
         snippet: row.snippet,
         snippetDecoration: row.snippetDecoration,
         teamname: row.teamname,
+        time: row.time || undefined,
         type: row.type,
       })
     }

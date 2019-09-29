@@ -7,6 +7,7 @@ export type RowItemSmall = {
   teamname: string
   isTeam: boolean
   conversationIDKey: ConversationIDKey
+  time: number
   snippet?: string
   snippetDecoration?: string
 }
@@ -18,6 +19,7 @@ export type RowItemBigTeamsLabel = {
   conversationIDKey?: never
   snippet?: string
   snippetDecoration?: string
+  time?: number
 }
 export type RowItemBigHeader = {
   type: 'bigHeader'
@@ -26,6 +28,7 @@ export type RowItemBigHeader = {
   conversationIDKey?: never
   snippet?: string
   snippetDecoration?: string
+  time?: number
 }
 export type RowItemBig = {
   type: 'big'
@@ -35,6 +38,7 @@ export type RowItemBig = {
   channelname: string
   snippet?: string
   snippetDecoration?: string
+  time?: number
 }
 export type RowItemDivider = {
   conversationIDKey?: never

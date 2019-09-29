@@ -1259,9 +1259,6 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
           return
         }
-        if (!draftState.metaMap.get(action.payload.result.conversationIDKey)) {
-          return
-        }
         const old = draftState.inboxSearch || Constants.makeInboxSearchInfo()
         const textResults = old.textResults
           .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)

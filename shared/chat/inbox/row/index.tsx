@@ -16,6 +16,7 @@ type MakeRowOptions = {
   snippet?: string
   snippetDecoration?: string
   teamname: string
+  time?: number
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
 }
 
@@ -54,6 +55,7 @@ const makeRow = (options: MakeRowOptions) => {
           isTeam={options.isTeam}
           navKey={options.navKey}
           name={options.teamname}
+          time={options.time || 0}
           snippet={options.snippet}
           snippetDecoration={options.snippetDecoration}
         />

@@ -80,6 +80,7 @@ const makeSmallRows = (smallTeams: Array<RPCChatTypes.UIInboxSmallTeamRow>): Arr
       snippet: t.snippet || undefined,
       snippetDecoration: t.snippetDecoration || undefined,
       teamname: t.name,
+      time: t.time,
       type: 'small',
     }
   })

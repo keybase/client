@@ -1577,6 +1577,17 @@ const onToggleInboxSearch = (state: TypedState) => {
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
 
+const onInboxSearchTextResult = (state: TypedState, action: Chat2Gen.InboxSearchTextResultPayload) => {
+  if (!state.chat2.metaMap.get(action.payload.result.conversationIDKey)) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: [action.payload.result.conversationIDKey],
+      force: true,
+      reason: 'inboxSearchResults',
+    })
+  }
+  return undefined
+}
+
 const onInboxSearchNameResults = (state: TypedState, action: Chat2Gen.InboxSearchNameResultsPayload) => {
   const missingMetas = action.payload.results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
     if (!state.chat2.metaMap.get(r.conversationIDKey)) {
@@ -3659,6 +3670,7 @@ function* chat2Saga() {
     onInboxSearchNameResults,
     'onInboxSearchNameResults'
   )
+  yield* Saga.chainAction2(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult, 'onInboxSearchTextResult')
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(
     Chat2Gen.threadSearch,
     threadSearch,

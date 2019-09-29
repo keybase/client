@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import * as Container from '../../../../util/container'
 import {AllowedColors} from '../../../../common-adapters/text'
+import {formatTimeForConversationList} from '../../../../util/timestamp'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -12,6 +13,7 @@ type OwnProps = {
   name: string
   snippet?: string
   snippetDecoration?: string
+  time: number
 }
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
@@ -64,6 +66,7 @@ export default Container.namedConnect(
       : !ownProps.isTeam
       ? ownProps.name.split(',')
       : [ownProps.name]
+    const timestamp = stateProps._meta.timestamp > 0 ? stateProps._meta.timestamp : ownProps.time || 0
     return {
       backgroundColor: styles.backgroundColor,
       channelname: undefined,
@@ -104,7 +107,7 @@ export default Container.namedConnect(
       snippetDecoration: stateProps.snippetDecoration,
       subColor: styles.subColor as AllowedColors,
       teamname: stateProps._meta.teamname,
-      timestamp: Constants.timestampToString(stateProps._meta),
+      timestamp: formatTimeForConversationList(timestamp),
       usernameColor: styles.usernameColor,
       youAreReset: stateProps.youAreReset,
       youNeedToRekey,
