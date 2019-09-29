@@ -442,6 +442,13 @@ func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbo
 func (h *UIInboxLoader) flushLayout() (err error) {
 	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
 	defer h.Trace(ctx, func() error { return err }, "flushLayout")()
+	defer func() {
+		if err != nil {
+			h.Debug(ctx, "flushLayout: failed to transmit, retrying: %s", err)
+			q := h.Query()
+			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), &q, nil))
+		}
+	}()
 	inbox, err := h.getInboxFromQuery(ctx)
 	if err != nil {
 		return err
