@@ -43,15 +43,10 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	botUID := gregor1.UID([]byte("botua"))
 	botSettings := keybase1.TeamBotSettings{}
 	msg := chat1.MessagePlaintext{}
-	conv := chat1.ConversationLocal{
-		Info: chat1.ConversationInfoLocal{
-			Id: convID,
-		},
-	}
 	mentionMap := make(map[string]struct{})
 
 	assertMatch := func(expected bool) {
-		isMatch, err := ApplyTeamBotSettings(ctx, g, botUID, botSettings, msg, &conv,
+		isMatch, err := ApplyTeamBotSettings(ctx, g, botUID, botSettings, msg, &convID,
 			mentionMap, debugLabeler)
 		require.NoError(t, err)
 		require.Equal(t, expected, isMatch)

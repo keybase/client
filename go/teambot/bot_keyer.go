@@ -124,7 +124,8 @@ func (k *BotKeyer) getFromStorage(mctx libkb.MetaContext, teamID keybase1.TeamID
 	dbKey := k.dbKey(boxKey)
 	found, err = k.edb.Get(mctx.Ctx(), dbKey, &key)
 	if err != nil {
-		return key, false, err
+		mctx.Debug("Unable to fetch from disk err: %v", err)
+		return keybase1.TeambotKey{}, false, nil
 	}
 	if !found {
 		return keybase1.TeambotKey{}, false, nil

@@ -7165,6 +7165,17 @@ func TestTeamBotSettings(t *testing.T) {
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
 
+			topicName := "zjoinonsend"
+			_, err = ctc.as(t, botua).chatLocalHandler().NewConversationLocal(context.TODO(),
+				chat1.NewConversationLocalArg{
+					TlfName:       created.TlfName,
+					TopicName:     &topicName,
+					TopicType:     chat1.TopicType_DEV,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   mt,
+				})
+			require.NoError(t, err)
+
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
 			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
