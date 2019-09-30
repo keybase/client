@@ -29,6 +29,9 @@ protocol Common {
   @typedef("string")
   record UID {}
 
+  @typedef("string") @lint("ignore")
+  record VID {}
+
   @typedef("string")
   record DeviceID {}
 

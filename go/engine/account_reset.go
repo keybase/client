@@ -163,6 +163,7 @@ type accountResetStatusResponse struct {
 	EventTime string  `json:"event_time"`
 	DelaySecs int     `json:"delay_secs"`
 	EventType int     `json:"event_type"`
+	HasWallet bool    `json:"has_wallet"`
 }
 
 func (a *accountResetStatusResponse) ReadyTime() (time.Time, error) {
@@ -196,7 +197,7 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 	if status.EventType == libkb.AutoresetEventReady && e.completeReset {
 		// Ask the user if they'd like to reset if we're in login + it's ready
 		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-			Kind: keybase1.ResetPromptType_COMPLETE,
+			Prompt: keybase1.NewResetPromptWithComplete(keybase1.ResetPromptInfo{HasWallet: status.HasWallet}),
 		})
 		if err != nil {
 			return err

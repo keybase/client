@@ -94,7 +94,7 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 
 	if !ckf.HasActiveDevice() {
 		// Go directly to reset
-		return e.suggestReset(mctx)
+		return e.resetPassword(mctx)
 	}
 
 	return e.chooseDevice(mctx, ckf)
@@ -186,9 +186,40 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	}
 }
 
+func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
+	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		Prompt: keybase1.NewResetPromptDefault(keybase1.ResetPromptType_ENTER_RESET_PW),
+	})
+	if err != nil {
+		return err
+	}
+	if !enterReset {
+		// Flow cancelled
+		return nil
+	}
+
+	// User wants a reset password email
+	res, err := mctx.G().API.Post(mctx, libkb.APIArg{
+		Endpoint:    "send-reset-pw",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"email_or_username": libkb.S{Val: e.arg.Username},
+		},
+		AppStatusCodes: []int{libkb.SCOk, libkb.SCBadLoginUserNotFound},
+	})
+	if err != nil {
+		return err
+	}
+	if res.AppStatus.Code == libkb.SCBadLoginUserNotFound {
+		return libkb.NotFoundError{}
+	}
+	mctx.Info("A reset link has been sent to primary email")
+	return nil
+}
+
 func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+		Prompt: keybase1.NewResetPromptDefault(keybase1.ResetPromptType_ENTER_FORGOT_PW),
 	})
 	if err != nil {
 		return err
@@ -293,10 +324,7 @@ func (e *PassphraseRecover) promptPassphrase(mctx libkb.MetaContext) (string, er
 	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
 
-	ppres, err := libkb.GetNewKeybasePassphrase(
-		mctx, mctx.UIs().SecretUI, arg,
-		"Please reenter your new passphrase for confirmation",
-	)
+	ppres, err := libkb.GetKeybasePassphrase(mctx, mctx.UIs().SecretUI, arg)
 	if err != nil {
 		return "", err
 	}

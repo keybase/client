@@ -95,11 +95,6 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return libkb.NewBadUsernameErrorWithFullMessage("Logging in with e-mail address is not supported")
 	}
 
-	var currentUsername libkb.NormalizedUsername
-	if dev := m.ActiveDevice(); dev != nil {
-		currentUsername = m.ActiveDevice().Username(m)
-	}
-
 	// check to see if already logged in
 	var loggedInOK bool
 	loggedInOK, err = e.checkLoggedInAndNotRevoked(m)
@@ -111,10 +106,6 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 		return nil
 	}
 	m.Debug("Login: not currently logged in")
-
-	if e.doUserSwitch && !currentUsername.IsNil() {
-		defer e.restoreSession(m, currentUsername, func() error { return err })
-	}
 
 	// First see if this device is already provisioned and it is possible to log in.
 	loggedInOK, err = e.loginProvisionedDevice(m, e.username)
@@ -329,7 +320,7 @@ func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bo
 
 func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
 	enterReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
-		Kind: keybase1.ResetPromptType_ENTER_FORGOT_PW,
+		Prompt: keybase1.NewResetPromptDefault(keybase1.ResetPromptType_ENTER_FORGOT_PW),
 	})
 	if err != nil {
 		return err

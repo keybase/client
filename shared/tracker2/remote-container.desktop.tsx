@@ -41,6 +41,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   assertionKeys: stateProps.assertions ? stateProps.assertions.keySeq().toArray() : null,
   bio: stateProps.bio,
+  darkMode: stateProps.darkMode,
   followThem: stateProps.followThem,
   followersCount: stateProps.followersCount,
   followingCount: stateProps.followingCount,

@@ -1,6 +1,8 @@
 import React from 'react'
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Sb from '../../stories/storybook'
 import {NormalPreview} from '.'
 import * as Kb from '../../common-adapters'
@@ -34,54 +36,7 @@ export const filepreviewProvider = {
       size: 10240,
     }),
   }),
-  ViewContainer: ({path}: {path: Types.Path}) => {
-    const common = {
-      lastModifiedTimestamp: 0,
-      onLoadingStateChange: Sb.action('onLoadingStateChange'),
-      path,
-      type: Types.PathType.File,
-      url: '',
-    }
-    if (Types.pathToString(path).endsWith('/loading')) {
-      return common // no mimetype
-    }
-    if (Types.pathToString(path).endsWith('.txt')) {
-      return {
-        ...common,
-        mime: Constants.makeMime({displayPreview: true, mimeType: 'text/plain'}),
-        url: 'http://localhost:6006/sb_dll/storybook_ui_dll.js',
-      }
-    }
-    if (Types.pathToString(path).endsWith('.jpg')) {
-      return {
-        ...common,
-        mime: Constants.makeMime({displayPreview: true, mimeType: 'image/jpeg'}),
-        url: Types.pathToString(path).endsWith('small.jpg')
-          ? 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png'
-          : 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
-      }
-    }
-    if (Types.pathToString(path).endsWith('.mp4')) {
-      return {
-        ...common,
-        mimeType: Constants.makeMime({displayPreview: true, mimeType: 'video/mp4'}),
-        url:
-          'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
-      }
-    }
-    return {
-      ...common,
-      mimeType: Constants.makeMime({mimeType: 'application/pdf'}),
-    }
-  },
 }
-
-const provider = Sb.createPropProviderWithCommon({
-  ...commonProvider,
-  ...footerProvider,
-  ...bannerProvider,
-  ...filepreviewProvider,
-})
 
 const filenames = [
   'loading',
@@ -92,6 +47,82 @@ const filenames = [
   'default.default',
   'default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
 ]
+
+const fileCommon = {lastWriter: 'foo', writable: true}
+
+const storeCommon = Sb.createStoreWithCommon()
+const store = {
+  ...storeCommon,
+  fs: {
+    ...storeCommon.fs,
+    fileContext: I.Map([
+      [
+        '/keybase/private/foo/small.jpg',
+        Constants.makeFileContext({
+          contentType: 'image/jpeg',
+          url: 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png',
+          viewType: RPCTypes.GUIViewType.image,
+        }),
+      ],
+      [
+        '/keybase/private/foo/large.jpg',
+        Constants.makeFileContext({
+          contentType: 'image/jpeg',
+          url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+          viewType: RPCTypes.GUIViewType.image,
+        }),
+      ],
+      [
+        '/keybase/private/foo/text.txt',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+          viewType: RPCTypes.GUIViewType.image,
+        }),
+      ],
+      [
+        '/keybase/private/foo/video.mp4',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          url:
+            'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
+          viewType: RPCTypes.GUIViewType.video,
+        }),
+      ],
+      [
+        '/keybase/private/foo/default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          viewType: RPCTypes.GUIViewType.default,
+        }),
+      ],
+      [
+        '/keybase/private/foo/default.default',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          viewType: RPCTypes.GUIViewType.default,
+        }),
+      ],
+    ]),
+    pathItems:
+      // @ts-ignore
+      I.Map([
+        ['/keybase/private/foo/loading', Constants.makeFile()],
+        ...filenames
+          .filter(n => n !== 'loading')
+          .map(name => [`/keybase/private/foo/${name}`, Constants.makeFile({...fileCommon, name})]),
+      ]),
+  },
+}
+
+// @ts-ignore
+const provider = Sb.createPropProviderWithCommon({
+  ...commonProvider,
+  ...footerProvider,
+  ...bannerProvider,
+  ...filepreviewProvider,
+  ...store,
+})
 
 export default () => {
   const s = Sb.storiesOf('Files/Previews', module).addDecorator(provider)

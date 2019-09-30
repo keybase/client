@@ -10,7 +10,6 @@ import * as SettingsConstants from './settings'
 import {TypedState} from '../util/container'
 import {isLinux, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
-import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {TypedActions} from '../actions/typed-actions-gen'
 import flags from '../util/feature-flags'
@@ -69,14 +68,8 @@ export const makeFolder = I.Record<Types._FolderPathItem>({
   type: Types.PathType.Folder,
 })
 
-export const makeMime = I.Record<Types._Mime>({
-  displayPreview: false,
-  mimeType: '',
-})
-
 export const makeFile = I.Record<Types._FilePathItem>({
   ...pathItemMetadataDefault,
-  mimeType: null,
   type: Types.PathType.File,
 })
 
@@ -93,47 +86,59 @@ export const makeUnknownPathItem = I.Record<Types._UnknownPathItem>({
 
 export const unknownPathItem = makeUnknownPathItem()
 
-const makeTlfSyncEnabled = I.Record<Types._TlfSyncEnabled>({
+export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
-})
-export const tlfSyncEnabled: Types.TlfSyncEnabled = makeTlfSyncEnabled()
+}
 
-const makeTlfSyncDisabled = I.Record<Types._TlfSyncDisabled>({
+export const tlfSyncDisabled: Types.TlfSyncDisabled = {
   mode: Types.TlfSyncMode.Disabled,
-})
-export const tlfSyncDisabled: Types.TlfSyncDisabled = makeTlfSyncDisabled()
+}
 
-export const makeTlfSyncPartial = I.Record<Types._TlfSyncPartial>({
-  enabledPaths: I.List(),
+export const makeTlfSyncPartial = ({enabledPaths}: Partial<Types.TlfSyncPartial>): Types.TlfSyncPartial => ({
+  enabledPaths: [...(enabledPaths || [])],
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeConflictStateNormalView = I.Record<Types._ConflictStateNormalView>({
-  localViewTlfPaths: I.List(),
-  resolvingConflict: false,
-  stuckInConflict: false,
+export const makeConflictStateNormalView = ({
+  localViewTlfPaths,
+  resolvingConflict,
+  stuckInConflict,
+}: Partial<Types.ConflictStateNormalView>): Types.ConflictStateNormalView => ({
+  localViewTlfPaths: [...(localViewTlfPaths || [])],
+  resolvingConflict: resolvingConflict || false,
+  stuckInConflict: stuckInConflict || false,
   type: Types.ConflictStateType.NormalView,
 })
 
-export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
+export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
-export const makeConflictStateManualResolvingLocalView = I.Record<
-  Types._ConflictStateManualResolvingLocalView
->({
-  normalViewTlfPath: defaultPath,
+export const makeConflictStateManualResolvingLocalView = ({
+  normalViewTlfPath,
+}: Partial<Types.ConflictStateManualResolvingLocalView>): Types.ConflictStateManualResolvingLocalView => ({
+  normalViewTlfPath: normalViewTlfPath || defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
 
-export const makeTlf = I.Record<Types._Tlf>({
-  conflictState: tlfNormalViewWithNoConflict,
-  isFavorite: false,
-  isIgnored: false,
-  isNew: false,
-  name: '',
-  resetParticipants: I.List(),
-  syncConfig: tlfSyncDisabled,
-  teamId: '',
-  tlfMtime: 0,
+export const makeTlf = ({
+  conflictState,
+  isFavorite,
+  isIgnored,
+  isNew,
+  name,
+  resetParticipants,
+  syncConfig,
+  teamId,
+  tlfMtime,
+}: Partial<Types.Tlf>): Types.Tlf => ({
+  conflictState: conflictState || tlfNormalViewWithNoConflict,
+  isFavorite: isFavorite || false,
+  isIgnored: isIgnored || false,
+  isNew: isNew || false,
+  name: name || '',
+  resetParticipants: [...(resetParticipants || [])],
+  syncConfig: syncConfig || tlfSyncDisabled,
+  teamId: teamId || '',
+  tlfMtime: tlfMtime || 0,
   /* See comment in constants/types/fs.js
   needsRekey: false,
   waitingForParticipantUnlock: I.List(),
@@ -192,11 +197,6 @@ export const makeDownloads = I.Record<Types._Downloads>({
   state: I.Map(),
 })
 
-export const makeLocalHTTPServer = I.Record<Types._LocalHTTPServer>({
-  address: '',
-  token: '',
-})
-
 export const makeUploads = I.Record<Types._Uploads>({
   endEstimate: undefined,
   errors: I.Map(),
@@ -204,13 +204,6 @@ export const makeUploads = I.Record<Types._Uploads>({
   syncingPaths: I.Set(),
   totalSyncingBytes: 0,
   writingToJournal: I.Set(),
-})
-
-export const makeTlfs = I.Record<Types._Tlfs>({
-  loaded: false,
-  private: I.Map(),
-  public: I.Map(),
-  team: I.Map(),
 })
 
 const placeholderAction = FsGen.createPlaceholderAction()
@@ -323,28 +316,12 @@ export const makePathInfo = I.Record<Types._PathInfo>({
 
 export const emptyPathInfo = makePathInfo()
 
-export const makeState = I.Record<Types._State>({
-  destinationPicker: makeDestinationPicker(),
-  downloads: makeDownloads(),
-  edits: I.Map(),
-  errors: I.Map(),
-  folderViewFilter: '',
-  kbfsDaemonStatus: makeKbfsDaemonStatus(),
-  lastPublicBannerClosedTlf: '',
-  localHTTPServerInfo: makeLocalHTTPServer(),
-  overallSyncStatus: makeOverallSyncStatus(),
-  pathInfos: I.Map(),
-  pathItemActionMenu: makePathItemActionMenu(),
-  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map(),
-  sendAttachmentToChat: makeSendAttachmentToChat(),
-  settings: makeSettings(),
-  sfmi: makeSystemFileManagerIntegration(),
-  softErrors: makeSoftErrors(),
-  tlfUpdates: I.List(),
-  tlfs: makeTlfs(),
-  uploads: makeUploads(),
+export const makeFileContext = I.Record<Types._FileContext>({
+  contentType: '',
+  url: '',
+  viewType: RPCTypes.GUIViewType.default,
 })
+export const emptyFileContext = makeFileContext()
 
 // RPC expects a string that's interpreted as [16]byte on Go side.
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
@@ -406,11 +383,6 @@ export const getDownloadIntentFromAction = (
     ? Types.DownloadIntent.Share
     : Types.DownloadIntent.CameraRoll
 
-export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
-  downloadFilePath(Types.getPathName(p))
-export const downloadFilePathFromPathNoSearch = (p: Types.Path): string =>
-  downloadFilePathNoSearch(Types.getPathName(p))
-
 export const makeTlfUpdate = I.Record<Types._TlfUpdate>({
   history: I.List(),
   path: Types.stringToPath(''),
@@ -471,70 +443,14 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
-const supportedImgMimeTypes = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp'])
-export const viewTypeFromMimeType = (mime: Types.Mime | null): Types.FileViewType => {
-  if (mime && mime.displayPreview) {
-    const mimeType = mime.mimeType
-    if (mimeType === 'text/plain') {
-      return Types.FileViewType.Text
-    }
-    if (supportedImgMimeTypes.has(mimeType)) {
-      return Types.FileViewType.Image
-    }
-    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-      return Types.FileViewType.Av
-    }
-    if (mimeType === 'application/pdf') {
-      return Types.FileViewType.Pdf
-    }
-  }
-  return Types.FileViewType.Default
-}
-
-export const canSaveMedia = (pathItem: Types.PathItem): boolean => {
-  if (pathItem.type !== Types.PathType.File || !pathItem.mimeType) {
+export const canSaveMedia = (pathItem: Types.PathItem, fileContext: Types.FileContext): boolean => {
+  if (pathItem.type !== Types.PathType.File || fileContext === emptyFileContext) {
     return false
   }
-  const mime = pathItem.mimeType
   return (
-    viewTypeFromMimeType(mime) === Types.FileViewType.Image ||
-    // Can't rely on viewType === av here because audios can't be saved to
-    // the camera roll.
-    mime.mimeType.startsWith('video/')
+    fileContext.viewType === RPCTypes.GUIViewType.image || fileContext.viewType === RPCTypes.GUIViewType.video
   )
 }
-
-const encodePathForURL = (path: Types.Path) =>
-  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))
-    .replace(
-      // We need to do this because otherwise encodeURIComponent would encode
-      // "/"s.  If we get a relative redirect (e.g. when requested resource is
-      // index.html, we get redirected to "./"), we'd end up redirect to a wrong
-      // resource.
-      /%2F/g,
-      '/'
-    )
-    // Additional characters that encodeURIComponent doesn't escape
-    .replace(
-      /[-_.!~*'()]/g,
-      old =>
-        `%${old
-          .charCodeAt(0)
-          .toString(16)
-          .toUpperCase()}`
-    )
-
-const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: Types.LocalHTTPServer): string => {
-  const {address, token} = localHTTPServerInfo
-  if (!address || !token) {
-    return 'about:blank'
-  }
-  const encoded = encodePathForURL(path)
-  return `http://${address}/files/${encoded}?token=${token}`
-}
-
-export const invalidTokenTitle = 'KBFS HTTP Token Invalid'
 
 export const folderRPCFromPath = (path: Types.Path): RPCTypes.FolderHandle | null => {
   const pathElems = Types.getPathElements(path)
@@ -585,12 +501,12 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Ty
       return tlfs.team
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
-      return I.Map()
+      return new Map()
   }
 }
 
 export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
-  tlfList.reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
+  [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
 export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
   [Types.TlfType.Private, Types.TlfType.Public, Types.TlfType.Team]
@@ -613,31 +529,31 @@ export const getTlfListAndTypeFromPath = (
       return {tlfList: getTlfListFromType(tlfs, tlfType), tlfType}
     }
     default:
-      return {tlfList: I.Map(), tlfType: Types.TlfType.Private}
+      return {tlfList: new Map(), tlfType: Types.TlfType.Private}
   }
 }
 
-export const unknownTlf = makeTlf()
+export const unknownTlf = makeTlf({})
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
   if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
-  return tlfList.get(elems[2], unknownTlf)
+  return tlfList.get(elems[2]) || unknownTlf
 }
 
 export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
   switch (tlfType) {
     case Types.TlfType.Private:
-      return tlfs.private.get(name, makeTlf())
+      return tlfs.private.get(name) || unknownTlf
     case Types.TlfType.Public:
-      return tlfs.public.get(name, makeTlf())
+      return tlfs.public.get(name) || unknownTlf
     case Types.TlfType.Team:
-      return tlfs.team.get(name, makeTlf())
+      return tlfs.team.get(name) || unknownTlf
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
-      return makeTlf()
+      return unknownTlf
   }
 }
 
@@ -646,13 +562,13 @@ export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Type
 
 export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
   const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
-  if (resetParticipants.size === 0) {
+  if (resetParticipants.length === 0) {
     return Types.ResetBannerNoOthersType.None
   }
   if (resetParticipants.findIndex(username => username === state.config.username) >= 0) {
     return Types.ResetBannerNoOthersType.Self
   }
-  return resetParticipants.size
+  return resetParticipants.length
 }
 
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
@@ -694,6 +610,7 @@ export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
   return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
 }
 
+const slashKeybaseSlashLength = '/keybase/'.length
 // TODO: move this to Go
 export const escapePath = (path: Types.Path): string =>
   'keybase://' +
@@ -1092,8 +1009,6 @@ export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions
       return 'Failed to copy file(s).' + suffix
     case FsGen.favoritesLoad:
       return 'Failed to load TLF lists.' + suffix
-    case FsGen.refreshLocalHTTPServerInfo:
-      return 'Failed to get information about internal HTTP server.' + suffix
     case FsGen.loadPathMetadata:
       return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.` + suffix
     case FsGen.folderListLoad:

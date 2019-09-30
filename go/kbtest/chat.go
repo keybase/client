@@ -65,6 +65,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.BotCommandManager != nil {
 		<-c.ChatG.BotCommandManager.Stop(context.TODO())
 	}
+	if c.ChatG.UIInboxLoader != nil {
+		<-c.ChatG.UIInboxLoader.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 
@@ -1051,13 +1054,15 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
 }
 
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
-	var inboxItem chat1.InboxUIItem
-	if err := json.Unmarshal([]byte(arg.Conv), &inboxItem); err != nil {
+	var inboxItems []chat1.InboxUIItem
+	if err := json.Unmarshal([]byte(arg.Convs), &inboxItems); err != nil {
 		return err
 	}
-	c.InboxCb <- NonblockInboxResult{
-		ConvRes: &inboxItem,
-		ConvID:  inboxItem.GetConvID(),
+	for _, inboxItem := range inboxItems {
+		c.InboxCb <- NonblockInboxResult{
+			ConvRes: &inboxItem,
+			ConvID:  inboxItem.GetConvID(),
+		}
 	}
 	return nil
 }

@@ -13,6 +13,7 @@ export const isIPhoneX: boolean
 export const isMac: boolean
 export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
+export const isTestDevice: boolean
 
 export declare const fileUIName: string
 export declare const version: string

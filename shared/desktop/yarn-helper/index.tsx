@@ -84,9 +84,11 @@ const fixUnimodules = () => {
 }
 
 function fixModules() {
-  fixUnimodules()
-  // run jetify to fix android deps
-  exec('yarn jetify', null, null)
+  if (process.platform !== 'win32') {
+    fixUnimodules()
+    // run jetify to fix android deps
+    exec('yarn jetify', null, null)
+  }
 
   // storybook uses react-docgen which really cr*ps itself with flow
   // I couldn't find a good way to override this effectively (yarn resolutions didn't work) so we're just killing it with fire

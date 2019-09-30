@@ -317,7 +317,7 @@ protocol chatUi {
   void chatAttachmentDownloadDone(int sessionID);
 
   void chatInboxUnverified(int sessionID, string inbox);
-  void chatInboxConversation(int sessionID, string conv);
+  void chatInboxConversation(int sessionID, string convs);
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
   enum UIChatThreadStatusTyp {

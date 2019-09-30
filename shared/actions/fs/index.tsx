@@ -12,7 +12,6 @@ import * as Types from '../../constants/types/fs'
 import {TypedState} from '../../util/container'
 import logger from '../../logger'
 import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
-import {getContentTypeFromURL} from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
@@ -39,13 +38,11 @@ const rpcConflictStateToConflictState = (
     if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
       const nv = rpcConflictState.normalview
       return Constants.makeConflictStateNormalView({
-        localViewTlfPaths: I.List(
-          ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
-            // @ts-ignore TODO fix p.kbfs.path is a path already
-            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
-            return arr
-          }, [])
-        ),
+        localViewTlfPaths: ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
+          // @ts-ignore TODO fix p.kbfs.path is a path already
+          p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
+          return arr
+        }, []),
         resolvingConflict: !!nv && nv.resolvingConflict,
         stuckInConflict: !!nv && nv.stuckInConflict,
       })
@@ -76,7 +73,12 @@ const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPaylo
       return false
     }
     const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
-    const mutablePayload = [
+    const payload = {
+      private: new Map(),
+      public: new Map(),
+      team: new Map(),
+    }
+    ;[
       ...(results.favoriteFolders
         ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
         : []),
@@ -86,51 +88,31 @@ const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPaylo
       ...(results.newFolders
         ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
         : []),
-    ].reduce(
-      (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
-        folders.reduce((mutablePayload, folder) => {
-          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-          const tlfName =
-            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, state.config.username)
-              : folder.name
-          return !tlfType
-            ? mutablePayload
-            : {
-                ...mutablePayload,
-                [tlfType]: mutablePayload[tlfType].set(
-                  tlfName,
-                  Constants.makeTlf({
-                    conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
-                    isFavorite,
-                    isIgnored,
-                    isNew,
-                    name: tlfName,
-                    resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
-                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
-                    teamId: folder.team_id || '',
-                    tlfMtime: folder.mtime || 0,
-                  })
-                ),
-              }
-        }, mutablePayload),
-      {
-        private: I.Map().asMutable(),
-        public: I.Map().asMutable(),
-        team: I.Map().asMutable(),
-      }
-    )
-    return (
-      mutablePayload.private.size &&
-      FsGen.createFavoritesLoaded({
-        // @ts-ignore asImmutable returns a weak type
-        private: mutablePayload.private.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        public: mutablePayload.public.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        team: mutablePayload.team.asImmutable(),
+    ].forEach(({folders, isFavorite, isIgnored, isNew}) =>
+      folders.forEach(folder => {
+        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+        const tlfName =
+          tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+            ? tlfToPreferredOrder(folder.name, state.config.username)
+            : folder.name
+        tlfType &&
+          payload[tlfType].set(
+            tlfName,
+            Constants.makeTlf({
+              conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+              isFavorite,
+              isIgnored,
+              isNew,
+              name: tlfName,
+              resetParticipants: (folder.reset_members || []).map(({username}) => username),
+              syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+              teamId: folder.team_id || '',
+              tlfMtime: folder.mtime || 0,
+            })
+          )
       })
     )
+    return payload.private.size ? FsGen.createFavoritesLoaded(payload) : undefined
   } catch (e) {
     return makeRetriableErrorHandler(action)(e)
   }
@@ -152,8 +134,8 @@ const getSyncConfigFromRPC = (
     case RPCTypes.FolderSyncMode.partial:
       return Constants.makeTlfSyncPartial({
         enabledPaths: config.paths
-          ? I.List(config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str)))
-          : I.List(),
+          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
+          : [],
       })
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)
@@ -489,100 +471,6 @@ function* ignoreFavoriteSaga(_: TypedState, action: FsGen.FavoriteIgnorePayload)
   }
 }
 
-// Return a header till first semicolon in lower case.
-const headerTillSemiLower = (header: string): string => {
-  const idx = header.indexOf(';')
-  return (idx > -1 ? header.slice(0, idx) : header).toLowerCase()
-}
-
-// Following RFC https://tools.ietf.org/html/rfc7231#section-3.1.1.1 Examples:
-//   text/html;charset=utf-8
-//   text/html;charset=UTF-8
-//   Text/HTML;Charset="utf-8"
-//   text/html; charset="utf-8"
-// The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeFromContentType = (contentType, disposition: string): Types.Mime => {
-  const mimeType = headerTillSemiLower(contentType)
-  const displayPreview = headerTillSemiLower(disposition) !== 'attachment'
-  return Constants.makeMime({displayPreview, mimeType})
-}
-
-const getMimeTypePromise = (localHTTPServerInfo: Types.LocalHTTPServer, path: Types.Path) =>
-  new Promise((resolve, reject) =>
-    getContentTypeFromURL(
-      Constants.generateFileURL(path, localHTTPServerInfo),
-      ({error, statusCode, contentType, disposition}) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        switch (statusCode) {
-          case 200:
-            resolve(extractMimeFromContentType(contentType || '', disposition || ''))
-            return
-          case 403:
-            reject(Constants.invalidTokenError)
-            return
-          case 404:
-            reject(Constants.notFoundError)
-            return
-          default:
-            reject(new Error(`unexpected HTTP status code: ${statusCode || ''}`))
-        }
-      }
-    )
-  )
-
-const refreshLocalHTTPServerInfo = async (_: TypedState, action: FsGen.RefreshLocalHTTPServerInfoPayload) => {
-  try {
-    const {address, token} = await RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
-    return FsGen.createLocalHTTPServerInfo({address, token})
-  } catch (e) {
-    return makeUnretriableErrorHandler(action, null)(e)
-  }
-}
-// loadMimeType uses HEAD request to load mime type from the KBFS HTTP server.
-// If the server address/token are not populated yet, or if the token turns out
-// to be invalid, it automatically uses
-// SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise to refresh that. The
-// generator function returns the loaded mime type for the given path.
-function* _loadMimeType(path: Types.Path) {
-  const state = yield* Saga.selectState()
-  let localHTTPServerInfo = state.fs.localHTTPServerInfo
-  // This should finish within 2 iterations at most. But just in case we bound
-  // it at 3.
-  for (let i = 0; i < 3; ++i) {
-    if (!localHTTPServerInfo.address || !localHTTPServerInfo.token) {
-      const r: Saga.RPCPromiseType<
-        typeof RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise
-      > = yield RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise()
-      const {address, token} = r
-      yield Saga.put(
-        FsGen.createLocalHTTPServerInfo({
-          address,
-          token,
-        })
-      )
-      localHTTPServerInfo = Constants.makeLocalHTTPServer({address, token})
-    }
-    try {
-      const mimeType: Types.Mime = yield Saga.callUntyped(getMimeTypePromise, localHTTPServerInfo, path)
-      return mimeType
-    } catch (err) {
-      if (err === Constants.notFoundError) {
-        // This file or its parent folder has been removed. So just stop here.
-        // This could happen when there are KBFS updates if user has previously
-        // inspected mime type, and we tracked the path through a refresh tag,
-        // but the path has been removed since then.
-        return
-      }
-      err !== Constants.invalidTokenError && logger.info(`_loadMimeType i=${i} error:`, err)
-      localHTTPServerInfo = Constants.makeLocalHTTPServer()
-    }
-  }
-  throw new Error('exceeded max retries')
-}
-
 const commitEdit = async (state: TypedState, action: FsGen.CommitEditPayload) => {
   const {editID} = action.payload
   const edit = state.fs.edits.get(editID)
@@ -617,10 +505,6 @@ function* loadPathMetadata(_: TypedState, action: FsGen.LoadPathMetadataPayload)
       refreshSubscription: false,
     })
     let pathItem = makeEntry(dirent)
-    if (pathItem.type === Types.PathType.File) {
-      const mimeType = yield* _loadMimeType(path)
-      pathItem = pathItem.set('mimeType', mimeType || null)
-    }
     yield Saga.put(
       FsGen.createPathItemLoaded({
         path,
@@ -973,9 +857,21 @@ const loadDownloadStatus = async () => {
   })
 }
 
-function* fsSaga() {
-  yield* Saga.chainAction2(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
+const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPayload) => {
+  const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+    path: Constants.pathToRPCPath(action.payload.path).kbfs,
+  })
+  return FsGen.createLoadedFileContext({
+    fileContext: Constants.makeFileContext({
+      contentType: res.contentType,
+      url: res.url,
+      viewType: res.viewType,
+    }),
+    path: action.payload.path,
+  })
+}
 
+function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload>(
     [FsGen.folderListLoad, FsGen.editSuccess],
@@ -1017,6 +913,7 @@ function* fsSaga() {
     yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
   }
   yield* Saga.chainAction2(FsGen.loadPathInfo, loadPathInfo)
+  yield* Saga.chainAction2(FsGen.loadFileContext, loadFileContext)
 
   yield* Saga.chainAction2([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
   yield* Saga.chainAction2(FsGen.cancelDownload, cancelDownload)

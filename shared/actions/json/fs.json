@@ -27,9 +27,9 @@
     },
     "favoritesLoad": {},
     "favoritesLoaded": {
-      "private": "I.Map<string, Types.Tlf>",
-      "public": "I.Map<string, Types.Tlf>",
-      "team": "I.Map<string, Types.Tlf>"
+      "private": "Types.TlfList",
+      "public": "Types.TlfList",
+      "team": "Types.TlfList"
     },
     "setFolderViewFilter": {
       "filter": "string"
@@ -107,11 +107,6 @@
     },
 
     "openSecurityPreferences": {},
-    "refreshLocalHTTPServerInfo": {},
-    "localHTTPServerInfo": {
-      "address": "string",
-      "token": "string"
-    },
     "favoriteIgnore": {
       "path": "Types.Path"
     },
@@ -261,6 +256,13 @@
     "finishedRegularDownload": {
       "downloadID": "string",
       "mimeType": "string"
+    },
+    "loadFileContext": {
+      "path": "Types.Path"
+    },
+    "loadedFileContext": {
+      "path": "Types.Path",
+      "fileContext": "Types.FileContext"
     },
 
     "setDebugLevel": {

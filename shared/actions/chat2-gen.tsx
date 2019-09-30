@@ -29,6 +29,8 @@ export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
+export const clearMessages = 'chat2:clearMessages'
+export const clearMetas = 'chat2:clearMetas'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const conversationErrored = 'chat2:conversationErrored'
@@ -103,6 +105,7 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
+export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -124,6 +127,7 @@ export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
+export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleInboxSearch = 'chat2:toggleInboxSearch'
 export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
@@ -207,6 +211,8 @@ type _BlockConversationPayload = {
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _ClearMessagesPayload = void
+type _ClearMetasPayload = void
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
 type _ConversationErroredPayload = {readonly message: string}
@@ -377,15 +383,22 @@ type _MetaReceivedErrorPayload = {
 type _MetaRequestTrustedPayload = {
   readonly force?: boolean
   readonly noWaiting?: boolean
+  readonly reason:
+    | 'refreshPreviousSelected'
+    | 'requestTeamsUnboxing'
+    | 'inboxSynced'
+    | 'setConvRetention'
+    | 'subTeamRename'
+    | 'tlfFinalize'
+    | 'threadStale'
+    | 'membersUpdate'
+    | 'scroll'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
 type _MetaRequestingTrustedPayload = {readonly conversationIDKeys: Array<Types.ConversationIDKey>}
 type _MetasReceivedPayload = {
   readonly metas: Array<Types.ConversationMeta>
   readonly removals?: Array<Types.ConversationIDKey>
-  readonly neverCreate?: boolean
-  readonly clearExistingMetas?: boolean
-  readonly clearExistingMessages?: boolean
   readonly fromInboxRefresh?: boolean
   readonly initialTrustedLoad?: boolean
 }
@@ -498,6 +511,7 @@ type _SetAttachmentViewStatusPayload = {
   readonly status: Types.AttachmentViewStatus
   readonly last?: boolean
 }
+type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
@@ -566,6 +580,7 @@ type _ThreadSearchResultsPayload = {
   readonly messages: Array<Types.Message>
   readonly clear: boolean
 }
+type _ToggleGiphyPrefillPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ToggleInboxSearchPayload = {readonly enabled: boolean}
 type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = {
@@ -872,6 +887,12 @@ export const createSetCommandStatusInfo = (
   payload: _SetCommandStatusInfoPayload
 ): SetCommandStatusInfoPayload => ({payload, type: setCommandStatusInfo})
 /**
+ * Set filter for channel search
+ */
+export const createSetChannelSearchText = (
+  payload: _SetChannelSearchTextPayload
+): SetChannelSearchTextPayload => ({payload, type: setChannelSearchText})
+/**
  * Set index percent complete
  */
 export const createInboxSearchSetIndexPercent = (
@@ -994,6 +1015,13 @@ export const createUpdateReactions = (payload: _UpdateReactionsPayload): UpdateR
 export const createHandleSeeingWallets = (
   payload: _HandleSeeingWalletsPayload
 ): HandleSeeingWalletsPayload => ({payload, type: handleSeeingWallets})
+/**
+ * Toggle /giphy text to trigger preview window
+ */
+export const createToggleGiphyPrefill = (payload: _ToggleGiphyPrefillPayload): ToggleGiphyPrefillPayload => ({
+  payload,
+  type: toggleGiphyPrefill,
+})
 /**
  * Toggle Giphy search preview window
  */
@@ -1156,6 +1184,14 @@ export const createBadgesUpdated = (payload: _BadgesUpdatedPayload): BadgesUpdat
 export const createBlockConversation = (payload: _BlockConversationPayload): BlockConversationPayload => ({
   payload,
   type: blockConversation,
+})
+export const createClearMessages = (payload: _ClearMessagesPayload): ClearMessagesPayload => ({
+  payload,
+  type: clearMessages,
+})
+export const createClearMetas = (payload: _ClearMetasPayload): ClearMetasPayload => ({
+  payload,
+  type: clearMetas,
 })
 export const createConversationErrored = (
   payload: _ConversationErroredPayload
@@ -1426,6 +1462,11 @@ export type ClearCommandStatusInfoPayload = {
   readonly payload: _ClearCommandStatusInfoPayload
   readonly type: typeof clearCommandStatusInfo
 }
+export type ClearMessagesPayload = {
+  readonly payload: _ClearMessagesPayload
+  readonly type: typeof clearMessages
+}
+export type ClearMetasPayload = {readonly payload: _ClearMetasPayload; readonly type: typeof clearMetas}
 export type ClearPaymentConfirmInfoPayload = {
   readonly payload: _ClearPaymentConfirmInfoPayload
   readonly type: typeof clearPaymentConfirmInfo
@@ -1683,6 +1724,10 @@ export type SetAttachmentViewStatusPayload = {
   readonly payload: _SetAttachmentViewStatusPayload
   readonly type: typeof setAttachmentViewStatus
 }
+export type SetChannelSearchTextPayload = {
+  readonly payload: _SetChannelSearchTextPayload
+  readonly type: typeof setChannelSearchText
+}
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
@@ -1765,6 +1810,10 @@ export type ThreadSearchPayload = {readonly payload: _ThreadSearchPayload; reado
 export type ThreadSearchResultsPayload = {
   readonly payload: _ThreadSearchResultsPayload
   readonly type: typeof threadSearchResults
+}
+export type ToggleGiphyPrefillPayload = {
+  readonly payload: _ToggleGiphyPrefillPayload
+  readonly type: typeof toggleGiphyPrefill
 }
 export type ToggleInboxSearchPayload = {
   readonly payload: _ToggleInboxSearchPayload
@@ -1884,6 +1933,8 @@ export type Actions =
   | ChangeFocusPayload
   | ClearAttachmentViewPayload
   | ClearCommandStatusInfoPayload
+  | ClearMessagesPayload
+  | ClearMetasPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | ConversationErroredPayload
@@ -1958,6 +2009,7 @@ export type Actions =
   | SelectConversationPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
+  | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
@@ -1980,6 +2032,7 @@ export type Actions =
   | TabSelectedPayload
   | ThreadSearchPayload
   | ThreadSearchResultsPayload
+  | ToggleGiphyPrefillPayload
   | ToggleInboxSearchPayload
   | ToggleInfoPanelPayload
   | ToggleLocalReactionPayload

@@ -17,7 +17,7 @@ export default Container.namedConnect(
   () => ({}),
   (stateProps, _, ownProps: OwnProps) => {
     const resetParticipants =
-      stateProps._tlf === Constants.unknownTlf ? undefined : stateProps._tlf.resetParticipants.toArray()
+      stateProps._tlf === Constants.unknownTlf ? undefined : stateProps._tlf.resetParticipants
     return {
       mixedMode: ownProps.mixedMode,
       mode: ownProps.mode,

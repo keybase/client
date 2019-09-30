@@ -271,6 +271,11 @@ func (l *LiveLocationTracker) tracker(t *locationTrack) error {
 	ctx := context.Background()
 	// check to see if we are being asked to start a tracker that is already expired
 	if t.endTime.Before(l.clock.Now()) {
+		l.Lock()
+		defer l.Unlock()
+		delete(l.trackers, t.Key())
+		l.saveLocked(ctx)
+		l.Debug(ctx, "tracker: old tracker, not running and clearing")
 		return errors.New("tracker from the past")
 	}
 

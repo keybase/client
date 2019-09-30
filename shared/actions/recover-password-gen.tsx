@@ -2,6 +2,7 @@
 
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/provision'
+import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of recover-password but is handled by every reducer. NEVER dispatch this
@@ -12,22 +13,28 @@ export const displayDeviceSelect = 'recover-password:displayDeviceSelect'
 export const displayError = 'recover-password:displayError'
 export const restartRecovery = 'recover-password:restartRecovery'
 export const setPaperKeyError = 'recover-password:setPaperKeyError'
+export const setPasswordError = 'recover-password:setPasswordError'
 export const showExplainDevice = 'recover-password:showExplainDevice'
 export const startRecoverPassword = 'recover-password:startRecoverPassword'
 export const submitDeviceSelect = 'recover-password:submitDeviceSelect'
 export const submitPaperKey = 'recover-password:submitPaperKey'
+export const submitPassword = 'recover-password:submitPassword'
+export const submitResetPrompt = 'recover-password:submitResetPrompt'
 
 // Payload Types
 type _AbortDeviceSelectPayload = void
 type _AbortPaperKeyPayload = void
 type _DisplayDeviceSelectPayload = {readonly devices: Array<Types.Device>}
-type _DisplayErrorPayload = {readonly error: string}
+type _DisplayErrorPayload = {readonly error: HiddenString}
 type _RestartRecoveryPayload = void
-type _SetPaperKeyErrorPayload = {readonly error: string}
+type _SetPaperKeyErrorPayload = {readonly error: HiddenString}
+type _SetPasswordErrorPayload = {readonly error: HiddenString}
 type _ShowExplainDevicePayload = {readonly type: RPCTypes.DeviceType; readonly name: string}
-type _StartRecoverPasswordPayload = {readonly username: string}
+type _StartRecoverPasswordPayload = {readonly username: string; readonly abortProvisioning?: boolean}
 type _SubmitDeviceSelectPayload = {readonly id: string}
-type _SubmitPaperKeyPayload = {readonly paperKey: string}
+type _SubmitPaperKeyPayload = {readonly paperKey: HiddenString}
+type _SubmitPasswordPayload = {readonly password: HiddenString}
+type _SubmitResetPromptPayload = {readonly action: boolean}
 
 // Action Creators
 export const createAbortDeviceSelect = (payload: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
@@ -53,6 +60,10 @@ export const createSetPaperKeyError = (payload: _SetPaperKeyErrorPayload): SetPa
   payload,
   type: setPaperKeyError,
 })
+export const createSetPasswordError = (payload: _SetPasswordErrorPayload): SetPasswordErrorPayload => ({
+  payload,
+  type: setPasswordError,
+})
 export const createShowExplainDevice = (payload: _ShowExplainDevicePayload): ShowExplainDevicePayload => ({
   payload,
   type: showExplainDevice,
@@ -67,6 +78,14 @@ export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload): S
 export const createSubmitPaperKey = (payload: _SubmitPaperKeyPayload): SubmitPaperKeyPayload => ({
   payload,
   type: submitPaperKey,
+})
+export const createSubmitPassword = (payload: _SubmitPasswordPayload): SubmitPasswordPayload => ({
+  payload,
+  type: submitPassword,
+})
+export const createSubmitResetPrompt = (payload: _SubmitResetPromptPayload): SubmitResetPromptPayload => ({
+  payload,
+  type: submitResetPrompt,
 })
 
 // Action Payloads
@@ -91,6 +110,10 @@ export type SetPaperKeyErrorPayload = {
   readonly payload: _SetPaperKeyErrorPayload
   readonly type: typeof setPaperKeyError
 }
+export type SetPasswordErrorPayload = {
+  readonly payload: _SetPasswordErrorPayload
+  readonly type: typeof setPasswordError
+}
 export type ShowExplainDevicePayload = {
   readonly payload: _ShowExplainDevicePayload
   readonly type: typeof showExplainDevice
@@ -107,6 +130,14 @@ export type SubmitPaperKeyPayload = {
   readonly payload: _SubmitPaperKeyPayload
   readonly type: typeof submitPaperKey
 }
+export type SubmitPasswordPayload = {
+  readonly payload: _SubmitPasswordPayload
+  readonly type: typeof submitPassword
+}
+export type SubmitResetPromptPayload = {
+  readonly payload: _SubmitResetPromptPayload
+  readonly type: typeof submitResetPrompt
+}
 
 // All Actions
 // prettier-ignore
@@ -117,8 +148,11 @@ export type Actions =
   | DisplayErrorPayload
   | RestartRecoveryPayload
   | SetPaperKeyErrorPayload
+  | SetPasswordErrorPayload
   | ShowExplainDevicePayload
   | StartRecoverPasswordPayload
   | SubmitDeviceSelectPayload
   | SubmitPaperKeyPayload
+  | SubmitPasswordPayload
+  | SubmitResetPromptPayload
   | {type: 'common:resetStore', payload: {}}

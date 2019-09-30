@@ -7,10 +7,10 @@ const textCodeShort = 'scrub disagree sheriff holiday cabin habit mushroom membe
 const textCodeLong = textCodeShort + ' four'
 // Not using the container on purpose since i want every variant
 const derivedProps = (
-  currentDeviceAlreadyProvisioned,
-  currentDeviceType,
-  otherDeviceName,
-  otherDeviceType
+  currentDeviceAlreadyProvisioned: boolean,
+  currentDeviceType: 'desktop' | 'mobile',
+  otherDeviceName: string,
+  otherDeviceType: 'desktop' | 'mobile'
 ) => {
   const currentDeviceName = currentDeviceAlreadyProvisioned
     ? currentDeviceType === 'mobile'
@@ -46,7 +46,11 @@ const load = () => {
   )
 
   // make it easy to see both sides of the provisioning
-  const variants = [
+  const variants: Array<{
+    current: 'desktop' | 'mobile'
+    otherType: 'desktop' | 'mobile'
+    provisioned: boolean
+  }> = [
     {current: 'desktop', otherType: 'desktop', provisioned: true},
     {current: 'desktop', otherType: 'desktop', provisioned: false},
     {current: 'mobile', otherType: 'mobile', provisioned: true},
@@ -86,7 +90,7 @@ const load = () => {
     const n2 = provisioned ? otherType : currentTypeName
     const storyName = `${n1} adding ${n2}`
 
-    const tabs = [null, ...CodePage2._validTabs(current as 'desktop' | 'mobile', otherType)]
+    const tabs = [null, ...CodePage2._validTabs(current, otherType)]
     tabs.forEach(
       tab =>
         (s = s.add(`${storyName} (tab: ${tab || 'defaultTab'})`, () => (

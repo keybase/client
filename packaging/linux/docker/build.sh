@@ -13,6 +13,10 @@ code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
 gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
+# Clear all existing base images
+docker rmi golang:1.12.4-stretch
+docker rmi debian:stretch
+
 # Build all three variants
 docker build \
   --build-arg SOURCE_COMMIT="$source_commit" \

@@ -16,9 +16,9 @@ const provider = Sb.createPropProviderWithCommon(footerProvider)
 const storeCommon = Sb.createStoreWithCommon()
 const store = {
   ...storeCommon,
-  fs: storeCommon.fs.set(
-    'downloads',
-    Constants.makeDownloads({
+  fs: {
+    ...storeCommon.fs,
+    downloads: Constants.makeDownloads({
       info: I.Map([
         [
           'id0',
@@ -84,8 +84,8 @@ const store = {
           }),
         ],
       ]),
-    })
-  ),
+    }),
+  },
 }
 
 const load = () =>

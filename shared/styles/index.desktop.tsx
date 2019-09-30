@@ -112,6 +112,28 @@ export const backgroundURL = (...to: Array<string>) => {
   return ''
 }
 
+const fixScrollbars = () => {
+  // https://www.filamentgroup.com/lab/scrollbars/
+  var parent = document.createElement('div')
+  parent.setAttribute('style', 'width:30px;height:30px;')
+  parent.classList.add('scrollbar-test')
+
+  var child = document.createElement('div')
+  child.setAttribute('style', 'width:100%;height:40px')
+  parent.appendChild(child)
+  document.body.appendChild(parent)
+
+  // Measure the child element, if it is not
+  // 30px wide the scrollbars are obtrusive.
+  // @ts-ignore
+  var scrollbarWidth = 30 - parent.firstChild.clientWidth
+  if (scrollbarWidth) {
+    document.body.classList.add('layout-scrollbar-obtrusive')
+  }
+
+  document.body.removeChild(parent)
+}
+
 export const initDesktopStyles = () => {
   const head = document.head
   if (!head) {
@@ -143,6 +165,7 @@ export const initDesktopStyles = () => {
   }, '')
   style.appendChild(document.createTextNode(css))
   head.appendChild(style)
+  fixScrollbars()
 }
 
 export const hairlineWidth = 1

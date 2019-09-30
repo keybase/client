@@ -49,6 +49,7 @@ type SignupJoinEngineRunArg struct {
 	PDPKA5KID   keybase1.KID
 	SkipMail    bool
 	VerifyEmail bool
+	BotToken    keybase1.BotToken
 }
 
 func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg) (err error) {
@@ -70,6 +71,9 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 		postArgs["email"] = libkb.S{Val: arg.Email}
 	} else {
 		postArgs["no_email"] = libkb.B{Val: true}
+	}
+	if arg.BotToken.Exists() {
+		postArgs["bot_token"] = libkb.S{Val: arg.BotToken.String()}
 	}
 	res, err = m.G().API.Post(m, libkb.APIArg{
 		Endpoint: "signup",
@@ -110,7 +114,7 @@ func (s *SignupJoinEngine) Run(m libkb.MetaContext, arg SignupJoinEngineRunArg) 
 		return
 	}
 	res.PostOk = true
-	if res.Err = s.WriteOut(m, arg.PWSalt); res.Err != nil {
+	if res.Err = s.WriteOut(m, arg); res.Err != nil {
 		return
 	}
 	res.WriteOk = true
@@ -119,18 +123,22 @@ func (s *SignupJoinEngine) Run(m libkb.MetaContext, arg SignupJoinEngineRunArg) 
 	return
 }
 
-func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, salt []byte) error {
+func (s *SignupJoinEngine) WriteOut(m libkb.MetaContext, arg SignupJoinEngineRunArg) error {
 	lctx := m.LoginContext()
-	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), salt); err != nil {
+	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), arg.PWSalt); err != nil {
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
 	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uv, nilDeviceID); err != nil {
 		return err
 	}
+	if arg.BotToken.Exists() {
+		m.Debug("SignupJoinEngine#WriteOut: not saving config since in bot mode")
+		return nil
+	}
 	// Switching to a new user is an operation on the GlobalContext, and will atomically
 	// update the config file and alter the current ActiveDevice. So farm out to over there.
-	return m.SwitchUserNewConfig(s.uv.Uid, s.username, salt, nilDeviceID)
+	return m.SwitchUserNewConfig(s.uv.Uid, s.username, arg.PWSalt, nilDeviceID)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(m libkb.MetaContext, arg libkb.InviteRequestArg) error {

@@ -177,7 +177,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (this.props.cannotWrite) {
       hintText = `You must be at least ${'aeiou'.includes(this.props.minWriterRole[0]) ? 'an' : 'a'} ${
         this.props.minWriterRole
-      } to post`
+      } to post.`
     }
 
     return (
@@ -205,7 +205,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
               },
             ])}
           >
-            {!this.props.isEditing && (
+            {!this.props.isEditing && !this.props.cannotWrite && (
               <HoverBox
                 className={Styles.classNames({expanded: this.props.showingMenu})}
                 onClick={this._toggleShowingMenu}
@@ -284,6 +284,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             )}
             {!this.props.cannotWrite && (
               <>
+                <Kb.Icon
+                  onClick={this.props.onGiphyToggle}
+                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  type="iconfont-gif"
+                />
                 <Kb.Icon
                   color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
                   onClick={this._emojiPickerToggle}
@@ -440,15 +445,19 @@ const styles = Styles.styleSheetCreate(
       },
       input: {
         backgroundColor: Styles.globalColors.transparent,
-        height: 21,
-        minHeight: 21,
+        height: 22,
+        // Line height change is so that emojis (unicode characters inside
+        // textarea) are not clipped at the top. This change is accompanied by
+        // a change in padding to offset the increased line height
+        lineHeight: '22px',
+        minHeight: 22,
       },
       inputBox: {
         flex: 1,
-        paddingBottom: Styles.globalMargins.xxtiny,
+        paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: 6,
         paddingRight: 6,
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny - 2,
         textAlign: 'left',
       },
       inputEditing: {

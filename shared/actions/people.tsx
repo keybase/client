@@ -1,11 +1,14 @@
 import * as EngineGen from './engine-gen-gen'
+import * as TeamBuildingGen from './team-building-gen'
 import * as PeopleGen from './people-gen'
+import * as ProfileGen from './profile-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Container from '../util/container'
+import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import {RPCError} from '../util/errors'
 import logger from '../logger'
 
@@ -163,6 +166,23 @@ const connected = async () => {
   }
 }
 
+const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
+  const {users} = action.payload
+  const user = users[0]
+  if (!user) return false
+
+  const username = user.id
+  return [
+    TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'}),
+    ProfileGen.createShowUserProfile({username}),
+  ]
+}
+
+function* peopleTeamBuildingSaga() {
+  yield* commonTeamBuildingSaga('people')
+  yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('people', onTeamBuildingAdded))
+}
+
 const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.getPeopleData, getPeopleData)
   yield* Saga.chainAction2(PeopleGen.markViewed, markViewed)
@@ -170,6 +190,7 @@ const peopleSaga = function*() {
   yield* Saga.chainAction2(PeopleGen.dismissAnnouncement, dismissAnnouncement)
   yield* Saga.chainAction2(EngineGen.keybase1HomeUIHomeUIRefresh, homeUIRefresh)
   yield* Saga.chainAction2(EngineGen.connected, connected)
+  yield* peopleTeamBuildingSaga()
 }
 
 export default peopleSaga

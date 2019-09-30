@@ -21,6 +21,7 @@ osx
 packaging/linux/docker
 !packaging/linux/docker/standard/entrypoint.sh
 !packaging/linux/docker/slim/entrypoint.sh
+!packaging/linux/docker/gosu_key.asc
 !packaging/linux/docker/tini_key.asc
 protocol
 pvl-tools

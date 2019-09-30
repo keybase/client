@@ -105,13 +105,7 @@ const styles = Styles.styleSheetCreate(
 
 const DeviceHeader = ({onAddNew}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
-    <Kb.Button label="Add a device or paper key">
-      <Kb.Icon
-        type="iconfont-new"
-        color={Styles.globalColors.white}
-        style={Kb.iconCastPlatformStyles(headerStyles.icon)}
-      />
-    </Kb.Button>
+    <Kb.Button label="Add a device or paper key" fullWidth={true} />
   </Kb.ClickableBox>
 )
 const headerStyles = Styles.styleSheetCreate(() => ({
@@ -120,6 +114,8 @@ const headerStyles = Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     height: Styles.isMobile ? 64 : 48,
     justifyContent: 'center',
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   icon: {
     alignSelf: 'center',

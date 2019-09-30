@@ -17,15 +17,17 @@ import (
 
 type errorClient struct{}
 
-func (e errorClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
+func (e errorClient) Call(ctx context.Context, method string, arg interface{},
+	res interface{}, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+func (e errorClient) CallCompressed(ctx context.Context, method string, arg interface{},
+	res interface{}, ctype rpc.CompressionType, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Call %s", method)
 }
 
-func (e errorClient) Notify(ctx context.Context, method string, arg interface{}) error {
+func (e errorClient) Notify(ctx context.Context, method string, arg interface{}, timeout time.Duration) error {
 	return fmt.Errorf("errorClient: Notify %s", method)
 }
 

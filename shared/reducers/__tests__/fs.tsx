@@ -3,7 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../../actions/fs-gen'
 import * as I from 'immutable'
-import reducer from '../fs'
+import reducer, {_initialStateForTest} from '../fs'
 
 jest.unmock('immutable')
 
@@ -18,15 +18,12 @@ const getFolderOrFail = (pathItems, path): Types.FolderPathItem => {
   return pathItem && pathItem.type === Types.PathType.Folder ? pathItem : Constants.makeFolder()
 }
 
-const state0 = Constants.makeState({
+const state0 = {
+  ..._initialStateForTest,
   pathItems: I.Map({
     [file0Path || '']: Constants.makeFile({
       lastModifiedTimestamp: 1,
       lastWriter: 'foo',
-      mimeType: Constants.makeMime({
-        displayPreview: true,
-        mimeType: 'text/plain',
-      }),
       name: 'file0',
     }),
     [folder0Path || '']: Constants.makeFolder({
@@ -41,24 +38,9 @@ const state0 = Constants.makeState({
       progress: Types.ProgressType.Loaded,
     }),
   }),
-})
+}
 
 describe('fs reducer', () => {
-  test('pathItemLoaded: reuse old pathItem even if new one lacks mimeType', () => {
-    const state1 = reducer(
-      state0,
-      FsGen.createPathItemLoaded({
-        path: file0Path,
-        pathItem: Constants.makeFile({
-          lastModifiedTimestamp: 1,
-          lastWriter: 'foo',
-          name: 'file0',
-        }),
-      })
-    )
-    expect(state1.pathItems).toBe(state0.pathItems)
-  })
-
   test('pathItemLoaded: reuse old pathItem if new one remains the same', () => {
     const state1 = reducer(
       state0,
@@ -67,33 +49,11 @@ describe('fs reducer', () => {
         pathItem: Constants.makeFile({
           lastModifiedTimestamp: 1,
           lastWriter: 'foo',
-          mimeType: Constants.makeMime({
-            displayPreview: true,
-            mimeType: 'text/plain',
-          }),
           name: 'file0',
         }),
       })
     )
     expect(state1.pathItems).toBe(state0.pathItems)
-  })
-
-  test('pathItemLoaded: unset mimeType when other metadata changes', () => {
-    const newPathItem = Constants.makeFile({
-      lastModifiedTimestamp: 2,
-      lastWriter: 'foo',
-      name: 'file0',
-      size: 1,
-    })
-    const state1 = reducer(
-      state0,
-      FsGen.createPathItemLoaded({
-        path: file0Path,
-        pathItem: newPathItem,
-      })
-    )
-    expect(state1.pathItems).not.toBe(state0.pathItems)
-    expect(state1.pathItems.get(file0Path)).toBe(newPathItem)
   })
 
   test('pathItemLoaded: pending folder should not over ride loaded children', () => {
@@ -175,39 +135,41 @@ describe('fs reducer', () => {
   test('favorritesLoaded: reuse tlf', () => {
     const tlfFields = {
       conflictState: Constants.makeConflictStateNormalView({
-        localViewTlfPaths: I.List([
+        localViewTlfPaths: [
           Types.stringToPath('/keybase/private/bla (conflict 1)'),
           Types.stringToPath('/keybase/private/bla (conflict 2)'),
-        ]),
+        ],
       }),
       isFavorite: true,
       isIgnored: true,
       isNew: true,
       name: 'foo',
-      resetParticipants: I.List(['foo', 'bar']),
-      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
+      resetParticipants: ['foo', 'bar'],
+      syncConfig: Constants.makeTlfSyncPartial({enabledPaths: [Constants.defaultPath]}),
       teamId: '123',
       tlfMtime: 123123123,
     }
-    const state0 = Constants.makeState({
-      tlfs: Constants.makeTlfs({
-        private: I.Map([
+    const state0 = {
+      ..._initialStateForTest,
+      tlfs: {
+        ..._initialStateForTest.tlfs,
+        private: new Map([
           [
             'foo',
             Constants.makeTlf({
               ...tlfFields,
-              syncConfig: Constants.makeTlfSyncPartial({enabledPaths: I.List([Constants.defaultPath])}),
+              syncConfig: Constants.makeTlfSyncPartial({enabledPaths: [Constants.defaultPath]}),
             }),
           ],
         ]),
-      }),
-    })
+      },
+    }
     const state1 = reducer(
       state0,
       FsGen.createFavoritesLoaded({
-        private: I.Map([['foo', Constants.makeTlf(tlfFields)]]),
-        public: I.Map(),
-        team: I.Map(),
+        private: new Map([['foo', Constants.makeTlf(tlfFields)]]),
+        public: new Map(),
+        team: new Map(),
       })
     )
     expect(state1.tlfs.private.get('foo')).toBe(state0.tlfs.private.get('foo'))

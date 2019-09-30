@@ -34,6 +34,7 @@ type ChatContext struct {
 	ExternalAPIKeySource types.ExternalAPIKeySource       // source of third party API keys
 	LiveLocationTracker  types.LiveLocationTracker        // track live location messages for updates
 	BotCommandManager    types.BotCommandManager          // manages commands from bots in convs
+	UIInboxLoader        types.UIInboxLoader              // manages loading inbox for UI
 }
 
 type Context struct {

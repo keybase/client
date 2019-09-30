@@ -4,14 +4,17 @@
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
+    "cancelReset": {
+      "_description": "Cancel an autoreset for the currently logged-in account."
+    },
     "resetAccount": {
       "password?": "HiddenString"
     },
+    "resetCancelled": {
+      "_description": "Cancelled an account reset."
+    },
     "resetError": {
       "error": "RPCError"
-    },
-    "submittedReset": {
-      "checkEmail": "boolean"
     },
     "setUsername": {
       "username": "string"
@@ -19,6 +22,13 @@
     "startAccountReset": {
       "skipPassword": "boolean",
       "username?": "string"
+    },
+    "submittedReset": {
+      "checkEmail": "boolean"
+    },
+    "updateAutoresetState": {
+      "active": "boolean",
+      "endTime": "number"
     }
   }
 }

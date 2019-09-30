@@ -64,11 +64,14 @@ export type TypedActions =
   | wallets.Actions
 
 export type TypedActionsMap = {
+  'autoreset:cancelReset': autoreset.CancelResetPayload
   'autoreset:resetAccount': autoreset.ResetAccountPayload
+  'autoreset:resetCancelled': autoreset.ResetCancelledPayload
   'autoreset:resetError': autoreset.ResetErrorPayload
-  'autoreset:submittedReset': autoreset.SubmittedResetPayload
   'autoreset:setUsername': autoreset.SetUsernamePayload
   'autoreset:startAccountReset': autoreset.StartAccountResetPayload
+  'autoreset:submittedReset': autoreset.SubmittedResetPayload
+  'autoreset:updateAutoresetState': autoreset.UpdateAutoresetStatePayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -83,6 +86,8 @@ export type TypedActionsMap = {
   'chat2:metaRequestingTrusted': chat2.MetaRequestingTrustedPayload
   'chat2:metaRequestTrusted': chat2.MetaRequestTrustedPayload
   'chat2:metasReceived': chat2.MetasReceivedPayload
+  'chat2:clearMetas': chat2.ClearMetasPayload
+  'chat2:clearMessages': chat2.ClearMessagesPayload
   'chat2:metaReceivedError': chat2.MetaReceivedErrorPayload
   'chat2:metaDelete': chat2.MetaDeletePayload
   'chat2:updateMoreToLoad': chat2.UpdateMoreToLoadPayload
@@ -208,6 +213,8 @@ export type TypedActionsMap = {
   'chat2:ignorePinnedMessage': chat2.IgnorePinnedMessagePayload
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
+  'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
+  'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -503,8 +510,6 @@ export type TypedActionsMap = {
   'fs:startManualConflictResolution': fs.StartManualConflictResolutionPayload
   'fs:finishManualConflictResolution': fs.FinishManualConflictResolutionPayload
   'fs:openSecurityPreferences': fs.OpenSecurityPreferencesPayload
-  'fs:refreshLocalHTTPServerInfo': fs.RefreshLocalHTTPServerInfoPayload
-  'fs:localHTTPServerInfo': fs.LocalHTTPServerInfoPayload
   'fs:favoriteIgnore': fs.FavoriteIgnorePayload
   'fs:favoriteIgnoreError': fs.FavoriteIgnoreErrorPayload
   'fs:newFolderRow': fs.NewFolderRowPayload
@@ -563,6 +568,8 @@ export type TypedActionsMap = {
   'fs:setPathItemActionMenuDownload': fs.SetPathItemActionMenuDownloadPayload
   'fs:finishedDownloadWithIntent': fs.FinishedDownloadWithIntentPayload
   'fs:finishedRegularDownload': fs.FinishedRegularDownloadPayload
+  'fs:loadFileContext': fs.LoadFileContextPayload
+  'fs:loadedFileContext': fs.LoadedFileContextPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -680,7 +687,10 @@ export type TypedActionsMap = {
   'recover-password:showExplainDevice': recoverpassword.ShowExplainDevicePayload
   'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
   'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
+  'recover-password:submitResetPrompt': recoverpassword.SubmitResetPromptPayload
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
+  'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
+  'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload

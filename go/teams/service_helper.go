@@ -291,20 +291,6 @@ func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, userna
 
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string,
 	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (res keybase1.TeamAddMemberResult, err error) {
-	var inviteRequired bool
-	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username, true /* useTracking */)
-	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
-	if err != nil {
-		if err == errInviteRequired {
-			inviteRequired = true
-		} else if _, ok := err.(libkb.NotFoundError); ok {
-			return keybase1.TeamAddMemberResult{}, libkb.NotFoundError{
-				Msg: fmt.Sprintf("User not found: %v", username),
-			}
-		} else {
-			return keybase1.TeamAddMemberResult{}, err
-		}
-	}
 
 	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
@@ -320,26 +306,22 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return fmt.Errorf("Cannot add owner to team as an admin")
 		}
 
-		if inviteRequired && !uv.Uid.Exists() {
-			// Handle social invites without transactions.
-			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
-			return err
-		}
-
 		tx := CreateAddMemberTx(t)
-		err = tx.AddMemberByUsername(ctx, resolvedUsername.String(), role, botSettings)
+		resolvedUsername, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, username, role, botSettings)
 		if err != nil {
 			return err
 		}
 
-		// Try to mark completed any invites for the user's social assertions.
-		// This can be a time-intensive process since it involves checking proofs.
-		// It is limited to a few seconds and failure is non-fatal.
-		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
-			g.Log.CDebugf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+		if !uv.IsNil() {
+			// Try to mark completed any invites for the user's social assertions.
+			// This can be a time-intensive process since it involves checking proofs.
+			// It is limited to a few seconds and failure is non-fatal.
+			timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+			if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
+				g.Log.CDebugf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
+			}
+			timeoutCancel()
 		}
-		timeoutCancel()
 
 		err = tx.Post(libkb.NewMetaContext(ctx, g))
 		if err != nil {
@@ -349,7 +331,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		// return value assign to escape closure
 		res = keybase1.TeamAddMemberResult{
 			User:    &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()},
-			Invited: inviteRequired,
+			Invited: invite,
 		}
 		return nil
 	})
@@ -1139,22 +1121,16 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 var errInviteRequired = errors.New("invite required for username")
 var errUserDeleted = errors.New("user is deleted")
 
-func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
-	// need username here as `username` parameter might be social assertion, also username
-	// is used for chat notification recipient
-	m := libkb.NewMetaContext(ctx, g)
-	upk, err := engine.ResolveAndCheck(m, username, useTracking)
-	if err != nil {
-		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
-			// couldn't find a keybase user for username assertion
-			return "", keybase1.UserVersion{}, errInviteRequired
-		}
-		return "", keybase1.UserVersion{}, err
-	}
-	uv, err := filterUserCornerCases(ctx, upk)
-	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
-}
-
+// loadUserVersionByUsername is a wrapper around `engine.ResolveAndCheck` to
+// return UV by username or assertion. When the argument does not resolve to a
+// Keybase user with PUK, `errInviteRequired` is returned.
+//
+// Returns `errInviteRequired` if given argument cannot be brought in as a
+// crypto member - so it is either a reset and not provisioned keybae user
+// (keybase-type invite is required), or a social assertion that does not
+// resolve to a user.
+//
+// NOTE: This also doesn't try to resolve server-trust assertions.
 func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (keybase1.UserVersion, error) {
 	m := libkb.NewMetaContext(ctx, g)
 	upk, err := engine.ResolveAndCheck(m, username, useTracking)

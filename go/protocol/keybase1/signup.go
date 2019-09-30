@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/signup.avdl
 
 package keybase1
@@ -6,12 +6,14 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type SignupRes struct {
-	PassphraseOk bool `codec:"passphraseOk" json:"passphraseOk"`
-	PostOk       bool `codec:"postOk" json:"postOk"`
-	WriteOk      bool `codec:"writeOk" json:"writeOk"`
+	PassphraseOk bool   `codec:"passphraseOk" json:"passphraseOk"`
+	PostOk       bool   `codec:"postOk" json:"postOk"`
+	WriteOk      bool   `codec:"writeOk" json:"writeOk"`
+	PaperKey     string `codec:"paperKey" json:"paperKey"`
 }
 
 func (o SignupRes) DeepCopy() SignupRes {
@@ -19,6 +21,7 @@ func (o SignupRes) DeepCopy() SignupRes {
 		PassphraseOk: o.PassphraseOk,
 		PostOk:       o.PostOk,
 		WriteOk:      o.WriteOk,
+		PaperKey:     o.PaperKey,
 	}
 }
 
@@ -41,6 +44,8 @@ type SignupArg struct {
 	GenPaper    bool       `codec:"genPaper" json:"genPaper"`
 	RandomPw    bool       `codec:"randomPw" json:"randomPw"`
 	VerifyEmail bool       `codec:"verifyEmail" json:"verifyEmail"`
+	BotToken    BotToken   `codec:"botToken" json:"botToken"`
+	SkipGPG     bool       `codec:"skipGPG" json:"skipGPG"`
 }
 
 type InviteRequestArg struct {
@@ -155,27 +160,27 @@ type SignupClient struct {
 }
 
 func (c SignupClient) CheckUsernameAvailable(ctx context.Context, __arg CheckUsernameAvailableArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkUsernameAvailable", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) Signup(ctx context.Context, __arg SignupArg) (res SignupRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.signup", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.signup.signup", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvitationCodeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c SignupClient) GetInvitationCode(ctx context.Context, sessionID int) (res string, err error) {
 	__arg := GetInvitationCodeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.signup.getInvitationCode", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.signup.getInvitationCode", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

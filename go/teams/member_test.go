@@ -26,6 +26,8 @@ func memberSetup(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string) {
 
 	name := createTeam(tc)
 
+	t.Logf("User name is: %s", u.Username)
+	t.Logf("Team name is: %s", name)
 	return tc, u, name
 }
 
@@ -159,6 +161,11 @@ func TestMemberAddBot(t *testing.T) {
 	tc, _, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
+	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
+	require.NoError(t, err)
+	err = team.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+	require.NoError(t, err)
+
 	assertRole(tc, name, otherA.Username, keybase1.TeamRole_NONE)
 	assertRole(tc, name, otherB.Username, keybase1.TeamRole_NONE)
 
@@ -186,7 +193,7 @@ func TestMemberAddBot(t *testing.T) {
 	assertRole(tc, name, otherB.Username, keybase1.TeamRole_RESTRICTEDBOT)
 
 	// make sure the bot settings links are present
-	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		Name:        name,
 		ForceRepoll: true,
 	})
@@ -490,25 +497,18 @@ func TestMemberAddSocial(t *testing.T) {
 
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 
-	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_OWNER, nil)
-	if err == nil {
-		t.Fatal("should not be able to invite a social user as an owner")
-	}
+	_, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_OWNER, nil)
+	require.Error(t, err, "should not be able to invite a social user as an owner")
 
-	res, err = AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !res.Invited {
-		t.Fatal("res.Invited should be set")
-	}
+	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER, nil)
+	require.NoError(t, err)
+	require.True(t, res.Invited)
 
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
-	if _, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER, nil); err == nil {
-		t.Errorf("second AddMember succeeded, should have failed since user already invited")
-	}
+	_, err = AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err, "second AddMember should fail since user already invited")
 
 	// existing invite should be untouched
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
@@ -1071,9 +1071,7 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 	tc.T.Logf("looking for invite for %s/%s w/ role %s in team %s", username, typ, role, name)
 	iname := keybase1.TeamInviteName(username)
 	itype, err := TeamInviteTypeFromString(tc.MetaContext(), typ)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	invite, err := memberInvite(context.TODO(), tc.G, name, iname, itype)
 	require.NoError(tc.T, err)
 	require.NotNil(tc.T, invite)

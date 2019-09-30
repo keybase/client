@@ -1,7 +1,8 @@
 import * as TeamsGen from '../../../../actions/teams-gen'
-import {getTeamInvites, getTeamMembers} from '../../../../constants/teams'
+import {getTeamInvites, getTeamMembers, makeInviteInfo} from '../../../../constants/teams'
 import {TeamInviteRow} from '.'
 import {connect} from '../../../../util/container'
+import {InviteInfo} from '../../../../constants/types/teams'
 
 type OwnProps = {
   id: string
@@ -22,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const user = stateProps._invites.find(invite => invite.id === ownProps.id) || {}
+  const user: InviteInfo = stateProps._invites.find(invite => invite.id === ownProps.id) || makeInviteInfo()
 
   let onCancelInvite
   if (user.email) {
@@ -41,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         teamname: ownProps.teamname,
         username: user.username,
       })
-  } else if (user.name) {
+  } else if (user.name || user.phone) {
     onCancelInvite = () =>
       dispatchProps._onCancelInvite({
         email: '',
@@ -52,7 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   }
 
   return {
-    label: user.email || user.username || user.name,
+    label: user.email || user.username || user.name || user.phone,
     onCancelInvite,
     role: user.role,
   }
