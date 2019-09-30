@@ -18,6 +18,9 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /** Module that exposes the user's preferred color scheme. For API >= 29. */
 @ReactModule(name = AppearanceModule.NAME)
 public class AppearanceModule extends ReactContextBaseJavaModule {
@@ -89,5 +92,13 @@ public class AppearanceModule extends ReactContextBaseJavaModule {
         getReactApplicationContext()
                 .getJSModule(RCTDeviceEventEmitter.class)
                 .emit(APPEARANCE_CHANGED_EVENT_NAME, appearancePreferences);
+    }
+
+    @Override
+    public Map<String, Object> getConstants() {
+        final Map<String, Object> constants = new HashMap<>();
+        constants.put("initialColorScheme", "dark");
+        constants.put("supported", "1");
+        return constants;
     }
 }
