@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -42,6 +43,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.UUID;
 
+import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
@@ -358,5 +360,19 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   protected String getMainComponentName() {
     return "Keybase";
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    ReactInstanceManager instanceManager = getReactInstanceManager();
+
+    if (instanceManager != null) {
+      //instanceManager.onConfigurationChanged(newConfig);
+      ReactContext currentContext = instanceManager.getCurrentReactContext();
+      if (currentContext != null) {
+        currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
+      }
+    }
   }
 }
