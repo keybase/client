@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
 import {Task, TaskButton} from '.'
-import {Provider as SearchBarProvider} from '../../profile/search/index.stories'
 
 const defaultButtons = (label, dismissLabel?) => {
   const ret = [
@@ -187,7 +186,6 @@ const legacyEmailVisibilityProps = {
 
 const load = () => {
   storiesOf('People/Todos', module)
-    .addDecorator(SearchBarProvider)
     .add('Edit team avatar', () => <Task {...avatarTeamTaskProps} />)
     .add('Edit avatar', () => <Task {...avatarUserTaskProps} />)
     .add('Fill out bio', () => <Task {...bioTaskProps} />)
