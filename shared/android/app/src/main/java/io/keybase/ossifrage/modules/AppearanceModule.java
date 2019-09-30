@@ -97,8 +97,8 @@ public class AppearanceModule extends ReactContextBaseJavaModule {
     @Override
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
-        constants.put("initialColorScheme", "dark");
-        constants.put("supported", "1");
+        constants.put("initialColorScheme", this.getColorScheme());
+        constants.put("supported", Build.VERSION.SDK_INT >= ANDROID_TEN ? "1" : "0");
         return constants;
     }
 }
