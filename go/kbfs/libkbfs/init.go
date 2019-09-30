@@ -63,12 +63,10 @@ const CtxInitID = "KBFSINIT"
 type AdditionalProtocolCreator func(Context, Config) (rpc.Protocol, error)
 
 const (
-	configModePrefixStr            = "kbfs."
-	configModeStr                  = configModePrefixStr + "mode"
-	configBlockCachePrefixStr      = configModePrefixStr + "block_cache."
-	configBlockCacheMemMaxBytesStr = configBlockCachePrefixStr + "mem_max_bytes"
-	configBlockCacheDiskMaxFracStr = configBlockCachePrefixStr + "disk_max_fraction"
-	configBlockCacheSyncMaxFracStr = configBlockCachePrefixStr + "sync_max_fraction"
+	configModeStr                  = "kbfs.mode"
+	configBlockCacheMemMaxBytesStr = "kbfs.block_cache.mem_max_bytes"
+	configBlockCacheDiskMaxFracStr = "kbfs.block_cache.disk_max_fraction"
+	configBlockCacheSyncMaxFracStr = "kbfs.block_cache.sync_max_fraction"
 )
 
 // InitParams contains the initialization parameters for Init(). It is
