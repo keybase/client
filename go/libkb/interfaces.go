@@ -175,6 +175,7 @@ type JSONReader interface {
 	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
+	GetFloatAtPath(string) (float64, bool)
 	GetNullAtPath(string) bool
 }
 
@@ -225,6 +226,7 @@ type JSONWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetFloatAtPath(string, float64) error
 	SetNullAtPath(string) error
 	SetWrapperAtPath(string, *jsonw.Wrapper) error
 	DeleteAtPath(string)

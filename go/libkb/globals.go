@@ -69,6 +69,7 @@ type GlobalContext struct {
 	RPCCanceler      *RPCCanceler         // register live RPCs so they can be cancelleed en masse
 	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
 	Identify3State   *Identify3State      // keep track of Identify3 sessions
+	vidMu            *sync.Mutex          // protect VID
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results

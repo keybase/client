@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBMisc                           = 0xb0
 	DBTeamMerkleCheck                = 0xb1
 	DBUidToServiceMap                = 0xb2
 	DBChatPinIgnore                  = 0xb3
@@ -122,7 +123,8 @@ func IsPermDbKey(typ ObjType) bool {
 		DBBoxAuditorPermanent,
 		DBSavedContacts,
 		DBContactResolution,
-		DBTeambotKeyWrongKID:
+		DBTeambotKeyWrongKID,
+		DBMisc:
 		return true
 	default:
 		return false
