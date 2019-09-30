@@ -668,16 +668,9 @@ func (s *localizerPipeline) getResetUsernamesMetadata(ctx context.Context, uidMa
 
 // returns an incomplete list in case of error
 func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMapper libkb.UIDMapper,
-	teamIDasTLFID chat1.TLFID, public bool) (res []string, err error) {
-	// NOTE: If this is too slow, it could be cached on local metadata.
-	teamID, err := keybase1.TeamIDFromString(teamIDasTLFID.String())
-	if err != nil {
-		return nil, err
-	}
-	team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: public,
-	})
+	membersType chat1.ConversationMembersType, info types.NameInfo, public bool) (res []string, err error) {
+	team, err := NewTeamLoader(s.G().ExternalG()).loadTeam(ctx, info.ID, info.CanonicalName,
+		membersType, public, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -956,10 +949,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
+	membersType := conversationRemote.GetMembersType()
 	infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
 	var info types.NameInfo
 	var ierr error
-	switch conversationRemote.GetMembersType() {
+	switch membersType {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		info, ierr = infoSource.LookupName(ctx,
@@ -989,7 +983,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
-	switch conversationRemote.GetMembersType() {
+	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
@@ -1011,8 +1005,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.Participants[j].Username
 		})
 	case chat1.ConversationMembersType_IMPTEAMNATIVE, chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		resetUsernamesPegboard, err := s.getResetUsernamesPegboard(ctx, umapper, info.ID,
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		public := conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+		resetUsernamesPegboard, err := s.getResetUsernamesPegboard(ctx, umapper, membersType, info, public)
 		if err != nil {
 			s.Debug(ctx, "getResetUsernamesPegboard error: %v", err)
 			resetUsernamesPegboard = nil
