@@ -209,6 +209,7 @@ export type TypedActionsMap = {
   'chat2:dismissBottomBanner': chat2.DismissBottomBannerPayload
   'chat2:updateLastCoord': chat2.UpdateLastCoordPayload
   'chat2:toggleGiphyPrefill': chat2.ToggleGiphyPrefillPayload
+  'chat2:setChannelSearchText': chat2.SetChannelSearchTextPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -683,6 +684,8 @@ export type TypedActionsMap = {
   'recover-password:setPaperKeyError': recoverpassword.SetPaperKeyErrorPayload
   'recover-password:submitPaperKey': recoverpassword.SubmitPaperKeyPayload
   'recover-password:abortPaperKey': recoverpassword.AbortPaperKeyPayload
+  'recover-password:setPasswordError': recoverpassword.SetPasswordErrorPayload
+  'recover-password:submitPassword': recoverpassword.SubmitPasswordPayload
   'recover-password:displayError': recoverpassword.DisplayErrorPayload
   'route-tree:navigateAppend': routetree.NavigateAppendPayload
   'route-tree:navigateUp': routetree.NavigateUpPayload

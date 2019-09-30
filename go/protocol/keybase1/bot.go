@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/bot.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type BotToken string
@@ -90,17 +91,17 @@ type BotClient struct {
 }
 
 func (c BotClient) BotTokenList(ctx context.Context) (res []BotTokenInfo, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenList", []interface{}{BotTokenListArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenList", []interface{}{BotTokenListArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BotClient) BotTokenCreate(ctx context.Context) (res BotToken, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenCreate", []interface{}{BotTokenCreateArg{}}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenCreate", []interface{}{BotTokenCreateArg{}}, &res, 0*time.Millisecond)
 	return
 }
 
 func (c BotClient) BotTokenDelete(ctx context.Context, token BotToken) (err error) {
 	__arg := BotTokenDeleteArg{Token: token}
-	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenDelete", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.bot.botTokenDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

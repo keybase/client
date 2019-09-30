@@ -86,9 +86,6 @@ func handleTLFSpecialFile(
 	}
 
 	switch name {
-	case libfs.UpdateHistoryFileName:
-		return NewUpdateHistoryFile(folder, entryValid)
-
 	case libfs.EditHistoryName:
 		return NewTlfEditHistoryFile(folder, entryValid)
 

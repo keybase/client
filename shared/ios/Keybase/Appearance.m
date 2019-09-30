@@ -92,15 +92,21 @@ RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSString *, getColorScheme)
 }
 
 - (NSDictionary *)constantsToExport {
-  #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && defined(__IPHONE_13_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_13_0
-  return @{ @"initialColorScheme": RCTColorSchemePreference(nil),
-            @"supported": @"1"
-            };
+  if (@available(iOS 13.0, *)) {
+#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && defined(__IPHONE_13_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_13_0
+    return @{ @"initialColorScheme": RCTColorSchemePreference(nil),
+              @"supported": @"1"
+    };
 #else
-  return @{ @"initialColorScheme": @"light",
-            @"supported": @"0"
-            };
+    return @{ @"initialColorScheme": @"light",
+              @"supported": @"0"
+    };
 #endif
+  } else {
+    return @{ @"initialColorScheme": @"light",
+              @"supported": @"0"
+    };
+  }
 }
 
 @end

@@ -348,7 +348,7 @@ class EditAvatar extends React.Component<_Props, State> {
             }}
           >
             <input
-              accept="image/*"
+              accept="image/gif,image/jpeg,image/png"
               multiple={false}
               onChange={this._pickFile}
               ref={this._filePickerSetRef}

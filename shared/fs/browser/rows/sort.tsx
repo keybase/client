@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as RowTypes from './types'
 import * as Flow from '../../../util/flow'
@@ -120,10 +119,10 @@ const getComparer = (sortSetting: Types.SortSetting, meUsername: string) => (
 }
 
 export const sortRowItems: (
-  items: I.List<SortableRowItem>,
+  items: Array<SortableRowItem>,
   sortSetting: Types.SortSetting,
   username: string
-) => I.List<SortableRowItem> = memoize((items, sortSetting, username) => {
+) => Array<SortableRowItem> = memoize((items, sortSetting, username) => {
   logger.debug('sortRowItems')
   return items.sort(getComparer(sortSetting, username))
 })

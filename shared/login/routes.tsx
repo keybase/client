@@ -52,4 +52,5 @@ export const newModalRoutes = {
   resetModal: {
     getScreen: (): typeof ResetModal => require('./reset/modal').default,
   },
+  ...require('./recover-password/routes').newModalRoutes,
 }

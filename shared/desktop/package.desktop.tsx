@@ -50,6 +50,7 @@ const packagerOpts: any = {
   appVersion: appVersion,
   asar: shouldUseAsar,
   buildVersion: String(appVersion) + String(comment),
+  darwinDarkModeSupport: true,
   dir: desktopPath('./build'),
   download: {
     mirrorOptions: {

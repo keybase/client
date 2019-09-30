@@ -869,21 +869,23 @@ type connectionClient struct {
 
 var _ GenericClient = connectionClient{}
 
-func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
+func (c connectionClient) Call(ctx context.Context, s string, args interface{},
+	res interface{}, timeout time.Duration) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
-		return rawClient.Call(ctx, s, args, res)
+		return rawClient.Call(ctx, s, args, res, timeout)
 	})
 }
 
 func (c connectionClient) CallCompressed(ctx context.Context, s string,
-	args interface{}, res interface{}, ctype CompressionType) error {
+	args interface{}, res interface{}, ctype CompressionType, timeout time.Duration) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
-		return rawClient.CallCompressed(ctx, s, args, res, ctype)
+		return rawClient.CallCompressed(ctx, s, args, res, ctype, timeout)
 	})
 }
 
-func (c connectionClient) Notify(ctx context.Context, s string, args interface{}) error {
+func (c connectionClient) Notify(ctx context.Context, s string, args interface{},
+	timeout time.Duration) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
-		return rawClient.Notify(ctx, s, args)
+		return rawClient.Notify(ctx, s, args, timeout)
 	})
 }

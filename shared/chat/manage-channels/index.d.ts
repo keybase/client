@@ -20,11 +20,13 @@ export type Props = {
       convID: ConversationIDKey
     }
   >
+  isFiltered: boolean
   onCreate: () => void
   onToggle: (convID: ConversationIDKey) => void
   onEdit: (convID: ConversationIDKey) => void
   onClose?: () => void
   onClickChannel: (channelname: string) => void
+  onChangeSearch: (text: string) => void
   teamname: string
   unsavedSubscriptions: boolean
   onSaveSubscriptions: () => void

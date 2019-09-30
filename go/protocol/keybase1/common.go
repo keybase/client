@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/common.avdl
 
 package keybase1
@@ -67,6 +67,12 @@ func (o Status) DeepCopy() Status {
 type UID string
 
 func (o UID) DeepCopy() UID {
+	return o
+}
+
+type VID string
+
+func (o VID) DeepCopy() VID {
 	return o
 }
 

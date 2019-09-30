@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/notify_teambot.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type NewTeambotKeyArg struct {
@@ -67,11 +68,11 @@ type NotifyTeambotClient struct {
 }
 
 func (c NotifyTeambotClient) NewTeambotKey(ctx context.Context, __arg NewTeambotKeyArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeambot.newTeambotKey", []interface{}{__arg})
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeambot.newTeambotKey", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
 func (c NotifyTeambotClient) TeambotKeyNeeded(ctx context.Context, __arg TeambotKeyNeededArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyTeambot.teambotKeyNeeded", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.NotifyTeambot.teambotKeyNeeded", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

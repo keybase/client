@@ -29,9 +29,9 @@ export default Container.connect(
       dispatch(ConfigGen.createLogout())
       dispatch(SettingsGen.createLoadedCheckPassword({checkPasswordIsCorrect: null}))
     },
-    onSavePassword: (password: string, passwordConfirm: string) => {
+    onSavePassword: (password: string) => {
       dispatch(SettingsGen.createOnChangeNewPassword({password: new HiddenString(password)}))
-      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(passwordConfirm)}))
+      dispatch(SettingsGen.createOnChangeNewPasswordConfirm({password: new HiddenString(password)}))
       dispatch(SettingsGen.createOnSubmitNewPassword({thenSignOut: true}))
     },
   }),

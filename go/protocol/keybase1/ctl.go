@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.2 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/ctl.avdl
 
 package keybase1
@@ -6,6 +6,7 @@ package keybase1
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type ExitCode int
@@ -324,55 +325,55 @@ type CtlClient struct {
 }
 
 func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) StopService(ctx context.Context, __arg StopServiceArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.stopService", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) Reload(ctx context.Context, sessionID int) (err error) {
 	__arg := ReloadArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.reload", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbClean(ctx context.Context, __arg DbCleanArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbClean", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) AppExit(ctx context.Context, sessionID int) (err error) {
 	__arg := AppExitArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbDelete(ctx context.Context, __arg DbDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbDelete", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbPut(ctx context.Context, __arg DbPutArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbPut", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
 func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

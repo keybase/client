@@ -8551,19 +8551,22 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
-func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
-	folderBranch data.FolderBranch) (history TLFUpdateHistory, err error) {
-	startTime, timer := fbo.startOp(ctx, "GetUpdateHistory")
+func (fbo *folderBranchOps) GetUpdateHistory(
+	ctx context.Context, folderBranch data.FolderBranch,
+	start, end kbfsmd.Revision) (history TLFUpdateHistory, err error) {
+	startTime, timer := fbo.startOp(ctx, "GetUpdateHistory(%d, %d)", start, end)
 	defer func() {
-		fbo.endOp(ctx, startTime, timer, "GetUpdateHistory done: %+v", err)
+		fbo.endOp(
+			ctx, startTime, timer, "GetUpdateHistory(%d, %d) done: %+v",
+			start, end, err)
 	}()
 
 	if folderBranch != fbo.folderBranch {
 		return TLFUpdateHistory{}, WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
-		kbfsmd.RevisionInitial, nil)
+	rmds, err := getMergedMDUpdatesWithEnd(
+		ctx, fbo.config, fbo.id(), start, end, nil)
 	if err != nil {
 		return TLFUpdateHistory{}, err
 	}
@@ -8587,11 +8590,12 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 			writerNames[rmd.LastModifyingWriter()] = writer
 		}
 		updateSummary := UpdateSummary{
-			Revision:  rmd.Revision(),
-			Date:      rmd.localTimestamp,
-			Writer:    writer,
-			LiveBytes: rmd.DiskUsage(),
-			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			Revision:    rmd.Revision(),
+			Date:        rmd.localTimestamp,
+			Writer:      writer,
+			LiveBytes:   rmd.DiskUsage(),
+			Ops:         make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			RootBlockID: rmd.data.Dir.ID.String(),
 		}
 		for _, op := range rmd.data.Changes.Ops {
 			opSummary := OpSummary{

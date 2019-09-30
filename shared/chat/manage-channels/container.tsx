@@ -11,6 +11,7 @@ import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
 import {isEqual} from 'lodash-es'
+import {makeInsertMatcher} from '../../util/string'
 
 type OwnProps = Container.RouteProps<{teamname: string}>
 
@@ -31,6 +32,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const generalCh = channelInfos.find(i => i.channelname === 'general')
   const teamSize = generalCh ? generalCh.numParticipants : 0
 
+  const searchText = state.chat2.channelSearchText
+  const isFiltered = !!searchText
+
   const channels = channelInfos
     .map((info, convID) => ({
       convID,
@@ -41,6 +45,16 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       numParticipants: info.numParticipants,
       selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
     }))
+    .filter(conv => {
+      if (!searchText) {
+        return true // no search text means show all
+      }
+      return (
+        // match channel name for search as subsequence (like the identity modal)
+        // match channel desc by strict substring (less noise in results)
+        conv.name.match(makeInsertMatcher(searchText)) || conv.description.match(new RegExp(searchText, 'i'))
+      )
+    })
     .valueSeq()
     .toArray()
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -52,6 +66,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     canCreateChannels,
     canEditChannels,
     channels,
+    isFiltered,
     selectedChatID,
     teamname,
     waitingForGet,
@@ -101,8 +116,15 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         dispatch(RouteTreeGen.createNavigateUp())
       }
     },
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onBack: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
+    },
+    onChangeSearch: (text: string) => dispatch(Chat2Gen.createSetChannelSearchText({text})),
+    onClose: () => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(Chat2Gen.createSetChannelSearchText({text: ''}))
+    },
     onCreate: () =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -137,6 +159,8 @@ type Props = {
   canCreateChannels: boolean
   canEditChannels: boolean
   channels: Array<RowProps & {convID: ChatTypes.ConversationIDKey}>
+  isFiltered: boolean
+  onChangeSearch: (text: string) => void
   onClose: () => void
   onCreate: () => void
   onEdit: (convID: ChatTypes.ConversationIDKey) => void
@@ -215,9 +239,11 @@ const Wrapper = (p: Props) => {
       waitingForGet={rest.waitingForGet}
       teamname={rest.teamname}
       onEdit={rest.onEdit}
+      onChangeSearch={rest.onChangeSearch}
       onClose={rest.onClose}
       onCreate={rest.onCreate}
       canEditChannels={rest.canEditChannels}
+      isFiltered={rest.isFiltered}
       canCreateChannels={rest.canCreateChannels}
       channels={channels}
       nextChannelState={nextChannelState}

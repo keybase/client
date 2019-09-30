@@ -98,7 +98,7 @@ func (k *MemberKeyer) GetOrCreateTeambotKey(mctx libkb.MetaContext, teamID keyba
 func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
 	key keybase1.TeambotKey, created bool, err error) {
-	defer mctx.TraceTimed("getOrCreateTeambotKeyLocked", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("getOrCreateTeambotKeyLocked: teamID: %v, botUID: %v", teamID, botUID), func() error { return err })()
 
 	seed := k.deriveTeambotKeyFromAppKey(mctx, appKey, botUID)
 
@@ -143,7 +143,7 @@ func (k *MemberKeyer) deriveTeambotKeyFromAppKey(mctx libkb.MetaContext, applica
 
 func (k *MemberKeyer) publishNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
 	appKey keybase1.TeamApplicationKey) (metadata keybase1.TeambotKeyMetadata, err error) {
-	defer mctx.TraceTimed("MemberKeyer#publishNewTeambotKey", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("MemberKeyer#publishNewTeambotKey teamID: %v, botUID: %v", teamID, botUID), func() error { return err })()
 
 	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
 		ID: teamID,
@@ -186,7 +186,7 @@ func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.
 func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.Team,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
 	sig string, box *keybase1.TeambotKeyBoxed, err error) {
-	defer mctx.TraceTimed("MemberKeyer#prepareNewTeambotKey", func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("MemberKeyer#prepareNewTeambotKey: teamID: %v, botUID: %v", team.ID, botUID), func() error { return err })()
 
 	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
 		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID))
