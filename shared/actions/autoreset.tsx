@@ -11,7 +11,7 @@ const startAccountReset = (state: Container.TypedState, action: AutoresetGen.Sta
     RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptReset'], replace: true}),
   ]
 }
-const resetAccount = async (state: Container.TypedState, action: AutoresetGen.ResetAccountPayload) => {
+function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAccountPayload) {
   let rpcPayload: {usernameOrEmail: string; passphrase: string; interactive: boolean}
   if (action.payload.password) {
     rpcPayload = {
@@ -23,11 +23,15 @@ const resetAccount = async (state: Container.TypedState, action: AutoresetGen.Re
     rpcPayload = {
       interactive: false,
       passphrase: '',
-      usernameOrEmail: action.payload.phoneNumberOrEmail || state.autoreset.username,
+      usernameOrEmail: state.autoreset.username,
     }
   }
   try {
-    await RPCGen.accountEnterResetPipelineRpcPromise(rpcPayload, Constants.autoresetEnterPipelineWaitingKey)
+    yield RPCGen.accountEnterResetPipelineRpcSaga({
+      incomingCallMap: {},
+      params: rpcPayload,
+      waitingKey: Constants.autoresetEnterPipelineWaitingKey,
+    })
     return AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password})
   } catch (error) {
     return AutoresetGen.createResetError({error: error})
@@ -39,7 +43,7 @@ const submittedReset = (_: Container.TypedState, action: AutoresetGen.SubmittedR
     replace: true,
   })
 function* autoresetSaga() {
-  yield* Saga.chainAction2(AutoresetGen.resetAccount, resetAccount)
+  yield* Saga.chainGenerator(AutoresetGen.resetAccount, resetAccount)
   yield* Saga.chainAction2(AutoresetGen.startAccountReset, startAccountReset)
   yield* Saga.chainAction2(AutoresetGen.submittedReset, submittedReset)
 }
