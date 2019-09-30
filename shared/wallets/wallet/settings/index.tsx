@@ -141,10 +141,11 @@ class AccountSettings extends React.Component<SettingsProps> {
                       containerStyle={styles.copyTextContainer}
                       multiline={true}
                       withReveal={true}
-                      onReveal={() => this.props.onLoadSecretKey && this.props.onLoadSecretKey()}
+                      loadText={() => this.props.onLoadSecretKey && this.props.onLoadSecretKey()}
                       hideOnCopy={true}
                       onCopy={this.clearKey}
-                      text={this.props.secretKey || 'fetching and decrypting secret key...'}
+                      text={this.props.secretKey}
+                      placeholderText="fetching and decrypting secret key..."
                     />
                   </Kb.Box2>
                 </>
