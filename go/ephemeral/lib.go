@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teambot"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 )
 
@@ -804,9 +805,46 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		return ek, false, err
 	}
 	merkleRoot := *merkleRootPtr
-	metadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK.Team(), merkleRoot)
+
+	metadata := keybase1.TeambotEkMetadata{
+		Kid:        seed.DeriveDHKey().GetKID(),
+		Generation: teamEK.Team().Metadata.Generation,
+		Uid:        botUID,
+		HashMeta:   merkleRoot.HashMeta(),
+		// The ctime is derivable from the hash meta, by fetching the hashed
+		// root from the server, but including it saves readers a potential
+		// extra round trip.
+		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
+	}
+
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
 	if err != nil {
 		return ek, false, err
+	}
+
+	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID))
+	if err != nil {
+		return ek, false, err
+	}
+	role, err := team.MemberRole(mctx.Ctx(), upak.ToUserVersion())
+	if err != nil {
+		return ek, false, err
+	}
+
+	// If the bot is not a restricted bot member don't try to publish the key
+	// for them. This can happen when decrypting past content after the bot is
+	// removed from the team.
+	if role.IsRestrictedBot() {
+		sig, box, err := prepareNewTeambotEK(mctx, team, botUID, seed, &metadata, merkleRoot)
+		if err != nil {
+			return ek, false, err
+		}
+		if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
+			return ek, false, err
+		}
 	}
 
 	e.teambotEKMetadataCache.Add(cacheKey, metadata)
@@ -815,7 +853,7 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		Metadata: metadata,
 	})
 
-	return ek, true, nil
+	return ek, role.IsRestrictedBot(), nil
 }
 
 func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID,

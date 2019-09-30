@@ -119,9 +119,26 @@ func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID
 		return key, false, nil
 	}
 
-	metadata, err := k.publishNewTeambotKey(mctx, teamID, botUID, appKey)
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
 	if err != nil {
 		return key, false, err
+	}
+
+	sig, box, isRestrictedBotMember, err := k.prepareNewTeambotKey(mctx, team, botUID, appKey)
+	if err != nil {
+		return key, false, err
+	}
+
+	// If the bot is not a restricted bot member don't try to publish the key
+	// for them. This can happen when decrypting past content after the bot is
+	// removed from the team.
+	metadata := box.Metadata
+	if isRestrictedBotMember {
+		if err = k.postNewTeambotKey(mctx, team.ID, sig, box.Box); err != nil {
+			return key, false, err
+		}
 	}
 
 	k.lru.Add(cacheKey, metadata)
@@ -130,7 +147,7 @@ func (k *MemberKeyer) getOrCreateTeambotKeyLocked(mctx libkb.MetaContext, teamID
 		Metadata: metadata,
 	}
 
-	return key, true, nil
+	return key, isRestrictedBotMember, nil
 }
 
 func (k *MemberKeyer) deriveTeambotKeyFromAppKey(mctx libkb.MetaContext, applicationKey keybase1.TeamApplicationKey, botUID keybase1.UID) keybase1.Bytes32 {
@@ -139,29 +156,6 @@ func (k *MemberKeyer) deriveTeambotKeyFromAppKey(mctx libkb.MetaContext, applica
 	_, _ = hasher.Write([]byte{byte(applicationKey.Application)})
 	_, _ = hasher.Write([]byte(libkb.EncryptionReasonTeambotKey))
 	return libkb.MakeByte32(hasher.Sum(nil))
-}
-
-func (k *MemberKeyer) publishNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID, botUID keybase1.UID,
-	appKey keybase1.TeamApplicationKey) (metadata keybase1.TeambotKeyMetadata, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("MemberKeyer#publishNewTeambotKey teamID: %v, botUID: %v", teamID, botUID), func() error { return err })()
-
-	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
-		ID: teamID,
-	})
-	if err != nil {
-		return metadata, err
-	}
-
-	sig, box, err := k.prepareNewTeambotKey(mctx, team, botUID, appKey)
-	if err != nil {
-		return metadata, err
-	}
-
-	if err = k.postNewTeambotKey(mctx, team.ID, sig, box.Box); err != nil {
-		return metadata, err
-	}
-
-	return box.Metadata, nil
 }
 
 func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.TeamID,
@@ -185,13 +179,14 @@ func (k *MemberKeyer) postNewTeambotKey(mctx libkb.MetaContext, teamID keybase1.
 
 func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.Team,
 	botUID keybase1.UID, appKey keybase1.TeamApplicationKey) (
-	sig string, box *keybase1.TeambotKeyBoxed, err error) {
-	defer mctx.TraceTimed(fmt.Sprintf("MemberKeyer#prepareNewTeambotKey: teamID: %v, botUID: %v", team.ID, botUID), func() error { return err })()
+	sig string, box *keybase1.TeambotKeyBoxed, isRestrictedBotMember bool, err error) {
+	defer mctx.TraceTimed(fmt.Sprintf("MemberKeyer#prepareNewTeambotKey: teamID: %v, botUID: %v", team.ID, botUID),
+		func() error { return err })()
 
 	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
 		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID))
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
 	latestPUK := upak.Current.GetLatestPerUserKey()
@@ -200,11 +195,11 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 		upak, _, err = mctx.G().GetUPAKLoader().LoadV2(
 			libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID).WithForceReload())
 		if err != nil {
-			return "", nil, err
+			return "", nil, false, err
 		}
 		latestPUK = upak.Current.GetLatestPerUserKey()
 		if latestPUK == nil {
-			return "", nil, fmt.Errorf("No PUK")
+			return "", nil, false, fmt.Errorf("No PUK")
 		}
 	}
 
@@ -212,7 +207,7 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 
 	recipientKey, err := libkb.ImportKeypairFromKID(latestPUK.EncKID)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
 	metadata := keybase1.TeambotKeyMetadata{
@@ -226,7 +221,7 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 	// private key.
 	boxedSeed, err := recipientKey.EncryptToString(seed[:], nil)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
 	boxed := keybase1.TeambotKeyBoxed{
@@ -236,18 +231,23 @@ func (k *MemberKeyer) prepareNewTeambotKey(mctx libkb.MetaContext, team *teams.T
 
 	metadataJSON, err := json.Marshal(metadata)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 
 	signingKey, err := team.SigningKey(mctx.Ctx())
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
 	sig, _, err = signingKey.SignToString(metadataJSON)
 	if err != nil {
-		return "", nil, err
+		return "", nil, false, err
 	}
-	return sig, &boxed, nil
+
+	role, err := team.MemberRole(mctx.Ctx(), upak.ToUserVersion())
+	if err != nil {
+		return "", nil, false, err
+	}
+	return sig, &boxed, role.IsRestrictedBot(), nil
 }
 
 func (k *MemberKeyer) PurgeCacheAtGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
