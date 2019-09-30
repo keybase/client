@@ -27,6 +27,10 @@ const searchServicesWithEmail: Array<Types.ServiceIdWithContact> = [
 export function servicesForNamespace(namespace: Types.AllowedNamespace): Array<Types.ServiceIdWithContact> {
   if (namespace === 'teams') {
     return searchServicesWithEmail
+  } else if (namespace === 'people') {
+    return searchServices
+  } else if (namespace === 'wallets') {
+    return ['keybase']
   }
   return allServices
 }

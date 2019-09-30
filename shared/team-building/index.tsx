@@ -520,6 +520,8 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       </Kb.Box2>
     )
 
+    const servicesForNamespace = Constants.servicesForNamespace(props.namespace)
+
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
@@ -540,13 +542,15 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        <ServiceTabBar
-          services={Constants.servicesForNamespace(props.namespace)}
-          selectedService={props.selectedService}
-          onChangeService={props.onChangeService}
-          serviceResultCount={props.serviceResultCount}
-          showServiceResultCount={props.showServiceResultCount}
-        />
+        {servicesForNamespace.length === 1 && servicesForNamespace[0] === 'keybase' ? null : (
+          <ServiceTabBar
+            services={servicesForNamespace}
+            selectedService={props.selectedService}
+            onChangeService={props.onChangeService}
+            serviceResultCount={props.serviceResultCount}
+            showServiceResultCount={props.showServiceResultCount}
+          />
+        )}
         {Styles.isMobile && (
           <ContactsBanner
             {...props}
