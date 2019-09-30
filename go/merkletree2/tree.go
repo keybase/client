@@ -437,14 +437,15 @@ func (t *Tree) GetEncodedValueWithProof(ctx logger.ContextInterface, tr Transact
 		// if we found a PositionHashPair corrisponding to the first element in
 		// deepestAndCurrSiblingPositions, it means the path might be deeper and we
 		// need to fetch more siblings.
-		var j int
+		candidateDeepest := len(deepestAndCurrSiblings)
 		if len(deepestAndCurrSiblings) > 0 {
-			j = sort.Search(len(deepestAndCurrSiblings), func(i int) bool {
+			candidateDeepest = sort.Search(len(deepestAndCurrSiblings), func(i int) bool {
 				return deepestAndCurrSiblings[i].Position.CmpInMerkleProofOrder(&deepestAndCurrSiblingPositions[0]) >= 0
 			})
 		}
-		if len(deepestAndCurrSiblings) > 0 && j < len(deepestAndCurrSiblings) && deepestAndCurrSiblings[j].Position.Equals(&deepestAndCurrSiblingPositions[0]) {
-			currSiblings = append(deepestAndCurrSiblings[:j], deepestAndCurrSiblings[j+1:]...)
+		if candidateDeepest < len(deepestAndCurrSiblings) && deepestAndCurrSiblings[candidateDeepest].Position.Equals(&deepestAndCurrSiblingPositions[0]) {
+			currSiblings = deepestAndCurrSiblings[:candidateDeepest]
+			currSiblings = append(currSiblings, deepestAndCurrSiblings[candidateDeepest+1:]...)
 		} else {
 			currSiblings = deepestAndCurrSiblings
 			needMore = false
