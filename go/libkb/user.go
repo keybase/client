@@ -1062,7 +1062,8 @@ func (u *User) ToUserForSignatures() (ret UserForSignatures) {
 
 var _ UserBasic = UserForSignatures{}
 
-// VID gets the VID that corresponds to the given UID.
+// VID gets the VID that corresponds to the given UID. A VID is a pseudonymous UID.
+// Should never error.
 func VID(mctx MetaContext, uid keybase1.UID) (ret keybase1.VID) {
 	mctx.G().vidMu.Lock()
 	defer mctx.G().vidMu.Unlock()
@@ -1076,15 +1077,18 @@ func VID(mctx MetaContext, uid keybase1.UID) (ret keybase1.VID) {
 		return ret
 	}
 	if err != nil {
+		// It's ok, we will just rerandomize in this case.
 		mctx.Debug("VID: failure to get: %s", err.Error())
 	}
-	b, err := RandBytes(16)
+	b, err := RandBytesWithSuffix(16, keybase1.UID_SUFFIX_2)
 	if err != nil {
+		// This should never happen.
 		mctx.Debug("VID: random bytes failed: %s", err.Error())
 	}
 	ret = keybase1.VID(hex.EncodeToString(b))
 	err = mctx.G().LocalDb.PutObj(key, nil, ret)
 	if err != nil {
+		// It's ok, we will just rerandomize in this case.
 		mctx.Debug("VID: store failed: %s", err.Error())
 	}
 	return ret
