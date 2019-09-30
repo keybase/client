@@ -1061,3 +1061,31 @@ func (u *User) ToUserForSignatures() (ret UserForSignatures) {
 }
 
 var _ UserBasic = UserForSignatures{}
+
+// VID gets the VID that corresponds to the given UID.
+func VID(mctx MetaContext, uid keybase1.UID) (ret keybase1.VID) {
+	mctx.G().vidMu.Lock()
+	defer mctx.G().vidMu.Unlock()
+
+	// Construct the key from the given uid passed in.
+	strKey := "vid" + ":" + string(uid)
+
+	key := DbKey{DBMisc, strKey}
+	found, err := mctx.G().LocalDb.GetInto(&ret, key)
+	if found {
+		return ret
+	}
+	if err != nil {
+		mctx.Debug("VID: failure to get: %s", err.Error())
+	}
+	b, err := RandBytes(16)
+	if err != nil {
+		mctx.Debug("VID: random bytes failed: %s", err.Error())
+	}
+	ret = keybase1.VID(hex.EncodeToString(b))
+	err = mctx.G().LocalDb.PutObj(key, nil, ret)
+	if err != nil {
+		mctx.Debug("VID: store failed: %s", err.Error())
+	}
+	return ret
+}

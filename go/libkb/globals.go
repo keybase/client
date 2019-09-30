@@ -17,7 +17,6 @@
 package libkb
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -1445,31 +1444,4 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
 	return res, nil
-}
-
-// VID gets the VID that corresponds to the given UID.
-func (g *GlobalContext) VID(ctx context.Context, uid keybase1.UID) (ret keybase1.VID, err error) {
-	g.vidMu.Lock()
-	defer g.vidMu.Unlock()
-
-	// Construct the key from the given uid passed in.
-	strKey := "vid" + ":" + string(uid)
-
-	key := DbKey{DBMisc, strKey}
-	var found bool
-	var b []byte
-	found, err = g.LocalDb.GetInto(&ret, key)
-	if found {
-		return ret, nil
-	}
-	if err != nil {
-		g.Log.CDebugf(ctx, "VID: failure to get: %s", err.Error())
-	}
-	b, err = RandBytes(16)
-	if err != nil {
-		return ret, err
-	}
-	ret = keybase1.VID(hex.EncodeToString(b))
-	err = g.LocalDb.PutObj(key, nil, ret)
-	return ret, err
 }
