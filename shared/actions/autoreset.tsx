@@ -11,25 +11,16 @@ const startAccountReset = (state: Container.TypedState, action: AutoresetGen.Sta
     RouteTreeGen.createNavigateAppend({path: ['recoverPasswordPromptReset'], replace: true}),
   ]
 }
+
 function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAccountPayload) {
-  let rpcPayload: {usernameOrEmail: string; passphrase: string; interactive: boolean}
-  if (action.payload.password) {
-    rpcPayload = {
-      interactive: false,
-      passphrase: action.payload.password.stringValue(),
-      usernameOrEmail: state.autoreset.username,
-    }
-  } else {
-    rpcPayload = {
-      interactive: false,
-      passphrase: '',
-      usernameOrEmail: state.autoreset.username,
-    }
-  }
   try {
     yield RPCGen.accountEnterResetPipelineRpcSaga({
       incomingCallMap: {},
-      params: rpcPayload,
+      params: {
+        interactive: false,
+        passphrase: action.payload.password ? action.payload.password.stringValue() : '',
+        usernameOrEmail: state.autoreset.username,
+      },
       waitingKey: Constants.autoresetEnterPipelineWaitingKey,
     })
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
@@ -37,6 +28,7 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
     yield Saga.put(AutoresetGen.createResetError({error: error}))
   }
 }
+
 const submittedReset = (_: Container.TypedState, action: AutoresetGen.SubmittedResetPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {pipelineStarted: !action.payload.checkEmail}, selected: 'resetWaiting'}],
