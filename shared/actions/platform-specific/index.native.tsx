@@ -523,7 +523,7 @@ const manageContactsCache = async (
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance
   if (NativeAppearance) {
-    //eslint disable-next-line
+    // eslint-disable-next-line no-inner-declarations
     function* handleGotChangeEvent(action: any) {
       yield Saga.delay(500)
       yield Saga.put(action)
