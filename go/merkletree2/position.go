@@ -253,3 +253,14 @@ func (t *Config) getDeepestChildIndex(p *Position) ChildIndex {
 	}
 	return ChildIndex(((*big.Int)(p).Bits())[0] & ((1 << t.BitsPerIndex) - 1))
 }
+
+func (p *Position) CmpInMerkleProofOrder(p2 *Position) int {
+	lp := (*big.Int)(p).BitLen()
+	lp2 := (*big.Int)(p2).BitLen()
+	if lp > lp2 {
+		return -1
+	} else if lp < lp2 {
+		return 1
+	}
+	return (*big.Int)(p).CmpAbs((*big.Int)(p2))
+}

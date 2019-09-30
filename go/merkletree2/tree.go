@@ -3,7 +3,6 @@ package merkletree2
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 	"sort"
 	"sync"
 
@@ -85,6 +84,10 @@ type KeyValuePair struct {
 }
 
 type EncodedValue []byte
+
+func (e EncodedValue) Equal(e2 EncodedValue) bool {
+	return bytes.Equal(e, e2)
+}
 
 // KeyEncodedValuePair is similar to a KeyValuePair, but the values is encoded
 // as a byte slice.
@@ -396,14 +399,7 @@ func (p PosHashPairsInMerkleProofOrder) Len() int {
 }
 
 func (p PosHashPairsInMerkleProofOrder) Less(i, j int) bool {
-	li := (*big.Int)(&(p[i].Position)).BitLen()
-	lj := (*big.Int)(&(p[j].Position)).BitLen()
-	if li > lj {
-		return true
-	} else if li < lj {
-		return false
-	}
-	return (*big.Int)(&(p[i].Position)).CmpAbs((*big.Int)(&(p[j].Position))) < 0
+	return p[i].Position.CmpInMerkleProofOrder(&(p[j].Position)) < 0
 }
 
 func (p PosHashPairsInMerkleProofOrder) Swap(i, j int) {
@@ -435,21 +431,26 @@ func (t *Tree) GetEncodedValueWithProof(ctx logger.ContextInterface, tr Transact
 			return nil, MerkleInclusionProof{}, err
 		}
 
+		sort.Sort(PosHashPairsInMerkleProofOrder(deepestAndCurrSiblings))
+
 		var currSiblings []PositionHashPair
 		// if we found a PositionHashPair corrisponding to the first element in
 		// deepestAndCurrSiblingPositions, it means the path might be deeper and we
 		// need to fetch more siblings.
-		if len(deepestAndCurrSiblings) > 0 && deepestAndCurrSiblings[0].Position.Equals(&deepestAndCurrSiblingPositions[0]) {
-			currSiblings = deepestAndCurrSiblings[1:]
-			needMore = true
+		var j int
+		if len(deepestAndCurrSiblings) > 0 {
+			j = sort.Search(len(deepestAndCurrSiblings), func(i int) bool {
+				return deepestAndCurrSiblings[i].Position.CmpInMerkleProofOrder(&deepestAndCurrSiblingPositions[0]) >= 0
+			})
+		}
+		if len(deepestAndCurrSiblings) > 0 && j < len(deepestAndCurrSiblings) && deepestAndCurrSiblings[j].Position.Equals(&deepestAndCurrSiblingPositions[0]) {
+			currSiblings = append(deepestAndCurrSiblings[:j], deepestAndCurrSiblings[j+1:]...)
 		} else {
 			currSiblings = deepestAndCurrSiblings
 			needMore = false
 		}
 		siblingPosHashPairs = append(currSiblings, siblingPosHashPairs...)
 	}
-
-	sort.Sort(PosHashPairsInMerkleProofOrder(siblingPosHashPairs))
 
 	var leafLevel int
 	if len(siblingPosHashPairs) == 0 {
