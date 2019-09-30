@@ -25,13 +25,13 @@ const ConflictBanner = (props: Props) => {
     case Types.ConflictStateType.NormalView: {
       const {feedbackAction, helpAction, startRes} = getActions(props)
       if (props.conflictState.stuckInConflict) {
-        const color = props.conflictState.localViewTlfPaths.size ? 'red' : 'yellow'
+        const color = props.conflictState.localViewTlfPaths.length ? 'red' : 'yellow'
         return (
           <Kb.Banner color={color}>
             <Kb.BannerParagraph
               bannerColor={color}
               content={[
-                (props.conflictState.localViewTlfPaths.size
+                (props.conflictState.localViewTlfPaths.length
                   ? `This is the rest of the world's view of ${props.tlfPath}. Your changes to this view`
                   : `Your changes to ${props.tlfPath}`) +
                   ' conflict with changes made to this folder on another device. ' +
@@ -46,8 +46,8 @@ const ConflictBanner = (props: Props) => {
           </Kb.Banner>
         )
       }
-      if (props.conflictState.localViewTlfPaths.size) {
-        const localViewCount = props.conflictState.localViewTlfPaths.size
+      if (props.conflictState.localViewTlfPaths.length) {
+        const localViewCount = props.conflictState.localViewTlfPaths.length
         const {feedbackAction, helpAction} = getActions(props)
         return (
           <Kb.Banner color="red">
@@ -56,7 +56,7 @@ const ConflictBanner = (props: Props) => {
               content={[
                 `This is the rest of the world's view of ${props.tlfPath}.` +
                   " When you're satisfied with this view, you can delete the local conflict view. ",
-                ...props.conflictState.localViewTlfPaths.toArray().map((tlfPath, idx) => ({
+                ...props.conflictState.localViewTlfPaths.map((tlfPath, idx) => ({
                   onClick: () => props.onGoToSamePathInDifferentTlf(tlfPath),
                   spaceBefore: true,
                   text:

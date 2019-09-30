@@ -9,5 +9,6 @@ export const makeState = I.Record<Types._State>({
   error: new HiddenString(''),
   explainedDevice: undefined,
   paperKeyError: new HiddenString(''),
+  passwordError: new HiddenString(''),
   username: '',
 })

@@ -198,7 +198,8 @@ func (s *UserEKBoxStorage) fetchAndStore(mctx libkb.MetaContext, generation keyb
 	keypair := seed.DeriveDHKey()
 
 	if !keypair.GetKID().Equal(userEKMetadata.Kid) {
-		return userEK, fmt.Errorf("Failed to verify server given seed against signed KID %s", userEKMetadata.Kid)
+		return userEK, fmt.Errorf("Failed to verify server given seed [%s] against signed KID [%s]. Box %+v",
+			userEKMetadata.Kid, keypair.GetKID(), userEKBoxed)
 	}
 
 	// Store the boxed version, return the unboxed

@@ -83,9 +83,9 @@ func (r *teambotHandler) teambotKeyNeeded(ctx context.Context, cli gregor1.Incom
 	r.G().Log.CDebugf(ctx, "teambot.teambot_key_needed unmarshaled: %+v", msg)
 
 	if err := teambot.HandleTeambotKeyNeeded(r.MetaContext(ctx), msg.Id, msg.Uid, msg.Generation); err != nil {
-		return err
+		r.G().Log.CDebugf(ctx, "teambot.teambot_key_needed unable to make new key: %v", err)
 	}
 
-	r.G().Log.CDebugf(ctx, "dismissing teambot.teambot_key_needed item since action succeeded")
+	r.G().Log.CDebugf(ctx, "dismissing teambot.teambot_key_needed item")
 	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

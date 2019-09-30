@@ -796,7 +796,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		*msg.ClientHeader.KbfsCryptKeysUsed = false
 	}
 
-	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, conv, atMentions)
+	var convID *chat1.ConversationID
+	if conv != nil {
+		id := conv.GetConvID()
+		convID = &id
+	}
+	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, convID, membersType, atMentions)
 	if err != nil {
 		return res, err
 	}
@@ -823,17 +828,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}, nil
 }
 
-func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID, msg chat1.MessagePlaintext,
-	conv *chat1.ConversationLocal, atMentions []gregor1.UID) ([]gregor1.UID, error) {
-	if conv == nil {
-		return nil, nil
-	}
-	if msg.ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
-		return nil, nil
-	}
-
+func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID,
+	msg chat1.MessagePlaintext, convID *chat1.ConversationID, membersType chat1.ConversationMembersType,
+	atMentions []gregor1.UID) ([]gregor1.UID, error) {
 	// no bots in KBFS convs
-	if conv.GetMembersType() == chat1.ConversationMembersType_KBFS {
+	if membersType == chat1.ConversationMembersType_KBFS {
 		return nil, nil
 	}
 
@@ -844,8 +843,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 
 	// Check if we are superseding a bot message. If so just take what the
 	// superseded has.
-	if msg.ClientHeader.Supersedes > 0 {
-		target, err := s.getMessage(ctx, uid, conv.GetConvID(), msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
+	if msg.ClientHeader.Supersedes > 0 && convID != nil {
+		target, err := s.getMessage(ctx, uid, *convID, msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
 		if err != nil {
 			return nil, err
 		}
@@ -857,8 +856,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	}
 
 	// Fetch the bot settings, if any
-	teamBotSettings, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).TeamBotSettings(ctx,
-		conv.Info.TlfName, conv.Info.Triple.Tlfid, conv.GetMembersType(), conv.IsPublic())
+	teamBotSettings, err := CreateNameInfoSource(ctx, s.G(), membersType).TeamBotSettings(ctx,
+		msg.ClientHeader.TlfName, msg.ClientHeader.Conv.Tlfid, membersType, msg.ClientHeader.TlfPublic)
 	if err != nil {
 		return nil, err
 	}
@@ -872,7 +871,7 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 	for uv, botSettings := range teamBotSettings {
 		botUID := gregor1.UID(uv.Uid.ToBytes())
 		isMatch, err := bots.ApplyTeamBotSettings(ctx, s.G(), botUID, botSettings, msg,
-			conv, mentionMap, s.DebugLabeler)
+			convID, mentionMap, s.DebugLabeler)
 		if err != nil {
 			return nil, err
 		}

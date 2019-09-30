@@ -136,9 +136,6 @@ const styles = Styles.styleSheetCreate(
         borderBottomWidth: 1,
         borderColor: Styles.globalColors.black_10,
         borderStyle: 'solid',
-        left: 0,
-        position: 'absolute',
-        top: 0,
         width: '100%',
       },
       imageContainer: {

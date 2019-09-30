@@ -49,4 +49,5 @@ export const newModalRoutes = {
   proxySettingsModal: {
     getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
   },
+  ...require('./recover-password/routes').newModalRoutes,
 }
