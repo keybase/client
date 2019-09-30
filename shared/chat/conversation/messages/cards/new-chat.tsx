@@ -47,10 +47,10 @@ const styles = Styles.styleSheetCreate(
         common: {
           backgroundColor: Styles.globalColors.blueDark,
           borderRadius: Styles.borderRadius,
-          marginTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
         },
         isElectron: {
           height: 100,
+          marginTop: Styles.globalMargins.xsmall,
           maxWidth: 400,
         },
         isMobile: {
