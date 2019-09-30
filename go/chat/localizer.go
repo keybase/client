@@ -669,6 +669,7 @@ func (s *localizerPipeline) getResetUsernamesMetadata(ctx context.Context, uidMa
 // returns an incomplete list in case of error
 func (s *localizerPipeline) getResetUsernamesPegboard(ctx context.Context, uidMapper libkb.UIDMapper,
 	membersType chat1.ConversationMembersType, info types.NameInfo, public bool) (res []string, err error) {
+	// NOTE: If this is too slow, it could be cached on local metadata.
 	team, err := NewTeamLoader(s.G().ExternalG()).loadTeam(ctx, info.ID, info.CanonicalName,
 		membersType, public, nil)
 	if err != nil {
