@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -1139,4 +1140,25 @@ func GetSafeFilename(filename string) (safeFilename string) {
 func GetSafePath(path string) (safePath string) {
 	dir, file := filepath.Split(path)
 	return filepath.Join(dir, GetSafeFilename(file))
+}
+
+func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitraryName bool) (filePath string, err error) {
+	ext := filepath.Ext(basename)
+	if useArbitraryName {
+		return filepath.Join(parentDir, strconv.FormatInt(time.Now().UnixNano(), 16)+ext), nil
+	}
+	destPathBase := filepath.Join(parentDir, basename[:len(basename)-len(ext)])
+	destPath := destPathBase + ext
+	for suffix := 1; ; suffix++ {
+		_, err := os.Stat(destPath)
+		if os.IsNotExist(err) {
+			break
+		}
+		if err != nil {
+			return "", err
+		}
+		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
+	}
+	// Could race but it should be rare enough so fine.
+	return destPath, nil
 }

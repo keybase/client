@@ -29,7 +29,6 @@ import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
-import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
@@ -2056,7 +2055,7 @@ const openFolder = (state: TypedState, action: Chat2Gen.OpenFolderPayload) => {
 const clearSearchResults = (_: TypedState, action: SearchGen.UserInputItemsUpdatedPayload) =>
   action.payload.searchKey === 'chatSearch' && SearchGen.createClearSearchResults({searchKey: 'chatSearch'})
 
-function* downloadAttachment(fileName: string, message: Types.Message) {
+function* downloadAttachment(downloadToCache: boolean, message: Types.Message) {
   try {
     const conversationIDKey = message.conversationIDKey
     let lastRatioSent = -1 // force the first update to show no matter what
@@ -2081,22 +2080,22 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
         },
         params: {
           conversationID: Types.keyToConversationID(conversationIDKey),
-          filename: fileName,
+          downloadToCache,
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           messageID: message.id,
           preview: false,
         },
       }
     )
-    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filename}))
-    return rpcRes.filename
+    yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
+    return rpcRes.filePath
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
     yield Saga.put(
       Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message})
     )
+    return undefined
   }
-  return fileName
 }
 
 // Download an attachment to your device
@@ -2117,9 +2116,7 @@ function* attachmentDownload(
     return
   }
 
-  // Download it
-  const destPath = yield downloadFilePath(message.fileName)
-  yield Saga.callUntyped(downloadAttachment, destPath, message)
+  yield Saga.callUntyped(downloadAttachment, false, message)
 }
 
 function* attachmentFullscreenNext(state: TypedState, action: Chat2Gen.AttachmentFullscreenNextPayload) {
@@ -2482,7 +2479,11 @@ function* mobileMessageAttachmentShare(
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield* downloadAttachment('', message)
+  const fileName = yield* downloadAttachment(true, message)
+  if (!fileName) {
+    logger.error('Downloading attachment failed')
+    throw new Error('Downloading attachment failed')
+  }
   try {
     yield showShareActionSheetFromFile(fileName)
   } catch (e) {
@@ -2500,8 +2501,8 @@ function* mobileMessageAttachmentSave(
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield* downloadAttachment('', message)
-  if (fileName === '') {
+  const fileName = yield* downloadAttachment(true, message)
+  if (!fileName) {
     // failed to download
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')

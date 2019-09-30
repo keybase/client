@@ -900,11 +900,11 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	}
 
 	arg := chat1.DownloadFileAttachmentLocalArg{
-		SessionID:      getSessionID(chatUI),
-		ConversationID: convID,
-		MessageID:      opts.MessageID,
-		Preview:        opts.Preview,
-		Filename:       opts.Output,
+		SessionID:       getSessionID(chatUI),
+		ConversationID:  convID,
+		MessageID:       opts.MessageID,
+		Preview:         opts.Preview,
+		DownloadToCache: false,
 	}
 
 	dres, err := client.DownloadFileAttachmentLocal(ctx, arg)

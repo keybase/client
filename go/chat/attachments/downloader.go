@@ -26,43 +26,40 @@ func getDownloadTempDir(g *globals.Context, basename string) (string, error) {
 
 func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, messageID chat1.MessageID,
-	filename string) (string, io.WriteCloser, error) {
+	parentDir string, useArbitraryName bool) (string, io.WriteCloser, error) {
 	var sink io.WriteCloser
 	var err error
 	const openFlag int = os.O_RDWR | os.O_CREATE | os.O_TRUNC
-	if filename == "" {
-		// No filename means we will create one in the OS temp dir
-		// Get the sent file name first
-		reason := chat1.GetThreadReason_GENERAL
-		unboxed, err := g.ChatHelper.GetMessages(ctx, uid, convID,
-			[]chat1.MessageID{messageID}, true, &reason)
-		if err != nil {
-			return "", nil, err
-		}
-		if !unboxed[0].IsValid() {
-			return "", nil, errors.New("unable to download attachment from invalid message")
-		}
-		body := unboxed[0].Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil || typ != chat1.MessageType_ATTACHMENT {
-			return "", nil, fmt.Errorf("invalid message type for download: %v", typ)
-		}
-		basepath := body.Attachment().Object.Filename
-		basename := path.Base(basepath)
-		filename, err = getDownloadTempDir(g, basename)
-		if err != nil {
-			return "", nil, err
-		}
-	} else {
-		if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
-			return "", nil, err
-		}
-	}
-	filename = libkb.GetSafePath(filename)
-	if sink, err = os.OpenFile(filename, openFlag, libkb.PermFile); err != nil {
+	if err := os.MkdirAll(parentDir, libkb.PermDir); err != nil {
 		return "", nil, err
 	}
-	return filename, sink, nil
+
+	reason := chat1.GetThreadReason_GENERAL
+	unboxed, err := g.ChatHelper.GetMessages(ctx, uid, convID,
+		[]chat1.MessageID{messageID}, true, &reason)
+	if err != nil {
+		return "", nil, err
+	}
+	if !unboxed[0].IsValid() {
+		return "", nil, errors.New("unable to download attachment from invalid message")
+	}
+	body := unboxed[0].Valid().MessageBody
+	typ, err := body.MessageType()
+	if err != nil || typ != chat1.MessageType_ATTACHMENT {
+		return "", nil, fmt.Errorf("invalid message type for download: %v", typ)
+	}
+	basepath := body.Attachment().Object.Filename
+	basename := path.Base(basepath)
+	safeBasename := libkb.GetSafeFilename(basename)
+
+	filePath, err := libkb.FindFilePathWithNumberSuffix(parentDir, safeBasename, useArbitraryName)
+	if err != nil {
+		return "", nil, err
+	}
+	if sink, err = os.OpenFile(filePath, openFlag, libkb.PermFile); err != nil {
+		return "", nil, err
+	}
+	return filePath, sink, nil
 }
 
 func Download(ctx context.Context, g *globals.Context, uid gregor1.UID,

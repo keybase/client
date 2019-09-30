@@ -4554,14 +4554,14 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 }
 
 type DownloadFileAttachmentLocalRes struct {
-	Filename         string                        `codec:"filename" json:"filename"`
+	FilePath         string                        `codec:"filePath" json:"filePath"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o DownloadFileAttachmentLocalRes) DeepCopy() DownloadFileAttachmentLocalRes {
 	return DownloadFileAttachmentLocalRes{
-		Filename: o.Filename,
+		FilePath: o.FilePath,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -5865,9 +5865,14 @@ type DownloadFileAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
-	Filename         string                       `codec:"filename" json:"filename"`
+	DownloadToCache  bool                         `codec:"downloadToCache" json:"downloadToCache"`
 	Preview          bool                         `codec:"preview" json:"preview"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type ConfigureFileAttachmentDownloadLocalArg struct {
+	CacheDirOverride    string `codec:"cacheDirOverride" json:"cacheDirOverride"`
+	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
 type MakePreviewArg struct {
@@ -6186,6 +6191,7 @@ type LocalInterface interface {
 	GetNextAttachmentMessageLocal(context.Context, GetNextAttachmentMessageLocalArg) (GetNextAttachmentMessageLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
+	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
@@ -6702,6 +6708,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DownloadFileAttachmentLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"ConfigureFileAttachmentDownloadLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ConfigureFileAttachmentDownloadLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ConfigureFileAttachmentDownloadLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ConfigureFileAttachmentDownloadLocalArg)(nil), args)
+						return
+					}
+					err = i.ConfigureFileAttachmentDownloadLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7627,6 +7648,11 @@ func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg Download
 
 func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg DownloadFileAttachmentLocalArg) (res DownloadFileAttachmentLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.DownloadFileAttachmentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ConfigureFileAttachmentDownloadLocal(ctx context.Context, __arg ConfigureFileAttachmentDownloadLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.ConfigureFileAttachmentDownloadLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"sync"
@@ -55,6 +56,10 @@ type Server struct {
 	searchInboxCancelFn context.CancelFunc
 	loadGalleryCancelFn context.CancelFunc
 
+	fileAttachmentDownloadConfigurationMu sync.RWMutex
+	fileAttachmentDownloadCacheDir        string
+	fileAttachmentDownloadDownloadDir     string
+
 	// Only for testing
 	rc         chat1.RemoteInterface
 	mockChatUI libkb.ChatUI
@@ -64,13 +69,15 @@ var _ chat1.LocalInterface = (*Server)(nil)
 
 func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
 	return &Server{
-		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Server", false),
-		serverConn:     serverConn,
-		uiSource:       uiSource,
-		boxer:          NewBoxer(g),
-		identNotifier:  NewCachingIdentifyNotifier(g),
-		uiThreadLoader: NewUIThreadLoader(g),
+		Contextified:                      globals.NewContextified(g),
+		DebugLabeler:                      utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		serverConn:                        serverConn,
+		uiSource:                          uiSource,
+		boxer:                             NewBoxer(g),
+		identNotifier:                     NewCachingIdentifyNotifier(g),
+		uiThreadLoader:                    NewUIThreadLoader(g),
+		fileAttachmentDownloadCacheDir:    g.GetEnv().GetCacheDir(),
+		fileAttachmentDownloadDownloadDir: filepath.Join(g.GetEnv().GetHome(), "Downloads"),
 	}
 }
 
@@ -1078,6 +1085,19 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
+func (h *Server) getFileAttachmentDownloadDirs() (cacheDir, downloadDir string) {
+	h.fileAttachmentDownloadConfigurationMu.RLock()
+	defer h.fileAttachmentDownloadConfigurationMu.RUnlock()
+	return h.fileAttachmentDownloadCacheDir, h.fileAttachmentDownloadDownloadDir
+}
+
+func (h *Server) ConfigureFileAttachmentDownloadLocal(ctx context.Context, arg chat1.ConfigureFileAttachmentDownloadLocalArg) (err error) {
+	h.fileAttachmentDownloadConfigurationMu.Lock()
+	defer h.fileAttachmentDownloadConfigurationMu.Unlock()
+	h.fileAttachmentDownloadCacheDir, h.fileAttachmentDownloadDownloadDir = arg.CacheDirOverride, arg.DownloadDirOverride
+	return nil
+}
+
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1095,19 +1115,25 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	filename, sink, err := attachments.SinkFromFilename(ctx, h.G(), uid,
-		arg.ConversationID, arg.MessageID, arg.Filename)
+	cacheDir, downloadDir := h.getFileAttachmentDownloadDirs()
+	downloadParentdir, useArbitraryName := downloadDir, false
+	if arg.DownloadToCache {
+		downloadParentdir, useArbitraryName = cacheDir, true
+	}
+	filePath, sink, err := attachments.SinkFromFilename(ctx, h.G(), uid,
+		arg.ConversationID, arg.MessageID, downloadParentdir, useArbitraryName)
 	if err != nil {
 		return res, err
 	}
 	defer func() {
 		// In the event of any error delete the file if it's empty.
 		if err != nil {
-			h.Debug(ctx, "DownloadFileAttachmentLocal: deleteFileIfEmpty: %v", deleteFileIfEmpty(filename))
+			h.Debug(ctx, "DownloadFileAttachmentLocal: deleteFileIfEmpty: %v", deleteFileIfEmpty(filePath))
 		}
 	}()
-	if err := attachments.Quarantine(ctx, filename); err != nil {
+	if err := attachments.Quarantine(ctx, filePath); err != nil {
 		h.Debug(ctx, "DownloadFileAttachmentLocal: failed to quarantine download: %s", err)
+		return res, err
 	}
 	darg.Sink = sink
 	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
@@ -1115,7 +1141,7 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		return res, err
 	}
 	return chat1.DownloadFileAttachmentLocalRes{
-		Filename:         filename,
+		FilePath:         filePath,
 		IdentifyFailures: ires.IdentifyFailures,
 	}, nil
 }
