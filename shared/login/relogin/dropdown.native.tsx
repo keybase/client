@@ -135,7 +135,12 @@ class Dropdown extends React.Component<Props, State> {
     }
 
     return (
-      <NativePicker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
+      <NativePicker
+        style={style}
+        selectedValue={this.state.value}
+        onValueChange={onValueChange}
+        itemStyle={styles.item}
+      >
         {items.map(i => (
           <NativePicker.Item key={i.label} {...i} />
         ))}
@@ -198,6 +203,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: 17,
       },
       icon: {width: 10},
+      item: {color: Styles.globalColors.black},
       pickerAndroid: {
         backgroundColor: Styles.globalColors.transparent,
         bottom: 0,
@@ -208,7 +214,7 @@ const styles = Styles.styleSheetCreate(
         top: 0,
       },
       pickerContainer: {
-        backgroundColor: Styles.globalColors.black_50,
+        backgroundColor: Styles.globalColors.black_50OrBlack_60,
         flex: 1,
         justifyContent: 'flex-end',
       },
