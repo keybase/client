@@ -282,7 +282,8 @@ func (k *TeambotEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.Tea
 
 	keypair := seed.DeriveDHKey()
 	if !keypair.GetKID().Equal(teambotEKBoxed.Metadata.Kid) {
-		return ek, fmt.Errorf("Failed to verify server given seed against signed KID %s", teambotEKBoxed.Metadata.Kid)
+		return ek, fmt.Errorf("Failed to verify server given seed [%s] against signed KID [%s]. Box: %+v",
+			teambotEKBoxed.Metadata.Kid, keypair.GetKID(), teambotEKBoxed)
 	}
 
 	return keybase1.NewTeamEphemeralKeyWithTeambot(keybase1.TeambotEk{
