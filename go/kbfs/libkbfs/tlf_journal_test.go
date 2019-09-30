@@ -769,7 +769,8 @@ func testTLFJournalBlockOpDiskLimitTimeout(t *testing.T, ver kbfsmd.MetadataVer)
 
 	data := []byte{1, 2, 3, 4}
 	id, bCtx, serverHalf := config.makeBlock(data)
-	err := tlfJournal.putBlockData(ctx, id, bCtx, data, serverHalf)
+	putCtx := context.Background() // rely on default disk limit timeout
+	err := tlfJournal.putBlockData(putCtx, id, bCtx, data, serverHalf)
 	timeoutErr, ok := errors.Cause(err).(*ErrDiskLimitTimeout)
 	require.True(t, ok)
 	require.Error(t, timeoutErr.err)
