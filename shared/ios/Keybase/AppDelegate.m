@@ -74,7 +74,7 @@
   AppearanceRootView *rootView = [[AppearanceRootView alloc] initWithBridge:bridge
                                                    moduleName:@"Keybase"
                                             initialProperties:nil];
-  rootView.backgroundColor = [[UIColor alloc] initWithRed:1.0f green:1.0f blue:1.0f alpha:1];
+  rootView.backgroundColor = [[UIColor alloc] initWithRed:71/255.0f green:139/255.f blue:1.0f alpha:1];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
@@ -155,7 +155,7 @@
       // This always tries to unbox the notification and adds a plaintext
       // notification if displayPlaintext is set.
       KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
-            messageID, pushID, badgeCount, unixTime, soundName, pusher, &err);
+            messageID, pushID, badgeCount, unixTime, soundName, pusher, false, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }
@@ -168,7 +168,7 @@
       NSString* convID = notification[@"convID"];
       int messageID = [notification[@"msgID"] intValue];
       KeybaseHandleBackgroundNotification(convID, body, @"", sender, membersType, displayPlaintext,
-                                          messageID, @"", badgeCount, unixTime, soundName, nil, &err);
+                                          messageID, @"", badgeCount, unixTime, soundName, nil, false, &err);
       if (err != nil) {
         NSLog(@"Failed to handle in engine: %@", err);
       }

@@ -62,9 +62,7 @@ const useTopNTlfs = (
   // TODO move these sorting to Go HOTPOT-433
   React.useMemo(
     () =>
-      tlfs
-        .valueSeq()
-        .toArray()
+      [...tlfs.values()]
         .filter(({isIgnored}) => !isIgnored)
         .sort((tlf1, tlf2) => tlf2.tlfMtime - tlf1.tlfMtime)
         .slice(0, n)
