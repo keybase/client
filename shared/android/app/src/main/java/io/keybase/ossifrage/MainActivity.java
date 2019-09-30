@@ -109,6 +109,24 @@ public class MainActivity extends ReactFragmentActivity {
 
   }
 
+  private static final int ANDROID_TEN = 29;
+  private String colorSchemeForCurrentConfiguration() {
+    // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
+    if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
+      int currentNightMode =
+              this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+      switch (currentNightMode) {
+        case Configuration.UI_MODE_NIGHT_NO:
+          return "light";
+        case Configuration.UI_MODE_NIGHT_YES:
+          return "dark";
+      }
+    }
+
+    return "light";
+  }
+
+
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
@@ -120,9 +138,10 @@ public class MainActivity extends ReactFragmentActivity {
     // This prevents the image from being visible behind the app, such as during a
     // keyboard show animation.
     final Window mainWindow = this.getWindow();
+    final int bgColor = this.colorSchemeForCurrentConfiguration() == "light" ? R.color.white : R.color.black;
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        mainWindow.setBackgroundDrawableResource(R.color.white);
+        mainWindow.setBackgroundDrawableResource(bgColor);
       }
     }, 300);
 
@@ -374,5 +393,9 @@ public class MainActivity extends ReactFragmentActivity {
         currentContext.getNativeModule(AppearanceModule.class).onConfigurationChanged();
       }
     }
+
+    final Window mainWindow = this.getWindow();
+    final int bgColor = this.colorSchemeForCurrentConfiguration() == "light" ? R.color.white : R.color.black;
+    mainWindow.setBackgroundDrawableResource(bgColor);
   }
 }
