@@ -26,7 +26,7 @@ export const rowsProvider = {
   ConnectedRows: (o: any) => ({
     destinationPickerIndex: o.destinationPickerIndex,
     emptyMode: 'not-empty',
-    items: I.List([
+    items: [
       ...(o.headerRows || []),
       ...topBarAsRow(o.path),
       {
@@ -137,7 +137,7 @@ export const rowsProvider = {
             {key: 'empty:1', rowType: RowTypes.RowType.Empty},
           ]
         : []),
-    ]),
+    ],
   }),
   ConnectedStillRow: ({
     path,

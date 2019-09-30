@@ -53,69 +53,66 @@ const fileCommon = {lastWriter: 'foo', writable: true}
 const storeCommon = Sb.createStoreWithCommon()
 const store = {
   ...storeCommon,
-  fs: storeCommon.fs
-    .set(
-      'fileContext',
-      I.Map([
-        [
-          '/keybase/private/foo/small.jpg',
-          Constants.makeFileContext({
-            contentType: 'image/jpeg',
-            url: 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png',
-            viewType: RPCTypes.GUIViewType.image,
-          }),
-        ],
-        [
-          '/keybase/private/foo/large.jpg',
-          Constants.makeFileContext({
-            contentType: 'image/jpeg',
-            url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
-            viewType: RPCTypes.GUIViewType.image,
-          }),
-        ],
-        [
-          '/keybase/private/foo/text.txt',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
-            viewType: RPCTypes.GUIViewType.image,
-          }),
-        ],
-        [
-          '/keybase/private/foo/video.mp4',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            url:
-              'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
-            viewType: RPCTypes.GUIViewType.video,
-          }),
-        ],
-        [
-          '/keybase/private/foo/default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            viewType: RPCTypes.GUIViewType.default,
-          }),
-        ],
-        [
-          '/keybase/private/foo/default.default',
-          Constants.makeFileContext({
-            contentType: 'text/plain; charset=utf-8',
-            viewType: RPCTypes.GUIViewType.default,
-          }),
-        ],
-      ])
-    )
-    .set(
-      'pathItems',
+  fs: {
+    ...storeCommon.fs,
+    fileContext: I.Map([
+      [
+        '/keybase/private/foo/small.jpg',
+        Constants.makeFileContext({
+          contentType: 'image/jpeg',
+          url: 'https://keybase.io/images/icons/icon-keybase-logo-48@2x.png',
+          viewType: RPCTypes.GUIViewType.image,
+        }),
+      ],
+      [
+        '/keybase/private/foo/large.jpg',
+        Constants.makeFileContext({
+          contentType: 'image/jpeg',
+          url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+          viewType: RPCTypes.GUIViewType.image,
+        }),
+      ],
+      [
+        '/keybase/private/foo/text.txt',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          url: 'https://keybase.io/images/blog/teams/teams-splash-announcement.png',
+          viewType: RPCTypes.GUIViewType.image,
+        }),
+      ],
+      [
+        '/keybase/private/foo/video.mp4',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          url:
+            'https://archive.org/download/youtube%2DA0FZIwabctw/Falcon%5FHeavy%5FStarman%2DA0FZIwabctw%2Emp4',
+          viewType: RPCTypes.GUIViewType.video,
+        }),
+      ],
+      [
+        '/keybase/private/foo/default-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name-long-name.default',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          viewType: RPCTypes.GUIViewType.default,
+        }),
+      ],
+      [
+        '/keybase/private/foo/default.default',
+        Constants.makeFileContext({
+          contentType: 'text/plain; charset=utf-8',
+          viewType: RPCTypes.GUIViewType.default,
+        }),
+      ],
+    ]),
+    pathItems:
       // @ts-ignore
       I.Map([
         ['/keybase/private/foo/loading', Constants.makeFile()],
         ...filenames
           .filter(n => n !== 'loading')
           .map(name => [`/keybase/private/foo/${name}`, Constants.makeFile({...fileCommon, name})]),
-      ])
-    ),
+      ]),
+  },
 }
 
 // @ts-ignore

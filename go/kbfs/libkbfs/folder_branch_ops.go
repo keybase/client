@@ -8590,11 +8590,12 @@ func (fbo *folderBranchOps) GetUpdateHistory(
 			writerNames[rmd.LastModifyingWriter()] = writer
 		}
 		updateSummary := UpdateSummary{
-			Revision:  rmd.Revision(),
-			Date:      rmd.localTimestamp,
-			Writer:    writer,
-			LiveBytes: rmd.DiskUsage(),
-			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			Revision:    rmd.Revision(),
+			Date:        rmd.localTimestamp,
+			Writer:      writer,
+			LiveBytes:   rmd.DiskUsage(),
+			Ops:         make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			RootBlockID: rmd.data.Dir.ID.String(),
 		}
 		for _, op := range rmd.data.Changes.Ops {
 			opSummary := OpSummary{

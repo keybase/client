@@ -45,7 +45,16 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       numParticipants: info.numParticipants,
       selected: info.memberStatus === RPCChatTypes.ConversationMemberStatus.active,
     }))
-    .filter(conv => (searchText ? conv.name.match(makeInsertMatcher(searchText)) : true))
+    .filter(conv => {
+      if (!searchText) {
+        return true // no search text means show all
+      }
+      return (
+        // match channel name for search as subsequence (like the identity modal)
+        // match channel desc by strict substring (less noise in results)
+        conv.name.match(makeInsertMatcher(searchText)) || conv.description.match(new RegExp(searchText, 'i'))
+      )
+    })
     .valueSeq()
     .toArray()
     .sort((a, b) => a.name.localeCompare(b.name))
