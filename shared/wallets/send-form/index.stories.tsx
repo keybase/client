@@ -46,7 +46,6 @@ const provider = banner =>
       onChangeRecipient: Sb.action('onChangeRecipient'),
       onRemoveProfile: Sb.action('onRemoveProfile'),
       onShowProfile: Sb.action('onShowProfile'),
-      onShowSuggestions: Sb.action('onShowSuggestions'),
       recipientUsername: 'chris',
     }),
   })

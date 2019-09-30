@@ -14,6 +14,7 @@ import {isMobile} from '../platform'
 import {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
+import {ServiceId} from 'util/platforms'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -328,7 +329,7 @@ const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInvi
 
 export const makeMessageSystemSBSResolved = I.Record<MessageTypes._MessageSystemSBSResolved>({
   ...makeMessageCommonNoDeleteNoEdit,
-  assertionService: '',
+  assertionService: null,
   assertionUsername: '',
   prover: '',
   reactions: I.Map(),
@@ -593,7 +594,8 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.sbsresolve: {
-      const {prover = '???', assertionUsername = '???', assertionService = '???'} = body.sbsresolve || {}
+      const {prover = '???', assertionUsername = '???'} = body.sbsresolve || {}
+      const assertionService = body.sbsresolve && (body.sbsresolve.assertionService as ServiceId)
       return makeMessageSystemSBSResolved({
         ...minimum,
         assertionService,

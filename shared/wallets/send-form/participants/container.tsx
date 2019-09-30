@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
 import * as ProfileGen from '../../../actions/profile-gen'
-import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -34,7 +33,6 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
   onSearch: () => dispatch(appendWalletPersonBuilder()),
-  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
 })
 
 const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
@@ -46,7 +44,6 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
     onScanQRCode: dispatchProps.onScanQRCode,
     onSearch: dispatchProps.onSearch,
     onShowProfile,
-    onShowSuggestions: dispatchProps.onShowSuggestions,
   }
 }
 

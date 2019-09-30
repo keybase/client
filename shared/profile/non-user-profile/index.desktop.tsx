@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {Avatar, BackButton, Box, Button, Icon, Text} from '../../common-adapters'
-import {capitalize} from 'lodash-es'
 import * as Styles from '../../styles'
-import {platformToLogo24} from '../../constants/search'
+import {serviceIdToLogo24} from '../../util/platforms'
 import {AVATAR_SIZE} from '../../constants/profile'
 import {Props} from '.'
+import {serviceIdToPrettyName} from 'constants/team-building'
 
 const HEADER_TOP_SPACE = 48
 const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
@@ -25,7 +25,7 @@ const NonUserRender = (props: Props) => (
         <Box style={styles.bioBlurb}>
           <Avatar size={AVATAR_SIZE} />
           <Box style={styles.usernameRow}>
-            <Icon type={platformToLogo24(props.serviceName)} />
+            <Icon type={serviceIdToLogo24(props.serviceId)} />
             <Text type="HeaderBig" selectable={true} style={styles.username}>
               {props.username}
             </Text>
@@ -36,7 +36,7 @@ const NonUserRender = (props: Props) => (
             </Text>
           )}
           <Text type="BodySmall" style={styles.serviceLabel}>
-            {props.serviceName} user
+            {serviceIdToPrettyName(props.serviceId)} user
           </Text>
           <Button
             style={{marginTop: Styles.globalMargins.medium}}
@@ -54,8 +54,8 @@ const NonUserRender = (props: Props) => (
       <Box style={styles.rightColumn}>
         <Text center={true} type="BodySmall" style={styles.details}>{`When ${
           props.username
-        } connects Keybase and their ${capitalize(
-          props.serviceName
+        } connects Keybase and their ${serviceIdToPrettyName(
+          props.serviceId
         )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
       </Box>
     </Box>

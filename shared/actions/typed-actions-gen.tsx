@@ -20,7 +20,6 @@ import * as provision from './provision-gen'
 import * as push from './push-gen'
 import * as recoverpassword from './recover-password-gen'
 import * as routetree from './route-tree-gen'
-import * as search from './search-gen'
 import * as settings from './settings-gen'
 import * as signup from './signup-gen'
 import * as teambuilding from './team-building-gen'
@@ -52,7 +51,6 @@ export type TypedActions =
   | push.Actions
   | recoverpassword.Actions
   | routetree.Actions
-  | search.Actions
   | settings.Actions
   | signup.Actions
   | teambuilding.Actions
@@ -690,15 +688,6 @@ export type TypedActionsMap = {
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload
   'route-tree:switchTab': routetree.SwitchTabPayload
   'route-tree:resetStack': routetree.ResetStackPayload
-  'search:search': search.SearchPayload
-  'search:addResultsToUserInput': search.AddResultsToUserInputPayload
-  'search:removeResultsToUserInput': search.RemoveResultsToUserInputPayload
-  'search:setUserInputItems': search.SetUserInputItemsPayload
-  'search:userInputItemsUpdated': search.UserInputItemsUpdatedPayload
-  'search:clearSearchResults': search.ClearSearchResultsPayload
-  'search:updateSelectedSearchResult': search.UpdateSelectedSearchResultPayload
-  'search:searchSuggestions': search.SearchSuggestionsPayload
-  'search:finishedSearch': search.FinishedSearchPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload

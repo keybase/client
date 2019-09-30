@@ -6,7 +6,6 @@ import {ParticipantsRow} from '../../common'
 export type SearchProps = {
   heading: 'To' | 'From'
   onClickResult: (username: string) => void
-  onShowSuggestions: () => void
   onShowTracker: (username: string) => void
   onScanQRCode: (() => void) | null
   onSearch: () => void
