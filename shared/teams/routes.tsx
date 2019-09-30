@@ -38,11 +38,11 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamEditTeamDescription =>
       MaybePopupHoc(false)(require('./edit-team-description/container').default),
   },
-  teamInviteByEmail: {
-    getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
-  },
   teamInviteByContact: {
     getScreen: (): typeof TeamInviteByContact => require('./invite-by-contact/container').default,
+  },
+  teamInviteByEmail: {
+    getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
   },
   // TODO connect broken
   teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},

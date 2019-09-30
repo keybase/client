@@ -53,7 +53,7 @@ export default (
         draftState.teamNameToLoadingInvites = draftState.teamNameToLoadingInvites.update(
           action.payload.teamname,
           (inviteToLoading = I.Map<string, boolean>()) =>
-            inviteToLoading.set(action.payload.invitees, action.payload.loadingInvites)
+            inviteToLoading.set(action.payload.loadingKey, action.payload.isLoading)
         )
         return
       case TeamsGen.clearTeamRequests:
