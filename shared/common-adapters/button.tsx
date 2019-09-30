@@ -22,6 +22,7 @@ export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yello
 // Either type or backgroundColor must be set
 export type Props = {
   badgeNumber?: number
+  borderless?: boolean
   children?: React.ReactNode
   onClick?: (event: React.BaseSyntheticEvent) => void
   onMouseEnter?: (e: React.MouseEvent) => void
@@ -73,6 +74,10 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
     containerStyle = Styles.collapseStyles([containerStyle, styles.opacity30])
   }
 
+  if (props.borderless) {
+    containerStyle= Styles.collapseStyles([containerStyle, styles.borderless])
+  }
+
   if (props.waiting) {
     labelStyle = Styles.collapseStyles([labelStyle, styles.opacity0])
   }
@@ -86,7 +91,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
 
   // Hover border colors
   const classNames: Array<string> = []
-  if (mode === 'Secondary' && !props.backgroundColor) {
+  if (mode === 'Secondary' && !props.backgroundColor && !props.borderless) {
     // base grey border
     classNames.push('button__border')
     if (!unclickable) {
@@ -194,6 +199,9 @@ const styles = Styles.styleSheetCreate(() => ({
   badge: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
+  },
+  borderless: {
+    borderWidth: 0,
   },
   fullWidth: {
     flexGrow: 1,

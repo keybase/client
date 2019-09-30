@@ -46,6 +46,7 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
         <BannerText>{caption}</BannerText>
         <Box2 direction="horizontal" gap="tiny">
           <Button
+            borderless={true}
             label={Flags.wonderland ? '🐇 Send install link' : 'Send install link'}
             onClick={mobileClickInstall}
             mode="Secondary"
