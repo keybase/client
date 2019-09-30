@@ -64,7 +64,9 @@ export type TypedActions =
   | wallets.Actions
 
 export type TypedActionsMap = {
-  'autoreset:dummy': autoreset.DummyPayload
+  'autoreset:cancelReset': autoreset.CancelResetPayload
+  'autoreset:resetCancelled': autoreset.ResetCancelledPayload
+  'autoreset:updateAutoresetState': autoreset.UpdateAutoresetStatePayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
