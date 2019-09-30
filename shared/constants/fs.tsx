@@ -893,7 +893,7 @@ export const makeActionForOpenPathInFilesTab = (
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
 export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
-  FsGen.createInitSendAttachmentToChat({path}),
+  FsGen.createInitSendAttachmentToChat({path}) as any,
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendAttachmentToChat'}],
