@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import Flags from '../../../util/feature-flags'
 
 type Props = {
   onBack: () => void
