@@ -899,14 +899,23 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
 			if _, ok := err.(EphemeralKeyError); ok {
-				// Ping team members to generate this key for us
-				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, generation); err2 != nil {
-					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+				// If we don't have access to the max generation, request
+				// access to this key. We may not have access to earlier keys
+				// and don't want to spam out requests for new ones.
+				maxGeneration, err2 := mctx.G().GetTeambotEKBoxStorage().MaxGeneration(mctx, teamID, true)
+				if err2 != nil {
+					mctx.Debug("Unable to get MaxGeneration: %v", err)
+					return ek, err
 				}
-				// NOTE we don't downgrade this errors to transient since a bot
-				// should have access to keys for decryption unless there is a
-				// bug, members check that the key is created before encrypting
-				// content.
+				if generation == maxGeneration {
+					// Ping team members to generate the latest key for us
+					if err2 = teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+						mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+					}
+				}
+				// NOTE we don't downgrade this error to transient since the
+				// bot may have added a device after the EK was generated, and
+				// will never get access to it.
 			}
 			return ek, err
 		}

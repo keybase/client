@@ -364,7 +364,7 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	ekNeededArg = keybase1.TeambotEkNeededArg{
 		Id:         teamID,
 		Uid:        botua.uid,
-		Generation: badGen,
+		Generation: 0,
 	}
 	checkTeambotEKNeededNotifications(user1.tc, user1.notifications, ekNeededArg)
 	checkTeambotEKNeededNotifications(user2.tc, user2.notifications, ekNeededArg)
