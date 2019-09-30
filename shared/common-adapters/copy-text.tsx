@@ -42,7 +42,6 @@ const CopyText = (props: Props) => {
     if (!props.text) {
       if (!props.loadText) {
         throw new Error('no text to copy and no loadText method provided')
-        return
       }
       setRequestedCopy(true)
     } else {
