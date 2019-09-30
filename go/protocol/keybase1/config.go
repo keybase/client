@@ -544,7 +544,7 @@ type ConfigValue struct {
 	IsNull bool     `codec:"isNull" json:"isNull"`
 	B      *bool    `codec:"b,omitempty" json:"b,omitempty"`
 	I      *int     `codec:"i,omitempty" json:"i,omitempty"`
-	D      *float64 `codec:"d,omitempty" json:"d,omitempty"`
+	F      *float64 `codec:"f,omitempty" json:"f,omitempty"`
 	S      *string  `codec:"s,omitempty" json:"s,omitempty"`
 	O      *string  `codec:"o,omitempty" json:"o,omitempty"`
 }
@@ -566,13 +566,13 @@ func (o ConfigValue) DeepCopy() ConfigValue {
 			tmp := (*x)
 			return &tmp
 		})(o.I),
-		D: (func(x *float64) *float64 {
+		F: (func(x *float64) *float64 {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.D),
+		})(o.F),
 		S: (func(x *string) *string {
 			if x == nil {
 				return nil

@@ -112,7 +112,7 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		v.Value.D = &f
+		v.Value.F = &f
 	}
 	if ctx.Bool("bool") {
 		if len(args) <= 1 {
