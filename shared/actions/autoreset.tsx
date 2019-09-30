@@ -32,9 +32,9 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
       params: rpcPayload,
       waitingKey: Constants.autoresetEnterPipelineWaitingKey,
     })
-    return AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password})
+    yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
   } catch (error) {
-    return AutoresetGen.createResetError({error: error})
+    yield Saga.put(AutoresetGen.createResetError({error: error}))
   }
 }
 const submittedReset = (_: Container.TypedState, action: AutoresetGen.SubmittedResetPayload) =>
