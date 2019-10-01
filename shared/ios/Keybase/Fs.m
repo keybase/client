@@ -89,9 +89,12 @@
 }
 
 - (NSString*) setupAppHome:(NSString*)home sharedHome:(NSString*)sharedHome {
+  NSURL* tempUrl = [[NSFileManager defaultManager] temporaryDirectory];
+  NSString* tempDir = [tempUrl path];
   // Setup all directories
   NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  [self createBackgroundReadableDirectory:tempDir setAllFiles:YES];
   [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:appKeybasePath];
