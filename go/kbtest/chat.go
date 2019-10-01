@@ -1017,6 +1017,7 @@ type ChatUI struct {
 	GiphyWindow           chan bool
 	CoinFlipUpdates       chan []chat1.UICoinFlipStatus
 	CommandMarkdown       chan *chat1.UICommandMarkdown
+	InboxLayoutCb         chan chat1.UIInboxLayout
 }
 
 func NewChatUI() *ChatUI {
@@ -1038,6 +1039,7 @@ func NewChatUI() *ChatUI {
 		GiphyWindow:           make(chan bool, 10),
 		CoinFlipUpdates:       make(chan []chat1.UICoinFlipStatus, 100),
 		CommandMarkdown:       make(chan *chat1.UICommandMarkdown, 10),
+		InboxLayoutCb:         make(chan chat1.UIInboxLayout, 10),
 	}
 }
 
@@ -1068,6 +1070,11 @@ func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxC
 }
 
 func (c *ChatUI) ChatInboxLayout(ctx context.Context, layout string) error {
+	var uilayout chat1.UIInboxLayout
+	if err := json.Unmarshal([]byte(layout), &uilayout); err != nil {
+		return err
+	}
+	c.InboxLayoutCb <- uilayout
 	return nil
 }
 

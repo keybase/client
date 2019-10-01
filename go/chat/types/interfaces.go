@@ -553,7 +553,7 @@ type ReplyFiller interface {
 
 type UIInboxLoader interface {
 	Resumable
-	UpdateLayout(ctx context.Context) error
+	UpdateLayout(ctx context.Context, reason string) error
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
 		msgType chat1.MessageType, firstConv bool) error
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error

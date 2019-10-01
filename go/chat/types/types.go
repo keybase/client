@@ -631,7 +631,7 @@ func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetIn
 	return nil
 }
 
-func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context) error {
+func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context, reason string) error {
 	return nil
 }
 

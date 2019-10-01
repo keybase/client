@@ -157,7 +157,7 @@ func (h *Server) suspendInboxSource(ctx context.Context) func() {
 func (h *Server) RequestInboxLayout(ctx context.Context) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxLayout")()
-	if err := h.G().UIInboxLoader.UpdateLayout(ctx); err != nil {
+	if err := h.G().UIInboxLoader.UpdateLayout(ctx, "UI request"); err != nil {
 		h.Debug(ctx, "RequestInboxLayout: failed to queue update request: %s", err)
 	}
 	return nil

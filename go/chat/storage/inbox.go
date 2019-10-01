@@ -91,14 +91,14 @@ type SharedInboxItem struct {
 }
 
 type InboxLayoutChangedNotifier interface {
-	UpdateLayout(ctx context.Context) error
+	UpdateLayout(ctx context.Context, reason string) error
 	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
 		msgType chat1.MessageType, firstConv bool) error
 }
 
 type dummyInboxLayoutChangedNotifier struct{}
 
-func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context) error {
+func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context, reason string) error {
 	return nil
 }
 
@@ -868,7 +868,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	defer func() {
 		if layoutChanged {
 			go func(ctx context.Context) {
-				_ = i.layoutNotifier.UpdateLayout(ctx)
+				_ = i.layoutNotifier.UpdateLayout(ctx, "new conversation")
 			}(globals.BackgroundChatCtx(ctx, i.G()))
 		}
 	}()
@@ -1215,7 +1215,7 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	defer func() {
 		go func(ctx context.Context) {
-			_ = i.layoutNotifier.UpdateLayout(ctx)
+			_ = i.layoutNotifier.UpdateLayout(ctx, "set status")
 		}(globals.BackgroundChatCtx(ctx, i.G()))
 	}()
 
@@ -1521,7 +1521,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	defer func() {
 		go func(ctx context.Context) {
-			_ = i.layoutNotifier.UpdateLayout(ctx)
+			_ = i.layoutNotifier.UpdateLayout(ctx, "team type")
 		}(globals.BackgroundChatCtx(ctx, i.G()))
 	}()
 
@@ -1643,7 +1643,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	defer func() {
 		go func(ctx context.Context) {
-			_ = i.layoutNotifier.UpdateLayout(ctx)
+			_ = i.layoutNotifier.UpdateLayout(ctx, "sync")
 		}(globals.BackgroundChatCtx(ctx, i.G()))
 	}()
 
@@ -1721,7 +1721,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	defer func() {
 		if layoutChanged {
 			go func(ctx context.Context) {
-				_ = i.layoutNotifier.UpdateLayout(ctx)
+				_ = i.layoutNotifier.UpdateLayout(ctx, "membership")
 			}(globals.BackgroundChatCtx(ctx, i.G()))
 		}
 	}()

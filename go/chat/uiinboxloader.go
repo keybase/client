@@ -39,6 +39,9 @@ type UIInboxLoader struct {
 	batchDelay        time.Duration
 	lastBatchFlush    time.Time
 	lastLayoutFlush   time.Time
+
+	// testing
+	testingLayoutForceMode bool
 }
 
 func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
@@ -501,7 +504,7 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
 			h.UpdateConvs(ctx, convIDs)
 			// update layout again after we have done all this work to get everything in the right order
-			_ = h.UpdateLayout(ctx)
+			_ = h.UpdateLayout(ctx, "big team unbox")
 		case <-shutdownCh:
 			return nil
 		}
@@ -513,7 +516,7 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case <-h.layoutCh:
-			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay {
+			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay || h.testingLayoutForceMode {
 				_ = h.flushLayout()
 				shouldFlush = false
 			} else {
@@ -530,8 +533,8 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	}
 }
 
-func (h *UIInboxLoader) UpdateLayout(ctx context.Context) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "UpdateLayout")()
+func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reason string) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateLayout: %s", reason)()
 	select {
 	case h.layoutCh <- struct{}{}:
 	default:
@@ -551,7 +554,7 @@ func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv typ
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
 		return nil
 	}
-	return h.UpdateLayout(ctx)
+	return h.UpdateLayout(ctx, "new message")
 }
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
