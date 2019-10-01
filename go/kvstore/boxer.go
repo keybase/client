@@ -43,14 +43,9 @@ type signatureElements struct {
 	DeviceID          keybase1.DeviceID
 }
 
-func (b *KVStoreRealBoxer) sign(mctx libkb.MetaContext, sigElements signatureElements) (ret keybase1.ED25519Signature, err error) {
+func (b *KVStoreRealBoxer) sign(sigElements signatureElements, signingKey libkb.GenericKey) (ret keybase1.ED25519Signature, err error) {
 	// build the message
 	msg, err := b.buildSignatureMsg(sigElements)
-	if err != nil {
-		return ret, err
-	}
-	// fetch this device's signing key
-	signingKey, err := b.G().ActiveDevice.SigningKey()
 	if err != nil {
 		return ret, err
 	}
@@ -152,7 +147,7 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 	}
 	teamGen := keybase1.PerTeamKeyGeneration(appKey.Generation())
 	// build the signature
-	thisDevice := mctx.G().ActiveDevice
+	uv, deviceID, _, signingKey, _ := mctx.G().ActiveDevice.AllFields()
 	elements := signatureElements{
 		EntryID:           entryID,
 		ClearBytes:        clearBytes,
@@ -160,11 +155,11 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 		Nonce:             nonce,
 		EncKey:            appKey.Key,
 		CiphertextVersion: ciphertextVersion,
-		UID:               thisDevice.UserVersion().Uid,
-		EldestSeqno:       thisDevice.UserVersion().EldestSeqno,
-		DeviceID:          thisDevice.DeviceID(),
+		UID:               uv.Uid,
+		EldestSeqno:       uv.EldestSeqno,
+		DeviceID:          deviceID,
 	}
-	sig, err := b.sign(mctx, elements)
+	sig, err := b.sign(elements, signingKey)
 	if err != nil {
 		mctx.Debug("error signing for entry %+v: %v", err)
 		return "", keybase1.PerTeamKeyGeneration(0), 0, err
