@@ -71,8 +71,8 @@ const styles = Styles.styleSheetCreate(
       }),
       image: {
         alignSelf: Styles.isMobile ? 'center' : undefined,
-        paddingRight: Styles.globalMargins.medium,
         marginTop: Styles.isMobile ? Styles.globalMargins.tiny : -Styles.globalMargins.xsmall,
+        paddingRight: Styles.globalMargins.medium,
       },
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
