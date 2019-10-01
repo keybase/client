@@ -211,9 +211,9 @@ const displayDeviceSelect = () => {
   })
 }
 
-const displayError = () => {
+const displayError = (state: Container.TypedState) => {
   return RouteTreeGen.createNavigateAppend({
-    path: ['recoverPasswordError'],
+    path: [state.config.loggedIn ? 'recoverPasswordErrorModal' : 'recoverPasswordError'],
     replace: true,
   })
 }
