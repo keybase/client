@@ -183,7 +183,6 @@ function* startRecoverPassword(
       },
       waitingKey: Constants.waitingKey,
     })
-    throw new Error('You succeeded but for the purposes of this demonstration you failed.')
   } catch (e) {
     hadError = true
     logger.warn('RPC returned error: ' + e.message)
