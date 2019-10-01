@@ -59,7 +59,13 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		stopCh:                 make(chan struct{}),
 	}
 	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
-		go ekLib.backgroundKeygen(mctx)
+		// If we are in standalone run this synchronously to avoid racing if we
+		// are attempting logout.
+		if mctx.G().Standalone {
+			ekLib.backgroundKeygen(mctx)
+		} else {
+			go ekLib.backgroundKeygen(mctx)
+		}
 	}
 	return ekLib
 }

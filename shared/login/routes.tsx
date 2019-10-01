@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
 import {ProxySettingsPopup} from '../settings/proxy'
-
+import ResetModal from './reset/modal'
 type OwnProps = {}
 type Props = {
   showLoading: boolean
@@ -48,6 +48,9 @@ export const newRoutes = {
 export const newModalRoutes = {
   proxySettingsModal: {
     getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
+  },
+  resetModal: {
+    getScreen: (): typeof ResetModal => require('./reset/modal').default,
   },
   ...require('./recover-password/routes').newModalRoutes,
 }

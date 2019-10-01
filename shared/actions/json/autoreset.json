@@ -1,6 +1,8 @@
 {
   "prelude": [],
   "actions": {
-    "dummy": {"_description": "Remove this when this file gets a real action."}
+    "cancelReset": {"_description": "Cancel an autoreset for the currently logged-in account."},
+    "resetCancelled": {"_description": "Cancelled an account reset."},
+    "updateAutoresetState": {"active": "boolean", "endTime": "number"}
   }
 }

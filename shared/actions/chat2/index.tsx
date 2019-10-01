@@ -892,8 +892,8 @@ const onNewChatActivity = (
     case RPCChatTypes.ChatActivityType.incomingMessage: {
       const {incomingMessage} = activity
       actions = [
-        ...onIncomingMessage(state, incomingMessage, logger),
-        ...chatActivityToMetasAction(state, incomingMessage),
+        ...(onIncomingMessage(state, incomingMessage, logger) as any),
+        ...(chatActivityToMetasAction(state, incomingMessage) as any),
       ]
       break
     }
