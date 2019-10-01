@@ -321,6 +321,7 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
+// PassphraseState values are used in .config.json, so should not be changed without a migration strategy
 type PassphraseState int
 
 const (

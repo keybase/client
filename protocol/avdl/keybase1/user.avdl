@@ -179,6 +179,9 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
+  /**
+   PassphraseState values are used in .config.json, so should not be changed without a migration strategy
+  */
   enum PassphraseState {
     KNOWN_0,
     RANDOM_1

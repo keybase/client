@@ -315,7 +315,8 @@
       "symbols": [
         "KNOWN_0",
         "RANDOM_1"
-      ]
+      ],
+      "doc": "PassphraseState values are used in .config.json, so should not be changed without a migration strategy"
     },
     {
       "type": "record",

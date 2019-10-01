@@ -185,11 +185,15 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		default:
 			// Unexpected error like network connectivity issue, fall through.
 			// Even if we are offline here, we may be able to get cached value
-			// `false` from LoadHasRandomPw and be allowed to log out.
+			// `keybase1.PassphraseState_KNOWN` from LoadPassphraseState and be allowed to log out.
 			mctx.Debug("CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
 		}
 	}
 
+	// In case the prefetcher did not finish this session (for example if we
+	// are in standalone mode or we were offline for the first 15 min of the
+	// session, force a repoll if the passphrase is unknown or last known as
+	// random.)
 	prefetcher := mctx.G().GetHasRandomPWPrefetcher()
 	forceRepoll := prefetcher == nil || !prefetcher.prefetched
 	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx, forceRepoll)
