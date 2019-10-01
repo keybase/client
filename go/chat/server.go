@@ -216,7 +216,12 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		}, nil
 	}
 	if err = h.G().InboxSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
-		h.Debug(ctx, "MarkAsReadLocal: error marking as read: %s", err)
+		switch err {
+		case utils.ErrGetUnverifiedConvNotFound, utils.ErrGetVerifiedConvNotFound:
+			// if we couldn't find the conv, then just act like it worked
+		default:
+			return res, err
+		}
 	}
 	return chat1.MarkAsReadLocalRes{
 		Offline: h.G().InboxSource.IsOffline(ctx),
