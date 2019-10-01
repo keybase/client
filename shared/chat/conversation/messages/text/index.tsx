@@ -58,7 +58,7 @@ const Reply = (props: ReplyProps) => {
                 <Kb.Text type="BodySmall">{props.text}</Kb.Text>
               ) : (
                 <Kb.Text type="BodyTiny" style={styles.replyEdited}>
-                  Original message deleted
+                  The original message was deleted.
                 </Kb.Text>
               )}
             </Kb.Box2>
@@ -196,7 +196,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
       },
       replyEdited: {
-        color: Styles.globalColors.black_20,
+        color: Styles.globalColors.black_35,
       },
       replyImageContainer: {
         overflow: 'hidden',
