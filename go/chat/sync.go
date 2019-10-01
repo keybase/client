@@ -299,7 +299,6 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		return
 	}
 	itemsByTopicType := make(map[chat1.TopicType][]chat1.ChatSyncIncrementalConv)
-	removalsByTopicType := make(map[chat1.TopicType][]string)
 	for _, c := range allConvs {
 		var md *types.RemoteConversationMetadata
 		rc, err := utils.GetUnverifiedConv(ctx, s.G(), uid, c.GetConvID(),
@@ -307,18 +306,14 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		if err == nil {
 			md = rc.LocalMetadata
 		}
-		if convDisappearsFromUI(c) {
-			s.Debug(ctx, "notifyIncrementalSync: removing conv %v", c.GetConvID().DbShortFormString())
-			removalsByTopicType[c.GetTopicType()] = append(removalsByTopicType[c.GetTopicType()], c.GetConvID().String())
-		} else {
-			itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()], chat1.ChatSyncIncrementalConv{
+		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
+			chat1.ChatSyncIncrementalConv{
 				Conv: utils.PresentRemoteConversation(ctx, s.G(), types.RemoteConversation{
 					Conv:          c,
 					LocalMetadata: md,
 				}),
 				ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
 			})
-		}
 	}
 	for _, topicType := range chat1.TopicTypeMap {
 		if topicType == chat1.TopicType_NONE {
@@ -326,25 +321,9 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		}
 		s.G().ActivityNotifier.InboxSynced(ctx, uid, topicType,
 			chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
-				Items:    itemsByTopicType[topicType],
-				Removals: removalsByTopicType[topicType],
+				Items: itemsByTopicType[topicType],
 			}))
 	}
-}
-
-func convDisappearsFromUI(conv chat1.Conversation) bool {
-	switch conv.Metadata.Status {
-	case chat1.ConversationStatus_IGNORED, chat1.ConversationStatus_BLOCKED, chat1.ConversationStatus_REPORTED:
-		return true
-	}
-	if conv.ReaderInfo != nil {
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_REMOVED, chat1.ConversationMemberStatus_LEFT,
-			chat1.ConversationMemberStatus_RESET, chat1.ConversationMemberStatus_NEVER_JOINED:
-			return true
-		}
-	}
-	return false
 }
 
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
