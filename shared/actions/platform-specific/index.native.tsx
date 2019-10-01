@@ -523,6 +523,12 @@ const manageContactsCache = async (
 function* setupDarkMode() {
   const NativeAppearance = NativeModules.Appearance
   if (NativeAppearance) {
+    // eslint-disable-next-line no-inner-declarations
+    function* handleGotChangeEvent(action: any) {
+      yield Saga.delay(500)
+      yield Saga.put(action)
+    }
+
     const channel = Saga.eventChannel(emitter => {
       const nativeEventEmitter = new NativeEventEmitter(NativeAppearance)
       nativeEventEmitter.addListener('appearanceChanged', ({colorScheme}) => {
@@ -531,9 +537,18 @@ function* setupDarkMode() {
       return () => {}
     }, Saga.buffers.sliding(1))
 
+    let task: any
     while (true) {
       const mode = yield Saga.take(channel)
-      yield Saga.put(ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'}))
+      // iOS takes snapshots of the app in light/dark mode and this causes us to get a light/dark call no matter what. so
+      // throttle a bit and ignore this
+      if (task) {
+        yield Saga.cancel(task)
+      }
+      task = yield Saga._fork(
+        handleGotChangeEvent,
+        ConfigGen.createSetSystemDarkMode({dark: mode === 'dark'})
+      )
     }
   }
 }

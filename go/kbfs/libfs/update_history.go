@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -17,9 +18,10 @@ import (
 // complete update history.
 func GetEncodedUpdateHistory(
 	ctx context.Context, config libkbfs.Config,
-	folderBranch data.FolderBranch) (
+	folderBranch data.FolderBranch, start, end kbfsmd.Revision) (
 	data []byte, t time.Time, err error) {
-	history, err := config.KBFSOps().GetUpdateHistory(ctx, folderBranch)
+	history, err := config.KBFSOps().GetUpdateHistory(
+		ctx, folderBranch, start, end)
 	if err != nil {
 		return nil, time.Time{}, err
 	}

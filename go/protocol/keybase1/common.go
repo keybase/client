@@ -70,6 +70,12 @@ func (o UID) DeepCopy() UID {
 	return o
 }
 
+type VID string
+
+func (o VID) DeepCopy() VID {
+	return o
+}
+
 type DeviceID string
 
 func (o DeviceID) DeepCopy() DeviceID {

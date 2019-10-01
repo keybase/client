@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import {serviceIdToLogo24} from '../../util/platforms'
 import {AVATAR_SIZE} from '../../constants/profile'
 import {Props} from '.'
-import {serviceIdToPrettyName} from 'constants/team-building'
+import {serviceIdToPrettyName} from '../../constants/team-building'
 
 const HEADER_TOP_SPACE = 48
 const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE

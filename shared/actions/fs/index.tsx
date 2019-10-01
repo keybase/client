@@ -38,13 +38,11 @@ const rpcConflictStateToConflictState = (
     if (rpcConflictState.conflictStateType === RPCTypes.ConflictStateType.normalview) {
       const nv = rpcConflictState.normalview
       return Constants.makeConflictStateNormalView({
-        localViewTlfPaths: I.List(
-          ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
-            // @ts-ignore TODO fix p.kbfs.path is a path already
-            p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
-            return arr
-          }, [])
-        ),
+        localViewTlfPaths: ((nv && nv.localViews) || []).reduce<Array<Types.Path>>((arr, p) => {
+          // @ts-ignore TODO fix p.kbfs.path is a path already
+          p.PathType === RPCTypes.PathType.kbfs && arr.push(Types.stringToPath(p.kbfs.path))
+          return arr
+        }, []),
         resolvingConflict: !!nv && nv.resolvingConflict,
         stuckInConflict: !!nv && nv.stuckInConflict,
       })
@@ -75,7 +73,12 @@ const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPaylo
       return false
     }
     const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
-    const mutablePayload = [
+    const payload = {
+      private: new Map(),
+      public: new Map(),
+      team: new Map(),
+    }
+    ;[
       ...(results.favoriteFolders
         ? [{folders: results.favoriteFolders, isFavorite: true, isIgnored: false, isNew: false}]
         : []),
@@ -85,51 +88,31 @@ const loadFavorites = async (state: TypedState, action: FsGen.FavoritesLoadPaylo
       ...(results.newFolders
         ? [{folders: results.newFolders, isFavorite: true, isIgnored: false, isNew: true}]
         : []),
-    ].reduce(
-      (mutablePayload, {folders, isFavorite, isIgnored, isNew}) =>
-        folders.reduce((mutablePayload, folder) => {
-          const tlfType = rpcFolderTypeToTlfType(folder.folderType)
-          const tlfName =
-            tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
-              ? tlfToPreferredOrder(folder.name, state.config.username)
-              : folder.name
-          return !tlfType
-            ? mutablePayload
-            : {
-                ...mutablePayload,
-                [tlfType]: mutablePayload[tlfType].set(
-                  tlfName,
-                  Constants.makeTlf({
-                    conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
-                    isFavorite,
-                    isIgnored,
-                    isNew,
-                    name: tlfName,
-                    resetParticipants: I.List((folder.reset_members || []).map(({username}) => username)),
-                    syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
-                    teamId: folder.team_id || '',
-                    tlfMtime: folder.mtime || 0,
-                  })
-                ),
-              }
-        }, mutablePayload),
-      {
-        private: I.Map().asMutable(),
-        public: I.Map().asMutable(),
-        team: I.Map().asMutable(),
-      }
-    )
-    return (
-      mutablePayload.private.size &&
-      FsGen.createFavoritesLoaded({
-        // @ts-ignore asImmutable returns a weak type
-        private: mutablePayload.private.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        public: mutablePayload.public.asImmutable(),
-        // @ts-ignore asImmutable returns a weak type
-        team: mutablePayload.team.asImmutable(),
+    ].forEach(({folders, isFavorite, isIgnored, isNew}) =>
+      folders.forEach(folder => {
+        const tlfType = rpcFolderTypeToTlfType(folder.folderType)
+        const tlfName =
+          tlfType === Types.TlfType.Private || tlfType === Types.TlfType.Public
+            ? tlfToPreferredOrder(folder.name, state.config.username)
+            : folder.name
+        tlfType &&
+          payload[tlfType].set(
+            tlfName,
+            Constants.makeTlf({
+              conflictState: rpcConflictStateToConflictState(folder.conflictState || null),
+              isFavorite,
+              isIgnored,
+              isNew,
+              name: tlfName,
+              resetParticipants: (folder.reset_members || []).map(({username}) => username),
+              syncConfig: getSyncConfigFromRPC(tlfName, tlfType, folder.syncConfig || null),
+              teamId: folder.team_id || '',
+              tlfMtime: folder.mtime || 0,
+            })
+          )
       })
     )
+    return payload.private.size ? FsGen.createFavoritesLoaded(payload) : undefined
   } catch (e) {
     return makeRetriableErrorHandler(action)(e)
   }
@@ -151,8 +134,8 @@ const getSyncConfigFromRPC = (
     case RPCTypes.FolderSyncMode.partial:
       return Constants.makeTlfSyncPartial({
         enabledPaths: config.paths
-          ? I.List(config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str)))
-          : I.List(),
+          ? config.paths.map(str => Types.getPathFromRelative(tlfName, tlfType, str))
+          : [],
       })
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(config.mode)

@@ -77,6 +77,7 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
+  filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
   focusInputCounter: number
   includeContacts: boolean
@@ -193,6 +194,32 @@ const ContactsImportButton = (props: ContactProps) => {
         <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
+  )
+}
+
+const FilteredServiceTabBar = (
+  props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
+    filterServices?: Array<ServiceIdWithContact>
+  }
+) => {
+  const services = React.useMemo(
+    () =>
+      props.filterServices
+        ? Constants.allServices.filter(
+            serviceId => props.filterServices && props.filterServices.includes(serviceId)
+          )
+        : Constants.allServices,
+    [props.filterServices]
+  )
+
+  return services.length === 1 && services[0] === 'keybase' ? null : (
+    <ServiceTabBar
+      services={Constants.allServices}
+      selectedService={props.selectedService}
+      onChangeService={props.onChangeService}
+      serviceResultCount={props.serviceResultCount}
+      showServiceResultCount={props.showServiceResultCount}
+    />
   )
 }
 
@@ -520,8 +547,6 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       </Kb.Box2>
     )
 
-    const servicesForNamespace = Constants.servicesForNamespace(props.namespace)
-
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
@@ -542,15 +567,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        {servicesForNamespace.length === 1 && servicesForNamespace[0] === 'keybase' ? null : (
-          <ServiceTabBar
-            services={servicesForNamespace}
-            selectedService={props.selectedService}
-            onChangeService={props.onChangeService}
-            serviceResultCount={props.serviceResultCount}
-            showServiceResultCount={props.showServiceResultCount}
-          />
-        )}
+        <FilteredServiceTabBar
+          filterServices={props.filterServices}
+          selectedService={props.selectedService}
+          onChangeService={props.onChangeService}
+          serviceResultCount={props.serviceResultCount}
+          showServiceResultCount={props.showServiceResultCount}
+        />
         {Styles.isMobile && (
           <ContactsBanner
             {...props}

@@ -19,11 +19,6 @@ export const allServices: Array<Types.ServiceIdWithContact> = [
   'email',
   ...searchServices.slice(1),
 ]
-const searchServicesWithEmail: Array<Types.ServiceIdWithContact> = [
-  ...searchServices.slice(0, 1),
-  'email',
-  ...searchServices.slice(1),
-]
 
 export function serviceIdToPrettyName(serviceId: Types.ServiceId): string {
   return {
@@ -34,17 +29,6 @@ export function serviceIdToPrettyName(serviceId: Types.ServiceId): string {
     reddit: 'Reddit',
     twitter: 'Twitter',
   }[serviceId]
-}
-
-export function servicesForNamespace(namespace: Types.AllowedNamespace): Array<Types.ServiceIdWithContact> {
-  if (namespace === 'teams') {
-    return searchServicesWithEmail
-  } else if (namespace === 'people') {
-    return searchServices
-  } else if (namespace === 'wallets') {
-    return ['keybase']
-  }
-  return allServices
 }
 
 function isKeybaseUserId(userId: string) {

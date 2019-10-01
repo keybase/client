@@ -24,6 +24,7 @@ import {isMobile} from '../constants/platform'
 import Flags from '../util/feature-flags'
 
 type OwnProps = {
+  filterServices?: Array<Types.ServiceIdWithContact>
   incFocusInputCounter: () => void
   focusInputCounter: number
   namespace: Types.AllowedNamespace
@@ -584,6 +585,7 @@ const mergeProps = (
     ...headerHocProps,
     ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
+    filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
@@ -638,6 +640,7 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
 type RealOwnProps = Container.RouteProps<{
   namespace: Types.AllowedNamespace
   teamname?: string
+  filterServices?: Array<Types.ServiceIdWithContact>
   title: string
 }>
 
@@ -674,6 +677,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
       <Connected
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
         teamname={Container.getRouteProps(this.props, 'teamname', undefined)}
+        filterServices={Container.getRouteProps(this.props, 'filterServices', undefined)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}
