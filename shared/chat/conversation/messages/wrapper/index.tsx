@@ -580,7 +580,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         <LongPressable
           {...this._containerProps()}
           children={[
-            this._sendIndicator(),
             this._authorAndContent([
               this._messageAndButtons(),
               this._isEdited(),
@@ -591,6 +590,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               this._reactionsRow(),
             ]),
             this._orangeLine(),
+            this._sendIndicator(),
           ]}
         />
         {this._popup()}
@@ -725,15 +725,17 @@ const styles = Styles.styleSheetCreate(
         top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
       },
       send: Styles.platformStyles({
-        common: {position: 'absolute'},
+        common: {
+          position: 'absolute',
+        },
         isElectron: {
           pointerEvents: 'none',
           right: 8,
-          top: 0,
+          top: 2,
         },
         isMobile: {
           right: 0,
-          top: -3,
+          top: 0,
         },
       }),
       timestamp: Styles.platformStyles({

@@ -105,9 +105,9 @@ class SendIndicator extends React.Component<Props, State> {
       <Kb.Animation
         animationType={statusToIcon[this.state.animationStatus]}
         className="sendingStatus"
+        containerStyle={this.props.style}
         style={Styles.collapseStyles([
           styles.animation,
-          this.props.style,
           this.state.visible ? styles.visible : styles.invisible,
         ])}
       />
