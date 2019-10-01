@@ -34,15 +34,11 @@ const styles = Styles.styleSheetCreate(
       arrowText: {
         paddingRight: Styles.globalMargins.tiny,
       },
-      button: {},
       outerContainer: {
         alignItems: 'center',
         paddingBottom: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.small,
         width: '100%',
-      },
-      text: {
-        color: Styles.globalColors.white,
       },
     } as const)
 )
