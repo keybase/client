@@ -11,7 +11,7 @@ import {
   styleSheetCreate,
   isDarkMode,
 } from '../styles'
-import {isIOS, isAndroid} from '../constants/platform'
+import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
 import logger from '../logger'
@@ -69,17 +69,11 @@ class PlainInput extends Component<InternalProps> {
     checkTextInfo(newTextInfo)
     // If we're android, let's workaround this Issue: https://github.com/imnapo/react-native-cn-richtext-editor/issues/81
     // By setting the text and selection at the same time
-    if (isAndroid) {
-      this.setNativeProps({
-        selection: this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text),
-        text: newTextInfo.text,
-      })
-      this._lastNativeText = newTextInfo.text
-    } else {
-      this.setNativeProps({text: newTextInfo.text})
-      this._lastNativeText = newTextInfo.text
-      this._setSelection(newTextInfo.selection)
-    }
+    this.setNativeProps({
+      selection: this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text),
+      text: newTextInfo.text,
+    })
+    this._lastNativeText = newTextInfo.text
     if (reflectChange) {
       this._onChangeText(newTextInfo.text)
     }
