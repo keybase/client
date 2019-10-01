@@ -34,6 +34,7 @@ type UIInboxLoader struct {
 	clock             clockwork.Clock
 	transmitCh        chan interface{}
 	layoutCh          chan struct{}
+	bigTeamUnboxCh    chan []chat1.ConversationID
 	convTransmitBatch map[string]chat1.ConversationLocal
 	batchDelay        time.Duration
 	lastBatchFlush    time.Time
@@ -59,11 +60,13 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 	}
 	h.transmitCh = make(chan interface{}, 1000)
 	h.layoutCh = make(chan struct{}, 1000)
+	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
 	h.stopCh = make(chan struct{})
 	h.started = true
 	h.uid = uid
 	h.eg.Go(func() error { return h.transmitLoop(h.stopCh) })
 	h.eg.Go(func() error { return h.layoutLoop(h.stopCh) })
+	h.eg.Go(func() error { return h.bigTeamUnboxLoop(h.stopCh) })
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
@@ -437,12 +440,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res
 	res.BigTeams = btcollector.finalize(ctx)
 	if len(btunboxes) > 0 {
 		h.Debug(ctx, "buildLayout: big teams missing names, unboxing: %v", len(btunboxes))
-		go func(ctx context.Context) {
-			doneCh, _ := h.UpdateConvs(ctx, btunboxes)
-			<-doneCh
-			// update layout again after we have done all this work to get everything in the right order
-			_ = h.UpdateLayout(ctx)
-		}(globals.BackgroundChatCtx(ctx, h.G()))
+		h.queueBigTeamUnbox(btunboxes)
 	}
 	return res
 }
@@ -485,6 +483,29 @@ func (h *UIInboxLoader) flushLayout() (err error) {
 		return err
 	}
 	return nil
+}
+
+func (h *UIInboxLoader) queueBigTeamUnbox(convIDs []chat1.ConversationID) {
+	select {
+	case h.bigTeamUnboxCh <- convIDs:
+	default:
+		h.Debug(context.Background(), "queueBigTeamUnbox: failed to queue big team unbox, queue full")
+	}
+}
+
+func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
+	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+	for {
+		select {
+		case convIDs := <-h.bigTeamUnboxCh:
+			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
+			h.UpdateConvs(ctx, convIDs)
+			// update layout again after we have done all this work to get everything in the right order
+			_ = h.UpdateLayout(ctx)
+		case <-shutdownCh:
+			return nil
+		}
+	}
 }
 
 func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
@@ -533,14 +554,9 @@ func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv typ
 	return h.UpdateLayout(ctx)
 }
 
-func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (doneCh chan struct{}, err error) {
+func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
 	query := h.Query()
 	query.ConvIDs = convIDs
-	doneCh = make(chan struct{})
-	go func(ctx context.Context) {
-		_ = h.LoadNonblock(ctx, &query, nil, nil, true)
-		close(doneCh)
-	}(globals.BackgroundChatCtx(ctx, h.G()))
-	return doneCh, nil
+	return h.LoadNonblock(ctx, &query, nil, nil, true)
 }

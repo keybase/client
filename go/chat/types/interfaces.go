@@ -556,7 +556,7 @@ type UIInboxLoader interface {
 	UpdateLayout(ctx context.Context) error
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
 		msgType chat1.MessageType, firstConv bool) error
-	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (chan struct{}, error)
+	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
 }

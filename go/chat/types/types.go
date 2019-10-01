@@ -635,10 +635,8 @@ func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context) error {
 	return nil
 }
 
-func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (chan struct{}, error) {
-	ch := make(chan struct{})
-	close(ch)
-	return ch, nil
+func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {
+	return nil
 }
 
 func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
