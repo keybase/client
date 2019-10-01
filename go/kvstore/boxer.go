@@ -1,9 +1,7 @@
 package kvstore
 
 import (
-	"crypto/sha512"
 	"encoding/base64"
-	"encoding/binary"
 	"fmt"
 
 	"github.com/keybase/client/go/kbcrypto"
@@ -93,25 +91,7 @@ func (b *KVStoreRealBoxer) verify(mctx libkb.MetaContext, sig kbcrypto.NaclSigna
 }
 
 func (b *KVStoreRealBoxer) buildSignatureMsg(elements signatureElements) (ret []byte, err error) {
-	ret = append(ret, []byte(elements.EntryID.TeamID)...)
-	ret = append(ret, []byte(elements.EntryID.Namespace)...)
-	ret = append(ret, []byte(elements.EntryID.EntryKey)...)
-	clearHash := sha512.Sum512(elements.ClearBytes)
-	ret = append(ret, clearHash[:]...)
-	revBytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(revBytes, uint32(elements.Revision))
-	ret = append(ret, revBytes...)
-	ret = append(ret, elements.Nonce[:]...)
-	ret = append(ret, elements.EncKey[:]...)
-	ciphertextVersionBytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(ciphertextVersionBytes, uint32(elements.CiphertextVersion))
-	ret = append(ret, ciphertextVersionBytes...)
-	ret = append(ret, elements.UID.ToBytes()...)
-	eldestSeqnoBytes := make([]byte, 4)
-	binary.BigEndian.PutUint32(eldestSeqnoBytes, uint32(elements.EldestSeqno))
-	ret = append(ret, eldestSeqnoBytes...)
-	ret = append(ret, []byte(elements.DeviceID)...)
-	return ret, nil
+	return msgpack.Encode(elements)
 }
 
 func newNonce() (ret [24]byte, err error) {
