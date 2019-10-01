@@ -915,7 +915,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 		}
 
 		// Add the convo
-		layoutChanged = true
+		layoutChanged = conv.GetTopicType() == chat1.TopicType_CHAT // only chat convs change layout
 		ibox.Conversations = append(utils.RemoteConvs([]chat1.Conversation{conv}), ibox.Conversations...)
 	} else {
 		i.Debug(ctx, "NewConversation: skipping update, conversation exists in inbox")
@@ -1150,11 +1150,13 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	mconv := *conv
 	// if we have a conv at all, then we want to let any layout engine know about this
 	// new message
-	defer func() {
-		go func(ctx context.Context) {
-			_ = i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg.GetMessageType(), index == 0)
-		}(globals.BackgroundChatCtx(ctx, i.G()))
-	}()
+	if mconv.GetTopicType() == chat1.TopicType_CHAT {
+		defer func() {
+			go func(ctx context.Context) {
+				_ = i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg.GetMessageType(), index == 0)
+			}(globals.BackgroundChatCtx(ctx, i.G()))
+		}()
+	}
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))
 	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)
@@ -1748,14 +1750,14 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		ujs = append(ujs, types.RemoteConversation{
 			Conv: uj,
 		})
-		layoutChanged = true
+		layoutChanged = layoutChanged || uj.GetTopicType() == chat1.TopicType_CHAT
 	}
 	convs := i.mergeConvs(ujs, ibox.Conversations)
 	removedMap := make(map[string]bool)
 	for _, r := range userRemoved {
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
 		removedMap[r.ConvID.String()] = true
-		layoutChanged = true
+		layoutChanged = layoutChanged || r.TopicType == chat1.TopicType_CHAT
 	}
 	resetMap := make(map[string]bool)
 	for _, r := range userReset {

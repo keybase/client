@@ -1039,7 +1039,7 @@ func NewChatUI() *ChatUI {
 		GiphyWindow:           make(chan bool, 10),
 		CoinFlipUpdates:       make(chan []chat1.UICoinFlipStatus, 100),
 		CommandMarkdown:       make(chan *chat1.UICommandMarkdown, 10),
-		InboxLayoutCb:         make(chan chat1.UIInboxLayout, 10),
+		InboxLayoutCb:         make(chan chat1.UIInboxLayout, 200),
 	}
 }
 

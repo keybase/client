@@ -94,6 +94,9 @@ func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (h *UIInboxLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
+	if h.G().UIRouter == nil {
+		return nil, errors.New("no UI router available")
+	}
 	ui, err := h.G().UIRouter.GetChatUI()
 	if err != nil {
 		return nil, err
