@@ -104,9 +104,10 @@ class SendIndicator extends React.Component<Props, State> {
     return (
       <Kb.Animation
         animationType={statusToIcon[this.state.animationStatus]}
+        className="sendingStatus"
         style={Styles.collapseStyles([
-          this.props.style,
           styles.animation,
+          this.props.style,
           this.state.visible ? styles.visible : styles.invisible,
         ])}
       />
@@ -117,11 +118,11 @@ class SendIndicator extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      invisible: {opacity: 1},
+      invisible: {opacity: 0},
       animation: Styles.platformStyles({
         common: {
-          height: 16,
-          width: 24,
+          height: 20,
+          width: 36,
         },
         isMobile: {
           backgroundColor: Styles.globalColors.white,

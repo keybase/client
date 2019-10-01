@@ -5,6 +5,7 @@ export type AnimationType = 'messageStatusEncrypting' | 'messageStatusError' | '
 
 export type Props = {
   animationType: AnimationType
+  className?: string
   containerStyle?: StylesCrossPlatform
   height?: number
   style?: StylesCrossPlatform

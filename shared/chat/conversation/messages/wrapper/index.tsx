@@ -357,12 +357,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return null
     }
     const message = this.props.message
-    // const sent =
-    //   (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
-    // const failed =
-    //   (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
-    const sent = false
-    const failed = false
+    const sent =
+      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
+    const failed =
+      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
     return (
       <SendIndicator
         key="sendIndicator"
@@ -730,9 +728,13 @@ const styles = Styles.styleSheetCreate(
         common: {position: 'absolute'},
         isElectron: {
           pointerEvents: 'none',
-          right: 12,
+          right: 8,
+          top: 0,
         },
-        isMobile: {right: 0},
+        isMobile: {
+          right: 0,
+          top: -3,
+        },
       }),
       timestamp: Styles.platformStyles({
         common: {paddingLeft: Styles.globalMargins.xtiny},

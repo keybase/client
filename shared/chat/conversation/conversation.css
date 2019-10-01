@@ -83,3 +83,6 @@
 .darkMode .ReplyBox:hover {
   background-color: rgba(24, 45, 110, 0.5);
 }
+.WrapperMessage-hoverBox:hover .sendingStatus {
+  visibility: hidden;
+}
