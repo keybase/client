@@ -3,7 +3,6 @@ package merkletree2
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 	"sort"
 	"sync"
 
@@ -85,6 +84,10 @@ type KeyValuePair struct {
 }
 
 type EncodedValue []byte
+
+func (e EncodedValue) Equal(e2 EncodedValue) bool {
+	return bytes.Equal(e, e2)
+}
 
 // KeyEncodedValuePair is similar to a KeyValuePair, but the values is encoded
 // as a byte slice.
@@ -223,8 +226,10 @@ func (t *Tree) Build(
 		return 0, nil, err
 	}
 
-	if err = t.eng.StoreKEVPairs(ctx, tr, newSeqno, sortedKEVPairs); err != nil {
-		return 0, nil, err
+	if len(sortedKEVPairs) > 0 {
+		if err = t.eng.StoreKEVPairs(ctx, tr, newSeqno, sortedKEVPairs); err != nil {
+			return 0, nil, err
+		}
 	}
 
 	var ms MasterSecret
@@ -394,14 +399,7 @@ func (p PosHashPairsInMerkleProofOrder) Len() int {
 }
 
 func (p PosHashPairsInMerkleProofOrder) Less(i, j int) bool {
-	li := (*big.Int)(&(p[i].Position)).BitLen()
-	lj := (*big.Int)(&(p[j].Position)).BitLen()
-	if li > lj {
-		return true
-	} else if li < lj {
-		return false
-	}
-	return (*big.Int)(&(p[i].Position)).CmpAbs((*big.Int)(&(p[j].Position))) < 0
+	return p[i].Position.CmpInMerkleProofOrder(&(p[j].Position)) < 0
 }
 
 func (p PosHashPairsInMerkleProofOrder) Swap(i, j int) {
@@ -410,12 +408,11 @@ func (p PosHashPairsInMerkleProofOrder) Swap(i, j int) {
 
 var _ sort.Interface = PosHashPairsInMerkleProofOrder{}
 
-func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
-
+func (t *Tree) GetEncodedValueWithProof(ctx logger.ContextInterface, tr Transaction, s Seqno, k Key) (val EncodedValue, proof MerkleInclusionProof, err error) {
 	// Lookup the appropriate root.
 	rootMetadata, err := t.eng.LookupRoot(ctx, tr, s)
 	if err != nil {
-		return KeyValuePair{}, MerkleInclusionProof{}, err
+		return nil, MerkleInclusionProof{}, err
 	}
 	proof.RootMetadataNoHash = rootMetadata
 	// clear up hash to make the proof smaller.
@@ -431,24 +428,30 @@ func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transact
 		deepestAndCurrSiblingPositions := t.cfg.getDeepestPositionAtLevelAndSiblingsOnPathToKey(k, curr+t.step, curr)
 		deepestAndCurrSiblings, err := t.eng.LookupNodes(ctx, tr, s, deepestAndCurrSiblingPositions)
 		if err != nil {
-			return KeyValuePair{}, MerkleInclusionProof{}, err
+			return nil, MerkleInclusionProof{}, err
 		}
+
+		sort.Sort(PosHashPairsInMerkleProofOrder(deepestAndCurrSiblings))
 
 		var currSiblings []PositionHashPair
 		// if we found a PositionHashPair corrisponding to the first element in
 		// deepestAndCurrSiblingPositions, it means the path might be deeper and we
 		// need to fetch more siblings.
-		if len(deepestAndCurrSiblings) > 0 && deepestAndCurrSiblings[0].Position.Equals(&deepestAndCurrSiblingPositions[0]) {
-			currSiblings = deepestAndCurrSiblings[1:]
-			needMore = true
+		candidateDeepest := len(deepestAndCurrSiblings)
+		if len(deepestAndCurrSiblings) > 0 {
+			candidateDeepest = sort.Search(len(deepestAndCurrSiblings), func(i int) bool {
+				return deepestAndCurrSiblings[i].Position.CmpInMerkleProofOrder(&deepestAndCurrSiblingPositions[0]) >= 0
+			})
+		}
+		if candidateDeepest < len(deepestAndCurrSiblings) && deepestAndCurrSiblings[candidateDeepest].Position.Equals(&deepestAndCurrSiblingPositions[0]) {
+			currSiblings = deepestAndCurrSiblings[:candidateDeepest]
+			currSiblings = append(currSiblings, deepestAndCurrSiblings[candidateDeepest+1:]...)
 		} else {
 			currSiblings = deepestAndCurrSiblings
 			needMore = false
 		}
 		siblingPosHashPairs = append(currSiblings, siblingPosHashPairs...)
 	}
-
-	sort.Sort(PosHashPairsInMerkleProofOrder(siblingPosHashPairs))
 
 	var leafLevel int
 	if len(siblingPosHashPairs) == 0 {
@@ -462,7 +465,7 @@ func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transact
 
 	deepestPosition, err := t.cfg.getDeepestPositionForKey(k)
 	if err != nil {
-		return KeyValuePair{}, MerkleInclusionProof{}, err
+		return nil, MerkleInclusionProof{}, err
 	}
 	leafPos := t.cfg.getParentAtLevel(deepestPosition, uint(leafLevel))
 
@@ -477,56 +480,74 @@ func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transact
 		}
 	}
 
-	// Lookup hashes of key value pairs stored at the same leaf.
-	// These pairs are ordered by key.
-	kevps, seqnos, err := t.eng.LookupKEVPairsUnderPosition(ctx, tr, s, leafPos)
-	if err != nil {
-		return KeyValuePair{}, MerkleInclusionProof{}, err
+	var kevps []KeyEncodedValuePair
+	var seqnos []Seqno
+	if t.cfg.MaxValuesPerLeaf == 1 {
+		kevp, s, err := t.eng.LookupKEVPair(ctx, tr, s, k)
+		if err != nil {
+			return nil, MerkleInclusionProof{}, err
+		}
+		kevps = append(kevps, KeyEncodedValuePair{Key: k, Value: kevp})
+		seqnos = append(seqnos, s)
+	} else {
+		// Lookup hashes of key value pairs stored at the same leaf.
+		// These pairs are ordered by key.
+		kevps, seqnos, err = t.eng.LookupKEVPairsUnderPosition(ctx, tr, s, leafPos)
+		if err != nil {
+			return nil, MerkleInclusionProof{}, err
+		}
 	}
+
 	var msMap map[Seqno]MasterSecret
 	if t.cfg.UseBlindedValueHashes {
 		msMap, err = t.eng.(StorageEngineWithBlinding).LookupMasterSecrets(ctx, tr, seqnos)
 		if err != nil {
-			return KeyValuePair{}, MerkleInclusionProof{}, err
+			return nil, MerkleInclusionProof{}, err
 		}
-	}
-
-	// Find the key value pair we are looking for in the leaf
-	for i, kevpi := range kevps {
-		if kevpi.Key.Equal(k) {
-			valContainer := t.cfg.ConstructValueContainer()
-			err = t.cfg.Encoder.Decode(&valContainer, kevpi.Value)
-			if err != nil {
-				return KeyValuePair{}, MerkleInclusionProof{}, err
-			}
-			kvp = KeyValuePair{Key: k, Value: valContainer}
-			if t.cfg.UseBlindedValueHashes {
-				proof.KeySpecificSecret = t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], kvp.Key)
-			} else {
-				proof.KeySpecificSecret = nil
-			}
-			break
-		}
-	}
-	if kvp.Key == nil {
-		return KeyValuePair{}, MerkleInclusionProof{}, NewKeyNotFoundError()
 	}
 
 	proof.OtherPairsInLeaf = make([]KeyHashPair, len(kevps)-1)
 	j := 0
 	for i, kevpi := range kevps {
 		if kevpi.Key.Equal(k) {
+			val = kevpi.Value
+			if t.cfg.UseBlindedValueHashes {
+				proof.KeySpecificSecret = t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], k)
+			} else {
+				proof.KeySpecificSecret = nil
+			}
 			continue
 		}
 
 		var hash Hash
 		hash, err = t.cfg.Encoder.HashKeyEncodedValuePairWithKeySpecificSecret(kevpi, t.cfg.Encoder.ComputeKeySpecificSecret(msMap[seqnos[i]], kevpi.Key))
 		if err != nil {
-			return KeyValuePair{}, MerkleInclusionProof{}, err
+			return nil, MerkleInclusionProof{}, err
+		}
+		if j == len(proof.OtherPairsInLeaf) {
+			// If we are attempting to overfill OtherPairsInLeaf, the key we are
+			// looking for must not be present
+			return nil, MerkleInclusionProof{}, NewKeyNotFoundError()
 		}
 		proof.OtherPairsInLeaf[j] = KeyHashPair{Key: kevpi.Key, Hash: hash}
 		j++
 	}
+
+	return val, proof, nil
+}
+
+func (t *Tree) GetKeyValuePairWithProof(ctx logger.ContextInterface, tr Transaction, s Seqno, k Key) (kvp KeyValuePair, proof MerkleInclusionProof, err error) {
+	val, proof, err := t.GetEncodedValueWithProof(ctx, tr, s, k)
+	if err != nil {
+		return KeyValuePair{}, MerkleInclusionProof{}, err
+	}
+
+	valContainer := t.cfg.ConstructValueContainer()
+	err = t.cfg.Encoder.Decode(&valContainer, val)
+	if err != nil {
+		return KeyValuePair{}, MerkleInclusionProof{}, err
+	}
+	kvp = KeyValuePair{Key: k, Value: valContainer}
 
 	return kvp, proof, nil
 }

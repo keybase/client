@@ -60,6 +60,11 @@ func TestEmptyTree(t *testing.T) {
 				require.Error(t, err)
 				require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 			}
+
+			// building a tree without keys should succeed.
+			s, _, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, nil)
+			require.NoError(t, err)
+			require.EqualValues(t, 1, s)
 		})
 	}
 

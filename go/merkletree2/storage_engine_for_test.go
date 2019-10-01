@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/bits"
+	"math/rand"
 	"sort"
 
 	"github.com/keybase/client/go/logger"
@@ -159,6 +160,10 @@ func (i *InMemoryStorageEngine) LookupNodes(c logger.ContextInterface, t Transac
 			res = append(res, PositionHashPair{Position: p, Hash: h})
 		}
 	}
+
+	// Shuffle the result to catch bugs that happen when ordering is different.
+	rand.Shuffle(len(res), func(i, j int) { res[i], res[j] = res[j], res[i] })
+
 	return res, nil
 }
 
