@@ -571,7 +571,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 
 	if doLogout {
 		username := m.G().Env.GetUsername()
-		if err := m.Logout(); err != nil {
+		if err := m.LogoutWithOptions(LogoutOptions{KeepSecrets: false, Force: true}); err != nil {
 			return err
 		}
 		return ClearSecretsOnDeprovision(m, username)
