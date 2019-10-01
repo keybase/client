@@ -432,7 +432,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res
 			btcollector.appendConv(conv)
 		default:
 			// filter empty convs we didn't create
-			if utils.IsConvEmpty(conv.Conv) && !conv.Conv.CreatorInfo.Uid.Eq(h.uid) {
+			if utils.IsConvEmpty(conv.Conv) && conv.Conv.CreatorInfo != nil &&
+				!conv.Conv.CreatorInfo.Uid.Eq(h.uid) {
 				continue
 			}
 			res.SmallTeams = append(res.SmallTeams,
