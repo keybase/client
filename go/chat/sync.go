@@ -209,30 +209,6 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	return s.sync(ctx, cli, uid, syncRes)
 }
 
-func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes types.InboxSyncRes,
-	convs []chat1.Conversation) bool {
-	if syncRes.TeamTypeChanged {
-		s.Debug(ctx, "shouldDoFullReloadFromIncremental: team type changed")
-		return true
-	}
-	for _, conv := range convs {
-		switch conv.Metadata.Existence {
-		case chat1.ConversationExistence_ACTIVE:
-		default:
-			s.Debug(ctx, "shouldDoFullReloadFromIncremental: deleted conversation: %s", conv.GetConvID())
-			return true
-		}
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_LEFT,
-			chat1.ConversationMemberStatus_REMOVED,
-			chat1.ConversationMemberStatus_NEVER_JOINED:
-			s.Debug(ctx, "shouldDoFullReloadFromIncremental: join or leave conv")
-			return true
-		}
-	}
-	return false
-}
-
 func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 	convIDs []chat1.ConversationID) {
 	// Clear caches from members type changed convos
@@ -451,16 +427,9 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			for _, expunge := range iboxSyncRes.Expunges {
 				expunges[expunge.ConvID.String()] = expunge.Expunge
 			}
-			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
-				// If we get word we should full clear the inbox (like if the user left a conversation),
-				// then just reload everything
-				s.G().ActivityNotifier.InboxSynced(ctx, uid, chat1.TopicType_NONE,
-					chat1.NewChatSyncResultWithClear())
-			} else {
-				// Send notifications for a successful partial sync
-				shouldUnboxMap := s.getShouldUnboxSyncConvMap(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)
-				s.notifyIncrementalSync(ctx, uid, incr.Convs, shouldUnboxMap)
-			}
+			// Send notifications for a successful partial sync
+			shouldUnboxMap := s.getShouldUnboxSyncConvMap(ctx, incr.Convs, iboxSyncRes.TopicNameChanged)
+			s.notifyIncrementalSync(ctx, uid, incr.Convs, shouldUnboxMap)
 		}
 
 		// The idea here is to limit the amount of work we do with the background conversation loader

@@ -252,16 +252,11 @@ function* unboxRows(
   }
   logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
   yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
-  yield RPCChatTypes.localRequestInboxUnboxRpcPromise(
-    {
-      convIDs: conversationIDKeys.map(k => {
-        return Types.keyToConversationID(k)
-      }),
-    },
-    action.type === Chat2Gen.metaRequestTrusted && action.payload.noWaiting
-      ? undefined
-      : Constants.waitingKeyUnboxing(conversationIDKeys[0])
-  )
+  yield RPCChatTypes.localRequestInboxUnboxRpcPromise({
+    convIDs: conversationIDKeys.map(k => {
+      return Types.keyToConversationID(k)
+    }),
+  })
 }
 
 // We get an incoming message streamed to us
