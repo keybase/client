@@ -983,6 +983,9 @@ func detailsChanged(a, b *stellar1.AccountDetails) bool {
 	if len(a.Reserves) != len(b.Reserves) {
 		return true
 	}
+	if a.InflationDestination != b.InflationDestination {
+		return true
+	}
 	for i := 0; i < len(a.Reserves); i++ {
 		if a.Reserves[i] != b.Reserves[i] {
 			return true
