@@ -190,9 +190,9 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		}
 	}
 
-	hasRandomPW, err := LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{
-		ForceRepoll: false,
-	})
+	prefetcher := mctx.G().GetHasRandomPWPrefetcher()
+	forceRepoll := prefetcher == nil || !prefetcher.prefetched
+	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx, forceRepoll)
 
 	if err != nil {
 		return keybase1.CanLogoutRes{
@@ -201,11 +201,10 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		}
 	}
 
-	if hasRandomPW {
+	if passphraseState == keybase1.PassphraseState_RANDOM {
 		return keybase1.CanLogoutRes{
-			CanLogout:     false,
-			SetPassphrase: true,
-			Reason:        "You signed up without a password and need to set a password first",
+			CanLogout: false,
+			Reason:    "You signed up without a password and need to set a password first",
 		}
 	}
 

@@ -1510,7 +1510,8 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 }
 
 func setupRandomPwPrefetcher(g *libkb.GlobalContext) {
-	g.SetHasRandomPWPrefetcher(&libkb.HasRandomPWPrefetcher{})
-	g.AddLoginHook(g.HasRandomPWPrefetcher)
-	g.AddLogoutHook(g.HasRandomPWPrefetcher, "HasRandomPWPrefetcher")
+	prefetcher := &libkb.HasRandomPWPrefetcher{}
+	g.SetHasRandomPWPrefetcher(prefetcher)
+	g.AddLoginHook(prefetcher)
+	g.AddLogoutHook(prefetcher, "HasRandomPWPrefetcher")
 }

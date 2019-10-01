@@ -103,55 +103,6 @@ func LoadPassphraseStateFromRemote(mctx MetaContext) (passphraseState keybase1.P
 	return randomPassphraseToState(ret.RandomPassphrase), nil
 }
 
-func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
-	if !mctx.G().ActiveDevice.Valid() {
-		mctx.Debug("CanLogout: looks like user is not logged in")
-		res.CanLogout = true
-		return res
-	}
-
-	if mctx.G().ActiveDevice.KeychainMode() == KeychainModeNone {
-		mctx.Debug("CanLogout: ok to logout since the key used doesn't user the keychain")
-		res.CanLogout = true
-		return res
-	}
-
-	if err := CheckCurrentUIDDeviceID(mctx); err != nil {
-		switch err.(type) {
-		case DeviceNotFoundError, UserNotFoundError,
-			KeyRevokedError, NoDeviceError, NoUIDError:
-			mctx.Debug("CanLogout: allowing logout because of CheckCurrentUIDDeviceID returning: %s", err.Error())
-			return keybase1.CanLogoutRes{CanLogout: true}
-		default:
-			// Unexpected error like network connectivity issue, fall through.
-			// Even if we are offline here, we may be able to get cached value
-			// `false` from LoadHasRandomPw and be allowed to log out.
-			mctx.Debug("CanLogout: CheckCurrentUIDDeviceID returned: %q, falling through", err.Error())
-		}
-	}
-
-	prefetcher := mctx.G().GetHasRandomPWPrefetcher()
-	forceRepoll := prefetcher == nil || !prefetcher.prefetched
-	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx, forceRepoll)
-
-	if err != nil {
-		return keybase1.CanLogoutRes{
-			CanLogout: false,
-			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
-		}
-	}
-
-	if passphraseState == keybase1.PassphraseState_RANDOM {
-		return keybase1.CanLogoutRes{
-			CanLogout: false,
-			Reason:    "You signed up without a password and need to set a password first",
-		}
-	}
-
-	res.CanLogout = true
-	return res
-}
-
 // hasRandomPWPrefetcher implements LoginHook and LogoutHook interfaces and is
 // used to ensure that we know current user's NOPW status.
 type HasRandomPWPrefetcher struct {
