@@ -5959,7 +5959,7 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 
 func logout(g *libkb.GlobalContext) error {
 	m := libkb.NewMetaContextBackground(g)
-	return m.Logout()
+	return m.LogoutKillSecrets()
 }
 
 func TestChatSrvUserResetAndDeleted(t *testing.T) {

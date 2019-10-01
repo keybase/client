@@ -64,7 +64,7 @@ func TestLoginTwiceLogoutOnce(t *testing.T) {
 	t.Logf("Logged in u1")
 	err = u2.SwitchTo(tc.G, true)
 	require.NoError(t, err)
-	eng := NewLogout()
+	eng := NewLogout(libkb.LogoutOptions{})
 	mctx := NewMetaContextForTest(tc).WithUIs(libkb.UIs{
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: &nullSecretUI{},
