@@ -602,3 +602,54 @@ func TestEditHistoryRenameDirAndReuseNameForLink(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for HOTPOT-803.
+func TestEditHistoryUnflushedRenameOverNewFile(t *testing.T) {
+	// Alice creates two files in the first revision, but then creates
+	// 2 files in the second revision that are renamed over the
+	// original two files.  She also creates two files that are removed.
+	expectedEdits := []expectedEdit{
+		{
+			"alice",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			[]string{
+				"/keybase/private/alice/a",
+				"/keybase/private/alice/b",
+			},
+			[]string{
+				"/keybase/private/alice/f",
+				"/keybase/private/alice/e",
+			},
+		},
+	}
+
+	test(t, journal(),
+		users("alice"),
+		as(alice,
+			mkfile("a", "foo a"),
+			mkfile("b", "foo d"),
+		),
+		as(alice,
+			enableJournal(),
+		),
+		as(alice,
+			pwriteBSSync("c", []byte("c foo"), 0, false),
+			pwriteBSSync("d", []byte("d foo"), 0, false),
+			rename("b", "e"),
+			pwriteBSSync("f", []byte("f foo"), 0, false),
+			rename("a", "f"),
+			rename("c", "b"),
+			pwriteBSSync("a", []byte("g foo"), 0, false),
+			rename("d", "a"),
+			rm("e"),
+			rm("f"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "FILE", "b$": "FILE"}),
+			read("a", "d foo"),
+			read("b", "c foo"),
+			checkUserEditHistory(expectedEdits),
+		),
+	)
+}
