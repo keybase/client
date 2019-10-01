@@ -15,6 +15,8 @@ import (
 )
 
 func TestPassphraseRecoverLegacy(t *testing.T) {
+	// Legacy flow hardcoded off
+	t.Skip()
 	tc := SetupEngineTest(t, "PassphraseRecoverLegacy")
 	defer tc.Cleanup()
 	u, paperkey := CreateAndSignupLPK(tc, "pprec")
