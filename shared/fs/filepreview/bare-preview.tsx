@@ -61,7 +61,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           ...Styles.globalStyles.flexGrow,
-          backgroundColor: Styles.globalColors.black,
+          backgroundColor: Styles.globalColors.blackOrBlack,
         },
       }),
       contentContainer: {
@@ -90,7 +90,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       text: {
-        color: Styles.globalColors.white,
+        color: Styles.globalColors.whiteOrBlueDark,
         lineHeight: 48,
       },
     } as const)

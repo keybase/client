@@ -30,6 +30,16 @@ const Error = (props: Props) => (
   </SignupScreen>
 )
 
+export const ErrorModal = (props: Props) => (
+  <Kb.Modal header={{title: 'Error'}} onClose={props.onBack}>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
+      <Kb.Text type="Body" center={true}>
+        {props.error}
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.Modal>
+)
+
 Error.navigationOptions = {
   header: null,
   headerBottomStyle: {height: undefined},
@@ -43,5 +53,11 @@ Error.navigationOptions = {
     </Kb.Box2>
   ),
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  padding: {
+    padding: Styles.globalMargins.small,
+  },
+}))
 
 export default Error

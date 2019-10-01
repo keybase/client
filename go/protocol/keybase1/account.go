@@ -137,7 +137,7 @@ type AccountInterface interface {
 	// * Whether the logged-in user has uploaded private keys
 	// * Will error if not logged in.
 	HasServerKeys(context.Context, int) (HasServerKeysRes, error)
-	// resetAccount resets the user's account; it's meant only for devel and tests.
+	// resetAccount resets the user's account. It is used in the CLI.
 	// passphrase is optional and will be prompted for if not supplied.
 	ResetAccount(context.Context, ResetAccountArg) error
 	GetLockdownMode(context.Context, int) (GetLockdownResponse, error)
@@ -395,7 +395,7 @@ func (c AccountClient) HasServerKeys(ctx context.Context, sessionID int) (res Ha
 	return
 }
 
-// resetAccount resets the user's account; it's meant only for devel and tests.
+// resetAccount resets the user's account. It is used in the CLI.
 // passphrase is optional and will be prompted for if not supplied.
 func (c AccountClient) ResetAccount(ctx context.Context, __arg ResetAccountArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.resetAccount", []interface{}{__arg}, nil, 0*time.Millisecond)

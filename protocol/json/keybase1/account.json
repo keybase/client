@@ -151,7 +151,7 @@
         }
       ],
       "response": null,
-      "doc": "resetAccount resets the user's account; it's meant only for devel and tests.\n   passphrase is optional and will be prompted for if not supplied."
+      "doc": "resetAccount resets the user's account. It is used in the CLI.\n   passphrase is optional and will be prompted for if not supplied."
     },
     "getLockdownMode": {
       "request": [

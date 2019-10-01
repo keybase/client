@@ -21,6 +21,7 @@ import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {debounce} from 'lodash-es'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
+import {getPersistenceFunctions} from './persist.native'
 
 const {createStackNavigator} = Stack
 
@@ -78,7 +79,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
       type={icons[routeName]}
       fontSize={32}
       style={tabStyles.tab}
-      color={focused ? Styles.globalColors.white : Styles.globalColors.blueDarker}
+      color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack_60}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
   </Kb.NativeView>
@@ -143,16 +144,16 @@ const VanillaTabNavigator = createBottomTabNavigator(
     order: tabs,
     tabBarOptions: {
       get activeBackgroundColor() {
-        return Styles.globalColors.blueDark
+        return Styles.globalColors.blueDarkOrGreyDarkest
       },
       get inactiveBackgroundColor() {
-        return Styles.globalColors.blueDark
+        return Styles.globalColors.blueDarkOrGreyDarkest
       },
       // else keyboard avoiding is racy on ios and won't work correctly
       keyboardHidesTabBar: Styles.isAndroid,
       showLabel: false,
       get style() {
-        return {backgroundColor: Styles.globalColors.blueDark}
+        return {backgroundColor: Styles.globalColors.blueDarkOrGreyDarkest}
       },
     },
   }
@@ -304,7 +305,12 @@ class RNApp extends React.PureComponent<Props> {
         <Kb.NativeStatusBar
           barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
         />
-        <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
+        <AppContainer
+          ref={nav => (this._nav = nav)}
+          onNavigationStateChange={this._persistRoute}
+          // HMR persistence
+          {...getPersistenceFunctions()}
+        />
         <GlobalError />
         <OutOfDate />
         <RuntimeStats />
