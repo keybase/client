@@ -735,7 +735,7 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           right: 0,
-          top: 0,
+          top: -10,
         },
       }),
       timestamp: Styles.platformStyles({
