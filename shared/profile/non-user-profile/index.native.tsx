@@ -4,7 +4,7 @@ import {Avatar, Box, Button, Icon, Text, HeaderHoc} from '../../common-adapters'
 import * as Styles from '../../styles'
 import {serviceIdToLogo24} from '../../util/platforms'
 import {Props} from '.'
-import {serviceIdToPrettyName} from 'constants/team-building'
+import {serviceIdToPrettyName} from '../../constants/team-building'
 
 const NonUserRender = (props: Props) => (
   <Box style={styles.container}>

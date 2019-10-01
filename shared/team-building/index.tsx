@@ -547,6 +547,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       </Kb.Box2>
     )
 
+    // If there are no filterServices or if the filterServices has a phone
+    const showContactsBanner =
+      Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
+
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
@@ -574,7 +578,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {Styles.isMobile && (
+        {showContactsBanner && (
           <ContactsBanner
             {...props}
             onRedoSearch={() => props.onChangeText(props.searchString)}
