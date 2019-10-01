@@ -42,7 +42,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
-  cannotWrite: boolean
+  canWrite: boolean
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
   decorate: boolean
@@ -522,7 +522,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._hasReactions() &&
-                  !this.props.cannotWrite &&
+                  this.props.canWrite &&
                   Constants.isDecoratedMessage(this.props.message) &&
                   !this.props.showingMenu && (
                     <EmojiRow

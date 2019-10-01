@@ -131,7 +131,7 @@ export default Container.namedConnect(
       _you: state.config.username,
       authorIsAdmin,
       authorIsOwner,
-      cannotWrite: meta.cannotWrite,
+      canWrite: !meta.cannotWrite,
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
@@ -187,7 +187,7 @@ export default Container.namedConnect(
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
       authorIsOwner: stateProps.authorIsOwner,
-      cannotWrite: stateProps.cannotWrite,
+      canWrite: stateProps.canWrite,
       centeredOrdinal: stateProps.centeredOrdinal,
       conversationIDKey: stateProps.conversationIDKey,
       decorate,

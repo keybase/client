@@ -32,13 +32,13 @@ export default namedConnect(
     }
     return {
       _reactions: message.reactions,
-      cannotWrite: Constants.getMeta(state, ownProps.conversationIDKey).cannotWrite,
+      canWrite: !Constants.getMeta(state, ownProps.conversationIDKey).cannotWrite,
     }
   },
   () => ({}),
   (stateProps, _, ownProps: OwnProps) => ({
     ...ownProps,
-    cannotWrite: !!stateProps.cannotWrite,
+    canWrite: !!stateProps.canWrite,
     emojis: getOrderedReactions(stateProps._reactions),
   }),
   'ReactionsRow'

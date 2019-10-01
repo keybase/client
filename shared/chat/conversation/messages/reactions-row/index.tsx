@@ -16,7 +16,7 @@ import {
 
 export type Props = {
   btnClassName?: string
-  cannotWrite: boolean
+  canWrite: boolean
   newBtnClassName?: string
   conversationIDKey: Types.ConversationIDKey
   emojis: Array<string>
@@ -77,7 +77,7 @@ class ReactionsRow extends React.Component<Props, State> {
             />
           </Box>
         ))}
-        {!this.props.cannotWrite &&
+        {this.props.canWrite &&
           (isMobile ? (
             <ReactButton
               conversationIDKey={this.props.conversationIDKey}
