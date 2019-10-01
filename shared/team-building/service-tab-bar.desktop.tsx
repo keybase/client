@@ -1,12 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLongLabel,
-  serviceIdToWonderland,
-} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
 import {difference} from 'lodash-es'
@@ -29,7 +24,7 @@ const ServiceIcon = (props: IconProps) => {
           style={styles.serviceIconContainerInner}
         >
           <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
-            {serviceIdToWonderland(props.service) && (
+            {serviceIdToBadge(props.service) && (
               <Kb.Badge
                 border={true}
                 height={9}
@@ -266,9 +261,6 @@ const styles = Styles.styleSheetCreate(
       tabBarContainer: {
         flexShrink: 0,
         minHeight: 30,
-      },
-      wonderland: {
-        color: Styles.globalColors.white,
       },
     } as const)
 )

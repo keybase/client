@@ -23,7 +23,6 @@ const ff: FeatureFlags = {
   proofProviders: true,
   resetPipeline: false,
   stellarExternalPartners: true,
-  wonderland: false,
 }
 
 // load overrides
