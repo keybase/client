@@ -84,16 +84,6 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	return err
 }
 
-func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
-	results chat1.GiphySearchResults) error {
-	return nil
-}
-
-func (n nullChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID chat1.ConversationID,
-	show, clearInput bool) error {
-	return nil
-}
-
 func (s *Giphy) queryEqual(query *string, shown *string) bool {
 	if query == nil && shown == nil {
 		return true

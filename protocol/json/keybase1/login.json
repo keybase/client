@@ -116,6 +116,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
         }
       ],
       "response": null

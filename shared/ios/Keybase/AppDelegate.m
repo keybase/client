@@ -86,7 +86,7 @@
   self.resignImageView = [[UIImageView alloc] initWithFrame:self.window.bounds];
   self.resignImageView.contentMode = UIViewContentModeCenter;
   self.resignImageView.alpha = 0;
-  self.resignImageView.backgroundColor = [UIColor whiteColor];
+  self.resignImageView.backgroundColor = rootView.backgroundColor;
   [self.resignImageView setImage:[UIImage imageNamed:@"LaunchImage"]];
   [self.window addSubview:self.resignImageView];
 

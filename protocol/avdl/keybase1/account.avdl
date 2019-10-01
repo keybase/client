@@ -35,7 +35,7 @@ protocol account {
   }
 
   /**
-   resetAccount resets the user's account; it's meant only for devel and tests.
+   resetAccount resets the user's account. It is used in the CLI.
    passphrase is optional and will be prompted for if not supplied.
   */
   void resetAccount(int sessionID, string passphrase);

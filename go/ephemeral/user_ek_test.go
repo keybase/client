@@ -238,7 +238,7 @@ func TestDeprovision(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mctx.ActiveDevice().Name(), newName)
 
-	eng2 := engine.NewDeprovisionEngine(tc.G, user.Username, true /* doRevoke */)
+	eng2 := engine.NewDeprovisionEngine(tc.G, user.Username, true /* doRevoke */, libkb.LogoutOptions{})
 	uis = libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: user.NewSecretUI(),

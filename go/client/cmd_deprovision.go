@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -72,7 +73,9 @@ func (c *CmdDeprovision) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdDeprovision) ParseArgv(*cli.Context) error { return nil }
+func (c *CmdDeprovision) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
 
 func (c *CmdDeprovision) getUsernameToDeprovision() (string, error) {
 	configCli, err := GetConfigClient(c.G())
