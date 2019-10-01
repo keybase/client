@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
-const statusToIcon: {[K in IconStatus]: Kb.IconType} = {
-  encrypting: 'icon-message-status-encrypting-24',
-  error: 'icon-message-status-error-24',
-  sending: 'icon-message-status-sending-24',
-  sent: 'icon-message-status-sent-24',
+type AnimationStatus = 'encrypting' | 'error' | 'sending' | 'sent'
+const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
+  encrypting: 'messageStatusEncrypting',
+  error: 'messageStatusError',
+  sending: 'messageStatusSending',
+  sent: 'messageStatusSent',
 }
 
 const encryptingTimeout = 600
@@ -23,7 +23,7 @@ type Props = Kb.PropsWithTimer<{
 }>
 
 type State = {
-  iconStatus: IconStatus
+  animationStatus: AnimationStatus
   visible: boolean
 }
 
@@ -32,14 +32,14 @@ class SendIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {iconStatus: 'encrypting', visible: !props.sent}
+    this.state = {animationStatus: 'encrypting', visible: !props.sent}
   }
 
   encryptingTimeoutID?: NodeJS.Timeout
   sentTimeoutID?: NodeJS.Timeout
 
-  _setStatus(iconStatus: IconStatus) {
-    this.setState({iconStatus})
+  _setStatus(animationStatus: AnimationStatus) {
+    this.setState({animationStatus})
   }
 
   _setVisible(visible: boolean) {
@@ -102,10 +102,11 @@ class SendIndicator extends React.Component<Props, State> {
       return null
     }
     return (
-      <Kb.Icon
-        type={statusToIcon[this.state.iconStatus]}
+      <Kb.Animation
+        animationType={statusToIcon[this.state.animationStatus]}
         style={Styles.collapseStyles([
           this.props.style,
+          styles.animation,
           this.state.visible ? styles.visible : styles.invisible,
         ])}
       />
@@ -116,8 +117,19 @@ class SendIndicator extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      invisible: {height: 16, opacity: 0, width: 24},
-      visible: {height: 16, opacity: 1, width: 24},
+      invisible: {opacity: 1},
+      animation: Styles.platformStyles({
+        common: {
+          height: 16,
+          width: 24,
+        },
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          height: 32,
+          width: 48,
+        },
+      }),
+      visible: {opacity: 1},
     } as const)
 )
 

@@ -357,10 +357,12 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return null
     }
     const message = this.props.message
-    const sent =
-      (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
-    const failed =
-      (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+    // const sent =
+    //   (message.type !== 'text' && message.type !== 'attachment') || !message.submitState || message.exploded
+    // const failed =
+    //   (message.type === 'text' || message.type === 'attachment') && message.submitState === 'failed'
+    const sent = false
+    const failed = false
     return (
       <SendIndicator
         key="sendIndicator"
@@ -580,6 +582,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         <LongPressable
           {...this._containerProps()}
           children={[
+            this._sendIndicator(),
             this._authorAndContent([
               this._messageAndButtons(),
               this._isEdited(),
@@ -589,7 +592,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               this._coinFlip(),
               this._reactionsRow(),
             ]),
-            this._sendIndicator(),
             this._orangeLine(),
           ]}
         />
