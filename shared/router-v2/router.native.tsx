@@ -21,6 +21,7 @@ import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {debounce} from 'lodash-es'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
+import {getPersistenceFunctions} from './persist.native'
 
 const {createStackNavigator} = Stack
 
@@ -304,7 +305,12 @@ class RNApp extends React.PureComponent<Props> {
         <Kb.NativeStatusBar
           barStyle={Styles.isAndroid ? 'default' : this.props.isDarkMode ? 'light-content' : 'dark-content'}
         />
-        <AppContainer ref={nav => (this._nav = nav)} onNavigationStateChange={this._persistRoute} />
+        <AppContainer
+          ref={nav => (this._nav = nav)}
+          onNavigationStateChange={this._persistRoute}
+          // HMR persistence
+          {...getPersistenceFunctions()}
+        />
         <GlobalError />
         <OutOfDate />
         <RuntimeStats />
