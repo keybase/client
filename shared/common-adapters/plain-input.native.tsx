@@ -11,7 +11,7 @@ import {
   styleSheetCreate,
   isDarkMode,
 } from '../styles'
-import {isIOS} from '../constants/platform'
+import {isIOS, isAndroid} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
 import logger from '../logger'
@@ -67,9 +67,19 @@ class PlainInput extends Component<InternalProps> {
     }
     const newTextInfo = fn(currentTextInfo)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
-    this._lastNativeText = newTextInfo.text
-    this._setSelection(newTextInfo.selection)
+    // If we're android, let's workaround this Issue: https://github.com/imnapo/react-native-cn-richtext-editor/issues/81
+    // By setting the text and selection at the same time
+    if (isAndroid) {
+      this.setNativeProps({
+        selection: this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text),
+        text: newTextInfo.text,
+      })
+      this._lastNativeText = newTextInfo.text
+    } else {
+      this.setNativeProps({text: newTextInfo.text})
+      this._lastNativeText = newTextInfo.text
+      this._setSelection(newTextInfo.selection)
+    }
     if (reflectChange) {
       this._onChangeText(newTextInfo.text)
     }
@@ -87,14 +97,17 @@ class PlainInput extends Component<InternalProps> {
     this._setSelection(s)
   }
 
+  // Validate that this selection makes sense with current value
+  _sanityCheckSelection = (selection: Selection, nativeText: string): Selection => {
+    let {start, end} = selection
+    end = Math.max(0, Math.min(end || 0, nativeText.length))
+    start = Math.min(start || 0, end)
+    return {end, start}
+  }
+
   _setSelection = (selection: Selection) => {
     this._setTimeout(() => {
-      // Validate that this selection makes sense with current value
-      let {start, end} = selection
-      const text = this._lastNativeText || '' // TODO write a good internal getValue fcn for this
-      end = Math.max(0, Math.min(end || 0, text.length))
-      start = Math.min(start || 0, end)
-      const newSelection = {end, start}
+      const newSelection = this._sanityCheckSelection(selection, this._lastNativeText || '')
       this.setNativeProps({selection: newSelection})
       this._lastNativeSelection = selection
     }, 0)
