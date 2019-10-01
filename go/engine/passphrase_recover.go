@@ -65,7 +65,8 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	}
 
 	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
-	if !mctx.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
+	// Autoreset hardcoded on for now.
+	if !true {
 		// The device has to be preprovisioned for this account in this flow
 		if !e.usernameFound {
 			return libkb.NotProvisionedError{}

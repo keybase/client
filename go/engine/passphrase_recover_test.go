@@ -89,7 +89,6 @@ func TestPassphraseRecoverLegacy(t *testing.T) {
 func TestPassphraseRecoverLoggedIn(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseRecoverGuideAndReset")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := CreateAndSignupFakeUser(tc, "pprec")
 
 	// Any input should result in a noop.
@@ -122,7 +121,6 @@ func TestPassphraseRecoverLoggedIn(t *testing.T) {
 func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseRecoverGuideAndReset")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := CreateAndSignupFakeUser(tc, "pprec")
 	Logout(tc)
 
@@ -192,7 +190,6 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 func TestPassphraseRecoverNoDevices(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseRecoverNoDevices")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := createFakeUserWithPGPOnly(t, tc)
 
 	// If the only way to provision the account is to do it with a password,
@@ -223,7 +220,6 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	tc1 := SetupEngineTest(t, "PassphraseRecoverChangeWithPaper")
 	defer tc1.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc1, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// Prepare two accounts on the same device
 	u1, paperkey1 := CreateAndSignupLPK(tc1, "pprec")
