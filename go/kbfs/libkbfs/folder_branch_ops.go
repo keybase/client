@@ -3767,6 +3767,16 @@ func (fbo *folderBranchOps) makeEditNotifications(
 	// resolver, the final paths will not be set on the ops.  Use
 	// crChains to set them.
 	ops := pathSortedOps(rmd.data.Changes.Ops)
+	if fbo.config.Mode().IsTestMode() {
+		// Clear out the final paths to simulate in tests what happens
+		// when MDs are read fresh from the journal.
+		opsCopy := make(pathSortedOps, len(ops))
+		for i, op := range ops {
+			opsCopy[i] = op.deepCopy()
+			opsCopy[i].setFinalPath(data.Path{})
+		}
+		ops = opsCopy
+	}
 
 	isResolution := false
 	if len(ops) > 0 {
@@ -3824,7 +3834,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		if !op.getFinalPath().IsValid() {
 			fbo.log.CDebugf(
 				ctx, "HOTPOT-803: Op %s has no valid path; "+
-					"rev=%d, all ops=%v", rmd.Revision(), op, ops)
+					"rev=%d, all ops=%v", op, rmd.Revision(), ops)
 			if fbo.config.Mode().IsTestMode() {
 				panic("Op missing path")
 			}
