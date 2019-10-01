@@ -20,7 +20,7 @@ import (
 func kvTestSetup(t *testing.T) libkb.TestContext {
 	tc := libkb.SetupTest(t, "kvstore", 0)
 	teams.ServiceInit(tc.G)
-	newRevisionCache := kvstore.NewKVRevisionCache()
+	newRevisionCache := kvstore.NewKVRevisionCache(tc.G)
 	tc.G.SetKVRevisionCache(newRevisionCache)
 	return tc
 }
@@ -238,7 +238,7 @@ func TestRevisionCache(t *testing.T) {
 	require.Equal(t, 1, revision)
 
 	// bump the revision in the cache and verify error
-	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
+	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
 	err = revCache.PutCheck(mctx, entryID, entryHash, generation, 2)
 	require.NoError(t, err)
@@ -248,7 +248,7 @@ func TestRevisionCache(t *testing.T) {
 	require.Contains(t, err.Error(), "revision")
 
 	// bump the team key generation and verify error
-	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
+	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
 	err = revCache.PutCheck(mctx, entryID, entryHash, keybase1.PerTeamKeyGeneration(2), revision)
 	require.NoError(t, err)
@@ -258,7 +258,7 @@ func TestRevisionCache(t *testing.T) {
 	require.Contains(t, err.Error(), "team key generation")
 
 	// mutate the entry hash and verify error
-	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
+	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
 	err = revCache.PutCheck(mctx, entryID, "this-is-wrong", generation, revision)
 	require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestRevisionCache(t *testing.T) {
 	require.Contains(t, err.Error(), "hash of entry")
 
 	// verify that it does not error with the right things in the cache
-	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache())
+	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
 	err = revCache.PutCheck(mctx, entryID, entryHash, generation, revision)
 	require.NoError(t, err)

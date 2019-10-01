@@ -25,10 +25,13 @@ type KVRevisionCache struct {
 	data kvCacheData
 }
 
-func NewKVRevisionCache() *KVRevisionCache {
-	return &KVRevisionCache{
+func NewKVRevisionCache(g *libkb.GlobalContext) *KVRevisionCache {
+	kvr := &KVRevisionCache{
 		data: make(kvCacheData),
 	}
+	g.AddLogoutHook(kvr, "kvstore revision cache")
+	g.AddDbNukeHook(kvr, "kvstore revision cache")
+	return kvr
 }
 
 type KVRevisionCacheError struct {
@@ -110,5 +113,15 @@ func checkNewAgainstCachedEntry(newEntry, cachedEntry kvCacheEntry) error {
 			return KVRevisionCacheError{fmt.Sprintf("cache error: at the same revision (%d) hash of entry cannot be different: %s -> %s", newEntry.Revision, cachedEntry.EntryHash, newEntry.EntryHash)}
 		}
 	}
+	return nil
+}
+
+func (k *KVRevisionCache) OnLogout(m libkb.MetaContext) error {
+	k.data = make(kvCacheData)
+	return nil
+}
+
+func (k *KVRevisionCache) OnDbNuke(m libkb.MetaContext) error {
+	k.data = make(kvCacheData)
 	return nil
 }

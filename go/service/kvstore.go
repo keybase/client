@@ -27,7 +27,7 @@ var _ keybase1.KvstoreInterface = (*KVStoreHandler)(nil)
 
 func NewKVStoreHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KVStoreHandler {
 	if g.GetKVRevisionCache() == nil {
-		g.SetKVRevisionCache(kvstore.NewKVRevisionCache())
+		g.SetKVRevisionCache(kvstore.NewKVRevisionCache(g))
 	}
 	return &KVStoreHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
