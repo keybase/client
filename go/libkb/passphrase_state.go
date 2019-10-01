@@ -28,10 +28,15 @@ func LoadPassphraseStateWithForceRepoll(mctx MetaContext, forceRepoll bool) (pas
 	mctx = mctx.WithLogTag("PPSTATE")
 	defer mctx.TraceTimed(fmt.Sprintf("LoadPassphraseState(forceRepoll=%t)", forceRepoll), func() error { return err })()
 
-	if !mctx.G().ActiveDevice.Valid() {
+	if len(mctx.G().Env.GetUsername().String()) == 0 {
 		mctx.Debug("LoadPassphraseState: user is not logged in")
 		return passphraseState, NewLoginRequiredError("LoadPassphraseState")
 	}
+
+	// if !mctx.G().ActiveDevice.Valid() {
+	// 	mctx.Debug("LoadPassphraseState: user is not logged in")
+	// 	return passphraseState, NewLoginRequiredError("LoadPassphraseState")
+	// }
 
 	configState := mctx.G().Env.GetConfig().GetPassphraseState()
 	if configState != nil {
