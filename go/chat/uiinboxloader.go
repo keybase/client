@@ -506,7 +506,7 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
 			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
-			h.UpdateConvs(ctx, convIDs)
+			_ = h.UpdateConvs(ctx, convIDs)
 			// update layout again after we have done all this work to get everything in the right order
 			_ = h.UpdateLayout(ctx, "big team unbox")
 		case <-shutdownCh:
