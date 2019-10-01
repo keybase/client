@@ -242,6 +242,7 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 
 	listener := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+	ctc.world.Tcs[users[0].Username].ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
 	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 	ctx := ctc.as(t, users[0]).startCtx
