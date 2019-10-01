@@ -330,8 +330,9 @@ func TestJournalManagerOverDiskLimitError(t *testing.T) {
 	require.NoError(t, err)
 	usageBytes, limitBytes, usageFiles, limitFiles :=
 		tj.diskLimiter.getDiskLimitInfo()
+	putCtx := context.Background() // rely on default disk limit timeout
 	err = blockServer.Put(
-		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
+		putCtx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 
 	compare := func(reportable bool, err error) {
 		expectedError := ErrDiskLimitTimeout{
@@ -353,20 +354,20 @@ func TestJournalManagerOverDiskLimitError(t *testing.T) {
 	// Putting it again should encounter a regular deadline exceeded
 	// error.
 	err = blockServer.Put(
-		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
+		putCtx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	compare(false, err)
 
 	// Advancing the time by overDiskLimitDuration should make it
 	// return another quota error.
 	clock.Add(time.Minute)
 	err = blockServer.Put(
-		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
+		putCtx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	compare(true, err)
 
 	// Putting it again should encounter a deadline error again.
 	clock.Add(30 * time.Second)
 	err = blockServer.Put(
-		ctx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
+		putCtx, tlfID1, bID, bCtx, data, serverHalf, DiskBlockAnyCache)
 	compare(false, err)
 }
 
