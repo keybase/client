@@ -384,7 +384,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// These are all background-ish operations that the service performs.
 	// We should revisit these on mobile, or at least, when mobile apps are
 	// backgrounded.
-	d.G().Log.Warning("RunBackgroundOperations: starting")
+	d.G().Log.Debug("RunBackgroundOperations: starting")
 	ctx := context.Background()
 	setupRandomPwPrefetcher(d.G())
 	d.tryLogin(ctx, loginAttemptOnline)
