@@ -3804,7 +3804,7 @@ func (fbo *folderBranchOps) makeEditNotifications(
 		}
 		// Make sure the ops are in increasing order by path length,
 		// so e.g. file creates come before file modifies.
-		sort.Sort(ops)
+		sort.Stable(ops)
 
 		for _, op := range ops {
 			// Temporary debugging for the case where an op has an
