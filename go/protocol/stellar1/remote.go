@@ -1034,6 +1034,10 @@ type DetailsPlusPaymentsArg struct {
 	IncludeAdvanced bool                 `codec:"includeAdvanced" json:"includeAdvanced"`
 }
 
+type AllDetailsPlusPaymentsArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+}
+
 type AssetSearchArg struct {
 	AssetCode       string `codec:"assetCode" json:"assetCode"`
 	IssuerAccountID string `codec:"issuerAccountID" json:"issuerAccountID"`
@@ -1087,6 +1091,7 @@ type RemoteInterface interface {
 	Ping(context.Context) (string, error)
 	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
 	DetailsPlusPayments(context.Context, DetailsPlusPaymentsArg) (DetailsPlusPayments, error)
+	AllDetailsPlusPayments(context.Context, keybase1.UserVersion) ([]DetailsPlusPayments, error)
 	AssetSearch(context.Context, AssetSearchArg) ([]Asset, error)
 	FuzzyAssetSearch(context.Context, FuzzyAssetSearchArg) ([]Asset, error)
 	ListPopularAssets(context.Context, keybase1.UserVersion) (AssetListResult, error)
@@ -1439,6 +1444,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"allDetailsPlusPayments": {
+				MakeArg: func() interface{} {
+					var ret [1]AllDetailsPlusPaymentsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AllDetailsPlusPaymentsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AllDetailsPlusPaymentsArg)(nil), args)
+						return
+					}
+					ret, err = i.AllDetailsPlusPayments(ctx, typedArgs[0].Caller)
+					return
+				},
+			},
 			"assetSearch": {
 				MakeArg: func() interface{} {
 					var ret [1]AssetSearchArg
@@ -1652,6 +1672,12 @@ func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVe
 
 func (c RemoteClient) DetailsPlusPayments(ctx context.Context, __arg DetailsPlusPaymentsArg) (res DetailsPlusPayments, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.detailsPlusPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) AllDetailsPlusPayments(ctx context.Context, caller keybase1.UserVersion) (res []DetailsPlusPayments, err error) {
+	__arg := AllDetailsPlusPaymentsArg{Caller: caller}
+	err = c.Cli.Call(ctx, "stellar.1.remote.allDetailsPlusPayments", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
