@@ -30,12 +30,13 @@ func NewClient() *Client {
 	return ret
 }
 
-func (a *Client) dial(m libkb.MetaContext) (net.Conn, error) {
+func (a *Client) dial(m libkb.MetaContext) (conn net.Conn, err error) {
+	defer m.Trace("airdrop.Client#dial", func() error { return err })()
 	uri, tls, err := a.getURIAndTLS(m)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := uri.DialWithConfig(tls)
+	conn, err = uri.DialWithConfig(tls)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +44,8 @@ func (a *Client) dial(m libkb.MetaContext) (net.Conn, error) {
 }
 
 func (a *Client) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsConfig *tls.Config, err error) {
+	defer m.Trace("airdrop.Client#getURIAndTLS", func() error { return err })()
+
 	rm := m.G().Env.GetRunMode()
 	s, found := libkb.MpackAPIServerLookup[rm]
 	if !found {
@@ -72,15 +75,15 @@ func (a *Client) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsConfig *
 	return uri, tlsConfig, nil
 }
 
-func (a *Client) connect(m libkb.MetaContext) (cli keybase1.AirdropClient, err error) {
+func (a *Client) connect(m libkb.MetaContext) (cli keybase1.AirdropClient, xp rpc.Transporter, err error) {
 	conn, err := a.dialFunc(m)
 	if err != nil {
-		return cli, err
+		return cli, nil, err
 	}
 
-	xp := libkb.NewTransportFromSocket(m.G(), conn)
+	xp = libkb.NewTransportFromSocket(m.G(), conn)
 	genericCli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
-	return keybase1.AirdropClient{Cli: genericCli}, nil
+	return keybase1.AirdropClient{Cli: genericCli}, xp, nil
 }
 
 type sharedKey [32]byte
@@ -140,10 +143,11 @@ func (a *Client) round2(m libkb.MetaContext, cli keybase1.AirdropClient, sharedK
 }
 
 func (a *Client) Register(m libkb.MetaContext) (err error) {
-	cli, err := a.connect(m)
+	cli, xp, err := a.connect(m)
 	if err != nil {
 		return err
 	}
+	defer xp.Close()
 	symKey, uid, kid, err := a.round1(m, cli)
 	if err != nil {
 		return err

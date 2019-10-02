@@ -49,7 +49,7 @@ func (t TestHandler) Panic(_ context.Context, message string) error {
 }
 
 func (t TestHandler) TestAirdropReg(ctx context.Context) error {
-	mctx := libkb.NewMetaContext(ctx, t.G())
+	mctx := libkb.NewMetaContext(ctx, t.G()).WithLogTag("ADREG")
 	cli := airdrop.NewClient()
 	return cli.Register(mctx)
 }
