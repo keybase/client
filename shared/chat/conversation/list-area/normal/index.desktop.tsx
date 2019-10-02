@@ -49,7 +49,15 @@ class Thread extends React.PureComponent<Props, State> {
   // Not a state so we don't rerender, just mutate the dom
   private isScrolling = false
 
-  private lockedToBottom: boolean = true
+  private _lockedToBottom: boolean = true
+  get lockedToBottom() {
+    return this._lockedToBottom
+  }
+  set lockedToBottom(l: boolean) {
+    // just to help debug
+    console.log('Thread: locked to bottom changed', l)
+    this._lockedToBottom = l
+  }
 
   private logAll = debug
     ? (list, name, fn: any) => {
@@ -177,8 +185,12 @@ class Thread extends React.PureComponent<Props, State> {
 
     // Adjust scrolling if locked to the bottom
     const list = this.listRef.current
-    // if locked to the bottom, and we have the most recent message, then scroll to the bottom
-    if (this.isLockedToBottom() && this.props.conversationIDKey === prevProps.conversationIDKey) {
+    // if locked to the bottom, and we have the most recent message, then scroll to the bottom if the list changes
+    if (
+      this.isLockedToBottom() &&
+      this.props.conversationIDKey === prevProps.conversationIDKey &&
+      this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()
+    ) {
       // maintain scroll to bottom?
       this.scrollToBottom('componentDidUpdate-maintain-scroll')
     }
