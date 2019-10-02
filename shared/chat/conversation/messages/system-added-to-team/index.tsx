@@ -3,11 +3,14 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import UserNotice from '../user-notice'
 import SystemMessageTimestamp from '../system-message-timestamp'
+import * as TeamTypes from '../../../../constants/types/teams'
+import {typeToLabelWithBots} from '../../../../constants/teams'
 
 type Props = {
   isAdmin: boolean
   addee: string
   adder: string
+  role: TeamTypes.TeamRoleTypeWithBots
   onManageChannels: () => void
   onManageNotifications: () => void
   onViewTeam: () => void
@@ -66,14 +69,15 @@ const AddedToTeam = (props: Props) => {
   }
   return (
     <Kb.Text type="BodySmall" style={{flex: 1}}>
-      was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}.{' '}
+      was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
+      {typeToLabelWithBots[props.role] && ` as a ${typeToLabelWithBots[props.role].toLowerCase()}`}.{' '}
       <ManageComponent {...props} />
     </Kb.Text>
   )
 }
 
 const YouAddedToTeam = (props: Props) => {
-  const {teamname, you, onViewTeam, adder, addee, timestamp} = props
+  const {teamname, you, onViewTeam, adder, addee, role, timestamp} = props
   return (
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
@@ -99,7 +103,7 @@ const YouAddedToTeam = (props: Props) => {
           >
             {teamname}
           </Kb.Text>
-          .{' '}
+          {typeToLabelWithBots[props.role] && ` as a ${typeToLabelWithBots[role].toLowerCase()}`}.{' '}
           <Kb.Text type="BodySmallSemibold">
             Say hi!{' '}
             <Kb.EmojiIfExists

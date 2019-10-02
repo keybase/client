@@ -2459,10 +2459,19 @@ func (m MessageSystem) String() string {
 	}
 	switch typ {
 	case MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
+		output := fmt.Sprintf("Added @%s to the team", m.Addedtoteam().Addee)
+		if role := m.Addedtoteam().Role; role != keybase1.TeamRole_NONE {
+			output += fmt.Sprintf(" as a %q", role.HumanString())
+		}
+		return output
 	case MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("Added %s to the team (invited by @%s)",
-			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter)
+		var roleText string
+		if role := m.Inviteaddedtoteam().Role; role != keybase1.TeamRole_NONE {
+			roleText = fmt.Sprintf(" as a %q", role.HumanString())
+		}
+		output := fmt.Sprintf("Added %s to the team (invited by @%s%s)",
+			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter, roleText)
+		return output
 	case MessageSystemType_COMPLEXTEAM:
 		return fmt.Sprintf("Created a new channel in %s", m.Complexteam().Team)
 	case MessageSystemType_CREATETEAM:

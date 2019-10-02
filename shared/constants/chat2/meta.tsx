@@ -4,6 +4,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
+import * as TeamTypes from '../types/teams'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import {memoize} from '../../util/memoize'
@@ -362,7 +363,7 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   maxMsgID: -1,
   maxVisibleMsgID: -1,
   membershipType: 'active' as Types.MembershipType,
-  minWriterRole: 'reader' as Types.TeamRoleType,
+  minWriterRole: 'reader' as TeamTypes.TeamRoleType,
   notificationsDesktop: 'never' as Types.NotificationsType,
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never' as Types.NotificationsType,

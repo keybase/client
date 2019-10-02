@@ -2841,6 +2841,11 @@ func (h *Server) AddBotMember(ctx context.Context, arg chat1.AddBotMemberArg) (e
 	if err != nil {
 		return err
 	}
+	err = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), teamID, arg.TlfName,
+		arg.Username, arg.MembersType, arg.Role)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

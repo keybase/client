@@ -347,6 +347,10 @@
           "name": "addee"
         },
         {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
@@ -413,6 +417,10 @@
         {
           "type": "keybase1.TeamInviteCategory",
           "name": "inviteType"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
         }
       ]
     },
