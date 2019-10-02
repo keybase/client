@@ -2460,26 +2460,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-search-twitter-inactive-40.png'),
   },
-  'icon-secure-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-secure-266.gif'),
-  },
-  'icon-secure-static-266': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-secure-static-266.png'),
-  },
-  'icon-securing-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-securing-266.gif'),
-  },
-  'icon-securing-static-266': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-securing-static-266.png'),
-  },
   'icon-shh-19-16': {
     extension: 'png',
     isFont: false,
@@ -2701,11 +2681,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-twitter-logo-64.png'),
-  },
-  'icon-typing-24': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-typing-24.gif'),
   },
   'icon-user-add-32': {
     extension: 'png',
