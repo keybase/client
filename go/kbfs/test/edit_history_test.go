@@ -649,7 +649,11 @@ func TestEditHistoryUnflushedRenameOverNewFile(t *testing.T) {
 			lsdir("", m{"a$": "FILE", "b$": "FILE"}),
 			read("a", "d foo"),
 			read("b", "c foo"),
-			checkUserEditHistory(expectedEdits),
+			// Sort the entries because when we add in the rename
+			// operations, the order is undefined and 'a' and 'b'
+			// could be swapped since they happen in the same revision
+			// and are independent.
+			checkUserEditHistoryWithSort(expectedEdits, true),
 		),
 	)
 }
