@@ -96,6 +96,9 @@ export const colors = {
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
   purple: '#8852ff',
+  get purpleOrWhite() {
+    return this.purple
+  },
   purpleDark: '#6d3fd1',
   get purpleDarkOrWhite() {
     return this.purpleDark
@@ -254,6 +257,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
   purple: '#8852ff',
+  get purpleOrWhite() {
+    return colors.white
+  },
   purpleDark: '#6d3fd1',
   get purpleDarkOrWhite() {
     return colors.white
