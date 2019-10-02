@@ -26,11 +26,20 @@ const CopyText = (props: Props) => {
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
   const [requestedCopy, setRequestedCopy] = React.useState(false)
-
   const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
   React.useEffect(() => {
     showingToast && setShowingToastFalseLater()
   }, [showingToast, setShowingToastFalseLater])
+
+  React.useEffect(() => {
+    if (!props.withReveal && !props.text) {
+      // only try to load text if withReveal is false
+      if (!props.loadText) {
+        throw new Error('no loadText method provided')
+      }
+      props.loadText()
+    }
+  }, []) // only run this effect once, on first render
 
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
@@ -86,6 +95,7 @@ const CopyText = (props: Props) => {
     : isRevealed
     ? 1
     : null
+
   return (
     <Box2
       ref={attachmentRef}
