@@ -2640,17 +2640,17 @@ func FreezeTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
 }
 
 func TombstoneTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) error {
-	err1 := mctx.G().GetTeamLoader().Tombstone(mctx.Ctx(), teamID)
+	err1 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
+	if err1 != nil {
+		mctx.Debug("error tombstoning in hidden team chain manager: %v", err1)
+	}
+	err2 := mctx.G().GetTeamLoader().Tombstone(mctx.Ctx(), teamID)
 	if err1 != nil {
 		mctx.Debug("error tombstoning in team cache: %v", err1)
 	}
-	err2 := mctx.G().GetFastTeamLoader().Tombstone(mctx, teamID)
-	if err2 != nil {
-		mctx.Debug("error tombstoning in fast team cache: %v", err2)
-	}
-	err3 := mctx.G().GetHiddenTeamChainManager().Tombstone(mctx, teamID)
+	err3 := mctx.G().GetFastTeamLoader().Tombstone(mctx, teamID)
 	if err3 != nil {
-		mctx.Debug("error tombstoning in hidden team chain manager: %v", err3)
+		mctx.Debug("error tombstoning in fast team cache: %v", err3)
 	}
 	return libkb.CombineErrors(err1, err2, err3)
 }
