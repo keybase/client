@@ -348,7 +348,7 @@ func (k *BotKeyer) getTeambotKeyLocked(mctx libkb.MetaContext, teamID keybase1.T
 func (k *BotKeyer) GetTeambotKeyAtGeneration(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	generation keybase1.TeambotKeyGeneration) (key keybase1.TeambotKey, err error) {
 	mctx = mctx.WithLogTag("GTBK")
-	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#GetLatestTeambotKey teamID: %v", teamID),
+	defer mctx.TraceTimed(fmt.Sprintf("BotKeyer#GetTeambotKeyAtGeneration teamID: %v, generation: %d", teamID, generation),
 		func() error { return err })()
 
 	lock := k.locktab.AcquireOnName(mctx.Ctx(), mctx.G(), k.lockKey(teamID))

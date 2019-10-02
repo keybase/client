@@ -325,3 +325,44 @@ func TestTeambotKey(t *testing.T) {
 	checkTeambotKeyNeededNotifications(user2.tc, user2.notifications, keyNeededArg)
 	noNewTeambotKeyNotification(botua.tc, botua.notifications)
 }
+
+func TestTeambotKeyRemovedMember(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	user1 := tt.addUser("one")
+	botua := tt.addUser("botua")
+	botuaUID := gregor1.UID(botua.uid.ToBytes())
+	mctx1 := libkb.NewMetaContextForTest(*user1.tc)
+	ekLib1 := mctx1.G().GetEKLib()
+	memberKeyer1 := mctx1.G().GetTeambotMemberKeyer()
+
+	teamID, teamName := user1.createTeam2()
+	user1.addRestrictedBotTeamMember(teamName.String(), botua.username, keybase1.TeamBotSettings{})
+	newKeyArg := keybase1.NewTeambotKeyArg{
+		Id:         teamID,
+		Generation: 1,
+	}
+	checkNewTeambotKeyNotifications(botua.tc, botua.notifications, newKeyArg)
+	user1.removeTeamMember(teamName.String(), botua.username)
+
+	team, err := teams.Load(mctx1.Ctx(), mctx1.G(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	appKey, err := team.ChatKey(mctx1.Ctx())
+	require.NoError(t, err)
+
+	_, created, err := memberKeyer1.GetOrCreateTeambotKey(mctx1, teamID, botuaUID, appKey)
+	require.False(t, created)
+	require.NoError(t, err)
+	noNewTeambotKeyNotification(botua.tc, botua.notifications)
+
+	err = ekLib1.KeygenIfNeeded(mctx1)
+	require.NoError(t, err)
+	_, created, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
+	require.False(t, created)
+	require.NoError(t, err)
+	noNewTeambotEKNotification(botua.tc, botua.notifications)
+}
