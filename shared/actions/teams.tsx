@@ -99,18 +99,23 @@ const getTeamProfileAddList = async (_: TypedState, action: TeamsGen.GetTeamProf
   return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist)})
 }
 
-function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload) {
-  yield RPCTypes.teamsTeamDeleteRpcSaga({
-    customResponseIncomingCallMap: {
-      'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
-      'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
-    },
-    incomingCallMap: {},
-    params: {
-      name: action.payload.teamname,
-    },
-    waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
-  })
+function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: Saga.SagaLogger) {
+  try {
+    yield RPCTypes.teamsTeamDeleteRpcSaga({
+      customResponseIncomingCallMap: {
+        'keybase.1.teamsUi.confirmRootTeamDelete': (_, response) => response.result(true),
+        'keybase.1.teamsUi.confirmSubteamDelete': (_, response) => response.result(true),
+      },
+      incomingCallMap: {},
+      params: {
+        name: action.payload.teamname,
+      },
+      waitingKey: Constants.deleteTeamWaitingKey(action.payload.teamname),
+    })
+  } catch (e) {
+    // handled through waiting store
+    logger.warn('error:', e.message)
+  }
 }
 const leaveTeam = async (_: TypedState, action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLogger) => {
   const {context, teamname} = action.payload
