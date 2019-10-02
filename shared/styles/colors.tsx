@@ -55,11 +55,11 @@ export const colors = {
   blueGreyDark: '#E0E8F6',
   blueLight: '#73A6FF',
   blueLighter: '#A8CCFF',
+  blueLighter2: '#EBF2FC',
+  blueLighter3: '#F7F9FC',
   get blueLighterOrWhite() {
     return this.blueLighter
   },
-  blueLighter2: '#EBF2FC',
-  blueLighter3: '#F7F9FC',
   blueLighter_20: 'rgba(168, 204, 255, 0.2)',
   blueLighter_20_on_white: 'rgb(238, 245, 255)',
   blueLighter_40: 'rgba(168, 204, 255, 0.4)',
@@ -213,11 +213,11 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueGreyDark: 'rgba(24, 45, 110, .5)',
   blueLight: '#73A6FF',
   blueLighter: '#4C8EFF',
+  blueLighter2: 'rgba(24, 45, 110, .5)',
+  blueLighter3: '#101010',
   get blueLighterOrWhite() {
     return colors.white
   },
-  blueLighter2: 'rgba(24, 45, 110, .5)',
-  blueLighter3: '#101010',
   blueLighter_20: 'rgba(168, 204, 255, 0.2)',
   blueLighter_20_on_white: 'rgb(238, 245, 255)',
   blueLighter_40: 'rgba(168, 204, 255, 0.4)',
