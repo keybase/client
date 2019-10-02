@@ -24,6 +24,7 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	tc := ctc.world.Tcs[users[0].Username]
 	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
 	tc.ChatG.UIInboxLoader.(*UIInboxLoader).testingLayoutForceMode = true
+	tc.ChatG.UIInboxLoader.(*UIInboxLoader).batchDelay = time.Hour
 	recvLayout := func() chat1.UIInboxLayout {
 		select {
 		case layout := <-chatUI.InboxLayoutCb:
