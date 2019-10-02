@@ -37,7 +37,7 @@ func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.identityChange(m)
 	case "user.password_change":
 		return true, r.passwordChange(m, cli, category, item)
-	case "user.passphrase_state_update":
+	case "user.passphrase_state":
 		return true, r.passphraseStateUpdate(m, cli, category, item)
 	default:
 		if strings.HasPrefix(category, "user.") {
@@ -68,6 +68,7 @@ func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingIn
 func (r *userHandler) passphraseStateUpdate(m libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	m.Debug("userHandler: %s received", category)
 	var msg keybase1.UserPassphraseStateMsg
+	fmt.Printf("@@@ %s\n", item.Body().Bytes())
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		m.Warning("error unmarshaling user.passphrase_update item: %s", err)
 		return err

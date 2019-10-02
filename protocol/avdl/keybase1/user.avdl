@@ -204,7 +204,7 @@ protocol user {
   // user.passphrase_state gregor message body
   @lint("ignore")
   record UserPassphraseStateMsg {
-    @jsonkey("passphrase_state")
+    @jsonkey("state")
     PassphraseState passphraseState;
   }
 }

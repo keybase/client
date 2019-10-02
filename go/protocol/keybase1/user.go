@@ -363,7 +363,7 @@ func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 }
 
 type UserPassphraseStateMsg struct {
-	PassphraseState PassphraseState `codec:"passphraseState" json:"passphrase_state"`
+	PassphraseState PassphraseState `codec:"passphraseState" json:"state"`
 }
 
 func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {

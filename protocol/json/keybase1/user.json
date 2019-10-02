@@ -343,7 +343,7 @@
         {
           "type": "PassphraseState",
           "name": "passphraseState",
-          "jsonkey": "passphrase_state"
+          "jsonkey": "state"
         }
       ],
       "lint": "ignore"
