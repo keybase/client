@@ -167,6 +167,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly error: InboxUIItemError}
     outParam: void
   }
+  'chat.1.chatUi.chatInboxLayout': {
+    inParam: {readonly layout: String}
+    outParam: void
+  }
   'chat.1.chatUi.chatInboxUnverified': {
     inParam: {readonly inbox: String}
     outParam: void
@@ -364,7 +368,7 @@ export type MessageTypes = {
     outParam: String
   }
   'chat.1.local.markAsReadLocal': {
-    inParam: {readonly conversationID: ConversationID; readonly msgID: MessageID}
+    inParam: {readonly conversationID: ConversationID; readonly msgID?: MessageID | null}
     outParam: MarkAsReadLocalRes
   }
   'chat.1.local.newConversationLocal': {
@@ -418,6 +422,14 @@ export type MessageTypes = {
   'chat.1.local.profileChatSearch': {
     inParam: {readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: {[key: string]: ProfileSearchConvStats}
+  }
+  'chat.1.local.requestInboxLayout': {
+    inParam: void
+    outParam: void
+  }
+  'chat.1.local.requestInboxUnbox': {
+    inParam: {readonly convIDs?: Array<ConversationID> | null}
+    outParam: void
   }
   'chat.1.local.resolveMaybeMention': {
     inParam: {readonly mention: MaybeMention}
@@ -858,6 +870,11 @@ export enum UICommandStatusDisplayTyp {
   error = 2,
 }
 
+export enum UIInboxBigTeamRowTyp {
+  label = 1,
+  channel = 2,
+}
+
 export enum UIMaybeMentionStatus {
   unknown = 0,
   user = 1,
@@ -1211,6 +1228,10 @@ export type UICoinFlipParticipant = {readonly uid: String; readonly deviceID: St
 export type UICoinFlipResult = {typ: UICoinFlipResultTyp.number; number: String} | {typ: UICoinFlipResultTyp.shuffle; shuffle: Array<String>} | {typ: UICoinFlipResultTyp.deck; deck: Array<Int>} | {typ: UICoinFlipResultTyp.hands; hands: Array<UICoinFlipHand>} | {typ: UICoinFlipResultTyp.coin; coin: Bool}
 export type UICoinFlipStatus = {readonly gameID: String; readonly phase: UICoinFlipPhase; readonly progressText: String; readonly resultText: String; readonly commitmentVisualization: String; readonly revealVisualization: String; readonly participants?: Array<UICoinFlipParticipant> | null; readonly errorInfo?: UICoinFlipError | null; readonly resultInfo?: UICoinFlipResult | null}
 export type UICommandMarkdown = {readonly body: String; readonly title?: String | null}
+export type UIInboxBigTeamChannelRow = {readonly convID: String; readonly teamname: String; readonly channelname: String}
+export type UIInboxBigTeamRow = {state: UIInboxBigTeamRowTyp.label; label: String} | {state: UIInboxBigTeamRowTyp.channel; channel: UIInboxBigTeamChannelRow}
+export type UIInboxLayout = {readonly smallTeams?: Array<UIInboxSmallTeamRow> | null; readonly bigTeams?: Array<UIInboxBigTeamRow> | null}
+export type UIInboxSmallTeamRow = {readonly convID: String; readonly name: String; readonly time: Gregor1.Time; readonly snippet?: String | null; readonly snippetDecoration?: String | null; readonly isTeam: Boolean}
 export type UILinkDecoration = {readonly display: String; readonly url: String}
 export type UIMaybeMentionInfo = {status: UIMaybeMentionStatus.unknown} | {status: UIMaybeMentionStatus.user} | {status: UIMaybeMentionStatus.team; team: UITeamMention} | {status: UIMaybeMentionStatus.nothing}
 export type UIMessage = {state: MessageUnboxedState.valid; valid: UIMessageValid} | {state: MessageUnboxedState.error; error: MessageUnboxedError} | {state: MessageUnboxedState.outbox; outbox: UIMessageOutbox} | {state: MessageUnboxedState.placeholder; placeholder: MessageUnboxedPlaceholder}
@@ -1263,6 +1284,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatInboxLayout'?: (params: MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatInboxUnverified'?: (params: MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatInboxConversation'?: (params: MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatInboxFailed'?: (params: MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1321,6 +1343,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatAttachmentDownloadProgress'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatAttachmentDownloadDone'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatInboxLayout'?: (params: MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatInboxUnverified'?: (params: MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatInboxConversation'?: (params: MessageTypes['chat.1.chatUi.chatInboxConversation']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxConversation']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatInboxFailed'?: (params: MessageTypes['chat.1.chatUi.chatInboxFailed']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatInboxFailed']['outParam']) => void}) => IncomingReturn
@@ -1394,6 +1417,8 @@ export const localPostTextNonblockRpcPromise = (params: MessageTypes['chat.1.loc
 export const localPostTextNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.postTextNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.postTextNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes['chat.1.local.previewConversationByIDLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.previewConversationByIDLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.previewConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRequestInboxUnboxRpcPromise = (params: MessageTypes['chat.1.local.requestInboxUnbox']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxUnbox']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxUnbox', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveMaybeMentionRpcPromise = (params: MessageTypes['chat.1.local.resolveMaybeMention']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.resolveMaybeMention']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveMaybeMention', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveUnfurlPromptRpcPromise = (params: MessageTypes['chat.1.local.resolveUnfurlPrompt']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.resolveUnfurlPrompt']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveUnfurlPrompt', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRetryPostRpcPromise = (params: MessageTypes['chat.1.local.RetryPost']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.RetryPost']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.RetryPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1415,6 +1440,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatAttachmentDownloadStart'
 // 'chat.1.chatUi.chatAttachmentDownloadProgress'
 // 'chat.1.chatUi.chatAttachmentDownloadDone'
+// 'chat.1.chatUi.chatInboxLayout'
 // 'chat.1.chatUi.chatInboxUnverified'
 // 'chat.1.chatUi.chatInboxConversation'
 // 'chat.1.chatUi.chatInboxFailed'

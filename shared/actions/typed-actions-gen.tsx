@@ -281,6 +281,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatAttachmentDownloadStart': enginegen.Chat1ChatUiChatAttachmentDownloadStartPayload
   'engine-gen:chat1ChatUiChatAttachmentDownloadProgress': enginegen.Chat1ChatUiChatAttachmentDownloadProgressPayload
   'engine-gen:chat1ChatUiChatAttachmentDownloadDone': enginegen.Chat1ChatUiChatAttachmentDownloadDonePayload
+  'engine-gen:chat1ChatUiChatInboxLayout': enginegen.Chat1ChatUiChatInboxLayoutPayload
   'engine-gen:chat1ChatUiChatInboxUnverified': enginegen.Chat1ChatUiChatInboxUnverifiedPayload
   'engine-gen:chat1ChatUiChatInboxConversation': enginegen.Chat1ChatUiChatInboxConversationPayload
   'engine-gen:chat1ChatUiChatInboxFailed': enginegen.Chat1ChatUiChatInboxFailedPayload

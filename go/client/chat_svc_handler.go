@@ -970,7 +970,7 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 
 	arg := chat1.MarkAsReadLocalArg{
 		ConversationID: convID,
-		MsgID:          opts.MessageID,
+		MsgID:          &opts.MessageID,
 	}
 
 	res, err := client.MarkAsReadLocal(ctx, arg)

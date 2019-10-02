@@ -17,6 +17,7 @@ import {actionHasError} from '../util/container'
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
+  | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -937,6 +938,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         })
         return
       }
+      case EngineGen.chat1ChatUiChatInboxLayout: {
+        try {
+          const layout: RPCChatTypes.UIInboxLayout = JSON.parse(action.payload.params.layout)
+          draftState.inboxLayout = layout
+          draftState.inboxHasLoaded = true
+        } catch (e) {
+          logger.info('failed to JSON parse inbox layout: ' + e)
+        }
+        return
+      }
       case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
         draftState.botCommandsUpdateStatusMap = draftState.botCommandsUpdateStatusMap.set(
           Types.stringToConversationIDKey(action.payload.params.convID),
@@ -1252,9 +1263,6 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
           return
         }
-        if (!draftState.metaMap.get(action.payload.result.conversationIDKey)) {
-          return
-        }
         const old = draftState.inboxSearch || Constants.makeInboxSearchInfo()
         const textResults = old.textResults
           .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)
@@ -1279,10 +1287,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           return
         }
         const results = action.payload.results.reduce((l, r) => {
-          if (draftState.metaMap.get(r.conversationIDKey)) {
-            return l.push(r)
-          }
-          return l
+          return l.push(r)
         }, I.List())
         draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
           nameResults: results,

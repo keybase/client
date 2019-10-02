@@ -1,10 +1,10 @@
 import {TeamsDivider} from '.'
-import {namedConnect} from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
+import {namedConnect, TypedState} from '../../../../util/container'
 import {StylesCrossPlatform} from '../../../../styles'
 import {RowItem} from '../..'
 import {memoize} from '../../../../util/memoize'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Types from '../../../../constants/types/chat2'
 
 type OwnProps = {
   rows: Array<RowItem>
@@ -13,23 +13,17 @@ type OwnProps = {
   style?: StylesCrossPlatform
 }
 
-const mapStateToProps = state => ({_badges: state.chat2.badgeMap, _metaMap: state.chat2.metaMap})
+const mapStateToProps = (state: TypedState) => ({
+  _badges: state.chat2.badgeMap,
+  _inboxLayout: state.chat2.inboxLayout,
+})
 
-const getMetaCounts = memoize((badges, metaMap) => {
+const getMetaCounts = memoize((badges, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
   let badgeCount = 0
   let hiddenCount = 0
-  metaMap.forEach(meta => {
-    if (meta.teamType === 'big') {
-      return
-    }
-    if (meta.status === RPCChatTypes.ConversationStatus.ignored) {
-      return
-    }
-    const id = meta.conversationIDKey
-    if (!Constants.isValidConversationIDKey(id)) {
-      return
-    }
-
+  const smallTeams = inboxLayout ? inboxLayout.smallTeams || [] : []
+  smallTeams.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
+    const id = Types.stringToConversationIDKey(conv.convID)
     badgeCount += badges.get(id, 0)
     hiddenCount++
   })
@@ -64,7 +58,7 @@ export default namedConnect(
     let {badgeCount, hiddenCount} = getRowCounts(stateProps._badges, ownProps.rows)
 
     if (ownProps.showButton) {
-      const fromMeta = getMetaCounts(stateProps._badges, stateProps._metaMap)
+      const fromMeta = getMetaCounts(stateProps._badges, stateProps._inboxLayout)
       badgeCount += fromMeta.badgeCount
       hiddenCount += fromMeta.hiddenCount
     }

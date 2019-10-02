@@ -22,10 +22,13 @@ func setupOutboxTest(t testing.TB, storageEngine, name string) (kbtest.ChatTestC
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 	cl := clockwork.NewFakeClock()
+	tp := ctc.Context().Env.Test
 	ctc.G.Env = libkb.NewEnv(libkb.AppConfig{
 		HomeDir:             ctc.Context().GetEnv().GetHome(),
 		OutboxStorageEngine: storageEngine,
+		RunMode:             ctc.Context().GetRunMode(),
 	}, nil, ctc.Context().GetLog)
+	ctc.Context().Env.Test = tp
 	ob := NewOutbox(ctc.Context(), uid)
 	ob.SetClock(cl)
 	return ctc, ob, uid, cl

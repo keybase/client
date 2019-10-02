@@ -5668,6 +5668,13 @@ type GetInboxAndUnboxUILocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type RequestInboxLayoutArg struct {
+}
+
+type RequestInboxUnboxArg struct {
+	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
+}
+
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
@@ -5899,7 +5906,7 @@ type RetryPostArg struct {
 type MarkAsReadLocalArg struct {
 	SessionID      int            `codec:"sessionID" json:"sessionID"`
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MsgID          MessageID      `codec:"msgID" json:"msgID"`
+	MsgID          *MessageID     `codec:"msgID,omitempty" json:"msgID,omitempty"`
 }
 
 type FindConversationsLocalArg struct {
@@ -6165,6 +6172,8 @@ type LocalInterface interface {
 	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
+	RequestInboxLayout(context.Context) error
+	RequestInboxUnbox(context.Context, []ConversationID) error
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	GenerateOutboxID(context.Context) (OutboxID, error)
@@ -6337,6 +6346,31 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetInboxAndUnboxUILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"requestInboxLayout": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxLayoutArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInboxLayout(ctx)
+					return
+				},
+			},
+			"requestInboxUnbox": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxUnboxArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RequestInboxUnboxArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RequestInboxUnboxArg)(nil), args)
+						return
+					}
+					err = i.RequestInboxUnbox(ctx, typedArgs[0].ConvIDs)
 					return
 				},
 			},
@@ -7520,6 +7554,17 @@ func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAn
 
 func (c LocalClient) GetInboxAndUnboxUILocal(ctx context.Context, __arg GetInboxAndUnboxUILocalArg) (res GetInboxAndUnboxUILocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxAndUnboxUILocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxLayout(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxLayout", []interface{}{RequestInboxLayoutArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxUnbox(ctx context.Context, convIDs []ConversationID) (err error) {
+	__arg := RequestInboxUnboxArg{ConvIDs: convIDs}
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

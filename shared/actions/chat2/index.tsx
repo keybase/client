@@ -67,24 +67,18 @@ const onGetInboxUnverifiedConvs = (
 }
 
 // Ask the service to refresh the inbox
-function* inboxRefresh(
+const inboxRefresh = (
   state: TypedState,
-  action:
-    | Chat2Gen.InboxRefreshPayload
-    | EngineGen.Chat1NotifyChatChatInboxStalePayload
-    | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
-    | EngineGen.Chat1NotifyChatChatLeftConversationPayload,
-  logger: Saga.SagaLogger
-) {
+  action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
+) => {
   if (!state.config.loggedIn) {
-    return
+    return false
   }
-
   const username = state.config.username
   if (!username) {
-    return
+    return false
   }
-
+  const actions: Array<TypedActions> = []
   let reason: string = ''
   let clearExistingMetas = false
   let clearExistingMessages = false
@@ -97,49 +91,19 @@ function* inboxRefresh(
     case EngineGen.chat1NotifyChatChatInboxStale:
       reason = 'inboxStale'
       break
-    case EngineGen.chat1NotifyChatChatJoinedConversation:
-      reason = 'joinedAConversation'
-      break
-    case EngineGen.chat1NotifyChatChatLeftConversation:
-      clearExistingMetas = true
-      reason = 'leftAConversation'
-      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
   }
 
   logger.info(`Inbox refresh due to ${reason || '???'}`)
-
   if (clearExistingMetas) {
-    yield Saga.put(Chat2Gen.createClearMetas())
+    actions.push(Chat2Gen.createClearMetas())
   }
   if (clearExistingMessages) {
-    yield Saga.put(Chat2Gen.createClearMessages())
+    actions.push(Chat2Gen.createClearMessages())
   }
-  yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {},
-    params: {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      maxUnbox: 0,
-      query: Constants.makeInboxQuery([]),
-      skipUnverified: false,
-    },
-    waitingKey: Constants.waitingKeyInboxRefresh,
-  })
-}
-
-// When we get info on a team we need to unbox immediately so we can get the channel names
-const requestTeamsUnboxing = (_: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const conversationIDKeys = action.payload.metas
-    .filter(meta => meta.trustedState === 'untrusted' && meta.teamType === 'big' && !meta.channelname)
-    .map(meta => meta.conversationIDKey)
-  if (conversationIDKeys.length) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys,
-      reason: 'requestTeamsUnboxing',
-    })
-  }
-  return undefined
+  RPCChatTypes.localRequestInboxLayoutRpcPromise()
+  return actions
 }
 
 // Only get the untrusted conversations out
@@ -268,13 +232,13 @@ const onGetInboxConvFailed = (
 }
 
 // We want to unbox rows that have scroll into view
-function* unboxRows(
+const unboxRows = (
   state: TypedState,
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
   logger: Saga.SagaLogger
-) {
+) => {
   if (!state.config.loggedIn) {
-    return
+    return false
   }
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
@@ -289,19 +253,12 @@ function* unboxRows(
     return
   }
   logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
-  yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
-  yield RPCChatTypes.localGetInboxNonblockLocalRpcSaga({
-    incomingCallMap: {},
-    params: {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      query: Constants.makeInboxQuery(conversationIDKeys),
-      skipUnverified: true,
-    },
-    waitingKey:
-      action.type === Chat2Gen.metaRequestTrusted && action.payload.noWaiting
-        ? undefined
-        : Constants.waitingKeyUnboxing(conversationIDKeys[0]),
+  RPCChatTypes.localRequestInboxUnboxRpcPromise({
+    convIDs: conversationIDKeys.map(k => {
+      return Types.keyToConversationID(k)
+    }),
   })
+  return Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})
 }
 
 // We get an incoming message streamed to us
@@ -933,9 +890,6 @@ const onNewChatActivity = (
           }),
         ]
       }
-      break
-    case RPCChatTypes.ChatActivityType.teamtype:
-      actions = [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
       break
     case RPCChatTypes.ChatActivityType.expunge: {
       actions = expungeToActions(state, activity.expunge)
@@ -1591,6 +1545,34 @@ const onToggleInboxSearch = (state: TypedState) => {
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
 
+const onInboxSearchTextResult = (state: TypedState, action: Chat2Gen.InboxSearchTextResultPayload) => {
+  if (!state.chat2.metaMap.get(action.payload.result.conversationIDKey)) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: [action.payload.result.conversationIDKey],
+      force: true,
+      reason: 'inboxSearchResults',
+    })
+  }
+  return undefined
+}
+
+const onInboxSearchNameResults = (state: TypedState, action: Chat2Gen.InboxSearchNameResultsPayload) => {
+  const missingMetas = action.payload.results.reduce<Array<Types.ConversationIDKey>>((arr, r) => {
+    if (!state.chat2.metaMap.get(r.conversationIDKey)) {
+      arr.push(r.conversationIDKey)
+    }
+    return arr
+  }, [])
+  if (missingMetas.length > 0) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: missingMetas,
+      force: true,
+      reason: 'inboxSearchResults',
+    })
+  }
+  return undefined
+}
+
 const maybeCancelInboxSearchOnFocusChanged = (state: TypedState, action: ConfigGen.MobileAppStatePayload) => {
   const inboxSearch = state.chat2.inboxSearch
   if (action.payload.nextAppState === 'background' && inboxSearch) {
@@ -1939,9 +1921,6 @@ const _maybeAutoselectNewestConversation = (
     return
   }
   const selectedMeta = state.chat2.metaMap.get(selected)
-  if (!selectedMeta) {
-    selected = Constants.noConversationIDKey
-  }
 
   let avoidConversationID = Constants.noConversationIDKey
   if (action.type === Chat2Gen.hideConversation) {
@@ -2272,16 +2251,12 @@ const markThreadAsRead = async (
   }
   const conversationIDKey = Constants.getSelectedConversation(state)
 
-  if (!conversationIDKey) {
+  if (!conversationIDKey || conversationIDKey === Constants.noConversationIDKey) {
     logger.info('bail on no selected conversation')
     return
   }
 
   const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (!meta) {
-    logger.info('bail on not in meta list. preview?')
-    return
-  }
 
   if (action.type === Chat2Gen.markInitiallyLoadedThreadAsRead) {
     if (action.payload.conversationIDKey !== conversationIDKey) {
@@ -2313,7 +2288,10 @@ const markThreadAsRead = async (
     message = ordinal ? mmap.get(ordinal) : undefined
   }
 
-  const readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+  let readMsgID: number | null = null
+  if (meta) {
+    readMsgID = message ? (message.id > meta.maxMsgID ? message.id : meta.maxMsgID) : meta.maxMsgID
+  }
   logger.info(`marking read messages ${conversationIDKey} ${readMsgID}`)
   await RPCChatTypes.localMarkAsReadLocalRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
@@ -2438,6 +2416,19 @@ const navigateToThread = (state: TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
+const ensureSelectedMeta = (state: TypedState) => {
+  const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
+  if (!meta) {
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: [state.chat2.selectedConversation],
+      force: true,
+      noWaiting: true,
+      reason: 'ensureSelectedMeta',
+    })
+  }
+  return false
+}
+
 const refreshPreviousSelected = (state: TypedState) => {
   if (state.chat2.previousSelectedConversation !== Constants.noConversationIDKey) {
     return Chat2Gen.createMetaRequestTrusted({
@@ -2447,7 +2438,7 @@ const refreshPreviousSelected = (state: TypedState) => {
       reason: 'refreshPreviousSelected',
     })
   }
-  return undefined
+  return false
 }
 
 const deselectConversation = (state: TypedState, action: Chat2Gen.DeselectConversationPayload) => {
@@ -2457,7 +2448,7 @@ const deselectConversation = (state: TypedState, action: Chat2Gen.DeselectConver
       reason: 'clearSelected',
     })
   }
-  return undefined
+  return false
 }
 
 const mobileNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
@@ -3342,23 +3333,11 @@ function* chat2Saga() {
     'changeSelectedConversation'
   )
   // Refresh the inbox
-  yield* Saga.chainGenerator<
-    | Chat2Gen.InboxRefreshPayload
-    | EngineGen.Chat1NotifyChatChatInboxStalePayload
-    | EngineGen.Chat1NotifyChatChatJoinedConversationPayload
-    | EngineGen.Chat1NotifyChatChatLeftConversationPayload
-  >(
-    [
-      Chat2Gen.inboxRefresh,
-      EngineGen.chat1NotifyChatChatInboxStale,
-      EngineGen.chat1NotifyChatChatJoinedConversation,
-      EngineGen.chat1NotifyChatChatLeftConversation,
-    ],
+  yield* Saga.chainAction2(
+    [Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale],
     inboxRefresh,
     'inboxRefresh'
   )
-  // Load teams
-  yield* Saga.chainAction2(Chat2Gen.metasReceived, requestTeamsUnboxing, 'requestTeamsUnboxing')
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest, 'queueMetaToRequest')
   // We have some items in the queue to process
@@ -3369,11 +3348,7 @@ function* chat2Saga() {
   )
 
   // Actually try and unbox conversations
-  yield* Saga.chainGenerator<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
-    unboxRows,
-    'unboxRows'
-  )
+  yield* Saga.chainAction2([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows, 'unboxRows')
   yield* Saga.chainAction2(
     EngineGen.chat1ChatUiChatInboxConversation,
     onGetInboxConvsUnboxed,
@@ -3650,6 +3625,12 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onToggleInboxSearch, 'onToggleInboxSearch')
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld, 'onMarkInboxSearchOld')
   yield* Saga.chainAction2(Chat2Gen.inboxSearchSelect, onInboxSearchSelect, 'onInboxSearchSelect')
+  yield* Saga.chainAction2(
+    Chat2Gen.inboxSearchNameResults,
+    onInboxSearchNameResults,
+    'onInboxSearchNameResults'
+  )
+  yield* Saga.chainAction2(Chat2Gen.inboxSearchTextResult, onInboxSearchTextResult, 'onInboxSearchTextResult')
   yield* Saga.chainAction2(ConfigGen.mobileAppState, maybeCancelInboxSearchOnFocusChanged)
 
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(
@@ -3675,6 +3656,7 @@ function* chat2Saga() {
   )
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
+  yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 

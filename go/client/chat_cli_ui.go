@@ -113,6 +113,10 @@ func (c *ChatCLIUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInb
 	return nil
 }
 
+func (c *ChatCLIUI) ChatInboxLayout(ctx context.Context, arg chat1.ChatInboxLayoutArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxFailedArg) error {
 	return nil
 }

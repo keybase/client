@@ -11,8 +11,12 @@ import * as Types from '../../../constants/types/chat2'
 type MakeRowOptions = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
+  isTeam: boolean
   navKey: string
+  snippet?: string
+  snippetDecoration?: string
   teamname: string
+  time?: number
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big'
 }
 
@@ -48,7 +52,12 @@ const makeRow = (options: MakeRowOptions) => {
         <SmallTeam
           key={options.conversationIDKey}
           conversationIDKey={options.conversationIDKey}
+          isTeam={options.isTeam}
           navKey={options.navKey}
+          name={options.teamname}
+          time={options.time || 0}
+          snippet={options.snippet}
+          snippetDecoration={options.snippetDecoration}
         />
       )
   }

@@ -142,6 +142,7 @@ export type State = Readonly<{
   giphyResultMap: I.Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | null>
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>
   inboxHasLoaded: boolean // if we've ever loaded,
+  inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch: InboxSearchInfo | null
   inboxShowNew: boolean // mark search as new,
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,

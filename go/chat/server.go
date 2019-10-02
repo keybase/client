@@ -154,6 +154,24 @@ func (h *Server) suspendInboxSource(ctx context.Context) func() {
 	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
 }
 
+func (h *Server) RequestInboxLayout(ctx context.Context) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "RequestInboxLayout")()
+	if err := h.G().UIInboxLoader.UpdateLayout(ctx, "UI request"); err != nil {
+		h.Debug(ctx, "RequestInboxLayout: failed to queue update request: %s", err)
+	}
+	return nil
+}
+
+func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "RequestInboxUnbox")()
+	if err := h.G().UIInboxLoader.UpdateConvs(ctx, convIDs); err != nil {
+		h.Debug(ctx, "RequestInboxUnbox: failed to update convs: %s", err)
+	}
+	return nil
+}
+
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
@@ -198,7 +216,12 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		}, nil
 	}
 	if err = h.G().InboxSource.MarkAsRead(ctx, arg.ConversationID, uid, arg.MsgID); err != nil {
-		return res, err
+		switch err {
+		case utils.ErrGetUnverifiedConvNotFound, utils.ErrGetVerifiedConvNotFound:
+			// if we couldn't find the conv, then just act like it worked
+		default:
+			return res, err
+		}
 	}
 	return chat1.MarkAsReadLocalRes{
 		Offline: h.G().InboxSource.IsOffline(ctx),
