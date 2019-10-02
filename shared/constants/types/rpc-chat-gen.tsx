@@ -255,8 +255,12 @@ export type MessageTypes = {
     inParam: {readonly outboxID: OutboxID}
     outParam: void
   }
+  'chat.1.local.ConfigureFileAttachmentDownloadLocal': {
+    inParam: {readonly cacheDirOverride: String; readonly downloadDirOverride: String}
+    outParam: void
+  }
   'chat.1.local.DownloadFileAttachmentLocal': {
-    inParam: {readonly conversationID: ConversationID; readonly messageID: MessageID; readonly filename: String; readonly preview: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
+    inParam: {readonly conversationID: ConversationID; readonly messageID: MessageID; readonly downloadToCache: Boolean; readonly preview: Boolean; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: DownloadFileAttachmentLocalRes
   }
   'chat.1.local.RetryPost': {
@@ -996,7 +1000,7 @@ export type Coordinate = {readonly lat: Double; readonly lon: Double; readonly a
 export type DeleteConversationLocalRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type DeleteConversationRemoteRes = {readonly rateLimit?: RateLimit | null}
 export type DownloadAttachmentLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
-export type DownloadFileAttachmentLocalRes = {readonly filename: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
+export type DownloadFileAttachmentLocalRes = {readonly filePath: String; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type EditTarget = {readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null}
 export type EmptyRes = {readonly rateLimits?: Array<RateLimitRes> | null}
 export type EmptyStruct = {}
@@ -1380,6 +1384,7 @@ export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.
 export const localCancelActiveInboxSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveInboxSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params: MessageTypes['chat.1.local.CancelPost']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.CancelPost']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localConfigureFileAttachmentDownloadLocalRpcPromise = (params: MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.ConfigureFileAttachmentDownloadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.ConfigureFileAttachmentDownloadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDeleteConversationLocalRpcPromise = (params: MessageTypes['chat.1.local.deleteConversationLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.deleteConversationLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.deleteConversationLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localDownloadFileAttachmentLocalRpcSaga = (p: {params: MessageTypes['chat.1.local.DownloadFileAttachmentLocal']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.DownloadFileAttachmentLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.findConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

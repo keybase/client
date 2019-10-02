@@ -912,12 +912,15 @@ protocol local {
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
   record DownloadFileAttachmentLocalRes {
-    string filename;
+    string filePath;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
   @lint("ignore")
-  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, boolean downloadToCache, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  @lint("ignore")
+  void ConfigureFileAttachmentDownloadLocal(string cacheDirOverride, string downloadDirOverride);
 
   enum PreviewLocationTyp {
     URL_0,

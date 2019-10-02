@@ -661,6 +661,14 @@ export const watchPositionForMap = async (errFn: () => void): Promise<number> =>
   return watchID
 }
 
+const configureFileAttachmentDownloadForAndroid = () =>
+  RPCChatTypes.localConfigureFileAttachmentDownloadLocalRpcPromise({
+    // Android's cache dir is (when I tried) [app]/cache but Go side uses
+    // [app]/.cache by default, which can't be used for sharing to other apps.
+    cacheDirOverride: RNFetchBlob.fs.dirs.CacheDir,
+    downloadDirOverride: RNFetchBlob.fs.dirs.DownloadDir,
+  })
+
 export function* platformConfigSaga() {
   yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
   yield* Saga.chainAction2(ConfigGen.mobileAppState, updateChangedFocus)
@@ -699,6 +707,9 @@ export function* platformConfigSaga() {
     ConfigGen.daemonHandshake,
     setupLocationUpdateLoop
   )
+  if (isAndroid) {
+    yield* Saga.chainAction2(ConfigGen.daemonHandshake, configureFileAttachmentDownloadForAndroid)
+  }
 
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)

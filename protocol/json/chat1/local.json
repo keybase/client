@@ -2810,7 +2810,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "filename"
+          "name": "filePath"
         },
         {
           "type": {
@@ -4395,8 +4395,8 @@
           "type": "MessageID"
         },
         {
-          "name": "filename",
-          "type": "string"
+          "name": "downloadToCache",
+          "type": "boolean"
         },
         {
           "name": "preview",
@@ -4408,6 +4408,20 @@
         }
       ],
       "response": "DownloadFileAttachmentLocalRes",
+      "lint": "ignore"
+    },
+    "ConfigureFileAttachmentDownloadLocal": {
+      "request": [
+        {
+          "name": "cacheDirOverride",
+          "type": "string"
+        },
+        {
+          "name": "downloadDirOverride",
+          "type": "string"
+        }
+      ],
+      "response": null,
       "lint": "ignore"
     },
     "makePreview": {
