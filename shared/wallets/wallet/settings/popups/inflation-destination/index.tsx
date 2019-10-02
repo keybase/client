@@ -136,9 +136,8 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                 <Kb.RadioButton
                   onSelect={() => this.setState({address: Types.accountIDToString(o.address), name: o.name})}
                   selected={this.state.address === o.address}
-                  label={o.name}
+                  label={o.name + (o.recommended ? ' (Recommended)' : '')}
                 />
-                {o.recommended && <Kb.Text type="BodySemibold">(Recommended)</Kb.Text>}
                 {!!o.link && (
                   <Kb.Icon
                     color={Styles.globalColors.blue}
