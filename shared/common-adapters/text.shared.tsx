@@ -6,6 +6,7 @@ export const allTextTypes = {
   BodyBig: 'BodyBig',
   BodyBigExtrabold: 'BodyBigExtrabold',
   BodyBigLink: 'BodyBigLink',
+  BodyBold: 'BodyBold',
   BodyExtrabold: 'BodyExtrabold',
   BodyPrimaryLink: 'BodyPrimaryLink',
   BodySecondaryLink: 'BodySecondaryLink',
