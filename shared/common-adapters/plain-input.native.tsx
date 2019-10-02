@@ -67,7 +67,7 @@ class PlainInput extends Component<InternalProps> {
     }
     const newTextInfo = fn(currentTextInfo)
     checkTextInfo(newTextInfo)
-    // If we're android, let's workaround this Issue: https://github.com/imnapo/react-native-cn-richtext-editor/issues/81
+    // This is to workaround this Issue for Android: https://github.com/imnapo/react-native-cn-richtext-editor/issues/81
     // By setting the text and selection at the same time
     this.setNativeProps({
       selection: this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text),
