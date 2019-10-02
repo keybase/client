@@ -42,6 +42,10 @@ const load = () => {
         withReveal={true}
       />
     ))
+    .add('With loadText', () => (
+      <CopyText placeholderText="please wait..." loadText={Sb.action('loadText')} />
+    ))
+    .add('With loadText + reveal', () => <CopyText withReveal={true} loadText={Sb.action('loadText')} />)
 }
 
 export default load
