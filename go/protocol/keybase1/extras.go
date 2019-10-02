@@ -89,6 +89,10 @@ func (k KID) ToBinaryKID() BinaryKID {
 	return BinaryKID(k.ToBytes())
 }
 
+func (b BinaryKID) Equal(c BinaryKID) bool {
+	return bytes.Equal([]byte(b), []byte(c))
+}
+
 func KIDFromStringChecked(s string) (KID, error) {
 
 	// It's OK to have a 0-length KID. That means, no such key

@@ -250,6 +250,12 @@ func (a *ActiveDevice) UID() keybase1.UID {
 	return a.uv.Uid
 }
 
+func (a *ActiveDevice) UIDAndEncryptionKey() (keybase1.UID, GenericKey) {
+	a.RLock()
+	defer a.RUnlock()
+	return a.uv.Uid, a.encryptionKey
+}
+
 func (a *ActiveDevice) UserVersion() keybase1.UserVersion {
 	a.RLock()
 	defer a.RUnlock()

@@ -2377,6 +2377,7 @@ export type APIUserSearchResult = {readonly score: Double; readonly keybase?: AP
 export type APIUserServiceID = String
 export type APIUserServiceResult = {readonly serviceName: APIUserServiceID; readonly username: String; readonly pictureUrl: String; readonly bio: String; readonly location: String; readonly fullName: String; readonly confirmed?: Boolean | null}
 export type APIUserServiceSummary = {readonly serviceName: APIUserServiceID; readonly username: String}
+export type AirdropDetails = {readonly uid: UID; readonly kid: BinaryKID; readonly vid: VID; readonly vers: String; readonly time: Time}
 export type AllProvisionedUsernames = {readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly hasProvisionedUser: Boolean}
 export type AnnotatedMemberInfo = {readonly userID: UID; readonly teamID: TeamID; readonly username: String; readonly fullName: String; readonly fqName: String; readonly isImplicitTeam: Boolean; readonly impTeamDisplayName: String; readonly isOpenTeam: Boolean; readonly role: TeamRole; readonly implicit?: ImplicitRole | null; readonly needsPUK: Boolean; readonly memberCount: Int; readonly eldestSeqno: Seqno; readonly allowProfilePromote: Boolean; readonly isMemberShowcased: Boolean; readonly status: TeamMemberStatus}
 export type AnnotatedTeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly uv: UserVersion; readonly inviter: UserVersion; readonly inviterUsername: String; readonly teamName: String; readonly status: TeamMemberStatus}
@@ -3348,6 +3349,8 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.timeTravelReset'
+// 'keybase.1.airdrop.reg1'
+// 'keybase.1.airdrop.reg2'
 // 'keybase.1.audit.isInJail'
 // 'keybase.1.audit.boxAuditTeam'
 // 'keybase.1.audit.attemptBoxAudit'
@@ -3705,6 +3708,7 @@ export const userUploadUserAvatarRpcPromise = (params: MessageTypes['keybase.1.u
 // 'keybase.1.test.test'
 // 'keybase.1.test.testCallback'
 // 'keybase.1.test.panic'
+// 'keybase.1.test.testAirdropReg'
 // 'keybase.1.tlf.CryptKeys'
 // 'keybase.1.tlf.publicCanonicalTLFNameAndID'
 // 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName'
