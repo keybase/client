@@ -14,7 +14,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as WalletsGen from '../wallets-gen'
 import * as Saga from '../../util/saga'
-import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
@@ -2039,9 +2038,6 @@ const openFolder = (state: TypedState, action: Chat2Gen.OpenFolderPayload) => {
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
-const clearSearchResults = (_: TypedState, action: SearchGen.UserInputItemsUpdatedPayload) =>
-  action.payload.searchKey === 'chatSearch' && SearchGen.createClearSearchResults({searchKey: 'chatSearch'})
-
 function* downloadAttachment(downloadToCache: boolean, message: Types.Message) {
   try {
     const conversationIDKey = message.conversationIDKey
@@ -3423,7 +3419,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.updateUserReacjis, onUpdateUserReacjis, 'onUpdateUserReacjis')
 
   // Search handling
-  yield* Saga.chainAction2(SearchGen.userInputItemsUpdated, clearSearchResults, 'clearSearchResults')
   yield* Saga.chainAction2(
     Chat2Gen.attachmentPreviewSelect,
     attachmentPreviewSelect,

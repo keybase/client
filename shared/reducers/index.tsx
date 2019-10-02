@@ -3,7 +3,6 @@ import chat2 from './chat2'
 import config from './config'
 import deeplinks from './deeplinks'
 import devices from './devices'
-import entities from './entities'
 import fs from './fs'
 import git from './git'
 import login from './login'
@@ -30,7 +29,6 @@ const reducers = {
   config,
   deeplinks,
   devices,
-  entities,
   fs,
   git,
   login,

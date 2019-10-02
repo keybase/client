@@ -13,10 +13,10 @@ export type ToKeybaseUserProps = {
   recipientUsername: string
   errorMessage?: string
   onShowProfile: (username: string) => void
-  onShowSuggestions: () => void
   onRemoveProfile: () => void
   onChangeRecipient: (recipient: string) => void
   onScanQRCode: (() => void) | null
+  onSearch: () => void
 }
 
 const placeholderExample = isLargeScreen ? 'Ex: G12345... or you*example.com' : 'G12.. or you*example.com'
@@ -65,7 +65,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
     <Search
       heading={props.isRequest ? 'From' : 'To'}
       onClickResult={props.onChangeRecipient}
-      onShowSuggestions={props.onShowSuggestions}
+      onSearch={props.onSearch}
       onShowTracker={props.onShowProfile}
       onScanQRCode={props.onScanQRCode}
     />

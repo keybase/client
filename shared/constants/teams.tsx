@@ -8,7 +8,6 @@ import {invert} from 'lodash-es'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
-import {Service} from './types/search'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
@@ -252,32 +251,6 @@ const retentionPolicies = {
   policyThreeDays,
   policyThreeMonths,
   policyYear,
-}
-
-const userIsActiveInTeamHelper = (
-  state: TypedState,
-  _username: string | null,
-  _service: Service | null,
-  _teamname: string | null
-): boolean => {
-  const username = _username || ''
-  const service = _service || ''
-  const teamname = _teamname || ''
-  if (service !== 'Keybase') {
-    return false
-  }
-
-  const members = state.teams.teamNameToMembers.get(teamname)
-  if (!members) {
-    return false
-  }
-
-  const member = members.get(username)
-  if (!member) {
-    return false
-  }
-
-  return member.status === 'active'
 }
 
 export const userIsRoleInTeamWithInfo = (
@@ -621,7 +594,6 @@ export {
   getEmailInviteError,
   getTeamMemberCount,
   isLastOwner,
-  userIsActiveInTeamHelper,
   getTeamChannelInfos,
   getChannelInfoFromConvID,
   getTeamID,

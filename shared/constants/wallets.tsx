@@ -11,6 +11,7 @@ import {invert} from 'lodash-es'
 import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import flags from '../util/feature-flags'
+import * as TeamBuildingConstants from './team-building'
 
 export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
@@ -306,6 +307,7 @@ export const makeState = I.Record<Types._State>({
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
   staticConfig: null,
+  teamBuilding: TeamBuildingConstants.makeSubState(),
   trustline: emptyTrustline,
   unreadPaymentsMap: I.Map(),
 })

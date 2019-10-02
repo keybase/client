@@ -7,6 +7,7 @@ import * as WalletTypes from '../wallets'
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import {DeviceType} from '../devices'
+import {ServiceIdWithContact} from '../team-building'
 
 // The actual ID the server uses for operations (edit, delete etc)
 export type MessageID = number
@@ -257,7 +258,7 @@ export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepte
 
 export type _MessageSystemSBSResolved = {
   assertionUsername: string
-  assertionService: string
+  assertionService: ServiceIdWithContact | null
   prover: string
   type: 'systemSBSResolved'
 } & _MessageCommonWithDeviceDeletableEditableReactions

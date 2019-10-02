@@ -7,7 +7,6 @@ import * as deeplinks from './deeplinks-gen'
 import * as dev from './dev-gen'
 import * as devices from './devices-gen'
 import * as enginegen from './engine-gen-gen'
-import * as entities from './entities-gen'
 import * as fs from './fs-gen'
 import * as git from './git-gen'
 import * as gregor from './gregor-gen'
@@ -20,7 +19,6 @@ import * as provision from './provision-gen'
 import * as push from './push-gen'
 import * as recoverpassword from './recover-password-gen'
 import * as routetree from './route-tree-gen'
-import * as search from './search-gen'
 import * as settings from './settings-gen'
 import * as signup from './signup-gen'
 import * as teambuilding from './team-building-gen'
@@ -39,7 +37,6 @@ export type TypedActions =
   | dev.Actions
   | devices.Actions
   | enginegen.Actions
-  | entities.Actions
   | fs.Actions
   | git.Actions
   | gregor.Actions
@@ -52,7 +49,6 @@ export type TypedActions =
   | push.Actions
   | recoverpassword.Actions
   | routetree.Actions
-  | search.Actions
   | settings.Actions
   | signup.Actions
   | teambuilding.Actions
@@ -471,10 +467,6 @@ export type TypedActionsMap = {
   'engine-gen:stellar1NotifyPendingPaymentsUpdate': enginegen.Stellar1NotifyPendingPaymentsUpdatePayload
   'engine-gen:stellar1NotifyRecentPaymentsUpdate': enginegen.Stellar1NotifyRecentPaymentsUpdatePayload
   'engine-gen:stellar1UiPaymentReviewed': enginegen.Stellar1UiPaymentReviewedPayload
-  'entities:deleteEntity': entities.DeleteEntityPayload
-  'entities:mergeEntity': entities.MergeEntityPayload
-  'entities:replaceEntity': entities.ReplaceEntityPayload
-  'entities:subtractEntity': entities.SubtractEntityPayload
   'fs:subscribePath': fs.SubscribePathPayload
   'fs:subscribeNonPath': fs.SubscribeNonPathPayload
   'fs:unsubscribe': fs.UnsubscribePayload
@@ -700,15 +692,6 @@ export type TypedActionsMap = {
   'route-tree:switchLoggedIn': routetree.SwitchLoggedInPayload
   'route-tree:switchTab': routetree.SwitchTabPayload
   'route-tree:resetStack': routetree.ResetStackPayload
-  'search:search': search.SearchPayload
-  'search:addResultsToUserInput': search.AddResultsToUserInputPayload
-  'search:removeResultsToUserInput': search.RemoveResultsToUserInputPayload
-  'search:setUserInputItems': search.SetUserInputItemsPayload
-  'search:userInputItemsUpdated': search.UserInputItemsUpdatedPayload
-  'search:clearSearchResults': search.ClearSearchResultsPayload
-  'search:updateSelectedSearchResult': search.UpdateSelectedSearchResultPayload
-  'search:searchSuggestions': search.SearchSuggestionsPayload
-  'search:finishedSearch': search.FinishedSearchPayload
   'settings:addPhoneNumber': settings.AddPhoneNumberPayload
   'settings:addedPhoneNumber': settings.AddedPhoneNumberPayload
   'settings:resendVerificationForPhoneNumber': settings.ResendVerificationForPhoneNumberPayload

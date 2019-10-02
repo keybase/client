@@ -3,19 +3,8 @@ import * as Types from './types/profile'
 import * as I from 'immutable'
 import {TypedState} from '../util/container'
 import {peopleTab} from './tabs'
-import {serviceIdToService} from './search'
 import {parseUserId} from '../util/platforms'
 
-const searchResultSelector = (
-  {
-    entities: {
-      search: {searchResults},
-    },
-  }: TypedState,
-  username: string
-) => {
-  return searchResults.get(username)
-}
 export const makeInitialState = I.Record<Types._State>({
   blockUserModal: null,
   errorCode: null,
@@ -82,7 +71,7 @@ export const getProfilePath = (
   }>,
   username: string,
   _: string,
-  state: TypedState
+  _state: TypedState
 ) => {
   const onlyProfilesProps = peopleRouteProps.filter(
     segment => segment.node && [peopleTab, 'profile', 'profileNonUserProfile'].includes(segment.node)
@@ -117,29 +106,18 @@ export const getProfilePath = (
   }
 
   // search for user first
-  let props: any = {}
-  const searchResult = searchResultSelector(state, username)
-  if (searchResult) {
-    props = {
-      fullUsername: username,
-      fullname: searchResult.leftFullname,
-      serviceName: searchResult.leftService,
-      username: searchResult.leftUsername,
-    }
-  } else {
-    const {username: parsedUsername, serviceId} = parseUserId(username)
-    props = {
-      fullUsername: username,
-      serviceName: serviceIdToService(serviceId),
-      username: parsedUsername,
-    }
+  const {username: parsedUsername, serviceId} = parseUserId(username)
+  const props = {
+    fullUsername: username,
+    serviceId,
+    username: parsedUsername,
   }
   if (onlyProfilesPath.length > 0) {
     // Check for duplicates
     const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
     if (
       (topProfile.props && topProfile.props.fullUsername !== props.fullUsername) ||
-      (topProfile.props && topProfile.props.serviceName !== props.serviceName)
+      (topProfile.props && topProfile.props.serviceId !== props.serviceId)
     ) {
       // This user is not the top profile, push on top
       onlyProfilesPath.push({props, selected: 'profileNonUserProfile'})
