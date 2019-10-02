@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as ChatConstants from '../../constants/chat2'
 import {StyleOverride} from '../../common-adapters/markdown'
 import {isMobile} from '../../constants/platform'
-import HiddenString from '../../util/hidden-string'
 
 const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
   del: {
@@ -18,7 +16,6 @@ const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
   },
   paragraph: {
     color: Styles.globalColors.black,
-    ...(isMobile ? Styles.globalStyles.flexBoxColumn : {}),
   },
   strong: {
     color: Styles.globalColors.black,
@@ -43,11 +40,7 @@ const MarkdownMemo = (props: Props) =>
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
       <Kb.Markdown
         style={styles.memo}
-        styleOverride={{
-          ...(isMobile ? styleOverride : {}),
-          ...props.styleOverride,
-        }}
-        meta={ChatConstants.makeMessageText({decoratedText: new HiddenString(props.memo)})}
+        styleOverride={Styles.collapseStyles([isMobile ? styleOverride : {}, props.styleOverride])}
         allowFontScaling={true}
       >
         {props.memo}
@@ -73,6 +66,9 @@ const styles = Styles.styleSheetCreate(() => ({
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
     } as const,
+    isMobile: {
+      ...Styles.globalStyles.flexBoxColumn,
+    },
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},
 }))
