@@ -200,6 +200,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
       return (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
           <Kb.Button
+            small={true}
             type="Wallet"
             style={styles.createNewAccountButton}
             label="Create a new account"
