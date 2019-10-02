@@ -1,8 +1,34 @@
 {
-  "prelude": [],
+  "prelude": [
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
+  ],
   "actions": {
-    "cancelReset": {"_description": "Cancel an autoreset for the currently logged-in account."},
-    "resetCancelled": {"_description": "Cancelled an account reset."},
-    "updateAutoresetState": {"active": "boolean", "endTime": "number"}
+    "cancelReset": {
+      "_description": "Cancel an autoreset for the currently logged-in account."
+    },
+    "resetAccount": {
+      "password?": "HiddenString"
+    },
+    "resetCancelled": {
+      "_description": "Cancelled an account reset."
+    },
+    "resetError": {
+      "error": "RPCError"
+    },
+    "setUsername": {
+      "username": "string"
+    },
+    "startAccountReset": {
+      "skipPassword": "boolean",
+      "username?": "string"
+    },
+    "submittedReset": {
+      "checkEmail": "boolean"
+    },
+    "updateAutoresetState": {
+      "active": "boolean",
+      "endTime": "number"
+    }
   }
 }

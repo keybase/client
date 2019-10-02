@@ -1,32 +1,53 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+import * as AutoresetGen from '../../../actions/autoreset-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
-export type Props = {
-  onContinue: (choice: boolean) => void
-}
+export type Props = {}
 
-const PromptReset = (props: Props) => {
+const PromptReset = (_: Props) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const skipPassword = Container.useSelector(state => state.autoreset.skipPassword)
+  const onContinue = React.useCallback(
+    () =>
+      dispatch(
+        skipPassword
+          ? AutoresetGen.createResetAccount({})
+          : nav.safeNavigateAppendPayload({path: ['resetKnowPassword']})
+      ),
+    []
+  )
+  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [])
   return (
     <SignupScreen
       buttons={[
         {
           label: 'Start account reset',
-          onClick: () => props.onContinue(true),
+          onClick: onContinue,
           type: 'Default' as ButtonType,
         },
       ]}
-      onBack={() => props.onContinue(false)}
+      onBack={onBack}
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
         <Kb.Icon type="iconfont-skull" sizeType="Bigger" />
         <Kb.Box2 alignItems="center" direction="vertical">
-          <Kb.Text type="Body">If you have lost all of your devices, or if you uninstalled</Kb.Text>
-          <Kb.Text type="Body">Keybase from all of them, you can reset your account.</Kb.Text>
-          <Kb.Text type="Body">You will keep your username but lose all your data.</Kb.Text>
+          <Kb.Text type="Body" center={true} style={styles.main}>
+            If you have lost all of your devices, or if you logged out or uninstalled Keybase from all of them
+            and forgot your password, you can reset your account.
+          </Kb.Text>
+          <Kb.Text type="Body" center={true} style={styles.main}>
+            You will keep your username but{' '}
+            <Kb.Text type="BodyBold">
+              lose all your data (chat, files, git repos) and be removed from teams.
+            </Kb.Text>{' '}
+            Teams for which you were the last admin or owner will be lost forever.
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>
@@ -38,13 +59,18 @@ PromptReset.navigationOptions = {
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
   headerRightActions: () => (
-    <Kb.Box2
-      direction="horizontal"
-      style={Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0)}
-    >
+    <Kb.Box2 direction="horizontal" style={styles.questionBox}>
       <InfoIcon />
     </Kb.Box2>
   ),
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  main: {
+    ...Styles.padding(0, Styles.globalMargins.medium, Styles.globalMargins.small),
+    maxWidth: 500,
+  },
+  questionBox: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny, 0),
+}))
 
 export default PromptReset

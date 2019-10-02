@@ -760,6 +760,8 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  void requestInboxLayout();
+  void requestInboxUnbox(array<ConversationID> convIDs);
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
@@ -910,12 +912,15 @@ protocol local {
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
   record DownloadFileAttachmentLocalRes {
-    string filename;
+    string filePath;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
   @lint("ignore")
-  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  DownloadFileAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, boolean downloadToCache, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+  @lint("ignore")
+  void ConfigureFileAttachmentDownloadLocal(string cacheDirOverride, string downloadDirOverride);
 
   enum PreviewLocationTyp {
     URL_0,
@@ -949,7 +954,7 @@ protocol local {
      boolean offline;
      array<RateLimit> rateLimits;
   }
-  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, MessageID msgID);
+  MarkAsReadLocalRes markAsReadLocal(int sessionID, ConversationID conversationID, union { null, MessageID } msgID);
 
   record FindConversationsLocalRes {
     array<ConversationLocal> conversations; // for the cli / json api
@@ -1171,6 +1176,7 @@ protocol local {
   record AdvertiseBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }
+
   AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias,
     array<AdvertiseCommandsParam> advertisements);
   record ListBotCommandsLocalRes {
@@ -1178,6 +1184,9 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   ListBotCommandsLocalRes listBotCommandsLocal(ConversationID convID);
+
+  ListBotCommandsLocalRes listPublicBotCommandsLocal(string username);
+
   record ClearBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }

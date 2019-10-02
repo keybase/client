@@ -6,6 +6,7 @@ package service
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -45,4 +46,10 @@ func (t TestHandler) Panic(_ context.Context, message string) error {
 		panic(message)
 	}()
 	return nil
+}
+
+func (t TestHandler) TestAirdropReg(ctx context.Context) error {
+	mctx := libkb.NewMetaContext(ctx, t.G())
+	cli := stellar.NewAirdropClient()
+	return cli.Register(mctx)
 }

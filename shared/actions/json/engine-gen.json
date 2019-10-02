@@ -16,6 +16,9 @@
         "chat1ChatUiChatAttachmentDownloadDone": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatAttachmentDownloadDone']['outParam']) => void}"
         },
+        "chat1ChatUiChatInboxLayout": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxLayout']['outParam']) => void}"
+        },
         "chat1ChatUiChatInboxUnverified": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatInboxUnverified']['outParam']) => void}"
         },

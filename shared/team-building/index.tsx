@@ -154,6 +154,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             backgroundColor="blue"
             onClick={props.onImportContacts}
             small={true}
+            style={styles.importContactsButton}
           />
           <Kb.Button
             label="Skip"
@@ -663,6 +664,9 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      importContactsButton: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
       importContactsContainer: {
         justifyContent: 'flex-start',
         padding: Styles.globalMargins.xsmall,

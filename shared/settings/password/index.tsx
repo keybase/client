@@ -94,7 +94,7 @@ class UpdatePassword extends Component<Props, State> {
     return (
       <Kb.Modal
         banners={[
-          notification && (
+          !!notification && (
             <Kb.Banner color="yellow">
               <Kb.BannerParagraph bannerColor="yellow" content={notification} />
             </Kb.Banner>

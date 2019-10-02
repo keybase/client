@@ -22,7 +22,6 @@ export type State = {
   isNew: Set<string>
   justRevokedSelf: string
   newPaperkey: HiddenString
-  selectedDeviceID?: DeviceID
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match

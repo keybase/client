@@ -53,10 +53,22 @@ const (
 	ProductionGregorServerURI = "fmprpc+tls://chat-0.core.keybaseapi.com:443"
 )
 
+const (
+	DevelMpackAPIServerURI      = "fmprpc://localhost:9914"
+	StagingMpackAPIServerURI    = "fmprpc+tls://api.dev.keybase.io:4443"
+	ProductionMpackAPIServerURI = "fmprpc+tls://api-1.core.keybaseapi.com:443"
+)
+
 var GregorServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelGregorServerURI,
 	StagingRunMode:    StagingGregorServerURI,
 	ProductionRunMode: ProductionGregorServerURI,
+}
+
+var MpackAPIServerLookup = map[RunMode]string{
+	DevelRunMode:      DevelMpackAPIServerURI,
+	StagingRunMode:    StagingMpackAPIServerURI,
+	ProductionRunMode: ProductionMpackAPIServerURI,
 }
 
 const (

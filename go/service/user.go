@@ -574,9 +574,9 @@ func (h *UserHandler) FindNextMerkleRootAfterReset(ctx context.Context, arg keyb
 	return libkb.FindNextMerkleRootAfterReset(m, arg)
 }
 
-func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasRandomPwArg) (res bool, err error) {
+func (h *UserHandler) LoadPassphraseState(ctx context.Context, arg keybase1.LoadPassphraseStateArg) (res keybase1.PassphraseState, err error) {
 	m := libkb.NewMetaContext(ctx, h.G())
-	return libkb.LoadHasRandomPw(m, arg)
+	return libkb.LoadPassphraseStateWithForceRepoll(m, arg.ForceRepoll)
 }
 
 func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {

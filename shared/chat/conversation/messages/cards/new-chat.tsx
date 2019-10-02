@@ -22,12 +22,12 @@ const NewCard = (_: Props) => (
           <Kb.Text
             type="BodySmallSemiboldPrimaryLink"
             style={styles.link}
-            className="color_blueLighter hover_contained_color_white"
+            className="color_blueLighterOrWhite hover_contained_color_white"
           >
             Read more
           </Kb.Text>
           <Kb.Icon
-            color={Styles.globalColors.blueLighter}
+            color={Styles.globalColors.blueLighterOrWhite}
             sizeType="Tiny"
             type="iconfont-arrow-right"
             className="hover_contained_color_white"
@@ -47,10 +47,10 @@ const styles = Styles.styleSheetCreate(
         common: {
           backgroundColor: Styles.globalColors.blueDark,
           borderRadius: Styles.borderRadius,
-          overflow: 'hidden',
         },
         isElectron: {
           height: 100,
+          marginTop: Styles.globalMargins.xsmall,
           maxWidth: 400,
         },
         isMobile: {
@@ -71,8 +71,8 @@ const styles = Styles.styleSheetCreate(
       }),
       image: {
         alignSelf: Styles.isMobile ? 'center' : undefined,
+        marginTop: Styles.isMobile ? Styles.globalMargins.tiny : -Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.medium,
-        paddingTop: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.xsmall,
       },
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},

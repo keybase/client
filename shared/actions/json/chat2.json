@@ -129,7 +129,9 @@
         "'tlfFinalize'",
         "'threadStale'",
         "'membersUpdate'",
-        "'scroll'"
+        "'scroll'",
+        "'ensureSelectedMeta'",
+        "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
     },

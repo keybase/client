@@ -45,6 +45,7 @@ export const makeState = (): Types.State => ({
   giphyResultMap: I.Map(),
   giphyWindowMap: I.Map(),
   inboxHasLoaded: false,
+  inboxLayout: null,
   inboxSearch: null,
   inboxShowNew: false,
   isWalletsNew: true,
@@ -285,8 +286,6 @@ export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
-export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
-  `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
 export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`

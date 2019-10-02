@@ -69,6 +69,11 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       isLink: true,
       styleOverride: Styles.globalStyles.fontSemibold,
     },
+    BodyBold: {
+      colorForBackground: whiteNegative,
+      fontSize: 16,
+      styleOverride: Styles.globalStyles.fontBold,
+    },
     BodyExtrabold: {
       colorForBackground: whiteNegative,
       fontSize: 16,

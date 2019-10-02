@@ -33,6 +33,15 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
 
   render() {
     const props = this.props
+    if (!props.teamname && props.participants.length === 0) {
+      return (
+        <Kb.ClickableBox onClick={props.onSelectConversation}>
+          <Kb.Box2 direction="vertical" style={styles.container} centerChildren={true}>
+            <Kb.ProgressIndicator style={styles.spinner} type="Small" />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      )
+    }
     return (
       <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Kb.Box2
@@ -111,6 +120,9 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: Styles.desktopStyles.clickable,
   }),
+  spinner: {
+    alignSelf: 'center',
+  },
 }))
 
 export default SelectableSmallTeam

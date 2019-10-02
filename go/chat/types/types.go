@@ -174,6 +174,19 @@ type Inbox struct {
 	Pagination      *chat1.Pagination
 }
 
+type InboxSyncRes struct {
+	FilteredConvs      []RemoteConversation
+	TeamTypeChanged    bool
+	MembersTypeChanged []chat1.ConversationID
+	Expunges           []InboxSyncResExpunge
+	TopicNameChanged   []chat1.ConversationID
+}
+
+type InboxSyncResExpunge struct {
+	ConvID  chat1.ConversationID
+	Expunge chat1.Expunge
+}
+
 type ConvLoaderPriority int
 
 var (
@@ -586,6 +599,10 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 
 func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
 
+func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+	return nil, nil
+}
+
 func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
 	return nil, nil
 }
@@ -615,5 +632,18 @@ func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
 
 func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context, reason string) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
+	msgType chat1.MessageType, firstConv bool) error {
 	return nil
 }

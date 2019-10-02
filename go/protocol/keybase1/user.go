@@ -321,17 +321,44 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 	}
 }
 
+// PassphraseState values are used in .config.json, so should not be changed without a migration strategy
+type PassphraseState int
+
+const (
+	PassphraseState_KNOWN  PassphraseState = 0
+	PassphraseState_RANDOM PassphraseState = 1
+)
+
+func (o PassphraseState) DeepCopy() PassphraseState { return o }
+
+var PassphraseStateMap = map[string]PassphraseState{
+	"KNOWN":  0,
+	"RANDOM": 1,
+}
+
+var PassphraseStateRevMap = map[PassphraseState]string{
+	0: "KNOWN",
+	1: "RANDOM",
+}
+
+func (e PassphraseState) String() string {
+	if v, ok := PassphraseStateRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type CanLogoutRes struct {
-	CanLogout     bool   `codec:"canLogout" json:"canLogout"`
-	Reason        string `codec:"reason" json:"reason"`
-	SetPassphrase bool   `codec:"setPassphrase" json:"setPassphrase"`
+	CanLogout       bool            `codec:"canLogout" json:"canLogout"`
+	Reason          string          `codec:"reason" json:"reason"`
+	PassphraseState PassphraseState `codec:"passphraseState" json:"passphraseState"`
 }
 
 func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	return CanLogoutRes{
-		CanLogout:     o.CanLogout,
-		Reason:        o.Reason,
-		SetPassphrase: o.SetPassphrase,
+		CanLogout:       o.CanLogout,
+		Reason:          o.Reason,
+		PassphraseState: o.PassphraseState.DeepCopy(),
 	}
 }
 
@@ -446,14 +473,13 @@ type FindNextMerkleRootAfterResetArg struct {
 	Prev       ResetMerkleRoot `codec:"prev" json:"prev"`
 }
 
-type LoadHasRandomPwArg struct {
-	SessionID      int  `codec:"sessionID" json:"sessionID"`
-	ForceRepoll    bool `codec:"forceRepoll" json:"forceRepoll"`
-	NoShortTimeout bool `codec:"noShortTimeout" json:"noShortTimeout"`
-}
-
 type CanLogoutArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type LoadPassphraseStateArg struct {
+	SessionID   int  `codec:"sessionID" json:"sessionID"`
+	ForceRepoll bool `codec:"forceRepoll" json:"forceRepoll"`
 }
 
 type UserCardArg struct {
@@ -514,8 +540,8 @@ type UserInterface interface {
 	// at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
-	LoadHasRandomPw(context.Context, LoadHasRandomPwArg) (bool, error)
 	CanLogout(context.Context, int) (CanLogoutRes, error)
+	LoadPassphraseState(context.Context, LoadPassphraseStateArg) (PassphraseState, error)
 	UserCard(context.Context, UserCardArg) (*UserCard, error)
 	BlockUser(context.Context, string) error
 	UnblockUser(context.Context, string) error
@@ -840,21 +866,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
-			"loadHasRandomPw": {
-				MakeArg: func() interface{} {
-					var ret [1]LoadHasRandomPwArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]LoadHasRandomPwArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]LoadHasRandomPwArg)(nil), args)
-						return
-					}
-					ret, err = i.LoadHasRandomPw(ctx, typedArgs[0])
-					return
-				},
-			},
 			"canLogout": {
 				MakeArg: func() interface{} {
 					var ret [1]CanLogoutArg
@@ -867,6 +878,21 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.CanLogout(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"loadPassphraseState": {
+				MakeArg: func() interface{} {
+					var ret [1]LoadPassphraseStateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]LoadPassphraseStateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]LoadPassphraseStateArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadPassphraseState(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1056,14 +1082,14 @@ func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg Find
 	return
 }
 
-func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwArg) (res bool, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
 func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
 	__arg := CanLogoutArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) LoadPassphraseState(ctx context.Context, __arg LoadPassphraseStateArg) (res PassphraseState, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadPassphraseState", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

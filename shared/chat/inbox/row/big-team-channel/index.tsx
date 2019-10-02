@@ -151,7 +151,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   textPlainBold: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.black,
+      color: Styles.globalColors.blackOrWhite,
       ...Styles.globalStyles.fontBold,
     },
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},

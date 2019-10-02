@@ -52,6 +52,11 @@
       ],
       "response": null,
       "doc": "For testing crashes."
+    },
+    "testAirdropReg": {
+      "request": [],
+      "response": null,
+      "doc": "For testing airdrop reg."
     }
   },
   "namespace": "keybase.1"

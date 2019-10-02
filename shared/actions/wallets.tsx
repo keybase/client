@@ -810,9 +810,6 @@ const deletedAccount = (state: TypedState) => {
   )
 }
 
-export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
-  a && Object.prototype.hasOwnProperty.call(a, 'showOnCreation')
-
 const createdOrLinkedAccount = (
   _: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
@@ -821,7 +818,7 @@ const createdOrLinkedAccount = (
     // Create new account failed, don't nav
     return false
   }
-  if (action.payload && hasShowOnCreation(action.payload)) {
+  if (action.payload.showOnCreation) {
     return WalletsGen.createSelectAccount({
       accountID: action.payload.accountID,
       reason: 'auto-selected',

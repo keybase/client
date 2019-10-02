@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {StyleOverride} from '../../common-adapters/markdown'
-import {isMobile} from '../../constants/platform'
 
 const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
   del: {
@@ -38,16 +37,15 @@ const MarkdownMemo = (props: Props) =>
       style={Styles.collapseStyles([props.style, styles.container])}
     >
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
-      <Kb.Markdown
-        style={styles.memo}
-        styleOverride={{
-          ...(isMobile ? styleOverride : {}),
-          ...props.styleOverride,
-        }}
-        allowFontScaling={true}
-      >
-        {props.memo}
-      </Kb.Markdown>
+      <Kb.Text type="Body" style={styles.memo}>
+        <Kb.Markdown
+          style={styles.memo}
+          styleOverride={{...styleOverride, ...props.styleOverride}}
+          allowFontScaling={true}
+        >
+          {props.memo}
+        </Kb.Markdown>
+      </Kb.Text>
     </Kb.Box2>
   ) : null
 
@@ -69,6 +67,9 @@ const styles = Styles.styleSheetCreate(() => ({
       whiteSpace: 'pre-wrap',
       wordBreak: 'break-word',
     } as const,
+    isMobile: {
+      ...Styles.globalStyles.flexBoxColumn,
+    },
   }),
   quoteMarker: {maxWidth: 3, minWidth: 3},
 }))

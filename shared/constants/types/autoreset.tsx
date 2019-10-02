@@ -1,4 +1,7 @@
 export type State = Readonly<{
-  active: Boolean
+  active: boolean
   endTime: number
+  error: string
+  skipPassword: boolean
+  username: string
 }>

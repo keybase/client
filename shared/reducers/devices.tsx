@@ -29,10 +29,6 @@ export default (
         draftState.endangeredTLFMap = endangeredTLFMap
         return
       }
-      case DevicesGen.showRevokePage:
-      case DevicesGen.showDevicePage: // fallthrough
-        draftState.selectedDeviceID = action.payload.deviceID
-        return
       case DevicesGen.showPaperKeyPage:
         draftState.newPaperkey = initialState.newPaperkey
         return
@@ -60,6 +56,8 @@ export default (
       // Saga only actions
       case DevicesGen.revoke:
       case DevicesGen.load:
+      case DevicesGen.showRevokePage:
+      case DevicesGen.showDevicePage:
         return
     }
   })

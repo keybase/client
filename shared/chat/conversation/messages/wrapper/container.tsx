@@ -131,6 +131,7 @@ export default Container.namedConnect(
       _you: state.config.username,
       authorIsAdmin,
       authorIsOwner,
+      canWrite: !meta.cannotWrite,
       centeredOrdinal,
       conversationIDKey: ownProps.conversationIDKey,
       hasUnfurlPrompts,
@@ -161,10 +162,10 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {previous, message, _you} = stateProps
-    let showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
+    const showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
-    let {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
+    const {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
       message,
       _you
     )
@@ -186,6 +187,7 @@ export default Container.namedConnect(
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
       authorIsOwner: stateProps.authorIsOwner,
+      canWrite: stateProps.canWrite,
       centeredOrdinal: stateProps.centeredOrdinal,
       conversationIDKey: stateProps.conversationIDKey,
       decorate,

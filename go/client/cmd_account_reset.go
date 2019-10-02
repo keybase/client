@@ -46,11 +46,11 @@ func (c *CmdAccountReset) checkRandomPW() error {
 	if err != nil {
 		return err
 	}
-	randomPW, err := cli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	passphraseState, err := cli.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
 	if err != nil {
 		return err
 	}
-	if randomPW {
+	if passphraseState == keybase1.PassphraseState_RANDOM {
 		return errors.New("Can't reset without a password. Set a password first")
 	}
 	return nil
