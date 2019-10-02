@@ -25,15 +25,15 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	}
 
 	reason := chat1.GetThreadReason_GENERAL
-	unboxed, err := g.ChatHelper.GetMessages(ctx, uid, convID,
-		[]chat1.MessageID{messageID}, true, &reason)
+	unboxed, err := g.ChatHelper.GetMessage(ctx, uid, convID,
+		messageID, true, &reason)
 	if err != nil {
 		return "", nil, err
 	}
-	if !unboxed[0].IsValid() {
+	if !unboxed.IsValid() {
 		return "", nil, errors.New("unable to download attachment from invalid message")
 	}
-	body := unboxed[0].Valid().MessageBody
+	body := unboxed.Valid().MessageBody
 	typ, err := body.MessageType()
 	if err != nil || typ != chat1.MessageType_ATTACHMENT {
 		return "", nil, fmt.Errorf("invalid message type for download: %v", typ)
