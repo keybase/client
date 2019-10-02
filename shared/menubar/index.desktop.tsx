@@ -467,8 +467,10 @@ const styles = Styles.styleSheetCreate(() => ({
     borderTopLeftRadius: Styles.globalMargins.xtiny,
     borderTopRightRadius: Styles.globalMargins.xtiny,
     flex: 1,
+    height: '100%',
     marginTop: isDarwin ? 13 : 0,
     position: 'relative',
+    width: '100%',
   },
 }))
 

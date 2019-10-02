@@ -1,5 +1,4 @@
 import React from 'react'
-import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Sb from '../../stories/storybook'
@@ -150,7 +149,7 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateNormalView({
-            localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
+            localViewTlfPaths: [Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')],
           }),
         })}
       />
@@ -160,7 +159,7 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateNormalView({
-            localViewTlfPaths: I.List([Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')]),
+            localViewTlfPaths: [Types.stringToPath('/keybase/team/keybasefriends (conflict #1)')],
             resolvingConflict: true,
             stuckInConflict: true,
           }),
@@ -172,11 +171,11 @@ export default () => {
         path={Types.stringToPath('/keybase/team/keybasefriends')}
         {...Sb.propOverridesForStory({
           conflictState: Constants.makeConflictStateNormalView({
-            localViewTlfPaths: I.List([
+            localViewTlfPaths: [
               Types.stringToPath('/keybase/team/keybasefriends (conflict #1)'),
               Types.stringToPath('/keybase/team/keybasefriends (conflict #2)'),
               Types.stringToPath('/keybase/team/keybasefriends (conflict #3)'),
-            ]),
+            ],
           }),
         })}
       />

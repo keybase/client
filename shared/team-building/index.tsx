@@ -196,6 +196,37 @@ const ContactsImportButton = (props: ContactProps) => {
   )
 }
 
+const EmptyResultText = (props: {selectedService: ServiceIdWithContact}) => (
+  <Kb.Box2
+    alignSelf="center"
+    centerChildren={!Styles.isMobile}
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    gap="tiny"
+    style={styles.emptyContainer}
+  >
+    {!Styles.isMobile && (
+      <Kb.Icon
+        fontSize={Styles.isMobile ? 48 : 64}
+        type={serviceIdToIconFont(props.selectedService)}
+        style={Styles.collapseStyles([
+          !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
+        ])}
+      />
+    )}
+    {!Styles.isMobile && (
+      <Kb.Text center={true} type="BodyBig">
+        Enter a {serviceIdToLabel(props.selectedService)} username above.
+      </Kb.Text>
+    )}
+    <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+      Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a
+      Keybase account.
+    </Kb.Text>
+  </Kb.Box2>
+)
+
 class TeamBuilding extends React.PureComponent<Props, {}> {
   sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
@@ -343,32 +374,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      return (
-        <Kb.Box2
-          alignSelf="center"
-          centerChildren={true}
-          direction="vertical"
-          fullHeight={true}
-          fullWidth={true}
-          gap="tiny"
-          style={styles.emptyContainer}
-        >
-          <Kb.Icon
-            fontSize={Styles.isMobile ? 48 : 64}
-            type={serviceIdToIconFont(this.props.selectedService)}
-            style={Styles.collapseStyles([
-              !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
-            ])}
-          />
-          <Kb.Text center={true} type="BodyBig">
-            Enter a {serviceIdToLabel(this.props.selectedService)} username above.
-          </Kb.Text>
-          <Kb.Text center={true} type="BodySmall">
-            Start a Keybase chat with anyone on {serviceIdToLabel(this.props.selectedService)}, even if they
-            don’t have a Keybase account.
-          </Kb.Text>
-        </Kb.Box2>
-      )
+      return <EmptyResultText selectedService={this.props.selectedService} />
     }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
@@ -541,7 +547,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           </Kb.Text>
         )}
         <ServiceTabBar
-          services={Constants.servicesForNamespace(props.namespace)}
+          services={Constants.allServices}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
           serviceResultCount={props.serviceResultCount}
@@ -614,6 +620,11 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: 40,
         },
         isMobile: {maxWidth: '80%'},
+      }),
+      emptyServiceText: Styles.platformStyles({
+        isMobile: {
+          padding: Styles.globalMargins.small,
+        },
       }),
       headerContainer: Styles.platformStyles({
         isElectron: {

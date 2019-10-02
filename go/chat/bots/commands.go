@@ -253,20 +253,11 @@ func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID ch
 	})
 }
 
-type nullChatUI struct {
-	libkb.ChatUI
-}
-
-func (n nullChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID chat1.ConversationID,
-	status chat1.UIBotCommandsUpdateStatus) error {
-	return nil
-}
-
 func (b *CachingBotCommandManager) getChatUI(ctx context.Context) libkb.ChatUI {
 	ui, err := b.G().UIRouter.GetChatUI()
 	if err != nil || ui == nil {
 		b.Debug(ctx, "getChatUI: no chat UI found: err: %s", err)
-		return nullChatUI{}
+		return utils.NullChatUI{}
 	}
 	return ui
 }

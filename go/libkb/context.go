@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	logger "github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -571,7 +572,7 @@ func (m MetaContext) LogoutAndDeprovisionIfRevoked() (err error) {
 
 	if doLogout {
 		username := m.G().Env.GetUsername()
-		if err := m.Logout(); err != nil {
+		if err := m.LogoutWithOptions(LogoutOptions{KeepSecrets: false, Force: true}); err != nil {
 			return err
 		}
 		return ClearSecretsOnDeprovision(m, username)
@@ -689,4 +690,10 @@ func (m MetaContext) Keyring() (ret *SKBKeyringFile, err error) {
 		return m.LoginContext().Keyring(m)
 	}
 	return m.ActiveDevice().Keyring(m)
+}
+
+var _ logger.ContextInterface = MetaContext{}
+
+func (m MetaContext) UpdateContextToLoggerContext(c context.Context) logger.ContextInterface {
+	return m.WithContext(c)
 }

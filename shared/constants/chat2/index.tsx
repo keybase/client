@@ -31,6 +31,7 @@ export const makeState = (): Types.State => ({
   attachmentViewMap: I.Map(),
   badgeMap: I.Map(), // id to the badge count
   botCommandsUpdateStatusMap: I.Map(),
+  channelSearchText: '',
   commandMarkdownMap: I.Map(),
   commandStatusMap: I.Map(),
   containsLatestMessageMap: I.Map(),

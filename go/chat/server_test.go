@@ -5956,7 +5956,7 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 
 func logout(g *libkb.GlobalContext) error {
 	m := libkb.NewMetaContextBackground(g)
-	return m.Logout()
+	return m.LogoutKillSecrets()
 }
 
 func TestChatSrvUserResetAndDeleted(t *testing.T) {
@@ -7164,6 +7164,17 @@ func TestTeamBotSettings(t *testing.T) {
 			assertNoMessage(botuaListener)
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_HEADLINE)
+
+			topicName := "zjoinonsend"
+			_, err = ctc.as(t, botua).chatLocalHandler().NewConversationLocal(context.TODO(),
+				chat1.NewConversationLocalArg{
+					TlfName:       created.TlfName,
+					TopicName:     &topicName,
+					TopicType:     chat1.TopicType_DEV,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   mt,
+				})
+			require.NoError(t, err)
 
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}

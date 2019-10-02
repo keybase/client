@@ -7587,18 +7587,16 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 }
 
 func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
-	lState *kbfssync.LockState, currHead ImmutableRootMetadata) error {
+	lState *kbfssync.LockState, currHead ImmutableRootMetadata) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
 		fbo.latestMergedRevision, currHead.Revision())
-	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
-		ctx, lState, currHead.ReadOnly())
-	if err != nil {
-		return err
-	}
 
+	// Fetch root block and set the head first, because if it fails we
+	// don't want to have to undo a bunch of pointer updates.  (That
+	// is, follow the same order as when usually updating the head.)
 	latestRootBlockFetch := fbo.kickOffRootBlockFetch(ctx, currHead)
 	err = fbo.waitForRootBlockFetch(ctx, currHead, latestRootBlockFetch)
 	if err != nil {
@@ -7606,6 +7604,27 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 	}
 
 	err = fbo.setHeadSuccessorLocked(ctx, lState, currHead, true /*rebase*/)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err == nil {
+			return
+		}
+
+		// If updating the pointers failed, we need to revert the head
+		// as well.
+		fbo.log.CDebugf(ctx, "Fast-forward failed: %+v; reverting the head")
+		revertErr := fbo.setHeadLocked(
+			ctx, lState, currHead, headTrusted, mdToCommitType(currHead))
+		if revertErr != nil {
+			fbo.log.CDebugf(ctx, "Couldn't revert head: %+v", err)
+		}
+	}()
+
+	changes, affectedNodeIDs, err := fbo.blocks.FastForwardAllNodes(
+		ctx, lState, currHead.ReadOnly())
 	if err != nil {
 		return err
 	}
@@ -8551,19 +8570,22 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
-func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
-	folderBranch data.FolderBranch) (history TLFUpdateHistory, err error) {
-	startTime, timer := fbo.startOp(ctx, "GetUpdateHistory")
+func (fbo *folderBranchOps) GetUpdateHistory(
+	ctx context.Context, folderBranch data.FolderBranch,
+	start, end kbfsmd.Revision) (history TLFUpdateHistory, err error) {
+	startTime, timer := fbo.startOp(ctx, "GetUpdateHistory(%d, %d)", start, end)
 	defer func() {
-		fbo.endOp(ctx, startTime, timer, "GetUpdateHistory done: %+v", err)
+		fbo.endOp(
+			ctx, startTime, timer, "GetUpdateHistory(%d, %d) done: %+v",
+			start, end, err)
 	}()
 
 	if folderBranch != fbo.folderBranch {
 		return TLFUpdateHistory{}, WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
-		kbfsmd.RevisionInitial, nil)
+	rmds, err := getMergedMDUpdatesWithEnd(
+		ctx, fbo.config, fbo.id(), start, end, nil)
 	if err != nil {
 		return TLFUpdateHistory{}, err
 	}
@@ -8587,11 +8609,12 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 			writerNames[rmd.LastModifyingWriter()] = writer
 		}
 		updateSummary := UpdateSummary{
-			Revision:  rmd.Revision(),
-			Date:      rmd.localTimestamp,
-			Writer:    writer,
-			LiveBytes: rmd.DiskUsage(),
-			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			Revision:    rmd.Revision(),
+			Date:        rmd.localTimestamp,
+			Writer:      writer,
+			LiveBytes:   rmd.DiskUsage(),
+			Ops:         make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
+			RootBlockID: rmd.data.Dir.ID.String(),
 		}
 		for _, op := range rmd.data.Changes.Ops {
 			opSummary := OpSummary{

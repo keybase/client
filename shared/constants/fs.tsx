@@ -86,47 +86,59 @@ export const makeUnknownPathItem = I.Record<Types._UnknownPathItem>({
 
 export const unknownPathItem = makeUnknownPathItem()
 
-const makeTlfSyncEnabled = I.Record<Types._TlfSyncEnabled>({
+export const tlfSyncEnabled: Types.TlfSyncEnabled = {
   mode: Types.TlfSyncMode.Enabled,
-})
-export const tlfSyncEnabled: Types.TlfSyncEnabled = makeTlfSyncEnabled()
+}
 
-const makeTlfSyncDisabled = I.Record<Types._TlfSyncDisabled>({
+export const tlfSyncDisabled: Types.TlfSyncDisabled = {
   mode: Types.TlfSyncMode.Disabled,
-})
-export const tlfSyncDisabled: Types.TlfSyncDisabled = makeTlfSyncDisabled()
+}
 
-export const makeTlfSyncPartial = I.Record<Types._TlfSyncPartial>({
-  enabledPaths: I.List(),
+export const makeTlfSyncPartial = ({enabledPaths}: Partial<Types.TlfSyncPartial>): Types.TlfSyncPartial => ({
+  enabledPaths: [...(enabledPaths || [])],
   mode: Types.TlfSyncMode.Partial,
 })
 
-export const makeConflictStateNormalView = I.Record<Types._ConflictStateNormalView>({
-  localViewTlfPaths: I.List(),
-  resolvingConflict: false,
-  stuckInConflict: false,
+export const makeConflictStateNormalView = ({
+  localViewTlfPaths,
+  resolvingConflict,
+  stuckInConflict,
+}: Partial<Types.ConflictStateNormalView>): Types.ConflictStateNormalView => ({
+  localViewTlfPaths: [...(localViewTlfPaths || [])],
+  resolvingConflict: resolvingConflict || false,
+  stuckInConflict: stuckInConflict || false,
   type: Types.ConflictStateType.NormalView,
 })
 
-export const tlfNormalViewWithNoConflict = makeConflictStateNormalView()
+export const tlfNormalViewWithNoConflict = makeConflictStateNormalView({})
 
-export const makeConflictStateManualResolvingLocalView = I.Record<
-  Types._ConflictStateManualResolvingLocalView
->({
-  normalViewTlfPath: defaultPath,
+export const makeConflictStateManualResolvingLocalView = ({
+  normalViewTlfPath,
+}: Partial<Types.ConflictStateManualResolvingLocalView>): Types.ConflictStateManualResolvingLocalView => ({
+  normalViewTlfPath: normalViewTlfPath || defaultPath,
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
 
-export const makeTlf = I.Record<Types._Tlf>({
-  conflictState: tlfNormalViewWithNoConflict,
-  isFavorite: false,
-  isIgnored: false,
-  isNew: false,
-  name: '',
-  resetParticipants: I.List(),
-  syncConfig: tlfSyncDisabled,
-  teamId: '',
-  tlfMtime: 0,
+export const makeTlf = ({
+  conflictState,
+  isFavorite,
+  isIgnored,
+  isNew,
+  name,
+  resetParticipants,
+  syncConfig,
+  teamId,
+  tlfMtime,
+}: Partial<Types.Tlf>): Types.Tlf => ({
+  conflictState: conflictState || tlfNormalViewWithNoConflict,
+  isFavorite: isFavorite || false,
+  isIgnored: isIgnored || false,
+  isNew: isNew || false,
+  name: name || '',
+  resetParticipants: [...(resetParticipants || [])],
+  syncConfig: syncConfig || tlfSyncDisabled,
+  teamId: teamId || '',
+  tlfMtime: tlfMtime || 0,
   /* See comment in constants/types/fs.js
   needsRekey: false,
   waitingForParticipantUnlock: I.List(),
@@ -192,13 +204,6 @@ export const makeUploads = I.Record<Types._Uploads>({
   syncingPaths: I.Set(),
   totalSyncingBytes: 0,
   writingToJournal: I.Set(),
-})
-
-export const makeTlfs = I.Record<Types._Tlfs>({
-  loaded: false,
-  private: I.Map(),
-  public: I.Map(),
-  team: I.Map(),
 })
 
 const placeholderAction = FsGen.createPlaceholderAction()
@@ -317,29 +322,6 @@ export const makeFileContext = I.Record<Types._FileContext>({
   viewType: RPCTypes.GUIViewType.default,
 })
 export const emptyFileContext = makeFileContext()
-
-export const makeState = I.Record<Types._State>({
-  destinationPicker: makeDestinationPicker(),
-  downloads: makeDownloads(),
-  edits: I.Map(),
-  errors: I.Map(),
-  fileContext: I.Map(),
-  folderViewFilter: '',
-  kbfsDaemonStatus: makeKbfsDaemonStatus(),
-  lastPublicBannerClosedTlf: '',
-  overallSyncStatus: makeOverallSyncStatus(),
-  pathInfos: I.Map(),
-  pathItemActionMenu: makePathItemActionMenu(),
-  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  pathUserSettings: I.Map(),
-  sendAttachmentToChat: makeSendAttachmentToChat(),
-  settings: makeSettings(),
-  sfmi: makeSystemFileManagerIntegration(),
-  softErrors: makeSoftErrors(),
-  tlfUpdates: I.List(),
-  tlfs: makeTlfs(),
-  uploads: makeUploads(),
-})
 
 // RPC expects a string that's interpreted as [16]byte on Go side.
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()
@@ -519,12 +501,12 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Ty
       return tlfs.team
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
-      return I.Map()
+      return new Map()
   }
 }
 
 export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
-  tlfList.reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
+  [...tlfList.values()].reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
 
 export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
   [Types.TlfType.Private, Types.TlfType.Public, Types.TlfType.Team]
@@ -547,31 +529,31 @@ export const getTlfListAndTypeFromPath = (
       return {tlfList: getTlfListFromType(tlfs, tlfType), tlfType}
     }
     default:
-      return {tlfList: I.Map(), tlfType: Types.TlfType.Private}
+      return {tlfList: new Map(), tlfType: Types.TlfType.Private}
   }
 }
 
-export const unknownTlf = makeTlf()
+export const unknownTlf = makeTlf({})
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
   if (elems.length < 3) {
     return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
-  return tlfList.get(elems[2], unknownTlf)
+  return tlfList.get(elems[2]) || unknownTlf
 }
 
 export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
   switch (tlfType) {
     case Types.TlfType.Private:
-      return tlfs.private.get(name, makeTlf())
+      return tlfs.private.get(name) || unknownTlf
     case Types.TlfType.Public:
-      return tlfs.public.get(name, makeTlf())
+      return tlfs.public.get(name) || unknownTlf
     case Types.TlfType.Team:
-      return tlfs.team.get(name, makeTlf())
+      return tlfs.team.get(name) || unknownTlf
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
-      return makeTlf()
+      return unknownTlf
   }
 }
 
@@ -580,13 +562,13 @@ export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Type
 
 export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
   const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
-  if (resetParticipants.size === 0) {
+  if (resetParticipants.length === 0) {
     return Types.ResetBannerNoOthersType.None
   }
   if (resetParticipants.findIndex(username => username === state.config.username) >= 0) {
     return Types.ResetBannerNoOthersType.Self
   }
-  return resetParticipants.size
+  return resetParticipants.length
 }
 
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
@@ -911,7 +893,7 @@ export const makeActionForOpenPathInFilesTab = (
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
 
 export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
-  FsGen.createInitSendAttachmentToChat({path}),
+  FsGen.createInitSendAttachmentToChat({path}) as any,
   putActionIfOnPathForNav1(
     RouteTreeGen.createNavigateAppend({
       path: [{props: {path}, selected: 'sendAttachmentToChat'}],

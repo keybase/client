@@ -105,6 +105,8 @@ func (h ConfigHandler) setValue(_ context.Context, arg keybase1.SetValueArg, w l
 		err = w.SetStringAtPath(arg.Path, *arg.Value.S)
 	case arg.Value.I != nil:
 		err = w.SetIntAtPath(arg.Path, *arg.Value.I)
+	case arg.Value.F != nil:
+		err = w.SetFloatAtPath(arg.Path, *arg.Value.F)
 	case arg.Value.B != nil:
 		err = w.SetBoolAtPath(arg.Path, *arg.Value.B)
 	case arg.Value.O != nil:
@@ -337,11 +339,20 @@ func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
-	return h.G().Env.RememberPassphrase(), nil
+	username := h.G().Env.GetUsername()
+	if username.IsNil() {
+		h.G().Log.CDebugf(ctx, "GetRememberPassphrase: got nil username; using legacy remember_passphrase setting")
+	}
+	return h.G().Env.GetRememberPassphrase(username), nil
 }
 
 func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.SetRememberPassphraseArg) error {
 	m := libkb.NewMetaContext(ctx, h.G())
+
+	username := m.G().Env.GetUsername()
+	if username.IsNil() {
+		m.Debug("SetRememberPassphrase: got nil username; using legacy remember_passphrase setting")
+	}
 	remember, err := h.GetRememberPassphrase(ctx, arg.SessionID)
 	if err != nil {
 		return err
@@ -353,7 +364,7 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 
 	// set the config variable
 	w := h.G().Env.GetConfigWriter()
-	if err := w.SetRememberPassphrase(arg.Remember); err != nil {
+	if err := w.SetRememberPassphrase(username, arg.Remember); err != nil {
 		return err
 	}
 	err = h.G().ConfigReload()
@@ -361,13 +372,12 @@ func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.S
 		return err
 	}
 
-	// replace the secret store
 	if err := h.G().ReplaceSecretStore(ctx); err != nil {
 		m.Debug("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
 		return err
 	}
 
-	m.Debug("SetRememberPassphrase(%v) success", arg.Remember)
+	m.Debug("SetRememberPassphrase(%s, %v) success", username.String(), arg.Remember)
 
 	return nil
 }

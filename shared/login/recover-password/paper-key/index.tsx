@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/recover-password'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
@@ -12,7 +13,7 @@ export type Props = {
 
 const PaperKey = (props: Props) => {
   const [paperKey, setPaperKey] = React.useState('')
-  const onSubmit = React.useCallback(() => props.onSubmit(paperKey), [paperKey])
+  const onSubmit = React.useCallback(() => paperKey && props.onSubmit(paperKey), [paperKey])
 
   return (
     <SignupScreen
@@ -22,6 +23,7 @@ const PaperKey = (props: Props) => {
           label: 'Continue',
           onClick: onSubmit,
           type: 'Default' as ButtonType,
+          waitingKey: Constants.waitingKey,
         },
       ]}
       onBack={props.onBack}

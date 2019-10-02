@@ -249,7 +249,8 @@ func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error
 
 	if err := e.changePassword(mctx); err != nil {
 		// Log out before returning
-		if err2 := RunEngine2(mctx, NewLogout()); err2 != nil {
+		// TODO FIX ME
+		if err2 := RunEngine2(mctx, NewLogout(libkb.LogoutOptions{KeepSecrets: false, Force: true})); err2 != nil {
 			mctx.Warning("Unable to log out after password change failed: %v", err2)
 		}
 
@@ -324,10 +325,7 @@ func (e *PassphraseRecover) promptPassphrase(mctx libkb.MetaContext) (string, er
 	arg.Prompt = fmt.Sprintf("Pick a new strong passphrase (%d+ characters)", libkb.MinPassphraseLength)
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
 
-	ppres, err := libkb.GetNewKeybasePassphrase(
-		mctx, mctx.UIs().SecretUI, arg,
-		"Please reenter your new passphrase for confirmation",
-	)
+	ppres, err := libkb.GetKeybasePassphrase(mctx, mctx.UIs().SecretUI, arg)
 	if err != nil {
 		return "", err
 	}

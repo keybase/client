@@ -407,6 +407,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.changeFocus:
         draftState.focus = action.payload.nextFocus
         return
+      case Chat2Gen.setChannelSearchText:
+        draftState.channelSearchText = action.payload.text.toLowerCase()
+        return
       case Chat2Gen.selectConversation:
         {
           // ignore non-changing
@@ -548,7 +551,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         if (action.payload.clearInput) {
           const unsentTextMap = new Map(draftState.unsentTextMap)
-          unsentTextMap.delete(conversationIDKey)
+          unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
           draftState.unsentTextMap = unsentTextMap
         }
         return

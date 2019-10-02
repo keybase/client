@@ -41,10 +41,16 @@ export const colors = {
   black_on_white: 'rgb(38,38,38)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrGreyDarkest() {
+    return this.blueDark
+  },
   blueDarker: '#1036AC',
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(82,98,147)',
+  get blueDarkerOrBlack_60() {
+    return this.blueDarker
+  },
   blueGrey: '#F2F4F7',
   blueGreyDark: '#E0E8F6',
   blueLight: '#73A6FF',
@@ -76,6 +82,7 @@ export const colors = {
   grey: '#e6e6e6',
   greyDark: '#cccccc',
   greyDarker: '#aaaaaa',
+  greyDarkest: '#2d2d2d',
   greyLight: '#f0f0f0',
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
@@ -113,6 +120,9 @@ export const colors = {
   transparent_on_white: '#FFFFFF',
   white: '#FFFFFF',
   get whiteOrBlack() {
+    return this.white
+  },
+  get whiteOrBlueDark() {
     return this.white
   },
   get whiteOrGreenDark() {
@@ -180,10 +190,16 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_on_white: 'rgb(217, 217, 217)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrGreyDarkest() {
+    return colors.greyDarkest
+  },
   blueDarker: '#1036AC',
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(173, 157, 108)',
+  get blueDarkerOrBlack_60() {
+    return colors.black_60
+  },
   blueGrey: '#202020',
   blueGreyDark: 'rgba(24, 45, 110, .5)',
   blueLight: '#73A6FF',
@@ -215,6 +231,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   grey: '#333',
   greyDark: '#666',
   greyDarker: '#999',
+  greyDarkest: '#aaa',
   greyLight: '#0F0F0F',
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
@@ -253,6 +270,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   white: '#191919',
   get whiteOrBlack() {
     return colors.black
+  },
+  get whiteOrBlueDark() {
+    return colors.blueDark
   },
   get whiteOrGreenDark() {
     return colors.greenDark

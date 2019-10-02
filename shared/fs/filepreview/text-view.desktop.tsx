@@ -55,6 +55,7 @@ const styles = Styles.styleSheetCreate(
       text: Styles.platformStyles({
         isElectron: {
           color: Styles.globalColors.black_on_white,
+          overflow: 'hidden',
           whiteSpace: 'pre-wrap',
         },
       }),

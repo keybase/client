@@ -119,6 +119,7 @@ type ButtonMeta = {
   onClick: () => void
   type?: ButtonProps['type']
   waiting?: boolean
+  waitingKey?: string | null // makes this a WaitingButton
 }
 
 type SignupScreenProps = {
@@ -202,9 +203,21 @@ export const SignupScreen = (props: SignupScreenProps) => (
       {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
       {!!props.buttons && (
         <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-          {props.buttons.map(b => (
-            <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
-          ))}
+          {props.buttons.map(b =>
+            b.waitingKey !== undefined ? (
+              <Kb.WaitingButton
+                key={b.label}
+                style={styles.button}
+                {...b}
+                // TS doesn't narrow the type inside ButtonMeta, so still thinks
+                // waitingKey can be undefined unless we pull it out
+                waitingKey={b.waitingKey}
+                fullWidth={true}
+              />
+            ) : (
+              <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+            )
+          )}
         </Kb.ButtonBar>
       )}
     </Kb.Box2>

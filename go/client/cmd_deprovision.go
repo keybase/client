@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -72,7 +73,9 @@ func (c *CmdDeprovision) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdDeprovision) ParseArgv(*cli.Context) error { return nil }
+func (c *CmdDeprovision) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
 
 func (c *CmdDeprovision) getUsernameToDeprovision() (string, error) {
 	configCli, err := GetConfigClient(c.G())
@@ -151,7 +154,8 @@ or copy them, use %s.`, "`keybase pgp export`")
 %s, BE CAREFUL!  \('o')/
 
 You are about to delete this device from your account, including its secret
-keys. If you don't have any other devices, you'll lose access to your account
+keys. You will not be able to reuse the device name for a new device.
+If you don't have any other devices, you'll lose access to your account
 and all your data!%s%s
 
 Proceed?`, username, loggedOutWarning, pgpWarning), nil

@@ -43,10 +43,11 @@ var kbfsPathTests = map[string]chat1.KBFSPath{
 	"/foo":                                   {},
 	"/keybase.":                              {},
 
-	"/keybase/private/songgao,strib#jzila/file":                                               makeKBFSPathForTest("/keybase/private/songgao,strib#jzila/file", nil),
-	"/keybase/private/song-gao,strib#jzila/file":                                              {},
-	"/keybase/private/songgao,strib#jzila,jakob223/file":                                      makeKBFSPathForTest("/keybase/private/songgao,strib#jzila,jakob223/file", nil),
-	"/keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file": makeKBFSPathForTest("/keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file", nil),
+	"/keybase/private/songgao,strib#jzila/file":                                                                   makeKBFSPathForTest("/keybase/private/songgao,strib#jzila/file", nil),
+	"/keybase/private/song-gao,strib#jzila/file":                                                                  {},
+	"/keybase/private/songgao,strib#jzila,jakob223/file":                                                          makeKBFSPathForTest("/keybase/private/songgao,strib#jzila,jakob223/file", nil),
+	"/keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file":                     makeKBFSPathForTest("/keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file", nil),
+	`"/keybase/private/songgao,kbpbot_staging,songgao_test (files before songgao_test account reset 2019-05-10)"`: makeKBFSPathForTest(`"/keybase/private/songgao,kbpbot_staging,songgao_test (files before songgao_test account reset 2019-05-10)"`, strPointer("/keybase/private/songgao,kbpbot_staging,songgao_test (files before songgao_test account reset 2019-05-10)")),
 
 	"keybase://team/keybase/blahblah":  makeKBFSPathForTest("keybase://team/keybase/blahblah", strPointer("/keybase/team/keybase/blahblah")),
 	"keybase://private/foo/blahblah":   makeKBFSPathForTest("keybase://private/foo/blahblah", strPointer("/keybase/private/foo/blahblah")),
@@ -98,4 +99,9 @@ func TestParseKBFSPathDetailed(t *testing.T) {
 			require.Equal(t, "/team/keybase/blah blah blah", paths[0].PathInfo.PlatformAfterMountPath, "input: %s", input)
 		}
 	}
+
+	withSuffix := `"/keybase/private/songgao,kbpbot_staging,songgao_test (files before songgao_test account reset 2019-05-10)"`
+	paths := ParseKBFSPaths(context.Background(), withSuffix)
+	require.Len(t, paths, 1, "input: %s", withSuffix)
+	require.Equal(t, "keybase://private/songgao%2Ckbpbot_staging%2Csonggao_test%20%28files%20before%20songgao_test%20account%20reset%202019-05-10%29", paths[0].PathInfo.DeeplinkPath)
 }

@@ -615,6 +615,13 @@
         {
           "type": [
             null,
+            "double"
+          ],
+          "name": "f"
+        },
+        {
+          "type": [
+            null,
             "string"
           ],
           "name": "s"

@@ -105,6 +105,7 @@ export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
+export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
 export const setContainsLastMessage = 'chat2:setContainsLastMessage'
@@ -510,6 +511,7 @@ type _SetAttachmentViewStatusPayload = {
   readonly status: Types.AttachmentViewStatus
   readonly last?: boolean
 }
+type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly md: RPCChatTypes.UICommandMarkdown | null
@@ -884,6 +886,12 @@ export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload): S
 export const createSetCommandStatusInfo = (
   payload: _SetCommandStatusInfoPayload
 ): SetCommandStatusInfoPayload => ({payload, type: setCommandStatusInfo})
+/**
+ * Set filter for channel search
+ */
+export const createSetChannelSearchText = (
+  payload: _SetChannelSearchTextPayload
+): SetChannelSearchTextPayload => ({payload, type: setChannelSearchText})
 /**
  * Set index percent complete
  */
@@ -1716,6 +1724,10 @@ export type SetAttachmentViewStatusPayload = {
   readonly payload: _SetAttachmentViewStatusPayload
   readonly type: typeof setAttachmentViewStatus
 }
+export type SetChannelSearchTextPayload = {
+  readonly payload: _SetChannelSearchTextPayload
+  readonly type: typeof setChannelSearchText
+}
 export type SetCommandMarkdownPayload = {
   readonly payload: _SetCommandMarkdownPayload
   readonly type: typeof setCommandMarkdown
@@ -1997,6 +2009,7 @@ export type Actions =
   | SelectConversationPayload
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
+  | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
   | SetContainsLastMessagePayload
