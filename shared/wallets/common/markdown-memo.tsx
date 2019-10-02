@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {StyleOverride} from '../../common-adapters/markdown'
-import {isMobile} from '../../constants/platform'
 
 const styleOverride: StyleOverride = Styles.styleSheetCreate(() => ({
   del: {
