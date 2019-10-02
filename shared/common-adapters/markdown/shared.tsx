@@ -315,10 +315,6 @@ class SimpleMarkdownComponent extends PureComponent<
       >
         {output}
       </Text>
-    ) : this.props.style ? (
-      <Text type="Body" style={this.props.style}>
-        {output}
-      </Text>
     ) : (
       output
     )

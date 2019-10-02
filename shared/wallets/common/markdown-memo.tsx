@@ -38,13 +38,15 @@ const MarkdownMemo = (props: Props) =>
       style={Styles.collapseStyles([props.style, styles.container])}
     >
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
-      <Kb.Markdown
-        style={styles.memo}
-        styleOverride={Styles.collapseStyles([isMobile ? styleOverride : {}, props.styleOverride])}
-        allowFontScaling={true}
-      >
-        {props.memo}
-      </Kb.Markdown>
+      <Kb.Text type="Body" style={styles.memo}>
+        <Kb.Markdown
+          style={styles.memo}
+          styleOverride={Styles.collapseStyles([isMobile ? styleOverride : {}, props.styleOverride])}
+          allowFontScaling={true}
+        >
+          {props.memo}
+        </Kb.Markdown>
+      </Kb.Text>
     </Kb.Box2>
   ) : null
 
