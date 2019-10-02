@@ -146,14 +146,7 @@ const FollowConnector = connect(
   }),
   (_, d, o: TodoOwnProps) => ({
     ...o,
-    buttons: [
-      {
-        label: 'Follow later',
-        mode: 'Secondary',
-        onClick: d.onDismiss,
-      },
-    ] as Array<TaskButton>,
-    showSearchBar: true,
+    buttons: makeDefaultButtons(d.onConfirm, o.confirmLabel, d.onDismiss),
   })
 )(Task)
 

@@ -60,7 +60,7 @@ const followTaskProps = {
   badged: true,
   buttons: [
     {
-      label: 'Follow later',
+      label: 'Skip',
       mode: 'Secondary',
       onClick: action('onDismiss'),
     },
@@ -193,8 +193,7 @@ const load = () => {
     .add('Fill out bio', () => <Task {...bioTaskProps} />)
     .add('Prove something', () => <Task {...proofTaskProps} />)
     .add('Install on phone', () => <Task {...installTaskProps} />)
-    .add('Follow someone', () => <Task {...followTaskProps} />)
-    .add('Follow someone with search', () => <Task {...followTaskProps} showSearchBar={true} />)
+    .add('Follow people', () => <Task {...followTaskProps} />)
     .add('Chat', () => <Task {...chatTaskProps} />)
     .add('Make a paper key', () => <Task {...paperKeyTaskProps} />)
     .add('Make a team', () => <Task {...teamTaskProps} />)

@@ -74,7 +74,7 @@ export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
   chat: 'Start a chat',
   device: isMobile ? 'Get the download link' : 'Get the app',
   folder: 'Open a private folder',
-  follow: '',
+  follow: 'Search people',
   gitRepo: isMobile ? 'Create a repo' : 'Create a personal git repo',
   legacyEmailVisibility: '',
   none: '',
