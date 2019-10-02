@@ -1131,7 +1131,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
 	res.ConvID = rc.GetConvID().String()
 	res.IsTeam = rc.GetTeamType() == chat1.TeamType_SIMPLE
-	res.Name = StripUsernameFromConvName(GetRemoteConvTLFName(rc), username)
+	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc.Conv)
 	if useSnippet && rc.LocalMetadata != nil {
 		res.Snippet = &rc.LocalMetadata.Snippet
