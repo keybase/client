@@ -88,7 +88,7 @@ export const todoTypeToConfirmLabel: {[K in Types.TodoType]: string} = {
 
 export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   addEmail: 'icon-onboarding-email-add-48',
-  addPhoneNumber: 'icon-onboarding-phone-48',
+  addPhoneNumber: 'icon-onboarding-number-new-48',
   annoncementPlaceholder: 'iconfont-close',
   avatarTeam: 'icon-onboarding-team-avatar-48',
   avatarUser: 'icon-onboarding-user-avatar-48',
