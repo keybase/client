@@ -939,6 +939,9 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 }
 
 func GetRemoteConvTLFName(conv types.RemoteConversation) string {
+	if conv.LocalMetadata != nil {
+		return conv.LocalMetadata.Name
+	}
 	msg, err := PickLatestMessageSummary(conv.Conv, nil)
 	if err != nil {
 		return ""

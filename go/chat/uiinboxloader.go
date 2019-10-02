@@ -393,9 +393,6 @@ func newBigTeamCollector() *bigTeamCollector {
 
 func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
 	name := utils.GetRemoteConvTLFName(conv)
-	if conv.LocalMetadata != nil {
-		name = conv.LocalMetadata.Name
-	}
 	bt, ok := c.teams[name]
 	if !ok {
 		bt = &bigTeam{name: name}
