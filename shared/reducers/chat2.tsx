@@ -939,9 +939,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case EngineGen.chat1ChatUiChatInboxLayout: {
-        const layout: RPCChatTypes.UIInboxLayout = JSON.parse(action.payload.params.layout)
-        draftState.inboxLayout = layout
-        draftState.inboxHasLoaded = true
+        try {
+          const layout: RPCChatTypes.UIInboxLayout = JSON.parse(action.payload.params.layout)
+          draftState.inboxLayout = layout
+          draftState.inboxHasLoaded = true
+        } catch (e) {
+          logger.info('failed to JSON parse inbox layout: ' + e)
+        }
         return
       }
       case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:

@@ -67,17 +67,18 @@ const onGetInboxUnverifiedConvs = (
 }
 
 // Ask the service to refresh the inbox
-function* inboxRefresh(
+const inboxRefresh = (
   state: TypedState,
   action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
-) {
+) => {
   if (!state.config.loggedIn) {
-    return
+    return false
   }
   const username = state.config.username
   if (!username) {
-    return
+    return false
   }
+  const actions: Array<TypedActions> = []
   let reason: string = ''
   let clearExistingMetas = false
   let clearExistingMessages = false
@@ -96,12 +97,13 @@ function* inboxRefresh(
 
   logger.info(`Inbox refresh due to ${reason || '???'}`)
   if (clearExistingMetas) {
-    yield Saga.put(Chat2Gen.createClearMetas())
+    actions.push(Chat2Gen.createClearMetas())
   }
   if (clearExistingMessages) {
-    yield Saga.put(Chat2Gen.createClearMessages())
+    actions.push(Chat2Gen.createClearMessages())
   }
-  yield RPCChatTypes.localRequestInboxLayoutRpcPromise()
+  RPCChatTypes.localRequestInboxLayoutRpcPromise()
+  return actions
 }
 
 // Only get the untrusted conversations out
@@ -230,13 +232,13 @@ const onGetInboxConvFailed = (
 }
 
 // We want to unbox rows that have scroll into view
-function* unboxRows(
+const unboxRows = (
   state: TypedState,
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
   logger: Saga.SagaLogger
-) {
+) => {
   if (!state.config.loggedIn) {
-    return
+    return false
   }
   switch (action.type) {
     case Chat2Gen.metaRequestTrusted:
@@ -251,12 +253,12 @@ function* unboxRows(
     return
   }
   logger.info(`unboxRows: unboxing len: ${conversationIDKeys.length} convs: ${conversationIDKeys.join(',')}`)
-  yield Saga.put(Chat2Gen.createMetaRequestingTrusted({conversationIDKeys}))
-  yield RPCChatTypes.localRequestInboxUnboxRpcPromise({
+  RPCChatTypes.localRequestInboxUnboxRpcPromise({
     convIDs: conversationIDKeys.map(k => {
       return Types.keyToConversationID(k)
     }),
   })
+  return Chat2Gen.createMetaRequestingTrusted({conversationIDKeys})
 }
 
 // We get an incoming message streamed to us
@@ -2416,7 +2418,7 @@ const ensureSelectedMeta = (state: TypedState) => {
       reason: 'ensureSelectedMeta',
     })
   }
-  return undefined
+  return false
 }
 
 const refreshPreviousSelected = (state: TypedState) => {
@@ -2428,7 +2430,7 @@ const refreshPreviousSelected = (state: TypedState) => {
       reason: 'refreshPreviousSelected',
     })
   }
-  return undefined
+  return false
 }
 
 const deselectConversation = (state: TypedState, action: Chat2Gen.DeselectConversationPayload) => {
@@ -2438,7 +2440,7 @@ const deselectConversation = (state: TypedState, action: Chat2Gen.DeselectConver
       reason: 'clearSelected',
     })
   }
-  return undefined
+  return false
 }
 
 const mobileNavigateOnSelect = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
@@ -3323,7 +3325,7 @@ function* chat2Saga() {
     'changeSelectedConversation'
   )
   // Refresh the inbox
-  yield* Saga.chainGenerator<Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload>(
+  yield* Saga.chainAction2(
     [Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale],
     inboxRefresh,
     'inboxRefresh'
@@ -3338,11 +3340,7 @@ function* chat2Saga() {
   )
 
   // Actually try and unbox conversations
-  yield* Saga.chainGenerator<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
-    unboxRows,
-    'unboxRows'
-  )
+  yield* Saga.chainAction2([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation], unboxRows, 'unboxRows')
   yield* Saga.chainAction2(
     EngineGen.chat1ChatUiChatInboxConversation,
     onGetInboxConvsUnboxed,
