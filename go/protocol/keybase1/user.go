@@ -362,6 +362,16 @@ func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	}
 }
 
+type UserPassphraseStateMsg struct {
+	PassphraseState PassphraseState `codec:"passphraseState" json:"passphrase_state"`
+}
+
+func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
+	return UserPassphraseStateMsg{
+		PassphraseState: o.PassphraseState.DeepCopy(),
+	}
+}
+
 type LoadUncheckedUserSummariesArg struct {
 	SessionID int   `codec:"sessionID" json:"sessionID"`
 	Uids      []UID `codec:"uids" json:"uids"`

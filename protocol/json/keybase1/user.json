@@ -335,6 +335,18 @@
           "name": "passphraseState"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UserPassphraseStateMsg",
+      "fields": [
+        {
+          "type": "PassphraseState",
+          "name": "passphraseState",
+          "jsonkey": "passphrase_state"
+        }
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {
