@@ -54,8 +54,8 @@ class Thread extends React.PureComponent<Props, State> {
     return this._lockedToBottom
   }
   set lockedToBottom(l: boolean) {
-    // just to help debug
-    console.log('Thread: locked to bottom changed', l)
+    // accessor just to help debug
+    // console.log('Thread: locked to bottom changed', l)
     this._lockedToBottom = l
   }
 
