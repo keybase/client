@@ -1591,9 +1591,9 @@ const onToggleInboxSearch = (state: TypedState) => {
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
 
-const maybeCancelInboxSearchOnFocusChanged = (state: TypedState, action: ConfigGen.ChangedFocusPayload) => {
+const maybeCancelInboxSearchOnFocusChanged = (state: TypedState, action: ConfigGen.MobileAppStatePayload) => {
   const inboxSearch = state.chat2.inboxSearch
-  if (!action.payload.appFocused && isMobile && inboxSearch) {
+  if (action.payload.nextAppState === 'background' && inboxSearch) {
     return Chat2Gen.createToggleInboxSearch({enabled: false})
   }
   return undefined
@@ -3650,7 +3650,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onToggleInboxSearch, 'onToggleInboxSearch')
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld, 'onMarkInboxSearchOld')
   yield* Saga.chainAction2(Chat2Gen.inboxSearchSelect, onInboxSearchSelect, 'onInboxSearchSelect')
-  yield* Saga.chainAction2(ConfigGen.changedFocus, maybeCancelInboxSearchOnFocusChanged)
+  yield* Saga.chainAction2(ConfigGen.mobileAppState, maybeCancelInboxSearchOnFocusChanged)
 
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(
     Chat2Gen.threadSearch,
