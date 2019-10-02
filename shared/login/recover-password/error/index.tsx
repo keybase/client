@@ -31,7 +31,11 @@ const Error = (props: Props) => (
 )
 
 export const ErrorModal = (props: Props) => (
-  <Kb.Modal header={{title: 'Error'}} onClose={props.onBack}>
+  <Kb.Modal
+    header={{title: 'Error'}}
+    footer={{content: <Kb.Button label="Back" onClick={props.onBack} fullWidth={true} />}}
+    onClose={props.onBack}
+  >
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.padding}>
       <Kb.Text type="Body" center={true}>
         {props.error}
@@ -41,6 +45,7 @@ export const ErrorModal = (props: Props) => (
 )
 
 Error.navigationOptions = {
+  gesturesEnabled: false,
   header: null,
   headerBottomStyle: {height: undefined},
   headerLeft: null, // no back button
@@ -52,6 +57,9 @@ Error.navigationOptions = {
       <InfoIcon />
     </Kb.Box2>
   ),
+}
+ErrorModal.navigationOptions = {
+  gesturesEnabled: false,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

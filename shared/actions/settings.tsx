@@ -603,7 +603,8 @@ const loadHasRandomPW = async (state: TypedState) => {
     return false
   }
   try {
-    const randomPW = await RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false, noShortTimeout: false})
+    const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise({forceRepoll: false})
+    const randomPW = passphraseState === RPCTypes.PassphraseState.random
     return SettingsGen.createLoadedHasRandomPw({randomPW})
   } catch (e) {
     logger.warn('Error loading hasRandomPW:', e.message)

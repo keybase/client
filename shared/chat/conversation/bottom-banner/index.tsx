@@ -23,7 +23,7 @@ const BannerBox = (props: {
     fullWidth={true}
     style={Styles.collapseStyles([styles.bannerStyle, {backgroundColor: props.color}])}
     gap={props.gap}
-    centerChildren={true}
+    alignItems="center"
   >
     {props.children}
   </Box2>
@@ -44,11 +44,11 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
     return (
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>{caption}</BannerText>
-        <Box2 direction="horizontal" gap="tiny">
+        <Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Button
+            backgroundColor="blue"
             label={Flags.wonderland ? '🐇 Send install link' : 'Send install link'}
             onClick={mobileClickInstall}
-            mode="Secondary"
             small={true}
           />
           <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />

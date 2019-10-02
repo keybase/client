@@ -132,6 +132,11 @@ func (n NullConfiguration) GetForceLinuxKeyring() (bool, bool)                  
 func (n NullConfiguration) GetForceSecretStoreFile() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string                    { return "" }
 func (n NullConfiguration) GetRuntimeStatsEnabled() (bool, bool)                  { return false, false }
+func (n NullConfiguration) GetPassphraseState() *keybase1.PassphraseState         { return nil }
+func (n NullConfiguration) GetPassphraseStateForUsername(NormalizedUsername) *keybase1.PassphraseState {
+	return nil
+}
+
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
