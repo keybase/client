@@ -237,11 +237,11 @@ func (e *PGPKeyImportEngine) Run(m libkb.MetaContext) (err error) {
 }
 
 func (e *PGPKeyImportEngine) checkRandomPassword(mctx libkb.MetaContext) error {
-	random, err := libkb.LoadHasRandomPw(mctx, keybase1.LoadHasRandomPwArg{})
+	passphraseState, err := libkb.LoadPassphraseState(mctx)
 	if err != nil {
 		return err
 	}
-	if random {
+	if passphraseState == keybase1.PassphraseState_RANDOM {
 		return libkb.NewPushSecretWithoutPasswordError("You need to set your password first before uploading secret keys")
 	}
 	return nil

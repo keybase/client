@@ -1173,6 +1173,7 @@ protocol local {
   record AdvertiseBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }
+
   AdvertiseBotCommandsLocalRes advertiseBotCommandsLocal(union { null, string } alias,
     array<AdvertiseCommandsParam> advertisements);
   record ListBotCommandsLocalRes {
@@ -1180,6 +1181,9 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   ListBotCommandsLocalRes listBotCommandsLocal(ConversationID convID);
+
+  ListBotCommandsLocalRes listPublicBotCommandsLocal(string username);
+
   record ClearBotCommandsLocalRes {
     array<RateLimit> rateLimits;
   }

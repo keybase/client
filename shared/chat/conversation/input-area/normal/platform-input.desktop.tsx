@@ -367,7 +367,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           alignSelf: 'stretch',
-          backgroundColor: Styles.globalColors.blackOrWhite,
+          backgroundColor: Styles.globalColors.blackOrBlack,
           borderRadius: 2,
           justifyContent: 'center',
           margin: 2,
@@ -380,7 +380,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       cancelEditingText: {
-        color: Styles.globalColors.whiteOrBlack,
+        color: Styles.globalColors.whiteOrWhite,
       },
       container: {
         ...Styles.globalStyles.flexBoxColumn,

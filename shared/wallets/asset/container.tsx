@@ -46,7 +46,7 @@ export default Container.connect(
         ? () => dispatchProps.onWithdraw(ownProps.accountID, asset.assetCode, asset.issuerAccountID)
         : undefined,
       openInfoURL: asset.infoUrl ? () => openURL(asset.infoUrl) : undefined,
-      openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
+      openStellarURL: () => openURL('https://www.stellar.org/community/faq#why-is-there-a-minimum-balance'),
       reserves: asset.reserves.toArray(),
       withdrawButtonText: asset.showWithdrawButton ? asset.withdrawButtonText : '',
       withdrawButtonWaitingKey: Constants.assetWithdrawWaitingKey(asset.issuerAccountID, asset.assetCode),

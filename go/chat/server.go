@@ -2602,6 +2602,23 @@ func (h *Server) ClearBotCommandsLocal(ctx context.Context) (res chat1.ClearBotC
 	return res, nil
 }
 
+func (h *Server) ListPublicBotCommandsLocal(ctx context.Context, username string) (res chat1.ListBotCommandsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ListPublicBotCommandsLocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+
+	convID, err := h.G().BotCommandManager.PublicCommandsConv(ctx, username)
+	if err != nil {
+		return res, err
+	}
+	return h.ListBotCommandsLocal(ctx, convID)
+}
+
 func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.ListBotCommandsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)

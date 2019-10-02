@@ -5051,6 +5051,15 @@
       ],
       "response": "ListBotCommandsLocalRes"
     },
+    "listPublicBotCommandsLocal": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "ListBotCommandsLocalRes"
+    },
     "clearBotCommandsLocal": {
       "request": [],
       "response": "ClearBotCommandsLocalRes"

@@ -34,9 +34,9 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 	botSettings keybase1.TeamBotSettings,
 	msg chat1.MessagePlaintext, convID *chat1.ConversationID,
 	mentionMap map[string]struct{}, debug utils.DebugLabeler) (bool, error) {
+
 	// First make sure bot can receive on the given conversation. This ID may
 	// be null if we are creating the conversation.
-
 	if convID != nil {
 		convAllowed := len(botSettings.Convs) == 0
 		for _, convIDStr := range botSettings.Convs {
@@ -103,6 +103,13 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 		return false, err
 	}
 	if convID != nil {
+		completeCh, err := g.BotCommandManager.UpdateCommands(ctx, *convID, nil)
+		if err != nil {
+			return false, err
+		}
+		if err := <-completeCh; err != nil {
+			return false, err
+		}
 		cmds, err := g.BotCommandManager.ListCommands(ctx, *convID)
 		if err != nil {
 			return false, nil

@@ -6105,6 +6105,10 @@ type ListBotCommandsLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type ListPublicBotCommandsLocalArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type ClearBotCommandsLocalArg struct {
 }
 
@@ -6239,6 +6243,7 @@ type LocalInterface interface {
 	LocationUpdate(context.Context, Coordinate) error
 	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
 	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
+	ListPublicBotCommandsLocal(context.Context, string) (ListBotCommandsLocalRes, error)
 	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
 	PinMessage(context.Context, PinMessageArg) (PinMessageRes, error)
 	UnpinMessage(context.Context, ConversationID) (PinMessageRes, error)
@@ -7369,6 +7374,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"listPublicBotCommandsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ListPublicBotCommandsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListPublicBotCommandsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListPublicBotCommandsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ListPublicBotCommandsLocal(ctx, typedArgs[0].Username)
+					return
+				},
+			},
 			"clearBotCommandsLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]ClearBotCommandsLocalArg
@@ -7904,6 +7924,12 @@ func (c LocalClient) AdvertiseBotCommandsLocal(ctx context.Context, __arg Advert
 func (c LocalClient) ListBotCommandsLocal(ctx context.Context, convID ConversationID) (res ListBotCommandsLocalRes, err error) {
 	__arg := ListBotCommandsLocalArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.listBotCommandsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ListPublicBotCommandsLocal(ctx context.Context, username string) (res ListBotCommandsLocalRes, err error) {
+	__arg := ListPublicBotCommandsLocalArg{Username: username}
+	err = c.Cli.Call(ctx, "chat.1.local.listPublicBotCommandsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
