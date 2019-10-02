@@ -1,9 +1,11 @@
 package stellar
 
 import (
+	"context"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	"net"
 	"testing"
@@ -44,8 +46,8 @@ func connPair() (serverConn, clientConn net.Conn, err error) {
 	return serverConn, clientConn, err
 }
 
-func newTestAirdropClient(conn net.Conn) *AirdropClient {
-	return &AirdropClient{
+func newTestClient(conn net.Conn) *Client {
+	return &Client{
 		dialFunc: func(m libkb.MetaContext) (net.Conn, error) { return conn, nil },
 	}
 }
@@ -56,7 +58,7 @@ type testProcessor struct {
 	doneCh  chan struct{}
 }
 
-var _ AirdropRequestProcessor = (*testProcessor)(nil)
+var _ RequestProcessor = (*testProcessor)(nil)
 
 func newTestProcessor() *testProcessor {
 	return &testProcessor{
@@ -64,17 +66,17 @@ func newTestProcessor() *testProcessor {
 	}
 }
 
-func (p *testProcessor) Reg1(m libkb.MetaContext, uid keybase1.UID, kid keybase1.BinaryKID, err error) {
+func (p *testProcessor) Reg1(c context.Context, uid keybase1.UID, kid keybase1.BinaryKID, err error) {
 }
-func (p *testProcessor) Close(m libkb.MetaContext) {}
+func (p *testProcessor) Close(ctx context.Context, err error) {}
 
-func (p *testProcessor) Reg2(m libkb.MetaContext, details keybase1.AirdropDetails, err error) {
+func (p *testProcessor) Reg2(ctx context.Context, details keybase1.AirdropDetails, err error) {
 	p.details = details
 	p.err = err
 	p.doneCh <- struct{}{}
 }
 
-func TestAirdrop(t *testing.T) {
+func TestReg(t *testing.T) {
 	tc := libkb.SetupTest(t, "stellar", 2)
 	defer tc.Cleanup()
 	fu, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
@@ -83,10 +85,12 @@ func TestAirdrop(t *testing.T) {
 	require.NoError(t, err)
 	tp := newTestProcessor()
 	mctx := tc.MetaContext()
-	err = HandleAirdropRequest(mctx, serverConn, tp)
+	xp := libkb.NewTransportFromSocket(mctx.G(), serverConn)
+	srv := rpc.NewServer(xp, libkb.MakeWrapError(mctx.G()))
+	err = HandleRequest(mctx.Ctx(), xp, srv, tp)
 	require.NoError(t, err)
 	go func() {
-		cli := newTestAirdropClient(clientConn)
+		cli := newTestClient(clientConn)
 		err := cli.Register(mctx)
 		require.NoError(t, err)
 	}()

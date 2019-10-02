@@ -19,30 +19,33 @@ import (
 
 type dialFunc func(m libkb.MetaContext) (net.Conn, error)
 
-type AirdropClient struct {
+type Client struct {
 	uid      keybase1.UID
 	dialFunc dialFunc
 }
 
-func NewAirdropClient() *AirdropClient {
-	ret := &AirdropClient{}
+func NewClient() *Client {
+	ret := &Client{}
 	ret.dialFunc = ret.dial
 	return ret
 }
 
-func (a *AirdropClient) dial(m libkb.MetaContext) (net.Conn, error) {
+func (a *Client) dial(m libkb.MetaContext) (conn net.Conn, err error) {
+	defer m.Trace("airdrop.Client#dial", func() error { return err })()
 	uri, tls, err := a.getURIAndTLS(m)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := uri.DialWithConfig(tls)
+	conn, err = uri.DialWithConfig(tls)
 	if err != nil {
 		return nil, err
 	}
 	return conn, err
 }
 
-func (a *AirdropClient) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsConfig *tls.Config, err error) {
+func (a *Client) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsConfig *tls.Config, err error) {
+	defer m.Trace("airdrop.Client#getURIAndTLS", func() error { return err })()
+
 	rm := m.G().Env.GetRunMode()
 	s, found := libkb.MpackAPIServerLookup[rm]
 	if !found {
@@ -72,15 +75,15 @@ func (a *AirdropClient) getURIAndTLS(m libkb.MetaContext) (uri *rpc.FMPURI, tlsC
 	return uri, tlsConfig, nil
 }
 
-func (a *AirdropClient) connect(m libkb.MetaContext) (cli keybase1.AirdropClient, err error) {
+func (a *Client) connect(m libkb.MetaContext) (cli keybase1.AirdropClient, xp rpc.Transporter, err error) {
 	conn, err := a.dialFunc(m)
 	if err != nil {
-		return cli, err
+		return cli, nil, err
 	}
 
-	xp := libkb.NewTransportFromSocket(m.G(), conn)
+	xp = libkb.NewTransportFromSocket(m.G(), conn)
 	genericCli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
-	return keybase1.AirdropClient{Cli: genericCli}, nil
+	return keybase1.AirdropClient{Cli: genericCli}, xp, nil
 }
 
 type sharedKey [32]byte
@@ -96,7 +99,7 @@ func precomputeKey(privKey libkb.NaclDHKeyPair, pubKey keybase1.BinaryKID) (shar
 	return sharedKey, nil
 }
 
-func (a *AirdropClient) round1(m libkb.MetaContext, cli keybase1.AirdropClient) (sharedKey sharedKey, uid keybase1.UID, kid keybase1.BinaryKID, err error) {
+func (a *Client) round1(m libkb.MetaContext, cli keybase1.AirdropClient) (sharedKey sharedKey, uid keybase1.UID, kid keybase1.BinaryKID, err error) {
 	uid, myEncKey := m.G().ActiveDevice.UIDAndEncryptionKey()
 	if uid.IsNil() {
 		return sharedKey, uid, kid, errors.New("cannot register if logged out")
@@ -121,7 +124,7 @@ func (a *AirdropClient) round1(m libkb.MetaContext, cli keybase1.AirdropClient) 
 	return sharedKey, uid, kid, nil
 }
 
-func (a *AirdropClient) round2(m libkb.MetaContext, cli keybase1.AirdropClient, sharedKey sharedKey, uid keybase1.UID, kid keybase1.BinaryKID) (err error) {
+func (a *Client) round2(m libkb.MetaContext, cli keybase1.AirdropClient, sharedKey sharedKey, uid keybase1.UID, kid keybase1.BinaryKID) (err error) {
 	plaintext := keybase1.AirdropDetails{
 		Time: keybase1.ToTime(m.G().Clock().Now()),
 		Uid:  uid,
@@ -139,11 +142,12 @@ func (a *AirdropClient) round2(m libkb.MetaContext, cli keybase1.AirdropClient, 
 	return err
 }
 
-func (a *AirdropClient) Register(m libkb.MetaContext) (err error) {
-	cli, err := a.connect(m)
+func (a *Client) Register(m libkb.MetaContext) (err error) {
+	cli, xp, err := a.connect(m)
 	if err != nil {
 		return err
 	}
+	defer xp.Close()
 	symKey, uid, kid, err := a.round1(m, cli)
 	if err != nil {
 		return err
@@ -160,25 +164,23 @@ const (
 	state2    state = 2
 )
 
-type AirdropRequestProcessor interface {
-	Reg1(m libkb.MetaContext, uid keybase1.UID, kid keybase1.BinaryKID, err error)
-	Reg2(m libkb.MetaContext, details keybase1.AirdropDetails, err error)
-	Close(m libkb.MetaContext)
+type RequestProcessor interface {
+	Reg1(ctx context.Context, uid keybase1.UID, kid keybase1.BinaryKID, err error)
+	Reg2(ctx context.Context, details keybase1.AirdropDetails, err error)
+	Close(ctx context.Context, err error)
 }
 
-type airdropRequestHandler struct {
+type RequestHandler struct {
 	serverKey libkb.NaclDHKeyPair
 	uid       keybase1.UID
 	userKey   keybase1.BinaryKID
 	state     state
 	xp        rpc.Transporter
-	proc      AirdropRequestProcessor
+	proc      RequestProcessor
 	sharedKey sharedKey
-	libkb.MetaContextified
 }
 
-func HandleAirdropRequest(m libkb.MetaContext, conn net.Conn, p AirdropRequestProcessor) (err error) {
-	xp := libkb.NewTransportFromSocket(m.G(), conn)
+func HandleRequest(ctx context.Context, xp rpc.Transporter, srv *rpc.Server, p RequestProcessor) (err error) {
 	defer func() {
 		if err != nil {
 			xp.Close()
@@ -189,39 +191,38 @@ func HandleAirdropRequest(m libkb.MetaContext, conn net.Conn, p AirdropRequestPr
 	if err != nil {
 		return err
 	}
-	srv := rpc.NewServer(xp, libkb.MakeWrapError(m.G()))
-	arh := &airdropRequestHandler{
-		state:            stateNone,
-		xp:               xp,
-		serverKey:        kp,
-		proc:             p,
-		MetaContextified: libkb.NewMetaContextified(m),
+	arh := &RequestHandler{
+		state:     stateNone,
+		xp:        xp,
+		serverKey: kp,
+		proc:      p,
 	}
 	prot := keybase1.AirdropProtocol(arh)
 	err = srv.Register(prot)
 	if err != nil {
 		return err
 	}
-	go arh.Run(m, srv, xp)
+	go arh.Run(ctx, xp, srv)
 	return nil
 
 }
 
-func (a *airdropRequestHandler) Run(m libkb.MetaContext, srv *rpc.Server, xp rpc.Transporter) {
+func (a *RequestHandler) Run(ctx context.Context, xp rpc.Transporter, srv *rpc.Server) {
+	var err error
 	select {
 	case <-srv.Run():
-	case <-m.G().Clock().After(time.Minute):
-		m.Debug("request timed out")
-	case <-m.Ctx().Done():
-		m.Debug("caller canceled")
+	case <-time.After(time.Minute):
+		err = ErrTimeout
+	case <-ctx.Done():
+		err = ErrCanceled
 	}
 	xp.Close()
-	a.proc.Close(m)
+	a.proc.Close(ctx, err)
 }
 
-func (a *airdropRequestHandler) Reg1(ctx context.Context, arg keybase1.Reg1Arg) (ret keybase1.BinaryKID, err error) {
+func (a *RequestHandler) Reg1(ctx context.Context, arg keybase1.Reg1Arg) (ret keybase1.BinaryKID, err error) {
 	defer func() {
-		a.proc.Reg1(a.M(), arg.Uid, arg.Kid, err)
+		a.proc.Reg1(ctx, arg.Uid, arg.Kid, err)
 	}()
 	if a.state != stateNone {
 		return ret, ErrWrongState
@@ -242,12 +243,14 @@ var ErrCannotDecrypt = errors.New("cannot decrypt")
 var ErrWrongUID = errors.New("wrong UID")
 var ErrWrongKID = errors.New("wrong KID")
 var ErrBadKID = errors.New("bad KID")
+var ErrTimeout = errors.New("request timed out")
+var ErrCanceled = errors.New("canceled")
 
-func (a *airdropRequestHandler) Reg2(ctx context.Context, ctext []byte) (err error) {
+func (a *RequestHandler) Reg2(ctx context.Context, ctext []byte) (err error) {
 	var nonce [24]byte
 	var details keybase1.AirdropDetails
 	defer func() {
-		a.proc.Reg2(a.M(), details, err)
+		a.proc.Reg2(ctx, details, err)
 	}()
 	if a.state != state1 {
 		err = ErrWrongState
