@@ -190,13 +190,7 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		}
 	}
 
-	// In case the prefetcher did not finish this session (for example if we
-	// are in standalone mode or we were offline for the first 15 min of the
-	// session, force a repoll if the passphrase is unknown or last known as
-	// random.)
-	prefetcher := mctx.G().GetHasRandomPWPrefetcher()
-	forceRepoll := prefetcher == nil || !prefetcher.prefetched
-	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx, forceRepoll)
+	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx, false)
 
 	if err != nil {
 		return keybase1.CanLogoutRes{

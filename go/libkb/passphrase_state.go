@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 )
 
 func randomPassphraseToState(hasRandomPassphrase bool) keybase1.PassphraseState {
@@ -24,19 +22,19 @@ func LoadPassphraseState(mctx MetaContext) (passphraseState keybase1.PassphraseS
 }
 
 // forceRepoll only forces repoll when the state is RANDOM, but not when it is KNOWN.
-func LoadPassphraseStateWithForceRepoll(mctx MetaContext, forceRepoll bool) (passphraseState keybase1.PassphraseState, err error) {
+func LoadPassphraseStateWithForceRepoll(mctx MetaContext, _ bool) (passphraseState keybase1.PassphraseState, err error) {
 	mctx = mctx.WithLogTag("PPSTATE")
-	defer mctx.TraceTimed(fmt.Sprintf("LoadPassphraseState(forceRepoll=%t)", forceRepoll), func() error { return err })()
+	defer mctx.TraceTimed(fmt.Sprintf("LoadPassphraseState()"), func() error { return err })()
+
+	// If we're in standalone mode, we don't get the gregor msg about
+	// passphrase_state changes.  So, force a repoll to the server if the stat
+	// eisn't currently known.
+	forceRepoll := mctx.G().Standalone
 
 	if len(mctx.G().Env.GetUsername().String()) == 0 {
 		mctx.Debug("LoadPassphraseState: user is not logged in")
 		return passphraseState, NewLoginRequiredError("LoadPassphraseState")
 	}
-
-	// if !mctx.G().ActiveDevice.Valid() {
-	// 	mctx.Debug("LoadPassphraseState: user is not logged in")
-	// 	return passphraseState, NewLoginRequiredError("LoadPassphraseState")
-	// }
 
 	configState := mctx.G().Env.GetConfig().GetPassphraseState()
 	if configState != nil {
@@ -106,83 +104,4 @@ func LoadPassphraseStateFromRemote(mctx MetaContext) (passphraseState keybase1.P
 		return passphraseState, err
 	}
 	return randomPassphraseToState(ret.RandomPassphrase), nil
-}
-
-// hasRandomPWPrefetcher implements LoginHook and LogoutHook interfaces and is
-// used to ensure that we know current user's NOPW status.
-type HasRandomPWPrefetcher struct {
-	// cancel func for randompw prefetching context, if currently active.
-	hasRPWCancelFn context.CancelFunc
-	prefetched     bool
-}
-
-func (d *HasRandomPWPrefetcher) prefetchHasRandomPW(g *GlobalContext, uid keybase1.UID) {
-	ctx, cancel := context.WithCancel(context.Background())
-	d.hasRPWCancelFn = cancel
-	d.prefetched = false
-
-	mctx := NewMetaContext(ctx, g).WithLogTag("P_HASRPW")
-	go func() {
-		defer func() { d.hasRPWCancelFn = nil }()
-		mctx.Debug("prefetchHasRandomPW: starting prefetch after two seconds")
-		select {
-		case <-time.After(2 * time.Second):
-		case <-ctx.Done():
-			mctx.Debug("prefetchHasRandomPW: return before starting: %v", ctx.Err())
-			return
-		}
-		err := backoff.RetryNotifyWithContext(ctx, func() error {
-			mctx.Debug("prefetchHasRandomPW: trying for uid=%q", uid)
-			if !mctx.CurrentUID().Equal(uid) {
-				// Do not return an error, so backoff does not retry.
-				mctx.Debug("prefetchHasRandomPW: current uid has changed, aborting")
-				return nil
-			}
-
-			state, err := LoadPassphraseState(mctx)
-			if err != nil {
-				mctx.Debug("prefetchHasRandomPW: loading current passphrase state failed: %s", err)
-			} else if state == keybase1.PassphraseState_KNOWN {
-				// Can't go back to RANDOM
-				return nil
-			}
-
-			passphraseState, err := LoadPassphraseStateFromRemote(mctx)
-			if err != nil {
-				mctx.Debug("prefetchHasRandomPW: load from remote failed: %s", err)
-				return err
-			}
-
-			mctx.Debug("prefetchHasRandomPW: loaded passphraseState=%#v", passphraseState)
-			select {
-			case <-ctx.Done():
-				mctx.Debug("prefetchHasRandomPW: context cancelled before MaybeSavePassphraseState: %s", ctx.Err())
-			default:
-				mctx.Debug("prefetchHasRandomPW: running MaybeSavePassphraseState")
-				MaybeSavePassphraseState(mctx, passphraseState)
-			}
-			return nil
-		}, backoff.NewExponentialBackOff(), nil)
-		if err != nil {
-			d.prefetched = true
-		}
-		mctx.Debug("prefetchHasRandomPW: backoff loop returned: err=%v", err)
-	}()
-}
-
-func (d *HasRandomPWPrefetcher) OnLogin(mctx MetaContext) error {
-	g := mctx.G()
-	uid := g.GetEnv().GetUID()
-	if !uid.IsNil() {
-		d.prefetchHasRandomPW(g, uid)
-	}
-	return nil
-}
-
-func (d *HasRandomPWPrefetcher) OnLogout(mctx MetaContext) error {
-	if d.hasRPWCancelFn != nil {
-		mctx.Debug("Cancelling prefetcher in OnLogout hook (P_HASRPW)")
-		d.hasRPWCancelFn()
-	}
-	return nil
 }
