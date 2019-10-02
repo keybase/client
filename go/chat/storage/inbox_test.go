@@ -785,10 +785,12 @@ func TestMobileSharedInbox(t *testing.T) {
 	}
 	tc, inbox, uid := setupInboxTest(t, "shared")
 	defer tc.Cleanup()
+	tp := tc.G.Env.Test
 	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
 		HomeDir:             tc.Context().GetEnv().GetHome(),
 		MobileSharedHomeDir: "x",
 	}, nil, tc.Context().GetLog)
+	tc.G.Env.Test = tp
 	require.NoError(t, os.MkdirAll(tc.G.Env.GetConfigDir(), os.ModePerm))
 	numConvs := 10
 	var convs []types.RemoteConversation
