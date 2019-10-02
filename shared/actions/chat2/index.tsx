@@ -1591,6 +1591,14 @@ const onToggleInboxSearch = (state: TypedState) => {
   return inboxSearch.nameStatus === 'initial' ? Chat2Gen.createInboxSearch({query: new HiddenString('')}) : []
 }
 
+const maybeCancelInboxSearchOnFocusChanged = (state: TypedState, action: ConfigGen.MobileAppStatePayload) => {
+  const inboxSearch = state.chat2.inboxSearch
+  if (action.payload.nextAppState === 'background' && inboxSearch) {
+    return Chat2Gen.createToggleInboxSearch({enabled: false})
+  }
+  return undefined
+}
+
 function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger: Saga.SagaLogger) {
   const {query} = action.payload
   const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
@@ -3642,6 +3650,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onToggleInboxSearch, 'onToggleInboxSearch')
   yield* Saga.chainAction2(Chat2Gen.toggleInboxSearch, onMarkInboxSearchOld, 'onMarkInboxSearchOld')
   yield* Saga.chainAction2(Chat2Gen.inboxSearchSelect, onInboxSearchSelect, 'onInboxSearchSelect')
+  yield* Saga.chainAction2(ConfigGen.mobileAppState, maybeCancelInboxSearchOnFocusChanged)
+
   yield* Saga.chainGenerator<Chat2Gen.ThreadSearchPayload>(
     Chat2Gen.threadSearch,
     threadSearch,
