@@ -44,7 +44,12 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
       <BannerBox color={Styles.globalColors.blue} gap="xtiny">
         <BannerText>{caption}</BannerText>
         <Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
-          <Button label="Send install link" onClick={mobileClickInstall} small={true} backgroundColor="blue" />
+          <Button
+            label="Send install link"
+            onClick={mobileClickInstall}
+            small={true}
+            backgroundColor="blue"
+          />
           <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />
         </Box2>
       </BannerBox>
