@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -14,15 +13,6 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 )
-
-func getDownloadTempDir(g *globals.Context, basename string) (string, error) {
-	p := filepath.Join(g.GetEnv().GetCacheDir(), "dltemp")
-	filename := filepath.Join(p, basename)
-	if err := libkb.MakeParentDirs(g.Log, filename); err != nil {
-		return "", err
-	}
-	return filename, nil
-}
 
 func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, messageID chat1.MessageID,
