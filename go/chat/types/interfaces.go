@@ -535,6 +535,7 @@ type BotCommandManager interface {
 	Resumable
 	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
 	Clear(ctx context.Context) error
+	PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error)
 	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
