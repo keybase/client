@@ -22,7 +22,6 @@ export default Container.compose(
         dispatch(WaitingGen.createClearWaiting({key: deleteTeamWaitingKey(teamname)})),
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
       onDelete: (teamname: string) => dispatch(TeamsGen.createDeleteTeam({teamname})),
-      onSuccess: () => dispatch(RouteTreeGen.createNavUpToScreen({routeName: ''})),
     }),
     (stateProps, dispatchProps, _: OwnProps) => ({
       clearWaiting: () => dispatchProps.clearError(stateProps.teamname),
