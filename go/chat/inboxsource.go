@@ -1178,7 +1178,8 @@ func (s *HybridInboxSource) IsTeam(ctx context.Context, uid gregor1.UID, item st
 		return res, err
 	}
 	for _, conv := range convs {
-		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM && conv.GetTLFName() == item {
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM &&
+			utils.GetRemoteConvTLFName(conv) == item {
 			return true, nil
 		}
 	}

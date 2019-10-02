@@ -120,28 +120,6 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
-func (rc RemoteConversation) GetTLFName() string {
-	if len(rc.Conv.MaxMsgSummaries) == 0 {
-		return ""
-	}
-	return rc.Conv.MaxMsgSummaries[0].TlfName
-}
-
-func (rc RemoteConversation) GetName() string {
-	switch rc.Conv.Metadata.TeamType {
-	case chat1.TeamType_COMPLEX:
-		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
-			return fmt.Sprintf("%s#%s", rc.Conv.MaxMsgSummaries[0].TlfName, rc.LocalMetadata.TopicName)
-		}
-		fallthrough
-	default:
-		if len(rc.Conv.MaxMsgSummaries) == 0 {
-			return ""
-		}
-		return rc.Conv.MaxMsgSummaries[0].TlfName
-	}
-}
-
 func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 	return rc.Conv.GetTopicType()
 }

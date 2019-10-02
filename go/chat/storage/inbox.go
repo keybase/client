@@ -233,7 +233,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 			// need local metadata for channel names, so skip if we don't have it
 			continue
 		}
-		name := rc.GetName()
+		name := utils.GetRemoteConvDisplayName(rc)
 		if len(name) == 0 {
 			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.GetConvID())
 			continue
@@ -1345,6 +1345,11 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx, "subteam rename")
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
