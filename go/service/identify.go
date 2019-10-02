@@ -85,7 +85,10 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 	}
 	servedRet, err := h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.identifyLite", false, cacheArg, &ret, loader)
 	if err != nil {
-		return servedRet.(keybase1.IdentifyLiteRes), err
+		if s, ok := servedRet.(keybase1.IdentifyLiteRes); ok {
+			ret = s
+		}
+		return ret, err
 	}
 	if s, ok := servedRet.(keybase1.IdentifyLiteRes); ok {
 		ret = s

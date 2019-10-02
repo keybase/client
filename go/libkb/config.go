@@ -111,6 +111,16 @@ func (f *JSONConfigFile) GetDeviceIDForUsername(nu NormalizedUsername) keybase1.
 	return ret.GetDeviceID()
 }
 
+func (f *JSONConfigFile) GetPassphraseStateForUsername(nu NormalizedUsername) (ret *keybase1.PassphraseState) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	userConfig, err := f.GetUserConfigForUsername(nu)
+	if err != nil || userConfig == nil {
+		return nil
+	}
+	return userConfig.GetPassphraseState()
+}
+
 func (f *JSONConfigFile) GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID {
 	f.userConfigWrapper.Lock()
 	defer f.userConfigWrapper.Unlock()
@@ -505,6 +515,29 @@ func (f *JSONConfigFile) GetDeviceID() (ret keybase1.DeviceID) {
 		ret = uc.GetDeviceID()
 	}
 	return ret
+}
+
+func (f *JSONConfigFile) GetPassphraseState() (ret *keybase1.PassphraseState) {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		ret = uc.GetPassphraseState()
+	}
+	return ret
+}
+
+func (f *JSONConfigFile) SetPassphraseState(passphraseState keybase1.PassphraseState) (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
+	f.G().Log.Debug("| Setting PassphraseState to %v\n", passphraseState)
+	var u *UserConfig
+	if u, err = f.getUserConfigWithLock(); err != nil {
+	} else if u == nil {
+		err = NoUserConfigError{}
+	} else {
+		u.SetPassphraseState(passphraseState)
+		err = f.setUserConfigWithLock(u, true)
+	}
+	return
 }
 
 func (f *JSONConfigFile) GetTorMode() (ret TorMode, err error) {

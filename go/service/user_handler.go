@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const userHandlerName = "userHandler"
@@ -58,16 +59,8 @@ func (r *userHandler) identityChange(m libkb.MetaContext) error {
 func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	m.Debug("userHandler: %s received", category)
 
-	cacheKey := libkb.DbKey{
-		Typ: libkb.DBHasRandomPW,
-		Key: m.CurrentUID().String(),
-	}
-	hasRandomPW := false
-	if err := m.G().GetKVStore().PutObj(cacheKey, nil, hasRandomPW); err == nil {
-		m.Debug("Adding HasRandomPW=%t to KVStore after %s notification", hasRandomPW, category)
-	} else {
-		m.Debug("Unable to add HasRandomPW state to KVStore after %s notification", category)
-	}
+	// If the passphrase ever changes, it's now known.
+	libkb.MaybeSavePassphraseState(m, keybase1.PassphraseState_KNOWN)
 
 	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx())
 	return r.G().GregorState.DismissItem(m.Ctx(), cli, item.Metadata().MsgID())
