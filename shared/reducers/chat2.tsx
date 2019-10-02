@@ -551,7 +551,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         if (action.payload.clearInput) {
           const unsentTextMap = new Map(draftState.unsentTextMap)
-          unsentTextMap.delete(conversationIDKey)
+          unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
           draftState.unsentTextMap = unsentTextMap
         }
         return

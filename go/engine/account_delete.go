@@ -70,5 +70,5 @@ func (e *AccountDelete) Run(m libkb.MetaContext) error {
 		return err
 	}
 	m.Debug("account deleted, logging out")
-	return m.Logout()
+	return m.LogoutWithOptions(libkb.LogoutOptions{KeepSecrets: false, Force: true})
 }

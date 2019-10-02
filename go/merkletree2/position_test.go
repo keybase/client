@@ -30,7 +30,7 @@ func TestEncoding(t *testing.T) {
 	}
 
 	for _, et := range encodingTests {
-		t.Run(fmt.Sprintf("%v bits: %s", et.c.bitsPerIndex, et.bin), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: %s", et.c.BitsPerIndex, et.bin), func(t *testing.T) {
 			exp, err := strconv.ParseInt(et.bin, 2, 64)
 			require.NoError(t, err)
 			require.Equal(t, exp, (*big.Int)(&et.p).Int64())
@@ -59,16 +59,16 @@ func TestGetAndUpdateParentAndGetChild(t *testing.T) {
 	}
 
 	for _, test := range parentChildTests {
-		t.Run(fmt.Sprintf("%v bits: %s -(%v)-> %s", test.c.bitsPerIndex, test.parent, test.i, test.child), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: %s -(%v)-> %s", test.c.BitsPerIndex, test.parent, test.i, test.child), func(t *testing.T) {
 			child, err := makePositionFromStringForTesting(test.child)
 			require.NoError(t, err)
 			parent, err := makePositionFromStringForTesting(test.parent)
 			require.NoError(t, err)
-			require.True(t, test.c.getParent(&child).equals(&parent))
-			require.True(t, test.c.getChild(&parent, test.i).equals(&child))
+			require.True(t, test.c.getParent(&child).Equals(&parent))
+			require.True(t, test.c.getChild(&parent, test.i).Equals(&child))
 			parentInPlace := child.Clone()
 			test.c.updateToParent(parentInPlace)
-			require.True(t, parentInPlace.equals(&parent))
+			require.True(t, parentInPlace.Equals(&parent))
 		})
 	}
 }
@@ -96,13 +96,13 @@ func TestUpdateToParentAtLevel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: %s -(%v)-> %s", test.c.bitsPerIndex, test.child, test.level, test.parent), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: %s -(%v)-> %s", test.c.BitsPerIndex, test.child, test.level, test.parent), func(t *testing.T) {
 			childToUpdate, err := makePositionFromStringForTesting(test.child)
 			require.NoError(t, err)
 			parent, err := makePositionFromStringForTesting(test.parent)
 			require.NoError(t, err)
 			test.c.updateToParentAtLevel(&childToUpdate, test.level)
-			require.True(t, parent.equals(&childToUpdate), "expected: %x actual: %x", parent, childToUpdate)
+			require.True(t, parent.Equals(&childToUpdate), "expected: %x actual: %x", parent, childToUpdate)
 		})
 	}
 
@@ -125,19 +125,19 @@ func TestUpdateToParentAndAllSiblings(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: %v", test.c.bitsPerIndex, test.pStr), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: %v", test.c.BitsPerIndex, test.pStr), func(t *testing.T) {
 			p, err := makePositionFromStringForTesting(test.pStr)
 			require.NoError(t, err)
 			parent, err := makePositionFromStringForTesting(test.expParentStr)
 			require.NoError(t, err)
-			siblings := make([]Position, test.c.childrenPerNode-1)
+			siblings := make([]Position, test.c.ChildrenPerNode-1)
 
 			test.c.updateToParentAndAllSiblings(&p, siblings)
-			require.True(t, p.equals(&parent))
+			require.True(t, p.Equals(&parent))
 			for i, expPosStr := range test.expSiblings {
 				expPos, err := makePositionFromStringForTesting(expPosStr)
 				require.NoError(t, err)
-				require.True(t, expPos.equals(&siblings[i]), "Error at sibling %v, got %v", expPosStr, siblings[i])
+				require.True(t, expPos.Equals(&siblings[i]), "Error at sibling %v, got %v", expPosStr, siblings[i])
 			}
 		})
 	}
@@ -145,14 +145,14 @@ func TestUpdateToParentAndAllSiblings(t *testing.T) {
 
 func TestNewConfigError(t *testing.T) {
 
-	_, err := NewConfig(nil, false, 5, 8, 6)
+	_, err := NewConfig(nil, false, 5, 8, 6, ConstructStringValueContainer)
 	require.Error(t, err)
 	require.IsType(t, InvalidConfigError{}, err)
 
-	c, err := NewConfig(nil, false, 2, 4, 32)
+	c, err := NewConfig(nil, false, 2, 4, 32, ConstructStringValueContainer)
 	require.NoError(t, err)
 
-	require.Equal(t, 1<<c.bitsPerIndex, c.childrenPerNode)
+	require.Equal(t, 1<<c.BitsPerIndex, c.ChildrenPerNode)
 }
 
 func TestPositionIsOnPathToKey(t *testing.T) {
@@ -180,7 +180,7 @@ func TestPositionIsOnPathToKey(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: %v %v", test.c.bitsPerIndex, test.p, test.k), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: %v %v", test.c.BitsPerIndex, test.p, test.k), func(t *testing.T) {
 			pos, err := makePositionFromStringForTesting(test.p)
 			require.NoError(t, err)
 			require.Equal(t, test.expected, pos.isOnPathToKey(test.k))
@@ -215,13 +215,13 @@ func TestGetDeepestPositionAtLevelAndSiblingsOnPathToKey(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: %v", test.c.bitsPerIndex, test.k), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: %v", test.c.BitsPerIndex, test.k), func(t *testing.T) {
 			posOnPath := test.c.getDeepestPositionAtLevelAndSiblingsOnPathToKey(test.k, test.lastLevel, test.firstLevel)
 			require.Equal(t, len(test.expPosOnPath), len(posOnPath))
 			for i, expPosStr := range test.expPosOnPath {
 				expPos, err := makePositionFromStringForTesting(expPosStr)
 				require.NoError(t, err)
-				require.True(t, expPos.equals(&posOnPath[i]), "Error at position %v, got %v", expPosStr, posOnPath[i])
+				require.True(t, expPos.Equals(&posOnPath[i]), "Error at position %v, got %v", expPosStr, posOnPath[i])
 			}
 		})
 	}
@@ -249,7 +249,7 @@ func TestGetLevel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: pos %v lev %v", test.c.bitsPerIndex, test.pos, test.lev), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: pos %v lev %v", test.c.BitsPerIndex, test.pos, test.lev), func(t *testing.T) {
 			pos, err := makePositionFromStringForTesting(test.pos)
 			require.NoError(t, err)
 
@@ -282,13 +282,13 @@ func TestGetParentAtLevel(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: pos %v lev %v", test.c.bitsPerIndex, test.pos, test.lev), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: pos %v lev %v", test.c.BitsPerIndex, test.pos, test.lev), func(t *testing.T) {
 			pos, err := makePositionFromStringForTesting(test.pos)
 			require.NoError(t, err)
 			expParent, err := makePositionFromStringForTesting(test.par)
 			require.NoError(t, err)
 
-			require.True(t, expParent.equals(test.c.getParentAtLevel(&pos, test.lev)))
+			require.True(t, expParent.Equals(test.c.getParentAtLevel(&pos, test.lev)))
 		})
 	}
 
@@ -319,7 +319,7 @@ func TestPositionToChildIndexPath(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: pos %v", test.c.bitsPerIndex, test.pos), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: pos %v", test.c.BitsPerIndex, test.pos), func(t *testing.T) {
 			pos, err := makePositionFromStringForTesting(test.pos)
 			require.NoError(t, err)
 
@@ -354,11 +354,44 @@ func TestGetDeepestChildIndex(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(fmt.Sprintf("%v bits: pos %v lev %v", test.c.bitsPerIndex, test.pos, test.lev), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v bits: pos %v lev %v", test.c.BitsPerIndex, test.pos, test.lev), func(t *testing.T) {
 			pos, err := makePositionFromStringForTesting(test.pos)
 			require.NoError(t, err)
 
 			require.Equal(t, test.lev, test.c.getDeepestChildIndex(&pos))
+		})
+	}
+
+}
+
+func TestGetKeyIntervalUnderPosition(t *testing.T) {
+
+	config1bit, config2bits, config3bits := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
+
+	tests := []struct {
+		c        Config
+		position string
+		minKey   Key
+		maxKey   Key
+	}{
+		{config1bit, "1", Key([]byte{0x00}), Key([]byte{0xff})},
+		{config1bit, "11", Key([]byte{0x80}), Key([]byte{0xff})},
+		{config1bit, "101", Key([]byte{0x40}), Key([]byte{0x7f})},
+		{config1bit, "10100", Key([]byte{0x40}), Key([]byte{0x4f})},
+		{config2bits, "1", Key([]byte{0x00}), Key([]byte{0xff})},
+		{config2bits, "101", Key([]byte{0x40}), Key([]byte{0x7f})},
+		{config2bits, "10100", Key([]byte{0x40}), Key([]byte{0x4f})},
+		{config3bits, "1", Key([]byte{0x00, 0x00, 0x00}), Key([]byte{0xff, 0xff, 0xff})},
+		{config3bits, "1010", Key([]byte{0x40, 0x00, 0x00}), Key([]byte{0x5f, 0xff, 0xff})},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v bits: %s", test.c.BitsPerIndex, test.position), func(t *testing.T) {
+			p, err := makePositionFromStringForTesting(test.position)
+			require.NoError(t, err)
+			min, max := test.c.GetKeyIntervalUnderPosition(&p)
+			require.Equal(t, test.minKey, min)
+			require.Equal(t, test.maxKey, max)
 		})
 	}
 
