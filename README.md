@@ -1,4 +1,4 @@
-## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
+## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master) [![Go Report Card](https://goreportcard.com/badge/github.com/keybase/client)](https://goreportcard.com/report/github.com/keybase/client)
 
 Hi, and welcome to the Keybase client repo.  All our client apps (macOS,
 Windows, Linux, iOS, and Android) are being actively developed in this
