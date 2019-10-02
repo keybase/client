@@ -40,7 +40,8 @@ const MarkdownMemo = (props: Props) =>
       {!props.hideDivider && <Kb.Divider vertical={true} style={styles.quoteMarker} />}
       <Kb.Text type="Body" style={styles.memo}>
         <Kb.Markdown
-          styleOverride={Styles.collapseStyles([isMobile ? styleOverride : {}, props.styleOverride])}
+          style={styles.memo}
+          styleOverride={{...styleOverride, ...props.styleOverride}}
           allowFontScaling={true}
         >
           {props.memo}
