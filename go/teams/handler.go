@@ -321,7 +321,7 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 	for _, row := range rows {
 		mctx.Debug("team.HandleExitNotification: (%+v)", row)
 		if err := FreezeTeam(mctx, row.Id); err != nil {
-			mctx.Debug("team.HandleExitNotification: failed to FreezeReam: %s", err)
+			mctx.Debug("team.HandleExitNotification: failed to FreezeTeam: %s", err)
 		}
 		invalidateCaches(mctx, row.Id)
 		mctx.G().NotifyRouter.HandleTeamExit(ctx, row.Id)
