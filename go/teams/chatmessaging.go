@@ -60,8 +60,7 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	// coming from a standalone launch.
 	g.StartStandaloneChat()
 	var topicName *string
-	switch membersType {
-	case chat1.ConversationMembersType_TEAM:
+	if membersType == chat1.ConversationMembersType_TEAM {
 		topicName = &globals.DefaultTeamTopic
 	}
 
