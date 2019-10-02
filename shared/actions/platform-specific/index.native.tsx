@@ -22,10 +22,10 @@ import {
   NativeModules,
   NativeEventEmitter,
   ActionSheetIOS,
-  CameraRoll,
   PermissionsAndroid,
   Clipboard,
 } from 'react-native'
+import CameraRoll from '@react-native-community/cameraroll'
 import NetInfo from '@react-native-community/netinfo'
 import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
