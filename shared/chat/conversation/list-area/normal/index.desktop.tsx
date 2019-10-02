@@ -239,6 +239,8 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   private onScroll = () => {
+    // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
+    this.lockedToBottom = false
     this.checkForLoadMoreThrottled()
     this.onScrollThrottled()
   }
