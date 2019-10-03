@@ -13,7 +13,7 @@ export const Header = (_: Props) => (
 
 const People = (props: Props) => (
   <Kb.ScrollView style={styles.container}>
-    {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
+    <Kb.ProgressIndicator style={styles.progress} />
     <PeoplePageList {...props} />
   </Kb.ScrollView>
 )
@@ -22,11 +22,11 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {...Styles.globalStyles.fullHeight},
   header: {flexGrow: 1},
   progress: {
-    height: 18,
+    height: 24,
     left: 40,
     position: 'absolute',
-    top: 9,
-    width: 18,
+    top: -72,
+    width: 24,
   },
   searchContainer: {paddingBottom: Styles.globalMargins.xsmall},
   sectionTitle: {flexGrow: 1},
