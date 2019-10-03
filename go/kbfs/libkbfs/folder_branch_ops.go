@@ -8757,7 +8757,6 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		// cleared.
 		return
 	}
-	fbo.hasBeenCleared = false
 
 	fbo.forcedFastForwards.Add(1)
 	fbo.goTracked(func() {
@@ -8813,6 +8812,17 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		defer fbo.mdWriterLock.Unlock(lState)
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
+
+		if !fbo.hasBeenCleared {
+			return
+		}
+
+		defer func() {
+			if fbo.head != (ImmutableRootMetadata{}) {
+				fbo.hasBeenCleared = false
+			}
+		}()
+
 		if fbo.head != (ImmutableRootMetadata{}) {
 			// We're already up to date.
 			fbo.log.CDebugf(ctx, "Already up-to-date: %v", err)
