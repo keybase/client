@@ -16,7 +16,6 @@ import profileSaga from '../actions/profile'
 import recoverPasswordSaga from '../actions/recover-password'
 import tracker2Saga from '../actions/tracker2'
 import sagaMonitor from './saga-monitor'
-import searchSaga from '../actions/search'
 import settingsSaga from '../actions/settings'
 import signupSaga from '../actions/signup'
 import teamsSaga from '../actions/teams'
@@ -42,7 +41,6 @@ function* mainSaga() {
   yield Saga.spawn(profileSaga)
   yield Saga.spawn(recoverPasswordSaga)
   yield Saga.spawn(tracker2Saga)
-  yield Saga.spawn(searchSaga)
   yield Saga.spawn(settingsSaga)
   yield Saga.spawn(teamsSaga)
   yield Saga.spawn(unlockFoldersSaga)

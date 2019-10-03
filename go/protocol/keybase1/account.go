@@ -111,6 +111,8 @@ type RecoverUsernameWithPhoneArg struct {
 type EnterResetPipelineArg struct {
 	SessionID       int    `codec:"sessionID" json:"sessionID"`
 	UsernameOrEmail string `codec:"usernameOrEmail" json:"usernameOrEmail"`
+	Passphrase      string `codec:"passphrase" json:"passphrase"`
+	Interactive     bool   `codec:"interactive" json:"interactive"`
 }
 
 type CancelResetArg struct {
@@ -119,6 +121,7 @@ type CancelResetArg struct {
 
 type TimeTravelResetArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Username  string              `codec:"username" json:"username"`
 	Duration  gregor1.DurationSec `codec:"duration" json:"duration"`
 }
 
@@ -147,6 +150,7 @@ type AccountInterface interface {
 	// Start reset process for the user based on their username or email.  If
 	// neither are known the user will be prompted for their passphrase to start
 	// the process.
+	// TODO: change this to just username
 	EnterResetPipeline(context.Context, EnterResetPipelineArg) error
 	// Aborts the reset process
 	CancelReset(context.Context, int) error
@@ -426,6 +430,7 @@ func (c AccountClient) RecoverUsernameWithPhone(ctx context.Context, __arg Recov
 // Start reset process for the user based on their username or email.  If
 // neither are known the user will be prompted for their passphrase to start
 // the process.
+// TODO: change this to just username
 func (c AccountClient) EnterResetPipeline(ctx context.Context, __arg EnterResetPipelineArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.enterResetPipeline", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return

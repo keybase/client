@@ -900,11 +900,11 @@ func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downlo
 	}
 
 	arg := chat1.DownloadFileAttachmentLocalArg{
-		SessionID:      getSessionID(chatUI),
-		ConversationID: convID,
-		MessageID:      opts.MessageID,
-		Preview:        opts.Preview,
-		Filename:       opts.Output,
+		SessionID:       getSessionID(chatUI),
+		ConversationID:  convID,
+		MessageID:       opts.MessageID,
+		Preview:         opts.Preview,
+		DownloadToCache: false,
 	}
 
 	dres, err := client.DownloadFileAttachmentLocal(ctx, arg)
@@ -970,7 +970,7 @@ func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Rep
 
 	arg := chat1.MarkAsReadLocalArg{
 		ConversationID: convID,
-		MsgID:          opts.MessageID,
+		MsgID:          &opts.MessageID,
 	}
 
 	res, err := client.MarkAsReadLocal(ctx, arg)

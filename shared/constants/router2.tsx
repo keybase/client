@@ -29,6 +29,7 @@ const findVisibleRoute = (arr: Array<NavState>, s: NavState): Array<NavState> =>
 }
 
 const findModalRoute = (s: NavState) => {
+  if (!s) return []
   const loggedInOut = s.routes && s.routes[s.index]
   // only logged in has modals
   if (!loggedInOut || loggedInOut.routeName !== 'loggedIn') {
@@ -58,6 +59,9 @@ const _getStackPathHelper = (arr: Array<NavState>, s: NavState): Array<NavState>
 }
 
 const findFullRoute = (s: NavState) => {
+  if (!s) {
+    return []
+  }
   const loggedInOut = s.routes && s.routes[s.index]
   if (loggedInOut && loggedInOut.routeName === 'loggedIn') {
     return _getStackPathHelper([], s)

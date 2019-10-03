@@ -23,6 +23,7 @@ func (u NullChatUI) ChatInboxConversation(context.Context, chat1.ChatInboxConver
 	return nil
 }
 func (u NullChatUI) ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error  { return nil }
+func (u NullChatUI) ChatInboxLayout(context.Context, string) error                    { return nil }
 func (u NullChatUI) ChatThreadCached(context.Context, *string) error                  { return nil }
 func (u NullChatUI) ChatThreadFull(context.Context, string) error                     { return nil }
 func (u NullChatUI) ChatThreadStatus(context.Context, chat1.UIChatThreadStatus) error { return nil }

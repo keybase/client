@@ -57,6 +57,7 @@ const PinnedMessage = (props: Props) => {
         <Kb.Icon
           onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
           type="iconfont-close"
+          sizeType="Small"
           style={Kb.iconCastPlatformStyles(styles.close)}
           boxStyle={styles.close}
           ref={closeref}
@@ -127,9 +128,19 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.blue,
         width: Styles.globalMargins.xtiny,
       },
-      close: {
-        alignSelf: 'center',
-      },
+      close: Styles.platformStyles({
+        common: {
+          alignSelf: 'flex-start',
+        },
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          padding: Styles.globalMargins.xtiny,
+        },
+      }),
       container: {
         ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
         backgroundColor: Styles.globalColors.white,

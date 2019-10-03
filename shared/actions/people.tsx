@@ -171,7 +171,8 @@ const onTeamBuildingAdded = (_: Container.TypedState, action: TeamBuildingGen.Ad
   const user = users[0]
   if (!user) return false
 
-  const username = user.id
+  // keybase username is in serviceMap.keybase, otherwise assertion is id
+  const username = user.serviceMap.keybase || user.id
   return [
     TeamBuildingGen.createCancelTeamBuilding({namespace: 'people'}),
     ProfileGen.createShowUserProfile({username}),

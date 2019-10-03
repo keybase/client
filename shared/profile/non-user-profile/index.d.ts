@@ -1,5 +1,5 @@
 import {Component} from 'react'
-import {Service} from '../../constants/types/search'
+import {ServiceId} from '../../constants/types/team-building'
 
 export type Props = {
   avatar: string | null
@@ -8,7 +8,7 @@ export type Props = {
   onOpenPrivateFolder: () => void
   onStartChat: () => void
   profileUrl: string
-  serviceName: Service
+  serviceId: ServiceId
   username: string
 }
 

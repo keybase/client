@@ -23,6 +23,7 @@ export type OwnProps = {
 
 export type WrapperProps = {
   active: boolean
+  canWrite: boolean
   count: number
   emoji: string
   onAddReaction: (emoji: string) => void
@@ -36,6 +37,7 @@ class Wrapper extends React.Component<WrapperProps> {
     return props.emoji ? (
       <ReactButton
         active={props.active}
+        canWrite={props.canWrite}
         className={props.className}
         conversationIDKey={props.conversationIDKey}
         count={props.count}
@@ -64,11 +66,12 @@ class Wrapper extends React.Component<WrapperProps> {
 
 const noEmoji = {
   active: false,
+  canWrite: true,
   count: 0,
   emoji: '',
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const me = state.config.username
   const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
   if (!message || !Constants.isDecoratedMessage(message)) {
@@ -81,12 +84,16 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const active = reaction.some(r => r.username === me)
   return {
     active,
+    canWrite: !Constants.getMeta(state, ownProps.conversationIDKey).cannotWrite,
     count: reaction.size,
     emoji: ownProps.emoji || '',
   }
 }
 
-const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Container.TypedDispatch,
+  {conversationIDKey, emoji, ordinal}: OwnProps
+) => ({
   onAddReaction: (emoji: string) =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>
@@ -99,8 +106,13 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnPr
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+const mergeProps = (
+  stateProps: ReturnType<typeof mapStateToProps>,
+  dispatchProps: ReturnType<typeof mapDispatchToProps>,
+  ownProps: OwnProps
+) => ({
   active: stateProps.active,
+  canWrite: stateProps.canWrite,
   className: ownProps.className,
   conversationIDKey: ownProps.conversationIDKey,
   count: stateProps.count,

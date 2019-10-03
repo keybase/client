@@ -40,6 +40,55 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
 
   render() {
     const boldOverride = this.props.showBold ? Styles.globalStyles.fontBold : null
+    const rowLoadedContent = (
+      <>
+        <TeamAvatar
+          teamname={this.props.teamname}
+          isMuted={false}
+          isSelected={false}
+          isHovered={this.state.isHovered}
+        />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Text
+              type="Body"
+              style={Styles.collapseStyles([
+                styles.teamname,
+                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+              ])}
+              title={this.props.teamname}
+              lineClamp={Styles.isMobile ? 1 : undefined}
+              ellipsizeMode="tail"
+            >
+              {this.props.teamname}
+            </Kb.Text>
+            <Kb.Text
+              type="Body"
+              style={Styles.collapseStyles([
+                boldOverride,
+                styles.channelname,
+                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
+              ])}
+              title={`#${this.props.channelname}`}
+              lineClamp={Styles.isMobile ? 1 : undefined}
+              ellipsizeMode="tail"
+            >
+              &nbsp;#
+              {this.props.channelname}
+            </Kb.Text>
+          </Kb.Box2>
+          {!!this.props.numSearchHits && (
+            <Kb.Text
+              type="BodySmall"
+              style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
+            >
+              {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+        {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
+      </>
+    )
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation}>
         <Kb.Box2
@@ -54,51 +103,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
         >
-          <TeamAvatar
-            teamname={this.props.teamname}
-            isMuted={false}
-            isSelected={false}
-            isHovered={this.state.isHovered}
-          />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Text
-                type="Body"
-                style={Styles.collapseStyles([
-                  styles.teamname,
-                  {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
-                ])}
-                title={this.props.teamname}
-                lineClamp={Styles.isMobile ? 1 : undefined}
-                ellipsizeMode="tail"
-              >
-                {this.props.teamname}
-              </Kb.Text>
-              <Kb.Text
-                type="Body"
-                style={Styles.collapseStyles([
-                  boldOverride,
-                  styles.channelname,
-                  {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
-                ])}
-                title={`#${this.props.channelname}`}
-                lineClamp={Styles.isMobile ? 1 : undefined}
-                ellipsizeMode="tail"
-              >
-                &nbsp;#
-                {this.props.channelname}
-              </Kb.Text>
-            </Kb.Box2>
-            {!!this.props.numSearchHits && (
-              <Kb.Text
-                type="BodySmall"
-                style={Styles.collapseStyles([this.props.isSelected && styles.selectedText])}
-              >
-                {this._getSearchHits()} {pluralize('result', this.props.numSearchHits)}
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-          {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
+          {this.props.teamname ? rowLoadedContent : <Kb.ProgressIndicator type="Small" />}
         </Kb.Box2>
       </Kb.ClickableBox>
     )

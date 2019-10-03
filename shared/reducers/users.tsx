@@ -45,6 +45,11 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     }
+    case UsersGen.updateBio: {
+      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
+        userInfo.set('bio', action.payload.userCard.bio)
+      )
+    }
     case Tracker2Gen.updatedDetails:
       return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
         userInfo.set('fullname', action.payload.fullname)
@@ -81,6 +86,7 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
           })
         })
       )
+
     // Saga only actions
     default:
       return state

@@ -29,6 +29,186 @@ func (o UIPagination) DeepCopy() UIPagination {
 	}
 }
 
+type UIInboxSmallTeamRow struct {
+	ConvID            string       `codec:"convID" json:"convID"`
+	Name              string       `codec:"name" json:"name"`
+	Time              gregor1.Time `codec:"time" json:"time"`
+	Snippet           *string      `codec:"snippet,omitempty" json:"snippet,omitempty"`
+	SnippetDecoration *string      `codec:"snippetDecoration,omitempty" json:"snippetDecoration,omitempty"`
+	IsTeam            bool         `codec:"isTeam" json:"isTeam"`
+}
+
+func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
+	return UIInboxSmallTeamRow{
+		ConvID: o.ConvID,
+		Name:   o.Name,
+		Time:   o.Time.DeepCopy(),
+		Snippet: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Snippet),
+		SnippetDecoration: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.SnippetDecoration),
+		IsTeam: o.IsTeam,
+	}
+}
+
+type UIInboxBigTeamRowTyp int
+
+const (
+	UIInboxBigTeamRowTyp_LABEL   UIInboxBigTeamRowTyp = 1
+	UIInboxBigTeamRowTyp_CHANNEL UIInboxBigTeamRowTyp = 2
+)
+
+func (o UIInboxBigTeamRowTyp) DeepCopy() UIInboxBigTeamRowTyp { return o }
+
+var UIInboxBigTeamRowTypMap = map[string]UIInboxBigTeamRowTyp{
+	"LABEL":   1,
+	"CHANNEL": 2,
+}
+
+var UIInboxBigTeamRowTypRevMap = map[UIInboxBigTeamRowTyp]string{
+	1: "LABEL",
+	2: "CHANNEL",
+}
+
+func (e UIInboxBigTeamRowTyp) String() string {
+	if v, ok := UIInboxBigTeamRowTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UIInboxBigTeamChannelRow struct {
+	ConvID      string `codec:"convID" json:"convID"`
+	Teamname    string `codec:"teamname" json:"teamname"`
+	Channelname string `codec:"channelname" json:"channelname"`
+}
+
+func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
+	return UIInboxBigTeamChannelRow{
+		ConvID:      o.ConvID,
+		Teamname:    o.Teamname,
+		Channelname: o.Channelname,
+	}
+}
+
+type UIInboxBigTeamRow struct {
+	State__   UIInboxBigTeamRowTyp      `codec:"state" json:"state"`
+	Label__   *string                   `codec:"label,omitempty" json:"label,omitempty"`
+	Channel__ *UIInboxBigTeamChannelRow `codec:"channel,omitempty" json:"channel,omitempty"`
+}
+
+func (o *UIInboxBigTeamRow) State() (ret UIInboxBigTeamRowTyp, err error) {
+	switch o.State__ {
+	case UIInboxBigTeamRowTyp_LABEL:
+		if o.Label__ == nil {
+			err = errors.New("unexpected nil value for Label__")
+			return ret, err
+		}
+	case UIInboxBigTeamRowTyp_CHANNEL:
+		if o.Channel__ == nil {
+			err = errors.New("unexpected nil value for Channel__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o UIInboxBigTeamRow) Label() (res string) {
+	if o.State__ != UIInboxBigTeamRowTyp_LABEL {
+		panic("wrong case accessed")
+	}
+	if o.Label__ == nil {
+		return
+	}
+	return *o.Label__
+}
+
+func (o UIInboxBigTeamRow) Channel() (res UIInboxBigTeamChannelRow) {
+	if o.State__ != UIInboxBigTeamRowTyp_CHANNEL {
+		panic("wrong case accessed")
+	}
+	if o.Channel__ == nil {
+		return
+	}
+	return *o.Channel__
+}
+
+func NewUIInboxBigTeamRowWithLabel(v string) UIInboxBigTeamRow {
+	return UIInboxBigTeamRow{
+		State__: UIInboxBigTeamRowTyp_LABEL,
+		Label__: &v,
+	}
+}
+
+func NewUIInboxBigTeamRowWithChannel(v UIInboxBigTeamChannelRow) UIInboxBigTeamRow {
+	return UIInboxBigTeamRow{
+		State__:   UIInboxBigTeamRowTyp_CHANNEL,
+		Channel__: &v,
+	}
+}
+
+func (o UIInboxBigTeamRow) DeepCopy() UIInboxBigTeamRow {
+	return UIInboxBigTeamRow{
+		State__: o.State__.DeepCopy(),
+		Label__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Label__),
+		Channel__: (func(x *UIInboxBigTeamChannelRow) *UIInboxBigTeamChannelRow {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Channel__),
+	}
+}
+
+type UIInboxLayout struct {
+	SmallTeams []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
+	BigTeams   []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
+}
+
+func (o UIInboxLayout) DeepCopy() UIInboxLayout {
+	return UIInboxLayout{
+		SmallTeams: (func(x []UIInboxSmallTeamRow) []UIInboxSmallTeamRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIInboxSmallTeamRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SmallTeams),
+		BigTeams: (func(x []UIInboxBigTeamRow) []UIInboxBigTeamRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIInboxBigTeamRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BigTeams),
+	}
+}
+
 type UnverifiedInboxUIItemMetadata struct {
 	ChannelName       string   `codec:"channelName" json:"channelName"`
 	Headline          string   `codec:"headline" json:"headline"`
@@ -2507,6 +2687,11 @@ type ChatAttachmentDownloadDoneArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type ChatInboxLayoutArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Layout    string `codec:"layout" json:"layout"`
+}
+
 type ChatInboxUnverifiedArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Inbox     string `codec:"inbox" json:"inbox"`
@@ -2670,6 +2855,7 @@ type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadDone(context.Context, int) error
+	ChatInboxLayout(context.Context, ChatInboxLayoutArg) error
 	ChatInboxUnverified(context.Context, ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
@@ -2748,6 +2934,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatAttachmentDownloadDone(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"chatInboxLayout": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatInboxLayoutArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatInboxLayoutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatInboxLayoutArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxLayout(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -3223,6 +3424,11 @@ func (c ChatUiClient) ChatAttachmentDownloadProgress(ctx context.Context, __arg 
 func (c ChatUiClient) ChatAttachmentDownloadDone(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatAttachmentDownloadDoneArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatAttachmentDownloadDone", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c ChatUiClient) ChatInboxLayout(ctx context.Context, __arg ChatInboxLayoutArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatInboxLayout", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

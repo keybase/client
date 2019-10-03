@@ -17,6 +17,7 @@ import DelayInterval from './delay-interval'
 
 export type Props = {
   active: boolean
+  canWrite: boolean
   className?: string
   conversationIDKey: Types.ConversationIDKey
   count: number
@@ -42,33 +43,35 @@ if (!Styles.isMobile) {
   })
 }
 
-// @ts-ignore
-const ButtonBox = Styles.styled(ClickableBox)((props: ClickableBoxProps & {border: 1 | 0}) =>
-  Styles.isMobile
-    ? {borderColor: Styles.globalColors.black_10}
-    : {
-        ...(props.border
-          ? {
-              ':hover': {
-                backgroundColor: Styles.globalColors.blueLighter2,
-                borderColor: Styles.globalColors.blue,
-              },
-            }
-          : {}),
-        '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-        '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
-        borderColor: Styles.globalColors.black_10,
-      }
+const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !== 'noEffect'})(
+  // @ts-ignore
+  (props: ClickableBoxProps & {border: 1 | 0; noEffect: boolean}) =>
+    Styles.isMobile || props.noEffect
+      ? {borderColor: Styles.globalColors.black_10}
+      : {
+          ...(props.border
+            ? {
+                ':hover': {
+                  backgroundColor: Styles.globalColors.blueLighter2,
+                  borderColor: Styles.globalColors.blue,
+                },
+              }
+            : {}),
+          '& .centered': {animation: `${bounceIn} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+          '& .offscreen': {animation: `${bounceOut} 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards`},
+          borderColor: Styles.globalColors.black_10,
+        }
 )
 
 const ReactButton = (props: Props) => (
   <ButtonBox
     border={0}
-    className={Styles.classNames(props.className, {noShadow: props.active})}
+    className={Styles.classNames(props.className, {noShadow: props.active || !props.canWrite})}
+    noEffect={!props.canWrite}
     onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
     onMouseOver={props.onMouseOver}
-    onClick={props.onClick}
+    onClick={props.canWrite && props.onClick}
     style={Styles.collapseStyles([
       styles.borderBase,
       styles.buttonBox,

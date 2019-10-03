@@ -24,7 +24,7 @@ const RecoverMenuItem = (props: ItemProps) => {
         type="Small"
         firstItem={props.index === 0}
         key={name}
-        onClick={() => props.onResetAccount()}
+        onClick={props.onResetAccount}
         icon={<Kb.Icon sizeType="Big" type="iconfont-skull" />}
         body={
           <Kb.Box2 direction="vertical" fullWidth={true}>

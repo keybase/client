@@ -17,7 +17,7 @@ type Props = {
   error: string
   loggedInMap: Map<string, boolean>
   onFeedback: () => void
-  onForgotPassword: () => void
+  onForgotPassword: (username: string) => void
   onLogin: (user: string, password: string) => void
   onSignup: () => void
   onSomeoneElse: () => void
@@ -72,7 +72,7 @@ const LoginWrapper = (props: Props) => {
     <Login
       error={props.error}
       onFeedback={props.onFeedback}
-      onForgotPassword={props.onForgotPassword}
+      onForgotPassword={() => props.onForgotPassword(selectedUser)}
       onLogin={onLogin}
       onSignup={props.onSignup}
       onSomeoneElse={props.onSomeoneElse}
@@ -111,7 +111,7 @@ export default Container.connect(
       stateProps._users.map(account => [account.username, account.hasStoredSecret])
     ),
     onFeedback: dispatchProps.onFeedback,
-    onForgotPassword: () => dispatchProps._onForgotPassword(stateProps.selectedUser),
+    onForgotPassword: dispatchProps._onForgotPassword,
     onLogin: dispatchProps.onLogin,
     onSignup: dispatchProps.onSignup,
     onSomeoneElse: dispatchProps.onSomeoneElse,

@@ -5,7 +5,6 @@
 package simplefs
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -174,20 +173,10 @@ func (m *downloadManager) moveToDownloadFolder(
 	if err = os.MkdirAll(parentDir, 0700); err != nil {
 		return "", err
 	}
-	ext := filepath.Ext(filename)
-	destPathBase := filepath.Join(parentDir, filename[:len(filename)-len(ext)])
-	destPath := destPathBase + ext
-	for suffix := 1; ; suffix++ {
-		_, err := os.Stat(destPath)
-		if os.IsNotExist(err) {
-			break
-		}
-		if err != nil {
-			return "", err
-		}
-		destPath = fmt.Sprintf("%s (%d)%s", destPathBase, suffix, ext)
+	destPath, err := libkb.FindFilePathWithNumberSuffix(parentDir, filename, false)
+	if err != nil {
+		return "", err
 	}
-	// Could race but it should be rare enough so fine.
 
 	err = os.Rename(srcPath, destPath)
 	switch er := err.(type) {

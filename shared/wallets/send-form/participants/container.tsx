@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
 import * as ProfileGen from '../../../actions/profile-gen'
-import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -9,6 +8,7 @@ import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import {anyWaiting} from '../../../constants/waiting'
 import {namedConnect, isMobile} from '../../../util/container'
+import {appendWalletPersonBuilder} from '../../../actions/typed-routes'
 
 type OwnProps = {}
 
@@ -32,7 +32,7 @@ const mapDispatchToPropsKeybaseUser = dispatch => ({
   onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
-  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: Constants.searchKey})),
+  onSearch: () => dispatch(appendWalletPersonBuilder()),
 })
 
 const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
@@ -42,8 +42,8 @@ const mergePropsKeybaseUser = (stateProps, dispatchProps, _: OwnProps) => {
     onChangeRecipient: dispatchProps.onChangeRecipient,
     onRemoveProfile: dispatchProps.onRemoveProfile,
     onScanQRCode: dispatchProps.onScanQRCode,
+    onSearch: dispatchProps.onSearch,
     onShowProfile,
-    onShowSuggestions: dispatchProps.onShowSuggestions,
   }
 }
 

@@ -1,6 +1,4 @@
 import * as React from 'react'
-import {appendPeopleBuilder} from '../../actions/typed-routes'
-import * as Container from '../../util/container'
 import ProfileSearch from '../search/bar'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/tracker2'
@@ -305,18 +303,11 @@ export class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   }
 }
 
-const Header = ({onSearch}) => (
+const Header = () => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
-    <ProfileSearch whiteText={true} onSearch={onSearch} />
+    <ProfileSearch whiteText={true} />
   </Kb.Box2>
 )
-const ConnectedHeader = Container.connect(
-  () => ({}),
-  dispatch => ({
-    onSearch: () => dispatch(appendPeopleBuilder()),
-  }),
-  (s, d, o) => ({...o, ...s, ...d})
-)(Header)
 
 type State = {
   selectedFollowing: boolean
@@ -335,7 +326,7 @@ class User extends React.Component<Props, State> {
       borderStyle: 'solid',
     },
     headerTintColor: Styles.globalColors.white,
-    headerTitle: ConnectedHeader,
+    headerTitle: Header,
     headerTitleContainerStyle: {
       left: 60,
       right: 20,

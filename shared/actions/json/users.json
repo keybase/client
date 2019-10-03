@@ -4,12 +4,20 @@
     "blockUser": {
       "username": "string"
     },
+    "getBio": {
+      "username": "string"
+    },
     "updateBrokenState": {
       "newlyBroken": "Array<string>",
       "newlyFixed": "Array<string>"
     },
     "updateFullnames": {
       "usernameToFullname": "{[username: string]: string}"
+    },
+    "updateBio": {
+      "_description": "Sets user bio for use in one-on-one conversations",
+      "userCard": "RPCTypes.UserCard",
+      "username": "string"
     }
   }
 }

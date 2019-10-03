@@ -17,6 +17,8 @@ import _logger from '../logger'
 import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
+import * as TeamBuildingGen from './team-building-gen'
+import commonTeamBuildingSaga, {filterForNs} from './team-building'
 import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
@@ -808,9 +810,6 @@ const deletedAccount = (state: TypedState) => {
   )
 }
 
-export const hasShowOnCreation = <F, T extends {}, G extends {showOnCreation: F}>(a: T | G): a is G =>
-  a && Object.prototype.hasOwnProperty.call(a, 'showOnCreation')
-
 const createdOrLinkedAccount = (
   _: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
@@ -819,7 +818,7 @@ const createdOrLinkedAccount = (
     // Create new account failed, don't nav
     return false
   }
-  if (action.payload && hasShowOnCreation(action.payload)) {
+  if (action.payload.showOnCreation) {
     return WalletsGen.createSelectAccount({
       accountID: action.payload.accountID,
       reason: 'auto-selected',
@@ -1687,6 +1686,23 @@ function* loadStaticConfig(state: TypedState, action: ConfigGen.DaemonHandshakeP
   return false
 }
 
+const onTeamBuildingAdded = (_: TypedState, action: TeamBuildingGen.AddUsersToTeamSoFarPayload) => {
+  const {users} = action.payload
+  const user = users[0]
+  if (!user) return false
+
+  const username = user.id
+  return [
+    TeamBuildingGen.createCancelTeamBuilding({namespace: 'wallets'}),
+    WalletsGen.createSetBuildingTo({to: username}),
+  ]
+}
+
+function* teamBuildingSaga() {
+  yield* commonTeamBuildingSaga('wallets')
+  yield* Saga.chainAction2(TeamBuildingGen.addUsersToTeamSoFar, filterForNs('wallets', onTeamBuildingAdded))
+}
+
 function* walletsSaga() {
   yield* Saga.chainAction2(WalletsGen.createNewAccount, createNewAccount, 'createNewAccount')
   yield* Saga.chainAction2(
@@ -1935,6 +1951,7 @@ function* walletsSaga() {
   )
   yield* Saga.chainAction2(WalletsGen.assetDeposit, assetDeposit, 'assetDeposit')
   yield* Saga.chainAction2(WalletsGen.assetWithdraw, assetWithdraw, 'assetWithdraw')
+  yield* teamBuildingSaga()
 }
 
 export default walletsSaga

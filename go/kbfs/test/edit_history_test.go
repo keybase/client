@@ -602,3 +602,101 @@ func TestEditHistoryRenameDirAndReuseNameForLink(t *testing.T) {
 		),
 	)
 }
+
+// Regression test for HOTPOT-803.
+func TestEditHistoryUnflushedRenameOverNewFile(t *testing.T) {
+	// Alice creates a file in the first revision, but then creates
+	// a file in the second revision that is renamed over the
+	// original file.  She also creates a file that is removed.
+	expectedEdits := []expectedEdit{
+		{
+			"alice",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			[]string{
+				"/keybase/private/alice/a",
+			},
+			[]string{
+				"/keybase/private/alice/c",
+			},
+		},
+	}
+
+	test(t, journal(),
+		users("alice"),
+		as(alice,
+			mkfile("a", "a foo"),
+		),
+		as(alice,
+			enableJournal(),
+		),
+		as(alice,
+			pwriteBSSync("b", []byte("b foo"), 0, false),
+			rename("a", "c"),
+			pwriteBSSync("a", []byte("a2 foo"), 0, false),
+			rename("b", "a"),
+			rm("c"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "FILE"}),
+			read("a", "b foo"),
+			checkUserEditHistory(expectedEdits),
+		),
+	)
+}
+
+// A more complex regression test for HOTPOT-803 than the above test,
+// but it is more faithful to the actual user log.
+func TestEditHistoryUnflushedRenameOverTwoNewFiles(t *testing.T) {
+	// Alice creates two files in the first revision, but then creates
+	// 2 files in the second revision that are renamed over the
+	// original two files.  She also creates two files that are removed.
+	expectedEdits := []expectedEdit{
+		{
+			"alice",
+			keybase1.FolderType_PRIVATE,
+			"alice",
+			[]string{
+				"/keybase/private/alice/a",
+				"/keybase/private/alice/b",
+			},
+			[]string{
+				"/keybase/private/alice/f",
+				"/keybase/private/alice/e",
+			},
+		},
+	}
+
+	test(t, journal(),
+		users("alice"),
+		as(alice,
+			mkfile("a", "a foo"),
+			mkfile("b", "b foo"),
+		),
+		as(alice,
+			enableJournal(),
+		),
+		as(alice,
+			pwriteBSSync("c", []byte("c foo"), 0, false),
+			pwriteBSSync("d", []byte("d foo"), 0, false),
+			rename("b", "e"),
+			pwriteBSSync("f", []byte("f foo"), 0, false),
+			rename("a", "f"),
+			rename("c", "b"),
+			pwriteBSSync("a", []byte("a2 foo"), 0, false),
+			rename("d", "a"),
+			rm("e"),
+			rm("f"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "FILE", "b$": "FILE"}),
+			read("a", "d foo"),
+			read("b", "c foo"),
+			// Sort the entries because when we add in the rename
+			// operations, the order is undefined and 'a' and 'b'
+			// could be swapped since they happen in the same revision
+			// and are independent.
+			checkUserEditHistoryWithSort(expectedEdits, true),
+		),
+	)
+}

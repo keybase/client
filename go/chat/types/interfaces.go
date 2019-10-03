@@ -173,11 +173,13 @@ type InboxSource interface {
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
 	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
-	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
+	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msgID *chat1.MessageID) error
 	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error
 	NotifyUpdate(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID)
 	MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) error
 
+	Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (InboxSyncRes, error)
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
 	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error)
@@ -535,6 +537,7 @@ type BotCommandManager interface {
 	Resumable
 	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
 	Clear(ctx context.Context) error
+	PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error)
 	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
@@ -551,6 +554,11 @@ type ReplyFiller interface {
 
 type UIInboxLoader interface {
 	Resumable
+	UpdateLayout(ctx context.Context, reason string) error
+	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
+		msg chat1.MessageBoxed, firstConv bool) error
+	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) error
+	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error
 }

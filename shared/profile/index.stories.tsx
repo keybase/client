@@ -7,7 +7,6 @@ import proveEnter from './prove-enter-username/index.stories'
 import proveWebsite from './prove-website-choice/index.stories'
 import revoke from './revoke/index.stories'
 import block from './block/index.stories'
-import search from './search/index.stories'
 import profile from './profile.stories'
 
 const load = () => {
@@ -22,7 +21,6 @@ const load = () => {
     proveWebsite,
     revoke,
     block,
-    search,
   ].forEach(load => load())
 }
 

@@ -90,12 +90,42 @@ type SharedInboxItem struct {
 	MembersType chat1.ConversationMembersType
 }
 
+type InboxLayoutChangedNotifier interface {
+	UpdateLayout(ctx context.Context, reason string) error
+	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
+		msg chat1.MessageBoxed, firstConv bool) error
+	UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) error
+}
+
+type dummyInboxLayoutChangedNotifier struct{}
+
+func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context, reason string) error {
+	return nil
+}
+
+func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
+	conv types.RemoteConversation, msg chat1.MessageBoxed, firstConv bool) error {
+	return nil
+}
+
+func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromSubteamRename(ctx context.Context,
+	convs []types.RemoteConversation) error {
+	return nil
+}
+
+func LayoutChangedNotifier(notifier InboxLayoutChangedNotifier) func(*Inbox) {
+	return func(i *Inbox) {
+		i.SetInboxLayoutChangedNotifier(notifier)
+	}
+}
+
 type Inbox struct {
 	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
 
-	flushMode InboxFlushMode
+	flushMode      InboxFlushMode
+	layoutNotifier InboxLayoutChangedNotifier
 }
 
 func FlushMode(mode InboxFlushMode) func(*Inbox) {
@@ -106,10 +136,11 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	i := &Inbox{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
-		baseBox:      newBaseBox(g),
-		flushMode:    InboxFlushModeActive,
+		Contextified:   globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
+		baseBox:        newBaseBox(g),
+		flushMode:      InboxFlushModeActive,
+		layoutNotifier: dummyInboxLayoutChangedNotifier{},
 	}
 	for _, c := range config {
 		c(i)
@@ -119,6 +150,10 @@ func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 
 func (i *Inbox) SetFlushMode(mode InboxFlushMode) {
 	i.flushMode = mode
+}
+
+func (i *Inbox) SetInboxLayoutChangedNotifier(notifier InboxLayoutChangedNotifier) {
+	i.layoutNotifier = notifier
 }
 
 func (i *Inbox) dbKey(uid gregor1.UID) libkb.DbKey {
@@ -204,7 +239,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 			// need local metadata for channel names, so skip if we don't have it
 			continue
 		}
-		name := rc.GetName()
+		name := utils.GetRemoteConvDisplayName(rc)
 		if len(name) == 0 {
 			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.GetConvID())
 			continue
@@ -835,6 +870,14 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	layoutChanged := false
+	defer func() {
+		if layoutChanged {
+			go func(ctx context.Context) {
+				_ = i.layoutNotifier.UpdateLayout(ctx, "new conversation")
+			}(globals.BackgroundChatCtx(ctx, i.G()))
+		}
+	}()
 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -877,7 +920,8 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 			}
 		}
 
-		// Add the convo
+		// only chat convs for layout changed
+		layoutChanged = layoutChanged || conv.GetTopicType() == chat1.TopicType_CHAT
 		ibox.Conversations = append(utils.RemoteConvs([]chat1.Conversation{conv}), ibox.Conversations...)
 	} else {
 		i.Debug(ctx, "NewConversation: skipping update, conversation exists in inbox")
@@ -1110,6 +1154,15 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 
 	// Slot in at the top
 	mconv := *conv
+	// if we have a conv at all, then we want to let any layout engine know about this
+	// new message
+	if mconv.GetTopicType() == chat1.TopicType_CHAT {
+		defer func() {
+			go func(ctx context.Context) {
+				_ = i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg, index == 0)
+			}(globals.BackgroundChatCtx(ctx, i.G()))
+		}()
+	}
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))
 	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)
@@ -1168,6 +1221,11 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx, "set status")
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1293,6 +1351,12 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	var layoutConvs []types.RemoteConversation
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayoutFromSubteamRename(ctx, layoutConvs)
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1315,6 +1379,7 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 			i.Debug(ctx, "SubteamRename: no conversation found: convID: %s", convID)
 			continue
 		}
+		layoutConvs = append(layoutConvs, *conv)
 		conv.Conv.Metadata.Version = vers.ToConvVers()
 	}
 
@@ -1469,6 +1534,11 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx, "team type")
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1569,19 +1639,6 @@ func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, e
 	return vers, nil
 }
 
-type InboxSyncRes struct {
-	FilteredConvs      []types.RemoteConversation
-	TeamTypeChanged    bool
-	MembersTypeChanged []chat1.ConversationID
-	Expunges           []InboxSyncResExpunge
-	TopicNameChanged   []chat1.ConversationID
-}
-
-type InboxSyncResExpunge struct {
-	ConvID  chat1.ConversationID
-	Expunge chat1.Expunge
-}
-
 func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Conversation) bool {
 	oldMsg, oldErr := oldConv.GetMaxMessage(chat1.MessageType_METADATA)
 	newMsg, newErr := newConv.GetMaxMessage(chat1.MessageType_METADATA)
@@ -1594,11 +1651,16 @@ func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Con
 	return oldMsg.GetMessageID() != newMsg.GetMessageID()
 }
 
-func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
+func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res types.InboxSyncRes, err Error) {
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayout(ctx, "sync")
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
@@ -1628,7 +1690,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 			if oldConv.Expunge != newConv.Expunge {
 				// The earliest point in non-deleted history has moved up.
 				// Point it out so that convsource can get updated.
-				res.Expunges = append(res.Expunges, InboxSyncResExpunge{
+				res.Expunges = append(res.Expunges, types.InboxSyncResExpunge{
 					ConvID:  newConv.Metadata.ConversationID,
 					Expunge: newConv.Expunge,
 				})
@@ -1670,6 +1732,14 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	layoutChanged := false
+	defer func() {
+		if layoutChanged {
+			go func(ctx context.Context) {
+				_ = i.layoutNotifier.UpdateLayout(ctx, "membership")
+			}(globals.BackgroundChatCtx(ctx, i.G()))
+		}
+	}()
 
 	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
 		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
@@ -1693,12 +1763,14 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		ujs = append(ujs, types.RemoteConversation{
 			Conv: uj,
 		})
+		layoutChanged = layoutChanged || uj.GetTopicType() == chat1.TopicType_CHAT
 	}
 	convs := i.mergeConvs(ujs, ibox.Conversations)
 	removedMap := make(map[string]bool)
 	for _, r := range userRemoved {
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
 		removedMap[r.ConvID.String()] = true
+		layoutChanged = layoutChanged || r.TopicType == chat1.TopicType_CHAT
 	}
 	resetMap := make(map[string]bool)
 	for _, r := range userReset {

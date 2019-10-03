@@ -149,6 +149,10 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client, err error) {
 	return client, err
 }
 
+func HeaderVersion() string {
+	return GoClientID + " v" + VersionString() + " " + GetPlatformString()
+}
+
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
 	url1.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url1.String()
@@ -649,7 +653,7 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 
 	if m.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
+		identifyAs := HeaderVersion()
 		req.Header.Set("X-Keybase-Client", identifyAs)
 		if tags := LogTagsToString(m.Ctx()); tags != "" {
 			req.Header.Set("X-Keybase-Log-Tags", tags)

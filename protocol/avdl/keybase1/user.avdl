@@ -179,14 +179,22 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
-  boolean loadHasRandomPw(int sessionID, boolean forceRepoll, boolean noShortTimeout);
+  /**
+   PassphraseState values are used in .config.json, so should not be changed without a migration strategy
+  */
+  enum PassphraseState {
+    KNOWN_0,
+    RANDOM_1
+  }
 
   record CanLogoutRes {
     boolean canLogout;
-    string reason; // CLI prints this string.
-    boolean setPassphrase; // GUI is driven by this boolean.
+    string reason;
+    PassphraseState passphraseState;
   }
   CanLogoutRes canLogout(int sessionID);
+
+  PassphraseState loadPassphraseState(int sessionID, boolean forceRepoll);
 
   union { null, UserCard } userCard(int sessionID, string username, boolean useSession);
 

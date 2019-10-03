@@ -11,7 +11,7 @@ import (
 // Pegboard keeps track of automatic private follows.
 // When the logged-in user interacts with another user, that other user
 // gets pegged to their incarnation. After the target resets,
-// the logged-in user will be alerted even if there's no explicit folowing.
+// the logged-in user will be alerted even if there's no explicit following.
 // CORE-10522 For now, pegboard is disabled by default and when enabled
 //            only has in-memory storage.
 type Pegboard struct {

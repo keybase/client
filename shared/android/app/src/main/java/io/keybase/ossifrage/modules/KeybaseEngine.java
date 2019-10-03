@@ -25,6 +25,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.keybase.ossifrage.BuildConfig;
+import io.keybase.ossifrage.DarkModePrefHelper;
+import io.keybase.ossifrage.DarkModePreference;
+import io.keybase.ossifrage.MainActivity;
 import keybase.Keybase;
 
 import static io.keybase.ossifrage.MainActivity.isTestDevice;
@@ -163,6 +166,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         return ret;
     }
 
+    private String readGuiConfig() {
+        File filePath = new File(reactContext.getFilesDir(), "/.config/keybase/gui_config.json");
+        return readFromFile(filePath.getAbsolutePath());
+    }
+
     @Override
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
@@ -189,6 +197,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
+        constants.put("guiConfig", readGuiConfig());
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
         constants.put("isTestDevice", misTestDevice);
@@ -235,6 +244,16 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     @ReactMethod
     public void getInitialIntent(Promise promise) {
         promise.resolve(initialIntent);
+    }
+
+    // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
+    @ReactMethod
+    public void appColorSchemeChanged(String prefString) {
+        final DarkModePreference pref = DarkModePrefHelper.fromString(prefString);
+        final MainActivity activity = (MainActivity) reactContext.getCurrentActivity();
+        if (activity != null) {
+          activity.setBackgroundColor(pref);
+        }
     }
 
     public void setInitialIntent(WritableMap initialIntent) {

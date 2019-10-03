@@ -36,5 +36,6 @@ RUN useradd --create-home --shell /bin/bash keybase \
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.local/share/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
+COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
 
 ENTRYPOINT ["/tini", "--", "entrypoint.sh"]

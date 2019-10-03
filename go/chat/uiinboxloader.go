@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"golang.org/x/sync/errgroup"
 )
@@ -30,9 +33,15 @@ type UIInboxLoader struct {
 
 	clock             clockwork.Clock
 	transmitCh        chan interface{}
+	layoutCh          chan struct{}
+	bigTeamUnboxCh    chan []chat1.ConversationID
 	convTransmitBatch map[string]chat1.ConversationLocal
 	batchDelay        time.Duration
 	lastBatchFlush    time.Time
+	lastLayoutFlush   time.Time
+
+	// testing
+	testingLayoutForceMode bool
 }
 
 func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
@@ -53,10 +62,14 @@ func (h *UIInboxLoader) Start(ctx context.Context, uid gregor1.UID) {
 		return
 	}
 	h.transmitCh = make(chan interface{}, 1000)
+	h.layoutCh = make(chan struct{}, 1000)
+	h.bigTeamUnboxCh = make(chan []chat1.ConversationID, 1000)
 	h.stopCh = make(chan struct{})
 	h.started = true
 	h.uid = uid
 	h.eg.Go(func() error { return h.transmitLoop(h.stopCh) })
+	h.eg.Go(func() error { return h.layoutLoop(h.stopCh) })
+	h.eg.Go(func() error { return h.bigTeamUnboxLoop(h.stopCh) })
 }
 
 func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
@@ -81,6 +94,9 @@ func (h *UIInboxLoader) Stop(ctx context.Context) chan struct{} {
 }
 
 func (h *UIInboxLoader) getChatUI(ctx context.Context) (libkb.ChatUI, error) {
+	if h.G().UIRouter == nil {
+		return nil, errors.New("no UI router available")
+	}
 	ui, err := h.G().UIRouter.GetChatUI()
 	if err != nil {
 		return nil, err
@@ -332,4 +348,236 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 		}(convRes)
 	}
 	return nil
+}
+
+func (h *UIInboxLoader) Query() chat1.GetInboxLocalQuery {
+	topicType := chat1.TopicType_CHAT
+	vis := keybase1.TLFVisibility_PRIVATE
+	return chat1.GetInboxLocalQuery{
+		ComputeActiveList: true,
+		TopicType:         &topicType,
+		TlfVisibility:     &vis,
+		Status: []chat1.ConversationStatus{
+			chat1.ConversationStatus_UNFILED,
+			chat1.ConversationStatus_FAVORITE,
+			chat1.ConversationStatus_MUTED,
+		},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET,
+		},
+	}
+}
+
+type bigTeam struct {
+	name  string
+	convs []types.RemoteConversation
+}
+
+func (b *bigTeam) sort() {
+	sort.Slice(b.convs, func(i, j int) bool {
+		return strings.Compare(b.convs[i].GetTopicName(), b.convs[j].GetTopicName()) < 0
+	})
+}
+
+type bigTeamCollector struct {
+	teams map[string]*bigTeam
+}
+
+func newBigTeamCollector() *bigTeamCollector {
+	return &bigTeamCollector{
+		teams: make(map[string]*bigTeam),
+	}
+}
+
+func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
+	name := utils.GetRemoteConvTLFName(conv)
+	bt, ok := c.teams[name]
+	if !ok {
+		bt = &bigTeam{name: name}
+		c.teams[name] = bt
+	}
+	bt.convs = append(bt.convs, conv)
+}
+
+func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBigTeamRow) {
+	var bts []*bigTeam
+	for _, bt := range c.teams {
+		bt.sort()
+		bts = append(bts, bt)
+	}
+	sort.Slice(bts, func(i, j int) bool {
+		return strings.Compare(bts[i].name, bts[j].name) < 0
+	})
+	for _, bt := range bts {
+		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(bt.name))
+		for _, conv := range bt.convs {
+			row := utils.PresentRemoteConversationAsBigTeamChannelRow(ctx, conv)
+			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(row))
+		}
+	}
+	return res
+}
+
+func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res chat1.UIInboxLayout) {
+	var btunboxes []chat1.ConversationID
+	btcollector := newBigTeamCollector()
+	for _, conv := range inbox.ConvsUnverified {
+		switch conv.GetTeamType() {
+		case chat1.TeamType_COMPLEX:
+			if conv.LocalMetadata == nil {
+				btunboxes = append(btunboxes, conv.GetConvID())
+			}
+			btcollector.appendConv(conv)
+		default:
+			// filter empty convs we didn't create
+			if utils.IsConvEmpty(conv.Conv) && conv.Conv.CreatorInfo != nil &&
+				!conv.Conv.CreatorInfo.Uid.Eq(h.uid) {
+				continue
+			}
+			res.SmallTeams = append(res.SmallTeams,
+				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
+					h.G().GetEnv().GetUsername().String(), len(res.SmallTeams) < 50))
+		}
+	}
+	sort.Slice(res.SmallTeams, func(i, j int) bool {
+		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
+	})
+	res.BigTeams = btcollector.finalize(ctx)
+	if len(btunboxes) > 0 {
+		h.Debug(ctx, "buildLayout: big teams missing names, unboxing: %v", len(btunboxes))
+		h.queueBigTeamUnbox(btunboxes)
+	}
+	return res
+}
+
+func (h *UIInboxLoader) getInboxFromQuery(ctx context.Context) (inbox types.Inbox, err error) {
+	defer h.Trace(ctx, func() error { return err }, "getInboxFromQuery")()
+	query := h.Query()
+	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, &query)
+	if err != nil {
+		return inbox, err
+	}
+	return h.G().InboxSource.ReadUnverified(ctx, h.uid, types.InboxSourceDataSourceAll, rquery, nil)
+}
+
+func (h *UIInboxLoader) flushLayout() (err error) {
+	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "flushLayout")()
+	defer func() {
+		if err != nil {
+			h.Debug(ctx, "flushLayout: failed to transmit, retrying: %s", err)
+			q := h.Query()
+			h.G().FetchRetrier.Failure(ctx, h.uid, NewFullInboxRetry(h.G(), &q, nil))
+		}
+	}()
+	inbox, err := h.getInboxFromQuery(ctx)
+	if err != nil {
+		return err
+	}
+	layout := h.buildLayout(ctx, inbox)
+	ui, err := h.getChatUI(ctx)
+	if err != nil {
+		h.Debug(ctx, "flushLayout: no chat UI available, skipping send")
+		return nil
+	}
+	dat, err := json.Marshal(layout)
+	if err != nil {
+		return err
+	}
+	if err := ui.ChatInboxLayout(ctx, string(dat)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *UIInboxLoader) queueBigTeamUnbox(convIDs []chat1.ConversationID) {
+	select {
+	case h.bigTeamUnboxCh <- convIDs:
+	default:
+		h.Debug(context.Background(), "queueBigTeamUnbox: failed to queue big team unbox, queue full")
+	}
+}
+
+func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
+	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_GUI, nil, nil)
+	for {
+		select {
+		case convIDs := <-h.bigTeamUnboxCh:
+			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
+			_ = h.UpdateConvs(ctx, convIDs)
+			// update layout again after we have done all this work to get everything in the right order
+			_ = h.UpdateLayout(ctx, "big team unbox")
+		case <-shutdownCh:
+			return nil
+		}
+	}
+}
+
+func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
+	shouldFlush := false
+	for {
+		select {
+		case <-h.layoutCh:
+			if h.clock.Since(h.lastLayoutFlush) > h.batchDelay || h.testingLayoutForceMode {
+				_ = h.flushLayout()
+				shouldFlush = false
+			} else {
+				shouldFlush = true
+			}
+		case <-h.clock.After(h.batchDelay):
+			if shouldFlush {
+				_ = h.flushLayout()
+				shouldFlush = false
+			}
+		case <-shutdownCh:
+			return nil
+		}
+	}
+}
+
+func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reason string) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateLayout: %s", reason)()
+	select {
+	case h.layoutCh <- struct{}{}:
+	default:
+		return errors.New("failed to queue layout update, queue full")
+	}
+	return nil
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
+	msg chat1.MessageBoxed, firstConv bool) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateLayoutFromNewMessage")()
+	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout for big team")
+		return nil
+	}
+	if firstConv && msg.GetMessageID() > 2 {
+		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
+		return nil
+	}
+	return h.UpdateLayout(ctx, "new message")
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateLayoutFromSubteamRename")()
+	var bigTeamConvs []chat1.ConversationID
+	for _, conv := range convs {
+		if conv.GetTeamType() == chat1.TeamType_COMPLEX {
+			bigTeamConvs = append(bigTeamConvs, conv.GetConvID())
+		}
+	}
+	if len(bigTeamConvs) > 0 {
+		h.queueBigTeamUnbox(bigTeamConvs)
+	}
+	return nil
+}
+
+func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
+	query := h.Query()
+	query.ConvIDs = convIDs
+	return h.LoadNonblock(ctx, &query, nil, nil, true)
 }

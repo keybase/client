@@ -3,21 +3,21 @@ import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
 import * as DevicesGen from '../../actions/devices-gen'
 import DeviceRevoke from '.'
-import {connect} from '../../util/container'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{deviceID: string}>
 
-export default connect(
-  state => ({
-    _endangeredTLFs: Constants.getEndangeredTLFs(state, state.devices.selectedDeviceID),
-    device: Constants.getDevice(state, state.devices.selectedDeviceID),
-    iconNumber: Constants.getDeviceIconNumber(
-      state,
-      state.devices.selectedDeviceID || Types.stringToDeviceID('')
-    ),
-    waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
-  }),
+export default Container.connect(
+  (state, ownProps: OwnProps) => {
+    const selectedDeviceID = Container.getRouteProps(ownProps, 'deviceID', '')
+    return {
+      _endangeredTLFs: Constants.getEndangeredTLFs(state, selectedDeviceID),
+      device: Constants.getDevice(state, selectedDeviceID),
+      iconNumber: Constants.getDeviceIconNumber(state, selectedDeviceID),
+      waiting: WaitingConstants.anyWaiting(state, Constants.waitingKey),
+    }
+  },
   dispatch => ({
     _onSubmit: (deviceID: Types.DeviceID) => dispatch(DevicesGen.createRevoke({deviceID})),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),

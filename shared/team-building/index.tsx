@@ -77,6 +77,7 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
+  filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
   focusInputCounter: number
   includeContacts: boolean
@@ -153,6 +154,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             backgroundColor="blue"
             onClick={props.onImportContacts}
             small={true}
+            style={styles.importContactsButton}
           />
           <Kb.Button
             label="Skip"
@@ -193,6 +195,32 @@ const ContactsImportButton = (props: ContactProps) => {
         <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
       </Kb.Box2>
     </Kb.ClickableBox>
+  )
+}
+
+const FilteredServiceTabBar = (
+  props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
+    filterServices?: Array<ServiceIdWithContact>
+  }
+) => {
+  const services = React.useMemo(
+    () =>
+      props.filterServices
+        ? Constants.allServices.filter(
+            serviceId => props.filterServices && props.filterServices.includes(serviceId)
+          )
+        : Constants.allServices,
+    [props.filterServices]
+  )
+
+  return services.length === 1 && services[0] === 'keybase' ? null : (
+    <ServiceTabBar
+      services={Constants.allServices}
+      selectedService={props.selectedService}
+      onChangeService={props.onChangeService}
+      serviceResultCount={props.serviceResultCount}
+      showServiceResultCount={props.showServiceResultCount}
+    />
   )
 }
 
@@ -526,6 +554,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       </Kb.Box2>
     )
 
+    // If there are no filterServices or if the filterServices has a phone
+    const showContactsBanner =
+      Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
+
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
@@ -546,14 +578,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        <ServiceTabBar
-          services={Constants.allServices}
+        <FilteredServiceTabBar
+          filterServices={props.filterServices}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {Styles.isMobile && (
+        {showContactsBanner && (
           <ContactsBanner
             {...props}
             onRedoSearch={() => props.onChangeText(props.searchString)}
@@ -632,6 +664,9 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      importContactsButton: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
       importContactsContainer: {
         justifyContent: 'flex-start',
         padding: Styles.globalMargins.xsmall,
