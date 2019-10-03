@@ -2534,6 +2534,21 @@ const joinConversation = async (_: TypedState, action: Chat2Gen.JoinConversation
   )
 }
 
+const fetchUserBio = async (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '').toArray()
+  if (otherParticipants.length === 1) {
+    const username = otherParticipants[0]
+    const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
+    if (!userCard) {
+      return
+    }
+    return Chat2Gen.createSetUserBio({userCard, username})
+  }
+  return
+}
+
 const leaveConversation = async (_: TypedState, action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -3418,6 +3433,7 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, loadCanUserPerform, 'loadCanUserPerform')
   yield* Saga.chainAction2(Chat2Gen.selectConversation, loadTeamForConv, 'loadTeamForConv')
+  yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchUserBio)
 
   // Giphy
   yield* Saga.chainAction2(Chat2Gen.unsentTextChanged, unsentTextChanged, 'unsentTextChanged')

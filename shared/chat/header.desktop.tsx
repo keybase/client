@@ -74,6 +74,25 @@ const Header = (p: Props) => {
     p.participants && p.participants.length > 1
       ? p.participants.filter(part => part !== p.username)
       : p.participants
+
+  if (withoutSelf && withoutSelf.length === 1 && p.desc) {
+    description = (
+      <>
+        <Kb.Text type="Body" style={styles.desc}>
+          &nbsp;•&nbsp;
+        </Kb.Text>
+        <Kb.Markdown
+          smallStandaloneEmoji={true}
+          style={{...styles.desc, flex: 1}}
+          styleOverride={descStyleOverride}
+          lineClamp={1}
+          selectable={true}
+        >
+          {p.desc}
+        </Kb.Markdown>
+      </>
+    )
+  }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
@@ -128,7 +147,7 @@ const Header = (p: Props) => {
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
             {withoutSelf && withoutSelf.length === 1 ? (
-              <Kb.Text type="Body" style={styles.desc}>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.desc}>
                 <Kb.ConnectedUsernames
                   colorFollowing={true}
                   underline={true}
@@ -138,12 +157,8 @@ const Header = (p: Props) => {
                   usernames={[withoutSelf[0]]}
                   onUsernameClicked="profile"
                 />
-                <Kb.Text type="Body" style={styles.desc}>
-                  {' '}
-                  &bull;{' '}
-                </Kb.Text>
                 {description}
-              </Kb.Text>
+              </Kb.Box2>
             ) : (
               description
             )}
@@ -216,13 +231,13 @@ const styles = Styles.styleSheetCreate(
 const Connected = Container.connect(
   state => {
     const _conversationIDKey = Constants.getSelectedConversation(state)
-    const _fullnames = state.users.infoMap
+    const _userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
 
     return {
       _conversationIDKey,
-      _fullnames,
       _meta,
+      _userInfo,
       _username: state.config.username,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       infoPanelOpen: Constants.isInfoPanelOpen(),
@@ -245,13 +260,14 @@ const Connected = Container.connect(
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? 'insert bio here'
+        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio
         : meta.descriptionDecorated
 
     const fullName =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+        ? stateProps._userInfo.get(otherParticipants[0], {fullname: ''}).fullname
         : undefined
+
     return {
       canEditDesc: stateProps.canEditDesc,
       channel:

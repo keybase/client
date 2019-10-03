@@ -2,9 +2,9 @@
 import * as I from 'immutable'
 
 export type _UserInfo = {
+  bio: string
   broken: boolean
   fullname: string
-  bio: string
 }
 type UserInfo = I.RecordOf<_UserInfo>
 

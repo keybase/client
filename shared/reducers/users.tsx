@@ -84,12 +84,8 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
         })
       )
     case Chat2Gen.setUserBio: {
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          m.update(action.payload.userCard.uid, info =>
-            (info || blankUserInfo).set('bio', action.payload.userCard.bio)
-          )
-        })
+      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
+        userInfo.set('bio', action.payload.userCard.bio)
       )
     }
     // Saga only actions

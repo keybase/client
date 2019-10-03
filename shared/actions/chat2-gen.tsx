@@ -38,7 +38,6 @@ export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
-export const fetchUserBio = 'chat2:fetchUserBio'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -226,7 +225,6 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
-type _FetchUserBioPayload = {readonly username: string}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -571,7 +569,7 @@ type _SetUnsentTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text?: HiddenString
 }
-type _SetUserBioPayload = {readonly userCard: RPCTypes.UserCard}
+type _SetUserBioPayload = {readonly userCard: RPCTypes.UserCard; readonly username: string}
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _TabSelectedPayload = void
@@ -1213,10 +1211,6 @@ export const createDeselectConversation = (
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
-export const createFetchUserBio = (payload: _FetchUserBioPayload): FetchUserBioPayload => ({
-  payload,
-  type: fetchUserBio,
-})
 export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
   payload,
   type: hideConversation,
@@ -1510,7 +1504,6 @@ export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
 }
-export type FetchUserBioPayload = {readonly payload: _FetchUserBioPayload; readonly type: typeof fetchUserBio}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -1959,7 +1952,6 @@ export type Actions =
   | DeselectConversationPayload
   | DesktopNotificationPayload
   | DismissBottomBannerPayload
-  | FetchUserBioPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
