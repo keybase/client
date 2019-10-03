@@ -1,11 +1,12 @@
-import * as AutoresetGen from '../actions/autoreset-gen'
+import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as ProvisionConstants from '../constants/provision'
-import * as ProvisionGen from '../actions/provision-gen'
+import * as ProvisionGen from './provision-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RecoverPasswordGen from '../actions/recover-password-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RecoverPasswordGen from './recover-password-gen'
+import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
@@ -213,6 +214,7 @@ function* recoverPasswordSaga() {
   yield* Saga.chainAction2(RecoverPasswordGen.displayDeviceSelect, displayDeviceSelect, 'displayDeviceSelect')
   yield* Saga.chainAction2(RecoverPasswordGen.displayError, displayError, 'displayError')
   yield* Saga.chainAction2(RecoverPasswordGen.restartRecovery, restartRecovery, 'restartRecovery')
+  yield* Saga.chainGenerator(EngineGen.keybase1LoginUiPromptResetAccount, promptReset)
 }
 
 export default recoverPasswordSaga
