@@ -68,7 +68,6 @@ func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingIn
 func (r *userHandler) passphraseStateUpdate(m libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	m.Debug("userHandler: %s received", category)
 	var msg keybase1.UserPassphraseStateMsg
-	fmt.Printf("@@@ %s\n", item.Body().Bytes())
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		m.Warning("error unmarshaling user.passphrase_update item: %s", err)
 		return err

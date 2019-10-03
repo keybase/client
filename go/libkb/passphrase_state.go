@@ -27,9 +27,9 @@ func LoadPassphraseStateWithForceRepoll(mctx MetaContext, _ bool) (passphraseSta
 	defer mctx.TraceTimed(fmt.Sprintf("LoadPassphraseState()"), func() error { return err })()
 
 	// If we're in standalone mode, we don't get the gregor msg about
-	// passphrase_state changes.  So, force a repoll to the server if the stat
-	// eisn't currently known.
-	forceRepoll := mctx.G().Standalone
+	// passphrase_state changes. So, force a repoll to the server if the state
+	// isn't currently KNOWN.
+	forceRepoll := mctx.G().GregorListener == nil
 
 	if len(mctx.G().Env.GetUsername().String()) == 0 {
 		mctx.Debug("LoadPassphraseState: user is not logged in")

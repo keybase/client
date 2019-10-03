@@ -301,6 +301,10 @@ func (d *testDevice) loadDeviceList() []keybase1.Device {
 }
 
 func (s *testDeviceSet) signupUser(dev *testDevice) {
+	s.signupUserWithRandomPassphrase(dev, false)
+}
+
+func (s *testDeviceSet) signupUserWithRandomPassphrase(dev *testDevice, randomPassphrase bool) {
 	userInfo := randomUser("rekey")
 	tctx := dev.popClone()
 	g := tctx.G
@@ -311,6 +315,9 @@ func (s *testDeviceSet) signupUser(dev *testDevice) {
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTest()
+	if randomPassphrase {
+		signup.SetNoPassphrasePrompt()
+	}
 	if err := signup.Run(); err != nil {
 		s.t.Fatal(err)
 	}
@@ -486,6 +493,14 @@ func (s *testDeviceSet) provision(d *testDevice) {
 		s.t.Fatalf("expected 1 device ID; got %d", len(devices))
 	}
 	d.deviceID = devices[0].DeviceID
+}
+
+func (s *testDeviceSet) provisionNewStandaloneDevice(name string, numClones int) *testDevice {
+	ret := s.newDevice(name)
+	ret.tctx.G.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
+	ret.start(numClones + 1)
+	s.provision(ret)
+	return ret
 }
 
 func (s *testDeviceSet) provisionNewDevice(name string, numClones int) *testDevice {

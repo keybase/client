@@ -92,6 +92,11 @@ func (c *PassphraseChange) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	// If the passphrase changes, it's known. Do this in case we aren't getting
+	// gregors for some reason (standalone or test) - it will at least update
+	// this device.
+	libkb.MaybeSavePassphraseState(m, keybase1.PassphraseState_KNOWN)
+
 	// We used to sync secrets here, but sync secrets in runForceUpdate
 	// or runStandardUpdate, since the temporary login information won't
 	// persist past the scope of these functions.
