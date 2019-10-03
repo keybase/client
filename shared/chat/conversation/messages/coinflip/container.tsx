@@ -8,6 +8,7 @@ import HiddenString from '../../../../util/hidden-string'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
+  measure?: () => void
   isSendError: boolean
   flipGameID: string
   text: HiddenString
@@ -47,6 +48,6 @@ export default namedConnect(
   (dispatch, {conversationIDKey, text}: OwnProps) => ({
     onFlipAgain: () => dispatch(Chat2Gen.createMessageSend({conversationIDKey, text})),
   }),
-  (s, d, _: OwnProps) => ({...s, ...d}),
+  (s, d, o: OwnProps) => ({...s, ...d, measure: o.measure}),
   'CoinFlip'
 )(CoinFlip)

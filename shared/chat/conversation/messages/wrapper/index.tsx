@@ -259,6 +259,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           key="CoinFlip"
           conversationIDKey={this.props.conversationIDKey}
           flipGameID={message.flipGameID}
+          measure={this.props.measure}
           isSendError={!!message.errorReason}
           text={message.text}
         />
