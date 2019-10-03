@@ -121,6 +121,7 @@ type CancelResetArg struct {
 
 type TimeTravelResetArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Username  string              `codec:"username" json:"username"`
 	Duration  gregor1.DurationSec `codec:"duration" json:"duration"`
 }
 
