@@ -625,3 +625,7 @@ func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv
 	msgType chat1.MessageType, firstConv bool) error {
 	return nil
 }
+
+func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) error {
+	return nil
+}
