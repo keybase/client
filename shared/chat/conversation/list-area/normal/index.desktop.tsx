@@ -52,17 +52,19 @@ class Thread extends React.PureComponent<Props, State> {
 
   private lastResizeHeight = 0
   // @ts-ignore doens't know about ResizeObserver
-  private resizeObserver = new ResizeObserver((entries: Array<{contentRect: {height: number}}>) => {
-    const entry = entries[0]
-    const {contentRect} = entry
-    const {height} = contentRect
-    if (height !== this.lastResizeHeight) {
-      this.lastResizeHeight = height
-      if (this.isLockedToBottom()) {
-        this.scrollToBottom('resize observed')
-      }
-    }
-  })
+  private resizeObserver = __STORYSHOT__
+    ? undefined
+    : new ResizeObserver((entries: Array<{contentRect: {height: number}}>) => {
+        const entry = entries[0]
+        const {contentRect} = entry
+        const {height} = contentRect
+        if (height !== this.lastResizeHeight) {
+          this.lastResizeHeight = height
+          if (this.isLockedToBottom()) {
+            this.scrollToBottom('resize observed')
+          }
+        }
+      })
 
   private _lockedToBottom: boolean = true
   get lockedToBottom() {
@@ -270,8 +272,10 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.cleanupDebounced()
-    this.resizeObserver.disconnect()
-    this.resizeObserver = undefined
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = undefined
+    }
   }
 
   private cleanupDebounced = () => {
