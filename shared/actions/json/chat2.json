@@ -290,11 +290,6 @@
     "joinConversation": {
       "conversationIDKey": "Types.ConversationIDKey"
     },
-    "setUserBio": {
-      "_description": "Sets user bio for use in one-on-one conversations",
-      "userCard": "RPCTypes.UserCard",
-      "username": "string"
-    },
     "leaveConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
       "dontNavigateToInbox?": "boolean"

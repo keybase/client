@@ -108,7 +108,6 @@ export type TypedActionsMap = {
   'chat2:updateReactions': chat2.UpdateReactionsPayload
   'chat2:messageRetry': chat2.MessageRetryPayload
   'chat2:joinConversation': chat2.JoinConversationPayload
-  'chat2:setUserBio': chat2.SetUserBioPayload
   'chat2:leaveConversation': chat2.LeaveConversationPayload
   'chat2:muteConversation': chat2.MuteConversationPayload
   'chat2:openFolder': chat2.OpenFolderPayload
@@ -898,6 +897,7 @@ export type TypedActionsMap = {
   'users:blockUser': users.BlockUserPayload
   'users:updateBrokenState': users.UpdateBrokenStatePayload
   'users:updateFullnames': users.UpdateFullnamesPayload
+  'users:updateBio': users.UpdateBioPayload
   'waiting:incrementWaiting': waiting.IncrementWaitingPayload
   'waiting:decrementWaiting': waiting.DecrementWaitingPayload
   'waiting:batchChangeWaiting': waiting.BatchChangeWaitingPayload

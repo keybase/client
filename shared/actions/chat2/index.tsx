@@ -2534,27 +2534,6 @@ const joinConversation = async (_: TypedState, action: Chat2Gen.JoinConversation
   )
 }
 
-const fetchUserBio = async (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '').toArray()
-  if (otherParticipants.length === 1) {
-    // we're in a one-on-one convo
-    const username = otherParticipants[0]
-    if (state.users.infoMap.get(username, {bio: undefined}).bio) {
-      return // don't re-fetch bio if we already have one cached
-    }
-
-    const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
-    if (!userCard) {
-      return // don't do anything if we don't get a good response from rpc
-    }
-
-    return Chat2Gen.createSetUserBio({userCard, username}) // set bio in user infomap
-  }
-  return
-}
-
 const leaveConversation = async (_: TypedState, action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -3670,7 +3649,6 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.toggleThreadSearch, onToggleThreadSearch, 'onToggleThreadSearch')
   yield* Saga.chainAction2(Chat2Gen.selectConversation, hideThreadSearch)
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchUserBio)
   yield* Saga.chainAction2(Chat2Gen.deselectConversation, deselectConversation)
 
   yield* Saga.chainAction2(Chat2Gen.resolveMaybeMention, resolveMaybeMention)
