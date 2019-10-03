@@ -1,8 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
-
 FROM $BASE_IMAGE AS base
 
-FROM debian:stretch-slim
+FROM node:10.16.3-jessie
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
@@ -27,7 +26,7 @@ RUN gpg --import /gosu_key.asc \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && chmod +x /usr/local/bin/gosu
 
-COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
+COPY --from=base /usr/bin/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
 RUN useradd --create-home --shell /bin/bash keybase \

@@ -31,5 +31,17 @@ docker build \
   -t "keybaseio/client:$tag-slim" \
   "$client_dir"
 
+docker build \
+  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
+  -f "$client_dir/packaging/linux/docker/node/Dockerfile" \
+  -t "keybaseio/client:$tag-node" \
+  "$client_dir"
+
+docker build \
+  --build-arg BASE_IMAGE="keybaseio/client:$tag" \
+  -f "$client_dir/packaging/linux/docker/node-slim/Dockerfile" \
+  -t "keybaseio/client:$tag-node-slim" \
+  "$client_dir"
+
 # Don't store any secrets in the repo dir
 rm -r "$client_dir/.docker" || true
