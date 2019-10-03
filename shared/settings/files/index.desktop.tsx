@@ -74,8 +74,7 @@ export default (props: Props) => (
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
             <Kb.Box>
               <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-                <Kb.Text type="BodySmallSemibold">{Platform.fileUIName} integration</Kb.Text>
-                <Kb.Icon type="iconfont-finder" fontSize={16} color={Styles.globalColors.black_20} />
+                <Kb.Text type="Header">{Platform.fileUIName} integration</Kb.Text>
                 {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
                 {props.driverStatus.type === Types.DriverStatusType.Disabled &&
                   props.driverStatus.kextPermissionError && (
@@ -105,7 +104,7 @@ export default (props: Props) => (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
           <Kb.Box>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-              <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
+              <Kb.Text type="Header">File syncing</Kb.Text>
             </Kb.Box2>
             <Kb.Checkbox
               onCheck={

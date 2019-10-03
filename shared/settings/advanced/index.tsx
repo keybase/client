@@ -115,8 +115,8 @@ const Advanced = (props: Props) => {
         {flags.darkMode && (
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Divider style={styles.proxyDivider} />
-            <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Body">Dark mode</Kb.Text>
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+              <Kb.Text type="Header">Dark mode</Kb.Text>
               {isDarkModeSystemSupported() && (
                 <Kb.RadioButton
                   label="Respect system settings"
@@ -317,6 +317,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   proxyDivider: {
     marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
     width: '100%',
   },
   scrollview: {
