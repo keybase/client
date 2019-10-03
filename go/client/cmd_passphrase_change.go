@@ -49,10 +49,11 @@ func (c *CmdPassphraseChange) Run() error {
 
 	// If the user has a randompw, we force the password change since we cannot
 	// prompt them for the old one.
-	forcePassphraseChange, err := cliUser.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{})
+	passphraseState, err := cliUser.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
 	if err != nil {
 		return err
 	}
+	forcePassphraseChange := passphraseState == keybase1.PassphraseState_RANDOM
 
 	if forcePassphraseChange {
 		// Check whether the user would lose server-stored encrypted PGP keys.

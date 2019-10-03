@@ -2100,12 +2100,25 @@ func (j *tlfJournal) putBlockData(
 	// the journal lock.
 
 	timeout := j.config.diskLimitTimeout()
+	// If there's a deadline set in the context, use 60% of that (if
+	// that ends up being longer than the default timeout).
+	// Otherwise, use the default disk limit timeout.
+	deadline, ok := ctx.Deadline()
+	if ok {
+		ctxScaledTimeout := time.Duration(.6 * float64(time.Until(deadline)))
+		if ctxScaledTimeout > timeout {
+			timeout = ctxScaledTimeout
+		}
+	}
+
 	acquireCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	bufLen := int64(len(buf))
-	availableBytes, availableFiles, err := j.diskLimiter.reserveWithBackpressure(
-		acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax, j.chargedTo)
+	availableBytes, availableFiles, err :=
+		j.diskLimiter.reserveWithBackpressure(
+			acquireCtx, journalLimitTrackerType, bufLen, filesPerBlockMax,
+			j.chargedTo)
 	switch errors.Cause(err) {
 	case nil:
 		// Continue.

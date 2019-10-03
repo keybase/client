@@ -4554,14 +4554,14 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 }
 
 type DownloadFileAttachmentLocalRes struct {
-	Filename         string                        `codec:"filename" json:"filename"`
+	FilePath         string                        `codec:"filePath" json:"filePath"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 func (o DownloadFileAttachmentLocalRes) DeepCopy() DownloadFileAttachmentLocalRes {
 	return DownloadFileAttachmentLocalRes{
-		Filename: o.Filename,
+		FilePath: o.FilePath,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
 				return nil
@@ -5668,6 +5668,13 @@ type GetInboxAndUnboxUILocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type RequestInboxLayoutArg struct {
+}
+
+type RequestInboxUnboxArg struct {
+	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
+}
+
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
@@ -5865,9 +5872,14 @@ type DownloadFileAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
-	Filename         string                       `codec:"filename" json:"filename"`
+	DownloadToCache  bool                         `codec:"downloadToCache" json:"downloadToCache"`
 	Preview          bool                         `codec:"preview" json:"preview"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type ConfigureFileAttachmentDownloadLocalArg struct {
+	CacheDirOverride    string `codec:"cacheDirOverride" json:"cacheDirOverride"`
+	DownloadDirOverride string `codec:"downloadDirOverride" json:"downloadDirOverride"`
 }
 
 type MakePreviewArg struct {
@@ -5899,7 +5911,7 @@ type RetryPostArg struct {
 type MarkAsReadLocalArg struct {
 	SessionID      int            `codec:"sessionID" json:"sessionID"`
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MsgID          MessageID      `codec:"msgID" json:"msgID"`
+	MsgID          *MessageID     `codec:"msgID,omitempty" json:"msgID,omitempty"`
 }
 
 type FindConversationsLocalArg struct {
@@ -6098,6 +6110,10 @@ type ListBotCommandsLocalArg struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 }
 
+type ListPublicBotCommandsLocalArg struct {
+	Username string `codec:"username" json:"username"`
+}
+
 type ClearBotCommandsLocalArg struct {
 }
 
@@ -6161,6 +6177,8 @@ type LocalInterface interface {
 	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
+	RequestInboxLayout(context.Context) error
+	RequestInboxUnbox(context.Context, []ConversationID) error
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	GenerateOutboxID(context.Context) (OutboxID, error)
@@ -6186,6 +6204,7 @@ type LocalInterface interface {
 	GetNextAttachmentMessageLocal(context.Context, GetNextAttachmentMessageLocalArg) (GetNextAttachmentMessageLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
+	ConfigureFileAttachmentDownloadLocal(context.Context, ConfigureFileAttachmentDownloadLocalArg) error
 	MakePreview(context.Context, MakePreviewArg) (MakePreviewRes, error)
 	GetUploadTempFile(context.Context, GetUploadTempFileArg) (string, error)
 	MakeUploadTempFile(context.Context, MakeUploadTempFileArg) (string, error)
@@ -6230,6 +6249,7 @@ type LocalInterface interface {
 	LocationUpdate(context.Context, Coordinate) error
 	AdvertiseBotCommandsLocal(context.Context, AdvertiseBotCommandsLocalArg) (AdvertiseBotCommandsLocalRes, error)
 	ListBotCommandsLocal(context.Context, ConversationID) (ListBotCommandsLocalRes, error)
+	ListPublicBotCommandsLocal(context.Context, string) (ListBotCommandsLocalRes, error)
 	ClearBotCommandsLocal(context.Context) (ClearBotCommandsLocalRes, error)
 	PinMessage(context.Context, PinMessageArg) (PinMessageRes, error)
 	UnpinMessage(context.Context, ConversationID) (PinMessageRes, error)
@@ -6332,6 +6352,31 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetInboxAndUnboxUILocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"requestInboxLayout": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxLayoutArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInboxLayout(ctx)
+					return
+				},
+			},
+			"requestInboxUnbox": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxUnboxArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]RequestInboxUnboxArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RequestInboxUnboxArg)(nil), args)
+						return
+					}
+					err = i.RequestInboxUnbox(ctx, typedArgs[0].ConvIDs)
 					return
 				},
 			},
@@ -6702,6 +6747,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DownloadFileAttachmentLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"ConfigureFileAttachmentDownloadLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ConfigureFileAttachmentDownloadLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ConfigureFileAttachmentDownloadLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ConfigureFileAttachmentDownloadLocalArg)(nil), args)
+						return
+					}
+					err = i.ConfigureFileAttachmentDownloadLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7335,6 +7395,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"listPublicBotCommandsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]ListPublicBotCommandsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListPublicBotCommandsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListPublicBotCommandsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.ListPublicBotCommandsLocal(ctx, typedArgs[0].Username)
+					return
+				},
+			},
 			"clearBotCommandsLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]ClearBotCommandsLocalArg
@@ -7503,6 +7578,17 @@ func (c LocalClient) GetInboxAndUnboxUILocal(ctx context.Context, __arg GetInbox
 	return
 }
 
+func (c LocalClient) RequestInboxLayout(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxLayout", []interface{}{RequestInboxLayoutArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxUnbox(ctx context.Context, convIDs []ConversationID) (err error) {
+	__arg := RequestInboxUnboxArg{ConvIDs: convIDs}
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
 func (c LocalClient) GetInboxNonblockLocal(ctx context.Context, __arg GetInboxNonblockLocalArg) (res NonblockFetchRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxNonblockLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
@@ -7627,6 +7713,11 @@ func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg Download
 
 func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg DownloadFileAttachmentLocalArg) (res DownloadFileAttachmentLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.DownloadFileAttachmentLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ConfigureFileAttachmentDownloadLocal(ctx context.Context, __arg ConfigureFileAttachmentDownloadLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.ConfigureFileAttachmentDownloadLocal", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -7859,6 +7950,12 @@ func (c LocalClient) AdvertiseBotCommandsLocal(ctx context.Context, __arg Advert
 func (c LocalClient) ListBotCommandsLocal(ctx context.Context, convID ConversationID) (res ListBotCommandsLocalRes, err error) {
 	__arg := ListBotCommandsLocalArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.listBotCommandsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) ListPublicBotCommandsLocal(ctx context.Context, username string) (res ListBotCommandsLocalRes, err error) {
+	__arg := ListPublicBotCommandsLocalArg{Username: username}
+	err = c.Cli.Call(ctx, "chat.1.local.listPublicBotCommandsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

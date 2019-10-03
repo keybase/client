@@ -9,7 +9,7 @@ import {TypedState} from '../constants/reducer'
 import {validateNumber} from '../util/phone-numbers'
 import {validateEmailAddress} from '../util/email-address'
 
-const closeTeamBuilding = () => RouteTreeGen.createClearModals()
+const closeTeamBuilding = () => RouteTreeGen.createNavigateUp()
 export type NSAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace}}
 type SearchOrRecAction = {payload: {namespace: TeamBuildingTypes.AllowedNamespace; includeContacts: boolean}}
 

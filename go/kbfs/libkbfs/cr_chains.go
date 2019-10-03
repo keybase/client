@@ -1492,11 +1492,19 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 				// If we didn't find the create op to replace, then
 				// this node may have been renamed and then removed,
 				// with the create op being eliminated in the process.
-				// We need to keep the rename op there though, so that
-				// any remove operations within the renamed directory
-				// are processed correctly (see HOTPOT-616).
-				ropCopy := rop.deepCopy()
-				newChain.ops = append([]op{ropCopy}, newChain.ops...)
+				// We need to keep the rename op there though if there
+				// is a remove operation, so that any remove
+				// operations within the renamed directory are
+				// processed correctly (see HOTPOT-616).
+				for _, newOp := range newChain.ops {
+					if rmop, ok := newOp.(*rmOp); ok &&
+						rop.NewName == rmop.OldName {
+						ropCopy := rop.deepCopy()
+						ropCopy.setFinalPath(rmop.getFinalPath())
+						newChain.ops = append([]op{ropCopy}, newChain.ops...)
+						break
+					}
+				}
 			}
 		}
 	}

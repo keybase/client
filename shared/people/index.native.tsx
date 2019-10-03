@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters/mobile.native'
 import {PeoplePageList} from './index.shared'
 import {Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
-import ProfileSearch from '../profile/search/bar-container'
+import ProfileSearch from '../profile/search/bar'
 import ff from '../util/feature-flags.native'
 
 export const Header = (props: Props) => (

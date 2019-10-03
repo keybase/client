@@ -1,6 +1,4 @@
 import RNFetchBlob from 'rn-fetch-blob'
-import {findAvailableFilename} from './file.shared'
-
 import {StatResult, WriteStream, Encoding} from './file'
 
 export function tmpDir(): string {
@@ -9,10 +7,6 @@ export function tmpDir(): string {
 
 export function tmpFile(suffix: string): string {
   return `${tmpDir()}/${suffix}`
-}
-
-export function downloadFilePath(suffix: string): Promise<string> {
-  return findAvailableFilename(exists, `${tmpDir()}/${suffix}`)
 }
 
 export function copy(from: string, to: string): Promise<boolean> {

@@ -5,9 +5,13 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type LogoutEngine struct{}
+type LogoutEngine struct {
+	options libkb.LogoutOptions
+}
 
-func NewLogout() *LogoutEngine                           { return &LogoutEngine{} }
+func NewLogout(options libkb.LogoutOptions) *LogoutEngine {
+	return &LogoutEngine{options: options}
+}
 func (e *LogoutEngine) Name() string                     { return "Logout" }
 func (e *LogoutEngine) Prereqs() Prereqs                 { return Prereqs{} }
 func (e *LogoutEngine) RequiredUIs() []libkb.UIKind      { return []libkb.UIKind{} }
@@ -42,7 +46,7 @@ func (e *LogoutEngine) doSwitch(mctx libkb.MetaContext) (err error) {
 
 func (e *LogoutEngine) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("Logout#Run", func() error { return err })()
-	err = mctx.Logout()
+	err = mctx.LogoutWithOptions(e.options)
 	if err != nil {
 		return err
 	}

@@ -17,33 +17,72 @@ type Props = {
   hideOnCopy?: boolean
   onReveal?: () => void
   withReveal?: boolean
-  text: string
+  text?: string
+  placeholderText?: string
+  loadText?: () => void
 }
 
 const CopyText = (props: Props) => {
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
-
+  const [requestedCopy, setRequestedCopy] = React.useState(false)
   const setShowingToastFalseLater = useTimeout(() => setShowingToast(false), 1500)
   React.useEffect(() => {
     showingToast && setShowingToastFalseLater()
   }, [showingToast, setShowingToastFalseLater])
+
+  React.useEffect(() => {
+    if (!props.withReveal && !props.text) {
+      // only try to load text if withReveal is false
+      if (!props.loadText) {
+        throw new Error('no loadText method provided')
+      }
+      props.loadText()
+    }
+  }, []) // only run this effect once, on first render
 
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
 
   const dispatch = Container.useDispatch()
   const copyToClipboard = (text: string) => dispatch(ConfigGen.createCopyToClipboard({text}))
+
   const copy = () => {
-    setShowingToast(true)
-    textRef.current && textRef.current.highlightText()
-    copyToClipboard(props.text)
-    props.onCopy && props.onCopy()
-    if (props.hideOnCopy) {
-      setRevealed(false)
+    if (!props.text) {
+      if (!props.loadText) {
+        throw new Error('no text to copy and no loadText method provided')
+      }
+      setRequestedCopy(true)
+    } else {
+      setShowingToast(true)
+      textRef.current && textRef.current.highlightText()
+      copyToClipboard(props.text)
+      props.onCopy && props.onCopy()
+      if (props.hideOnCopy) {
+        setRevealed(false)
+      }
     }
   }
+
+  React.useEffect(() => {
+    if (requestedCopy && props.loadText) {
+      // we're requesting a copy
+      if (!props.text) {
+        // no text has been loaded
+        props.loadText()
+      } else {
+        // we want to copy something + have something to copy
+        copy() // props.text exists so this will not cause a recursive loop
+        setRequestedCopy(false)
+      }
+    }
+  }, [requestedCopy, props.text])
+
   const reveal = () => {
+    if (!props.text && props.loadText) {
+      // if we don't have text to copy we should load it
+      props.loadText()
+    }
     props.onReveal && props.onReveal()
     setRevealed(true)
   }
@@ -56,6 +95,7 @@ const CopyText = (props: Props) => {
     : isRevealed
     ? 1
     : null
+
   return (
     <Box2
       ref={attachmentRef}
@@ -77,23 +117,23 @@ const CopyText = (props: Props) => {
         allowHighlightText={true}
         ref={textRef}
       >
-        {isRevealed ? props.text : '••••••••••••'}
+        {isRevealed && (props.text || props.placeholderText)
+          ? props.text || props.placeholderText
+          : '••••••••••••'}
       </Text>
       {!isRevealed && (
         <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={reveal}>
           Reveal
         </Text>
       )}
-      {isRevealed && (
-        <Button
-          type={props.buttonType || 'Default'}
-          style={styles.button}
-          onClick={copy}
-          labelContainerStyle={styles.buttonLabelContainer}
-        >
-          <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
-        </Button>
-      )}
+      <Button
+        type={props.buttonType || 'Default'}
+        style={styles.button}
+        onClick={copy}
+        labelContainerStyle={styles.buttonLabelContainer}
+      >
+        <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
+      </Button>
     </Box2>
   )
 }

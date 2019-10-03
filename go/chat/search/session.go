@@ -193,7 +193,7 @@ func (s *searchSession) searchHitsFromMsgIDs(ctx context.Context, conv types.Rem
 	return &chat1.ChatSearchInboxHit{
 		ConvID:   convID,
 		TeamType: conv.GetTeamType(),
-		ConvName: conv.GetName(),
+		ConvName: utils.GetRemoteConvDisplayName(conv),
 		Hits:     hits,
 		Time:     hits[0].HitMessage.Valid().Ctime,
 	}, nil
@@ -291,7 +291,7 @@ func (s *searchSession) searchConvWithUIUpdate(ctx context.Context, convID chat1
 	}
 	if len(msgIDs) != hits.Size() {
 		s.indexer.Debug(ctx, "Search: hit mismatch, found %d msgIDs in index, %d hits in conv: %v, %v",
-			len(msgIDs), hits.Size(), conv.GetName(), conv.GetConvID())
+			len(msgIDs), hits.Size(), utils.GetRemoteConvDisplayName(conv), conv.GetConvID())
 	}
 	if hits == nil {
 		return nil
@@ -365,7 +365,8 @@ func (s *searchSession) preSearch(ctx context.Context) (err error) {
 		switch s.opts.ReindexMode {
 		case chat1.ReIndexingMode_PRESEARCH_SYNC:
 			if err := s.reindexConvWithUIUpdate(ctx, conv); err != nil {
-				s.indexer.Debug(ctx, "Search: Unable to reindexConv: %v, %v, %v", conv.GetName(), conv.GetConvID(), err)
+				s.indexer.Debug(ctx, "Search: Unable to reindexConv: %v, %v, %v",
+					utils.GetRemoteConvDisplayName(conv), conv.GetConvID(), err)
 				s.inboxIndexStatus.rmConv(conv.Conv)
 				continue
 			}
@@ -424,7 +425,7 @@ func (s *searchSession) postSearch(ctx context.Context) (err error) {
 		}
 		if err := s.reindexConvWithUIUpdate(ctx, conv); err != nil {
 			s.indexer.Debug(ctx, "Search: postSearch: error reindexing: conv: %v convID: %v err: %v",
-				conv.GetName(), conv.GetConvID(), err)
+				utils.GetRemoteConvDisplayName(conv), conv.GetConvID(), err)
 			s.inboxIndexStatus.rmConv(conv.Conv)
 			continue
 		}

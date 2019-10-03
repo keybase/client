@@ -2,6 +2,9 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import Feedback from '../settings/feedback/container'
 import {ProxySettingsPopup} from '../settings/proxy'
+import {KnowPassword, EnterPassword} from './reset/password'
+import Waiting from './reset/waiting'
+import ResetModal from './reset/modal'
 
 type OwnProps = {}
 type Props = {
@@ -41,6 +44,9 @@ const RootLogin = Container.connect(
 export const newRoutes = {
   feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},
   login: {getScreen: () => RootLogin},
+  resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
+  resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
+  resetWaiting: {getScreen: (): typeof Waiting => require('./reset/waiting').default},
   ...require('../provision/routes').newRoutes,
   ...require('./recover-password/routes').newRoutes,
   ...require('./signup/routes').newRoutes,
@@ -48,6 +54,9 @@ export const newRoutes = {
 export const newModalRoutes = {
   proxySettingsModal: {
     getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
+  },
+  resetModal: {
+    getScreen: (): typeof ResetModal => require('./reset/modal').default,
   },
   ...require('./recover-password/routes').newModalRoutes,
 }

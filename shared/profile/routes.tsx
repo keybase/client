@@ -13,7 +13,6 @@ import ProfileProofsList from './generic/proofs-list/container'
 import ProfileProveEnterUsername from './prove-enter-username/container'
 import ProfileProveWebsiteChoice from './prove-website-choice/container'
 import ProfileRevoke from './revoke/container'
-import ProfileSearch from './search/container'
 import ProfileShowcaseTeamOffer from './showcase-team-offer/container'
 
 export const newRoutes = {
@@ -47,7 +46,6 @@ export const newModalRoutes = {
     getScreen: (): typeof ProfileProveWebsiteChoice => require('./prove-website-choice/container').default,
   },
   profileRevoke: {getScreen: (): typeof ProfileRevoke => require('./revoke/container').default},
-  profileSearch: {getScreen: (): typeof ProfileSearch => require('./search/container').default},
   // TODO broken connect
   profileShowcaseTeamOffer: {
     getScreen: (): typeof ProfileShowcaseTeamOffer => require('./showcase-team-offer/container').default,

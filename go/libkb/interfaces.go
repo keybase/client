@@ -175,6 +175,7 @@ type JSONReader interface {
 	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
+	GetFloatAtPath(string) (float64, bool)
 	GetNullAtPath(string) bool
 }
 
@@ -192,6 +193,8 @@ type ConfigReader interface {
 	GetNoPinentry() (bool, bool)
 	GetDeviceID() keybase1.DeviceID
 	GetDeviceIDForUsername(nu NormalizedUsername) keybase1.DeviceID
+	GetPassphraseState() *keybase1.PassphraseState
+	GetPassphraseStateForUsername(nu NormalizedUsername) *keybase1.PassphraseState
 	GetDeviceIDForUID(u keybase1.UID) keybase1.DeviceID
 	GetUsernameForUID(u keybase1.UID) NormalizedUsername
 	GetUIDForUsername(n NormalizedUsername) keybase1.UID
@@ -225,6 +228,7 @@ type JSONWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetFloatAtPath(string, float64) error
 	SetNullAtPath(string) error
 	SetWrapperAtPath(string, *jsonw.Wrapper) error
 	DeleteAtPath(string)
@@ -242,6 +246,7 @@ type ConfigWriter interface {
 	SetUpdateLastChecked(keybase1.Time) error
 	SetBug3964RepairTime(NormalizedUsername, time.Time) error
 	SetRememberPassphrase(NormalizedUsername, bool) error
+	SetPassphraseState(keybase1.PassphraseState) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
@@ -412,6 +417,7 @@ type ChatUI interface {
 	ChatInboxUnverified(context.Context, chat1.ChatInboxUnverifiedArg) error
 	ChatInboxConversation(context.Context, chat1.ChatInboxConversationArg) error
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
+	ChatInboxLayout(context.Context, string) error
 	ChatThreadCached(context.Context, *string) error
 	ChatThreadFull(context.Context, string) error
 	ChatThreadStatus(context.Context, chat1.UIChatThreadStatus) error

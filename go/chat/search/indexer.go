@@ -347,7 +347,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.reindex: conv: %v, minID: %v, maxID: %v, numMissing: %v",
-			rconv.GetName(), minIdxID, maxIdxID, len(missingIDs)))()
+			utils.GetRemoteConvDisplayName(rconv), minIdxID, maxIdxID, len(missingIDs)))()
 
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
 	if len(missingIDs) < idx.pageSize {
@@ -404,7 +404,7 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 					idx.Debug(ctx, "unable to update ui %v", err)
 				} else {
 					idx.Debug(ctx, "%v is %d%% indexed, inbox is %d%% indexed",
-						rconv.GetName(), md.PercentIndexed(conv), percentIndexed)
+						utils.GetRemoteConvDisplayName(rconv), md.PercentIndexed(conv), percentIndexed)
 				}
 			}
 		}
@@ -594,12 +594,14 @@ func (idx *Indexer) IndexInbox(ctx context.Context, uid gregor1.UID) (res map[st
 	// convID -> stats
 	res = map[string]chat1.ProfileSearchConvStats{}
 	for convIDStr, conv := range convMap {
-		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", conv.GetName())
+		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", utils.GetRemoteConvDisplayName(conv))
 		convStats, err := idx.indexConvWithProfile(ctx, conv, uid)
 		if err != nil {
-			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v", conv.GetName(), err)
+			idx.G().Log.CDebugf(ctx, "Indexing errored for conv: %v, %v",
+				utils.GetRemoteConvDisplayName(conv), err)
 		} else {
-			idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v", conv.GetName(), convStats)
+			idx.G().Log.CDebugf(ctx, "Indexing completed for conv: %v, stats: %+v",
+				utils.GetRemoteConvDisplayName(conv), convStats)
 		}
 		res[convIDStr] = convStats
 	}
@@ -614,7 +616,7 @@ func (idx *Indexer) indexConvWithProfile(ctx context.Context, conv types.RemoteC
 		return res, err
 	}
 	defer func() {
-		res.ConvName = conv.GetName()
+		res.ConvName = utils.GetRemoteConvDisplayName(conv)
 		if md != nil {
 			min, max := MinMaxIDs(conv.Conv)
 			res.MinConvID = min

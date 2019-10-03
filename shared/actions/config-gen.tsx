@@ -107,7 +107,7 @@ type _OsNetworkStatusChangedPayload = {
   readonly type: Types.ConnectionType
   readonly isInit?: boolean
 }
-type _PersistRoutePayload = {readonly path: Array<any>}
+type _PersistRoutePayload = {readonly path?: Array<any>}
 type _PushLoadedPayload = {readonly pushLoaded: boolean}
 type _RemoteWindowWantsPropsPayload = {readonly component: string; readonly param: string}
 type _RestartHandshakePayload = void
@@ -287,10 +287,9 @@ export const createMobileAppState = (payload: _MobileAppStatePayload): MobileApp
 export const createOsNetworkStatusChanged = (
   payload: _OsNetworkStatusChangedPayload
 ): OsNetworkStatusChangedPayload => ({payload, type: osNetworkStatusChanged})
-export const createPersistRoute = (payload: _PersistRoutePayload): PersistRoutePayload => ({
-  payload,
-  type: persistRoute,
-})
+export const createPersistRoute = (
+  payload: _PersistRoutePayload = Object.freeze({})
+): PersistRoutePayload => ({payload, type: persistRoute})
 export const createPushLoaded = (payload: _PushLoadedPayload): PushLoadedPayload => ({
   payload,
   type: pushLoaded,

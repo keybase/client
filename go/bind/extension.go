@@ -255,8 +255,7 @@ func presentInboxItem(item storage.SharedInboxItem, username string) storage.Sha
 	if item.Name == username || strings.Contains(item.Name, "#") {
 		return item
 	}
-	item.Name = strings.Replace(item.Name, fmt.Sprintf(",%s", username), "", -1)
-	item.Name = strings.Replace(item.Name, fmt.Sprintf("%s,", username), "", -1)
+	item.Name = utils.StripUsernameFromConvName(item.Name, username)
 	return item
 }
 

@@ -36,6 +36,10 @@ func (r DummyChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInbo
 	return nil
 }
 
+func (r DummyChatUI) ChatInboxLayout(ctx context.Context, arg chat1.ChatInboxLayoutArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
 	return nil
 }

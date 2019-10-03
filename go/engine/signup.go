@@ -94,13 +94,7 @@ func (s *SignupEngine) PaperKey() *libkb.PaperKeyPhrase {
 func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SignupEngine#Run", func() error { return err })()
 
-	// Make sure we're starting with a clear login state. But check
-	// if it's fine to logout current user.
-	if clRes := libkb.CanLogout(m); !clRes.CanLogout {
-		return fmt.Errorf("Cannot signup because of currently logged in user: %s", clRes.Reason)
-	}
-
-	if err = m.Logout(); err != nil {
+	if err = m.LogoutKeepSecrets(); err != nil {
 		return err
 	}
 

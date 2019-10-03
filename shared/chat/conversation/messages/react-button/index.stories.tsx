@@ -8,6 +8,7 @@ import ReactButton, {NewReactionButton} from '.'
 
 // Common props for these stories and fallbacks for the prop provider
 const common = {
+  canWrite: true,
   conversationIDKey: Constants.noConversationIDKey,
   onMouseLeave: Sb.action('onMouseLeave'),
   onMouseOver: Sb.action('onMouseOver'),
@@ -49,6 +50,22 @@ const examples = [
     emoji: ':face_with_cowboy_hat:',
     onClick: Sb.action('onClick'),
   },
+  {
+    ...common,
+    active: false,
+    canWrite: false,
+    count: 2,
+    emoji: ':+1:',
+    onClick: Sb.action('onClick'),
+  },
+  {
+    ...common,
+    active: true,
+    canWrite: false,
+    count: 2,
+    emoji: ':+1:',
+    onClick: Sb.action('onClick'),
+  },
 ]
 
 const load = () => {
@@ -57,7 +74,9 @@ const load = () => {
       {story()}
     </Box>
   ))
-  examples.forEach(ex => story.add(`${ex.emoji}${ex.active ? ' active' : ''}`, () => <ReactButton {...ex} />))
+  examples.forEach((ex, index) =>
+    story.add(`${ex.emoji}${ex.active ? ' active' : ''} ${index}`, () => <ReactButton {...ex} />)
+  )
   story.add('New reaction', () => (
     <NewReactionButton
       onAddReaction={Sb.action('onAddReaction')}

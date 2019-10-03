@@ -1440,10 +1440,7 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 }
 
 func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
-	var rotateKey bool
-	var teamID keybase1.TeamID
-
-	err := RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 		if err != nil {
 			return err
@@ -1460,21 +1457,10 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 			return nil
 		}
 
-		teamID = t.ID
-		rotateKey = t.IsOpen() && !settings.Open
-		// Even if rotateKey is true, we are rotating as separate link right now.
-		// This is because rotation in TeamSettings link used to not be allowed,
-		// so not every client in the wild can parse a team with that.
-		return t.PostTeamSettings(ctx, settings, false /* rotate */)
+		// Rotate if team is moving from open to closed.
+		rotateKey := t.IsOpen() && !settings.Open
+		return t.PostTeamSettings(ctx, settings, rotateKey)
 	})
-	if err != nil {
-		return err
-	}
-	if rotateKey {
-		g.Log.CDebugf(ctx, "ChangeTeamSettings will rotate key after posting settings (team ID: %s)", teamID)
-		err = RotateKey(ctx, g, keybase1.TeamRotateKeyArg{TeamID: teamID, Rt: keybase1.RotationType_VISIBLE})
-	}
-	return err
 }
 
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) (err error) {

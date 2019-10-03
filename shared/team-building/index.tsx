@@ -77,6 +77,7 @@ type ContactProps = {
 }
 
 export type Props = ContactProps & {
+  filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
   focusInputCounter: number
   includeContacts: boolean
@@ -153,6 +154,7 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
             backgroundColor="blue"
             onClick={props.onImportContacts}
             small={true}
+            style={styles.importContactsButton}
           />
           <Kb.Button
             label="Skip"
@@ -195,6 +197,63 @@ const ContactsImportButton = (props: ContactProps) => {
     </Kb.ClickableBox>
   )
 }
+
+const FilteredServiceTabBar = (
+  props: Omit<React.ComponentPropsWithoutRef<typeof ServiceTabBar>, 'services'> & {
+    filterServices?: Array<ServiceIdWithContact>
+  }
+) => {
+  const services = React.useMemo(
+    () =>
+      props.filterServices
+        ? Constants.allServices.filter(
+            serviceId => props.filterServices && props.filterServices.includes(serviceId)
+          )
+        : Constants.allServices,
+    [props.filterServices]
+  )
+
+  return services.length === 1 && services[0] === 'keybase' ? null : (
+    <ServiceTabBar
+      services={Constants.allServices}
+      selectedService={props.selectedService}
+      onChangeService={props.onChangeService}
+      serviceResultCount={props.serviceResultCount}
+      showServiceResultCount={props.showServiceResultCount}
+    />
+  )
+}
+
+const EmptyResultText = (props: {selectedService: ServiceIdWithContact}) => (
+  <Kb.Box2
+    alignSelf="center"
+    centerChildren={!Styles.isMobile}
+    direction="vertical"
+    fullHeight={true}
+    fullWidth={true}
+    gap="tiny"
+    style={styles.emptyContainer}
+  >
+    {!Styles.isMobile && (
+      <Kb.Icon
+        fontSize={Styles.isMobile ? 48 : 64}
+        type={serviceIdToIconFont(props.selectedService)}
+        style={Styles.collapseStyles([
+          !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
+        ])}
+      />
+    )}
+    {!Styles.isMobile && (
+      <Kb.Text center={true} type="BodyBig">
+        Enter a {serviceIdToLabel(props.selectedService)} username above.
+      </Kb.Text>
+    )}
+    <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
+      Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a
+      Keybase account.
+    </Kb.Text>
+  </Kb.Box2>
+)
 
 class TeamBuilding extends React.PureComponent<Props, {}> {
   sectionListRef = React.createRef<Kb.SectionList>()
@@ -343,32 +402,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      return (
-        <Kb.Box2
-          alignSelf="center"
-          centerChildren={true}
-          direction="vertical"
-          fullHeight={true}
-          fullWidth={true}
-          gap="tiny"
-          style={styles.emptyContainer}
-        >
-          <Kb.Icon
-            fontSize={Styles.isMobile ? 48 : 64}
-            type={serviceIdToIconFont(this.props.selectedService)}
-            style={Styles.collapseStyles([
-              !!this.props.selectedService && {color: serviceIdToAccentColor(this.props.selectedService)},
-            ])}
-          />
-          <Kb.Text center={true} type="BodyBig">
-            Enter a {serviceIdToLabel(this.props.selectedService)} username above.
-          </Kb.Text>
-          <Kb.Text center={true} type="BodySmall">
-            Start a Keybase chat with anyone on {serviceIdToLabel(this.props.selectedService)}, even if they
-            don’t have a Keybase account.
-          </Kb.Text>
-        </Kb.Box2>
-      )
+      return <EmptyResultText selectedService={this.props.selectedService} />
     }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
@@ -520,6 +554,10 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       </Kb.Box2>
     )
 
+    // If there are no filterServices or if the filterServices has a phone
+    const showContactsBanner =
+      Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
+
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
@@ -540,14 +578,14 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        <ServiceTabBar
-          services={Constants.allServices}
+        <FilteredServiceTabBar
+          filterServices={props.filterServices}
           selectedService={props.selectedService}
           onChangeService={props.onChangeService}
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {Styles.isMobile && (
+        {showContactsBanner && (
           <ContactsBanner
             {...props}
             onRedoSearch={() => props.onChangeText(props.searchString)}
@@ -615,12 +653,20 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {maxWidth: '80%'},
       }),
+      emptyServiceText: Styles.platformStyles({
+        isMobile: {
+          padding: Styles.globalMargins.small,
+        },
+      }),
       headerContainer: Styles.platformStyles({
         isElectron: {
           marginBottom: Styles.globalMargins.xtiny,
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      importContactsButton: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
       importContactsContainer: {
         justifyContent: 'flex-start',
         padding: Styles.globalMargins.xsmall,

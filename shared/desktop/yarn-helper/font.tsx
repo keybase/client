@@ -278,10 +278,10 @@ function updateIconConstants() {
     })
   // dark
   iconFiles
-    .filter(i => i.startsWith('iconDark-'))
+    .filter(i => i.startsWith('icon-dark-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
-      const lightName = shortName.replace(/^iconDark-/, 'icon-')
+      const lightName = shortName.replace(/^icon-dark-/, 'icon-')
       if (!icons[lightName]) {
         console.error(`Found a dark icon without a matching light icon! ${lightName} ${i}`)
         process.exit(1)

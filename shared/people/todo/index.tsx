@@ -1,7 +1,7 @@
 import * as React from 'react'
 import PeopleItem from '../item'
 import * as Kb from '../../common-adapters'
-import PeopleSearch from '../../profile/search/bar-container'
+import PeopleSearch from '../../profile/search/bar'
 import * as Styles from '../../styles'
 import {Props as ButtonProps} from '../../common-adapters/button'
 

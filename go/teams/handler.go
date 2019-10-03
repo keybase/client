@@ -301,19 +301,16 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 	defer mctx.Trace(fmt.Sprintf("team.HandleDeleteNotification(%v)", len(rows)),
 		func() error { return err })()
 
-	var errs []error
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
-		err := TombstoneTeam(libkb.NewMetaContext(ctx, g), row.Id)
-		if err != nil {
-			errs = append(errs, err)
-			continue
+		if err := TombstoneTeam(libkb.NewMetaContext(ctx, g), row.Id); err != nil {
+			g.Log.CDebugf(ctx, "team.HandleDeleteNotification: failed to Tombstone: %s", err)
 		}
 		invalidateCaches(mctx, row.Id)
 		g.NotifyRouter.HandleTeamDeleted(ctx, row.Id)
 	}
 
-	return libkb.CombineErrors(errs...)
+	return nil
 }
 
 func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamExitRow) (err error) {
@@ -321,18 +318,15 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 	defer mctx.Trace(fmt.Sprintf("team.HandleExitNotification(%v)", len(rows)),
 		func() error { return err })()
 
-	var errs []error
 	for _, row := range rows {
 		mctx.Debug("team.HandleExitNotification: (%+v)", row)
-		err := FreezeTeam(mctx, row.Id)
-		if err != nil {
-			errs = append(errs, err)
-			continue
+		if err := FreezeTeam(mctx, row.Id); err != nil {
+			mctx.Debug("team.HandleExitNotification: failed to FreezeTeam: %s", err)
 		}
 		invalidateCaches(mctx, row.Id)
 		mctx.G().NotifyRouter.HandleTeamExit(ctx, row.Id)
 	}
-	return libkb.CombineErrors(errs...)
+	return nil
 }
 
 func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {

@@ -766,13 +766,18 @@ func TestRotationWhenClosingOpenTeam(t *testing.T) {
 
 		currentGen := teamObj.Generation()
 		if rotateWithSettings {
-			err = teamObj.PostTeamSettings(context.Background(), keybase1.TeamSettings{
-				Open: false,
-			}, true /* rotate */)
-			require.NoError(t, err)
-		} else {
 			err = ChangeTeamSettings(context.Background(), tc.G, teamName, keybase1.TeamSettings{
 				Open: false,
+			})
+			require.NoError(t, err)
+		} else {
+			err = teamObj.PostTeamSettings(context.Background(), keybase1.TeamSettings{
+				Open: false,
+			}, false /* rotate */)
+			require.NoError(t, err)
+			err = RotateKey(context.Background(), tc.G, keybase1.TeamRotateKeyArg{
+				TeamID: teamObj.ID,
+				Rt:     keybase1.RotationType_VISIBLE,
 			})
 			require.NoError(t, err)
 		}
@@ -780,15 +785,24 @@ func TestRotationWhenClosingOpenTeam(t *testing.T) {
 		teamObj, err = GetForTestByStringName(context.Background(), tc.G, teamName)
 		require.NoError(t, err)                              // ensures team settings link did not break loading
 		require.Equal(t, currentGen+1, teamObj.Generation()) // and we got new per team key
+		if rotateWithSettings {
+			// Make sure we only posted one link to close.
+			require.EqualValues(t, 2, teamObj.CurrentSeqno())
+		} else {
+			// This one should have posted two links.
+			require.EqualValues(t, 3, teamObj.CurrentSeqno())
+		}
 	}
 
-	// Try to close team using PostTeamSettings(rotate=true) which posts
-	// TeamSettings link with per-team-key in it. So it closes team and rotates
-	// key in one link.
+	// Close team using ChangeTeamSettings service_helper API, which is the
+	// default used by RPC handler, and closes team by using PostTeamSettings
+	// with rotate=true. This should close team and rotate in one sigchain
+	// link.
 	tryCloseTeam(true)
 
-	// Close team using ChangeTeamSettings service_helper API, which posts two
-	// links, to stay compatible with older clients sigchain parsers.
+	// Try to close team "manually" using PostTeamSettings(rotate=false) and
+	// then calling RotateKey. Team will be closed and rotated in two links.
+	// This is what clients used to do prior to 2019-10-02.
 	tryCloseTeam(false)
 }
 

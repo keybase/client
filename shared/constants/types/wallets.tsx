@@ -1,6 +1,7 @@
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
+import * as TeamBuildingTypes from './team-building'
 
 // When accepting the Stellar disclaimer, next path after acceptance
 export type NextScreenAfterAcceptance = 'airdrop' | 'openWallet'
@@ -434,6 +435,7 @@ export type _State = {
   sep7ConfirmPath: BuiltPaymentAdvanced
   sep7ConfirmURI: string
   staticConfig: StaticConfig | null
+  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   trustline: Trustline
   unreadPaymentsMap: I.Map<string, number>
 }

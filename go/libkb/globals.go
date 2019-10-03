@@ -17,7 +17,6 @@
 package libkb
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -85,6 +84,7 @@ type GlobalContext struct {
 	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
+	hasRandomPWPrefetcher  *HasRandomPWPrefetcher
 	stellar                Stellar            // Stellar related ops
 	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
 	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
@@ -200,6 +200,7 @@ func NewGlobalContext() *GlobalContext {
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
+		vidMu:              new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),
@@ -640,6 +641,12 @@ func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
 	return g.teamBoxAuditor
 }
 
+func (g *GlobalContext) GetHasRandomPWPrefetcher() *HasRandomPWPrefetcher {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.hasRandomPWPrefetcher
+}
+
 func (g *GlobalContext) GetStellar() Stellar {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -1056,6 +1063,7 @@ func (g *GlobalContext) GetLogf() logger.Loggerf {
 func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.hookMu.Lock()
 	defer g.hookMu.Unlock()
+	g.Log.Debug("AddLoginHook: %T", hook)
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
@@ -1065,20 +1073,27 @@ func (g *GlobalContext) CallLoginHooks(mctx MetaContext) {
 	// Trigger the creation of a per-user-keyring
 	_, _ = g.GetPerUserKeyring(mctx.Ctx())
 
+	mctx.Debug("CallLoginHooks: running UPAK#LoginAs")
 	err := g.GetUPAKLoader().LoginAs(mctx.CurrentUID())
 	if err != nil {
 		mctx.Warning("LoginAs error: %+v", err)
 	}
 
 	// Do so outside the lock below
+	mctx.Debug("CallLoginHooks: running FullSelfer#OnLogin")
 	err = g.GetFullSelfer().OnLogin(mctx)
 	if err != nil {
 		mctx.Warning("OnLogin full self error: %+v", err)
 	}
 
+	mctx.Debug("CallLoginHooks: running registered login hooks")
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
+		mctx.Debug("CallLoginHooks: will call login hook for %T", h)
+	}
+	for _, h := range g.loginHooks {
+		mctx.Debug("CallLoginHooks: calling login hook for %T", h)
 		if err := h.OnLogin(mctx); err != nil {
 			mctx.Warning("OnLogin hook error: %s", err)
 		}
@@ -1224,6 +1239,12 @@ func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamBoxAuditor = a
+}
+
+func (g *GlobalContext) SetHasRandomPWPrefetcher(p *HasRandomPWPrefetcher) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.hasRandomPWPrefetcher = p
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {
@@ -1445,31 +1466,4 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
 	return res, nil
-}
-
-// VID gets the VID that corresponds to the given UID.
-func (g *GlobalContext) VID(ctx context.Context, uid keybase1.UID) (ret keybase1.VID, err error) {
-	g.vidMu.Lock()
-	defer g.vidMu.Unlock()
-
-	// Construct the key from the given uid passed in.
-	strKey := "vid" + ":" + string(uid)
-
-	key := DbKey{DBMisc, strKey}
-	var found bool
-	var b []byte
-	found, err = g.LocalDb.GetInto(&ret, key)
-	if found {
-		return ret, nil
-	}
-	if err != nil {
-		g.Log.CDebugf(ctx, "VID: failure to get: %s", err.Error())
-	}
-	b, err = RandBytes(16)
-	if err != nil {
-		return ret, err
-	}
-	ret = keybase1.VID(hex.EncodeToString(b))
-	err = g.LocalDb.PutObj(key, nil, ret)
-	return ret, err
 }

@@ -3,7 +3,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import {capitalize} from 'lodash-es'
-import {followingStateToStyle} from '../search/shared'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
 export type Props = {
@@ -355,5 +354,22 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.small,
   },
 }))
+
+const followingStateToStyle = (followingState: Types.FollowingState) => {
+  return {
+    Following: {
+      color: Styles.globalColors.greenDark,
+    },
+    NoState: {
+      color: Styles.globalColors.black,
+    },
+    NotFollowing: {
+      color: Styles.globalColors.blueDark,
+    },
+    You: {
+      color: Styles.globalColors.black,
+    },
+  }[followingState]
+}
 
 export default UserResult

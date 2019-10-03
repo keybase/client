@@ -14,6 +14,9 @@ import {RowItemSmall, RowItemBigHeader, RowItemBig, RowItemDivider} from './inde
 const makeRowItemSmall = (conversationIDKey: string = ''): RowItemSmall => ({
   type: 'small',
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
+  teamname: 'mikem',
+  isTeam: false,
+  time: 1569718345,
 })
 const makeRowItemBigHeader = (teamname: string = ''): RowItemBigHeader => ({type: 'bigHeader', teamname})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowItemBig => ({

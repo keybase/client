@@ -41,12 +41,12 @@ const ChooseComponent = (props: ChooseComponentProps) => {
   Kbfs.useFsFileContext(props.path)
   Kbfs.useFsTlfs()
   Kbfs.useFsOnlineStatus()
+  const softError = Kbfs.useFsSoftError(props.path)
 
   if (props.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
     return <SimpleScreens.Loading />
   }
 
-  const softError = Kbfs.useFsSoftError(props.path)
   if (softError) {
     return <SimpleScreens.Oops path={props.path} reason={softError} />
   }

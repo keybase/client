@@ -1,16 +1,11 @@
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import {findAvailableFilename} from './file.shared'
 import {StatResult, WriteStream, Encoding} from './file'
 
 export const downloadFolder = __STORYBOOK__
   ? ''
   : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
-
-export function downloadFilePath(suffix: string): Promise<string> {
-  return findAvailableFilename(exists, path.join(downloadFolder, suffix))
-}
 
 export function exists(filepath: string): Promise<boolean> {
   return new Promise(resolve => {

@@ -473,18 +473,18 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	require.Equal(t, expectedPrompts, sui.terminalPrompts)
 
 	ucli := keybase1.UserClient{Cli: user.primaryDevice().rpcClient()}
-	res, err := ucli.LoadHasRandomPw(context.Background(), keybase1.LoadHasRandomPwArg{
+	res, err := ucli.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	require.True(t, res)
+	require.Equal(t, res, keybase1.PassphraseState_RANDOM)
 
 	err = G.ConfigureConfig()
 	require.NoError(t, err)
 	logout := client.NewCmdLogoutRunner(G)
 	err = logout.Run()
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Cannot logout")
+	require.Contains(t, err.Error(), "Cannot log out")
 
 	logout = client.NewCmdLogoutRunner(G)
 	logout.Force = true

@@ -1,10 +1,12 @@
 import logger from '../logger'
+import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
 import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
+import teamBuildingReducer from './team-building'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -20,7 +22,10 @@ const reduceAssetMap = (
     )
   )
 
-export default function(state: Types.State = initialState, action: WalletsGen.Actions): Types.State {
+export default function(
+  state: Types.State = initialState,
+  action: WalletsGen.Actions | TeamBuildingGen.Actions
+): Types.State {
   switch (action.type) {
     case WalletsGen.resetStore:
       return initialState.merge({
@@ -552,6 +557,21 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.merge({
         sep6Error: action.payload.error,
         sep6Message: action.payload.message,
+      })
+    case TeamBuildingGen.resetStore:
+    case TeamBuildingGen.cancelTeamBuilding:
+    case TeamBuildingGen.addUsersToTeamSoFar:
+    case TeamBuildingGen.removeUsersFromTeamSoFar:
+    case TeamBuildingGen.searchResultsLoaded:
+    case TeamBuildingGen.finishedTeamBuilding:
+    case TeamBuildingGen.fetchedUserRecs:
+    case TeamBuildingGen.fetchUserRecs:
+    case TeamBuildingGen.search:
+    case TeamBuildingGen.selectRole:
+    case TeamBuildingGen.labelsSeen:
+    case TeamBuildingGen.changeSendNotification:
+      return state.merge({
+        teamBuilding: teamBuildingReducer('wallets', state.teamBuilding, action),
       })
     // Saga only actions
     case WalletsGen.updateAirdropDetails:

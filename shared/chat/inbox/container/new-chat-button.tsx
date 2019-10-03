@@ -3,7 +3,6 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {namedConnect} from '../../../util/container'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
-import * as Constants from '../../../constants/chat2'
 
 type OwnProps = {
   hide: boolean
@@ -38,7 +37,9 @@ const HeaderNewChatButton = namedConnect(
   state => ({
     hide:
       state.chat2.inboxHasLoaded &&
-      !state.chat2.metaMap.some((_, id) => Constants.isValidConversationIDKey(id)),
+      !!state.chat2.inboxLayout &&
+      (state.chat2.inboxLayout.smallTeams || []).length === 0 &&
+      (state.chat2.inboxLayout.bigTeams || []).length === 0,
   }),
   dispatch => ({
     onNewChat: () => dispatch(appendNewChatBuilder()),

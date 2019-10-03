@@ -938,6 +938,30 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	return msg.Ctime
 }
 
+func GetRemoteConvTLFName(conv types.RemoteConversation) string {
+	if conv.LocalMetadata != nil {
+		return conv.LocalMetadata.Name
+	}
+	msg, err := PickLatestMessageSummary(conv.Conv, nil)
+	if err != nil {
+		return ""
+	}
+	return msg.TlfName
+}
+
+func GetRemoteConvDisplayName(rc types.RemoteConversation) string {
+	tlfName := GetRemoteConvTLFName(rc)
+	switch rc.Conv.Metadata.TeamType {
+	case chat1.TeamType_COMPLEX:
+		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
+			return fmt.Sprintf("%s#%s", tlfName, rc.LocalMetadata.TopicName)
+		}
+		fallthrough
+	default:
+		return tlfName
+	}
+}
+
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
 	if conv.Info.SnippetMsg == nil {
 		return "", ""
@@ -1100,6 +1124,32 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	return snippet
 }
 
+func StripUsernameFromConvName(name string, username string) (res string) {
+	res = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
+	res = strings.Replace(res, fmt.Sprintf("%s,", username), "", -1)
+	return res
+}
+
+func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
+	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
+	res.ConvID = rc.GetConvID().String()
+	res.IsTeam = rc.GetTeamType() == chat1.TeamType_SIMPLE
+	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
+	res.Time = GetConvMtime(rc.Conv)
+	if useSnippet && rc.LocalMetadata != nil {
+		res.Snippet = &rc.LocalMetadata.Snippet
+		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
+	}
+	return res
+}
+
+func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.RemoteConversation) (res chat1.UIInboxBigTeamChannelRow) {
+	res.ConvID = rc.GetConvID().String()
+	res.Channelname = rc.GetTopicName()
+	res.Teamname = GetRemoteConvTLFName(rc)
+	return res
+}
+
 func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	var tlfName string
 	rawConv := rc.Conv
@@ -1156,7 +1206,7 @@ func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []t
 }
 
 func SearchableRemoteConversationName(conv types.RemoteConversation, username string) string {
-	name := conv.GetName()
+	name := GetRemoteConvDisplayName(conv)
 	// Check for self conv or big team conv
 	if name == username || strings.Contains(name, "#") {
 		return name

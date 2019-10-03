@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Styles from '../styles'
 import {Image, ImageProps, ImageURISource} from 'react-native'
 import RNFI from 'react-native-fast-image'
 import {isArray} from 'lodash-es'
@@ -32,5 +31,4 @@ class FastImageImpl extends React.Component<ImageProps> {
   }
 }
 
-// TEMP turning this off due to crashes in the bg in ios 13. Likely turn this back on later
-export const FastImage = Styles.isIOS ? NativeImage : FastImageImpl
+export const FastImage = FastImageImpl

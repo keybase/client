@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teambot"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 )
 
@@ -59,7 +60,13 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		stopCh:                 make(chan struct{}),
 	}
 	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
-		go ekLib.backgroundKeygen(mctx)
+		// If we are in standalone run this synchronously to avoid racing if we
+		// are attempting logout.
+		if mctx.G().Standalone {
+			ekLib.backgroundKeygen(mctx)
+		} else {
+			go ekLib.backgroundKeygen(mctx)
+		}
 	}
 	return ekLib
 }
@@ -798,9 +805,46 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		return ek, false, err
 	}
 	merkleRoot := *merkleRootPtr
-	metadata, err := publishNewTeambotEK(mctx, teamID, botUID, teamEK.Team(), merkleRoot)
+
+	metadata := keybase1.TeambotEkMetadata{
+		Kid:        seed.DeriveDHKey().GetKID(),
+		Generation: teamEK.Team().Metadata.Generation,
+		Uid:        botUID,
+		HashMeta:   merkleRoot.HashMeta(),
+		// The ctime is derivable from the hash meta, by fetching the hashed
+		// root from the server, but including it saves readers a potential
+		// extra round trip.
+		Ctime: keybase1.TimeFromSeconds(merkleRoot.Ctime()),
+	}
+
+	team, err := teams.Load(mctx.Ctx(), mctx.G(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
 	if err != nil {
 		return ek, false, err
+	}
+
+	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(botUID))
+	if err != nil {
+		return ek, false, err
+	}
+	role, err := team.MemberRole(mctx.Ctx(), upak.ToUserVersion())
+	if err != nil {
+		return ek, false, err
+	}
+
+	// If the bot is not a restricted bot member don't try to publish the key
+	// for them. This can happen when decrypting past content after the bot is
+	// removed from the team.
+	if role.IsRestrictedBot() {
+		sig, box, err := prepareNewTeambotEK(mctx, team, botUID, seed, &metadata, merkleRoot)
+		if err != nil {
+			return ek, false, err
+		}
+		if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
+			return ek, false, err
+		}
 	}
 
 	e.teambotEKMetadataCache.Add(cacheKey, metadata)
@@ -809,7 +853,7 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		Metadata: metadata,
 	})
 
-	return ek, true, nil
+	return ek, role.IsRestrictedBot(), nil
 }
 
 func (e *EKLib) getLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
@@ -899,14 +943,23 @@ func (e *EKLib) GetTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, gBo
 		ek, err = mctx.G().GetTeambotEKBoxStorage().Get(mctx, teamID, generation, contentCtime)
 		if err != nil {
 			if _, ok := err.(EphemeralKeyError); ok {
-				// Ping team members to generate this key for us
-				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, generation); err2 != nil {
-					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+				// If we don't have access to the max generation, request
+				// access to this key. We may not have access to earlier keys
+				// and don't want to spam out requests for new ones.
+				maxGeneration, err2 := mctx.G().GetTeambotEKBoxStorage().MaxGeneration(mctx, teamID, true)
+				if err2 != nil {
+					mctx.Debug("Unable to get MaxGeneration: %v", err)
+					return ek, err
 				}
-				// NOTE we don't downgrade this errors to transient since a bot
-				// should have access to keys for decryption unless there is a
-				// bug, members check that the key is created before encrypting
-				// content.
+				if generation == maxGeneration {
+					// Ping team members to generate the latest key for us
+					if err2 = teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+						mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+					}
+				}
+				// NOTE we don't downgrade this error to transient since the
+				// bot may have added a device after the EK was generated, and
+				// will never get access to it.
 			}
 			return ek, err
 		}

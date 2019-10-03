@@ -114,7 +114,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	// Make sure we can find this after fu is deleted
 	err = libkb.DeleteAccount(m, fu.NormalizedUsername(), &fu.Passphrase)
 	require.NoError(t, err)
-	err = m.Logout()
+	err = m.LogoutKillSecrets()
 	require.NoError(t, err)
 
 	arg = keybase1.FindNextMerkleRootAfterRevokeArg{
