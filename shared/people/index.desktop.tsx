@@ -13,7 +13,7 @@ export const Header = (_: Props) => (
 
 const People = (props: Props) => (
   <Kb.ScrollView style={styles.container}>
-    <Kb.ProgressIndicator style={styles.progress} />
+    {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
     <PeoplePageList {...props} />
   </Kb.ScrollView>
 )
