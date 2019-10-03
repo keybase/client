@@ -110,11 +110,12 @@ public class MainActivity extends ReactFragmentActivity {
   }
 
   private static final int ANDROID_TEN = 29;
+
   private String colorSchemeForCurrentConfiguration() {
     // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
     if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
       int currentNightMode =
-              this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
       switch (currentNightMode) {
         case Configuration.UI_MODE_NIGHT_NO:
           return "light";
@@ -134,14 +135,10 @@ public class MainActivity extends ReactFragmentActivity {
     super.onCreate(null);
 
 
-    // Hide splash screen background after 300ms.
-    // This prevents the image from being visible behind the app, such as during a
-    // keyboard show animation.
-    final Window mainWindow = this.getWindow();
-    final int bgColor = this.colorSchemeForCurrentConfiguration() == "light" ? R.color.white : R.color.black;
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        mainWindow.setBackgroundDrawableResource(bgColor);
+        // TODO, read this pref from go
+        setBackgroundColor(DarkModePreference.System);
       }
     }, 300);
 
@@ -394,8 +391,23 @@ public class MainActivity extends ReactFragmentActivity {
       }
     }
 
+    setBackgroundColor(DarkModePreference.System);
+  }
+
+  public void setBackgroundColor(DarkModePreference pref) {
+    final int bgColor;
+    if (pref == DarkModePreference.System) {
+      bgColor = this.colorSchemeForCurrentConfiguration().equals("light") ? R.color.white : R.color.black;
+    } else if (pref == DarkModePreference.AlwaysDark) {
+      bgColor = R.color.black;
+    } else {
+      bgColor = R.color.white;
+    }
     final Window mainWindow = this.getWindow();
-    final int bgColor = this.colorSchemeForCurrentConfiguration() == "light" ? R.color.white : R.color.black;
-    mainWindow.setBackgroundDrawableResource(bgColor);
+    Handler handler = new Handler(Looper.getMainLooper());
+    // Run this on the main thread.
+    handler.post(() -> {
+      mainWindow.setBackgroundDrawableResource(bgColor);
+    });
   }
 }
