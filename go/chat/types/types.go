@@ -622,7 +622,7 @@ func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Con
 }
 
 func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-	msgType chat1.MessageType, firstConv bool) error {
+	msg chat1.MessageBoxed, firstConv bool) error {
 	return nil
 }
 

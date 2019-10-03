@@ -93,7 +93,7 @@ type SharedInboxItem struct {
 type InboxLayoutChangedNotifier interface {
 	UpdateLayout(ctx context.Context, reason string) error
 	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-		msgType chat1.MessageType, firstConv bool) error
+		msg chat1.MessageBoxed, firstConv bool) error
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) error
 }
 
@@ -104,7 +104,7 @@ func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context, reaso
 }
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
-	conv types.RemoteConversation, msgType chat1.MessageType, firstConv bool) error {
+	conv types.RemoteConversation, msg chat1.MessageBoxed, firstConv bool) error {
 	return nil
 }
 
@@ -920,8 +920,8 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 			}
 		}
 
-		// Add the convo
-		layoutChanged = conv.GetTopicType() == chat1.TopicType_CHAT // only chat convs change layout
+		// only chat convs for layout changed
+		layoutChanged = layoutChanged || conv.GetTopicType() == chat1.TopicType_CHAT
 		ibox.Conversations = append(utils.RemoteConvs([]chat1.Conversation{conv}), ibox.Conversations...)
 	} else {
 		i.Debug(ctx, "NewConversation: skipping update, conversation exists in inbox")
@@ -1159,7 +1159,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	if mconv.GetTopicType() == chat1.TopicType_CHAT {
 		defer func() {
 			go func(ctx context.Context) {
-				_ = i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg.GetMessageType(), index == 0)
+				_ = i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg, index == 0)
 			}(globals.BackgroundChatCtx(ctx, i.G()))
 		}()
 	}
