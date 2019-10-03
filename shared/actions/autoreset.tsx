@@ -19,9 +19,14 @@ const receivedBadgeState = async (
   return null
 }
 
+// TODO: make this work in the logged-out case
 const cancelReset = async () => {
   logger.info('Cancelled autoreset from logged-in user')
-  await RPCGen.accountCancelResetRpcPromise(undefined, Constants.waitingKeyCancelReset)
+  try {
+    await RPCGen.accountCancelResetRpcPromise(undefined, Constants.waitingKeyCancelReset)
+  } catch (error) {
+    return AutoresetGen.createResetError({error})
+  }
   return AutoresetGen.createResetCancelled()
 }
 
@@ -44,7 +49,7 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
         passphrase: action.payload.password ? action.payload.password.stringValue() : '',
         usernameOrEmail: state.autoreset.username,
       },
-      waitingKey: Constants.autoresetEnterPipelineWaitingKey,
+      waitingKey: Constants.waitingKeyEnterPipeline,
     })
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
   } catch (error) {
@@ -58,8 +63,13 @@ const submittedReset = (_: Container.TypedState, action: AutoresetGen.SubmittedR
     replace: true,
   })
 
+const showFinalResetScreen = (_: Container.TypedState, action: AutoresetGen.ShowFinalResetScreenPayload) =>
+  RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
+
 function* autoresetSaga() {
+  // TODO: send email again
   yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset, 'cancelReset')
+  yield* Saga.chainAction2(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
   yield* Saga.chainAction2(AutoresetGen.startAccountReset, startAccountReset)
   yield* Saga.chainAction2(AutoresetGen.submittedReset, submittedReset)
   yield* Saga.chainAction2(AutoresetGen.updateAutoresetState, updateAutoresetState, 'updateAutoresetState')

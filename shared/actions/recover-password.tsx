@@ -1,12 +1,12 @@
-import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import * as AutoresetGen from '../actions/autoreset-gen'
 import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as ProvisionConstants from '../constants/provision'
 import * as ProvisionGen from '../actions/provision-gen'
-import * as RecoverPasswordGen from './recover-password-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RecoverPasswordGen from '../actions/recover-password-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
@@ -58,7 +58,25 @@ const explainDevice = (
   ])
 }
 
-const promptReset = () => Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+// This same RPC is called at the beginning and end of the 7-day wait by the service.
+// TODO figure out what the deal is with typing here
+function* promptReset(
+  params: RPCTypes.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
+  response: {
+    result: (reset: boolean) => void
+  }
+) {
+  if (params.prompt.t === RPCTypes.ResetPromptType.complete) {
+    yield Saga.put(AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet}))
+    const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
+      RecoverPasswordGen.submitResetPrompt
+    )
+    response.result(action.payload.action)
+    yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['login'], replace: true}))
+  } else {
+    yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+  }
+}
 
 const getPaperKeyOrPw = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],

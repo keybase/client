@@ -2,19 +2,17 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {SignupScreen} from '../../signup/common'
+import {addTicker, removeTicker} from '../../util/second-timer'
 import * as Constants from '../../constants/autoreset'
 import * as Container from '../../util/container'
 import * as AutoresetGen from '../../actions/autoreset-gen'
-
-// TODO: figure out how send again works
-const todo = () => console.log('TODO')
 
 type Props = Container.RouteProps<{pipelineStarted: boolean}>
 
 const Waiting = (props: Props) => {
   const pipelineStarted = Container.getRouteProps(props, 'pipelineStarted', false)
   const endTime = Container.useSelector(state => state.autoreset.endTime)
-  const formattedTime = Constants.formatTimeLeft(endTime)
+  const [formattedTime, setFormattedTime] = React.useState('7 days')
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -24,7 +22,25 @@ const Waiting = (props: Props) => {
     () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
     []
   )
-  const onSendAgain = todo
+  const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createSendEmailAgain()), [])
+
+  React.useEffect(() => {
+    function tick() {
+      const newFormattedTime = Constants.formatTimeLeft(endTime)
+      if (formattedTime !== newFormattedTime) {
+        setFormattedTime(newFormattedTime)
+      }
+      if (Date.now() > endTime) {
+        // TODO: this maybe actually happens automatically..
+        // dispatch(nav.safeNavigateAppendPayload({path: ['resetConfirm'], replace: true}))
+      }
+    }
+
+    const tickerID = addTicker(tick)
+    return function cleanup() {
+      removeTicker(tickerID)
+    }
+  })
 
   return (
     <SignupScreen

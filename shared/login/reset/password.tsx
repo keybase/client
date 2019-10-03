@@ -6,11 +6,10 @@ import HiddenString from '../../util/hidden-string'
 import * as Container from '../../util/container'
 import * as AutoresetGen from '../../actions/autoreset-gen'
 import * as Constants from '../../constants/autoreset'
-import {useWaiting} from '../../constants/waiting'
 
 const KnowPassword = () => {
   const error = Container.useSelector(state => state.autoreset.error)
-  const waiting = useWaiting(Constants.autoresetEnterPipelineWaitingKey)
+  const waiting = Container.useAnyWaiting(Constants.waitingKeyEnterPipeline)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -57,7 +56,7 @@ const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
 
   const error = Container.useSelector(state => state.autoreset.error)
-  const waiting = useWaiting(Constants.autoresetEnterPipelineWaitingKey)
+  const waiting = Container.useAnyWaiting(Constants.waitingKeyEnterPipeline)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -86,6 +85,7 @@ const EnterPassword = () => {
           type="password"
           onChangeText={setPassword}
           onEnterKeyDown={onContinue}
+          autoFocus={true}
         />
       </Kb.Box2>
     </SignupScreen>

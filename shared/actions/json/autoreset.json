@@ -8,6 +8,7 @@
       "_description": "Cancel an autoreset for the currently logged-in account."
     },
     "resetAccount": {
+      "_description": "Tell the server to put an account into the reset pipeline. If no password is provided, the user will need to click a confirmation link in an email or text.",
       "password?": "HiddenString"
     },
     "resetCancelled": {
@@ -16,10 +17,18 @@
     "resetError": {
       "error": "RPCError"
     },
+    "sendEmailAgain": {
+      "_description": "Sends another email/text to the user being reset. TODO implement me."
+    },
     "setUsername": {
       "username": "string"
     },
+    "showFinalResetScreen": {
+      "_description": "Show the screen where the user chooses whether to actually reset their account or cancel out",
+      "hasWallet": "boolean"
+    },
     "startAccountReset": {
+      "_description": "Start the account reset process in the GUI.",
       "skipPassword": "boolean",
       "username?": "string"
     },

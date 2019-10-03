@@ -5,6 +5,7 @@ const initialState: Types.State = {
   active: false,
   endTime: 0,
   error: '',
+  hasWallet: false,
   skipPassword: false,
   username: '',
 }
@@ -39,10 +40,19 @@ export default (state: Types.State = initialState, action: AutoresetGen.Actions)
         // TODO: get endTime in RPC response from kbweb
         draftState.endTime = Date.now() + 7 * 24 * 60 * 60 * 1000
         return
+      case AutoresetGen.showFinalResetScreen:
+        draftState.hasWallet = action.payload.hasWallet
+        return
+
+      // TODO: clear error on submit final prompt
+      // Actions that just reset the error
+      case AutoresetGen.cancelReset:
+      case AutoresetGen.resetAccount:
+        draftState.error = ''
+        return
 
       // saga only actions
-      case AutoresetGen.resetAccount:
-      case AutoresetGen.cancelReset:
+      case AutoresetGen.sendEmailAgain:
         return
     }
   })
