@@ -3,6 +3,8 @@ import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as UsersGen from './users-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {TypedState} from '../util/container'
 
 const onIdentifyUpdate = (
   _: Container.TypedState,
@@ -13,8 +15,25 @@ const onIdentifyUpdate = (
     newlyFixed: action.payload.params.okUsernames || [],
   })
 
+// shouldn't know anything about chat stuff, only username => rpc call
+const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
+  const {username} = action.payload
+
+  if (state.users.infoMap.get(username, {bio: undefined}).bio) {
+    return // don't re-fetch bio if we already have one cached
+  }
+
+  const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
+  if (!userCard) {
+    return // don't do anything if we don't get a good response from rpc
+  }
+
+  return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
+}
+
 function* usersSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate, 'onIdentifyUpdate')
+  yield* Saga.chainAction2(UsersGen.getBio, getBio)
 }
 
 export default usersSaga

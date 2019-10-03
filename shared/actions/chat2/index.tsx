@@ -2530,6 +2530,23 @@ const joinConversation = async (_: TypedState, action: Chat2Gen.JoinConversation
   )
 }
 
+const fetchConversationBio = async (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '')
+  if (otherParticipants.count() === 1) {
+    // we're in a one-on-one convo
+    const username = otherParticipants.first('')
+
+    if (username === '') {
+      return // if for some reason we get a garbage username, don't do anything
+    }
+
+    return UsersGen.createGetBio({username})
+  }
+  return
+}
+
 const leaveConversation = async (_: TypedState, action: Chat2Gen.LeaveConversationPayload) => {
   await RPCChatTypes.localLeaveConversationLocalRpcPromise({
     convID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -3655,6 +3672,8 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
+
+  yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 
