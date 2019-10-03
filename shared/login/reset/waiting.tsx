@@ -12,7 +12,7 @@ type Props = Container.RouteProps<{pipelineStarted: boolean}>
 const Waiting = (props: Props) => {
   const pipelineStarted = Container.getRouteProps(props, 'pipelineStarted', false)
   const endTime = Container.useSelector(state => state.autoreset.endTime)
-  const [formattedTime, setFormattedTime] = React.useState('7 days')
+  const [formattedTime, setFormattedTime] = React.useState('a bit')
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

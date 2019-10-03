@@ -66,7 +66,7 @@ const displayProgressEngine = (
 ) =>
   Saga.put(
     AutoresetGen.createDisplayProgress({
-      endTime: params.endTime,
+      endTime: params.endTime * 1000,
     })
   )
 
@@ -100,7 +100,7 @@ const submittedReset = (_: Container.TypedState, action: AutoresetGen.SubmittedR
     replace: true,
   })
 
-const showFinalResetScreen = (_: Container.TypedState, action: AutoresetGen.ShowFinalResetScreenPayload) =>
+const showFinalResetScreen = (_: Container.TypedState, __: AutoresetGen.ShowFinalResetScreenPayload) =>
   RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
 
 function* autoresetSaga() {
