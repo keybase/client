@@ -564,7 +564,6 @@ func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv typ
 func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "UpdateLayoutFromSubteamRename")()
 	var bigTeamConvs []chat1.ConversationID
-	h.clock.Sleep(4 * time.Second) // sleep here for 5 seconds to try to avoid notification race
 	for _, conv := range convs {
 		if conv.GetTeamType() == chat1.TeamType_COMPLEX {
 			bigTeamConvs = append(bigTeamConvs, conv.GetConvID())
