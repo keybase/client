@@ -166,6 +166,13 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		if status.ResetID != nil {
 			return e.resetPrompt(mctx, status)
 		}
+	} else {
+		if err := mctx.UIs().LoginUI.DisplayResetProgress(mctx.Ctx(), keybase1.DisplayResetProgressArg{
+			Text:       "Please verify your phone number or email address to proceed with the reset.",
+			NeedVerify: true,
+		}); err != nil {
+			return err
+		}
 	}
 
 	return nil

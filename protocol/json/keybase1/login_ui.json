@@ -138,6 +138,10 @@
         {
           "name": "endTime",
           "type": "Time"
+        },
+        {
+          "name": "needVerify",
+          "type": "boolean"
         }
       ],
       "response": null,

@@ -11,7 +11,6 @@ export const displayProgress = 'autoreset:displayProgress'
 export const resetAccount = 'autoreset:resetAccount'
 export const resetCancelled = 'autoreset:resetCancelled'
 export const resetError = 'autoreset:resetError'
-export const sendEmailAgain = 'autoreset:sendEmailAgain'
 export const setUsername = 'autoreset:setUsername'
 export const showFinalResetScreen = 'autoreset:showFinalResetScreen'
 export const startAccountReset = 'autoreset:startAccountReset'
@@ -20,11 +19,10 @@ export const updateAutoresetState = 'autoreset:updateAutoresetState'
 
 // Payload Types
 type _CancelResetPayload = void
-type _DisplayProgressPayload = {readonly endTime: number}
+type _DisplayProgressPayload = {readonly endTime: number; readonly needVerify: boolean}
 type _ResetAccountPayload = {readonly password?: HiddenString}
 type _ResetCancelledPayload = void
 type _ResetErrorPayload = {readonly error: RPCError}
-type _SendEmailAgainPayload = void
 type _SetUsernamePayload = {readonly username: string}
 type _ShowFinalResetScreenPayload = {readonly hasWallet: boolean}
 type _StartAccountResetPayload = {readonly skipPassword: boolean; readonly username?: string}
@@ -45,13 +43,6 @@ export const createCancelReset = (payload: _CancelResetPayload): CancelResetPayl
 export const createResetCancelled = (payload: _ResetCancelledPayload): ResetCancelledPayload => ({
   payload,
   type: resetCancelled,
-})
-/**
- * Sends another email/text to the user being reset. TODO implement me.
- */
-export const createSendEmailAgain = (payload: _SendEmailAgainPayload): SendEmailAgainPayload => ({
-  payload,
-  type: sendEmailAgain,
 })
 /**
  * Show the screen where the user chooses whether to actually reset their account or cancel out
@@ -104,10 +95,6 @@ export type ResetCancelledPayload = {
   readonly type: typeof resetCancelled
 }
 export type ResetErrorPayload = {readonly payload: _ResetErrorPayload; readonly type: typeof resetError}
-export type SendEmailAgainPayload = {
-  readonly payload: _SendEmailAgainPayload
-  readonly type: typeof sendEmailAgain
-}
 export type SetUsernamePayload = {readonly payload: _SetUsernamePayload; readonly type: typeof setUsername}
 export type ShowFinalResetScreenPayload = {
   readonly payload: _ShowFinalResetScreenPayload
@@ -134,7 +121,6 @@ export type Actions =
   | ResetAccountPayload
   | ResetCancelledPayload
   | ResetErrorPayload
-  | SendEmailAgainPayload
   | SetUsernamePayload
   | ShowFinalResetScreenPayload
   | StartAccountResetPayload

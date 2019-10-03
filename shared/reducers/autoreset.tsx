@@ -40,7 +40,9 @@ export default (state: Types.State = initialState, action: AutoresetGen.Actions)
         draftState.hasWallet = action.payload.hasWallet
         return
       case AutoresetGen.displayProgress:
-        draftState.endTime = action.payload.endTime
+        if (!action.payload.needVerify) {
+          draftState.endTime = action.payload.endTime
+        }
         return
 
       // TODO: clear error on submit final prompt
