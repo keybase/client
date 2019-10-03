@@ -203,11 +203,11 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
   let param = {}
   let routeName = ''
   if (mainOrModal === 'Main') {
-    const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+    const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
     if (!tab) return
     // top level tab?
     if (tab.routeName === 'tabs.chatTab') {
-      const convo = path[path.length - 1]
+      const convo = path && path[path.length - 1]
       // a specific convo?
       if (convo.routeName === 'chatConversation') {
         routeName = convo.routeName
@@ -225,7 +225,7 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
     // info panel
     if (mainOrModal === 'chatInfoPanel') {
       routeName = 'chatConversation'
-      param = {selectedConversationIDKey: path[1].params.conversationIDKey}
+      param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
     } else {
       // no path or unknown, default to people
       routeName = 'tabs.peopleTab'
