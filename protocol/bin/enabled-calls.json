@@ -266,6 +266,7 @@
   "keybase.1.user.uploadUserAvatar": {"promise": true},
   "keybase.1.user.blockUser": {"promise": true},
   "keybase.1.user.unblockUser": {"promise": true},
+  "keybase.1.user.userCard": {"promise": true},
   "keybase.1.userSearch.getNonUserDetails": {"promise": true},
   "keybase.1.userSearch.userSearch": {"promise": true},
   "stellar.1.local.acceptDisclaimerLocal": {"promise": true},

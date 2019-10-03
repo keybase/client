@@ -112,7 +112,7 @@ class ErrorBoundary extends React.PureComponent<Props, State> {
   state = {info: null}
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.children !== prevProps.children) {
+    if (this.props.children !== prevProps.children && this.state.info) {
       this.setState(p => (p.info ? {info: null} : null))
     }
   }

@@ -31,7 +31,7 @@ const mapStateToProps = (state: Container.TypedState) => {
     _inboxLayout: inboxLayout,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
-    isLoading: Constants.anyChatWaitingKeys(state),
+    isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
     isSearching: !!state.chat2.inboxSearch,
     neverLoaded,
     smallTeamsExpanded: state.chat2.smallTeamsExpanded,
@@ -167,7 +167,6 @@ const mergeProps = (
     onSelectDown: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, 1),
     onSelectUp: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-    rightActions: [{label: 'New chat', onPress: () => {}}],
     rows,
     selectedConversationIDKey: isMobile
       ? Constants.noConversationIDKey

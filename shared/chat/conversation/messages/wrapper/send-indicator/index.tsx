@@ -32,7 +32,24 @@ class SendIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    this.state = {animationStatus: 'encrypting', visible: !props.sent}
+    const state: State = {animationStatus: 'encrypting', visible: !props.sent}
+
+    if (!(this.props.sent || this.props.failed)) {
+      // Only show the `encrypting` icon for messages once
+      if (shownEncryptingSet.has(this.props.id)) {
+        state.animationStatus = 'encrypting'
+      } else {
+        state.animationStatus = 'sending'
+      }
+    } else if (this.props.failed) {
+      // previously failed message
+      state.animationStatus = 'error'
+    } else if (this.props.sent) {
+      // previously sent message
+      state.visible = false
+    }
+
+    this.state = state
   }
 
   encryptingTimeoutID?: NodeJS.Timeout
@@ -70,15 +87,7 @@ class SendIndicator extends React.Component<Props, State> {
       if (!shownEncryptingSet.has(this.props.id)) {
         this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
         shownEncryptingSet.add(this.props.id)
-      } else {
-        this._setStatus('sending')
       }
-    } else if (this.props.failed) {
-      // previously failed message
-      this._onFailed()
-    } else if (this.props.sent) {
-      // previously sent message
-      this._setVisible(false)
     }
   }
 

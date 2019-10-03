@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 
 export type _UserInfo = {
+  bio: string
   broken: boolean
   fullname: string
 }

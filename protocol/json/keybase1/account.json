@@ -240,6 +240,10 @@
           "type": "int"
         },
         {
+          "name": "username",
+          "type": "string"
+        },
+        {
           "name": "duration",
           "type": "gregor1.DurationSec"
         }

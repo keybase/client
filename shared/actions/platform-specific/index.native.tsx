@@ -198,33 +198,46 @@ const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileApp
 let _lastPersist = ''
 function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const tab = path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
-  if (!tab) return
+  const mainOrModal = path && path[1] && path[1].routeName
+
   let param = {}
   let routeName = ''
-  // top level tab?
-  if (tab.routeName === 'tabs.chatTab') {
-    const convo = path[path.length - 1]
-    // a specific convo?
-    if (convo.routeName === 'chatConversation') {
-      routeName = convo.routeName
-      param = {selectedConversationIDKey: state.chat2.selectedConversation}
-    } else {
-      // just the inbox
+  if (mainOrModal === 'Main') {
+    const tab = path && path[2] // real top is the root of the tab (aka chatRoot) and not the tab itself
+    if (!tab) return
+    // top level tab?
+    if (tab.routeName === 'tabs.chatTab') {
+      const convo = path && path[path.length - 1]
+      // a specific convo?
+      if (convo.routeName === 'chatConversation') {
+        routeName = convo.routeName
+        param = {selectedConversationIDKey: state.chat2.selectedConversation}
+      } else {
+        // just the inbox
+        routeName = tab.routeName
+      }
+    } else if (Tabs.isValidInitialTabString(tab.routeName)) {
       routeName = tab.routeName
-    }
-  } else if (Tabs.isValidInitialTabString(tab.routeName)) {
-    routeName = tab.routeName
-    if (routeName === _lastPersist) {
-      // skip rewriting this
-      return
+    } else {
+      return // don't write, keep the last
     }
   } else {
-    return // don't write, keep the last
+    // info panel
+    if (mainOrModal === 'chatInfoPanel') {
+      routeName = 'chatConversation'
+      param = {selectedConversationIDKey: path && path[1].params.conversationIDKey}
+    } else {
+      // no path or unknown, default to people
+      routeName = 'tabs.peopleTab'
+    }
   }
 
   const s = JSON.stringify({param, routeName})
-  _lastPersist = routeName
+  // don't keep rewriting
+  if (_lastPersist === s) {
+    return
+  }
+  _lastPersist = s
   yield Saga.spawn(() =>
     RPCTypes.configGuiSetValueRpcPromise({
       path: 'ui.routeState2',
@@ -616,7 +629,7 @@ const onChatWatchPosition = async (
         )
       }
     },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   response.result(watchID)
   return []
@@ -656,7 +669,7 @@ export const watchPositionForMap = async (errFn: () => void): Promise<number> =>
         errFn()
       }
     },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   return watchID
 }

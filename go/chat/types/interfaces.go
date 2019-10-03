@@ -556,7 +556,7 @@ type UIInboxLoader interface {
 	Resumable
 	UpdateLayout(ctx context.Context, reason string) error
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-		msgType chat1.MessageType, firstConv bool) error
+		msg chat1.MessageBoxed, firstConv bool) error
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) error
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,

@@ -294,6 +294,13 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	uid := obj.Current.Uid
 	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s %s", uid, stubMode)
 
+	// At this point, we've gone to the server, and we checked that the user is fresh, so if we previously had a stale
+	// bit set for this user, we'll turn it off now.
+	if obj.Stale {
+		u.G().VDL.CLogf(ctx, VLog0, "| resetting stale bit to false for %s %s", uid, stubMode)
+		obj.Stale = false
+	}
+
 	existing := u.getMemCache(ctx, uid, stubMode)
 
 	if existing != nil && obj.IsOlderThan(*existing) {

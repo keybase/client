@@ -75,5 +75,5 @@ protocol account {
   /** Aborts the reset process
    */
   void cancelReset(int sessionID);
-  void timeTravelReset(int sessionID, gregor1.DurationSec duration);
+  void timeTravelReset(int sessionID, string username, gregor1.DurationSec duration);
 }

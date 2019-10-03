@@ -15,6 +15,7 @@ import (
 // Cancel the reset pipeline
 type CmdAccountResetTimeTravel struct {
 	libkb.Contextified
+	username string
 	duration time.Duration
 }
 
@@ -35,9 +36,17 @@ func NewCmdAccountResetTimeTravelRunner(g *libkb.GlobalContext) *CmdAccountReset
 }
 
 func (c *CmdAccountResetTimeTravel) ParseArgv(ctx *cli.Context) (err error) {
-	if len(ctx.Args()) != 1 {
-		return errors.New("duration required")
+	if len(ctx.Args()) != 1 && len(ctx.Args()) != 2 {
+		return errors.New("invalid usage, expected [username?] [duration]")
 	}
+
+	if len(ctx.Args()) == 2 {
+		// [username] [duration]
+		c.username = ctx.Args().Get(0)
+		c.duration, err = time.ParseDuration(ctx.Args().Get(1))
+		return err
+	}
+
 	c.duration, err = time.ParseDuration(ctx.Args().Get(0))
 	return err
 }
@@ -49,6 +58,7 @@ func (c *CmdAccountResetTimeTravel) Run() error {
 	}
 	return cli.TimeTravelReset(context.Background(), keybase1.TimeTravelResetArg{
 		Duration: gregor1.ToDurationSec(c.duration),
+		Username: c.username,
 	})
 }
 
