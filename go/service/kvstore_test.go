@@ -2,16 +2,14 @@ package service
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/kvstore"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -280,8 +278,8 @@ var _ kvstore.KVStoreBoxer = (*KVStoreTestBoxer)(nil)
 
 type KVStoreTestBoxer struct {
 	libkb.Contextified
-	BoxMutateRevision     func(currentRevision int) (newRevision int)
-	UnboxMutateCiphertext func(currentCiphertext string) (newCiphertext string)
+	BoxMutateRevision  func(currentRevision int) (newRevision int)
+	UnboxMutateTeamGen func(gen keybase1.PerTeamKeyGeneration) (newGen keybase1.PerTeamKeyGeneration)
 }
 
 func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string) (ciphertext string,
@@ -293,13 +291,13 @@ func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 	return realBoxer.Box(mctx, entryID, revision, cleartextValue)
 }
 
-func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, formatVersion int,
-	senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
+func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration,
+	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID) (cleartext string, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
-	if b.UnboxMutateCiphertext != nil {
-		ciphertext = b.UnboxMutateCiphertext(ciphertext)
+	if b.UnboxMutateTeamGen != nil {
+		teamKeyGen = b.UnboxMutateTeamGen(teamKeyGen)
 	}
-	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
+	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, teamKeyGen, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
 }
 
 func TestEncryptionAndVerification(t *testing.T) {
@@ -355,29 +353,20 @@ func TestEncryptionAndVerification(t *testing.T) {
 	// should fail to decrypt
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified: libkb.NewContextified(tc.G),
-		UnboxMutateCiphertext: func(currentCiphertext string) (newCiphertext string) {
-			decoded, err := base64.StdEncoding.DecodeString(currentCiphertext)
-			require.NoError(t, err)
-			var box keybase1.EncryptedKVEntry
-			err = msgpack.Decode(&box, decoded)
-			require.NoError(t, err)
-			existingGeneration := box.Gen
-			require.EqualValues(t, 3, existingGeneration, "generation should be 3 at this point")
-			box.Gen = keybase1.PerTeamKeyGeneration(2)
-			packed, err := msgpack.Encode(box)
-			require.NoError(t, err)
-			return base64.StdEncoding.EncodeToString(packed)
+		UnboxMutateTeamGen: func(gen keybase1.PerTeamKeyGeneration) (newGen keybase1.PerTeamKeyGeneration) {
+			require.EqualValues(t, 3, gen, "generation should be 3 at this point")
+			return keybase1.PerTeamKeyGeneration(2)
 		},
 	}
 	_, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, libkb.DecryptOpenError{}, err)
+	require.IsType(t, signencrypt.Error{}, err)
+	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
 	t.Logf("attempting to decrypt with the wrong key generation fails")
 
-	// sign over the wrong revision
-	// should cause a signing verification error
+	// should fail to open if the server tells the client it's the wrong revision
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified:      libkb.NewContextified(tc.G),
 		BoxMutateRevision: func(currentRevision int) (newRevision int) { return 2 },
@@ -386,6 +375,7 @@ func TestEncryptionAndVerification(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, kbcrypto.VerificationError{}, err)
+	require.IsType(t, signencrypt.Error{}, err)
+	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.AssociatedDataMismatch)
 	t.Logf("verifying a signature with the wrong revision fails")
 }

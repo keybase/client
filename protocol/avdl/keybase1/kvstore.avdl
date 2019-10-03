@@ -28,8 +28,7 @@ protocol kvstore {
   record EncryptedKVEntry {
     int v;                    // version
     bytes e;                  // encrypted data
-    BoxNonce n;               // nonce
-    PerTeamKeyGeneration gen; // key generation that was used
+    bytes n;                  // nonce
   }
 
   KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);

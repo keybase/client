@@ -86,12 +86,8 @@
           "name": "e"
         },
         {
-          "type": "BoxNonce",
+          "type": "bytes",
           "name": "n"
-        },
-        {
-          "type": "PerTeamKeyGeneration",
-          "name": "gen"
         }
       ]
     }
