@@ -198,7 +198,7 @@ const updateChangedFocus = (_: Container.TypedState, action: ConfigGen.MobileApp
 let _lastPersist = ''
 function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRoutePayload) {
   const path = action.payload.path
-  const mainOrModal = path[1] && path[1].routeName
+  const mainOrModal = path && path[1] && path[1].routeName
 
   let param = {}
   let routeName = ''
@@ -226,6 +226,9 @@ function* persistRoute(state: Container.TypedState, action: ConfigGen.PersistRou
     if (mainOrModal === 'chatInfoPanel') {
       routeName = 'chatConversation'
       param = {selectedConversationIDKey: path[1].params.conversationIDKey}
+    } else {
+      // no path or unknown, default to people
+      routeName = 'tabs.peopleTab'
     }
   }
 
