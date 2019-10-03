@@ -136,8 +136,8 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   buttonIcon: {
     height: 64,
-    width: 64,
     paddingRight: Styles.globalMargins.small,
+    width: 64,
   },
   buttonText: Styles.platformStyles({
     isElectron: {

@@ -258,8 +258,8 @@ const styles = styleSheetCreate(
         marginTop: 46,
       },
       icon: {
-        width: 240,
         height: 180,
+        width: 240,
       },
       list: {
         marginBottom: 10,
