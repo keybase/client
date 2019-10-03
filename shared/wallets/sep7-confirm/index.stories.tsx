@@ -114,7 +114,9 @@ const load = () => {
     .add('Unsigned Pay', () => <SEP7Confirm {...commonProps} {...payUnsignedProps} />)
     .add('Signed Tx', () => <SEP7Confirm {...commonProps} {...txProps} />)
     .add('Unsigned Tx', () => <SEP7Confirm {...commonProps} {...unsignedTxProps} />)
-    .add('Signed Pay with send error', () => <SEP7Confirm {...commonProps} {...payProps} sendError='Your balance is too low.' />)
+    .add('Signed Pay with send error', () => (
+      <SEP7Confirm {...commonProps} {...payProps} sendError="Your balance is too low." />
+    ))
   Sb.storiesOf('Wallets/SEP7Error', module).add('Error', () => (
     <KeybaseLinkErrorBody
       isError={true}
