@@ -38,6 +38,7 @@ export const createConversation = 'chat2:createConversation'
 export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const fetchUserBio = 'chat2:fetchUserBio'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -122,6 +123,7 @@ export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
 export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
+export const setUserBio = 'chat2:setUserBio'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const tabSelected = 'chat2:tabSelected'
@@ -224,6 +226,7 @@ type _DesktopNotificationPayload = {
   readonly body: string
 }
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _FetchUserBioPayload = {readonly username: string}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -568,6 +571,7 @@ type _SetUnsentTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text?: HiddenString
 }
+type _SetUserBioPayload = {readonly userCard: RPCTypes.UserCard}
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _TabSelectedPayload = void
@@ -990,6 +994,13 @@ export const createSetConvRetentionPolicy = (
   payload: _SetConvRetentionPolicyPayload
 ): SetConvRetentionPolicyPayload => ({payload, type: setConvRetentionPolicy})
 /**
+ * Sets user bio for use in one-on-one conversations
+ */
+export const createSetUserBio = (payload: _SetUserBioPayload): SetUserBioPayload => ({
+  payload,
+  type: setUserBio,
+})
+/**
  * Static configuration info was loaded from the service.
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload): StaticConfigLoadedPayload => ({
@@ -1202,6 +1213,10 @@ export const createDeselectConversation = (
 export const createDesktopNotification = (
   payload: _DesktopNotificationPayload
 ): DesktopNotificationPayload => ({payload, type: desktopNotification})
+export const createFetchUserBio = (payload: _FetchUserBioPayload): FetchUserBioPayload => ({
+  payload,
+  type: fetchUserBio,
+})
 export const createHideConversation = (payload: _HideConversationPayload): HideConversationPayload => ({
   payload,
   type: hideConversation,
@@ -1495,6 +1510,7 @@ export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
 }
+export type FetchUserBioPayload = {readonly payload: _FetchUserBioPayload; readonly type: typeof fetchUserBio}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -1797,6 +1813,7 @@ export type SetUnsentTextPayload = {
   readonly payload: _SetUnsentTextPayload
   readonly type: typeof setUnsentText
 }
+export type SetUserBioPayload = {readonly payload: _SetUserBioPayload; readonly type: typeof setUserBio}
 export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
   readonly type: typeof setWalletsOld
@@ -1942,6 +1959,7 @@ export type Actions =
   | DeselectConversationPayload
   | DesktopNotificationPayload
   | DismissBottomBannerPayload
+  | FetchUserBioPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
@@ -2027,6 +2045,7 @@ export type Actions =
   | SetThreadSearchQueryPayload
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
+  | SetUserBioPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
   | TabSelectedPayload

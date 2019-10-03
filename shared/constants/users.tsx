@@ -9,6 +9,7 @@ export const getIsBroken = (infoMap: Types.InfoMap, username: string): boolean |
   infoMap.getIn([username, 'broken'], null)
 
 export const makeUserInfo = I.Record<Types._UserInfo>({
+  bio: '',
   broken: false,
   fullname: '',
 })

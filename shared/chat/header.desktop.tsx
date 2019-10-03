@@ -26,6 +26,7 @@ type Props = {
   showActions: boolean
   unMuteConversation: () => void
   username: string
+  fullName?: string
 }
 
 const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const
@@ -91,6 +92,10 @@ const Header = (p: Props) => {
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
                 {p.channel}
               </Kb.Text>
+            ) : withoutSelf && withoutSelf.length === 1 ? (
+              <Kb.Text type="Header" lineClamp={1}>
+                {p.fullName || withoutSelf[0]}
+              </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
                 <Kb.Text type="Header" lineClamp={1}>
@@ -122,7 +127,26 @@ const Header = (p: Props) => {
             )}
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-            {description}
+            {withoutSelf && withoutSelf.length === 1 ? (
+              <Kb.Text type="Body" style={styles.desc}>
+                <Kb.ConnectedUsernames
+                  colorFollowing={true}
+                  underline={true}
+                  inline={true}
+                  commaColor={Styles.globalColors.black_50}
+                  type="Body"
+                  usernames={[withoutSelf[0]]}
+                  onUsernameClicked="profile"
+                />
+                <Kb.Text type="Body" style={styles.desc}>
+                  {' '}
+                  &bull;{' '}
+                </Kb.Text>
+                {description}
+              </Kb.Text>
+            ) : (
+              description
+            )}
           </Kb.Box2>
         </Kb.Box2>
         {p.showActions && (
@@ -217,11 +241,17 @@ const Connected = Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const meta = stateProps._meta
     const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+        ? 'insert bio here'
         : meta.descriptionDecorated
+
+    const fullName =
+      meta.teamType === 'adhoc' && otherParticipants.length === 1
+        ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+        : undefined
     return {
       canEditDesc: stateProps.canEditDesc,
       channel:
@@ -231,6 +261,7 @@ const Connected = Container.connect(
           ? meta.teamname
           : null,
       desc,
+      fullName,
       infoPanelOpen: stateProps.infoPanelOpen,
       isTeam: ['small', 'big'].includes(meta.teamType),
       muted: meta.isMuted,

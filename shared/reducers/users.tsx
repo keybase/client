@@ -4,6 +4,7 @@ import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
 import * as ConfigGen from '../actions/config-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
 
 const initialState: Types.State = Constants.makeState()
 const blankUserInfo = Constants.makeUserInfo()
@@ -14,6 +15,7 @@ type Actions =
   | Tracker2Gen.UpdatedDetailsPayload
   | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
+  | Chat2Gen.SetUserBioPayload
 
 const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
   switch (action.type) {
@@ -81,6 +83,15 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
           })
         })
       )
+    case Chat2Gen.setUserBio: {
+      return state.update('infoMap', map =>
+        map.withMutations(m => {
+          m.update(action.payload.userCard.uid, info =>
+            (info || blankUserInfo).set('bio', action.payload.userCard.bio)
+          )
+        })
+      )
+    }
     // Saga only actions
     default:
       return state

@@ -396,6 +396,9 @@ type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 export default (_state: Types.State = initialState, action: Actions): Types.State =>
   Container.produce(_state, (draftState: Container.Draft<Types.State>) => {
     switch (action.type) {
+      case Chat2Gen.fetchUserBio:
+      case Chat2Gen.setUserBio:
+        return
       case Chat2Gen.resetStore:
         return {...initialState, staticConfig: draftState.staticConfig as Types.State['staticConfig']}
       case Chat2Gen.setInboxShowIsNew:
