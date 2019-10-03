@@ -24,11 +24,16 @@ export const mapStateHelper = (state: TypedState, {teamname}: OwnProps): StatePr
 })
 
 export const getRows = ({_requests, _invites}: StateProps) => {
-  const requests = _requests.map(r => ({
-    type: 'invites-request',
-    username: r.username,
-  }))
-  const invites = _invites.map(i => ({id: i.id, type: 'invites-invite'}))
+  const requests = _requests
+    .sortBy(i => i.username)
+    .map(r => ({
+      type: 'invites-request',
+      username: r.username,
+    }))
+  const invites = _invites
+    .sortBy(i => i.email || i.username || i.name || i.id)
+    .map(i => ({id: i.id, type: 'invites-invite'}))
+
   return [
     ...(requests.size ? [{label: 'Requests', type: 'invites-divider'}] : []),
     ...requests,
