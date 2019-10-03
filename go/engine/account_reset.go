@@ -136,7 +136,8 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		if err != nil {
 			return err
 		}
-		if status.ResetID != nil {
+		// If there's a reset, and it's been verified already
+		if status.ResetID != nil && status.EventType != libkb.AutoresetEventStart {
 			return e.resetPrompt(mctx, status)
 		}
 	}
@@ -155,6 +156,18 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	mctx.G().Log.Debug("autoreset/enter result: %s", res.Body.MarshalToDebug())
 	mctx.G().Log.Info("Your account has been added to the reset pipeline.")
 	e.resetPending = true
+
+	// Ask the server, so that we have the correct reset time to tell the UI
+	if self {
+		status, err := e.loadResetStatus(mctx)
+		if err != nil {
+			return err
+		}
+		if status.ResetID != nil {
+			return e.resetPrompt(mctx, status)
+		}
+	}
+
 	return nil
 }
 
@@ -194,7 +207,7 @@ func (e *AccountReset) loadResetStatus(mctx libkb.MetaContext) (*accountResetSta
 }
 
 func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetStatusResponse) error {
-	if status.EventType == libkb.AutoresetEventReady && e.completeReset {
+	if status.EventType == libkb.AutoresetEventReady {
 		// Ask the user if they'd like to reset if we're in login + it's ready
 		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
 			Prompt: keybase1.NewResetPromptWithComplete(keybase1.ResetPromptInfo{HasWallet: status.HasWallet}),
@@ -244,7 +257,8 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		)
 	}
 	if err := mctx.UIs().LoginUI.DisplayResetProgress(mctx.Ctx(), keybase1.DisplayResetProgressArg{
-		Text: notificationText,
+		EndTime: keybase1.Time(readyTime.Unix()),
+		Text:    notificationText,
 	}); err != nil {
 		return err
 	}

@@ -7,6 +7,7 @@ import {RPCError} from '../util/errors'
 export const resetStore = 'common:resetStore' // not a part of autoreset but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'autoreset:'
 export const cancelReset = 'autoreset:cancelReset'
+export const displayProgress = 'autoreset:displayProgress'
 export const resetAccount = 'autoreset:resetAccount'
 export const resetCancelled = 'autoreset:resetCancelled'
 export const resetError = 'autoreset:resetError'
@@ -19,6 +20,7 @@ export const updateAutoresetState = 'autoreset:updateAutoresetState'
 
 // Payload Types
 type _CancelResetPayload = void
+type _DisplayProgressPayload = {readonly endTime: number}
 type _ResetAccountPayload = {readonly password?: HiddenString}
 type _ResetCancelledPayload = void
 type _ResetErrorPayload = {readonly error: RPCError}
@@ -70,6 +72,10 @@ export const createStartAccountReset = (payload: _StartAccountResetPayload): Sta
 export const createResetAccount = (
   payload: _ResetAccountPayload = Object.freeze({})
 ): ResetAccountPayload => ({payload, type: resetAccount})
+export const createDisplayProgress = (payload: _DisplayProgressPayload): DisplayProgressPayload => ({
+  payload,
+  type: displayProgress,
+})
 export const createResetError = (payload: _ResetErrorPayload): ResetErrorPayload => ({
   payload,
   type: resetError,
@@ -88,6 +94,10 @@ export const createUpdateAutoresetState = (
 
 // Action Payloads
 export type CancelResetPayload = {readonly payload: _CancelResetPayload; readonly type: typeof cancelReset}
+export type DisplayProgressPayload = {
+  readonly payload: _DisplayProgressPayload
+  readonly type: typeof displayProgress
+}
 export type ResetAccountPayload = {readonly payload: _ResetAccountPayload; readonly type: typeof resetAccount}
 export type ResetCancelledPayload = {
   readonly payload: _ResetCancelledPayload
@@ -120,6 +130,7 @@ export type UpdateAutoresetStatePayload = {
 // prettier-ignore
 export type Actions =
   | CancelResetPayload
+  | DisplayProgressPayload
   | ResetAccountPayload
   | ResetCancelledPayload
   | ResetErrorPayload

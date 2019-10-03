@@ -134,6 +134,10 @@
         {
           "name": "text",
           "type": "string"
+        },
+        {
+          "name": "endTime",
+          "type": "Time"
         }
       ],
       "response": null,

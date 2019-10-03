@@ -155,6 +155,7 @@ type PromptResetAccountArg struct {
 type DisplayResetProgressArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Text      string `codec:"text" json:"text"`
+	EndTime   Time   `codec:"endTime" json:"endTime"`
 }
 
 type ExplainDeviceRecoveryArg struct {

@@ -22,17 +22,15 @@ const Waiting = (props: Props) => {
     () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
     []
   )
-  const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createSendEmailAgain()), [])
+
+  // TODO: visual feedback on click
+  const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [])
 
   React.useEffect(() => {
     function tick() {
       const newFormattedTime = Constants.formatTimeLeft(endTime)
       if (formattedTime !== newFormattedTime) {
         setFormattedTime(newFormattedTime)
-      }
-      if (Date.now() > endTime) {
-        // TODO: this maybe actually happens automatically..
-        // dispatch(nav.safeNavigateAppendPayload({path: ['resetConfirm'], replace: true}))
       }
     }
 
