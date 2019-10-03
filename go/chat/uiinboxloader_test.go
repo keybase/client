@@ -92,13 +92,17 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 2; i++ {
 		// layout 1: team type changed
 		// layout 2: new conv
-		// layout 3: big team unbox
 		layout = recvLayout()
 	}
-	// there is a race where sometimes we need a fourth of these
+	// there is a race where sometimes we need a third or fourth of these
+	select {
+	case layout = <-chatUI.InboxLayoutCb:
+	case <-time.After(timeout):
+		// charge forward
+	}
 	select {
 	case layout = <-chatUI.InboxLayoutCb:
 	case <-time.After(timeout):
