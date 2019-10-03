@@ -35,9 +35,11 @@ const ManageComponent = (props: Props) => {
         <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
           Manage phone and computer notifications
         </Kb.Text>
-        <Kb.Text onClick={props.onManageChannels} type={textType}>
-          Browse other channels
-        </Kb.Text>
+        {props.teamname && (
+          <Kb.Text onClick={props.onManageChannels} type={textType}>
+            Browse other channels
+          </Kb.Text>
+        )}
       </Kb.Box>
     )
   } else if (props.isAdmin) {
@@ -95,14 +97,17 @@ const YouAddedToTeam = (props: Props) => {
           style={{color: Styles.globalColors.black_50}}
         >
           {youOrUsername({capitalize: true, username: adder, you})} added{' '}
-          {youOrUsername({adder, capitalize: false, username: addee, you})} to{' '}
-          <Kb.Text
-            onClick={onViewTeam}
-            style={{color: Styles.globalColors.black_50}}
-            type="BodySmallSemiboldSecondaryLink"
-          >
-            {teamname}
-          </Kb.Text>
+          {youOrUsername({adder, capitalize: false, username: addee, you})}
+          {teamname && ` to `}
+          {teamname && (
+            <Kb.Text
+              onClick={onViewTeam}
+              style={{color: Styles.globalColors.black_50}}
+              type="BodySmallSemiboldSecondaryLink"
+            >
+              {teamname}
+            </Kb.Text>
+          )}
           {typeToLabelWithBots[props.role] && ` as a ${typeToLabelWithBots[role].toLowerCase()}`}.{' '}
           <Kb.Text type="BodySmallSemibold">
             Say hi!{' '}
