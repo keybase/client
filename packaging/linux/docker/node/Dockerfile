@@ -1,8 +1,7 @@
 ARG BASE_IMAGE=keybaseio/client:latest
-
 FROM $BASE_IMAGE AS base
 
-FROM debian:stretch-slim
+FROM node:10.16.3-jessie
 LABEL maintainer="Keybase <admin@keybase.io>"
 
 RUN apt-get update \
@@ -27,7 +26,7 @@ RUN gpg --import /gosu_key.asc \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && chmod +x /usr/local/bin/gosu
 
-COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
+COPY --from=base /usr/bin/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
 RUN useradd --create-home --shell /bin/bash keybase \
@@ -35,7 +34,11 @@ RUN useradd --create-home --shell /bin/bash keybase \
     && chown keybase:keybase /var/log/keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.local/share/keybase" ]
 
-COPY --from=base /usr/bin/keybase /usr/bin/keybase
-COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
+COPY --from=base /binaries/amd64/usr/bin/keybase /usr/bin/keybase
+COPY --from=base /binaries/amd64/usr/bin/keybase.sig /usr/bin/keybase.sig
+COPY --from=base /binaries/amd64/usr/bin/kbfsfuse /usr/bin/kbfsfuse
+COPY --from=base /binaries/amd64/usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
+COPY --from=base /binaries/amd64/usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
+COPY --from=base /binaries/amd64/usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
 
 ENTRYPOINT ["/tini", "--", "entrypoint.sh"]
