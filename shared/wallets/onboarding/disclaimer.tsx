@@ -87,7 +87,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
   render() {
     const props = this.props
-    const afterLabel = `Opening your Wallet`.concat(
+    const afterLabel = `Opening wallet...`.concat(
       this.state.secondsLeftAfterAccept ? ` (${this.state.secondsLeftAfterAccept})` : ''
     )
     const beforeLabel = this.state.tryAgain

@@ -123,12 +123,14 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {alignSelf: 'center', flexGrow: 1},
     isElectron: {
       maxWidth: 460,
-      padding: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   headerText: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
     },
     isMobile: {
       paddingLeft: Styles.globalMargins.small,
