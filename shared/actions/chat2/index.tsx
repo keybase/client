@@ -3065,9 +3065,10 @@ const onGiphyToggleWindow = (
   })
 }
 
-const giphySend = (_: TypedState, action: Chat2Gen.GiphySendPayload) => {
+const giphySend = (state: TypedState, action: Chat2Gen.GiphySendPayload) => {
   const {conversationIDKey, url} = action.payload
-  return Chat2Gen.createMessageSend({conversationIDKey, text: url})
+  const replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
+  return Chat2Gen.createMessageSend({conversationIDKey, replyTo: replyTo || undefined, text: url})
 }
 
 const onChatCoinFlipStatus = (_: TypedState, action: EngineGen.Chat1ChatUiChatCoinFlipStatusPayload) => {
