@@ -68,6 +68,7 @@ if (__DEV__) {
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
   config.printRPC = true
+  // TODO is this even used?
   config.printRPCStats = true
   config.reduxSagaLoggerMasked = false
   config.userTimings = false
