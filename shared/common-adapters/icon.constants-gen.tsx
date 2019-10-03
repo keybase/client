@@ -2837,26 +2837,6 @@ const iconMeta_ = {
     require: require('../images/icons/icon-message-retention-64.png'),
     requireDark: require('../images/icons/icon-dark-message-retention-64.png'),
   },
-  'icon-message-status-encrypting-24': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-encrypting-24.png'),
-  },
-  'icon-message-status-error-24': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-error-24.png'),
-  },
-  'icon-message-status-sending-24': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-sending-24.gif'),
-  },
-  'icon-message-status-sent-24': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-sent-24.gif'),
-  },
   'icon-mutual-follow-21': {
     extension: 'png',
     isFont: false,
@@ -4001,26 +3981,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-powered-by-giphy-120-26.png'),
-  },
-  'icon-progress-grey-animated': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-progress-grey-animated.gif'),
-  },
-  'icon-progress-grey-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-progress-grey-static.png'),
-  },
-  'icon-progress-white-animated': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-progress-white-animated.gif'),
-  },
-  'icon-progress-white-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-progress-white-static.png'),
   },
   'icon-proof-broken': {
     extension: 'png',

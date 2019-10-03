@@ -35,10 +35,6 @@ export function defaultHoverColor(type: IconType): string | null {
 // Some types are the same underlying icon.
 export function typeToIconMapper(type: IconType): IconType {
   switch (type) {
-    case 'icon-progress-white-animated':
-      return __STORYBOOK__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
-    case 'icon-progress-grey-animated':
-      return __STORYBOOK__ ? 'icon-progress-grey-static' : 'icon-progress-grey-animated'
     case 'icon-loader-infinity-64':
       return __STORYBOOK__ ? 'icon-loader-infinity-static-64' : 'icon-loader-infinity-64'
     case 'icon-loader-infinity-80':

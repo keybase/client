@@ -13,7 +13,7 @@ type DropdownTextProps = {
 export const DropdownText = ({text, spinner, ...props}: DropdownTextProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} fullWidth={true}>
     {spinner && (
-      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
+      <Kb.Animation animationType="spinnerGrey" style={styles.spinner} />
     )}
     <Kb.Text type="BodySemibold">{text}</Kb.Text>
   </Kb.Box2>
@@ -29,7 +29,7 @@ type SelectedEntryProps = {
 export const SelectedEntry = ({account, spinner, user, ...props}: SelectedEntryProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
     {spinner && (
-      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
+      <Kb.Animation animationType="spinnerGrey" style={styles.spinner} />
     )}
     {account.isDefault && <Kb.Avatar size={16} username={user} />}
     <Kb.Text type="BodySemibold" style={styles.text}>

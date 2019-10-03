@@ -1,4 +1,5 @@
 import * as React from 'react'
+import Animation from './animation'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
@@ -12,6 +13,7 @@ import * as Platforms from '../constants/platform'
 const KeyHandler = (Styles.isMobile ? c => c : require('../util/key-handler.desktop').default)(() => null)
 
 const Kb = {
+  Animation,
   Box,
   Box2,
   ClickableBox,
@@ -199,11 +201,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       (Styles.isMobile ? (
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
       ) : (
-        <Kb.Icon
-          type={this.props.negative ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
-          boxStyle={styles.icon}
-          style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
-        />
+        <Kb.Animation animationType={this.props.negative ? 'spinnerWhite' : 'spinnerGrey'} containerStyle={styles.icon} style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall} />
       ))
     )
   }
