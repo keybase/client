@@ -51,20 +51,21 @@ class Thread extends React.PureComponent<Props, State> {
   private isScrolling = false
 
   private lastResizeHeight = 0
-  // @ts-ignore doens't know about ResizeObserver
-  private resizeObserver = __STORYSHOT__
-    ? undefined
-    : new ResizeObserver((entries: Array<{contentRect: {height: number}}>) => {
-        const entry = entries[0]
-        const {contentRect} = entry
-        const {height} = contentRect
-        if (height !== this.lastResizeHeight) {
-          this.lastResizeHeight = height
-          if (this.isLockedToBottom()) {
-            this.scrollToBottom('resize observed')
-          }
+  private resizeObserver =
+    // @ts-ignore doesn't know about ResizeObserver
+    typeof ResizeObserver !== 'undefined' &&
+    // @ts-ignore doesn't know about ResizeObserver
+    new ResizeObserver((entries: Array<{contentRect: {height: number}}>) => {
+      const entry = entries[0]
+      const {contentRect} = entry
+      const {height} = contentRect
+      if (height !== this.lastResizeHeight) {
+        this.lastResizeHeight = height
+        if (this.isLockedToBottom()) {
+          this.scrollToBottom('resize observed')
         }
-      })
+      }
+    })
 
   private _lockedToBottom: boolean = true
   get lockedToBottom() {
