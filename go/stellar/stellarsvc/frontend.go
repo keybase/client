@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
+	airdrop "github.com/keybase/client/go/stellar/airdrop"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
@@ -1033,6 +1034,7 @@ func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropR
 		return err
 	}
 
+	go airdrop.NewClient().Register(mctx.BackgroundWithLogTags())
 	return remote.AirdropRegister(mctx, arg.Register)
 }
 
