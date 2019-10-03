@@ -114,3 +114,6 @@ export const {
 export const pprofDir = ''
 export const version = 'TODO'
 export {runMode}
+
+// Noop – Just for Android
+export const appColorSchemeChanged = () => {}
