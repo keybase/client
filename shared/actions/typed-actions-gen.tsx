@@ -895,6 +895,7 @@ export type TypedActionsMap = {
   'unlock-folders:toPaperKeyInput': unlockfolders.ToPaperKeyInputPayload
   'unlock-folders:waiting': unlockfolders.WaitingPayload
   'users:blockUser': users.BlockUserPayload
+  'users:getBio': users.GetBioPayload
   'users:updateBrokenState': users.UpdateBrokenStatePayload
   'users:updateFullnames': users.UpdateFullnamesPayload
   'users:updateBio': users.UpdateBioPayload

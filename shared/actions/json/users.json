@@ -4,6 +4,9 @@
     "blockUser": {
       "username": "string"
     },
+    "getBio": {
+      "username": "string"
+    },
     "updateBrokenState": {
       "newlyBroken": "Array<string>",
       "newlyFixed": "Array<string>"
