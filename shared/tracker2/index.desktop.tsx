@@ -8,16 +8,16 @@ import Assertion from './assertion/remote-container'
 import Bio from './bio/remote-container'
 
 type Props = {
-  assertionKeys: ReadonlyArray<string> | null
-  bio: string | null
+  assertionKeys?: ReadonlyArray<string>
+  bio?: string
   darkMode: boolean
-  followThem: boolean | null
-  followersCount: number | null
-  followingCount: number | null
-  followsYou: boolean | null
-  guiID: string | null
+  followThem?: boolean
+  followersCount?: number
+  followingCount?: number
+  followsYou?: boolean
+  guiID?: string
   isYou: boolean
-  location: string | null
+  location?: string
   onFollow: () => void
   onChat: () => void
   onClose: () => void
@@ -27,7 +27,7 @@ type Props = {
   // eslint-disable-next-line no-use-before-define
   reason: string
   state: Types.DetailsState
-  teamShowcase: ReadonlyArray<Types._TeamShowcase> | null
+  teamShowcase?: ReadonlyArray<Types.TeamShowcase>
   username: string
 }
 

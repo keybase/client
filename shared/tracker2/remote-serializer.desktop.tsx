@@ -1,68 +1,83 @@
-import * as I from 'immutable'
 import * as Constants from '../constants/tracker2'
+import * as Types from '../constants/types/tracker2'
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
 import shallowEqual from 'shallowequal'
 
 // We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
-export const serialize: any = {
+export const serialize = {
   ...Avatar.serialize,
-  airdropIsLive: (v: any) => v,
-  assertions: (v: any) => (v ? v.toJS() : v),
-  bio: (v: any) => v,
-  darkMode: (v: any) => v,
-  followThem: (v: any) => v,
-  followersCount: (v: any) => v,
-  followingCount: (v: any) => v,
-  followsYou: (v: any) => v,
-  fullname: (v: any) => v,
-  guiID: (v: any) => v,
-  isYou: (v: any) => v,
-  location: (v: any) => v,
-  publishedTeams: (v: any, o: any) => (o && shallowEqual(v, o) ? undefined : v),
-  reason: (v: any) => v,
-  registeredForAirdrop: (v: any) => v,
-  state: (v: any) => v,
-  teamShowcase: (v: any, o: any) => (o && shallowEqual(v, o) ? undefined : v.toJS()),
-  username: (v: any) => v,
-  waiting: (v: any) => v,
-  windowComponent: (v: any) => v,
-  windowOpts: (v: any) => v,
-  windowParam: (v: any) => v,
-  windowPositionBottomRight: (v: any) => v,
-  windowTitle: (v: any) => v,
-  youAreInAirdrop: (v: any) => v,
+  airdropIsLive: (v: boolean) => v,
+  assertions: (v?: Map<string, Types.Assertion>) => (v ? [...v.entries()] : v),
+  bio: (v?: string) => v,
+  darkMode: (v: boolean) => v,
+  followThem: (v: boolean) => v,
+  followersCount: (v?: number) => v,
+  followingCount: (v?: number) => v,
+  followsYou: (v: boolean) => v,
+  fullname: (v?: string) => v,
+  guiID: (v: string) => v,
+  isYou: (v: boolean) => v,
+  location: (v?: string) => v,
+  reason: (v: string) => v,
+  registeredForAirdrop: (v?: boolean) => v,
+  state: (v: Types.DetailsState) => v,
+  teamShowcase: (v?: Array<Types.TeamShowcase>, o?: Array<Types.TeamShowcase>) =>
+    o && shallowEqual(v, o) ? undefined : v,
+  username: (v: string) => v,
+  waiting: (v: boolean) => v,
+  windowComponent: (v: string) => v,
+  windowOpts: (v: Object) => v,
+  windowParam: (v: string) => v,
+  windowPositionBottomRight: (v: boolean) => v,
+  windowTitle: (v: string) => v,
+  youAreInAirdrop: (v: boolean) => v,
 }
 
 const initialState = {
-  assertions: I.Map(),
-  config: {following: I.Set()},
-  users: {infoMap: I.Map()},
-  waiting: {counts: I.Map()},
+  assertions: new Map(),
+  config: {following: new Set()},
+  users: {infoMap: new Map()},
+  waiting: {counts: new Map()},
 }
 
-export const deserialize = (state: any = initialState, props: any) => {
+type Props = Partial<{
+  // ...Avatar.serialize, // TODO this type
+  airdropIsLive: boolean
+  assertions: Map<string, Types.Assertion>
+  bio: string
+  darkMode: boolean
+  followThem: boolean
+  followersCount: number
+  followingCount: number
+  followsYou: boolean
+  fullname: string
+  guiID: string
+  isYou: boolean
+  location: string
+  reason: string
+  registeredForAirdrop: boolean
+  state: Types.DetailsState
+  teamShowcase: Array<Types.TeamShowcase>
+  o?: Array<Types.TeamShowcase>
+  username: string
+  waiting: boolean
+  windowComponent: string
+  windowOpts: Object
+  windowParam: string
+  windowPositionBottomRight: boolean
+  windowTitle: string
+  youAreInAirdrop: boolean
+}>
+
+export const deserialize = (state: typeof initialState = initialState, props: Props) => {
   const newState = {
     ...state,
     ...props,
-    ...(props && props.assertions
-      ? {
-          assertions: I.Map(
-            Object.keys(props.assertions).map(assertionKey => [
-              assertionKey,
-              Constants.makeAssertion(props.assertions[assertionKey]),
-            ])
-          ),
-        }
-      : {}),
-    ...(props && props.teamShowcase
-      ? {teamShowcase: I.List(props.teamShowcase.map(t => Constants.makeTeamShowcase(t)))}
-      : {}),
+    ...(props && props.assertions ? {assertions: new Map(props.assertions)} : {}),
     ...(props && props.username
-      ? {users: {infoMap: I.Map([[props.username, {broken: false, fullname: props.fullname}]])}}
+      ? {users: {infoMap: new Map([[props.username, {broken: false, fullname: props.fullname}]])}}
       : {}),
-    ...(props && Object.prototype.hasOwnProperty.call(props, 'waiting')
-      ? {waiting: {counts: I.Map([[Constants.waitingKey, props.waiting || 0]])}}
-      : {}),
+    ...(props && props.waiting ? {waiting: {counts: new Map([[Constants.waitingKey, props.waiting]])}} : {}),
   }
   return Avatar.deserialize(newState, props)
 }

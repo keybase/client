@@ -7,8 +7,8 @@ import GetRowsFromTlfUpdate from '../fs/remote-container'
 
 export const serialize: any = {
   ...Avatar.serialize,
-  badgeKeys: v => [...v.keys()],
-  badgeMap: (v, o) =>
+  badgeKeys: (v: any) => [...v.keys()],
+  badgeMap: (v: any, o: any) =>
     [...v.keys()].reduce((map, k) => {
       if (!o || v.get(k) !== o.get(k)) {
         map[k] = v.get(k)
@@ -16,8 +16,8 @@ export const serialize: any = {
       return map
     }, {}),
   clearCacheTrigger: () => undefined,
-  conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
-  conversationMap: (v, o) =>
+  conversationIDs: (v: any) => v.map(v => v.conversation.conversationIDKey),
+  conversationMap: (v: any, o: any) =>
     v.reduce((map, toSend) => {
       const oldConv =
         o &&
@@ -32,35 +32,35 @@ export const serialize: any = {
             [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
           }
     }, {}),
-  daemonHandshakeState: v => v,
-  darkMode: v => v,
-  diskSpaceStatus: v => v,
-  endEstimate: v => v,
-  externalRemoteWindow: v => v,
-  fileName: v => v,
-  fileRows: (v, o) =>
+  daemonHandshakeState: (v: any) => v,
+  darkMode: (v: any) => v,
+  diskSpaceStatus: (v: any) => v,
+  endEstimate: (v: any) => v,
+  externalRemoteWindow: (v: any) => v,
+  fileName: (v: any) => v,
+  fileRows: (v: any, o: any) =>
     o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads
       ? null
       : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)).toArray(),
-  files: v => v,
-  kbfsDaemonStatus: v => v,
-  kbfsEnabled: v => v,
-  loggedIn: v => v,
-  outOfDate: v => v,
-  showingDiskSpaceBanner: v => v,
-  totalSyncingBytes: v => v,
+  files: (v: any) => v,
+  kbfsDaemonStatus: (v: any) => v,
+  kbfsEnabled: (v: any) => v,
+  loggedIn: (v: any) => v,
+  outOfDate: (v: any) => v,
+  showingDiskSpaceBanner: (v: any) => v,
+  totalSyncingBytes: (v: any) => v,
   // Just send broken over, if its the same send null
   userInfo: (v, o) => {
     const toSend = v.filter(u => u.broken)
     const old = o && o.filter(u => u.broken)
     return toSend.equals(old) ? undefined : toSend
   },
-  username: v => v,
-  widgetBadge: v => v,
-  windowComponent: v => v,
-  windowOpts: v => v,
-  windowParam: v => v,
-  windowTitle: v => v,
+  username: (v: any) => v,
+  widgetBadge: (v: any) => v,
+  windowComponent: (v: any) => v,
+  windowOpts: (v: any) => v,
+  windowParam: (v: any) => v,
+  windowTitle: (v: any) => v,
 }
 
 const initialState = {

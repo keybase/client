@@ -27,7 +27,7 @@
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
-      "reason": "string | null"
+      "reason?": "string"
     },
     "closeTracker": {
       "guiID": "string"

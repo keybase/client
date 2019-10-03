@@ -58,7 +58,7 @@ type _UpdateFollowersPayload = {
 type _UpdateResultPayload = {
   readonly guiID: string
   readonly result: Types.DetailsState
-  readonly reason: string | null
+  readonly reason?: string
 }
 type _UpdatedDetailsPayload = {
   readonly guiID: string

@@ -78,11 +78,13 @@ const RemoteTracker2 = Container.compose(
         windowParam: ownProps.username,
         windowPositionBottomRight: true,
         windowTitle: `Tracker - ${ownProps.username}`,
+        youAreInAirdrop: stateProps.youAreInAirdrop,
       }
     }
   ),
   SyncBrowserWindow,
   SyncAvatarProps,
+  // @ts-ignore
   SyncProps(serialize)
 )(Empty)
 
@@ -100,17 +102,16 @@ class RemoteTracker2s extends React.PureComponent<Props> {
 export default Container.connect(
   state => ({
     _users: state.tracker2.usernameToDetails,
-    // TODO
-    // _nonUserTrackers: state.tracker.nonUserTrackers,
-    // _trackers: state.tracker.userTrackers,
   }),
   () => ({}),
   (stateProps, _, __) => ({
-    users: stateProps._users
-      .filter(d => d.showTracker)
-      .map(d => d.username)
-      .take(MAX_TRACKERS)
-      .toList()
-      .toArray(),
+    users: [...stateProps._users.values()].reduce<Array<string>>((arr, u) => {
+      if (arr.length < MAX_TRACKERS) {
+        if (u.showTracker) {
+          arr.push(u.username)
+        }
+      }
+      return arr
+    }, []),
   })
 )(RemoteTracker2s)
