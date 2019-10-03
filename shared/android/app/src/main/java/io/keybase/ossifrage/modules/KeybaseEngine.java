@@ -166,6 +166,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         return ret;
     }
 
+    private String readGuiConfig() {
+        File filePath = new File(reactContext.getFilesDir(), "/.config/keybase/gui_config.json");
+        return readFromFile(filePath.getAbsolutePath());
+    }
+
     @Override
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
@@ -192,6 +197,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("metaEventEngineReset", RPC_META_EVENT_ENGINE_RESET);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
+        constants.put("guiConfig", readGuiConfig());
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
         constants.put("isTestDevice", misTestDevice);
