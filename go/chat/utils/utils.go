@@ -938,6 +938,30 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 	return msg.Ctime
 }
 
+func GetRemoteConvTLFName(conv types.RemoteConversation) string {
+	if conv.LocalMetadata != nil {
+		return conv.LocalMetadata.Name
+	}
+	msg, err := PickLatestMessageSummary(conv.Conv, nil)
+	if err != nil {
+		return ""
+	}
+	return msg.TlfName
+}
+
+func GetRemoteConvDisplayName(rc types.RemoteConversation) string {
+	tlfName := GetRemoteConvTLFName(rc)
+	switch rc.Conv.Metadata.TeamType {
+	case chat1.TeamType_COMPLEX:
+		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
+			return fmt.Sprintf("%s#%s", tlfName, rc.LocalMetadata.TopicName)
+		}
+		fallthrough
+	default:
+		return tlfName
+	}
+}
+
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
 	if conv.Info.SnippetMsg == nil {
 		return "", ""
@@ -1110,7 +1134,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
 	res.ConvID = rc.GetConvID().String()
 	res.IsTeam = rc.GetTeamType() == chat1.TeamType_SIMPLE
-	res.Name = StripUsernameFromConvName(rc.GetName(), username)
+	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc.Conv)
 	if useSnippet && rc.LocalMetadata != nil {
 		res.Snippet = &rc.LocalMetadata.Snippet
@@ -1122,7 +1146,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.RemoteConversation) (res chat1.UIInboxBigTeamChannelRow) {
 	res.ConvID = rc.GetConvID().String()
 	res.Channelname = rc.GetTopicName()
-	res.Teamname = rc.GetTLFName()
+	res.Teamname = GetRemoteConvTLFName(rc)
 	return res
 }
 
@@ -1182,7 +1206,7 @@ func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []t
 }
 
 func SearchableRemoteConversationName(conv types.RemoteConversation, username string) string {
-	name := conv.GetName()
+	name := GetRemoteConvDisplayName(conv)
 	// Check for self conv or big team conv
 	if name == username || strings.Contains(name, "#") {
 		return name

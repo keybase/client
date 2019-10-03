@@ -2037,7 +2037,7 @@ func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query
 		inboxHit := chat1.ChatSearchInboxHit{
 			ConvID:   conv.GetConvID(),
 			TeamType: conv.GetTeamType(),
-			ConvName: conv.GetName(),
+			ConvName: utils.GetRemoteConvDisplayName(conv),
 			Query:    origQuery,
 			Time:     hits[0].HitMessage.Valid().Ctime,
 			Hits:     hits,

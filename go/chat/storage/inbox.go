@@ -94,6 +94,7 @@ type InboxLayoutChangedNotifier interface {
 	UpdateLayout(ctx context.Context, reason string) error
 	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
 		msgType chat1.MessageType, firstConv bool) error
+	UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) error
 }
 
 type dummyInboxLayoutChangedNotifier struct{}
@@ -104,6 +105,11 @@ func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context, reaso
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
 	conv types.RemoteConversation, msgType chat1.MessageType, firstConv bool) error {
+	return nil
+}
+
+func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromSubteamRename(ctx context.Context,
+	convs []types.RemoteConversation) error {
 	return nil
 }
 
@@ -233,7 +239,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 			// need local metadata for channel names, so skip if we don't have it
 			continue
 		}
-		name := rc.GetName()
+		name := utils.GetRemoteConvDisplayName(rc)
 		if len(name) == 0 {
 			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.GetConvID())
 			continue
@@ -1345,6 +1351,12 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	var layoutConvs []types.RemoteConversation
+	defer func() {
+		go func(ctx context.Context) {
+			_ = i.layoutNotifier.UpdateLayoutFromSubteamRename(ctx, layoutConvs)
+		}(globals.BackgroundChatCtx(ctx, i.G()))
+	}()
 
 	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1367,6 +1379,7 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 			i.Debug(ctx, "SubteamRename: no conversation found: convID: %s", convID)
 			continue
 		}
+		layoutConvs = append(layoutConvs, *conv)
 		conv.Conv.Metadata.Version = vers.ToConvVers()
 	}
 
