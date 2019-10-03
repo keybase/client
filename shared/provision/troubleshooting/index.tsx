@@ -28,12 +28,8 @@ const BigButton = ({onClick, icon, mainText, subText}: BigButtonProps) => (
         <Kb.Icon type={icon} sizeType="Big" color={Styles.globalColors.blue} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.buttonText}>
-        <Kb.Text type="Body" center={true}>
-          {mainText}
-        </Kb.Text>
-        <Kb.Text type="BodySmall" center={true}>
-          {subText}
-        </Kb.Text>
+        <Kb.Text type="Body">{mainText}</Kb.Text>
+        <Kb.Text type="BodySmall">{subText}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -128,22 +124,25 @@ const styles = Styles.styleSheetCreate(() => ({
       minHeight: 157,
     },
     isMobile: {
-      width: 292,
+      width: '100%',
     },
   }),
   bodyMargins: Styles.platformStyles({
     isElectron: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.xlarge, 0),
-    isMobile: Styles.padding(Styles.globalMargins.medium),
   }),
   buttonBar: {
     marginLeft: Styles.globalMargins.medium,
     marginRight: Styles.globalMargins.medium,
   },
   buttonIcon: {
-    height: 72,
-    width: 72,
+    height: 64,
+    width: 64,
+    paddingRight: Styles.globalMargins.small,
   },
   buttonText: Styles.platformStyles({
+    isElectron: {
+      textAlign: 'center',
+    },
     isMobile: {
       maxWidth: 188,
     },

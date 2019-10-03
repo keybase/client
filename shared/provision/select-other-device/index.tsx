@@ -140,7 +140,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   list: {
     flexGrow: 1,
-    marginBottom: Styles.globalMargins.large,
   },
   or: {
     backgroundColor: Styles.globalColors.blueGrey,
