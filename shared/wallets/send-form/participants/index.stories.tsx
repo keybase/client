@@ -3,74 +3,6 @@ import * as Sb from '../../../stories/storybook'
 import {Box2, Text} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import {Account, ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount} from '.'
-import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
-import {ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
-import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-input/index.stories'
-
-const connectPropsMap: RowConnectPropsMap = {
-  chris: {
-    leftFollowingState: 'Following',
-    leftFullname: 'chris',
-    leftIcon: null,
-    leftIconOpaque: true,
-    leftService: 'Keybase',
-    leftUsername: 'Chris Coyne',
-
-    rightFollowingState: 'NoState',
-    rightIcon: null,
-    rightIconOpaque: true,
-    rightService: null,
-    rightUsername: null,
-
-    userAlreadySelected: false,
-    userIsInTeam: false,
-    userIsSelectable: true,
-  },
-  cjb: {
-    leftFollowingState: 'NotFollowing',
-    leftFullname: 'cjb',
-    leftIcon: null,
-    leftIconOpaque: true,
-    leftService: 'Keybase',
-    leftUsername: 'Chris Ball',
-
-    rightFollowingState: 'NoState',
-    rightIcon: null,
-    rightIconOpaque: true,
-    rightService: null,
-    rightUsername: null,
-
-    userAlreadySelected: false,
-    userIsInTeam: false,
-    userIsSelectable: true,
-  },
-  jzila: {
-    leftFollowingState: 'NotFollowing',
-    leftFullname: 'jzila',
-    leftIcon: null,
-    leftIconOpaque: true,
-    leftService: 'Keybase',
-    leftUsername: 'John Zila',
-
-    rightFollowingState: 'NoState',
-    rightIcon: null,
-    rightIconOpaque: true,
-    rightService: null,
-    rightUsername: null,
-
-    userAlreadySelected: false,
-    userIsInTeam: false,
-    userIsSelectable: true,
-  },
-} as any
-
-const participantProviderProperties = {
-  ...makeResultsListSelectorMap(connectPropsMap),
-  ...makeUserInputSelectorMap([]),
-  SendFormParticipantsSearch: o => ({...o, onVisibleScreen: true}),
-}
-
-const provider = Sb.createPropProviderWithCommon(participantProviderProperties)
 
 const primaryAccount: Account = {
   contents: '2000 XLM',
@@ -148,8 +80,8 @@ const keybaseUserProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
   onRemoveProfile: Sb.action('onRemoveProfile'),
   onScanQRCode: null,
+  onSearch: Sb.action('onSearch'),
   onShowProfile: Sb.action('onShowProfile'),
-  onShowSuggestions: Sb.action('onShowSuggestions'),
   recipientUsername: '',
 }
 
@@ -173,7 +105,6 @@ const otherAccountProps = {
 
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
-    .addDecorator(provider)
     .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
     .add('To Keybase user with QR', () => (
       <ParticipantsKeybaseUser {...keybaseUserProps} onScanQRCode={Sb.action('onScanQRCode')} />

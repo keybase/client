@@ -1,33 +1,38 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {appendPeopleBuilder} from '../../actions/typed-routes'
+import {useDispatch} from 'react-redux'
 
 type Props = {
-  onSearch: () => void
   style?: Styles.StylesCrossPlatform
   whiteText?: boolean
 }
 
-const ProfileSearch = (props: Props) => (
-  <Kb.Box2 style={Styles.collapseStyles([styles.container, props.style])} direction="horizontal">
-    <Kb.ClickableBox onClick={props.onSearch} style={Styles.collapseStyles([styles.searchContainer])}>
-      <Kb.Box2 direction="horizontal" alignItems="center">
-        <Kb.Icon
-          color={props.whiteText ? Styles.globalColors.white_75 : Styles.globalColors.black_50}
-          fontSize={Styles.isMobile ? 20 : 16}
-          style={styles.searchIcon}
-          type="iconfont-search"
-        />
-        <Kb.Text
-          style={Styles.collapseStyles([styles.searchText, props.whiteText && styles.colorWhite])}
-          type="BodySemibold"
-        >
-          Search{Styles.isMobile ? '' : ' people'}
-        </Kb.Text>
-      </Kb.Box2>
-    </Kb.ClickableBox>
-  </Kb.Box2>
-)
+const ProfileSearch = (props: Props) => {
+  const dispatch = useDispatch()
+  const onSearch = React.useCallback(() => dispatch(appendPeopleBuilder()), [dispatch])
+  return (
+    <Kb.Box2 style={Styles.collapseStyles([styles.container, props.style])} direction="horizontal">
+      <Kb.ClickableBox onClick={onSearch} style={Styles.collapseStyles([styles.searchContainer])}>
+        <Kb.Box2 direction="horizontal" alignItems="center">
+          <Kb.Icon
+            color={props.whiteText ? Styles.globalColors.white_75 : Styles.globalColors.black_50}
+            fontSize={Styles.isMobile ? 20 : 16}
+            style={styles.searchIcon}
+            type="iconfont-search"
+          />
+          <Kb.Text
+            style={Styles.collapseStyles([styles.searchText, props.whiteText && styles.colorWhite])}
+            type="BodySemibold"
+          >
+            Search{Styles.isMobile ? '' : ' people'}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox>
+    </Kb.Box2>
+  )
+}
 
 const searchContainerHeight = 32
 const styles = Styles.styleSheetCreate(() => ({

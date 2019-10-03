@@ -30,6 +30,7 @@ import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
 import Wallet from './wallet/container'
 import * as Container from '../util/container'
+import TeamBuilder from '../team-building/container'
 
 const sharedRoutes = {
   airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default},
@@ -162,6 +163,7 @@ export const newModalRoutes = {
   walletOnboarding: {
     getScreen: (): typeof RoutedOnboarding => require('./onboarding/container').RoutedOnboarding,
   },
+  walletTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
   whatIsStellarModal: {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
   },

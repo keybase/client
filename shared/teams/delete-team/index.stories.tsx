@@ -3,6 +3,8 @@ import * as Sb from '../../stories/storybook'
 import DeleteTeam from '.'
 
 const commonProps = {
+  clearWaiting: Sb.action('clearWaiting'),
+  deleteWaiting: false,
   onBack: Sb.action('onBack'),
   onDelete: Sb.action('onDelete'),
   teamname: 'keybase',

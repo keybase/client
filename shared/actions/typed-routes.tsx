@@ -10,6 +10,20 @@ export const appendPeopleBuilder = () =>
     path: [{props: {namespace: 'people', title: ''}, selected: 'peopleTeamBuilder'}],
   })
 
+export const appendWalletPersonBuilder = () =>
+  RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {
+          filterServices: ['keybase'],
+          namespace: 'wallets',
+          title: '',
+        },
+        selected: 'walletTeamBuilder',
+      },
+    ],
+  })
+
 export const appendNewChatBuilder = () =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {namespace: 'chat2', title: 'New chat'}, selected: 'chatNewChat'}],
