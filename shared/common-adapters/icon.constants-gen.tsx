@@ -2760,16 +2760,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-keybase-wordmark-128-48.png'),
   },
-  'icon-loader-connecting-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-connecting-266.gif'),
-  },
-  'icon-loader-connecting-266-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-connecting-266-static.png'),
-  },
   'icon-loader-infinity-64': {
     extension: 'gif',
     isFont: false,

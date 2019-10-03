@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 
-export type AnimationType = 'messageStatusEncrypting' | 'messageStatusError' | 'messageStatusSending' | 'messageStatusSent' | 'typing'
+export type AnimationType = 'disconnected' | 'messageStatusEncrypting' | 'messageStatusError' | 'messageStatusSending' | 'messageStatusSent' | 'typing'
 
 export type Props = {
   animationType: AnimationType

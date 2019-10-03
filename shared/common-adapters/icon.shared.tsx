@@ -47,8 +47,6 @@ export function typeToIconMapper(type: IconType): IconType {
       return __STORYBOOK__ ? 'icon-facebook-visibility-static' : 'icon-facebook-visibility'
     case 'icon-loader-uploading-16':
       return __STORYBOOK__ ? 'icon-loader-uploading-16-static' : 'icon-loader-uploading-16'
-    case 'icon-loader-connecting-266':
-      return __STORYBOOK__ ? 'icon-loader-connecting-266-static' : 'icon-loader-connecting-266'
     default:
       return type
   }
