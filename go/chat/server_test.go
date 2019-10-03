@@ -7002,34 +7002,6 @@ func TestTeamBotSettings(t *testing.T) {
 				}
 			}
 
-			botSettings := keybase1.TeamBotSettings{
-				Triggers: []string{".*"},
-			}
-			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua.Username,
-				Role:        keybase1.TeamRole_RESTRICTEDBOT,
-				BotSettings: &botSettings,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			})
-			require.NoError(t, err)
-			pollForSeqno(3)
-
-			botSettings2 := keybase1.TeamBotSettings{
-				Mentions: true,
-			}
-			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua2.Username,
-				Role:        keybase1.TeamRole_RESTRICTEDBOT,
-				BotSettings: &botSettings2,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			})
-			require.NoError(t, err)
-			pollForSeqno(5)
-
 			var unboxed chat1.UIMessage
 			consumeBotMessage := func(botUID *gregor1.UID, msgTyp chat1.MessageType, l *serverChatListener) {
 				select {
@@ -7056,6 +7028,48 @@ func TestTeamBotSettings(t *testing.T) {
 				default:
 				}
 			}
+
+			botSettings := keybase1.TeamBotSettings{
+				Triggers: []string{".*"},
+			}
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			pollForSeqno(3)
+
+			// system message for adding the bot to the team
+			consumeNewPendingMsg(t, listener)
+			consumeBotMessage(nil, chat1.MessageType_SYSTEM, listener)
+			assertNoMessage(botuaListener)
+			assertNoMessage(botuaListener2)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+
+			botSettings2 := keybase1.TeamBotSettings{
+				Mentions: true,
+			}
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings2,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			pollForSeqno(5)
+
+			// system message for adding the bot to the team
+			consumeNewPendingMsg(t, listener)
+			consumeBotMessage(nil, chat1.MessageType_SYSTEM, listener)
+			assertNoMessage(botuaListener)
+			assertNoMessage(botuaListener2)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 
 			t.Logf("send a text message")
 			arg := chat1.PostTextNonblockArg{
