@@ -224,7 +224,9 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewAccountReset(h.G(), arg.UsernameOrEmail)
-	eng.SetPassphrase(arg.Passphrase)
+	if arg.Passphrase != "" {
+		eng.SetPassphrase(arg.Passphrase)
+	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
 }
