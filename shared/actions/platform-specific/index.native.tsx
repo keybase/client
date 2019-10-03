@@ -616,7 +616,7 @@ const onChatWatchPosition = async (
         )
       }
     },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   response.result(watchID)
   return []
@@ -656,7 +656,7 @@ export const watchPositionForMap = async (errFn: () => void): Promise<number> =>
         errFn()
       }
     },
-    {enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   return watchID
 }
