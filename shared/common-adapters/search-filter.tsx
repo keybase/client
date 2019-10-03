@@ -201,7 +201,11 @@ class SearchFilter extends React.PureComponent<Props, State> {
       (Styles.isMobile ? (
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
       ) : (
-        <Kb.Animation animationType={this.props.negative ? 'spinnerWhite' : 'spinnerGrey'} containerStyle={styles.icon} style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall} />
+        <Kb.Animation
+          animationType={this.props.negative ? 'spinnerWhite' : 'spinnerGrey'}
+          containerStyle={styles.icon}
+          style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
+        />
       ))
     )
   }
@@ -379,17 +383,17 @@ const styles = Styles.styleSheetCreate(() => ({
     margin: Styles.globalMargins.tiny,
   },
   spinnerFullWidth: {
-    height: 16,
+    height: 20,
     marginLeft: Styles.globalMargins.xsmall,
-    width: 16,
+    width: 20,
   },
   spinnerMobile: {
     marginLeft: Styles.globalMargins.tiny,
   },
   spinnerSmall: {
-    height: 12,
+    height: 16,
     marginLeft: Styles.globalMargins.tiny,
-    width: 12,
+    width: 16,
   },
   textNegative: {
     color: Styles.globalColors.white,

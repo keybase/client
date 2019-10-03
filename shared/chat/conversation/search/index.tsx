@@ -361,7 +361,7 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.tiny,
       },
       progress: {
-        height: 14,
+        height: 16,
       },
       queryContainer: {
         flex: 1,

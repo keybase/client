@@ -53,14 +53,19 @@ const PinnedMessage = (props: Props) => {
             {props.text}
           </Kb.Markdown>
         </Kb.Box2>
-        {props.unpinning && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.Icon
-          onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
-          type="iconfont-close"
-          style={Kb.iconCastPlatformStyles(styles.close)}
-          boxStyle={styles.close}
-          ref={closeref}
-        />
+        {props.unpinning ? (
+          <Kb.Box2 direction="vertical" alignSelf="center">
+            <Kb.ProgressIndicator type="Small" />
+          </Kb.Box2>
+        ) : (
+          <Kb.Icon
+            onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
+            type="iconfont-close"
+            style={Kb.iconCastPlatformStyles(styles.close)}
+            boxStyle={styles.close}
+            ref={closeref}
+          />
+        )}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -153,13 +158,6 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           maxWidth: 200,
-        },
-      }),
-      progress: Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'center',
-          height: 17,
-          width: 17,
         },
       }),
       text: Styles.platformStyles({

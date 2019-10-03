@@ -102,7 +102,7 @@ export const backgroundURL = (...to: Array<string>) => {
     const last = goodPath[goodPath.length - 1]
     const ext = path.extname(last)
     goodPath[goodPath.length - 1] = path.basename(last, ext)
-    const guiModePath = `${isDarkMode ? 'dark-' : ''}${goodPath}`
+    const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
 
     const images = [1, 2, 3].map(
       mult => `url('${resolveImageAsURL(guiModePath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`
