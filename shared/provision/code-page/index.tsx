@@ -546,7 +546,7 @@ const styles = Styles.styleSheetCreate(
         paddingTop: 10,
       },
       qrOnlyContainer: {
-        backgroundColor: Styles.globalColors.white,
+        backgroundColor: Styles.globalColors.whiteOrWhite,
         borderRadius: 8,
         padding: 20,
       },
