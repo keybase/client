@@ -92,6 +92,10 @@ func importNaclKid(bkid []byte, typ byte, bodyLen int) (ret []byte, err error) {
 	return
 }
 
+func BinaryKIDToRawNaCl(k keybase1.BinaryKID) (ret []byte, err error) {
+	return importNaclKid([]byte(k), byte(kbcrypto.KIDNaclDH), NaclDHKeysize)
+}
+
 func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigningKeyPair, err error) {
 	var body []byte
 	if body, err = importNaclKid(pub, byte(kbcrypto.KIDNaclEddsa), ed25519.PublicKeySize); err != nil {

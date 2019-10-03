@@ -120,28 +120,6 @@ func (rc RemoteConversation) GetTopicName() string {
 	return ""
 }
 
-func (rc RemoteConversation) GetTLFName() string {
-	if len(rc.Conv.MaxMsgSummaries) == 0 {
-		return ""
-	}
-	return rc.Conv.MaxMsgSummaries[0].TlfName
-}
-
-func (rc RemoteConversation) GetName() string {
-	switch rc.Conv.Metadata.TeamType {
-	case chat1.TeamType_COMPLEX:
-		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
-			return fmt.Sprintf("%s#%s", rc.Conv.MaxMsgSummaries[0].TlfName, rc.LocalMetadata.TopicName)
-		}
-		fallthrough
-	default:
-		if len(rc.Conv.MaxMsgSummaries) == 0 {
-			return ""
-		}
-		return rc.Conv.MaxMsgSummaries[0].TlfName
-	}
-}
-
 func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 	return rc.Conv.GetTopicType()
 }
@@ -172,6 +150,19 @@ type Inbox struct {
 	ConvsUnverified []RemoteConversation
 	Convs           []chat1.ConversationLocal
 	Pagination      *chat1.Pagination
+}
+
+type InboxSyncRes struct {
+	FilteredConvs      []RemoteConversation
+	TeamTypeChanged    bool
+	MembersTypeChanged []chat1.ConversationID
+	Expunges           []InboxSyncResExpunge
+	TopicNameChanged   []chat1.ConversationID
+}
+
+type InboxSyncResExpunge struct {
+	ConvID  chat1.ConversationID
+	Expunge chat1.Expunge
 }
 
 type ConvLoaderPriority int
@@ -586,6 +577,10 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 
 func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
 
+func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+	return nil, nil
+}
+
 func (d DummyBotCommandManager) ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, error) {
 	return nil, nil
 }
@@ -615,5 +610,22 @@ func (d DummyUIInboxLoader) Stop(ctx context.Context) chan struct{} {
 
 func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 	pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context, reason string) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
+	msgType chat1.MessageType, firstConv bool) error {
+	return nil
+}
+
+func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) error {
 	return nil
 }

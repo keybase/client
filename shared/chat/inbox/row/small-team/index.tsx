@@ -23,6 +23,10 @@ export type Props = {
   isMuted: boolean
   isSelected: boolean
   isTypingSnippet: boolean
+  layoutIsTeam: boolean
+  layoutName: string
+  layoutSnippet?: string
+  layoutSnippetDecoration?: string
   onHideConversation: () => void
   onMuteConversation: () => void
   onSelectConversation: () => void
@@ -151,8 +155,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
                     participantNeedToRekey={props.participantNeedToRekey}
                     youAreReset={props.youAreReset}
                     showBold={props.showBold}
-                    snippet={props.snippet}
-                    snippetDecoration={props.snippetDecoration}
+                    snippet={props.snippet || props.layoutSnippet || ''}
+                    snippetDecoration={props.snippetDecoration || props.layoutSnippetDecoration || ''}
                     subColor={props.subColor}
                     hasResetUsers={props.hasResetUsers}
                     youNeedToRekey={props.youNeedToRekey}

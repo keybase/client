@@ -249,95 +249,6 @@ func TestSyncerConnected(t *testing.T) {
 	}
 }
 
-func TestSyncerAdHocFullReload(t *testing.T) {
-	ctx, world, ri2, _, sender, list := setupTest(t, 1)
-	defer world.Cleanup()
-
-	ri := ri2.(*kbtest.ChatRemoteMock)
-	u := world.GetUsers()[0]
-	uid := u.User.GetUID().ToBytes()
-	tc := world.Tcs[u.Username]
-	syncer := NewSyncer(tc.Context())
-	syncer.isConnected = true
-
-	_, conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
-	t.Logf("convID: %s", conv.GetConvID())
-	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
-		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
-			Vers:  100,
-			Convs: []chat1.Conversation{conv},
-		}), nil
-	}
-	doSync(t, syncer, ri, uid)
-	select {
-	case sres := <-list.inboxSynced:
-		typ, err := sres.SyncType()
-		require.NoError(t, err)
-		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox synced received")
-	}
-
-	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		conv.Metadata.TeamType = chat1.TeamType_COMPLEX
-		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
-			Vers:  101,
-			Convs: []chat1.Conversation{conv},
-		}), nil
-	}
-	doSync(t, syncer, ri, uid)
-	select {
-	case sres := <-list.inboxSynced:
-		typ, err := sres.SyncType()
-		require.NoError(t, err)
-		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox synced received")
-	}
-
-	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		conv.Metadata.Existence = chat1.ConversationExistence_DELETED
-		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
-			Vers:  102,
-			Convs: []chat1.Conversation{conv},
-		}), nil
-	}
-	doSync(t, syncer, ri, uid)
-	select {
-	case sres := <-list.inboxSynced:
-		typ, err := sres.SyncType()
-		require.NoError(t, err)
-		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox synced received")
-	}
-
-	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		conv.Metadata.Existence = chat1.ConversationExistence_ABANDONED
-		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
-			Vers:  103,
-			Convs: []chat1.Conversation{conv},
-		}), nil
-	}
-	doSync(t, syncer, ri, uid)
-	select {
-	case sres := <-list.inboxSynced:
-		typ, err := sres.SyncType()
-		require.NoError(t, err)
-		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox synced received")
-	}
-
-	// Make sure we don't get inbox stale
-	select {
-	case <-list.inboxStale:
-		require.Fail(t, "no inbox stale")
-	default:
-	}
-}
-
 func TestSyncerNeverJoined(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
@@ -447,14 +358,14 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Fail(t, "no inbox synced received")
 		}
 
-		// New clients get a CLEAR here.
 		ctx = context.TODO()
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
 		case sres := <-listener2.inboxSynced:
 			typ, err := sres.SyncType()
 			require.NoError(t, err)
-			require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
+			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+			require.Len(t, sres.Incremental().Items, 2)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}

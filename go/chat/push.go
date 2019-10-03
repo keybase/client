@@ -1228,11 +1228,15 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 		// Update inbox and get conversations
-		convs, err := g.G().InboxSource.SubteamRename(ctx, uid, update.InboxVers, update.ConvIDs)
+		ib, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
+				ConvIDs: update.ConvIDs,
+			}, nil)
 		if err != nil {
 			g.Debug(ctx, "SubteamRename: unable to read conversation: %v", err)
 			return
 		}
+		convs := ib.Convs
 		if len(convs) != len(update.ConvIDs) {
 			g.Debug(ctx, "SubteamRename: unable to find all conversations")
 		}
@@ -1267,6 +1271,9 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 				g.Debug(ctx, "SubteamRename: unable to force-refresh team: %v", err)
 				continue
 			}
+		}
+		if _, err := g.G().InboxSource.SubteamRename(ctx, uid, update.InboxVers, update.ConvIDs); err != nil {
+			g.Debug(ctx, "SubteamRename: failed to process on inbox: %s", err)
 		}
 		for topicType, items := range convUIItems {
 			cids := convIDs[topicType]

@@ -53,6 +53,11 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	if err != nil {
 		return err
 	}
+
+	// force load this transaction before refreshing the wallet state
+	loader := DefaultLoader(mctx.G())
+	loader.LoadPaymentSync(mctx.Ctx(), stellar1.PaymentID(sig.TxHash))
+
 	err = walletState.Refresh(mctx, senderEntry.AccountID, "set inflation destination")
 	if err != nil {
 		mctx.Debug("SetInflationDestinationLocal ws.Refresh error: %s", err)

@@ -34,6 +34,9 @@ type PanicArg struct {
 	Message string `codec:"message" json:"message"`
 }
 
+type TestAirdropRegArg struct {
+}
+
 type TestInterface interface {
 	// Call test method.
 	// Will trigger the testCallback method, whose result will be set in the
@@ -44,6 +47,8 @@ type TestInterface interface {
 	TestCallback(context.Context, TestCallbackArg) (string, error)
 	// For testing crashes.
 	Panic(context.Context, string) error
+	// For testing airdrop reg.
+	TestAirdropReg(context.Context) error
 }
 
 func TestProtocol(i TestInterface) rpc.Protocol {
@@ -95,6 +100,16 @@ func TestProtocol(i TestInterface) rpc.Protocol {
 					return
 				},
 			},
+			"testAirdropReg": {
+				MakeArg: func() interface{} {
+					var ret [1]TestAirdropRegArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.TestAirdropReg(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -122,5 +137,11 @@ func (c TestClient) TestCallback(ctx context.Context, __arg TestCallbackArg) (re
 func (c TestClient) Panic(ctx context.Context, message string) (err error) {
 	__arg := PanicArg{Message: message}
 	err = c.Cli.Call(ctx, "keybase.1.test.panic", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+// For testing airdrop reg.
+func (c TestClient) TestAirdropReg(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.test.testAirdropReg", []interface{}{TestAirdropRegArg{}}, nil, 0*time.Millisecond)
 	return
 }

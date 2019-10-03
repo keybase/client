@@ -16,6 +16,36 @@ protocol chatUi {
     boolean last;
   }
 
+  record UIInboxSmallTeamRow {
+    string convID;
+    string name;
+    gregor1.Time time;
+    union { null, string } snippet;
+    union { null, string } snippetDecoration;
+    boolean isTeam;
+  }
+
+  enum UIInboxBigTeamRowTyp {
+    LABEL_1,
+    CHANNEL_2
+  }
+
+  record UIInboxBigTeamChannelRow {
+    string convID;
+    string teamname;
+    string channelname;
+  }
+
+  variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
+    case LABEL: string;
+    case CHANNEL: UIInboxBigTeamChannelRow;
+  }
+
+  record UIInboxLayout {
+    array<UIInboxSmallTeamRow> smallTeams;
+    array<UIInboxBigTeamRow> bigTeams;
+  }
+
   record UnverifiedInboxUIItemMetadata {
     string channelName;
     string headline;
@@ -316,6 +346,7 @@ protocol chatUi {
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
 
+  void chatInboxLayout(int sessionID, string layout);
   void chatInboxUnverified(int sessionID, string inbox);
   void chatInboxConversation(int sessionID, string convs);
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);

@@ -89,17 +89,43 @@ func (c *CmdTeamBotSettings) Run() error {
 			return err
 		}
 	}
-	if err := renderBotSettings(c.G(), c.Username, botSettings); err != nil {
+	if err := renderBotSettings(c.G(), c.Username, nil, botSettings); err != nil {
 		return err
 	}
 	return nil
 }
 
-func renderBotSettings(g *libkb.GlobalContext, username string, botSettings keybase1.TeamBotSettings) error {
+func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.ConversationID, botSettings keybase1.TeamBotSettings) error {
 	var output string
 	if botSettings.Cmds {
-		// TODO HOTPOT-661 call bot advertise list for public commands, build output
-		output += "\t- command messages\n"
+		chatClient, err := GetChatLocalClient(g)
+		if err != nil {
+			return fmt.Errorf("Getting chat service client error: %s", err)
+		}
+		var cmds chat1.ListBotCommandsLocalRes
+		if convID == nil {
+			cmds, err = chatClient.ListPublicBotCommandsLocal(context.TODO(), username)
+			if err != nil {
+				return err
+			}
+		} else {
+			cmds, err = chatClient.ListBotCommandsLocal(context.TODO(), *convID)
+			if err != nil {
+				return err
+			}
+		}
+
+		if len(cmds.Commands) > 0 {
+			output += "\t- command messages for the following commands: \n"
+		} else {
+			output += "\t- command messages\n"
+		}
+		username = libkb.NewNormalizedUsername(username).String()
+		for _, cmd := range cmds.Commands {
+			if cmd.Username == username {
+				output += fmt.Sprintf("\t\t- !%s\n", cmd.Name)
+			}
+		}
 	}
 
 	if botSettings.Mentions {

@@ -1,11 +1,12 @@
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RecoverPasswordGen from './recover-password-gen'
-import * as ProvisionGen from '../actions/provision-gen'
-import * as RouteTreeGen from './route-tree-gen'
-import * as ProvisionConstants from '../constants/provision'
+import * as AutoresetGen from '../actions/autoreset-gen'
 import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
+import * as ProvisionConstants from '../constants/provision'
+import * as ProvisionGen from '../actions/provision-gen'
+import * as RecoverPasswordGen from './recover-password-gen'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
@@ -57,49 +58,7 @@ const explainDevice = (
   ])
 }
 
-const promptReset = (
-  params: RPCTypes.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
-  response: {
-    result: (reset: boolean) => void
-  }
-) => {
-  if (params.prompt.t === RPCTypes.ResetPromptType.enterResetPw) {
-    return Saga.callUntyped(function*() {
-      yield Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: ['recoverPasswordResetPassword'],
-          replace: true,
-        })
-      )
-      const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
-        RecoverPasswordGen.submitResetPrompt
-      )
-      response.result(action.payload.action)
-
-      // todo new screen?
-      yield Saga.put(RouteTreeGen.createNavigateUp())
-    })
-  }
-
-  return Saga.callUntyped(function*() {
-    yield Saga.put(
-      RouteTreeGen.createNavigateAppend({
-        path: ['recoverPasswordPromptReset'],
-        replace: true,
-      })
-    )
-    const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
-      RecoverPasswordGen.submitResetPrompt
-    )
-    response.result(action.payload.action)
-    if (action.payload.action) {
-      // todo new screen?
-      yield Saga.put(RouteTreeGen.createNavigateUp())
-    } else {
-      yield Saga.put(RecoverPasswordGen.createRestartRecovery())
-    }
-  })
-}
+const promptReset = () => Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
 
 const getPaperKeyOrPw = (
   params: RPCTypes.MessageTypes['keybase.1.secretUi.getPassphrase']['inParam'],

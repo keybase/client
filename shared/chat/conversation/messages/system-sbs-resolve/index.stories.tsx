@@ -4,7 +4,7 @@ import * as Sb from '../../../../stories/storybook'
 import SBSProvedNotice from '.'
 
 const rooter = Constants.makeMessageSystemSBSResolved({
-  assertionService: 'rooter',
+  assertionService: 'twitter',
   assertionUsername: 'michal',
   prover: 'zapu',
   timestamp: new Date('1/1/2000').getTime(),

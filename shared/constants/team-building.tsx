@@ -11,6 +11,7 @@ const searchServices: Array<Types.ServiceId> = [
   'reddit',
   'hackernews',
 ]
+
 // Order here determines order of tabs in team building
 export const allServices: Array<Types.ServiceIdWithContact> = [
   ...searchServices.slice(0, 1),
@@ -18,6 +19,17 @@ export const allServices: Array<Types.ServiceIdWithContact> = [
   'email',
   ...searchServices.slice(1),
 ]
+
+export function serviceIdToPrettyName(serviceId: Types.ServiceId): string {
+  return {
+    facebook: 'Facebook',
+    github: 'GitHub',
+    hackernews: 'Hacker News',
+    keybase: 'Keybase',
+    reddit: 'Reddit',
+    twitter: 'Twitter',
+  }[serviceId]
+}
 
 function isKeybaseUserId(userId: string) {
   // Only keybase user id's do not have

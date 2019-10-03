@@ -200,6 +200,7 @@ func NewGlobalContext() *GlobalContext {
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
+		vidMu:              new(sync.Mutex),
 		cacheMu:            new(sync.RWMutex),
 		socketWrapperMu:    new(sync.RWMutex),
 		shutdownOnce:       new(sync.Once),

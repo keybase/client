@@ -1,10 +1,10 @@
 import * as React from 'react'
 import openURL from '../../util/open-url'
 import {Avatar, Box, Button, Icon, Text, HeaderHoc} from '../../common-adapters'
-import {capitalize} from 'lodash-es'
 import * as Styles from '../../styles'
-import {platformToLogo24} from '../../constants/search'
+import {serviceIdToLogo24} from '../../util/platforms'
 import {Props} from '.'
+import {serviceIdToPrettyName} from '../../constants/team-building'
 
 const NonUserRender = (props: Props) => (
   <Box style={styles.container}>
@@ -12,7 +12,7 @@ const NonUserRender = (props: Props) => (
     <Box style={styles.bioBlurb}>
       <Avatar onClick={() => openURL(props.profileUrl)} size={128} />
       <Box style={styles.usernameRow} onClick={() => openURL(props.profileUrl)}>
-        <Icon type={platformToLogo24(props.serviceName)} />
+        <Icon type={serviceIdToLogo24(props.serviceId)} />
         <Text type="HeaderBig" selectable={true} style={styles.username}>
           {props.username}
         </Text>
@@ -23,7 +23,7 @@ const NonUserRender = (props: Props) => (
         </Text>
       )}
       <Text type="BodySmall" style={styles.serviceLabel}>
-        {capitalize(props.serviceName)} user
+        {serviceIdToPrettyName(props.serviceId)} user
       </Text>
     </Box>
     <Button
@@ -33,8 +33,8 @@ const NonUserRender = (props: Props) => (
     />
     <Text center={true} type="BodySmall" style={styles.details}>{`When ${
       props.username
-    } connects Keybase and their ${capitalize(
-      props.serviceName
+    } connects Keybase and their ${serviceIdToPrettyName(
+      props.serviceId
     )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
   </Box>
 )

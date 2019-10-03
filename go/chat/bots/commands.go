@@ -142,6 +142,18 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 	}
 }
 
+func (b *CachingBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+	convs, err := b.G().ChatHelper.FindConversations(ctx, username, &commandsPublicTopicName,
+		chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		return nil, err
+	}
+	if len(convs) != 1 {
+		return nil, fmt.Errorf("unable to find conversation for %v, found %d convs instead of 1", username, len(convs))
+	}
+	return convs[0].GetConvID(), nil
+}
+
 func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,
 	ads []chat1.AdvertiseCommandsParam) (err error) {
 	defer b.Trace(ctx, func() error { return err }, "Advertise")()
@@ -218,6 +230,7 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 	}
 	cmdDedup := make(map[string]bool)
 	for _, ad := range s.Advertisements {
+		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
 		for _, cmd := range ad.Advertisement.Commands {
 			key := cmd.Name + ad.Username
 			if !cmdDedup[key] {

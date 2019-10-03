@@ -910,6 +910,8 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		}
 
 		// Create a bunch of blank convos
+		oldUILoader := tc.ChatG.UIInboxLoader
+		tc.ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
 		ctx := ctc.as(t, users[0]).startCtx
 		convs := make(map[string]bool)
 		for i := 0; i < numconvs; i++ {
@@ -942,6 +944,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			time.Sleep(100 * time.Millisecond)
 		}
 
+		tc.ChatG.UIInboxLoader = oldUILoader
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
 			chat1.GetInboxNonblockLocalArg{
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,

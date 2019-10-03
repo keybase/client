@@ -3,7 +3,6 @@ import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
-import * as SearchConstants from '../../constants/search'
 import * as TrackerConstants from '../../constants/tracker2'
 import * as Tracker2Gen from '../tracker2-gen'
 import logger from '../../logger'
@@ -53,14 +52,8 @@ const finishRevoking = (state: TypedState) => [
   ProfileGen.createRevokeFinish(),
 ]
 
-const showUserProfile = (state: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
-  const {username: userId} = action.payload
-  // TODO search itself should handle this
-  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
-    state.entities.search.searchResults,
-    userId
-  )
-
+const showUserProfile = (_: TypedState, action: ProfileGen.ShowUserProfilePayload) => {
+  const {username} = action.payload
   return [
     RouteTreeGen.createClearModals(),
     RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profile'}]}),
