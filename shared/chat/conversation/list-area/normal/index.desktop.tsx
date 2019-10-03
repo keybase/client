@@ -222,15 +222,6 @@ class Thread extends React.PureComponent<Props, State> {
 
     // Adjust scrolling if locked to the bottom
     const list = this.listRef.current
-    // if locked to the bottom, and we have the most recent message, then scroll to the bottom if the list changes
-    // if (
-    // this.isLockedToBottom() &&
-    // this.props.conversationIDKey === prevProps.conversationIDKey &&
-    // this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()
-    // ) {
-    // maintain scroll to bottom?
-    // this.scrollToBottom('componentDidUpdate-maintain-scroll')
-    // }
 
     // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
     // position at all, so just bail out if we detect this case.
@@ -279,6 +270,7 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.cleanupDebounced()
+    this.resizeObserver.disconnect()
     this.resizeObserver = undefined
   }
 
@@ -489,7 +481,7 @@ class Thread extends React.PureComponent<Props, State> {
       this.listRef.current.removeEventListener('scroll', this.onScroll)
     }
     if (list) {
-      list.addEventListener('scroll', this.onScroll, {passive: false}) //
+      list.addEventListener('scroll', this.onScroll, {passive: true})
     }
 
     // @ts-ignore a violation

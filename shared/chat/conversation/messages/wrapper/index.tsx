@@ -408,7 +408,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'text':
         exploded = message.exploded
         explodedBy = message.explodedBy
-        child = <TextMessage key="text" message={message} measure={this.props.measure} />
+        child = <TextMessage key="text" message={message} />
         break
       case 'attachment':
         exploded = message.exploded
