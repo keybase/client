@@ -39,7 +39,7 @@ type Snapshot = {
   scrollTop: number
 }
 
-const debug = true
+const debug = __STORYBOOK__
 
 class Thread extends React.PureComponent<Props, State> {
   state = {}
@@ -52,11 +52,10 @@ class Thread extends React.PureComponent<Props, State> {
 
   private lastResizeHeight = 0
   // @ts-ignore doens't know about ResizeObserver
-  private resizeObserver = new ResizeObserver(entries => {
+  private resizeObserver = new ResizeObserver((entries: Array<{contentRect: {height: number}}>) => {
     const entry = entries[0]
     const {contentRect} = entry
     const {height} = contentRect
-    console.log('aaa observer', height)
     if (height !== this.lastResizeHeight) {
       this.lastResizeHeight = height
       if (this.isLockedToBottom()) {
@@ -71,7 +70,6 @@ class Thread extends React.PureComponent<Props, State> {
   }
   set lockedToBottom(l: boolean) {
     // accessor just to help debug
-    // console.log('Thread: locked to bottom changed', l)
     this._lockedToBottom = l
   }
 
@@ -123,7 +121,9 @@ class Thread extends React.PureComponent<Props, State> {
       const list = this.listRef.current
       if (list) {
         this.logAll(list, `scrollToBottom(${reason})`, () => {
-          list.scrollTop = list.scrollHeight - list.clientHeight
+          this.adjustScrollAndIgnoreOnScroll(() => {
+            list.scrollTop = list.scrollHeight - list.clientHeight
+          })
         })
       }
     }
@@ -138,7 +138,9 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this.listRef.current
     if (list) {
       this.logAll(list, 'scrollDown', () => {
-        list.scrollTop += list.clientHeight
+        this.adjustScrollAndIgnoreOnScroll(() => {
+          list.scrollTop += list.clientHeight
+        })
       })
     }
   }
@@ -147,7 +149,9 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this.listRef.current
     if (list) {
       this.logAll(list, 'scrollUp', () => {
-        list.scrollTop -= list.clientHeight
+        this.adjustScrollAndIgnoreOnScroll(() => {
+          list.scrollTop -= list.clientHeight
+        })
       })
     }
   }
@@ -159,7 +163,6 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
-    this.listContents.current && this.resizeObserver.observe(this.listContents.current)
     if (this.isLockedToBottom()) {
       this.scrollToBottom('componentDidMount')
     }
@@ -276,7 +279,6 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.cleanupDebounced()
-    this.listContents.current && this.resizeObserver.unobserve(this.listContents.current)
     this.resizeObserver = undefined
   }
 
@@ -286,7 +288,17 @@ class Thread extends React.PureComponent<Props, State> {
     this.checkForLoadMoreThrottled.cancel()
   }
 
+  private ignoreOnScroll = false
+  private adjustScrollAndIgnoreOnScroll = (fn: () => void) => {
+    this.ignoreOnScroll = true
+    fn()
+  }
+
   private onScroll = () => {
+    if (this.ignoreOnScroll) {
+      this.ignoreOnScroll = false
+      return
+    }
     // quickly set to false to assume we're not locked. if we are the throttled one will set it to true
     this.lockedToBottom = false
     this.checkForLoadMoreThrottled()
@@ -457,12 +469,27 @@ class Thread extends React.PureComponent<Props, State> {
     }
   )
 
-  private setListRef = list => {
+  private setListContents = (listContents: HTMLDivElement | null) => {
+    if (!this.resizeObserver) {
+      return
+    }
+    if (this.listContents.current && this.listContents.current !== listContents) {
+      this.resizeObserver.unobserve(this.listContents.current)
+    }
+    if (listContents) {
+      this.resizeObserver.observe(listContents)
+    }
+
+    // @ts-ignore a violation
+    this.listContents.current = listContents
+  }
+
+  private setListRef = (list: HTMLDivElement | null) => {
     if (this.listRef.current && this.listRef.current !== list) {
       this.listRef.current.removeEventListener('scroll', this.onScroll)
     }
     if (list) {
-      list.addEventListener('scroll', this.onScroll, {passive: true})
+      list.addEventListener('scroll', this.onScroll, {passive: false}) //
     }
 
     // @ts-ignore a violation
@@ -482,7 +509,7 @@ class Thread extends React.PureComponent<Props, State> {
         <div style={styles.container} onClick={this.handleListClick} onCopyCapture={this.onCopyCapture}>
           <style>{realCSS}</style>
           <div key={this.props.conversationIDKey} style={styles.list} ref={this.setListRef}>
-            <div style={styles.listContents} ref={this.listContents}>
+            <div style={styles.listContents} ref={this.setListContents}>
               {items}
             </div>
           </div>
