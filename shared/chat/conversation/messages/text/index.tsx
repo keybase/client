@@ -3,6 +3,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as Container from '../../../../util/container'
 
 type ReplyProps = {
   deleted: boolean
@@ -97,13 +98,29 @@ export type Props = {
   claim?: ClaimProps
   isEditing: boolean
   // eslint-disable-next-line
+  measure?: () => void
   message: Types.MessageText
   reply?: ReplyProps
   text: string
   type: 'error' | 'pending' | 'sent'
 }
 
-const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
+const MessageText = ({measure, claim, isEditing, message, reply, text, type}: Props) => {
+  const previousHadReply = !!Container.usePrevious(!!reply)
+  const previousHadClaim = !!Container.usePrevious(!!claim)
+
+  const hasClaim = !!claim
+  const hasReply = !!reply
+
+  React.useEffect(() => {
+    if (hasReply !== previousHadReply || hasClaim !== previousHadClaim) {
+      console.log('aaa calling measure', text, previousHadReply, hasReply, reply)
+      measure && measure()
+    }
+  }, [previousHadReply, hasReply, previousHadClaim, hasClaim, measure])
+
+  console.log('aaa render', text, previousHadReply, hasReply, reply)
+
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}

@@ -8,6 +8,7 @@ import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
   message: Types.MessageText
+  measure?: () => void
 }
 
 const replyNoop = () => {}
@@ -100,6 +101,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     claim: mergeClaimProps(stateProps, dispatchProps),
     isEditing: stateProps.isEditing,
+    measure: ownProps.measure,
     message: ownProps.message,
     reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
     text: ownProps.message.decoratedText

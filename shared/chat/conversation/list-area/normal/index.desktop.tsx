@@ -39,15 +39,31 @@ type Snapshot = {
   scrollTop: number
 }
 
-const debug = __STORYBOOK__
+const debug = true
 
 class Thread extends React.PureComponent<Props, State> {
   state = {}
   private listRef = React.createRef<HTMLDivElement>()
+  private listContents = React.createRef<HTMLDivElement>()
   // so we can turn pointer events on / off
   private pointerWrapperRef = React.createRef<HTMLDivElement>()
   // Not a state so we don't rerender, just mutate the dom
   private isScrolling = false
+
+  private lastResizeHeight = 0
+  // @ts-ignore doens't know about ResizeObserver
+  private resizeObserver = new ResizeObserver(entries => {
+    const entry = entries[0]
+    const {contentRect} = entry
+    const {height} = contentRect
+    console.log('aaa observer', height)
+    if (height !== this.lastResizeHeight) {
+      this.lastResizeHeight = height
+      if (this.isLockedToBottom()) {
+        this.scrollToBottom('resize observed')
+      }
+    }
+  })
 
   private _lockedToBottom: boolean = true
   get lockedToBottom() {
@@ -62,8 +78,25 @@ class Thread extends React.PureComponent<Props, State> {
   private logAll = debug
     ? (list, name, fn: any) => {
         const oldScrollTop = list.scrollTop
+        const oldScrollHeight = list.scrollHeight
+        const oldClientHeight = list.clientHeight
         fn()
-        logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
+        logger.debug(
+          'SCROLL',
+          name,
+          'scrollTop',
+          oldScrollTop,
+          '->',
+          list.scrollTop,
+          'scrollHeight',
+          oldScrollHeight,
+          '->',
+          list.scrollHeight,
+          'clientHeight',
+          oldClientHeight,
+          '->',
+          list.clientHeight
+        )
       }
     : (_, __, fn: any) => fn()
 
@@ -126,6 +159,7 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
+    this.listContents.current && this.resizeObserver.observe(this.listContents.current)
     if (this.isLockedToBottom()) {
       this.scrollToBottom('componentDidMount')
     }
@@ -186,14 +220,14 @@ class Thread extends React.PureComponent<Props, State> {
     // Adjust scrolling if locked to the bottom
     const list = this.listRef.current
     // if locked to the bottom, and we have the most recent message, then scroll to the bottom if the list changes
-    if (
-      this.isLockedToBottom() &&
-      this.props.conversationIDKey === prevProps.conversationIDKey &&
-      this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()
-    ) {
-      // maintain scroll to bottom?
-      this.scrollToBottom('componentDidUpdate-maintain-scroll')
-    }
+    // if (
+    // this.isLockedToBottom() &&
+    // this.props.conversationIDKey === prevProps.conversationIDKey &&
+    // this.props.messageOrdinals.last() !== prevProps.messageOrdinals.last()
+    // ) {
+    // maintain scroll to bottom?
+    // this.scrollToBottom('componentDidUpdate-maintain-scroll')
+    // }
 
     // Check if we just added new messages from the future. In this case, we don't want to adjust scroll
     // position at all, so just bail out if we detect this case.
@@ -242,6 +276,8 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentWillUnmount() {
     this.cleanupDebounced()
+    this.listContents.current && this.resizeObserver.unobserve(this.listContents.current)
+    this.resizeObserver = undefined
   }
 
   private cleanupDebounced = () => {
@@ -318,12 +354,11 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }, 200)
 
-  private rowRenderer = (ordinal: Types.Ordinal, previous?: Types.Ordinal, measure?: () => void) => (
+  private rowRenderer = (ordinal: Types.Ordinal, previous?: Types.Ordinal) => (
     <Message
       key={String(ordinal)}
       ordinal={ordinal}
       previous={previous}
-      measure={measure}
       conversationIDKey={this.props.conversationIDKey}
     />
   )
@@ -348,20 +383,12 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
-  private measure = () => {
-    requestAnimationFrame(() => {
-      if (this.isLockedToBottom()) {
-        this.scrollToBottom('measured')
-      }
-    })
-  }
-
   private makeItems = () => this.makeItemsMemoized(this.props.conversationIDKey, this.props.messageOrdinals)
 
   private makeItemsMemoized = memoize(
     (conversationIDKey: Types.ConversationIDKey, messageOrdinals: I.List<number>) => {
       const items: Array<React.ReactNode> = []
-      items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} measure={this.measure} />)
+      items.push(<TopItem key="topItem" conversationIDKey={conversationIDKey} />)
 
       const numOrdinals = messageOrdinals.size
       let ordinals: Array<Types.Ordinal> = []
@@ -396,7 +423,6 @@ class Thread extends React.PureComponent<Props, State> {
                   rowRenderer={this.rowRenderer}
                   ordinals={toAdd}
                   previous={previous}
-                  measure={this.measure}
                 />
               )
               previous = toAdd[toAdd.length - 1]
@@ -415,7 +441,6 @@ class Thread extends React.PureComponent<Props, State> {
               rowRenderer={this.rowRenderer}
               ordinals={[ordinal]}
               previous={previous}
-              measure={this.measure}
             />
           )
           previous = ordinal
@@ -426,7 +451,7 @@ class Thread extends React.PureComponent<Props, State> {
         }
       })
 
-      items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} measure={this.measure} />)
+      items.push(<BottomItem key="bottomItem" conversationIDKey={conversationIDKey} />)
 
       return items
     }
@@ -457,7 +482,9 @@ class Thread extends React.PureComponent<Props, State> {
         <div style={styles.container} onClick={this.handleListClick} onCopyCapture={this.onCopyCapture}>
           <style>{realCSS}</style>
           <div key={this.props.conversationIDKey} style={styles.list} ref={this.setListRef}>
-            {items}
+            <div style={styles.listContents} ref={this.listContents}>
+              {items}
+            </div>
           </div>
           {!this.props.containsLatestMessage && this.props.messageOrdinals.size > 0 && (
             <JumpToRecent onClick={this.jumpToRecent} style={styles.jumpToRecent} />
@@ -470,7 +497,6 @@ class Thread extends React.PureComponent<Props, State> {
 
 type TopBottomItemProps = {
   conversationIDKey: Types.ConversationIDKey
-  measure: () => void
 }
 
 type TopBottomItemState = {
@@ -480,7 +506,6 @@ type TopBottomItemState = {
 class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
   private measure = () => {
-    this.props.measure()
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
@@ -492,7 +517,6 @@ class TopItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState
 class BottomItem extends React.PureComponent<TopBottomItemProps, TopBottomItemState> {
   state = {keyCount: 0}
   private measure = () => {
-    this.props.measure()
     this.setState(p => ({keyCount: p.keyCount + 1}))
   }
 
@@ -506,7 +530,6 @@ type OrdinalWaypointProps = {
   rowRenderer: (ordinal: Types.Ordinal, previous?: Types.Ordinal, measure?: () => void) => React.ReactNode
   ordinals: Array<Types.Ordinal>
   previous?: Types.Ordinal
-  measure: () => void
 }
 
 type OrdinalWaypointState = {
@@ -594,7 +617,6 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   }, 100)
 
   private measure = debounce(() => {
-    this.props.measure()
     this.setState(p => (p.height ? {height: undefined} : null))
   }, 100)
 
@@ -688,6 +710,9 @@ const styles = Styles.styleSheetCreate(
         paddingBottom: globalMargins.small,
         // get our own layer so we can scroll faster
         willChange: 'transform' as const,
+      },
+      listContents: {
+        width: '100%',
       },
     } as const)
 )
