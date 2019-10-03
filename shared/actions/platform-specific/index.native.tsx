@@ -616,7 +616,7 @@ const onChatWatchPosition = async (
         )
       }
     },
-    {distanceFilter: 10, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
+    {distanceFilter: 65, enableHighAccuracy: isIOS, maximumAge: isIOS ? 0 : undefined}
   )
   response.result(watchID)
   return []
