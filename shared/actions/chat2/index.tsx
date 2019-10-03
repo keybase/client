@@ -2244,7 +2244,7 @@ const markThreadAsRead = async (
   }
   const conversationIDKey = Constants.getSelectedConversation(state)
 
-  if (!conversationIDKey || conversationIDKey === Constants.noConversationIDKey) {
+  if (!Constants.isValidConversationIDKey(conversationIDKey)) {
     logger.info('bail on no selected conversation')
     return
   }
