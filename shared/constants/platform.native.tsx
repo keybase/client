@@ -45,3 +45,10 @@ const _dir = `${cachesDirectoryPath}/Keybase`
 export const logFileDir = _dir
 export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`
+
+// Noop on iOS.
+// If we want to implement this on iOS it may be better to have iOS and android
+// subscribe to changes from Go directly. Instead of having to rely on JS as the
+// middle person.
+export const appColorSchemeChanged =
+  NativeModules.KeybaseEngine && isAndroid ? NativeModules.KeybaseEngine.appColorSchemeChanged : () => {}
