@@ -1,29 +1,25 @@
-import * as I from 'immutable'
-
-export type _TeamShowcase = {
+export type TeamShowcase = {
   description: string
   isOpen: boolean
   membersCount: number
   name: string
   publicAdmins: Array<string>
 }
-export type TeamShowcase = I.RecordOf<_TeamShowcase>
 
 export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked' | 'suggestion'
 export type AssertionColor = 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
 
-export type _AssertionMeta = {
+export type AssertionMeta = {
   color: AssertionColor
   label: string // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
 }
-type AssertionMeta = I.RecordOf<_AssertionMeta>
 
 export type SiteIcon = {
   readonly path: string // https://keybase.io/_/icons/twitter.png,
   readonly width: number
 }
 export type SiteIconSet = ReadonlyArray<SiteIcon>
-export type _Assertion = {
+export type Assertion = {
   assertionKey: string // twitter:bob,
   belowFold: boolean // suggestion in 'Other identities' dialog,
   color: AssertionColor
@@ -43,50 +39,45 @@ export type _Assertion = {
   type: string // twitter,
   value: string // bob
 }
-export type Assertion = I.RecordOf<_Assertion>
 
 export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'error' | 'notAUserYet'
 
-export type _Details = {
-  assertions: I.Map<string, Assertion> | null
-  bio: string | null
-  followers: I.OrderedSet<string> | null
-  following: I.OrderedSet<string> | null
-  followersCount: number | null
-  followingCount: number | null
-  fullname: string | null
+export type Details = {
+  assertions?: Map<string, Assertion>
+  bio?: string
+  followers?: Set<string>
+  following?: Set<string>
+  followersCount?: number
+  followingCount?: number
+  fullname?: string
   guiID: string
-  location: string | null
+  location?: string
   reason: string
-  registeredForAirdrop: boolean | null
+  registeredForAirdrop?: boolean
   showTracker: boolean
   state: DetailsState
-  teamShowcase: I.List<TeamShowcase> | null
+  teamShowcase?: Array<TeamShowcase>
   username: string
   blocked: boolean
 }
-export type Details = I.RecordOf<_Details>
 
 // Details for SBS profiles
-export type _NonUserDetails = {
+export type NonUserDetails = {
   assertionKey: string
   assertionValue: string
   description: string
-  bio: string | null
-  fullName: string | null
-  location: string | null
-  pictureUrl: string | null
-  formattedName: string | null
+  bio?: string
+  fullName?: string
+  location?: string
+  pictureUrl?: string
+  formattedName?: string
   siteIcon: SiteIconSet
   siteIconFull: SiteIconSet // full color icon,
   siteURL: string // https://twitter.com/bob,
 }
-export type NonUserDetails = I.RecordOf<_NonUserDetails>
 
-export type _State = {
-  usernameToDetails: I.Map<string, Details>
-  usernameToNonUserDetails: I.Map<string, NonUserDetails>
-  proofSuggestions: I.List<Assertion>
+export type State = {
+  usernameToDetails: Map<string, Details>
+  usernameToNonUserDetails: Map<string, NonUserDetails>
+  proofSuggestions: Array<Assertion>
 }
-
-export type State = I.RecordOf<_State>
