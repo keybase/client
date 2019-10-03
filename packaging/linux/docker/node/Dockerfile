@@ -34,11 +34,11 @@ RUN useradd --create-home --shell /bin/bash keybase \
     && chown keybase:keybase /var/log/keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.local/share/keybase" ]
 
-COPY --from=base /binaries/amd64/usr/bin/keybase /usr/bin/keybase
-COPY --from=base /binaries/amd64/usr/bin/keybase.sig /usr/bin/keybase.sig
-COPY --from=base /binaries/amd64/usr/bin/kbfsfuse /usr/bin/kbfsfuse
-COPY --from=base /binaries/amd64/usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
-COPY --from=base /binaries/amd64/usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
-COPY --from=base /binaries/amd64/usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
+COPY --from=base /usr/bin/keybase /usr/bin/keybase
+COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
+COPY --from=base /usr/bin/kbfsfuse /usr/bin/kbfsfuse
+COPY --from=base /usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
+COPY --from=base /usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
+COPY --from=base /usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
 
 ENTRYPOINT ["/tini", "--", "entrypoint.sh"]
