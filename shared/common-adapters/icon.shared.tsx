@@ -34,18 +34,7 @@ export function defaultHoverColor(type: IconType): string | null {
 
 // Some types are the same underlying icon.
 export function typeToIconMapper(type: IconType): IconType {
-  switch (type) {
-    case 'icon-loader-infinity-64':
-      return __STORYBOOK__ ? 'icon-loader-infinity-static-64' : 'icon-loader-infinity-64'
-    case 'icon-loader-infinity-80':
-      return __STORYBOOK__ ? 'icon-loader-infinity-static-80' : 'icon-loader-infinity-80'
-    case 'icon-facebook-visibility':
-      return __STORYBOOK__ ? 'icon-facebook-visibility-static' : 'icon-facebook-visibility'
-    case 'icon-loader-uploading-16':
-      return __STORYBOOK__ ? 'icon-loader-uploading-16-static' : 'icon-loader-uploading-16'
-    default:
-      return type
-  }
+  return type
 }
 
 export function typeExtension(type: IconType): string {

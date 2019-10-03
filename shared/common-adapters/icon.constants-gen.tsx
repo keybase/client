@@ -2079,16 +2079,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-facebook-logo-64.png'),
   },
-  'icon-facebook-visibility': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-facebook-visibility.gif'),
-  },
-  'icon-facebook-visibility-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-facebook-visibility-static.png'),
-  },
   'icon-fancy-airdrop-faded-120': {
     extension: 'png',
     isFont: false,
@@ -2759,36 +2749,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-keybase-wordmark-128-48.png'),
-  },
-  'icon-loader-infinity-64': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-64.gif'),
-  },
-  'icon-loader-infinity-80': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-80.gif'),
-  },
-  'icon-loader-infinity-static-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-static-64.png'),
-  },
-  'icon-loader-infinity-static-80': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-static-80.png'),
-  },
-  'icon-loader-uploading-16': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-uploading-16.gif'),
-  },
-  'icon-loader-uploading-16-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-uploading-16-static.png'),
   },
   'icon-message-deletion-32': {
     extension: 'png',
