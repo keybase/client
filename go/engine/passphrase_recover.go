@@ -214,7 +214,7 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 	if res.AppStatus.Code == libkb.SCBadLoginUserNotFound {
-		return libkb.NotFoundError{}
+		return libkb.NotFoundError{Msg: "User not found"}
 	}
 	mctx.Info("A reset link has been sent to primary email")
 	return nil
