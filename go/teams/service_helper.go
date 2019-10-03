@@ -908,7 +908,8 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 	})
 }
 
-func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string, allowInaction bool) (err error) {
+	g.CTrace(ctx, "CancelEmailInvite", func() error { return err })
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
@@ -919,11 +920,12 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 			return errors.New("Invalid email address")
 		}
 
-		return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email")
+		return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email", allowInaction)
 	})
 }
 
-func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID) error {
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
+	g.CTrace(ctx, "CancelInviteByID", func() error { return err })
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
@@ -936,7 +938,7 @@ func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname stri
 			return fmt.Errorf("Invalid invite ID: %s", err)
 		}
 
-		return removeInviteID(ctx, t, inviteID)
+		return removeInviteID(ctx, t, inviteID, allowInaction)
 	})
 }
 
@@ -1500,10 +1502,11 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		typ = ptyp
 	}
 
-	return removeMemberInviteOfType(ctx, g, team, lookingFor, typ)
+	const allowInaction = false
+	return removeMemberInviteOfType(ctx, g, team, lookingFor, typ, allowInaction)
 }
 
-func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team *Team, inviteName keybase1.TeamInviteName, typ string) error {
+func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team *Team, inviteName keybase1.TeamInviteName, typ string, allowInaction bool) error {
 	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, inviteName)
 
 	// make sure this is a valid invite type
@@ -1529,11 +1532,13 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 		}
 
 		g.Log.CDebugf(ctx, "found invite %s for %s/%s, removing it", inv.Id, validatedType, inviteName)
-		return removeInviteID(ctx, team, inv.Id)
+		return removeInviteID(ctx, team, inv.Id, allowInaction)
 	}
 
-	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
-
+	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s allowInaction:%v", validatedType, inviteName, allowInaction)
+	if allowInaction {
+		return nil
+	}
 	return libkb.NotFoundError{}
 }
 
@@ -1576,12 +1581,25 @@ func removeMultipleInviteIDs(ctx context.Context, team *Team, invIDs []keybase1.
 	return team.postTeamInvites(ctx, invites)
 }
 
-func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID) error {
+func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID, allowInaction bool) (err error) {
+	defer team.MetaContext(ctx).Trace("remoteInviteID", func() error { return err })()
 	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
 	invites := SCTeamInvites{
 		Cancel: &cancelList,
 	}
-	return team.postTeamInvites(ctx, invites)
+	err = team.postTeamInvites(ctx, invites)
+	if allowInaction {
+		switch err.(type) {
+		case libkb.NotFoundError:
+			team.MetaContext(ctx).Debug("remoteInviteID suppressing error due to allowInaction: %v", err)
+			return nil
+		}
+		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamInviteBadCancel) {
+			team.MetaContext(ctx).Debug("remoteInviteID suppressing error due to allowInaction: %v", err)
+			return nil
+		}
+	}
+	return err
 }
 
 // splitBulk splits on newline or comma.

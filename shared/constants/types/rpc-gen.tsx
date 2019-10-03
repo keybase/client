@@ -1260,7 +1260,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamRemoveMember': {
-    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID}
+    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
     outParam: void
   }
   'keybase.1.teams.teamRename': {
@@ -2143,6 +2143,7 @@ export enum StatusCode {
   scteamwritepermdenied = 2625,
   scteambadgeneration = 2636,
   scnoop = 2638,
+  scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,
