@@ -766,6 +766,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 		idMap[d.ID] = d
 	}
 
+	// TODO: Y2K-3 cleanup for autoreset.
 	autoresetEnabled := true
 
 	// check to see if they have a PUK, in which case they must select a device
@@ -826,7 +827,10 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 			// User had to explicitly decline entering the pipeline so in order to prevent
 			// confusion prevent further prompts by completing a noop login flow.
 			e.skippedLogin = true
-			return nil
+			if pgp && hasPUK {
+				return libkb.ProvisionViaDeviceRequiredError{}
+			}
+			return libkb.ProvisionUnavailableError{}
 		}
 
 		// go into the reset flow
@@ -1226,6 +1230,7 @@ func (e *loginProvision) displaySuccess(m libkb.MetaContext) error {
 func (e *loginProvision) LoggedIn() bool {
 	return !e.skippedLogin
 }
+
 func (e *loginProvision) AccountReset() bool {
 	return e.resetComplete
 }
