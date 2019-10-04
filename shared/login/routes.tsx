@@ -5,7 +5,6 @@ import {ProxySettingsPopup} from '../settings/proxy'
 import {KnowPassword, EnterPassword} from './reset/password'
 import Waiting from './reset/waiting'
 import Confirm from './reset/confirm'
-import ResetModal from './reset/modal'
 
 type OwnProps = {}
 type Props = {
@@ -56,9 +55,6 @@ export const newRoutes = {
 export const newModalRoutes = {
   proxySettingsModal: {
     getScreen: (): typeof ProxySettingsPopup => require('../settings/proxy/container').default,
-  },
-  resetModal: {
-    getScreen: (): typeof ResetModal => require('./reset/modal').default,
   },
   ...require('./recover-password/routes').newModalRoutes,
 }
