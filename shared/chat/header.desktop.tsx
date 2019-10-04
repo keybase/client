@@ -231,15 +231,23 @@ const styles = Styles.styleSheetCreate(
 const Connected = Container.connect(
   state => {
     const _conversationIDKey = Constants.getSelectedConversation(state)
-    const _userInfo = state.users.infoMap
+    const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
+
+    const otherParticipants = Constants.getRowParticipants(_meta, state.config.username)
+    const first: string =
+      _meta.teamType === 'adhoc' && otherParticipants.size === 1 ? otherParticipants.first() : ''
+    const otherInfo = userInfo.get(first)
+    // If it's a one-on-one chat, use the user's fullname as the description
+    const desc = (otherInfo && otherInfo.bio) || _meta.descriptionDecorated
+    const fullName = otherInfo && otherInfo.fullname
 
     return {
       _conversationIDKey,
       _meta,
-      _userInfo,
-      _username: state.config.username,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
+      desc,
+      fullName,
       infoPanelOpen: Constants.isInfoPanelOpen(),
       username: state.config.username,
     }
@@ -255,19 +263,6 @@ const Connected = Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const meta = stateProps._meta
-    const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
-
-    // If it's a one-on-one chat, use the user's fullname as the description
-    const desc =
-      meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio
-        : meta.descriptionDecorated
-
-    const fullName =
-      meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._userInfo.get(otherParticipants[0], {fullname: ''}).fullname
-        : undefined
-
     return {
       canEditDesc: stateProps.canEditDesc,
       channel:
@@ -276,8 +271,8 @@ const Connected = Container.connect(
           : meta.teamType === 'small'
           ? meta.teamname
           : null,
-      desc,
-      fullName,
+      desc: stateProps.desc,
+      fullName: stateProps.fullName,
       infoPanelOpen: stateProps.infoPanelOpen,
       isTeam: ['small', 'big'].includes(meta.teamType),
       muted: meta.isMuted,
