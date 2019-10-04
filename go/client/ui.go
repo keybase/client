@@ -841,7 +841,7 @@ username, but lose all your data, including all of your uploaded encrypted PGP k
 	default:
 		return false, fmt.Errorf("Unknown prompt type - got %v", kind)
 	}
-	l.parent.PrintfUnescaped("%s\n\n", msg)
+	_, _ = l.parent.PrintfUnescaped("%s\n\n", msg)
 	question := "Would you like to request a reset of your account?"
 	return l.parent.PromptYesNo(PromptDescriptorResetAccount, question, libkb.PromptDefaultNo)
 }
