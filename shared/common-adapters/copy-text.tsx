@@ -34,10 +34,7 @@ const CopyText = (props: Props) => {
   React.useEffect(() => {
     if (!props.withReveal && !props.text) {
       // only try to load text if withReveal is false
-      if (!props.loadText) {
-        throw new Error('no loadText method provided')
-      }
-      props.loadText()
+      props.loadText && props.loadText()
     }
     //  only run this effect once, on first render
     // eslint-disable-next-line
