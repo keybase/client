@@ -1909,6 +1909,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dark-shh-26-21.png'),
   },
+  'icon-dark-shh-active-19-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-shh-active-19-16.png'),
+  },
   'icon-dark-shh-hover-19-16': {
     extension: 'png',
     isFont: false,
@@ -4160,7 +4165,9 @@ const iconMeta_ = {
   'icon-shh-active-19-16': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-shh-active-19-16',
     require: require('../images/icons/icon-shh-active-19-16.png'),
+    requireDark: require('../images/icons/icon-dark-shh-active-19-16.png'),
   },
   'icon-shh-active-26-21': {
     extension: 'png',

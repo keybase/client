@@ -143,7 +143,7 @@ const getStyle = (type, isEditing) => {
 const editing = {
   backgroundColor: Styles.globalColors.yellowLight,
   borderRadius: 2,
-  color: Styles.globalColors.blackOrWhite,
+  color: Styles.globalColors.blackOrBlack,
   paddingLeft: Styles.globalMargins.tiny,
   paddingRight: Styles.globalMargins.tiny,
 }

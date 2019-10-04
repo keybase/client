@@ -52,9 +52,9 @@ export function PopupDialog({
             <Icon
               type="iconfont-close"
               style={Styles.collapseStyles([styles.close, styleClose])}
-              color={Styles.globalColors.whiteOrBlack}
+              color={Styles.globalColors.whiteOrWhite_75}
               onClick={onClose}
-              hoverColor={Styles.globalColors.white_40OrBlack_60}
+              hoverColor={Styles.globalColors.white_40OrWhite_40}
             />
           )}
           <Box
