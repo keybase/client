@@ -148,6 +148,9 @@ export const colors = {
   get white_40OrBlack_60() {
     return this.white_40
   },
+  get white_40OrWhite_40() {
+    return this.white_40
+  },
   white_40_on_white: '#FFFFFF',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_75_on_white: '#FFFFFF',
@@ -305,6 +308,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   white_40: 'rgba(25, 25, 25, 0.40)',
   get white_40OrBlack_60() {
     return colors.black_60
+  },
+  get white_40OrWhite_40() {
+    return colors.white_40
   },
   white_40_on_white: '#191919',
   white_75: 'rgba(25, 25, 25, 0.75)',
