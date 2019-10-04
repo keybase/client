@@ -380,6 +380,10 @@
         },
         {
           "type": "string",
+          "name": "bioDecorated"
+        },
+        {
+          "type": "string",
           "name": "website"
         },
         {
