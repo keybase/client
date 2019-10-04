@@ -25,7 +25,13 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <Kbfs.Errs />
-        <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.greyContainer}>
+        <Kb.Box2
+          direction="vertical"
+          centerChildren={true}
+          fullWidth={true}
+          fullHeight={true}
+          style={styles.greyContainer}
+        >
           <View path={this.props.path} onLoadingStateChange={this._onLoadingStateChange} />
           {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
         </Kb.Box2>

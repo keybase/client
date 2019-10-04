@@ -6,6 +6,7 @@ import * as Shim from '../router-v2/shim'
 import FsTab from './files/container'
 import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
+import DisplayTab from './display/container'
 import InvitationsTab from './invites/container'
 import AccountTab from './account/container'
 import FeedbackTab from './feedback/container'
@@ -29,6 +30,7 @@ const settingsSubRoutes = {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
   },
   [Constants.accountTab]: {getScreen: (): typeof AccountTab => require('./account/container').default},
+  [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display/container').default},
   [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   [Constants.notificationsTab]: {
     getScreen: (): typeof NotificationsTab => require('./notifications/container').default,

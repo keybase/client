@@ -103,6 +103,9 @@ export const colors = {
   purpleDarker: '#5128a8',
   purpleLight: '#9d70ff',
   purpleLighter: '#E8DEFF',
+  get purpleOrWhite() {
+    return this.purple
+  },
   purple_01: 'rgba(132, 82, 255, 0.01)',
   purple_10: 'rgba(132, 82, 255, 0.1)',
   get purple_10OrPurple() {
@@ -140,12 +143,18 @@ export const colors = {
   get whiteOrWhite() {
     return this.white
   },
+  get whiteOrWhite_75() {
+    return this.white
+  },
   white_0: 'rgba(255, 255, 255, 0)',
   white_0_on_white: '#FFFFFF',
   white_20: 'rgba(255, 255, 255, 0.20)',
   white_20_on_white: '#FFFFFF',
   white_40: 'rgba(255, 255, 255, 0.40)',
   get white_40OrBlack_60() {
+    return this.white_40
+  },
+  get white_40OrWhite_40() {
     return this.white_40
   },
   white_40_on_white: '#FFFFFF',
@@ -261,6 +270,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   purpleDarker: '#5128a8',
   purpleLight: '#9d70ff',
   purpleLighter: '#E8DEFF',
+  get purpleOrWhite() {
+    return colors.white
+  },
   purple_01: 'rgba(132, 82, 255, 0.01)',
   purple_10: 'rgba(132, 82, 255, 0.1)',
   get purple_10OrPurple() {
@@ -298,6 +310,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   get whiteOrWhite() {
     return colors.white
   },
+  get whiteOrWhite_75() {
+    return colors.white_75
+  },
   white_0: 'rgba(25, 25, 25, 0)',
   white_0_on_white: '#191919',
   white_20: 'rgba(25, 25, 25, 0.20)',
@@ -305,6 +320,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   white_40: 'rgba(25, 25, 25, 0.40)',
   get white_40OrBlack_60() {
     return colors.black_60
+  },
+  get white_40OrWhite_40() {
+    return colors.white_40
   },
   white_40_on_white: '#191919',
   white_75: 'rgba(25, 25, 25, 0.75)',

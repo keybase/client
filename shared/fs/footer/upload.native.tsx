@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
 
-const patternRequire = require('../../images/upload-pattern-2-80.png')
+const patternRequire = require('../../images/upload-pattern-80.png')
 
 type UploadState = {
   backgroundTop: NativeAnimated.AnimatedValue
@@ -178,7 +178,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: -48,
       },
       text: {
-        color: Styles.globalColors.white,
+        color: Styles.globalColors.whiteOrWhite,
       },
     } as const)
 )

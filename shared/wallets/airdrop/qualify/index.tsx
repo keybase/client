@@ -294,8 +294,8 @@ const styles = Styles.styleSheetCreate(
           color: Styles.globalColors.white_75,
         },
         isElectron: {
-          height: 16,
-          width: 16,
+          height: 20,
+          width: 20,
         },
         isMobile: {
           height: 22,

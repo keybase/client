@@ -2280,6 +2280,9 @@ func (fbo *folderBranchOps) GetTLFHandle(ctx context.Context, _ Node) (
 	*tlfhandle.Handle, error) {
 	lState := makeFBOLockState()
 	md, _ := fbo.getHead(ctx, lState, mdNoCommit)
+	if md == (ImmutableRootMetadata{}) {
+		return nil, errors.New("No MD")
+	}
 	return md.GetTlfHandle(), nil
 }
 
@@ -8857,15 +8860,21 @@ func (fbo *folderBranchOps) Reset(
 	ctx context.Context, handle *tlfhandle.Handle) error {
 	currHandle, err := fbo.GetTLFHandle(ctx, nil)
 	if err != nil {
-		return err
+		// If the MD is completely unreadable from the server, we
+		// might not have been able to initialize it at all, and we
+		// still want to allow resets in that case.
+		fbo.log.CDebugf(ctx, "Skipping handle check due to error: %+v", err)
+		currHandle = nil
 	}
-	equal, err := currHandle.Equals(fbo.config.Codec(), *handle)
-	if err != nil {
-		return err
-	}
-	if !equal {
-		return errors.Errorf("Can't reset %#v given bad handle %#v",
-			currHandle, handle)
+	if currHandle != nil {
+		equal, err := currHandle.Equals(fbo.config.Codec(), *handle)
+		if err != nil {
+			return err
+		}
+		if !equal {
+			return errors.Errorf("Can't reset %#v given bad handle %#v",
+				currHandle, handle)
+		}
 	}
 
 	oldHandle := handle.DeepCopy()

@@ -4,11 +4,13 @@ import {MenuItem, MenuItems} from './floating-menu/menu-layout'
 import {PropsWithTimer} from './hoc-timers'
 import {IconType} from './icon.constants-gen'
 import {WebViewProps, WebViewInjections} from './web-view'
+import {AnimationType} from './animation'
 
 export const NavigationEvents = _NavigationEvents
 
 export {default as Animated} from './animated'
 export {default as Animation} from './animation'
+export type AnimationType = AnimationType
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as AvatarLine} from './avatar-line'
 export {default as BackButton} from './back-button'

@@ -467,7 +467,10 @@ export default function(
         sep7ConfirmInfo: null,
         sep7ConfirmPath: Constants.emptyBuiltPaymentAdvanced,
         sep7ConfirmURI: '',
+        sep7SendError: '',
       })
+    case WalletsGen.setSEP7SendError:
+      return state.merge({sep7SendError: action.payload.error})
     case WalletsGen.validateSEP7LinkError:
       return state.merge({sep7ConfirmError: action.payload.error})
     case WalletsGen.setSEP7Tx:

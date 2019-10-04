@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {UploadProps} from './upload'
 
-const patternImage = 'upload-pattern-2-80.png'
+const patternImage = 'upload-pattern-80.png'
 
 const height = 40
 
@@ -76,7 +76,7 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.medium,
       },
       stylesText: {
-        color: Styles.globalColors.white,
+        color: Styles.globalColors.whiteOrWhite,
       },
       textOverflow: Styles.platformStyles({
         isElectron: {

@@ -61,10 +61,12 @@ export type TypedActions =
 
 export type TypedActionsMap = {
   'autoreset:cancelReset': autoreset.CancelResetPayload
+  'autoreset:displayProgress': autoreset.DisplayProgressPayload
   'autoreset:resetAccount': autoreset.ResetAccountPayload
   'autoreset:resetCancelled': autoreset.ResetCancelledPayload
   'autoreset:resetError': autoreset.ResetErrorPayload
   'autoreset:setUsername': autoreset.SetUsernamePayload
+  'autoreset:showFinalResetScreen': autoreset.ShowFinalResetScreenPayload
   'autoreset:startAccountReset': autoreset.StartAccountResetPayload
   'autoreset:submittedReset': autoreset.SubmittedResetPayload
   'autoreset:updateAutoresetState': autoreset.UpdateAutoresetStatePayload
@@ -993,6 +995,7 @@ export type TypedActionsMap = {
   'wallets:validatedSecretKey': wallets.ValidatedSecretKeyPayload
   'wallets:validateSEP7Link': wallets.ValidateSEP7LinkPayload
   'wallets:validateSEP7LinkError': wallets.ValidateSEP7LinkErrorPayload
+  'wallets:setSEP7SendError': wallets.SetSEP7SendErrorPayload
   'wallets:loadMobileOnlyMode': wallets.LoadMobileOnlyModePayload
   'wallets:loadedMobileOnlyMode': wallets.LoadedMobileOnlyModePayload
   'wallets:changeMobileOnlyMode': wallets.ChangeMobileOnlyModePayload

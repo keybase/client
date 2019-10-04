@@ -5,11 +5,6 @@ export const anyWaiting = (state: Container.TypedState, ...keys: Array<string>) 
   return !!keys.some(k => (state.waiting.counts.get(k) || 0) > 0)
 }
 
-export const useWaiting = (...keys: Array<string>) => {
-  const counts = Container.useSelector(state => state.waiting.counts)
-  return !!keys.some(k => (counts.get(k) || 0) > 0)
-}
-
 export const anyErrors = (
   state: Container.TypedState,
   keys: string | Array<string>

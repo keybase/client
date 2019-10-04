@@ -392,12 +392,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           centerChildren={true}
           style={styles.loadingContainer}
         >
-          {showLoading && (
-            <Kb.Icon
-              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
-              type="icon-progress-grey-animated"
-            />
-          )}
+          {showLoading && <Kb.Animation animationType="spinnerGrey" style={styles.loadingAnimation} />}
         </Kb.Box2>
       )
     }
@@ -684,11 +679,7 @@ const styles = Styles.styleSheetCreate(
       listContentContainer: Styles.platformStyles({
         isMobile: {paddingTop: Styles.globalMargins.xtiny},
       }),
-      loadingContainer: {
-        flex: 1,
-        justifyContent: 'flex-start',
-      },
-      loadingIcon: Styles.platformStyles({
+      loadingAnimation: Styles.platformStyles({
         isElectron: {
           height: 32,
           width: 32,
@@ -698,6 +689,10 @@ const styles = Styles.styleSheetCreate(
           width: 48,
         },
       }),
+      loadingContainer: {
+        flex: 1,
+        justifyContent: 'flex-start',
+      },
       mobileFlex: Styles.platformStyles({
         isMobile: {flex: 1},
       }),

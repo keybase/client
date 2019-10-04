@@ -64,11 +64,7 @@ const ServiceIcon = (props: IconProps) => {
                 {props.count && props.count > 10 ? '10+' : props.count}
               </Kb.Text>
             ) : (
-              <Kb.Icon
-                type="icon-progress-grey-animated"
-                color={Styles.globalColors.greyDark}
-                style={styles.pendingIcon}
-              />
+              <Kb.Animation animationType="spinnerGrey" style={styles.pendingAnimation} />
             ))}
         </Kb.Box2>
       </Kb.Box2>
@@ -248,7 +244,7 @@ const styles = Styles.styleSheetCreate(
       moreText: {
         color: Styles.globalColors.black_50,
       },
-      pendingIcon: {height: 10, width: 10},
+      pendingAnimation: {height: 10, width: 10},
       serviceIconBox: {
         marginTop: 14,
       },

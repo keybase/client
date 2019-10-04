@@ -4,6 +4,7 @@ import Feedback from '../settings/feedback/container'
 import {ProxySettingsPopup} from '../settings/proxy'
 import {KnowPassword, EnterPassword} from './reset/password'
 import Waiting from './reset/waiting'
+import Confirm from './reset/confirm'
 
 type OwnProps = {}
 type Props = {
@@ -43,6 +44,7 @@ const RootLogin = Container.connect(
 export const newRoutes = {
   feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},
   login: {getScreen: () => RootLogin},
+  resetConfirm: {getScreen: (): typeof Confirm => require('./reset/confirm').default},
   resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
   resetKnowPassword: {getScreen: (): typeof KnowPassword => require('./reset/password').KnowPassword},
   resetWaiting: {getScreen: (): typeof Waiting => require('./reset/waiting').default},

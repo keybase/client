@@ -12,9 +12,7 @@ type DropdownTextProps = {
 // A text selection, e.g., "Create a new account".
 export const DropdownText = ({text, spinner, ...props}: DropdownTextProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} fullWidth={true}>
-    {spinner && (
-      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
-    )}
+    {spinner && <Kb.Animation animationType="spinnerGrey" style={styles.spinner} />}
     <Kb.Text type="BodySemibold">{text}</Kb.Text>
   </Kb.Box2>
 )
@@ -28,9 +26,7 @@ type SelectedEntryProps = {
 // The display of the selected account in the dropdown.
 export const SelectedEntry = ({account, spinner, user, ...props}: SelectedEntryProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
-    {spinner && (
-      <Kb.Icon style={Kb.iconCastPlatformStyles(styles.spinner)} type="icon-progress-grey-animated" />
-    )}
+    {spinner && <Kb.Animation animationType="spinnerGrey" style={styles.spinner} />}
     {account.isDefault && <Kb.Avatar size={16} username={user} />}
     <Kb.Text type="BodySemibold" style={styles.text}>
       {!account.unknown && account.name}

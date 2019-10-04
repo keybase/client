@@ -320,34 +320,48 @@ const validateSEP7Link = async (_: TypedState, action: WalletsGen.ValidateSEP7Li
 }
 
 const acceptSEP7Tx = async (_: TypedState, action: WalletsGen.AcceptSEP7TxPayload) => {
-  await RPCStellarTypes.localApproveTxURILocalRpcPromise(
-    {inputURI: action.payload.inputURI},
-    Constants.sep7WaitingKey
-  )
+  try {
+    await RPCStellarTypes.localApproveTxURILocalRpcPromise(
+      {inputURI: action.payload.inputURI},
+      Constants.sep7WaitingKey
+    )
+  } catch (error) {
+    return WalletsGen.createSetSEP7SendError({error: error.desc})
+  }
+
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
 const acceptSEP7Path = async (state: TypedState, action: WalletsGen.AcceptSEP7PathPayload) => {
-  await RPCStellarTypes.localApprovePathURILocalRpcPromise(
-    {
-      fromCLI: false,
-      fullPath: paymentPathToRpcPaymentPath(state.wallets.sep7ConfirmPath.fullPath),
-      inputURI: action.payload.inputURI,
-    },
-    Constants.sep7WaitingKey
-  )
+  try {
+    await RPCStellarTypes.localApprovePathURILocalRpcPromise(
+      {
+        fromCLI: false,
+        fullPath: paymentPathToRpcPaymentPath(state.wallets.sep7ConfirmPath.fullPath),
+        inputURI: action.payload.inputURI,
+      },
+      Constants.sep7WaitingKey
+    )
+  } catch (error) {
+    return WalletsGen.createSetSEP7SendError({error: error.desc})
+  }
+
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
 const acceptSEP7Pay = async (_: TypedState, action: WalletsGen.AcceptSEP7PayPayload) => {
-  await RPCStellarTypes.localApprovePayURILocalRpcPromise(
-    {
-      amount: action.payload.amount,
-      fromCLI: false,
-      inputURI: action.payload.inputURI,
-    },
-    Constants.sep7WaitingKey
-  )
+  try {
+    await RPCStellarTypes.localApprovePayURILocalRpcPromise(
+      {
+        amount: action.payload.amount,
+        fromCLI: false,
+        inputURI: action.payload.inputURI,
+      },
+      Constants.sep7WaitingKey
+    )
+  } catch (error) {
+    return WalletsGen.createSetSEP7SendError({error: error.desc})
+  }
   return [RouteTreeGen.createClearModals(), RouteTreeGen.createSwitchTab({tab: Tabs.walletsTab})]
 }
 
