@@ -26,8 +26,10 @@ const mergeProps = (stateProps, _, ownProps: OwnProps) => {
   let channelname = stateProps.channelname
   if (!teamname) {
     const parts = ownProps.name.split('#')
-    teamname = parts[0]
-    channelname = parts[1]
+    if (parts.length >= 2) {
+      teamname = parts[0]
+      channelname = parts[1]
+    }
   }
   return {
     channelname,
