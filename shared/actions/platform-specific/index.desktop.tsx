@@ -381,11 +381,11 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
     },
   })
 
-    if(isLinux) {
-      const enabled = (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-      if (enabled !== openAtLogin)
-        await setNixOnLoginStartup(openAtLogin)
-    } else {
+  if (isLinux) {
+    const enabled =
+      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    if (enabled !== openAtLogin) await setNixOnLoginStartup(openAtLogin)
+  } else {
     if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
       SafeElectron.getApp().setLoginItemSettings({openAtLogin})
@@ -398,7 +398,6 @@ const setNixOnLoginStartup = async (enabled: boolean) => {
     console.info(`Error in sending ctlSetNixOnLoginStartup: ${err.message}`)
   })
 }
-
 
 export const requestLocationPermission = () => Promise.resolve()
 export const clearWatchPosition = () => {}
