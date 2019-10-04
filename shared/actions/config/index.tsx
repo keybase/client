@@ -351,7 +351,13 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 }
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
-const routeToInitialScreen = (state: Container.TypedState) => {
+const routeToInitialScreen = async (state: Container.TypedState) => {
+  console.log('aaa TEMPTEMPTEMP')
+  const p = new Promise(resolve => {
+    setTimeout(resolve, 7000)
+  })
+  await p
+
   if (routeToInitialScreenOnce) {
     return
   }
