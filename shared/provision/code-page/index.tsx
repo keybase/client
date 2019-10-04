@@ -127,7 +127,6 @@ class CodePage2 extends React.Component<Props, State> {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
         <Kb.Box2
@@ -223,7 +222,9 @@ class CodePage2 extends React.Component<Props, State> {
       <Kb.Banner color="yellow">
         <Kb.BannerParagraph
           bannerColor="yellow"
-          content={[`Wait, I'm on that ${Styles.isMobile ? 'phone' : 'computer'} right now!`]}
+          content={[
+            `Wait, I'm on that ${this.props.otherDeviceType === 'mobile' ? 'phone' : 'computer'} right now!`,
+          ]}
         />
       </Kb.Banner>
     </Kb.ClickableBox>
@@ -233,6 +234,7 @@ class CodePage2 extends React.Component<Props, State> {
     <Troubleshooting
       mode={this.state.tab === 'QR' ? 'QR' : 'text'}
       onCancel={() => this.setState({troubleshooting: false})}
+      otherDeviceType={this.props.otherDeviceType}
     />
   )
   // We're in a modal unless this is a desktop being newly provisioned.
@@ -247,7 +249,13 @@ class CodePage2 extends React.Component<Props, State> {
     const content = this._body()
     if (this._inModal()) {
       return (
-        <Kb.Modal header={this._header()} footer={this._footer()} onClose={this.props.onBack} mode="Wide">
+        <Kb.Modal
+          header={this._header()}
+          footer={this._footer()}
+          onClose={this.props.onBack}
+          mode="Wide"
+          mobileStyle={{backgroundColor: this._tabBackground()}}
+        >
           {content}
         </Kb.Modal>
       )
@@ -442,6 +450,7 @@ const styles = Styles.styleSheetCreate(
       },
       codePageContainer: Styles.platformStyles({
         common: {
+          flex: 1,
           overflow: 'hidden',
           position: 'relative',
         },

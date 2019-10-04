@@ -3,11 +3,12 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as DevicesConstants from '../../constants/devices'
-import * as DeviceTypes from '../../constants/types/devices'
+import * as Types from '../../constants/types/devices'
 import * as ProvisionGen from '../../actions/provision-gen'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void
+  otherDeviceType: Types.DeviceType
 }
 
 type BigButtonProps = {
@@ -60,12 +61,12 @@ const Troubleshooting = (props: Props) => {
   }, [dispatch, username])
 
   const deviceName = Container.useSelector(state => state.provision.codePageOtherDeviceName)
-  const deviceMap: Map<string, DeviceTypes.Device> = Container.useSelector(state => state.devices.deviceMap)
+  const deviceMap: Map<string, Types.Device> = Container.useSelector(state => state.devices.deviceMap)
   const deviceId = Container.useSelector(state => state.provision.codePageOtherDeviceId)
   const deviceIconNo = DevicesConstants.getDeviceIconNumberInner(deviceMap, deviceId)
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
-  const otherDeviceIcon = `icon-${Styles.isMobile ? 'phone' : 'computer'}-background-${
+  const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
     deviceIconNo === -1 ? 1 : deviceIconNo
   }-64` as Kb.IconType
 
