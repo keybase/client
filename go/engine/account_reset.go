@@ -237,7 +237,8 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		}
 		if !shouldReset {
 			// noop
-			return fmt.Errorf("Reset not completed.")
+			mctx.Info("Reset not completed.")
+			return nil
 		}
 
 		arg := libkb.NewAPIArg("autoreset/reset")
@@ -256,7 +257,6 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 	}
 
 	if status.EventType != libkb.AutoresetEventVerify {
-		mctx.Warning("RACE CONDITION HERE")
 		// Race condition against autoresetd. We've probably just canceled or reset.
 		return nil
 	}
