@@ -8,6 +8,7 @@ import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import logger from '../logger'
 
 type Props = {
   buttonType?: ButtonProps['type']
@@ -34,7 +35,11 @@ const CopyText = (props: Props) => {
   React.useEffect(() => {
     if (!props.withReveal && !props.text) {
       // only try to load text if withReveal is false
-      props.loadText && props.loadText()
+      if (!props.loadText) {
+        logger.warn('no loadText method provided')
+        return
+      }
+      props.loadText()
     }
   }, []) // only run this effect once, on first render
 
@@ -47,6 +52,7 @@ const CopyText = (props: Props) => {
   const copy = () => {
     if (!props.text) {
       if (!props.loadText) {
+        logger.warn('no text to copy and no loadText method provided')
         return
       }
       setRequestedCopy(true)

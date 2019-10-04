@@ -29,7 +29,7 @@ const KbfsPathPopup = (props: PopupProps) => {
   const header = {
     title: 'header',
     view: (
-      <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true}>
+      <Kb.Box2 direction="vertical" style={styles.headerContainer} centerChildren={true} fullWidth={true}>
         <PathItemInfo
           path={props.standardPath}
           showTooltipOnName={false}
