@@ -1,10 +1,10 @@
+import * as ConfigGen from '../actions/config-gen'
+import * as Constants from '../constants/users'
 import * as Container from '../util/container'
-import * as UsersGen from '../actions/users-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import * as Constants from '../constants/users'
 import * as Types from '../constants/types/users'
-import * as ConfigGen from '../actions/config-gen'
+import * as UsersGen from '../actions/users-gen'
 
 const initialState: Types.State = Constants.makeState()
 const blankUserInfo = Constants.makeUserInfo()
@@ -16,83 +16,68 @@ type Actions =
   | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
 
+const updateInfo = (map: Map<string, Types.UserInfo>, username: string, info: Partial<Types.UserInfo>) => {
+  map.set(username, {
+    ...(map.get(username) || blankUserInfo),
+    ...info,
+  })
+}
+
 export default Container.makeReducer<Actions, Types.State>(initialState, {
   [UsersGen.resetStore]: () => initialState,
   [UsersGen.updateFullnames]: (draftState, action) => {
     const infoMap = new Map(draftState.infoMap)
     const {usernameToFullname} = action.payload
     for (const [username, fullname] of Object.entries(usernameToFullname)) {
-      infoMap.set(username, {
-        ...(infoMap.get(username) || blankUserInfo),
-        fullname,
-      })
+      updateInfo(infoMap, username, {fullname})
     }
+    draftState.infoMap = infoMap
+  },
+  [UsersGen.updateBrokenState]: (draftState, action) => {
+    const {newlyBroken, newlyFixed} = action.payload
+    const infoMap = new Map(draftState.infoMap)
+    newlyFixed.forEach(username => updateInfo(infoMap, username, {broken: false}))
+    newlyBroken.forEach(username => updateInfo(infoMap, username, {broken: true}))
+    draftState.infoMap = infoMap
+  },
+  [UsersGen.updateBio]: (draftState, action) => {
+    const {username, userCard} = action.payload
+    const {bio} = userCard
+    const infoMap = new Map(draftState.infoMap)
+    updateInfo(infoMap, username, {bio})
+    draftState.infoMap = infoMap
+  },
+  [Tracker2Gen.updatedDetails]: (draftState, action) => {
+    const {username, fullname} = action.payload
+    const infoMap = new Map(draftState.infoMap)
+    updateInfo(infoMap, username, {fullname})
+    draftState.infoMap = infoMap
+  },
+  [Tracker2Gen.updateFollowers]: (draftState, action) => {
+    const {followers, following} = action.payload
+    const all = [...followers, ...following]
+    const infoMap = new Map(draftState.infoMap)
+    all.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
+    draftState.infoMap = infoMap
+  },
+  [ConfigGen.setAccounts]: (draftState, action) => {
+    const {configuredAccounts} = action.payload
+    const infoMap = new Map(draftState.infoMap)
+    configuredAccounts.forEach(({username, fullname}) => updateInfo(infoMap, username, {fullname}))
+    draftState.infoMap = infoMap
+  },
+  [TeamBuildingGen.searchResultsLoaded]: (draftState, action) => {
+    const {users} = action.payload
+    const infoMap = new Map(draftState.infoMap)
+    users.forEach(({serviceMap, prettyName}) => {
+      const {keybase} = serviceMap
+      if (!keybase) return
+      const old = infoMap.get(keybase)
+      // only update if unknown
+      if (!old || !old.fullname) {
+        updateInfo(infoMap, keybase, {fullname: prettyName})
+      }
+    })
+    draftState.infoMap = infoMap
   },
 })
-/*
-
-const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
-  switch (action.type) {
-    case UsersGen.updateBrokenState: {
-      const {newlyBroken, newlyFixed} = action.payload
-
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          newlyFixed.forEach(user => {
-            // only make it if one exists already
-            m.update(user, info => (info ? info.set('broken', false) : info))
-          })
-          newlyBroken.forEach(user => {
-            m.update(user, info => (info || blankUserInfo).set('broken', true))
-          })
-        })
-      )
-    }
-    case UsersGen.updateBio: {
-      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
-        userInfo.set('bio', action.payload.userCard.bio)
-      )
-    }
-    case Tracker2Gen.updatedDetails:
-      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
-        userInfo.set('fullname', action.payload.fullname)
-      )
-    case Tracker2Gen.updateFollowers: {
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          const all = [...action.payload.followers, ...action.payload.following]
-          all.forEach(({username, fullname}) => {
-            m.update(username, old => (old || blankUserInfo).merge({fullname}))
-          })
-        })
-      )
-    }
-    case ConfigGen.setAccounts:
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          action.payload.configuredAccounts.forEach(({username, fullname}) => {
-            m.update(username, old => (old || blankUserInfo).merge({fullname}))
-          })
-        })
-      )
-    case TeamBuildingGen.searchResultsLoaded:
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          action.payload.users.forEach(({serviceMap, prettyName}) => {
-            const kbName = serviceMap.keybase
-            if (kbName) {
-              // only if unknown
-              if (!m.getIn([kbName, 'fullname'])) {
-                m.update(kbName, old => (old || blankUserInfo).merge({fullname: prettyName}))
-              }
-            }
-          })
-        })
-      )
-
-    // Saga only actions
-    default:
-      return state
-  }
-}
- */
