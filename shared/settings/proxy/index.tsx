@@ -131,8 +131,8 @@ class ProxySettings extends React.Component<Props, State> {
   render() {
     return (
       <Kb.Box style={styles.proxyContainer}>
-        <Kb.Text type="BodyBig" style={styles.text}>
-          Proxy Settings
+        <Kb.Text type="Header" style={styles.text}>
+          Proxy settings
         </Kb.Text>
         <Kb.Box style={styles.flexButtons}>
           {proxyTypeList.map(proxyType => (

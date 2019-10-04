@@ -143,6 +143,7 @@ func (a *Client) round2(m libkb.MetaContext, cli keybase1.AirdropClient, sharedK
 }
 
 func (a *Client) Register(m libkb.MetaContext) (err error) {
+	m = m.WithLogTag("AIRDROP")
 	cli, xp, err := a.connect(m)
 	if err != nil {
 		return err
