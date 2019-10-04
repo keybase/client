@@ -358,11 +358,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   routeToInitialScreenOnce = true
 
   if (state.config.loggedIn) {
-    // If we are being reset, put a modal above everything else
-    const maybeResetModal = state.autoreset.active
-      ? [RouteTreeGen.createNavigateAppend({path: ['resetModal']})]
-      : []
-
     // A chat
     if (
       state.config.startupConversation &&
@@ -382,7 +377,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
           conversationIDKey: state.config.startupConversation,
           reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
         }),
-        ...maybeResetModal,
       ]
     }
 
@@ -397,7 +391,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
         FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
-        ...maybeResetModal,
       ]
     }
 
@@ -407,7 +400,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
         RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
         RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
         ProfileGen.createShowUserProfile({username: state.config.startupFollowUser}),
-        ...maybeResetModal,
       ]
     }
 
@@ -424,7 +416,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
             RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
             RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
             ProfileGen.createShowUserProfile({username}),
-            ...maybeResetModal,
           ]
         }
       } catch {
@@ -436,7 +427,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
     return [
       RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
       RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
-      ...maybeResetModal,
     ]
   } else {
     // Show a login screen

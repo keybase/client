@@ -25,9 +25,6 @@ const cancelReset = async () => {
   return AutoresetGen.createResetCancelled()
 }
 
-const updateAutoresetState = (_: Container.TypedState, action: AutoresetGen.UpdateAutoresetStatePayload) =>
-  action.payload.active ? [RouteTreeGen.createNavigateAppend({path: ['resetModal']})] : null
-
 const startAccountReset = (state: Container.TypedState, action: AutoresetGen.StartAccountResetPayload) => {
   return [
     AutoresetGen.createSetUsername({username: action.payload.username || state.recoverPassword.username}),
@@ -62,7 +59,6 @@ function* autoresetSaga() {
   yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset, 'cancelReset')
   yield* Saga.chainAction2(AutoresetGen.startAccountReset, startAccountReset)
   yield* Saga.chainAction2(AutoresetGen.submittedReset, submittedReset)
-  yield* Saga.chainAction2(AutoresetGen.updateAutoresetState, updateAutoresetState, 'updateAutoresetState')
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
   yield* Saga.chainGenerator(AutoresetGen.resetAccount, resetAccount)
 }
