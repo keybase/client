@@ -392,9 +392,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
           centerChildren={true}
           style={styles.loadingContainer}
         >
-          {showLoading && (
-            <Kb.Animation animationType="spinnerGrey" style={styles.loadingAnimation} />
-          )}
+          {showLoading && <Kb.Animation animationType="spinnerGrey" style={styles.loadingAnimation} />}
         </Kb.Box2>
       )
     }

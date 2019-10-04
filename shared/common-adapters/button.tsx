@@ -3,7 +3,7 @@ import Animation from './animation'
 import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon, {castPlatformStyles} from './icon'
+import Icon from './icon'
 import * as React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
@@ -46,7 +46,10 @@ export type Props = {
 
 const Progress = ({small, white}) => (
   <Kb.Box style={styles.progressContainer}>
-    <Kb.Animation animationType={white ? 'spinnerWhite' : 'spinnerGrey'} style={small ? styles.progressSmall : styles.progressNormal} />
+    <Kb.Animation
+      animationType={white ? 'spinnerWhite' : 'spinnerGrey'}
+      style={small ? styles.progressSmall : styles.progressNormal}
+    />
   </Kb.Box>
 )
 

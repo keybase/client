@@ -127,7 +127,6 @@ class SendIndicator extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      invisible: {opacity: 0},
       animation: Styles.platformStyles({
         common: {
           height: 20,
@@ -139,6 +138,7 @@ const styles = Styles.styleSheetCreate(
           width: 48,
         },
       }),
+      invisible: {opacity: 0},
       visible: {opacity: 1},
     } as const)
 )
