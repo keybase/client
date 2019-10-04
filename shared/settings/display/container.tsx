@@ -9,6 +9,7 @@ import {DarkModePreference} from '../../styles/dark-mode'
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => ({
   darkModePreference: state.config.darkModePreference,
+  title: 'Display',
 })
 
 const mapDispatchToProps = dispatch => ({

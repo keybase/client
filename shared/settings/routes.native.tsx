@@ -8,6 +8,7 @@ import FeedbackTab from './feedback/container'
 import InvitationsTab from './invites/container'
 import AccountTab from './account/container'
 import NotificationsTab from './notifications/container'
+import DisplayTab from './display/container'
 import PasswordTab from './password/container'
 import ScreenprotectorTab from './screenprotector-container.native'
 import DbNukeConfirm from './db-nuke-confirm/container'
@@ -28,6 +29,7 @@ export const newRoutes = {
   // TODO connect broken
   [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
+  [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
   [Constants.walletsTab]: {
     getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,

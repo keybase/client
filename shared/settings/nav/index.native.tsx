@@ -78,6 +78,10 @@ function SettingsNav(props: Props) {
               onClick: () => props.onTabChange(Constants.notificationsTab),
               text: 'Notifications',
             },
+            {
+              onClick: () => props.onTabChange(Constants.displayTab),
+              text: 'Display',
+            },
             ...(isAndroid
               ? [
                   {
