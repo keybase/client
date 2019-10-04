@@ -14,6 +14,7 @@ import (
 
 type CmdPassphraseChange struct {
 	libkb.Contextified
+	ForceArg bool
 }
 
 func NewCmdPassphraseChange(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -23,6 +24,13 @@ func NewCmdPassphraseChange(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		Usage:   "Change your keybase account passphrase.",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdPassphraseChangeRunner(g), "change", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name: "force",
+				Usage: `Change password without entering the current one. This will set
+   new password but will not be able to re-encrypt server-synced PGP keys.`,
+			},
 		},
 	}
 }
@@ -47,13 +55,17 @@ func (c *CmdPassphraseChange) Run() error {
 		return err
 	}
 
+	forcePassphraseChange := c.ForceArg
+
 	// If the user has a randompw, we force the password change since we cannot
 	// prompt them for the old one.
 	passphraseState, err := cliUser.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
 	if err != nil {
 		return err
 	}
-	forcePassphraseChange := passphraseState == keybase1.PassphraseState_RANDOM
+	if passphraseState == keybase1.PassphraseState_RANDOM {
+		forcePassphraseChange = true
+	}
 
 	if forcePassphraseChange {
 		// Check whether the user would lose server-stored encrypted PGP keys.
@@ -90,6 +102,7 @@ func (c *CmdPassphraseChange) Run() error {
 }
 
 func (c *CmdPassphraseChange) ParseArgv(ctx *cli.Context) error {
+	c.ForceArg = ctx.Bool("force")
 	return nil
 }
 

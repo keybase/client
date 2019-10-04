@@ -203,8 +203,9 @@ func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 		LoginUI:     aRecoverUI,
 	}
 	tcClient.G.SetUI(&aUI)
-	recoverCmd := client.NewCmdPassphraseRecoverRunner(tcClient.G)
-	err = recoverCmd.Run()
+	changeCmd := client.NewCmdPassphraseChangeRunner(tcClient.G)
+	changeCmd.ForceArg = true
+	err = changeCmd.Run()
 	require.NoError(t, err)
 	tcClient = nil
 
