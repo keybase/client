@@ -1529,6 +1529,13 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return res
 }
 
+func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
+	res = EscapeForDecorate(ctx, bio)
+	res = EscapeShrugs(ctx, res)
+	res = DecorateWithLinks(ctx, res)
+	return res
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()

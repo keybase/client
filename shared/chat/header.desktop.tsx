@@ -260,7 +260,7 @@ const Connected = Container.connect(
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio
+        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio.replace(/(\r\n|\n|\r)/gm, ' ')
         : meta.descriptionDecorated
 
     const fullName =
