@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Container from '../util/container'
 import {hot} from 'react-hot-loader/root'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import ResetModal from '../login/reset/modal'

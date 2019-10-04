@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {GatewayDest} from 'react-gateway'
 import {View} from 'react-native'
