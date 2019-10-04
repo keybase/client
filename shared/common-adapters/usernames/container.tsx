@@ -3,12 +3,12 @@ import * as I from 'immutable'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as UsersConstants from '../../constants/users'
-import {InfoMap as UserInfoMap} from '../../constants/types/users'
+import {UserInfo} from '../../constants/types/users'
 import {Usernames, BaseUsernamesProps, Props, UserList} from '.'
 
 export type StateProps = {
   _following: I.Set<string> | Set<string>
-  _userInfo: UserInfoMap
+  _userInfo: Map<string, UserInfo>
   _you: string
 }
 

@@ -38,7 +38,7 @@ export default Container.connect(
     return {
       accountRows: accountRows.map(account => ({
         account: account,
-        fullName: stateProps._fullnames.get(account.username, {fullname: ''}).fullname,
+        fullName: (stateProps._fullnames.get(account.username) || {fullname: ''}).fullname,
       })),
       fullname: stateProps.fullname,
       onAddAccount: dispatchProps.onAddAccount,

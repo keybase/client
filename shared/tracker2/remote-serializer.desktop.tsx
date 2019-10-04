@@ -78,7 +78,7 @@ export const deserialize = (state: typeof initialState = initialState, props: Pr
     ...(props && props.username
       ? {users: {infoMap: new Map([[props.username, {broken: false, fullname: props.fullname}]])}}
       : {}),
-    ...(props && props.waiting ? {waiting: {counts: new Map([[Constants.waitingKey, props.waiting]])}} : {}),
+    waiting: {counts: new Map([[Constants.waitingKey, props && props.waiting]])},
   }
   return Avatar.deserialize(newState, props)
 }

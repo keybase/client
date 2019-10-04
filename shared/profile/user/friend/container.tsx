@@ -9,7 +9,7 @@ type OwnProps = {
 
 export default Container.namedConnect(
   (state, ownProps: OwnProps) => ({
-    fullname: state.users.infoMap.getIn([ownProps.username, 'fullname'], ''),
+    fullname: (state.users.infoMap.get(ownProps.username) || {fullname: ''}).fullname,
     username: ownProps.username,
   }),
   dispatch => ({_onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))}),

@@ -19,7 +19,8 @@ const onIdentifyUpdate = (
 const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
   const {username} = action.payload
 
-  if (state.users.infoMap.get(username, {bio: undefined}).bio) {
+  const info = state.users.infoMap.get(username)
+  if (info && info.bio) {
     return // don't re-fetch bio if we already have one cached
   }
 

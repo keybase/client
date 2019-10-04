@@ -1,3 +1,4 @@
+import * as Container from '../util/container'
 import * as UsersGen from '../actions/users-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
@@ -15,21 +16,23 @@ type Actions =
   | ConfigGen.SetAccountsPayload
   | TeamBuildingGen.SearchResultsLoadedPayload
 
+export default Container.makeReducer<Actions, Types.State>(initialState, {
+  [UsersGen.resetStore]: () => initialState,
+  [UsersGen.updateFullnames]: (draftState, action) => {
+    const infoMap = new Map(draftState.infoMap)
+    const {usernameToFullname} = action.payload
+    for (const [username, fullname] of Object.entries(usernameToFullname)) {
+      infoMap.set(username, {
+        ...(infoMap.get(username) || blankUserInfo),
+        fullname,
+      })
+    }
+  },
+})
+/*
+
 const reducer = (state: Types.State = initialState, action: Actions): Types.State => {
   switch (action.type) {
-    case UsersGen.resetStore:
-      return initialState
-    case UsersGen.updateFullnames: {
-      return state.update('infoMap', map =>
-        map.withMutations(m => {
-          Object.keys(action.payload.usernameToFullname).forEach(username => {
-            m.update(username, info =>
-              (info || blankUserInfo).set('fullname', action.payload.usernameToFullname[username])
-            )
-          })
-        })
-      )
-    }
     case UsersGen.updateBrokenState: {
       const {newlyBroken, newlyFixed} = action.payload
 
@@ -92,5 +95,4 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
       return state
   }
 }
-
-export default reducer
+ */
