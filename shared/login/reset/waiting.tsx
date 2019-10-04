@@ -19,10 +19,10 @@ const Waiting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [])
+  const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [dispatch])
   const onClose = React.useCallback(
     () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
-    []
+    [dispatch, nav]
   )
   const onSendAgain = todo
 

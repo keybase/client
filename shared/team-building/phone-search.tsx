@@ -54,7 +54,7 @@ const PhoneSearch = (props: PhoneSearchProps) => {
     setPhoneNumber('')
     setPhoneInputKey(old => old + 1)
     setPhoneValidity(false)
-  }, [dispatch, namespace, user, phoneNumber, setPhoneNumber, canSubmit, setPhoneInputKey])
+  }, [dispatch, namespace, user, setPhoneNumber, canSubmit, setPhoneInputKey])
 
   return (
     <>

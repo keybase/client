@@ -15,7 +15,7 @@ const ResetModal = (_: Props) => {
     if (!active) {
       dispatch(RouteTreeGen.createNavigateUp())
     }
-  }, [active])
+  }, [active, dispatch])
   const timeNice = Constants.formatTimeLeft(endTime)
   const onCancelReset = () => {
     dispatch(AutoresetGen.createCancelReset())

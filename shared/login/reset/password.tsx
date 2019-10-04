@@ -14,12 +14,12 @@ const KnowPassword = () => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [])
+  const onCancel = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [nav, dispatch])
   const onYes = React.useCallback(
     () => dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword']})),
-    []
+    [dispatch, nav]
   )
-  const onNo = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [])
+  const onNo = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [dispatch])
   return (
     <SignupScreen
       title="Account reset"
@@ -61,10 +61,10 @@ const EnterPassword = () => {
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [])
+  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   const onContinue = React.useCallback(
     () => dispatch(AutoresetGen.createResetAccount({password: new HiddenString(password)})),
-    [password]
+    [dispatch, password]
   )
   return (
     <SignupScreen
