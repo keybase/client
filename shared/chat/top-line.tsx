@@ -27,7 +27,15 @@ class FilteredTopLine extends PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySemibold" lineClamp={1} style={styles.usernames}>
+        <Kb.Text
+          type="BodySemibold"
+          lineClamp={1}
+          style={Styles.collapseStyles([
+            this.props.showBold && styles.boldOverride,
+            styles.usernames,
+            {color: this.props.usernameColor},
+          ])}
+        >
           {this.props.participants.join(', ')}
         </Kb.Text>
         {!!this.props.numSearchHits && (
