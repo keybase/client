@@ -61,10 +61,12 @@ export type TypedActions =
 
 export type TypedActionsMap = {
   'autoreset:cancelReset': autoreset.CancelResetPayload
+  'autoreset:displayProgress': autoreset.DisplayProgressPayload
   'autoreset:resetAccount': autoreset.ResetAccountPayload
   'autoreset:resetCancelled': autoreset.ResetCancelledPayload
   'autoreset:resetError': autoreset.ResetErrorPayload
   'autoreset:setUsername': autoreset.SetUsernamePayload
+  'autoreset:showFinalResetScreen': autoreset.ShowFinalResetScreenPayload
   'autoreset:startAccountReset': autoreset.StartAccountResetPayload
   'autoreset:submittedReset': autoreset.SubmittedResetPayload
   'autoreset:updateAutoresetState': autoreset.UpdateAutoresetStatePayload

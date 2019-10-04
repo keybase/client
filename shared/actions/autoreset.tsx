@@ -2,6 +2,7 @@ import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/autoreset'
 import * as Container from '../util/container'
 import * as NotificationsGen from './notifications-gen'
+import * as RecoverPasswordGen from './recover-password-gen'
 import * as RPCGen from '../constants/types/rpc-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
@@ -19,9 +20,14 @@ const receivedBadgeState = async (
   return null
 }
 
+// TODO(Y2K-743): make this work in the logged-out case
 const cancelReset = async () => {
   logger.info('Cancelled autoreset from logged-in user')
-  await RPCGen.accountCancelResetRpcPromise(undefined, Constants.waitingKeyCancelReset)
+  try {
+    await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
+  } catch (error) {
+    return AutoresetGen.createResetError({error})
+  }
   return AutoresetGen.createResetCancelled()
 }
 
@@ -35,33 +41,74 @@ const startAccountReset = (state: Container.TypedState, action: AutoresetGen.Sta
   ]
 }
 
+function promptReset(
+  params: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
+  response: {
+    result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
+  }
+) {
+  return Saga.callUntyped(function*() {
+    if (params.prompt.t === RPCGen.ResetPromptType.complete) {
+      logger.info('Showing final reset screen')
+      yield Saga.put(AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet}))
+      const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
+        RecoverPasswordGen.submitResetPrompt
+      )
+      response.result(action.payload.action)
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['login'], replace: true}))
+    } else {
+      logger.info('Starting account reset process')
+      yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
+    }
+  })
+}
+
+const displayProgressEngine = (
+  params: RPCGen.MessageTypes['keybase.1.loginUi.displayResetProgress']['inParam']
+) =>
+  Saga.put(
+    AutoresetGen.createDisplayProgress({
+      endTime: params.endTime * 1000,
+      needVerify: params.needVerify,
+    })
+  )
+
+const displayProgress = (_: Container.TypedState, action: AutoresetGen.DisplayProgressPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {pipelineStarted: !action.payload.needVerify}, selected: 'resetWaiting'}],
+    replace: true,
+  })
+
 function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAccountPayload) {
   try {
     yield RPCGen.accountEnterResetPipelineRpcSaga({
-      incomingCallMap: {},
+      customResponseIncomingCallMap: {
+        'keybase.1.loginUi.promptResetAccount': promptReset,
+      },
+      incomingCallMap: {
+        'keybase.1.loginUi.displayResetProgress': displayProgressEngine,
+      },
       params: {
         interactive: false,
         passphrase: action.payload.password ? action.payload.password.stringValue() : '',
         usernameOrEmail: state.autoreset.username,
       },
-      waitingKey: Constants.autoresetEnterPipelineWaitingKey,
+      waitingKey: Constants.enterPipelineWaitingKey,
     })
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
   } catch (error) {
+    logger.warn('Error resetting account:', error)
     yield Saga.put(AutoresetGen.createResetError({error: error}))
   }
 }
-
-const submittedReset = (_: Container.TypedState, action: AutoresetGen.SubmittedResetPayload) =>
-  RouteTreeGen.createNavigateAppend({
-    path: [{props: {pipelineStarted: !action.payload.checkEmail}, selected: 'resetWaiting'}],
-    replace: true,
-  })
+const showFinalResetScreen = (_: Container.TypedState, __: AutoresetGen.ShowFinalResetScreenPayload) =>
+  RouteTreeGen.createNavigateAppend({path: ['resetConfirm'], replace: true})
 
 function* autoresetSaga() {
   yield* Saga.chainAction2(AutoresetGen.cancelReset, cancelReset, 'cancelReset')
+  yield* Saga.chainAction2(AutoresetGen.displayProgress, displayProgress, 'displayProgress')
+  yield* Saga.chainAction2(AutoresetGen.showFinalResetScreen, showFinalResetScreen)
   yield* Saga.chainAction2(AutoresetGen.startAccountReset, startAccountReset)
-  yield* Saga.chainAction2(AutoresetGen.submittedReset, submittedReset)
   yield* Saga.chainAction2(AutoresetGen.updateAutoresetState, updateAutoresetState, 'updateAutoresetState')
   yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState, 'receivedBadgeState')
   yield* Saga.chainGenerator(AutoresetGen.resetAccount, resetAccount)

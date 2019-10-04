@@ -892,7 +892,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.loginUi.displayResetProgress': {
-    inParam: {readonly text: String}
+    inParam: {readonly text: String; readonly endTime: Time; readonly needVerify: Boolean}
     outParam: void
   }
   'keybase.1.loginUi.explainDeviceRecovery': {

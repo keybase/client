@@ -1,14 +1,31 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Container from '../../util/container'
+import * as AutoresetGen from '../../actions/autoreset-gen'
+import * as Constants from '../../constants/autoreset'
+import * as RecoverPasswordGen from '../../actions/recover-password-gen'
+type Props = {}
 
-const todo = () => console.log('todo')
+const ConfirmReset = (_: Props) => {
+  const hasWallet = Container.useSelector(state => state.autoreset.hasWallet)
+  const error = Container.useSelector(state => state.autoreset.error)
 
-type Props = {
-  hasWallet: boolean
-}
+  const dispatch = Container.useDispatch()
 
-const ConfirmReset = (props: Props) => {
+  const onContinue = React.useCallback(
+    () => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: true})),
+    []
+  )
+  const onCancelReset = React.useCallback(() => {
+    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: false}))
+    dispatch(AutoresetGen.createCancelReset())
+  }, [])
+  const onClose = React.useCallback(
+    () => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: false})),
+    []
+  )
+
   const [checks, setChecks] = React.useState({
     checkData: false,
     checkNewPerson: false,
@@ -16,35 +33,41 @@ const ConfirmReset = (props: Props) => {
     checkWallet: false,
   })
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
-
-  const onContinue = todo
-  const onCancel = todo
-
   const {checkData, checkTeams, checkWallet, checkNewPerson} = checks
   let disabled = !checkData || !checkTeams || !checkNewPerson
-  if (props.hasWallet) {
+  if (hasWallet) {
     disabled = disabled || !checkWallet
   }
 
   return (
     <Kb.Modal
-      header={{title: 'Account reset'}}
+      header={Styles.isMobile ? {title: 'Account reset'} : undefined}
       fullscreen={true}
       footer={{
         content: (
           <Kb.ButtonBar direction="column" fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button
+            <Kb.WaitingButton
               disabled={disabled}
               label="Yes, reset account"
               onClick={onContinue}
               type="Danger"
               fullWidth={true}
+              waitingKey={Constants.actuallyResetWaitingKey}
             />
-            <Kb.Button label="Cancel reset" onClick={onCancel} type="Dim" fullWidth={true} />
+            <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>
         ),
         style: styles.footer,
       }}
+      banners={
+        error
+          ? [
+              <Kb.Banner color="red" key="errors">
+                <Kb.BannerParagraph bannerColor="red" content={error} />
+              </Kb.Banner>,
+            ]
+          : undefined
+      }
     >
       <Kb.Box2
         direction="vertical"
@@ -75,7 +98,7 @@ const ConfirmReset = (props: Props) => {
               checked={checkTeams}
               onCheck={onCheck('checkTeams')}
             />
-            {props.hasWallet && (
+            {hasWallet && (
               <Kb.Checkbox
                 labelComponent={
                   <Kb.Text type="Body" style={Styles.globalStyles.flexOne}>
@@ -93,6 +116,12 @@ const ConfirmReset = (props: Props) => {
               onCheck={onCheck('checkNewPerson')}
             />
           </Kb.Box2>
+          <Kb.Text type="Body">
+            Or you can{' '}
+            <Kb.Text type="BodyPrimaryLink" onClick={onCancelReset}>
+              cancel the reset
+            </Kb.Text>
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>

@@ -108,7 +108,12 @@ export const formatDurationForAutoreset = (duration: number): string => {
   if (!duration) {
     return ''
   }
-  const d = moment.duration(duration)
+  if (duration < 0) {
+    // This shouldn't happen but can help us find bugs more easily.
+    return 'no time'
+  }
+  // This +1 / -1 is so that the timer says "7 days" when there are between 6 and 7 days left, "1 second" between 0 and 1 seconds, and so on.
+  const d = moment.duration(duration - 1)
   let label: string
   let amt: number
   if (d.days()) {
@@ -124,6 +129,7 @@ export const formatDurationForAutoreset = (duration: number): string => {
     amt = d.seconds()
     label = 'second'
   }
+  amt += 1
   return `${amt} ${pluralize(label, amt)}`
 }
 

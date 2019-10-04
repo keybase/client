@@ -1,12 +1,12 @@
-import * as Saga from '../util/saga'
-import * as RPCTypes from '../constants/types/rpc-gen'
-import * as AutoresetGen from '../actions/autoreset-gen'
+import * as AutoresetGen from './autoreset-gen'
 import * as Constants from '../constants/recover-password'
 import * as Container from '../util/container'
 import * as ProvisionConstants from '../constants/provision'
-import * as ProvisionGen from '../actions/provision-gen'
+import * as ProvisionGen from './provision-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RecoverPasswordGen from './recover-password-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as RouteTreeGen from './route-tree-gen'
+import * as Saga from '../util/saga'
 import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
@@ -58,6 +58,8 @@ const explainDevice = (
   ])
 }
 
+// This same RPC is called at the beginning and end of the 7-day wait by the service.
+// TODO figure out what the deal is with typing here
 const promptReset = () => Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
 
 const getPaperKeyOrPw = (

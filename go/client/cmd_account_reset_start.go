@@ -56,6 +56,7 @@ func (c *CmdAccountResetStart) Run() error {
 	}
 	dui := c.G().UI.GetDumbOutputUI()
 	err = cli.EnterResetPipeline(context.Background(), keybase1.EnterResetPipelineArg{
+		Interactive:     true,
 		UsernameOrEmail: c.usernameOrEmail,
 	})
 	if err != nil {

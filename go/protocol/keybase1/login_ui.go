@@ -153,8 +153,10 @@ type PromptResetAccountArg struct {
 }
 
 type DisplayResetProgressArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Text      string `codec:"text" json:"text"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Text       string `codec:"text" json:"text"`
+	EndTime    Time   `codec:"endTime" json:"endTime"`
+	NeedVerify bool   `codec:"needVerify" json:"needVerify"`
 }
 
 type ExplainDeviceRecoveryArg struct {
