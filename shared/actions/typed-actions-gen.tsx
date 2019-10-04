@@ -993,6 +993,7 @@ export type TypedActionsMap = {
   'wallets:validatedSecretKey': wallets.ValidatedSecretKeyPayload
   'wallets:validateSEP7Link': wallets.ValidateSEP7LinkPayload
   'wallets:validateSEP7LinkError': wallets.ValidateSEP7LinkErrorPayload
+  'wallets:setSEP7SendError': wallets.SetSEP7SendErrorPayload
   'wallets:loadMobileOnlyMode': wallets.LoadMobileOnlyModePayload
   'wallets:loadedMobileOnlyMode': wallets.LoadedMobileOnlyModePayload
   'wallets:changeMobileOnlyMode': wallets.ChangeMobileOnlyModePayload

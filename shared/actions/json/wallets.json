@@ -449,6 +449,10 @@
       "_description": "Set the error field for a SEP7 validation.",
       "error": "string"
     },
+    "setSEP7SendError": {
+      "_description": "Set the error field for SEP7 accepted tx attempt",
+      "error": "string"
+    },
     "loadMobileOnlyMode": {
       "_description": "Ask the service for current mobile only mode for Stellar account.",
       "accountID": "Types.AccountID"

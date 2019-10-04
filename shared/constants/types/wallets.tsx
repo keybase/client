@@ -434,6 +434,7 @@ export type _State = {
   sep7ConfirmInfo: SEP7ConfirmInfo | null
   sep7ConfirmPath: BuiltPaymentAdvanced
   sep7ConfirmURI: string
+  sep7SendError: string
   staticConfig: StaticConfig | null
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   trustline: Trustline

@@ -114,6 +114,7 @@ export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
 export const setSEP6Message = 'wallets:setSEP6Message'
+export const setSEP7SendError = 'wallets:setSEP7SendError'
 export const setSEP7Tx = 'wallets:setSEP7Tx'
 export const setTrustlineAcceptedAssets = 'wallets:setTrustlineAcceptedAssets'
 export const setTrustlineAcceptedAssetsByUsername = 'wallets:setTrustlineAcceptedAssetsByUsername'
@@ -349,6 +350,7 @@ type _SetInflationDestinationPayload = {
 type _SetLastSentXLMPayload = {readonly lastSentXLM: boolean; readonly writeFile: boolean}
 type _SetReadyToReviewPayload = {readonly readyToReview: boolean}
 type _SetSEP6MessagePayload = {readonly error: boolean; readonly message: string}
+type _SetSEP7SendErrorPayload = {readonly error: string}
 type _SetSEP7TxPayload = {readonly confirmURI: string; readonly tx: Types.SEP7ConfirmInfo}
 type _SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly username: string
@@ -826,6 +828,13 @@ export const createSetBuildingTo = (payload: _SetBuildingToPayload): SetBuilding
 export const createSetInflationDestination = (
   payload: _SetInflationDestinationPayload
 ): SetInflationDestinationPayload => ({payload, type: setInflationDestination})
+/**
+ * Set the error field for SEP7 accepted tx attempt
+ */
+export const createSetSEP7SendError = (payload: _SetSEP7SendErrorPayload): SetSEP7SendErrorPayload => ({
+  payload,
+  type: setSEP7SendError,
+})
 /**
  * Set the error field for a SEP7 validation.
  */
@@ -1558,6 +1567,10 @@ export type SetSEP6MessagePayload = {
   readonly payload: _SetSEP6MessagePayload
   readonly type: typeof setSEP6Message
 }
+export type SetSEP7SendErrorPayload = {
+  readonly payload: _SetSEP7SendErrorPayload
+  readonly type: typeof setSEP7SendError
+}
 export type SetSEP7TxPayload = {readonly payload: _SetSEP7TxPayload; readonly type: typeof setSEP7Tx}
 export type SetTrustlineAcceptedAssetsByUsernamePayload = {
   readonly payload: _SetTrustlineAcceptedAssetsByUsernamePayload
@@ -1763,6 +1776,7 @@ export type Actions =
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
   | SetSEP6MessagePayload
+  | SetSEP7SendErrorPayload
   | SetSEP7TxPayload
   | SetTrustlineAcceptedAssetsByUsernamePayload
   | SetTrustlineAcceptedAssetsPayload

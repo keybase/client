@@ -306,6 +306,7 @@ export const makeState = I.Record<Types._State>({
   sep7ConfirmInfo: null,
   sep7ConfirmPath: emptyBuiltPaymentAdvanced,
   sep7ConfirmURI: '',
+  sep7SendError: '',
   staticConfig: null,
   teamBuilding: TeamBuildingConstants.makeSubState(),
   trustline: emptyTrustline,
