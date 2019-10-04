@@ -77,9 +77,20 @@ const Header = (p: Props) => {
 
   if (withoutSelf && withoutSelf.length === 1 && p.desc) {
     description = (
-      <Kb.Text type="BodySmall" style={{...styles.desc, flex: 1}} selectable={true} lineClamp={1}>
-        &nbsp;•&nbsp;{p.desc}
-      </Kb.Text>
+      <>
+        <Kb.Text type="BodySmall" style={styles.desc}>
+          &nbsp;•&nbsp;
+        </Kb.Text>
+        <Kb.Markdown
+          smallStandaloneEmoji={true}
+          style={{...styles.desc, flex: 1}}
+          styleOverride={descStyleOverride}
+          lineClamp={1}
+          selectable={true}
+        >
+          {p.desc}
+        </Kb.Markdown>
+      </>
     )
   }
   return (
