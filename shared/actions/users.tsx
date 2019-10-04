@@ -35,9 +35,9 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
   } catch (e) {
     const err: RPCError = e
     if (Container.isNetworkErr(err.code)) {
-      logger.warn('Network error getting userCard')
+      logger.info('Network error getting userCard')
     } else {
-      logger.error(err.message)
+      logger.info(err.message)
     }
     return
   }
