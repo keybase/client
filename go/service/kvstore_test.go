@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/kvstore"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -278,8 +280,9 @@ var _ kvstore.KVStoreBoxer = (*KVStoreTestBoxer)(nil)
 
 type KVStoreTestBoxer struct {
 	libkb.Contextified
-	BoxMutateRevision  func(currentRevision int) (newRevision int)
-	UnboxMutateTeamGen func(gen keybase1.PerTeamKeyGeneration) (newGen keybase1.PerTeamKeyGeneration)
+	BoxMutateRevision     func(currentRevision int) (newRevision int)
+	UnboxMutateTeamGen    func(gen keybase1.PerTeamKeyGeneration) (newGen keybase1.PerTeamKeyGeneration)
+	UnboxMutateCiphertext func(ciphertext string) string
 }
 
 func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string) (ciphertext string,
@@ -296,6 +299,9 @@ func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.UnboxMutateTeamGen != nil {
 		teamKeyGen = b.UnboxMutateTeamGen(teamKeyGen)
+	}
+	if b.UnboxMutateCiphertext != nil {
+		ciphertext = b.UnboxMutateCiphertext(ciphertext)
 	}
 	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, teamKeyGen, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
 }
@@ -378,4 +384,53 @@ func TestEncryptionAndVerification(t *testing.T) {
 	require.IsType(t, signencrypt.Error{}, err)
 	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.AssociatedDataMismatch)
 	t.Logf("verifying a signature with the wrong revision fails")
+
+	// should error if given the wrong nonce
+	var firstNonce, secondNonce [16]byte
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified: libkb.NewContextified(tc.G),
+		UnboxMutateCiphertext: func(currentCiphertext string) (newCiphertext string) {
+			decoded, err := base64.StdEncoding.DecodeString(currentCiphertext)
+			require.NoError(t, err)
+			var box keybase1.EncryptedKVEntry
+			err = msgpack.Decode(&box, decoded)
+			require.NoError(t, err)
+			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			copy(firstNonce[:], box.N)
+			randBytes, err := libkb.RandBytes(16)
+			require.NoError(t, err)
+			box.N = randBytes
+			packed, err := msgpack.Encode(box)
+			require.NoError(t, err)
+			return base64.StdEncoding.EncodeToString(packed)
+		},
+	}
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, signencrypt.Error{}, err)
+	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
+	t.Logf("cannot decrypt with the wrong nonce")
+	// push and fetch another entry to verify that the nonce changed
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified: libkb.NewContextified(tc.G),
+		UnboxMutateCiphertext: func(ciphertext string) string {
+			decoded, err := base64.StdEncoding.DecodeString(ciphertext)
+			require.NoError(t, err)
+			var box keybase1.EncryptedKVEntry
+			err = msgpack.Decode(&box, decoded)
+			require.NoError(t, err)
+			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			t.Logf("the nonce is 16 bytes")
+			copy(secondNonce[:], box.N)
+			return ciphertext
+		},
+	}
+	_, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	_, err = handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.NotEqual(t, firstNonce, secondNonce)
+	t.Logf("two puts with identical data and keys use different nonces")
 }

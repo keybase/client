@@ -33,6 +33,7 @@ type arbitraryNested struct {
 
 var associatedDataInputs = []interface{}{
 	"",
+	nil,
 	map[string]map[float64]map[string]string{"first": {2.22000222: {"third": "fourth"}}},
 	strings.Repeat("long", 1000000),
 	arbitraryNested{
