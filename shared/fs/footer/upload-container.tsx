@@ -9,7 +9,6 @@ import * as Kbfs from '../common'
 import flags from '../../util/feature-flags'
 
 const mapStateToProps = state => ({
-  _edits: state.fs.edits,
   _kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
   _pathItems: state.fs.pathItems,
   _uploads: state.fs.uploads,
@@ -40,30 +39,15 @@ const mapDispatchToProps = dispatch => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
-export const uploadsToUploadCountdownHOCProps = (
-  edits: Types.Edits,
-  pathItems: Types.PathItems,
-  uploads: Types.Uploads
-) => {
+export const uploadsToUploadCountdownHOCProps = (pathItems: Types.PathItems, uploads: Types.Uploads) => {
   // We just use syncingPaths rather than merging with writingToJournal here
   // since journal status comes a bit slower, and merging the two causes
   // flakes on our perception of overall upload status.
 
   // Filter out folder paths.
-  const filePaths = uploads.syncingPaths.filter(path => {
-    const pathType = pathItems.get(path, unknownPathItem).type
-    // If we don't know about this pathType from state.fs.pathItems, it might
-    // be a newly created folder and we just haven't heard the result from the
-    // folderList RPC triggered by editSuccess yet. So check that. If we know
-    // about this pathType from state.fs.pathItems, it must have been loaded
-    // from an RPC. So just use that to make sure this is not a folder.
-    return pathType === Types.PathType.Unknown
-      ? !edits.find(
-          edit =>
-            edit.type === Types.EditType.NewFolder && Types.pathConcat(edit.parentPath, edit.name) === path
-        )
-      : pathType !== Types.PathType.Folder
-  })
+  const filePaths = [...uploads.syncingPaths].filter(
+    path => pathItems.get(path, unknownPathItem).type !== Types.PathType.Folder
+  )
 
   return {
     // We just use syncingPaths rather than merging with writingToJournal here
@@ -71,17 +55,17 @@ export const uploadsToUploadCountdownHOCProps = (
     // flakes on our perception of overall upload status.
     endEstimate: enableDebugUploadBanner ? (uploads.endEstimate || 0) + 32000 : uploads.endEstimate || 0,
     fileName:
-      filePaths.size === 1
-        ? Types.getPathName((filePaths.first() as Types.Path) || Types.stringToPath(''))
+      filePaths.length === 1
+        ? Types.getPathName((filePaths[1] as Types.Path) || Types.stringToPath(''))
         : null,
-    files: filePaths.size,
+    files: filePaths.length,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
 }
 
-const mergeProps = ({_edits, _kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}) =>
+const mergeProps = ({_kbfsDaemonStatus, _pathItems, _uploads}, {debugToggleShow}) =>
   ({
-    ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
+    ...uploadsToUploadCountdownHOCProps(_pathItems, _uploads),
     debugToggleShow,
     isOnline:
       !flags.kbfsOfflineMode || _kbfsDaemonStatus.onlineStatus === Types.KbfsDaemonOnlineStatus.Online,

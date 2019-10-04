@@ -27,13 +27,12 @@ export enum ProgressType {
 }
 
 // not naming Error because it has meaning in js.
-export type _FsError = {
+export type FsError = {
   time: number
   errorMessage: string
   erroredAction: FsGen.Actions | EngineGen.Actions
-  retriableAction?: FsGen.Actions | EngineGen.Actions | null
+  retriableAction?: FsGen.Actions | EngineGen.Actions
 }
-export type FsError = I.RecordOf<_FsError>
 
 export type Device = {
   type: Devices.DeviceType
@@ -282,14 +281,13 @@ export enum EditStatusType {
   Failed = 'failed',
 }
 
-export type _NewFolder = {
+export type NewFolder = {
   type: EditType.NewFolder
   parentPath: Path
   name: string
   hint: string
   status: EditStatusType
 }
-export type NewFolder = I.RecordOf<_NewFolder>
 
 export type Edit = NewFolder
 
@@ -313,7 +311,7 @@ export enum DownloadIntent {
   Share = 'share',
 }
 
-export type _DownloadState = {
+export type DownloadState = {
   canceled: boolean
   done: boolean
   endEstimate: number
@@ -321,31 +319,27 @@ export type _DownloadState = {
   localPath: string
   progress: number
 }
-export type DownloadState = I.RecordOf<_DownloadState>
 
-export type _DownloadInfo = {
+export type DownloadInfo = {
   filename: string
   isRegularDownload: boolean
   path: Path
   startTime: number
 }
-export type DownloadInfo = I.RecordOf<_DownloadInfo>
 
-export type _Downloads = {
-  info: I.Map<string, DownloadInfo>
-  regularDownloads: I.List<string>
-  state: I.Map<string, DownloadState>
+export type Downloads = {
+  info: Map<string, DownloadInfo>
+  regularDownloads: Array<string>
+  state: Map<string, DownloadState>
 }
-export type Downloads = I.RecordOf<_Downloads>
 
-export type _Uploads = {
-  writingToJournal: I.Set<Path>
-  errors: I.Map<Path, FsError>
+export type Uploads = {
+  writingToJournal: Set<Path>
+  errors: Map<Path, FsError>
   totalSyncingBytes: number
   endEstimate?: number
-  syncingPaths: I.Set<Path>
+  syncingPaths: Set<Path>
 }
-export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export enum OpenDialogType {
@@ -394,7 +388,7 @@ export type UserTlfUpdates = I.List<TlfUpdate>
 
 export type PathItems = I.Map<Path, PathItem>
 
-export type Edits = I.Map<EditID, Edit>
+export type Edits = Map<EditID, Edit>
 
 export enum DestinationPickerSource {
   None = 'none',
@@ -402,36 +396,29 @@ export enum DestinationPickerSource {
   IncomingShare = 'incoming-share',
 }
 
-export type _MoveOrCopySource = {
+export type MoveOrCopySource = {
   type: DestinationPickerSource.MoveOrCopy
   path: Path
 }
-export type MoveOrCopySource = I.RecordOf<_MoveOrCopySource>
 
-export type _IncomingShareSource = {
+export type IncomingShareSource = {
   type: DestinationPickerSource.IncomingShare
   localPath: LocalPath
 }
 
-export type IncomingShareSource = I.RecordOf<_IncomingShareSource>
-
-export type _NoSource = {
+export type NoSource = {
   type: DestinationPickerSource.None
 }
 
-export type NoSource = I.RecordOf<_NoSource>
-
-export type _DestinationPicker = {
+export type DestinationPicker = {
   // id -> Path mapping. This is useful for mobile when we have multiple layers
   // stacked on top of each other, and we need to keep track of them for the
   // back button. We don't put this in routeProps directly as that'd
   // complicate stuff for desktop because we don't have something like a
   // routeToSibling.
-  destinationParentPath: I.List<Path>
+  destinationParentPath: Array<Path>
   source: MoveOrCopySource | IncomingShareSource | NoSource
 }
-
-export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
 export enum SendAttachmentToChatState {
   None = 'none',
@@ -568,19 +555,18 @@ export type _PathInfo = {
 }
 export type PathInfo = I.RecordOf<_PathInfo>
 
-export type _FileContext = {
+export type FileContext = {
   contentType: string
   viewType: RPCTypes.GUIViewType
   url: string
 }
-export type FileContext = I.RecordOf<_FileContext>
 
 export type State = {
   destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits
-  errors: I.Map<string, FsError>
-  fileContext: I.Map<Path, FileContext>
+  errors: Map<string, FsError>
+  fileContext: Map<Path, FileContext>
   folderViewFilter: string
   kbfsDaemonStatus: KbfsDaemonStatus
   lastPublicBannerClosedTlf: string
