@@ -497,7 +497,7 @@ func (s *testDeviceSet) provision(d *testDevice) {
 
 func (s *testDeviceSet) provisionNewStandaloneDevice(name string, numClones int) *testDevice {
 	ret := s.newDevice(name)
-	ret.tctx.G.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
+	_ = ret.tctx.G.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
 	ret.start(numClones + 1)
 	s.provision(ret)
 	return ret
