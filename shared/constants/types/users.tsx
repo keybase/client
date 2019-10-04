@@ -5,6 +5,6 @@ export type UserInfo = {
   fullname: string
 }
 
-export type State = {
+export type State = Readonly<{
   infoMap: Map<string, UserInfo>
-}
+}>
