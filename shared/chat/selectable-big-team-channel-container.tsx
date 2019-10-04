@@ -7,6 +7,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
   maxSearchHits?: number
+  name: string
   numSearchHits?: number
   onSelectConversation: () => void
 }
@@ -21,15 +22,22 @@ const mapStateToProps = (state, {conversationIDKey}) => {
 const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, _, ownProps: OwnProps) => {
+  let teamname = stateProps.teamname
+  let channelname = stateProps.channelname
+  if (!teamname) {
+    const parts = ownProps.name.split('#')
+    teamname = parts[0]
+    channelname = parts[1]
+  }
   return {
-    channelname: stateProps.channelname,
+    channelname,
     isSelected: ownProps.isSelected,
     maxSearchHits: ownProps.maxSearchHits,
     numSearchHits: ownProps.numSearchHits,
     onSelectConversation: ownProps.onSelectConversation,
     showBadge: stateProps.showBadge,
     showBold: stateProps.showBold && !ownProps.isSelected,
-    teamname: stateProps.teamname,
+    teamname,
   }
 }
 

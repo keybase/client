@@ -9,12 +9,14 @@ import {inboxWidth} from '../inbox/row/sizes'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
+  name: string
   type: 'big' | 'small'
 }
 
 type TextResult = {
   conversationIDKey: Types.ConversationIDKey
   type: 'big' | 'small'
+  name: string
   numHits: number
   query: string
 }
@@ -47,6 +49,7 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableBigTeamChannel
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+        name={item.name}
         numSearchHits={
           // Auto generated from flowToTs. Please clean me!
           // Auto generated from flowToTs. Please clean me!
@@ -64,6 +67,7 @@ class InboxSearch extends React.Component<Props, State> {
       <SelectableSmallTeam
         conversationIDKey={item.conversationIDKey}
         isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+        name={item.name}
         numSearchHits={
           // Auto generated from flowToTs. Please clean me!
           // Auto generated from flowToTs. Please clean me!
