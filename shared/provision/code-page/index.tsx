@@ -165,7 +165,7 @@ class CodePage2 extends React.Component<Props, State> {
           </Kb.Box2>
         </Kb.Box2>
         {!this._inModal() &&
-          this.props.otherDeviceType === 'desktop' &&
+          currentDeviceType === 'desktop' &&
           !this.props.currentDeviceAlreadyProvisioned &&
           this._heyWaitBanner()}
         {!this._inModal() && this.state.troubleshooting && (
@@ -177,8 +177,7 @@ class CodePage2 extends React.Component<Props, State> {
     )
   }
   _footer = () => {
-    const showHeyWaitInFooter =
-      this.props.otherDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
+    const showHeyWaitInFooter = currentDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
     return {
       content: (
         <Kb.Box2
@@ -420,6 +419,7 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.small,
           marginLeft: Styles.globalMargins.xsmall,
           marginTop: 56, // we're under the header, need to shift down
+          zIndex: undefined, // annoyingly this is set inside Kb.BackButton
         },
         isMobile: {
           marginBottom: 0,
