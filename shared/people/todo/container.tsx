@@ -12,6 +12,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as SettingsGen from '../../actions/settings-gen'
 import openURL from '../../util/open-url'
+import {appendPeopleBuilder} from '../../actions/typed-routes'
 
 type TodoOwnProps = {
   badged: boolean
@@ -142,18 +143,14 @@ const DeviceConnector = connect(
 const FollowConnector = connect(
   () => ({}),
   dispatch => ({
+    onConfirm: () => {
+      dispatch(appendPeopleBuilder())
+    },
     onDismiss: onSkipTodo('follow', dispatch),
   }),
   (_, d, o: TodoOwnProps) => ({
     ...o,
-    buttons: [
-      {
-        label: 'Follow later',
-        mode: 'Secondary',
-        onClick: d.onDismiss,
-      },
-    ] as Array<TaskButton>,
-    showSearchBar: true,
+    buttons: makeDefaultButtons(d.onConfirm, o.confirmLabel, d.onDismiss),
   })
 )(Task)
 

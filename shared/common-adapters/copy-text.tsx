@@ -8,6 +8,7 @@ import Toast from './toast'
 import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
+import logger from '../logger'
 
 type Props = {
   buttonType?: ButtonProps['type']
@@ -35,7 +36,8 @@ const CopyText = (props: Props) => {
     if (!props.withReveal && !props.text) {
       // only try to load text if withReveal is false
       if (!props.loadText) {
-        throw new Error('no loadText method provided')
+        logger.warn('no loadText method provided')
+        return
       }
       props.loadText()
     }
@@ -50,7 +52,8 @@ const CopyText = (props: Props) => {
   const copy = () => {
     if (!props.text) {
       if (!props.loadText) {
-        throw new Error('no text to copy and no loadText method provided')
+        logger.warn('no text to copy and no loadText method provided')
+        return
       }
       setRequestedCopy(true)
     } else {

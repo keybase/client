@@ -20,7 +20,7 @@ import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
 import URL from 'url-parse'
-import {isMobile} from '../../constants/platform'
+import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
 
@@ -668,6 +668,12 @@ function* configSaga() {
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
+  if (isAndroid) {
+    yield* Saga.chainAction2(ConfigGen.setDarkModePreference, (state: Container.TypedState) =>
+      appColorSchemeChanged(state.config.darkModePreference)
+    )
+  }
+
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)

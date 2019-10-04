@@ -1589,6 +1589,7 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
           return l.push(
             Constants.makeInboxSearchConvHit({
               conversationIDKey: Types.stringToConversationIDKey(h.convID),
+              name: h.name,
               teamType: teamType(h.teamType),
             })
           )
@@ -1603,6 +1604,7 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
       Chat2Gen.createInboxSearchTextResult({
         result: Constants.makeInboxSearchTextHit({
           conversationIDKey,
+          name: resp.searchHit.convName,
           numHits: (resp.searchHit.hits || []).length,
           query: resp.searchHit.query,
           teamType: teamType(resp.searchHit.teamType),
@@ -2244,7 +2246,7 @@ const markThreadAsRead = async (
   }
   const conversationIDKey = Constants.getSelectedConversation(state)
 
-  if (!conversationIDKey || conversationIDKey === Constants.noConversationIDKey) {
+  if (!Constants.isValidConversationIDKey(conversationIDKey)) {
     logger.info('bail on no selected conversation')
     return
   }
@@ -2528,6 +2530,23 @@ const joinConversation = async (_: TypedState, action: Chat2Gen.JoinConversation
     {convID: Types.keyToConversationID(action.payload.conversationIDKey)},
     Constants.waitingKeyJoinConversation
   )
+}
+
+const fetchConversationBio = async (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '')
+  if (otherParticipants.count() === 1) {
+    // we're in a one-on-one convo
+    const username = otherParticipants.first('')
+
+    if (username === '') {
+      return // if for some reason we get a garbage username, don't do anything
+    }
+
+    return UsersGen.createGetBio({username})
+  }
+  return
 }
 
 const leaveConversation = async (_: TypedState, action: Chat2Gen.LeaveConversationPayload) => {
@@ -3655,6 +3674,8 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
+
+  yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
   yield* Saga.chainAction2(EngineGen.connected, onConnect, 'onConnect')
 

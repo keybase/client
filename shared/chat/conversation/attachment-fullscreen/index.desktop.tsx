@@ -148,7 +148,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
-      contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1},
+      contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
       contentsZoom: {display: 'block', flex: 1, overflow: 'auto'},
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,

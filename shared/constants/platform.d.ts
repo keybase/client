@@ -1,3 +1,5 @@
+import {DarkModePreference} from 'styles/dark-mode'
+
 export const runMode: string
 
 export const isMobile: boolean
@@ -20,3 +22,4 @@ export declare const version: string
 export declare const pprofDir: string
 export declare const serverConfigFileName: string
 export declare const shortcutSymbol: string
+export const appColorSchemeChanged: (pref: DarkModePreference) => void

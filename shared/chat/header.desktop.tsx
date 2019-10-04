@@ -26,9 +26,10 @@ type Props = {
   showActions: boolean
   unMuteConversation: () => void
   username: string
+  fullName?: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const
+const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const // approximates BodySmall since markdown does not support text type
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -73,6 +74,25 @@ const Header = (p: Props) => {
     p.participants && p.participants.length > 1
       ? p.participants.filter(part => part !== p.username)
       : p.participants
+
+  if (withoutSelf && withoutSelf.length === 1 && p.desc) {
+    description = (
+      <>
+        <Kb.Text type="BodySmall" style={styles.desc}>
+          &nbsp;•&nbsp;
+        </Kb.Text>
+        <Kb.Markdown
+          smallStandaloneEmoji={true}
+          style={{...styles.desc, flex: 1}}
+          styleOverride={descStyleOverride}
+          lineClamp={1}
+          selectable={true}
+        >
+          {p.desc}
+        </Kb.Markdown>
+      </>
+    )
+  }
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
@@ -90,6 +110,10 @@ const Header = (p: Props) => {
             {p.channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
                 {p.channel}
+              </Kb.Text>
+            ) : withoutSelf && withoutSelf.length === 1 ? (
+              <Kb.Text type="Header" lineClamp={1}>
+                {p.fullName || withoutSelf[0]}
               </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
@@ -122,7 +146,22 @@ const Header = (p: Props) => {
             )}
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-            {description}
+            {withoutSelf && withoutSelf.length === 1 ? (
+              <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                <Kb.ConnectedUsernames
+                  colorFollowing={true}
+                  underline={true}
+                  inline={true}
+                  commaColor={Styles.globalColors.black_50}
+                  type="BodySmallSemibold"
+                  usernames={[withoutSelf[0]]}
+                  onUsernameClicked="profile"
+                />
+                {description}
+              </Kb.Box2>
+            ) : (
+              description
+            )}
           </Kb.Box2>
         </Kb.Box2>
         {p.showActions && (
@@ -192,13 +231,13 @@ const styles = Styles.styleSheetCreate(
 const Connected = Container.connect(
   state => {
     const _conversationIDKey = Constants.getSelectedConversation(state)
-    const _fullnames = state.users.infoMap
+    const _userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
 
     return {
       _conversationIDKey,
-      _fullnames,
       _meta,
+      _userInfo,
       _username: state.config.username,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       infoPanelOpen: Constants.isInfoPanelOpen(),
@@ -217,11 +256,18 @@ const Connected = Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     const meta = stateProps._meta
     const otherParticipants = Constants.getRowParticipants(meta, stateProps._username || '').toArray()
+
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._fullnames.get(otherParticipants[0], {fullname: ''}).fullname
+        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio
         : meta.descriptionDecorated
+
+    const fullName =
+      meta.teamType === 'adhoc' && otherParticipants.length === 1
+        ? stateProps._userInfo.get(otherParticipants[0], {fullname: ''}).fullname
+        : undefined
+
     return {
       canEditDesc: stateProps.canEditDesc,
       channel:
@@ -231,6 +277,7 @@ const Connected = Container.connect(
           ? meta.teamname
           : null,
       desc,
+      fullName,
       infoPanelOpen: stateProps.infoPanelOpen,
       isTeam: ['small', 'big'].includes(meta.teamType),
       muted: meta.isMuted,

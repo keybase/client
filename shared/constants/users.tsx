@@ -12,6 +12,7 @@ export const getIsBroken = (infoMap: Types.InfoMap, username: string) => {
 }
 
 export const makeUserInfo = () => ({
+  bio: '',
   broken: false,
   fullname: '',
 })

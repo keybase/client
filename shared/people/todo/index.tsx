@@ -1,7 +1,6 @@
 import * as React from 'react'
 import PeopleItem from '../item'
 import * as Kb from '../../common-adapters'
-import PeopleSearch from '../../profile/search/bar'
 import * as Styles from '../../styles'
 import {Props as ButtonProps} from '../../common-adapters/button'
 
@@ -18,7 +17,6 @@ export type Props = {
   icon: Kb.IconType
   instructions: string
   subText?: string
-  showSearchBar?: boolean
   buttons: Array<TaskButton>
 }
 
@@ -27,7 +25,6 @@ export const Task = (props: Props) => (
     <Kb.Markdown style={styles.instructions}>{props.instructions}</Kb.Markdown>
     {!!props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
     <Kb.Box style={styles.actionContainer}>
-      {props.showSearchBar && <PeopleSearch style={styles.search} />}
       {props.buttons.length > 0 &&
         props.buttons.map(b => <Kb.Button key={b.label} small={true} style={styles.button} {...b} />)}
     </Kb.Box>

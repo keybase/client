@@ -33,6 +33,7 @@ export default namedConnect(
     nameResults: stateProps._inboxSearch.nameResults
       .map(r => ({
         conversationIDKey: r.conversationIDKey,
+        name: r.name,
         type: r.teamType,
       }))
       .toArray(),
@@ -45,6 +46,7 @@ export default namedConnect(
     textResults: stateProps._inboxSearch.textResults
       .map(r => ({
         conversationIDKey: r.conversationIDKey,
+        name: r.name,
         numHits: r.numHits,
         query: r.query,
         type: r.teamType,
