@@ -188,7 +188,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   cover: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrWhite_75,
+    backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
   },
   create: {
