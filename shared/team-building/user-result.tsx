@@ -294,7 +294,7 @@ const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () =
 }
 
 const AddButton = () => (
-  <Kb.Icon type="iconfont-circle" fontSize={actionButtonSize} color={Styles.globalColors.black_10} />
+  <Kb.Icon type="iconfont-circle" fontSize={actionButtonSize} color={Styles.globalColors.black_20} />
 )
 
 const AlreadyAddedIconButton = () => (
@@ -339,7 +339,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
   },
   rowContainer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.medium, Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     height: userResultHeight,
   },
   serviceIcon: {
