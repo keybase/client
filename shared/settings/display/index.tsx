@@ -30,11 +30,7 @@ const Display = (props: Props) => (
               onSelect={() => props.onSetDarkModePreference('alwaysDark')}
             />
             <Kb.RadioButton
-              label={
-                <Kb.Text type="Body">
-                  Light
-                </Kb.Text>
-              }
+              label={<Kb.Text type="Body">Light</Kb.Text>}
               selected={props.darkModePreference === 'alwaysLight'}
               onSelect={() => props.onSetDarkModePreference('alwaysLight')}
             />
