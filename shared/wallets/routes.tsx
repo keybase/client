@@ -104,6 +104,9 @@ class _OnboardingOrWallets extends React.Component<OnboardingOrWalletsProps> {
   componentDidMount() {
     if (!this.props.acceptedDisclaimer) {
       this.props.navigation.navigate('onboarding')
+    } else {
+      // We might have navigated to onboarding on a previous mount.
+      this.props.navigation.navigate('walletsubnav')
     }
   }
 
