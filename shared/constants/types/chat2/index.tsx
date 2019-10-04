@@ -46,6 +46,7 @@ export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
 export type _InboxSearchTextHit = {
   conversationIDKey: Common.ConversationIDKey
+  name: string
   numHits: number
   query: string
   teamType: 'big' | 'small'
@@ -56,6 +57,7 @@ export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
 
 export type _InboxSearchConvHit = {
   conversationIDKey: Common.ConversationIDKey
+  name: string
   teamType: 'big' | 'small'
 }
 

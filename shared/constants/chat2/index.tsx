@@ -121,11 +121,13 @@ export const makeInboxSearchInfo = I.Record<Types._InboxSearchInfo>({
 
 export const makeInboxSearchConvHit = I.Record<Types._InboxSearchConvHit>({
   conversationIDKey: noConversationIDKey,
+  name: '',
   teamType: 'small',
 })
 
 export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
   conversationIDKey: noConversationIDKey,
+  name: '',
   numHits: 0,
   query: '',
   teamType: 'small',

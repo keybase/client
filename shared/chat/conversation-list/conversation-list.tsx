@@ -50,6 +50,7 @@ const _itemRenderer = (_, row) => {
         <SelectableSmallTeam
           conversationIDKey={row.conversationIDKey}
           isSelected={row.isSelected}
+          name=""
           onSelectConversation={row.onSelectConversation}
         />
       )
@@ -58,6 +59,7 @@ const _itemRenderer = (_, row) => {
         <SelectableBigTeamChannel
           conversationIDKey={row.conversationIDKey}
           isSelected={row.isSelected}
+          name=""
           onSelectConversation={row.onSelectConversation}
         />
       )
