@@ -24,7 +24,9 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
 const load = () => {
   Sb.storiesOf('Provision', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-    .add('Troubleshooting', () => <Troubleshooting mode="QR" onCancel={Sb.action('cancel')} />)
+    .add('Troubleshooting', () => (
+      <Troubleshooting mode="QR" onCancel={Sb.action('cancel')} otherDeviceType="desktop" />
+    ))
 }
 
 export default load

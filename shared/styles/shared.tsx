@@ -66,6 +66,7 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   flexWrap: {flexWrap: 'wrap'},
   fullHeight: {height: '100%'},
   fullWidth: {width: '100%'},
+  opacity0: {opacity: 0},
   rounded: {borderRadius: 3},
 })
 

@@ -668,6 +668,8 @@ export type TypedActionsMap = {
   'provision:forgotUsername': provision.ForgotUsernamePayload
   'provision:forgotUsernameResult': provision.ForgotUsernameResultPayload
   'provision:cancelProvision': provision.CancelProvisionPayload
+  'provision:backToDeviceList': provision.BackToDeviceListPayload
+  'provision:provisionDone': provision.ProvisionDonePayload
   'push:rejectPermissions': push.RejectPermissionsPayload
   'push:requestPermissions': push.RequestPermissionsPayload
   'push:showPermissionsPrompt': push.ShowPermissionsPromptPayload
