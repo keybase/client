@@ -164,7 +164,7 @@ const ServicesIcons = (props: {
           >
             {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
             <Kb.Icon
-              fontSize={14}
+              sizeType="Small"
               type={serviceIdToIconFont(serviceName)}
               style={Styles.isMobile && iconStyle}
               boxStyle={!Styles.isMobile && iconStyle}
@@ -344,7 +344,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
-    marginTop: 1,
+    marginTop: Styles.globalMargins.xtiny,
   },
   services: {
     justifyContent: 'flex-start',
