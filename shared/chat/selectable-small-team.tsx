@@ -81,7 +81,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
               participants={props.participants}
             />
           )}
-          <Kb.Box style={styles.conversationRow}>
+          <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
             <FilteredTopLine
               isSelected={props.isSelected}
               numSearchHits={props.numSearchHits}
@@ -105,7 +105,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
                 isTypingSnippet={false}
               />
             )}
-          </Kb.Box>
+          </Kb.Box2>
           {this.props.showBadge && <Kb.Box2 direction="horizontal" style={styles.badge} />}
         </Kb.Box2>
       </Kb.ClickableBox>
@@ -126,12 +126,6 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     flexShrink: 0,
     height: rowHeight,
-  },
-  conversationRow: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flexGrow: 1,
-    height: '100%',
-    justifyContent: 'center',
   },
   rowContainer: Styles.platformStyles({
     common: {
