@@ -1,19 +1,22 @@
-import * as I from 'immutable'
 import * as Types from './types/users'
 import {TypedState} from './reducer'
 
-export const getFullname = (state: TypedState, username: string): string | null =>
-  state.users.infoMap.getIn([username, 'fullname'], null)
+export const getFullname = (state: TypedState, username: string) => {
+  const info = state.users.infoMap.get(username)
+  return info ? info.fullname : null
+}
 
-export const getIsBroken = (infoMap: Types.InfoMap, username: string): boolean | null =>
-  infoMap.getIn([username, 'broken'], null)
+export const getIsBroken = (infoMap: Types.InfoMap, username: string) => {
+  const info = infoMap.get(username)
+  return info ? info.broken : null
+}
 
-export const makeUserInfo = I.Record<Types._UserInfo>({
+export const makeUserInfo = () => ({
   broken: false,
   fullname: '',
 })
 export const emptyUserInfo = makeUserInfo()
 
-export const makeState = I.Record<Types._State>({
-  infoMap: I.Map(),
+export const makeState = () => ({
+  infoMap: new Map(),
 })
