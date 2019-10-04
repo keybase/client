@@ -4,7 +4,6 @@ import Feedback from '../settings/feedback/container'
 import {ProxySettingsPopup} from '../settings/proxy'
 import {KnowPassword, EnterPassword} from './reset/password'
 import Waiting from './reset/waiting'
-import ResetModal from './reset/modal'
 
 type OwnProps = {}
 type Props = {
