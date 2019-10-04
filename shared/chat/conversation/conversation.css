@@ -77,6 +77,9 @@
 .darkMode .WrapperMessage-centered .text_Body {
   color: #101010;
 }
+.darkMode .WrapperMessage-centered:hover .text_Body {
+  color: rgba(255, 255, 255, 0.85);
+}
 .ReplyBox:hover {
   background-color: white;
 }
