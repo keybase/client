@@ -59,7 +59,8 @@ class CodePage2 extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this.props.onClose()
+    // Troubleshooting modal may send us back to the devices page; it already cancels in that case
+    !this.state.troubleshooting && this.props.onClose()
   }
 
   static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
@@ -419,8 +420,6 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.small,
           marginLeft: Styles.globalMargins.xsmall,
           marginTop: 56, // we're under the header, need to shift down
-          // else the background can go above things, annoyingly
-          zIndex: 1,
         },
         isMobile: {
           marginBottom: 0,

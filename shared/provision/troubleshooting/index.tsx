@@ -39,9 +39,10 @@ const Troubleshooting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onBack = props.onCancel
   const username = Container.useSelector(state => state.provision.username)
-  const onWayBack = React.useCallback(() => {
-    dispatch(ProvisionGen.createSubmitUsername({username}))
-  }, [username])
+  const onWayBack = React.useCallback(() => dispatch(ProvisionGen.createBackToDeviceList({username})), [
+    dispatch,
+    username,
+  ])
 
   const deviceName = Container.useSelector(state => state.provision.codePageOtherDeviceName)
   const deviceMap: Map<string, DeviceTypes.Device> = Container.useSelector(state => state.devices.deviceMap)
