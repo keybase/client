@@ -16,7 +16,7 @@ const MessagePlaceholder = React.memo((props: Props) => {
   const width = baseWidth + (code % 20) * mult // pseudo randomize the length
   return (
     <Kb.Box2 direction="horizontal" gap="tiny" style={styles.container}>
-      <Kb.ProgressIndicator type="Small" style={styles.spinner} />
+      <Kb.ProgressIndicator style={styles.spinner} />
       <Kb.Placeholder width={width} />
     </Kb.Box2>
   )
@@ -31,9 +31,9 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       spinner: {
-        height: 13,
+        height: 16,
         marginLeft: 0,
-        width: 13,
+        width: 16,
       },
     } as const)
 )

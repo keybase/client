@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-type IconStatus = 'encrypting' | 'sending' | 'sent' | 'error'
-const statusToIcon: {[K in IconStatus]: Kb.IconType} = {
-  encrypting: 'icon-message-status-encrypting-24',
-  error: 'icon-message-status-error-24',
-  sending: 'icon-message-status-sending-24',
-  sent: 'icon-message-status-sent-24',
+type AnimationStatus = 'encrypting' | 'error' | 'sending' | 'sent'
+const statusToIcon: {[K in AnimationStatus]: Kb.AnimationType} = {
+  encrypting: 'messageStatusEncrypting',
+  error: 'messageStatusError',
+  sending: 'messageStatusSending',
+  sent: 'messageStatusSent',
 }
 
 const encryptingTimeout = 600
@@ -23,7 +23,7 @@ type Props = Kb.PropsWithTimer<{
 }>
 
 type State = {
-  iconStatus: IconStatus
+  animationStatus: AnimationStatus
   visible: boolean
 }
 
@@ -32,18 +32,18 @@ class SendIndicator extends React.Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    const state: State = {iconStatus: 'encrypting', visible: !props.sent}
+    const state: State = {animationStatus: 'encrypting', visible: !props.sent}
 
     if (!(this.props.sent || this.props.failed)) {
       // Only show the `encrypting` icon for messages once
       if (shownEncryptingSet.has(this.props.id)) {
-        state.iconStatus = 'encrypting'
+        state.animationStatus = 'encrypting'
       } else {
-        state.iconStatus = 'sending'
+        state.animationStatus = 'sending'
       }
     } else if (this.props.failed) {
       // previously failed message
-      state.iconStatus = 'error'
+      state.animationStatus = 'error'
     } else if (this.props.sent) {
       // previously sent message
       state.visible = false
@@ -55,8 +55,8 @@ class SendIndicator extends React.Component<Props, State> {
   encryptingTimeoutID?: NodeJS.Timeout
   sentTimeoutID?: NodeJS.Timeout
 
-  _setStatus(iconStatus: IconStatus) {
-    this.setState({iconStatus})
+  _setStatus(animationStatus: AnimationStatus) {
+    this.setState({animationStatus})
   }
 
   _setVisible(visible: boolean) {
@@ -111,10 +111,12 @@ class SendIndicator extends React.Component<Props, State> {
       return null
     }
     return (
-      <Kb.Icon
-        type={statusToIcon[this.state.iconStatus]}
+      <Kb.Animation
+        animationType={statusToIcon[this.state.animationStatus]}
+        className="sendingStatus"
+        containerStyle={this.props.style}
         style={Styles.collapseStyles([
-          this.props.style,
+          styles.animation,
           this.state.visible ? styles.visible : styles.invisible,
         ])}
       />
@@ -125,8 +127,19 @@ class SendIndicator extends React.Component<Props, State> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      invisible: {height: 16, opacity: 0, width: 24},
-      visible: {height: 16, opacity: 1, width: 24},
+      animation: Styles.platformStyles({
+        common: {
+          height: 20,
+          width: 36,
+        },
+        isMobile: {
+          backgroundColor: Styles.globalColors.white,
+          height: 32,
+          width: 48,
+        },
+      }),
+      invisible: {opacity: 0},
+      visible: {opacity: 1},
     } as const)
 )
 

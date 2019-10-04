@@ -114,7 +114,7 @@ class GlobalError extends Component<Props, State> {
           </Kb.Text>
         </Kb.Box>
         <Kb.Box style={styles.overlayFill}>
-          <Kb.Icon type="icon-loader-connecting-266" />
+          <Kb.Animation animationType="disconnected" height={175} width={600} />
         </Kb.Box>
       </Kb.Box>
     )

@@ -85,7 +85,7 @@ const InstallSecurityPrefs = (props: Props) => (
     {props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling && (
       <Kb.Box style={styles.enablingContainer}>
         <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} centerChildren={true}>
-          <Kb.ProgressIndicator white={true} />
+          <Kb.ProgressIndicator type="Small" white={true} />
           <Kb.Text type="BodySmall" negative={true}>
             Checking ...
           </Kb.Text>

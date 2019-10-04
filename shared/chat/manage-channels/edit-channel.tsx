@@ -61,7 +61,8 @@ class _EditChannel extends React.Component<Props, State> {
         </Kb.Text>
         {this.props.waitingForGetInfo ? (
           <Kb.ProgressIndicator
-            style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.tiny, width: 20}}
+            type="Large"
+            style={{marginBottom: Styles.globalMargins.xtiny, marginTop: Styles.globalMargins.xtiny}}
           />
         ) : (
           !Styles.isMobile && (

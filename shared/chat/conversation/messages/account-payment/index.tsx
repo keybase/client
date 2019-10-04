@@ -68,7 +68,9 @@ const AccountPayment = (props: Props) => {
         ])}
       >
         <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
-          {!!props.icon && <Kb.Icon type={props.icon} color={Styles.globalColors.purple} fontSize={12} />}
+          {!!props.icon && (
+            <Kb.Icon type={props.icon} color={Styles.globalColors.purpleOrWhite} fontSize={12} />
+          )}
           <Kb.Text
             type="BodySmall"
             style={Styles.collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
@@ -171,7 +173,7 @@ const styles = Styles.styleSheetCreate(
           width: 22,
         },
       }),
-      purple: {color: Styles.globalColors.purpleDark},
+      purple: {color: Styles.globalColors.purpleDarkOrWhite},
       tooltipText: Styles.platformStyles({
         isElectron: {wordBreak: 'normal'},
       }),

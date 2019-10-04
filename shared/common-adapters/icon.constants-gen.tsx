@@ -15,11 +15,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-GPG-export.png'),
   },
-  'icon-access-denied-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-access-denied-266.gif'),
-  },
   'icon-addon-file-downloading': {
     extension: 'png',
     isFont: false,
@@ -2079,16 +2074,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-facebook-logo-64.png'),
   },
-  'icon-facebook-visibility': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-facebook-visibility.gif'),
-  },
-  'icon-facebook-visibility-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-facebook-visibility-static.png'),
-  },
   'icon-fancy-airdrop-faded-120': {
     extension: 'png',
     isFont: false,
@@ -2760,46 +2745,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-keybase-wordmark-128-48.png'),
   },
-  'icon-loader-connecting-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-connecting-266.gif'),
-  },
-  'icon-loader-connecting-266-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-connecting-266-static.png'),
-  },
-  'icon-loader-infinity-64': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-64.gif'),
-  },
-  'icon-loader-infinity-80': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-80.gif'),
-  },
-  'icon-loader-infinity-static-64': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-static-64.png'),
-  },
-  'icon-loader-infinity-static-80': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-infinity-static-80.png'),
-  },
-  'icon-loader-uploading-16': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-loader-uploading-16.gif'),
-  },
-  'icon-loader-uploading-16-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-loader-uploading-16-static.png'),
-  },
   'icon-message-deletion-32': {
     extension: 'png',
     isFont: false,
@@ -2846,26 +2791,6 @@ const iconMeta_ = {
     nameDark: 'icon-dark-message-retention-64',
     require: require('../images/icons/icon-message-retention-64.png'),
     requireDark: require('../images/icons/icon-dark-message-retention-64.png'),
-  },
-  'icon-message-status-encrypting-24': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-encrypting-24.png'),
-  },
-  'icon-message-status-error-24': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-error-24.png'),
-  },
-  'icon-message-status-sending-24': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-sending-24.gif'),
-  },
-  'icon-message-status-sent-24': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-message-status-sent-24.gif'),
   },
   'icon-mutual-follow-21': {
     extension: 'png',
@@ -4012,26 +3937,6 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-powered-by-giphy-120-26.png'),
   },
-  'icon-progress-grey-animated': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-progress-grey-animated.gif'),
-  },
-  'icon-progress-grey-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-progress-grey-static.png'),
-  },
-  'icon-progress-white-animated': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-progress-white-animated.gif'),
-  },
-  'icon-progress-white-static': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-progress-white-static.png'),
-  },
   'icon-proof-broken': {
     extension: 'png',
     isFont: false,
@@ -4237,26 +4142,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-search-twitter-inactive-40.png'),
-  },
-  'icon-secure-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-secure-266.gif'),
-  },
-  'icon-secure-static-266': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-secure-static-266.png'),
-  },
-  'icon-securing-266': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-securing-266.gif'),
-  },
-  'icon-securing-static-266': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-securing-static-266.png'),
   },
   'icon-shh-19-16': {
     extension: 'png',
@@ -4505,11 +4390,6 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-twitter-logo-64.png'),
-  },
-  'icon-typing-24': {
-    extension: 'gif',
-    isFont: false,
-    require: require('../images/icons/icon-typing-24.gif'),
   },
   'icon-user-add-32': {
     extension: 'png',

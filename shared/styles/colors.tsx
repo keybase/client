@@ -103,6 +103,9 @@ export const colors = {
   purpleDarker: '#5128a8',
   purpleLight: '#9d70ff',
   purpleLighter: '#E8DEFF',
+  get purpleOrWhite() {
+    return this.purple
+  },
   purple_01: 'rgba(132, 82, 255, 0.01)',
   purple_10: 'rgba(132, 82, 255, 0.1)',
   get purple_10OrPurple() {
@@ -261,6 +264,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   purpleDarker: '#5128a8',
   purpleLight: '#9d70ff',
   purpleLighter: '#E8DEFF',
+  get purpleOrWhite() {
+    return colors.white
+  },
   purple_01: 'rgba(132, 82, 255, 0.01)',
   purple_10: 'rgba(132, 82, 255, 0.1)',
   get purple_10OrPurple() {
