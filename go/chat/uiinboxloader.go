@@ -377,7 +377,8 @@ type bigTeam struct {
 
 func (b *bigTeam) sort() {
 	sort.Slice(b.convs, func(i, j int) bool {
-		return strings.Compare(b.convs[i].GetTopicName(), b.convs[j].GetTopicName()) < 0
+		return strings.Compare(strings.ToLower(b.convs[i].GetTopicName()),
+			strings.ToLower(b.convs[j].GetTopicName())) < 0
 	})
 }
 
