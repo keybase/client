@@ -77,20 +77,9 @@ const Header = (p: Props) => {
 
   if (withoutSelf && withoutSelf.length === 1 && p.desc) {
     description = (
-      <>
-        <Kb.Text type="BodySmall" style={styles.desc}>
-          &nbsp;•&nbsp;
-        </Kb.Text>
-        <Kb.Markdown
-          smallStandaloneEmoji={true}
-          style={{...styles.desc, flex: 1}}
-          styleOverride={descStyleOverride}
-          lineClamp={1}
-          selectable={true}
-        >
-          {p.desc}
-        </Kb.Markdown>
-      </>
+      <Kb.Text type="BodySmall" style={{...styles.desc, flex: 1}} selectable={true} lineClamp={1}>
+        &nbsp;•&nbsp;{p.desc}
+      </Kb.Text>
     )
   }
   return (
@@ -260,7 +249,7 @@ const Connected = Container.connect(
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio
+        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio.replace(/(\r\n|\n|\r)/gm, ' ')
         : meta.descriptionDecorated
 
     const fullName =
