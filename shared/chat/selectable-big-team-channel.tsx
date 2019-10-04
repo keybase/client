@@ -1,8 +1,10 @@
 import React, {PureComponent} from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Constants from '../constants/chat2'
 import {TeamAvatar} from './avatars'
 import {pluralize} from '../util/string'
+import {BottomLine} from './inbox/row/small-team/bottom-line'
 
 type Props = {
   isSelected: boolean
@@ -13,6 +15,8 @@ type Props = {
   onSelectConversation: () => void
   showBadge: boolean
   showBold: boolean
+  snippet: string | null
+  snippetDecoration: string | null
 }
 
 type State = {
@@ -40,6 +44,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
 
   render() {
     const boldOverride = this.props.showBold ? Styles.globalStyles.fontBold : null
+    const subColor = Constants.getRowStyles(this.props.isSelected, false).subColor
     const rowLoadedContent = (
       <>
         <TeamAvatar
@@ -77,6 +82,21 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               {this.props.channelname}
             </Kb.Text>
           </Kb.Box2>
+          {!this.props.numSearchHits && (
+            <BottomLine
+              participantNeedToRekey={false}
+              showBold={false}
+              subColor={subColor}
+              snippet={this.props.snippet}
+              snippetDecoration={this.props.snippetDecoration}
+              youNeedToRekey={false}
+              youAreReset={false}
+              hasResetUsers={false}
+              isSelected={this.props.isSelected}
+              isDecryptingSnippet={false}
+              isTypingSnippet={false}
+            />
+          )}
           {!!this.props.numSearchHits && (
             <Kb.Text
               type="BodySmall"
