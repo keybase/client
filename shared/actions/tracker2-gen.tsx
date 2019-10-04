@@ -71,7 +71,7 @@ type _UpdatedDetailsPayload = {
   readonly location: string
   readonly registeredForAirdrop: boolean
   readonly username: string
-  readonly teamShowcase: Array<Types._TeamShowcase>
+  readonly teamShowcase: Array<Types.TeamShowcase>
   readonly blocked: boolean
 }
 

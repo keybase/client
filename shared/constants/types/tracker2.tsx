@@ -76,8 +76,8 @@ export type NonUserDetails = {
   siteURL: string // https://twitter.com/bob,
 }
 
-export type State = {
+export type State = Readonly<{
   usernameToDetails: Map<string, Details>
   usernameToNonUserDetails: Map<string, NonUserDetails>
-  proofSuggestions: Array<Assertion>
-}
+  proofSuggestions: ReadonlyArray<Assertion>
+}>

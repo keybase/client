@@ -21,7 +21,7 @@
       "location": "string",
       "registeredForAirdrop": "boolean",
       "username": "string",
-      "teamShowcase": "Array<Types._TeamShowcase>",
+      "teamShowcase": "Array<Types.TeamShowcase>",
       "blocked": "boolean"
     },
     "updateResult": {
