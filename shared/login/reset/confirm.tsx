@@ -52,7 +52,7 @@ const ConfirmReset = (_: Props) => {
               onClick={onContinue}
               type="Danger"
               fullWidth={true}
-              waitingKey={Constants.waitingKeyActuallyReset}
+              waitingKey={Constants.actuallyResetWaitingKey}
             />
             <Kb.Button label="Close" onClick={onClose} type="Dim" fullWidth={true} />
           </Kb.ButtonBar>
@@ -62,7 +62,7 @@ const ConfirmReset = (_: Props) => {
       banners={
         error
           ? [
-              <Kb.Banner color="red">
+              <Kb.Banner color="red" key="errors">
                 <Kb.BannerParagraph bannerColor="red" content={error} />
               </Kb.Banner>,
             ]

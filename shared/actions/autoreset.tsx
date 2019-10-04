@@ -24,7 +24,7 @@ const receivedBadgeState = async (
 const cancelReset = async () => {
   logger.info('Cancelled autoreset from logged-in user')
   try {
-    await RPCGen.accountCancelResetRpcPromise(undefined, Constants.waitingKeyCancelReset)
+    await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
   } catch (error) {
     return AutoresetGen.createResetError({error})
   }
@@ -44,11 +44,12 @@ const startAccountReset = (state: Container.TypedState, action: AutoresetGen.Sta
 function promptReset(
   params: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['inParam'],
   response: {
-    result: (reset: boolean) => void
+    result: (reset: RPCGen.MessageTypes['keybase.1.loginUi.promptResetAccount']['outParam']) => void
   }
 ) {
   return Saga.callUntyped(function*() {
     if (params.prompt.t === RPCGen.ResetPromptType.complete) {
+      logger.info('Showing final reset screen')
       yield Saga.put(AutoresetGen.createShowFinalResetScreen({hasWallet: params.prompt.complete.hasWallet}))
       const action: RecoverPasswordGen.SubmitResetPromptPayload = yield Saga.take(
         RecoverPasswordGen.submitResetPrompt
@@ -56,6 +57,7 @@ function promptReset(
       response.result(action.payload.action)
       yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['login'], replace: true}))
     } else {
+      logger.info('Starting account reset process')
       yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))
     }
   })
@@ -91,10 +93,11 @@ function* resetAccount(state: Container.TypedState, action: AutoresetGen.ResetAc
         passphrase: action.payload.password ? action.payload.password.stringValue() : '',
         usernameOrEmail: state.autoreset.username,
       },
-      waitingKey: Constants.waitingKeyEnterPipeline,
+      waitingKey: Constants.enterPipelineWaitingKey,
     })
     yield Saga.put(AutoresetGen.createSubmittedReset({checkEmail: !action.payload.password}))
   } catch (error) {
+    logger.warn('Error resetting account:', error)
     yield Saga.put(AutoresetGen.createResetError({error: error}))
   }
 }

@@ -38,7 +38,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  })
+  }, [endTime, setFormattedTime])
 
   return (
     <SignupScreen

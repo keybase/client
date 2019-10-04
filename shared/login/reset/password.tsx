@@ -9,7 +9,7 @@ import * as Constants from '../../constants/autoreset'
 
 const KnowPassword = () => {
   const error = Container.useSelector(state => state.autoreset.error)
-  const waiting = Container.useAnyWaiting(Constants.waitingKeyEnterPipeline)
+  const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -56,7 +56,7 @@ const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
 
   const error = Container.useSelector(state => state.autoreset.error)
-  const waiting = Container.useAnyWaiting(Constants.waitingKeyEnterPipeline)
+  const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
