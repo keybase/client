@@ -4,6 +4,8 @@ import {hot} from 'react-hot-loader/root'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import ResetModal from '../login/reset/modal'
 
+type Props = {}
+
 const Main = (_: Props) => {
   const isResetActive = Container.useSelector(state => state.autoreset.active)
   return (
