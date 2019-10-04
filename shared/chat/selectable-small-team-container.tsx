@@ -64,6 +64,8 @@ const mergeProps = (stateProps, _, ownProps) => {
     participants,
     showBadge: stateProps._hasBadge,
     showBold: styles.showBold,
+    snippet: stateProps._meta.snippet,
+    snippetDecoration: stateProps._meta.snippetDecoration,
     teamname: stateProps._meta.teamname,
     usernameColor: styles.usernameColor,
   }
