@@ -1382,7 +1382,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.metasReceived: {
         draftState.inboxHasLoaded = action.payload.fromInboxRefresh ? true : draftState.inboxHasLoaded
         const draftMap = new Map(draftState.draftMap)
-        action.payload.metas.forEach(m => {
+        action.payload.metas.forEach((m: Types.ConversationMeta) => {
           draftMap.set(m.conversationIDKey, m.draft)
         })
         draftState.draftMap = draftMap
