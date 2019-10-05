@@ -446,8 +446,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.CoinFlipManager.Start(context.TODO(), uid)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager.Start(context.TODO(), uid)
-	g.UIInboxLoader = NewUIInboxLoader(g)
-	g.UIInboxLoader.Start(context.TODO(), uid)
+	g.UIInboxLoader = types.DummyUIInboxLoader{}
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -900,7 +899,12 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		tc := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
+		tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+		tc.ChatG.UIInboxLoader.Start(ctx, uid)
+		defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 		var firstConv chat1.ConversationInfoLocal
 		switch mt {
@@ -912,7 +916,6 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		// Create a bunch of blank convos
 		oldUILoader := tc.ChatG.UIInboxLoader
 		tc.ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
-		ctx := ctc.as(t, users[0]).startCtx
 		convs := make(map[string]bool)
 		for i := 0; i < numconvs; i++ {
 			var created chat1.ConversationInfoLocal
@@ -1044,6 +1047,12 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		tc := ctc.world.Tcs[users[0].Username]
 		tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
+		ctx := ctc.as(t, users[0]).startCtx
+		uid := gregor1.UID(users[0].GetUID().ToBytes())
+		tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
+		tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+		tc.ChatG.UIInboxLoader.Start(ctx, uid)
+		defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 		// Create a bunch of blank convos
 		convs := make(map[string]bool)
@@ -1053,7 +1062,6 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			convs[created.Id.String()] = true
 		}
 
-		ctx := ctc.as(t, users[0]).startCtx
 		t.Logf("blank convos test")
 		// Get inbox (should be blank)
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
@@ -3779,6 +3787,10 @@ func TestChatSrvGetInboxNonblockChatUIError(t *testing.T) {
 	ui := &getInboxNonblockFailingUI{ChatUI: tui, failUnverified: true, failVerified: true}
 	ctc.as(t, users[0]).h.mockChatUI = ui
 	tc.G.UIRouter = kbtest.NewMockUIRouter(ui)
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+	tc.ChatG.UIInboxLoader.Start(ctx, uid)
+	defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 	listener0 := newServerChatListener()
 	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
@@ -3862,6 +3874,9 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx)
 		listener0 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+		tc.ChatG.UIInboxLoader.Start(ctx, uid)
+		defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 		numMsgs := 20

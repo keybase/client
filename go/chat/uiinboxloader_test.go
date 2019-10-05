@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +23,11 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	chatUI := kbtest.NewChatUI()
 	ctx := ctc.as(t, users[0]).startCtx
 	tc := ctc.world.Tcs[users[0].Username]
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
+	tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+	tc.ChatG.UIInboxLoader.Start(ctx, uid)
+	defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 	tc.ChatG.UIInboxLoader.(*UIInboxLoader).testingLayoutForceMode = true
 	tc.ChatG.UIInboxLoader.(*UIInboxLoader).batchDelay = time.Hour
 	recvLayout := func() chat1.UIInboxLayout {
