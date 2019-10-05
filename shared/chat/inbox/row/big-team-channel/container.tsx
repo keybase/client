@@ -16,9 +16,7 @@ export default namedConnect(
     return {
       _meta: Constants.getMeta(state, _conversationIDKey),
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
-      hasDraft: !!Constants.getDraft(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
-      isMuted: Constants.isMuted(state, _conversationIDKey),
       isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
     }
   },
@@ -29,10 +27,10 @@ export default namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     channelname: stateProps._meta.channelname || ownProps.channelname,
     hasBadge: stateProps.hasBadge,
-    hasDraft: stateProps.hasDraft && !stateProps.isSelected,
+    hasDraft: !!stateProps._meta.draft && !stateProps.isSelected,
     hasUnread: stateProps.hasUnread,
     isError: stateProps._meta.trustedState === 'error',
-    isMuted: stateProps.isMuted,
+    isMuted: stateProps._meta.isMuted,
     isSelected: stateProps.isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     showBold: Constants.getRowStyles(false, false).showBold,

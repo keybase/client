@@ -95,7 +95,6 @@ const makeBigRows = (
         return {
           channelname: t.channel.channelname,
           conversationIDKey: Types.stringToConversationIDKey(t.channel.convID),
-          isMuted: t.channel.isMuted,
           teamname: t.channel.teamname,
           type: 'big',
         }
