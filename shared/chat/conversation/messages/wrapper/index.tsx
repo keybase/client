@@ -408,7 +408,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'text':
         exploded = message.exploded
         explodedBy = message.explodedBy
-        child = <TextMessage isHighlighted={this.props.centeredOrdinal !== 'none'} key="text" message={message} />
+        child = <TextMessage isHighlighted={this._showCenteredHighlight()} key="text" message={message} />
         break
       case 'attachment':
         exploded = message.exploded
