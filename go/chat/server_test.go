@@ -2826,18 +2826,25 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, 1, len(res.Thread.Messages))
-			require.Equal(t, chat1.MessageID(6), res.Thread.Messages[0].GetMessageID())
-			p = res.Thread.Pagination
-			require.NotNil(t, p)
-			require.False(t, p.Last)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
+		recvRemote := func() bool {
+			for i := 0; i < 5; i++ {
+				clock.Advance(20 * time.Minute)
+				select {
+				case res := <-ui.ThreadCb:
+					require.True(t, res.Full)
+					require.Equal(t, 1, len(res.Thread.Messages))
+					require.Equal(t, chat1.MessageID(6), res.Thread.Messages[0].GetMessageID())
+					p = res.Thread.Pagination
+					require.NotNil(t, p)
+					require.False(t, p.Last)
+					return true
+				case <-time.After(2 * time.Second):
+					require.Fail(t, "no thread cb")
+				}
+			}
+			return false
 		}
+		require.True(t, recvRemote())
 		select {
 		case <-cb:
 		case <-time.After(20 * time.Second):
@@ -2870,18 +2877,25 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, 1, len(res.Thread.Messages))
-			require.Equal(t, chat1.MessageID(5), res.Thread.Messages[0].GetMessageID())
-			p = res.Thread.Pagination
-			require.NotNil(t, p)
-			require.False(t, p.Last)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
+		recvRemote = func() bool {
+			for i := 0; i < 5; i++ {
+				clock.Advance(20 * time.Minute)
+				select {
+				case res := <-ui.ThreadCb:
+					require.True(t, res.Full)
+					require.Equal(t, 1, len(res.Thread.Messages))
+					require.Equal(t, chat1.MessageID(5), res.Thread.Messages[0].GetMessageID())
+					p = res.Thread.Pagination
+					require.NotNil(t, p)
+					require.False(t, p.Last)
+					return true
+				case <-time.After(2 * time.Second):
+					t.Logf("no thread cb")
+				}
+			}
+			return false
 		}
+		require.True(t, recvRemote())
 		select {
 		case <-cb:
 		case <-time.After(20 * time.Second):
@@ -2922,25 +2936,33 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 				default:
 				}
 			}
-			clock.Advance(20 * time.Minute)
-			if i == 0 {
-				select {
-				case res := <-ui.ThreadCb:
-					require.True(t, res.Full)
-					require.Equal(t, 3, len(res.Thread.Messages))
-					require.Equal(t, chat1.MessageID(4), res.Thread.Messages[0].GetMessageID())
-					require.NotNil(t, res.Thread.Pagination.Last)
-					require.True(t, res.Thread.Pagination.Last)
-				case <-time.After(20 * time.Second):
-					require.Fail(t, "no thread cb")
+			recvRemote = func() bool {
+				for j := 0; j < 5; j++ {
+					clock.Advance(20 * time.Minute)
+					if i == 0 {
+						select {
+						case res := <-ui.ThreadCb:
+							require.True(t, res.Full)
+							require.Equal(t, 3, len(res.Thread.Messages))
+							require.Equal(t, chat1.MessageID(4), res.Thread.Messages[0].GetMessageID())
+							require.NotNil(t, res.Thread.Pagination.Last)
+							require.True(t, res.Thread.Pagination.Last)
+							return true
+						case <-time.After(2 * time.Second):
+							t.Logf("no thread cb")
+						}
+					} else {
+						select {
+						case <-ui.ThreadCb:
+							require.Fail(t, "no callback expected")
+						default:
+							return true
+						}
+					}
 				}
-			} else {
-				select {
-				case <-ui.ThreadCb:
-					require.Fail(t, "no callback expected")
-				default:
-				}
+				return false
 			}
+			require.True(t, recvRemote())
 			select {
 			case <-cb:
 			case <-time.After(20 * time.Second):
@@ -3466,19 +3488,26 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no thread cb")
 		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
-			confirmIsPlaceholder(t, editMsgID2, res.Thread.Messages[0], true)
-			confirmIsText(t, msgID2, res.Thread.Messages[1], "edited")
-			confirmIsPlaceholder(t, editMsgID1, res.Thread.Messages[2], true)
-			confirmIsText(t, msgID1, res.Thread.Messages[3], "edited")
-			confirmIsPlaceholder(t, 1, res.Thread.Messages[4], true)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
+		recvRemote := func() bool {
+			for i := 0; i < 5; i++ {
+				clock.Advance(20 * time.Minute)
+				select {
+				case res := <-ui.ThreadCb:
+					require.True(t, res.Full)
+					require.Equal(t, len(msgIDs)-1, len(res.Thread.Messages))
+					confirmIsPlaceholder(t, editMsgID2, res.Thread.Messages[0], true)
+					confirmIsText(t, msgID2, res.Thread.Messages[1], "edited")
+					confirmIsPlaceholder(t, editMsgID1, res.Thread.Messages[2], true)
+					confirmIsText(t, msgID1, res.Thread.Messages[3], "edited")
+					confirmIsPlaceholder(t, 1, res.Thread.Messages[4], true)
+					return true
+				case <-time.After(2 * time.Second):
+					t.Logf("no cb received")
+				}
+			}
+			return false
 		}
+		require.True(t, recvRemote())
 		select {
 		case <-cb:
 		case <-time.After(20 * time.Second):
