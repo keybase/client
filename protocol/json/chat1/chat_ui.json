@@ -91,6 +91,10 @@
         },
         {
           "type": "boolean",
+          "name": "isMuted"
+        },
+        {
+          "type": "boolean",
           "name": "isTeam"
         }
       ]

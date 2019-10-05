@@ -11,7 +11,6 @@ import * as Types from '../../../constants/types/chat2'
 type MakeRowOptions = {
   channelname: string
   conversationIDKey: Types.ConversationIDKey
-  isMuted?: boolean
   isTeam: boolean
   navKey: string
   snippet?: string
@@ -45,7 +44,6 @@ const makeRow = (options: MakeRowOptions) => {
           key={options.conversationIDKey}
           conversationIDKey={options.conversationIDKey}
           channelname={options.channelname}
-          isMuted={options.isMuted || false}
           navKey={options.navKey}
         />
       )

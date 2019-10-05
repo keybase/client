@@ -942,20 +942,26 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         try {
           const layout: RPCChatTypes.UIInboxLayout = JSON.parse(action.payload.params.layout)
           if (!draftState.inboxHasLoaded) {
-            // on first layout, initialize any drafts. After the first layout, any other draft
-            // updates will come in the form of meta updates.
+            // on first layout, initialize any drafts and muted status
+            // After the first layout, any other updates will come in the form of meta updates.
             const draftMap = new Map(draftState.draftMap)
+            const mutedMap = new Map(draftState.mutedMap)
             ;(layout.smallTeams || []).forEach((t: RPCChatTypes.UIInboxSmallTeamRow) => {
+              mutedMap.set(t.convID, t.isMuted)
               if (t.draft) {
                 draftMap.set(t.convID, t.draft)
               }
             })
             ;(layout.bigTeams || []).forEach((t: RPCChatTypes.UIInboxBigTeamRow) => {
-              if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel && !!t.channel.draft) {
-                draftMap.set(t.channel.convID, t.channel.draft)
+              if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+                mutedMap.set(t.channel.convID, t.channel.isMuted)
+                if (t.channel.draft) {
+                  draftMap.set(t.channel.convID, t.channel.draft)
+                }
               }
             })
             draftState.draftMap = draftMap
+            draftState.mutedMap = mutedMap
           }
           draftState.inboxLayout = layout
           draftState.inboxHasLoaded = true
@@ -1382,10 +1388,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.metasReceived: {
         draftState.inboxHasLoaded = action.payload.fromInboxRefresh ? true : draftState.inboxHasLoaded
         const draftMap = new Map(draftState.draftMap)
+        const mutedMap = new Map(draftState.mutedMap)
         action.payload.metas.forEach((m: Types.ConversationMeta) => {
           draftMap.set(m.conversationIDKey, m.draft)
+          mutedMap.set(m.conversationIDKey, m.isMuted)
         })
         draftState.draftMap = draftMap
+        draftState.mutedMap = mutedMap
         draftState.messageMap = messageMapReducer(
           draftState.messageMap,
           action,

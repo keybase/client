@@ -1141,6 +1141,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
 	}
 	res.Draft = rc.LocalDraft
+	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED
 	return res
 }
 

@@ -100,7 +100,6 @@ class Inbox extends React.PureComponent<T.Props, State> {
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
-          isMuted: row.isMuted,
           isTeam: row.isTeam || false,
           navKey: this.props.navKey,
           snippet: row.snippet,

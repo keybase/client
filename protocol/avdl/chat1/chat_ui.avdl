@@ -23,6 +23,7 @@ protocol chatUi {
     union { null, string } snippet;
     union { null, string } snippetDecoration;
     union { null, string } draft;
+    boolean isMuted;
     boolean isTeam;
   }
 

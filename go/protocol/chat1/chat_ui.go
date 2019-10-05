@@ -36,6 +36,7 @@ type UIInboxSmallTeamRow struct {
 	Snippet           *string      `codec:"snippet,omitempty" json:"snippet,omitempty"`
 	SnippetDecoration *string      `codec:"snippetDecoration,omitempty" json:"snippetDecoration,omitempty"`
 	Draft             *string      `codec:"draft,omitempty" json:"draft,omitempty"`
+	IsMuted           bool         `codec:"isMuted" json:"isMuted"`
 	IsTeam            bool         `codec:"isTeam" json:"isTeam"`
 }
 
@@ -65,7 +66,8 @@ func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
 			tmp := (*x)
 			return &tmp
 		})(o.Draft),
-		IsTeam: o.IsTeam,
+		IsMuted: o.IsMuted,
+		IsTeam:  o.IsTeam,
 	}
 }
 

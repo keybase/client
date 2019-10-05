@@ -7,7 +7,6 @@ import {namedConnect, isMobile} from '../../../../util/container'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   channelname: string
-  isMuted: boolean
   navKey: string
 }
 
@@ -17,8 +16,9 @@ export default namedConnect(
     return {
       _meta: Constants.getMeta(state, _conversationIDKey),
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
-      hasDraft: !!state.chat2.draftMap.get(_conversationIDKey),
+      hasDraft: !!Constants.getDraft(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+      isMuted: Constants.isMuted(state, _conversationIDKey),
       isSelected: !isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
     }
   },
@@ -32,7 +32,7 @@ export default namedConnect(
     hasDraft: stateProps.hasDraft && !stateProps.isSelected,
     hasUnread: stateProps.hasUnread,
     isError: stateProps._meta.trustedState === 'error',
-    isMuted: ownProps.isMuted || stateProps._meta.isMuted,
+    isMuted: stateProps.isMuted,
     isSelected: stateProps.isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     showBold: Constants.getRowStyles(false, false).showBold,

@@ -156,6 +156,7 @@ export type State = Readonly<{
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean> // if we have more data to load,
+  mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: I.Map<Common.ConversationIDKey, number> // last message we've seen,
   paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>

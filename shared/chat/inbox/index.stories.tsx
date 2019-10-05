@@ -24,7 +24,6 @@ const makeRowItemBigChannel = (conversationIDKey, teamname, channelname): RowIte
   teamname,
   channelname,
   conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
-  isMuted: false,
 })
 const makeRowItemDivider = (showButton: boolean = false): RowItemDivider => ({type: 'divider', showButton})
 
