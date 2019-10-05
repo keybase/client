@@ -354,7 +354,7 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 const routeToInitialScreen = async (state: Container.TypedState) => {
   console.log('aaa TEMPTEMPTEMP')
   const p = new Promise(resolve => {
-    setTimeout(resolve, 7000)
+    setTimeout(resolve, 2000)
   })
   await p
 
