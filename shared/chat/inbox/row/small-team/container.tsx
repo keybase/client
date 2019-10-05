@@ -29,10 +29,12 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     snippet = typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
   }
   return {
+    _draft: Constants.getDraft(state, _conversationIDKey),
     _meta,
     _username: state.config.username,
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
     hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+    isMuted: Constants.isMuted(state, _conversationIDKey),
     isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
     isTypingSnippet,
     snippet,
@@ -72,9 +74,7 @@ export default Container.namedConnect(
       channelname: undefined,
       conversationIDKey: stateProps._meta.conversationIDKey,
       draft:
-        stateProps._meta.draft && !stateProps.isSelected && !stateProps.hasUnread
-          ? stateProps._meta.draft
-          : undefined,
+        stateProps._draft && !stateProps.isSelected && !stateProps.hasUnread ? stateProps._draft : undefined,
       hasBadge: stateProps.hasBadge,
       hasBottomLine:
         stateProps.youAreReset ||
@@ -89,7 +89,7 @@ export default Container.namedConnect(
       isDecryptingSnippet,
       isFinalized: !!stateProps._meta.wasFinalizedBy,
       isInWidget: false,
-      isMuted: stateProps._meta.isMuted,
+      isMuted: stateProps.isMuted,
       isSelected,
       isTypingSnippet: stateProps.isTypingSnippet,
       layoutIsTeam: ownProps.isTeam,
