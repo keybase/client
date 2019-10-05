@@ -507,7 +507,9 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
 			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
-			h.UpdateConvs(ctx, convIDs)
+			if err := h.UpdateConvs(ctx, convIDs); err != nil {
+				h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+			}
 			// update layout again after we have done all this work to get everything in the right order
 			h.UpdateLayout(ctx, "big team unbox")
 		case <-shutdownCh:
@@ -572,7 +574,6 @@ func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs
 	if len(bigTeamConvs) > 0 {
 		h.queueBigTeamUnbox(bigTeamConvs)
 	}
-	return
 }
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
