@@ -16,7 +16,7 @@ module.hot &&
 let store
 
 class Keybase extends Component<any> {
-  state = {hidden: true}
+  // state = {hidden: true}
   constructor(props: any) {
     super(props)
 
@@ -42,11 +42,11 @@ class Keybase extends Component<any> {
     Linking.addEventListener('url', this._handleOpenURL)
     Linking.getInitialURL().then(url => url && this._handleOpenURL({url}))
 
-    console.log(new Array(100).fill('aaaaaaaaa TEMP TEMP TMEP').join('\n'))
-    setTimeout(() => {
-      this.setState({hidden: false})
-      // TEMP TEMP TEMP
-    }, 5000)
+    // console.log(new Array(100).fill('aaaaaaaaa TEMP TEMP TMEP').join('\n'))
+    // setTimeout(() => {
+    // this.setState({hidden: false})
+    // // TEMP TEMP TEMP
+    // }, 5000)
   }
 
   componentWillUnmount() {
@@ -63,7 +63,7 @@ class Keybase extends Component<any> {
   }
 
   render() {
-    if (this.state.hidden) return null
+    // if (this.state.hidden) return null
     return (
       <Provider store={store}>
         <GatewayProvider>
