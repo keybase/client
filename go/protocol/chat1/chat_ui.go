@@ -35,6 +35,7 @@ type UIInboxSmallTeamRow struct {
 	Time              gregor1.Time `codec:"time" json:"time"`
 	Snippet           *string      `codec:"snippet,omitempty" json:"snippet,omitempty"`
 	SnippetDecoration *string      `codec:"snippetDecoration,omitempty" json:"snippetDecoration,omitempty"`
+	Draft             *string      `codec:"draft,omitempty" json:"draft,omitempty"`
 	IsTeam            bool         `codec:"isTeam" json:"isTeam"`
 }
 
@@ -57,6 +58,13 @@ func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
 			tmp := (*x)
 			return &tmp
 		})(o.SnippetDecoration),
+		Draft: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Draft),
 		IsTeam: o.IsTeam,
 	}
 }
@@ -88,9 +96,11 @@ func (e UIInboxBigTeamRowTyp) String() string {
 }
 
 type UIInboxBigTeamChannelRow struct {
-	ConvID      string `codec:"convID" json:"convID"`
-	Teamname    string `codec:"teamname" json:"teamname"`
-	Channelname string `codec:"channelname" json:"channelname"`
+	ConvID      string  `codec:"convID" json:"convID"`
+	Teamname    string  `codec:"teamname" json:"teamname"`
+	Channelname string  `codec:"channelname" json:"channelname"`
+	Draft       *string `codec:"draft,omitempty" json:"draft,omitempty"`
+	IsMuted     bool    `codec:"isMuted" json:"isMuted"`
 }
 
 func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
@@ -98,6 +108,14 @@ func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
 		ConvID:      o.ConvID,
 		Teamname:    o.Teamname,
 		Channelname: o.Channelname,
+		Draft: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Draft),
+		IsMuted: o.IsMuted,
 	}
 }
 

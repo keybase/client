@@ -29,6 +29,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     snippet = typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
   }
   return {
+    _draft: state.chat2.draftMap.get(_conversationIDKey),
     _meta,
     _username: state.config.username,
     hasBadge: Constants.getHasBadge(state, _conversationIDKey),
@@ -72,9 +73,7 @@ export default Container.namedConnect(
       channelname: undefined,
       conversationIDKey: stateProps._meta.conversationIDKey,
       draft:
-        stateProps._meta.draft && !stateProps.isSelected && !stateProps.hasUnread
-          ? stateProps._meta.draft
-          : undefined,
+        stateProps._draft && !stateProps.isSelected && !stateProps.hasUnread ? stateProps._draft : undefined,
       hasBadge: stateProps.hasBadge,
       hasBottomLine:
         stateProps.youAreReset ||

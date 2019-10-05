@@ -1140,6 +1140,7 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 		res.Snippet = &rc.LocalMetadata.Snippet
 		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
 	}
+	res.Draft = rc.LocalDraft
 	return res
 }
 
@@ -1147,6 +1148,8 @@ func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.
 	res.ConvID = rc.GetConvID().String()
 	res.Channelname = rc.GetTopicName()
 	res.Teamname = GetRemoteConvTLFName(rc)
+	res.Draft = rc.LocalDraft
+	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED
 	return res
 }
 

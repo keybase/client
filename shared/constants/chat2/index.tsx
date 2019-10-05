@@ -37,6 +37,7 @@ export const makeState = (): Types.State => ({
   containsLatestMessageMap: I.Map(),
   createConversationError: null,
   dismissedInviteBannersMap: I.Map(),
+  draftMap: new Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: I.Map(), // seconds to exploding message expiration,

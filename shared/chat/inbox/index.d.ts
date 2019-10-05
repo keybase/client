@@ -6,6 +6,7 @@ export type RowItemSmall = {
   type: 'small'
   teamname: string
   isTeam: boolean
+  isMuted?: boolean
   conversationIDKey: ConversationIDKey
   time: number
   snippet?: string
@@ -15,6 +16,7 @@ export type RowItemBigTeamsLabel = {
   type: 'bigTeamsLabel'
   isFiltered: boolean
   isTeam?: boolean
+  isMuted?: boolean
   teamname?: never
   conversationIDKey?: never
   snippet?: string
@@ -24,6 +26,7 @@ export type RowItemBigTeamsLabel = {
 export type RowItemBigHeader = {
   type: 'bigHeader'
   isTeam?: boolean
+  isMuted?: boolean
   teamname: string
   conversationIDKey?: never
   snippet?: string
@@ -33,6 +36,7 @@ export type RowItemBigHeader = {
 export type RowItemBig = {
   type: 'big'
   isTeam?: boolean
+  isMuted: boolean
   conversationIDKey: ConversationIDKey
   teamname: string
   channelname: string
