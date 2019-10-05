@@ -9,7 +9,7 @@ import {
 } from './shared'
 import {ServiceIdWithContact} from '../constants/types/team-building'
 import {Props, IconProps} from './service-tab-bar'
-import {difference} from 'lodash-es'
+import difference from 'lodash/difference'
 
 const ServiceIcon = (props: IconProps) => {
   const [hover, setHover] = React.useState(false)

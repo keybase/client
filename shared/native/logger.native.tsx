@@ -1,6 +1,6 @@
 import {NativeModules} from 'react-native'
 import {NativeLogDump} from './logger'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import {isAndroid} from '../constants/platform'
 
 export type RealNativeLog = (tagsAndLogs: Array<Array<string>>) => void

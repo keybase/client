@@ -1,6 +1,6 @@
 import {LogLineWithLevelISOTimestamp} from '../logger/types'
-import {noop} from 'lodash-es'
 import {isMobile} from '../constants/platform'
+import noop from 'lodash/noop'
 import {getEngine} from '../engine/require'
 import * as RPCTypes from '../constants/types/rpc-gen'
 

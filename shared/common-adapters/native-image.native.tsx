@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Image, ImageProps, ImageURISource} from 'react-native'
 import RNFI from 'react-native-fast-image'
-import {isArray} from 'lodash-es'
+import isArray from 'lodash/isArray'
 
 export class NativeImage extends React.Component<ImageProps> {
   static getSize = Image.getSize

@@ -82,7 +82,7 @@ export type TypedActions = TypedActions
 export type TypedState = TypedState
 export type PropsWithSafeNavigation<P = {}> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
-export {flowRight as compose} from 'lodash-es'
+export {default as compose} from 'lodash/flowRight'
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce} from 'immer'
 export type Draft<T> = _Draft<T>

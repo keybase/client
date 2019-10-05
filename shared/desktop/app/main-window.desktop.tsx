@@ -9,7 +9,7 @@ import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 

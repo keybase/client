@@ -2,7 +2,7 @@
 // It listens for avatar related actions and bookkeeps them to send them back over the wire
 import * as React from 'react'
 import * as Container from '../../util/container'
-import {isEqual} from 'lodash-es'
+import isEqual from 'lodash/isEqual'
 import {intersect} from '../../util/set'
 import {memoize} from '../../util/memoize'
 

@@ -7,7 +7,7 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as Types from '../constants/types/devices'
 import * as Container from '../util/container'
-import {partition} from 'lodash-es'
+import partition from 'lodash/partition'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
 
 type OwnProps = Container.RouteProps

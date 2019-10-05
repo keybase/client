@@ -2,7 +2,7 @@ import * as React from 'react'
 import {NativeSyntheticEvent, NativeTouchEvent} from 'react-native'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {stubTrue} from 'lodash-es'
+import stubTrue from 'lodash/stubTrue'
 
 const initMeasureRef = {height: -1, pageY: -1}
 const isValidMeasure = (m: typeof initMeasureRef) => m.height >= 0 && m.pageY >= 0

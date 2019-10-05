@@ -12,7 +12,7 @@ import Flags from '../../util/feature-flags'
 import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 

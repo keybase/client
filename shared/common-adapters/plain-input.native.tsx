@@ -13,7 +13,7 @@ import {
 } from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
-import {pick} from 'lodash-es'
+import pick from 'lodash/pick'
 import logger from '../logger'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'

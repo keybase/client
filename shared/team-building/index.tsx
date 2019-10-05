@@ -23,7 +23,7 @@ import {
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
-import {throttle} from 'lodash-es'
+import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailSearch from './email-search'

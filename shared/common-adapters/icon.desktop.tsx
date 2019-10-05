@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
 import {iconMeta} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import {Props, IconType} from './icon'
 
 class Icon extends Component<Props, void> {
