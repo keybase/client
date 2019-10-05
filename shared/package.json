@@ -148,7 +148,7 @@
     "lodash-es": "4.17.15",
     "lottie-ios": "3.0.3",
     "lottie-react-native": "3.1.0",
-    "lottie-react-web": "2.1.4",
+    "lottie-react-web": "git://github.com/keybase/lottie-react-web#keybase-changes-off-214",
     "memoize-one": "5.0.5",
     "menubar": "6.0.6",
     "moment": "2.24.0",
