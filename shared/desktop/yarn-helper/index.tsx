@@ -28,10 +28,10 @@ const commands = {
   },
   postinstall: {
     code: () => {
-      // fixModules()
-      // fixTypes()
-      // checkFSEvents()
-      // clearTSCache()
+      fixModules()
+      fixTypes()
+      checkFSEvents()
+      clearTSCache()
       patcher()
     },
     help: '',
