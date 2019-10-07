@@ -8,6 +8,7 @@ import {PropsWithSafeNavigation as _PropsWithSafeNavigation} from './safe-naviga
 import {StatusCode} from '../constants/types/rpc-gen'
 import {anyWaiting, anyErrors} from '../constants/waiting'
 import {useSelector} from 'react-redux'
+import flowRight from 'lodash/flowRight'
 
 // to keep fallback objects static for react
 export const emptyArray: Array<any> = []
@@ -82,7 +83,7 @@ export type TypedActions = TypedActions
 export type TypedState = TypedState
 export type PropsWithSafeNavigation<P = {}> = _PropsWithSafeNavigation<P>
 export {useSelector, useDispatch} from 'react-redux'
-export {default as compose} from 'lodash/flowRight'
+export const compose = flowRight
 export {default as hoistNonReactStatic} from 'hoist-non-react-statics'
 export {produce} from 'immer'
 export type Draft<T> = _Draft<T>
