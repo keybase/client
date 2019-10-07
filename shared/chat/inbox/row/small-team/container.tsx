@@ -68,6 +68,11 @@ export default Container.namedConnect(
       : !ownProps.isTeam
       ? ownProps.name.split(',')
       : [ownProps.name]
+    const teamname = stateProps._meta.teamname
+      ? stateProps._meta.teamname
+      : ownProps.isTeam
+      ? ownProps.name
+      : ''
     const timestamp = stateProps._meta.timestamp > 0 ? stateProps._meta.timestamp : ownProps.time || 0
     return {
       backgroundColor: styles.backgroundColor,
@@ -106,7 +111,7 @@ export default Container.namedConnect(
       snippet: stateProps.snippet,
       snippetDecoration: stateProps.snippetDecoration,
       subColor: styles.subColor as AllowedColors,
-      teamname: stateProps._meta.teamname,
+      teamname,
       timestamp: formatTimeForConversationList(timestamp),
       usernameColor: styles.usernameColor,
       youAreReset: stateProps.youAreReset,
