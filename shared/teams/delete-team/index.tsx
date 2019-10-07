@@ -69,7 +69,12 @@ const ReallyDeleteTeam = (props: Props) => {
       onBack()
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
-  React.useEffect(() => () => clearWaiting(), [clearWaiting])
+  React.useEffect(
+    () => () => clearWaiting(),
+    // only once on mount
+    // eslint-disable-next-line
+    []
+  )
   return (
     <Kb.ConfirmModal
       error={error ? error.message : ''}
