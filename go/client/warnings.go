@@ -44,6 +44,9 @@ func PrintAccountResetWarning(g *libkb.GlobalContext) {
 		msg = fmt.Sprintf("Your account is scheduled to be reset %s.", libkb.HumanizeResetTime(t))
 	}
 	g.Log.Warning(msg)
+	g.Log.Warning(`An account reset will make all chats, files, and wallet funds
+unrecoverable. Since you have access to a Keybase device, you should cancel
+this reset request. You can use this device to provision another one.`)
 	g.Log.Warning("To cancel the process run `keybase account reset-cancel`")
 }
 
