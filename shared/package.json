@@ -174,7 +174,7 @@
     "react-native-unimodules": "git://github.com/keybase/react-native-unimodules/#v0.4.0",
     "react-native-video": "4.4.4",
     "react-native-webview": "5.12.1",
-    "react-navigation-stack": "git://github.com/keybase/stack#marco/animated-background",
+    "react-navigation-stack": "git://github.com/keybase/stack#danny/marco-animated-background-plus-darkmode",
     "react-navigation-tabs": "2.2.0",
     "react-redux": "7.1.0",
     "react-spring": "8.0.27",
