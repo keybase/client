@@ -110,6 +110,7 @@ protocol local {
     string team;
     string adder;
     string addee;
+    keybase1.TeamRole role;
     array<string> owners;
     array<string> admins;
     array<string> writers;
@@ -124,6 +125,7 @@ protocol local {
     string invitee;
     string adder;
     keybase1.TeamInviteCategory inviteType;
+    keybase1.TeamRole role;
   }
 
   record MessageSystemComplexTeam {

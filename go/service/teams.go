@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -245,8 +246,8 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	result.ChatSending = true
 	go func() {
 		ctx := libkb.WithLogTag(context.Background(), "BG")
-		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
-			result.User.Username)
+		err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), "", arg.Name,
+			result.User.Username, chat1.ConversationMembersType_TEAM, arg.Role)
 		if err != nil {
 			h.G().Log.CDebugf(ctx, "send team welcome message: error: %v", err)
 		} else {
@@ -310,10 +311,11 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 			h.G().Log.CDebugf(ctx, "sending team welcome messages")
 			ctx := libkb.WithLogTag(context.Background(), "BG")
 			for i, res := range res {
-				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v",
-					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite)
+				h.G().Log.CDebugf(ctx, "team welcome message for i:%v assertion:%v username:%v invite:%v, role: %v",
+					i, arg.Users[i].AssertionOrEmail, res.Username, res.Invite, arg.Users[i].Role)
 				if !res.Invite && !res.Username.IsNil() {
-					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name, res.Username.String())
+					err := teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), "", arg.Name,
+						res.Username.String(), chat1.ConversationMembersType_TEAM, arg.Users[i].Role)
 					if err != nil {
 						h.G().Log.CDebugf(ctx, "send team welcome message [%v] err: %v", i, err)
 					} else {

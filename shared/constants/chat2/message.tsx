@@ -6,6 +6,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCStellarTypes from '../types/rpc-stellar-gen'
 import * as Types from '../types/chat2'
+import * as TeamConstants from '../teams'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
 import * as WalletTypes from '../types/wallets'
@@ -311,6 +312,7 @@ const makeMessageSystemAddedToTeam = I.Record<MessageTypes._MessageSystemAddedTo
   adder: '',
   isAdmin: false,
   reactions: I.Map(),
+  role: 'none',
   team: '',
   type: 'systemAddedToTeam',
 })
@@ -323,6 +325,7 @@ const makeMessageSystemInviteAccepted = I.Record<MessageTypes._MessageSystemInvi
   invitee: '',
   inviter: '',
   reactions: I.Map(),
+  role: 'none',
   team: '',
   type: 'systemInviteAccepted',
 })
@@ -537,6 +540,8 @@ const uiMessageToSystemMessage = (
     case RPCChatTypes.MessageSystemType.addedtoteam: {
       // TODO @mikem admins is always empty?
       const {adder = '', addee = '', team = '', admins = null} = body.addedtoteam || {}
+      const roleEnum = body.addedtoteam ? body.addedtoteam.role : undefined
+      const role = roleEnum ? TeamConstants.teamRoleWithBotsByEnum[roleEnum] : 'none'
       const isAdmin = (admins || []).includes(minimum.author)
       return makeMessageSystemAddedToTeam({
         ...minimum,
@@ -544,12 +549,14 @@ const uiMessageToSystemMessage = (
         adder,
         isAdmin,
         reactions,
+        role,
         team,
       })
     }
     case RPCChatTypes.MessageSystemType.inviteaddedtoteam: {
       const inviteaddedtoteam = body.inviteaddedtoteam || ({} as RPCChatTypes.MessageSystemInviteAddedToTeam)
       const invitee = inviteaddedtoteam.invitee || 'someone'
+      const role = TeamConstants.teamRoleByEnum[inviteaddedtoteam.role] || 'none'
       const adder = inviteaddedtoteam.adder || 'someone'
       const inviter = inviteaddedtoteam.inviter || 'someone'
       const team = inviteaddedtoteam.team || '???'
@@ -582,6 +589,7 @@ const uiMessageToSystemMessage = (
         invitee,
         inviter,
         reactions,
+        role,
         team,
       })
     }

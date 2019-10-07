@@ -437,15 +437,16 @@ func (e MessageSystemType) String() string {
 }
 
 type MessageSystemAddedToTeam struct {
-	Team           string   `codec:"team" json:"team"`
-	Adder          string   `codec:"adder" json:"adder"`
-	Addee          string   `codec:"addee" json:"addee"`
-	Owners         []string `codec:"owners" json:"owners"`
-	Admins         []string `codec:"admins" json:"admins"`
-	Writers        []string `codec:"writers" json:"writers"`
-	Readers        []string `codec:"readers" json:"readers"`
-	Bots           []string `codec:"bots" json:"bots"`
-	RestrictedBots []string `codec:"restrictedBots" json:"restrictedBots"`
+	Team           string            `codec:"team" json:"team"`
+	Adder          string            `codec:"adder" json:"adder"`
+	Addee          string            `codec:"addee" json:"addee"`
+	Role           keybase1.TeamRole `codec:"role" json:"role"`
+	Owners         []string          `codec:"owners" json:"owners"`
+	Admins         []string          `codec:"admins" json:"admins"`
+	Writers        []string          `codec:"writers" json:"writers"`
+	Readers        []string          `codec:"readers" json:"readers"`
+	Bots           []string          `codec:"bots" json:"bots"`
+	RestrictedBots []string          `codec:"restrictedBots" json:"restrictedBots"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -453,6 +454,7 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 		Team:  o.Team,
 		Adder: o.Adder,
 		Addee: o.Addee,
+		Role:  o.Role.DeepCopy(),
 		Owners: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -528,6 +530,7 @@ type MessageSystemInviteAddedToTeam struct {
 	Invitee    string                      `codec:"invitee" json:"invitee"`
 	Adder      string                      `codec:"adder" json:"adder"`
 	InviteType keybase1.TeamInviteCategory `codec:"inviteType" json:"inviteType"`
+	Role       keybase1.TeamRole           `codec:"role" json:"role"`
 }
 
 func (o MessageSystemInviteAddedToTeam) DeepCopy() MessageSystemInviteAddedToTeam {
@@ -537,6 +540,7 @@ func (o MessageSystemInviteAddedToTeam) DeepCopy() MessageSystemInviteAddedToTea
 		Invitee:    o.Invitee,
 		Adder:      o.Adder,
 		InviteType: o.InviteType.DeepCopy(),
+		Role:       o.Role.DeepCopy(),
 	}
 }
 

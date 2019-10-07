@@ -465,7 +465,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		} else {
 			g.Log.CDebugf(ctx, "sending welcome message for successful SBS handle")
 			SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
-				verifiedInvitee.Uid)
+				verifiedInvitee.Uid, invite.Role)
 		}
 
 		return nil
@@ -538,6 +538,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 type chatSeitanRecip struct {
 	inviter keybase1.UID
 	invitee keybase1.UID
+	role    keybase1.TeamRole
 }
 
 func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
@@ -605,6 +606,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		chats = append(chats, chatSeitanRecip{
 			inviter: invite.Inviter.Uid,
 			invitee: seitan.Uid,
+			role:    invite.Role,
 		})
 	}
 
@@ -619,10 +621,10 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 
 	// Send chats
 	for _, chat := range chats {
-		g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s",
-			chat.inviter, chat.invitee)
+		g.Log.CDebugf(ctx, "sending welcome message for successful Seitan handle: inviter: %s invitee: %s, role: %v",
+			chat.inviter, chat.invitee, chat.role)
 		SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), keybase1.TeamInviteCategory_SEITAN,
-			chat.inviter, chat.invitee)
+			chat.inviter, chat.invitee, chat.role)
 	}
 
 	return nil
