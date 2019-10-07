@@ -203,7 +203,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}
 
 	kbSvc = service.NewService(kbCtx, false)
-	err = kbSvc.StartLoopbackServer(false)
+	err = kbSvc.StartLoopbackServer(libkb.LoginAttemptOffline)
 	if err != nil {
 		return err
 	}
