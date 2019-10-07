@@ -5247,6 +5247,23 @@
         }
       ],
       "response": "keybase1.TeamBotSettings"
+    },
+    "teamIDFromTLFName": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "keybase1.TeamID"
     }
   },
   "namespace": "chat.1"
