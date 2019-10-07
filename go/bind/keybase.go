@@ -203,7 +203,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}
 
 	kbSvc = service.NewService(kbCtx, false)
-	err = kbSvc.StartLoopbackServer()
+	err = kbSvc.StartLoopbackServer(false)
 	if err != nil {
 		return err
 	}

@@ -204,7 +204,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	}
 
 	svc := service.NewService(kbCtx, false)
-	if err = svc.StartLoopbackServer(); err != nil {
+	if err = svc.StartLoopbackServer(true); err != nil {
 		return err
 	}
 	kbCtx.SetService()

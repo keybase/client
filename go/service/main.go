@@ -693,7 +693,7 @@ func (d *Service) addGlobalHooks() {
 	d.G().AddLogoutHook(d, "service/Service")
 }
 
-func (d *Service) StartLoopbackServer() error {
+func (d *Service) StartLoopbackServer(isShareExtension bool) error {
 
 	ctx := context.Background()
 
@@ -710,7 +710,11 @@ func (d *Service) StartLoopbackServer() error {
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.
-	d.tryLogin(ctx, loginAttemptOffline)
+	mode := loginAttemptOffline
+	if isShareExtension {
+		mode = loginAttemptOnline
+	}
+	d.tryLogin(ctx, mode)
 
 	go func() { _ = d.ListenLoop(l) }()
 
