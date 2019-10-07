@@ -558,8 +558,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     const showContactsBanner =
       Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
 
+    const containerStyle = Styles.collapseStyles([
+      styles.container,
+      props.namespace !== 'people' ? styles.fixedWidthContainer : null,
+    ])
+
     return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
         {teamBox &&
           (Styles.isMobile ? (
@@ -642,7 +647,6 @@ const styles = Styles.styleSheetCreate(
           height: 560,
           maxHeight: 560,
           overflow: 'visible',
-          width: 400,
         },
       }),
       emptyContainer: Styles.platformStyles({
@@ -656,6 +660,11 @@ const styles = Styles.styleSheetCreate(
       emptyServiceText: Styles.platformStyles({
         isMobile: {
           padding: Styles.globalMargins.small,
+        },
+      }),
+      fixedWidthContainer: Styles.platformStyles({
+        isElectron: {
+          width: 400,
         },
       }),
       headerContainer: Styles.platformStyles({

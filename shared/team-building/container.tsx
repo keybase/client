@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import unidecode from 'unidecode'
 import debounce from 'lodash/debounce'
 import trim from 'lodash/trim'
-import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
+import TeamBuilding, { RolePickerProps, SearchResult, SearchRecSection, numSectionLabel } from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
@@ -13,15 +13,18 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
-import {requestIdleCallback} from '../util/idle-callback'
-import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
-import {memoizeShallow, memoize} from '../util/memoize'
-import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
-import {getDisabledReasonsForRolePicker} from '../constants/teams'
-import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
-import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
-import {formatAnyPhoneNumbers} from '../util/phone-numbers'
-import {isMobile} from '../constants/platform'
+import { requestIdleCallback } from '../util/idle-callback'
+import { HeaderHoc, PopupDialogHoc, Button } from '../common-adapters'
+import { memoizeShallow, memoize } from '../util/memoize'
+import { TeamRoleType, MemberInfo, DisabledReasonsForRolePicker } from '../constants/types/teams'
+import { getDisabledReasonsForRolePicker } from '../constants/teams'
+import { nextRoleDown, nextRoleUp } from '../teams/role-picker'
+import { Props as HeaderHocProps } from '../common-adapters/header-hoc/types'
+import { HocExtractProps as PopupHocProps } from '../common-adapters/popup-dialog-hoc'
+import { formatAnyPhoneNumbers } from '../util/phone-numbers'
+import { isMobile } from '../constants/platform'
+import Flags from '../util/feature-flags'
+import * as Styles from '../styles'
 
 // TODO remove when bots are fully integrated in gui
 type TeamRoleTypeWithoutBots = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
@@ -46,6 +49,7 @@ type OwnProps = {
   showRolePicker: boolean
   showServiceResultCount: boolean
   title: string
+  noPopup?: boolean
 }
 
 type LocalState = {
@@ -224,30 +228,30 @@ const makeDebouncedSearch = (time: number) =>
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, { namespace, teamname }: OwnProps) => ({
   _onAdd: (user: Types.User) =>
-    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
-  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
+    dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({ namespace, users: [user] })),
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({ namespace })),
   _onImportContactsPermissionsGranted: () =>
-    dispatch(SettingsGen.createEditContactImportEnabled({enable: true})),
+    dispatch(SettingsGen.createEditContactImportEnabled({ enable: true })),
   _onImportContactsPermissionsNotGranted: () =>
-    dispatch(SettingsGen.createRequestContactPermissions({thenToggleImportOn: true})),
+    dispatch(SettingsGen.createRequestContactPermissions({ thenToggleImportOn: true })),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
   },
   fetchUserRecs: () =>
-    dispatch(TeamBuildingGen.createFetchUserRecs({includeContacts: namespace === 'chat2', namespace})),
+    dispatch(TeamBuildingGen.createFetchUserRecs({ includeContacts: namespace === 'chat2', namespace })),
   onAskForContactsLater: () => dispatch(SettingsGen.createImportContactsLater()),
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
-    dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace, teamname})),
+    dispatch(TeamBuildingGen.createChangeSendNotification({ namespace, sendNotification })),
+  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({ namespace, teamname })),
   onLoadContactsSetting: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onRemove: (userId: string) =>
-    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
+    dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({ namespace, users: [userId] })),
   onSelectRole: (role: TeamRoleType) =>
-    namespace === 'teams' && dispatch(TeamBuildingGen.createSelectRole({namespace, role})),
+    namespace === 'teams' && dispatch(TeamBuildingGen.createSelectRole({ namespace, role })),
 })
 
 const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {
@@ -288,7 +292,7 @@ const deriveOnEnterKeyDown = memoizeShallow(
 )
 
 const deriveOnSearchForMore = memoizeShallow(
-  ({search, searchResults, searchString, selectedService}) => () => {
+  ({ search, searchResults, searchString, selectedService }) => () => {
     if (searchResults && searchResults.length >= 10) {
       search(searchString, selectedService, searchResults.length + 20)
     }
@@ -383,12 +387,12 @@ export const sortAndSplitRecommendations = memoize(
     const sections: Array<SearchRecSection> = [
       ...(showingContactsButton
         ? [
-            {
-              data: [{isImportButton: true as const}],
-              label: '',
-              shortcut: false,
-            },
-          ]
+          {
+            data: [{ isImportButton: true as const }],
+            label: '',
+            shortcut: false,
+          },
+        ]
         : []),
       {
         data: [],
@@ -482,8 +486,8 @@ const mergeProps = (
       stateProps.contactsPermissionStatus === 'never_ask_again'
         ? null
         : stateProps.contactsPermissionStatus === 'granted'
-        ? dispatchProps._onImportContactsPermissionsGranted
-        : dispatchProps._onImportContactsPermissionsNotGranted,
+          ? dispatchProps._onImportContactsPermissionsGranted
+          : dispatchProps._onImportContactsPermissionsNotGranted,
     onLoadContactsSetting: dispatchProps.onLoadContactsSetting,
   }
 
@@ -520,14 +524,14 @@ const mergeProps = (
   const rolePickerProps: RolePickerProps | null =
     ownProps.namespace === 'teams'
       ? {
-          changeSendNotification: dispatchProps.onChangeSendNotification,
-          changeShowRolePicker: ownProps.changeShowRolePicker,
-          disabledRoles: stateProps.disabledRoles,
-          onSelectRole: dispatchProps.onSelectRole,
-          selectedRole: stateProps.selectedRole,
-          sendNotification: stateProps.sendNotification,
-          showRolePicker: ownProps.showRolePicker,
-        }
+        changeSendNotification: dispatchProps.onChangeSendNotification,
+        changeShowRolePicker: ownProps.changeShowRolePicker,
+        disabledRoles: stateProps.disabledRoles,
+        onSelectRole: dispatchProps.onSelectRole,
+        selectedRole: stateProps.selectedRole,
+        sendNotification: stateProps.sendNotification,
+        showRolePicker: ownProps.showRolePicker,
+      }
       : null
 
   // TODO this should likely live with the role picker if we need this
@@ -554,40 +558,72 @@ const mergeProps = (
   const title = ownProps.title
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
-        borderless: true,
-        leftAction: 'cancel',
-        onLeftAction: dispatchProps._onCancelTeamBuilding,
-        rightActions: [
-          teamSoFar.length
-            ? rolePickerProps
-              ? {
-                  custom: (
-                    <RolePickerHeaderAction
-                      onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
-                      rolePickerProps={rolePickerProps}
-                      count={teamSoFar.length}
-                    />
-                  ),
-                }
-              : {
-                  custom: (
-                    <Button
-                      label="Start"
-                      mode="Primary"
-                      onClick={dispatchProps.onFinishTeamBuilding}
-                      small={true}
-                      type="Success"
-                    />
-                  ),
-                }
-            : null,
-        ],
-        title,
-      }
+      borderless: true,
+      leftAction: 'cancel',
+      onLeftAction: dispatchProps._onCancelTeamBuilding,
+      rightActions: [
+        teamSoFar.length
+          ? rolePickerProps
+            ? {
+              custom: (
+                <RolePickerHeaderAction
+                  onFinishTeamBuilding={dispatchProps.onFinishTeamBuilding}
+                  rolePickerProps={rolePickerProps}
+                  count={teamSoFar.length}
+                />
+              ),
+            }
+            : {
+              custom: (
+                <Button
+                  label="Start"
+                  mode="Primary"
+                  onClick={dispatchProps.onFinishTeamBuilding}
+                  small={true}
+                  type="Success"
+                />
+              ),
+            }
+          : null,
+      ],
+      title,
+    }
     : emptyObj
+
+  const popupProps: PopupHocProps | null = Container.isMobile
+    ? null
+    : {
+      onClosePopup: dispatchProps._onCancelTeamBuilding,
+      closeStyleOverrides:
+        ownProps.namespace === 'people'
+          ? {
+            display: 'none',
+          }
+          : null,
+      containerStyleOverrides:
+        ownProps.namespace === 'people'
+          ? {
+            width: '100%',
+          }
+          : null,
+      coverStyleOverrides:
+        ownProps.namespace === 'people'
+          ? {
+            justifyContent: 'flex-start',
+            backgroundColor: 'initial',
+            ...Styles.padding(
+              Styles.globalMargins.large,
+              Styles.globalMargins.xsmall,
+              Styles.globalMargins.small,
+              160 + Styles.globalMargins.xsmall
+            ), // TODO: figure out how to handle smol tab bar
+          }
+          : null,
+    }
 
   return {
     ...headerHocProps,
+    ...popupProps,
     ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,
@@ -652,13 +688,13 @@ type RealOwnProps = Container.RouteProps<{
 class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalState> {
   state: LocalState = initialState
 
-  changeShowRolePicker = (showRolePicker: boolean) => this.setState({showRolePicker})
+  changeShowRolePicker = (showRolePicker: boolean) => this.setState({ showRolePicker })
 
-  onChangeService = (selectedService: Types.ServiceIdWithContact) => this.setState({selectedService})
+  onChangeService = (selectedService: Types.ServiceIdWithContact) => this.setState({ selectedService })
 
   onChangeText = (newText: string) => {
     if (newText !== this.state.searchString) {
-      this.setState({searchString: newText, showRolePicker: false})
+      this.setState({ searchString: newText, showRolePicker: false })
     }
   }
 
@@ -673,9 +709,9 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
     }))
 
   resetHighlightIndex = (resetToHidden?: boolean) =>
-    this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
+    this.setState({ highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex })
 
-  _incFocusInputCounter = () => this.setState(s => ({focusInputCounter: s.focusInputCounter + 1}))
+  _incFocusInputCounter = () => this.setState(s => ({ focusInputCounter: s.focusInputCounter + 1 }))
 
   render() {
     return (
