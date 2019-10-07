@@ -410,17 +410,17 @@ func TestPassphraseStateGregor(t *testing.T) {
 	dev4 := set.provisionNewStandaloneDevice("quaternary", 4)
 
 	ucli1 := keybase1.UserClient{Cli: dev1.cli}
-	res, err := ucli1.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	res, err := ucli1.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
 
 	ucli2 := keybase1.UserClient{Cli: dev2.cli}
-	res, err = ucli2.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	res, err = ucli2.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
 
 	ucli3 := keybase1.UserClient{Cli: dev3.cli}
-	res, err = ucli3.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	res, err = ucli3.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
 
@@ -434,7 +434,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 
 	// The device that made the change learns about the state
 	pollForTrue(t, dev1.tctx.G, func(int) bool {
-		res, err = ucli1.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+		res, err = ucli1.LoadPassphraseState(context.Background(), 0)
 		if err != nil {
 			return false
 		}
@@ -443,7 +443,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 
 	// Devices that did not execute the passphrase change learns about the state
 	pollForTrue(t, dev2.tctx.G, func(int) bool {
-		res, err = ucli2.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+		res, err = ucli2.LoadPassphraseState(context.Background(), 0)
 		if err != nil {
 			return false
 		}
@@ -452,7 +452,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 
 	time.Sleep(1 * time.Second) // wait for any potential gregor messages to be received
 
-	res, err = ucli3.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	res, err = ucli3.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	// device not getting gregor messages will force repoll
 	require.Equal(t, res, keybase1.PassphraseState_KNOWN)
@@ -463,7 +463,7 @@ func TestPassphraseStateGregor(t *testing.T) {
 		shouldError: true,
 	}
 	dev4.tctx.G.API = fakeAPI
-	res, err = ucli4.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	res, err = ucli4.LoadPassphraseState(context.Background(), 0)
 	// device has no gregor state *and* api call failed, so this will error
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "some api error")

@@ -1324,7 +1324,7 @@ export type MessageTypes = {
     outParam: UserSettings
   }
   'keybase.1.user.loadPassphraseState': {
-    inParam: {readonly forceRepoll: Boolean}
+    inParam: void
     outParam: PassphraseState
   }
   'keybase.1.user.profileEdit': {

@@ -699,10 +699,6 @@
         {
           "name": "sessionID",
           "type": "int"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
         }
       ],
       "response": "PassphraseState"

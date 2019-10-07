@@ -18,11 +18,11 @@ func randomPassphraseToState(hasRandomPassphrase bool) keybase1.PassphraseState 
 }
 
 func LoadPassphraseState(mctx MetaContext) (passphraseState keybase1.PassphraseState, err error) {
-	return LoadPassphraseStateWithForceRepoll(mctx, false)
+	return LoadPassphraseStateWithForceRepoll(mctx)
 }
 
 // forceRepoll only forces repoll when the state is RANDOM, but not when it is KNOWN.
-func LoadPassphraseStateWithForceRepoll(mctx MetaContext, _ bool) (passphraseState keybase1.PassphraseState, err error) {
+func LoadPassphraseStateWithForceRepoll(mctx MetaContext) (passphraseState keybase1.PassphraseState, err error) {
 	mctx = mctx.WithLogTag("PPSTATE")
 	defer mctx.TraceTimed(fmt.Sprintf("LoadPassphraseState()"), func() error { return err })()
 

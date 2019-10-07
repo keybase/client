@@ -190,7 +190,7 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		}
 	}
 
-	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx, false)
+	passphraseState, err := LoadPassphraseStateWithForceRepoll(mctx)
 
 	if err != nil {
 		return keybase1.CanLogoutRes{
