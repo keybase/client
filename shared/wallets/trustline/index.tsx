@@ -156,7 +156,7 @@ const Body = (props: BodyProps) => {
         </>
       ) : (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.grow} centerChildren={true}>
-          <Kb.ProgressIndicator />
+          <Kb.ProgressIndicator type="Large" />
         </Kb.Box2>
       )}
     </Kb.Box2>

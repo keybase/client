@@ -302,7 +302,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err != nil {
 			return err
 		}
-		err = svc.StartLoopbackServer()
+		err = svc.StartLoopbackServer(libkb.LoginAttemptOffline)
 		if err != nil {
 			return err
 		}

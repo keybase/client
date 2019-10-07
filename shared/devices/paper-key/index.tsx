@@ -41,7 +41,7 @@ const PaperKey = () => {
               {paperkey}
             </Kb.Text>
           ) : (
-            <Kb.ProgressIndicator type="Small" />
+            <Kb.ProgressIndicator type="Large" />
           )}
           <Kb.Icon type="icon-paper-key-corner" style={Kb.iconCastPlatformStyles(styles.keyBoxCorner)} />
         </Kb.Box2>

@@ -7,6 +7,7 @@ import (
 
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -22,7 +23,11 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	chatUI := kbtest.NewChatUI()
 	ctx := ctc.as(t, users[0]).startCtx
 	tc := ctc.world.Tcs[users[0].Username]
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
+	tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+	tc.ChatG.UIInboxLoader.Start(ctx, uid)
+	defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 	tc.ChatG.UIInboxLoader.(*UIInboxLoader).testingLayoutForceMode = true
 	tc.ChatG.UIInboxLoader.(*UIInboxLoader).batchDelay = time.Hour
 	recvLayout := func() chat1.UIInboxLayout {
@@ -47,10 +52,28 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	require.Equal(t, 2, len(layout.SmallTeams))
 	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
 	require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+	select {
+	case <-chatUI.InboxLayoutCb:
+		require.Fail(t, "unexpected layout")
+	default:
+	}
 
-	mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "HI",
-	}))
+	t.Logf("resmsgID: %d",
+		mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HI",
+		})))
+	// we eat two here because the first conv optimization is off for message ID 2. The two are from
+	// the local and remote updates to the inbox.
+	for i := 0; i < 2; i++ {
+		layout = recvLayout()
+		require.Equal(t, 2, len(layout.SmallTeams))
+		require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+	}
+	t.Logf("resmsgID: %d",
+		mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HI",
+		})))
 	select {
 	case <-chatUI.InboxLayoutCb:
 		require.Fail(t, "unexpected layout")
@@ -59,10 +82,27 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], conv1, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "HI",
 	}))
+	// we eat two here for the same reason as above
+	for i := 0; i < 2; i++ {
+		layout = recvLayout()
+		require.Equal(t, 2, len(layout.SmallTeams))
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	}
+	// just one here, since we are now on msg ID 3
+	t.Logf("resmsgID: %d",
+		mustPostLocalForTest(t, ctc, users[0], conv2, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HI",
+		})))
 	layout = recvLayout()
 	require.Equal(t, 2, len(layout.SmallTeams))
-	require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+	select {
+	case <-chatUI.InboxLayoutCb:
+		require.Fail(t, "unexpected layout")
+	default:
+	}
 	_, err := ctc.as(t, users[0]).chatLocalHandler().SetConversationStatusLocal(ctx,
 		chat1.SetConversationStatusLocalArg{
 			ConversationID: conv1.Id,
@@ -72,6 +112,11 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	layout = recvLayout()
 	require.Equal(t, 1, len(layout.SmallTeams))
 	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+	select {
+	case <-chatUI.InboxLayoutCb:
+		require.Fail(t, "unexpected layout")
+	default:
+	}
 
 	t.Logf("big teams")
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,

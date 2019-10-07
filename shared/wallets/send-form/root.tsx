@@ -60,7 +60,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   textColor: {
-    color: Styles.globalColors.white_40,
+    color: Styles.globalColors.white_40OrWhite_40,
   },
   textContainer: Styles.platformStyles({
     isElectron: {

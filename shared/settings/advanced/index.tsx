@@ -7,11 +7,9 @@ import flags from '../../util/feature-flags'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings} from '../proxy/container'
-import {DarkModePreference, isDarkModeSystemSupported} from '../../styles/dark-mode'
 
 type Props = {
   openAtLogin: boolean
-  darkModePreference: DarkModePreference
   lockdownModeEnabled: boolean | null
   onChangeLockdownMode: (arg0: boolean) => void
   onSetOpenAtLogin: (open: boolean) => void
@@ -21,7 +19,6 @@ type Props = {
   onTrace: (durationSeconds: number) => void
   onProcessorProfile: (durationSeconds: number) => void
   onBack: () => void
-  onSetDarkModePreference: (pref: DarkModePreference) => void
   setLockdownModeError: string
   settingLockdownMode: boolean
   traceInProgress: boolean
@@ -112,35 +109,6 @@ const Advanced = (props: Props) => {
         )}
         <Kb.Divider style={styles.proxyDivider} />
         <ProxySettings />
-        {flags.darkMode && (
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Divider style={styles.proxyDivider} />
-            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-              <Kb.Text type="Header">Dark mode</Kb.Text>
-              {isDarkModeSystemSupported() && (
-                <Kb.RadioButton
-                  label="Respect system settings"
-                  selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
-                  onSelect={() => props.onSetDarkModePreference('system')}
-                />
-              )}
-              <Kb.RadioButton
-                label="Dark"
-                selected={props.darkModePreference === 'alwaysDark'}
-                onSelect={() => props.onSetDarkModePreference('alwaysDark')}
-              />
-              <Kb.RadioButton
-                label={
-                  <Kb.Text type="Body">
-                    Light <Kb.Emoji size={16} emojiName=":sunglasses:" />
-                  </Kb.Text>
-                }
-                selected={props.darkModePreference === 'alwaysLight'}
-                onSelect={() => props.onSetDarkModePreference('alwaysLight')}
-              />
-            </Kb.Box2>
-          </Kb.Box2>
-        )}
         <Developer {...props} />
       </Kb.Box>
     </Kb.ScrollView>

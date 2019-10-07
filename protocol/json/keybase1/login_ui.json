@@ -134,6 +134,14 @@
         {
           "name": "text",
           "type": "string"
+        },
+        {
+          "name": "endTime",
+          "type": "Time"
+        },
+        {
+          "name": "needVerify",
+          "type": "boolean"
         }
       ],
       "response": null,

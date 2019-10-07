@@ -408,7 +408,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       case 'text':
         exploded = message.exploded
         explodedBy = message.explodedBy
-        child = <TextMessage key="text" message={message} />
+        child = <TextMessage isHighlighted={this._showCenteredHighlight()} key="text" message={message} />
         break
       case 'attachment':
         exploded = message.exploded
@@ -592,8 +592,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               this._coinFlip(),
               this._reactionsRow(),
             ]),
-            this._sendIndicator(),
             this._orangeLine(),
+            this._sendIndicator(),
           ]}
         />
         {this._popup()}
@@ -728,12 +728,18 @@ const styles = Styles.styleSheetCreate(
         top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
       },
       send: Styles.platformStyles({
-        common: {position: 'absolute'},
+        common: {
+          position: 'absolute',
+        },
         isElectron: {
           pointerEvents: 'none',
-          right: 12,
+          right: 8,
+          top: 2,
         },
-        isMobile: {right: 0},
+        isMobile: {
+          right: 0,
+          top: -8,
+        },
       }),
       timestamp: Styles.platformStyles({
         common: {paddingLeft: Styles.globalMargins.xtiny},

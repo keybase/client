@@ -69,7 +69,7 @@ const ReallyDeleteTeam = (props: Props) => {
       onBack()
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
-  React.useEffect(() => clearWaiting(), [clearWaiting])
+  React.useEffect(() => () => clearWaiting(), [clearWaiting])
   return (
     <Kb.ConfirmModal
       error={error ? error.message : ''}

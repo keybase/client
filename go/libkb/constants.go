@@ -762,3 +762,11 @@ const (
 	ExternalURLsBaseKey         = "external_urls"
 	ExternalURLsStellarPartners = "stellar_partners"
 )
+
+type LoginAttempt int
+
+const (
+	LoginAttemptNone    LoginAttempt = 0
+	LoginAttemptOffline LoginAttempt = 1
+	LoginAttemptOnline  LoginAttempt = 2
+)

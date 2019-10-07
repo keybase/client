@@ -5,6 +5,8 @@ import * as EngineGen from './engine-gen-gen'
 import * as UsersGen from './users-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {TypedState} from '../util/container'
+import logger from '../logger'
+import {RPCError} from 'util/errors'
 
 const onIdentifyUpdate = (
   _: Container.TypedState,
@@ -23,12 +25,22 @@ const getBio = async (state: TypedState, action: UsersGen.GetBioPayload) => {
     return // don't re-fetch bio if we already have one cached
   }
 
-  const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
-  if (!userCard) {
-    return // don't do anything if we don't get a good response from rpc
-  }
+  try {
+    const userCard = await RPCTypes.userUserCardRpcPromise({useSession: true, username})
+    if (!userCard) {
+      return // don't do anything if we don't get a good response from rpc
+    }
 
-  return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
+    return UsersGen.createUpdateBio({userCard, username}) // set bio in user infomap
+  } catch (e) {
+    const err: RPCError = e
+    if (Container.isNetworkErr(err.code)) {
+      logger.info('Network error getting userCard')
+    } else {
+      logger.info(err.message)
+    }
+    return
+  }
 }
 
 function* usersSaga() {

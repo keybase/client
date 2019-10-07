@@ -37,6 +37,7 @@ export const makeState = (): Types.State => ({
   containsLatestMessageMap: I.Map(),
   createConversationError: null,
   dismissedInviteBannersMap: I.Map(),
+  draftMap: new Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: I.Map(), // seconds to exploding message expiration,
@@ -56,6 +57,7 @@ export const makeState = (): Types.State => ({
   messageOrdinals: I.Map(), // ordered ordinals in a thread,
   metaMap: I.Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: I.Map(), // if we have more data to load,
+  mutedMap: new Map(),
   orangeLineMap: I.Map(), // last message we've seen,
   paymentConfirmInfo: null,
   paymentStatusMap: I.Map(),
@@ -121,11 +123,13 @@ export const makeInboxSearchInfo = I.Record<Types._InboxSearchInfo>({
 
 export const makeInboxSearchConvHit = I.Record<Types._InboxSearchConvHit>({
   conversationIDKey: noConversationIDKey,
+  name: '',
   teamType: 'small',
 })
 
 export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
   conversationIDKey: noConversationIDKey,
+  name: '',
   numHits: 0,
   query: '',
   teamType: 'small',
@@ -320,6 +324,12 @@ export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationID
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')
 }
+
+export const isMuted = (state: TypedState, convID: Types.ConversationIDKey) =>
+  state.chat2.mutedMap.get(convID) || false
+
+export const getDraft = (state: TypedState, convID: Types.ConversationIDKey) =>
+  state.chat2.draftMap.get(convID) || ''
 
 // When user clicks wallets icon in chat input, set seenWalletsGregorKey with
 // body of 'true'

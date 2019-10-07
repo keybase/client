@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {
   Box,
+  Box2,
   Icon,
   Text,
   OrientedImage,
@@ -101,7 +102,11 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               )}
             </Box>
           )}
-          {!this._isLoaded() && <ProgressIndicator style={{margin: 'auto'}} />}
+          {!this._isLoaded() && (
+            <Box2 direction="horizontal" fullHeight={true} fullWidth={true} centerChildren={true}>
+              <ProgressIndicator type="Huge" style={{margin: 'auto'}} />
+            </Box2>
+          )}
           <Box style={styles.headerFooter}>
             {!!this.props.progressLabel && (
               <Text

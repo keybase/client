@@ -75,11 +75,7 @@ const ServiceIcon = (props: IconProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {!!props.showCount && props.count === null && (
-          <Kb.Icon
-            type="icon-progress-grey-animated"
-            color={Styles.globalColors.greyDark}
-            style={styles.pendingIcon}
-          />
+          <Kb.Animation animationType="spinnerGrey" style={styles.pendingAnimation} />
         )}
         {!!props.showCount && props.count !== null && (
           <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>
@@ -197,7 +193,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xtiny,
         overflow: 'hidden',
       },
-      pendingIcon: {height: 17, width: 17},
+      pendingAnimation: {height: 17, width: 17},
       serviceIconContainer: {
         flex: 1,
         paddingBottom: Styles.globalMargins.tiny,

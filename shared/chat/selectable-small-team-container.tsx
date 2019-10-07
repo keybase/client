@@ -6,6 +6,7 @@ import {namedConnect} from '../util/container'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   filter?: string
+  name: string
   numSearchHits?: number
   maxSearchHits?: number
   isSelected: boolean
@@ -20,6 +21,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     _hasUnread: Constants.getHasUnread(state, conversationIDKey),
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username,
+    isMuted: Constants.isMuted(state, conversationIDKey),
   }
 }
 
@@ -34,28 +36,28 @@ const mergeProps = (stateProps, _, ownProps) => {
 
   // order participants by hit, if it's set
   const filter = ownProps.filter || ''
-  const participants = Constants.getRowParticipants(stateProps._meta, stateProps._username)
-    .toArray()
-    .sort((a, b) => {
-      const ai = a.indexOf(filter)
-      const bi = b.indexOf(filter)
+  const metaParts = Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray()
+  let participants = metaParts.length > 0 ? metaParts : ownProps.name.split(',')
+  participants = participants.sort((a, b) => {
+    const ai = a.indexOf(filter)
+    const bi = b.indexOf(filter)
 
-      if (ai === -1) {
-        return bi === -1 ? -1 : 1
-      } else if (bi === -1) {
-        return -1
-      } else {
-        if (bi === 0) {
-          return 1
-        }
-        return -1
+    if (ai === -1) {
+      return bi === -1 ? -1 : 1
+    } else if (bi === -1) {
+      return -1
+    } else {
+      if (bi === 0) {
+        return 1
       }
-    })
+      return -1
+    }
+  })
 
   return {
     backgroundColor: styles.backgroundColor,
     isLocked,
-    isMuted: stateProps._meta.isMuted,
+    isMuted: stateProps.isMuted,
     isSelected: ownProps.isSelected,
     maxSearchHits: ownProps.maxSearchHits,
     numSearchHits: ownProps.numSearchHits,
@@ -63,6 +65,8 @@ const mergeProps = (stateProps, _, ownProps) => {
     participants,
     showBadge: stateProps._hasBadge,
     showBold: styles.showBold,
+    snippet: stateProps._meta.snippet,
+    snippetDecoration: stateProps._meta.snippetDecoration,
     teamname: stateProps._meta.teamname,
     usernameColor: styles.usernameColor,
   }

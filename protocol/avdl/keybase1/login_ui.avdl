@@ -31,7 +31,7 @@ protocol loginUi {
   /**
    In some flows the user will get notified of the reset progress
    */
-  void displayResetProgress(int sessionID, string text);
+  void displayResetProgress(int sessionID, string text, Time endTime, boolean needVerify);
 
   /**
    During recovery the service might want to explain to the user how they can change

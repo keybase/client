@@ -408,20 +408,20 @@ body {
 }
 .darkMode .emoji-mart {
   color: rgba(255, 255, 255, 0.85);
-  border: 1px solid #101010;
+  border: 1px solid rgba(0, 0, 0, 0.85);
   background: #191919;
 }
 .darkMode .emoji-mart-search input {
-  background-color: #191919;
-  border: 1px solid #101010;
+  background-color: #000;
+  border: 1px solid #000;
   color: rgba(255, 255, 255, 0.85);
 }
 .darkMode .emoji-mart-category-label span {
   background: #191919;
 }
 .darkMode .emoji-mart-category .emoji-mart-emoji:hover:before {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 .darkMode .emoji-mart-bar {
-  border-color: #101010;
+  border-color: rgba(0, 0, 0, 0.85);
 }

@@ -24,7 +24,7 @@ class Animation extends React.Component<Props> {
     // jest pukes if the import is on top so just defer till render
     const Lottie = require('lottie-react-web').default
     return (
-      <Box style={this.props.containerStyle}>
+      <Box className={this.props.className} style={this.props.containerStyle}>
         <Lottie
           options={{animationData: animationData[this.props.animationType]}}
           width={this.props.width || defaultDimension}

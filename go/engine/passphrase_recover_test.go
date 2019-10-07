@@ -15,6 +15,8 @@ import (
 )
 
 func TestPassphraseRecoverLegacy(t *testing.T) {
+	// Legacy flow hardcoded off
+	// TODO Y2K-3 might have to skip this when feature flag is removed
 	tc := SetupEngineTest(t, "PassphraseRecoverLegacy")
 	defer tc.Cleanup()
 	u, paperkey := CreateAndSignupLPK(tc, "pprec")
@@ -89,10 +91,9 @@ func TestPassphraseRecoverLegacy(t *testing.T) {
 func TestPassphraseRecoverLoggedIn(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseRecoverGuideAndReset")
 	defer tc.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 	u := CreateAndSignupFakeUser(tc, "pprec")
+	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAutoresetPipeline)
 
-	// Any input should result in a noop.
 	loginUI := &TestLoginUIRecover{}
 	uis := libkb.UIs{
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -102,21 +103,22 @@ func TestPassphraseRecoverLoggedIn(t *testing.T) {
 	}
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	// 1) Invalid username
-	arg := keybase1.RecoverPassphraseArg{
-		Username: "doesntexist",
+	args := []keybase1.RecoverPassphraseArg{
+		// 1) Invalid username
+		{Username: "doesntexist"},
+		// 2) No username (last configured device)
+		{},
+		// 3) Valid username
+		{Username: u.Username},
 	}
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 
-	// 2) No username (last configured device)
-	arg = keybase1.RecoverPassphraseArg{}
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
-
-	// 3) Valid username
-	arg = keybase1.RecoverPassphraseArg{
-		Username: u.Username,
+	for _, arg := range args {
+		// The args don't matter - passphrase recover does not work when you
+		// are logged in.
+		err := NewPassphraseRecover(tc.G, arg).Run(m)
+		require.Error(t, err)
+		require.IsType(t, err, libkb.LoggedInError{})
 	}
-	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 }
 
 func TestPassphraseRecoverGuideAndReset(t *testing.T) {

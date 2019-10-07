@@ -1140,6 +1140,8 @@ func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.Remot
 		res.Snippet = &rc.LocalMetadata.Snippet
 		res.SnippetDecoration = &rc.LocalMetadata.SnippetDecoration
 	}
+	res.Draft = rc.LocalDraft
+	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED
 	return res
 }
 
@@ -1147,6 +1149,8 @@ func PresentRemoteConversationAsBigTeamChannelRow(ctx context.Context, rc types.
 	res.ConvID = rc.GetConvID().String()
 	res.Channelname = rc.GetTopicName()
 	res.Teamname = GetRemoteConvTLFName(rc)
+	res.Draft = rc.LocalDraft
+	res.IsMuted = rc.Conv.Metadata.Status == chat1.ConversationStatus_MUTED
 	return res
 }
 
@@ -1526,6 +1530,13 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 			})
 		}
 	}
+	return res
+}
+
+func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
+	res = EscapeForDecorate(ctx, bio)
+	res = EscapeShrugs(ctx, res)
+	res = DecorateWithLinks(ctx, res)
 	return res
 }
 

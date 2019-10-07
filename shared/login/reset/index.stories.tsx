@@ -17,7 +17,6 @@ const load = () => {
     .add('Enter password', () => <EnterPassword />)
     .add('Waiting', () => <Waiting {...Sb.createNavigator({pipelineStarted: true})} />)
     .add('Check phone', () => <Waiting {...Sb.createNavigator({pipelineStarted: false})} />)
-    .add('Confirm w/out wallet', () => <ConfirmReset hasWallet={false} />)
-    .add('Confirm w/ wallet', () => <ConfirmReset hasWallet={true} />)
+    .add('Confirm', () => <ConfirmReset />)
 }
 export default load

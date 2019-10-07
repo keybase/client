@@ -76,10 +76,14 @@ func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
 	viewType keybase1.GUIViewType, invariance string) {
 	contentTypeProcessed := beforeSemicolon(contentTypeRaw)
 	disposition := beforeSemicolon(contentDispositionRaw)
+
+	if disposition == "attachment" {
+		viewType = keybase1.GUIViewType_DEFAULT
+		return viewType, strconv.Itoa(int(viewType))
+	}
+
 	switch {
-	case disposition == "attachment":
-		viewType = keybase1.GUIViewType_TEXT
-	case contentTypeProcessed == "text/plain":
+	case strings.HasPrefix(contentTypeProcessed, "text/"):
 		viewType = keybase1.GUIViewType_TEXT
 	case supportedImgMimeTypes[contentTypeProcessed]:
 		viewType = keybase1.GUIViewType_IMAGE
@@ -92,6 +96,7 @@ func getGUIFileContext(contentTypeRaw, contentDispositionRaw string) (
 	default:
 		viewType = (keybase1.GUIViewType_DEFAULT)
 	}
+
 	return viewType, strconv.Itoa(int(viewType))
 }
 

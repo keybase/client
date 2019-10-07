@@ -1589,6 +1589,7 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
           return l.push(
             Constants.makeInboxSearchConvHit({
               conversationIDKey: Types.stringToConversationIDKey(h.convID),
+              name: h.name,
               teamType: teamType(h.teamType),
             })
           )
@@ -1603,6 +1604,7 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
       Chat2Gen.createInboxSearchTextResult({
         result: Constants.makeInboxSearchTextHit({
           conversationIDKey,
+          name: resp.searchHit.convName,
           numHits: (resp.searchHit.hits || []).length,
           query: resp.searchHit.query,
           teamType: teamType(resp.searchHit.teamType),

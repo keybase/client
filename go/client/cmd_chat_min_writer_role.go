@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -80,6 +81,10 @@ func (c *CmdChatSetConvMinWriterRole) Run() (err error) {
 	conv, err := c.resolve(context.TODO())
 	if err != nil {
 		return err
+	}
+
+	if conv.Info.MembersType != chat1.ConversationMembersType_TEAM {
+		return errors.New("can only set minimum role to post in team conversations")
 	}
 
 	if c.role != nil {

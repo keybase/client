@@ -581,6 +581,7 @@ func TestProvisionAutoreset(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
+	libkb.AddEnvironmentFeatureForTest(tcX, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// create user (and device X)
 	userX := CreateAndSignupFakeUser(tcX, "login")
@@ -944,12 +945,8 @@ func TestProvisionSyncedPGPWithPUK(t *testing.T) {
 	eng2 := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(tc2).WithUIs(uis2)
 	err := RunEngine2(m2, eng2)
-	if err == nil {
-		t.Fatal("Provision w/ synced pgp key successful on device 2 w/ PUK enabled")
-	}
-	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
-		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
-	}
+	require.Error(t, err, "Provision w/ synced pgp key on device 2 w/ PUK enabled should fail")
+	require.IsType(t, err, libkb.ProvisionViaDeviceRequiredError{})
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -1013,12 +1010,8 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	eng3 := NewLogin(tc3.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m3 := NewMetaContextForTest(tc3).WithUIs(uis3)
 	err := RunEngine2(m3, eng3)
-	if err == nil {
-		t.Fatal("Provision w/ gpg key successful on device 2 w/ PUK enabled")
-	}
-	if _, ok := err.(libkb.ProvisionViaDeviceRequiredError); !ok {
-		t.Errorf("Provision error type: %T (%s), expected libkb.ProvisionViaDeviceRequiredError", err, err)
-	}
+	require.Error(t, err, "Provision w/ gpg key on device 2 w/ PUK enabled should fail")
+	require.IsType(t, err, libkb.ProvisionViaDeviceRequiredError{})
 }
 
 // Test provisioning where we use one username, but suddenly we are

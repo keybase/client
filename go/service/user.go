@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbun"
@@ -593,7 +594,14 @@ func (h *UserHandler) UserCard(ctx context.Context, arg keybase1.UserCardArg) (r
 	if !uid.Exists() {
 		uid = libkb.UsernameToUIDPreserveCase(arg.Username)
 	}
-	return libkb.UserCard(mctx, uid, arg.UseSession)
+	if res, err = libkb.UserCard(mctx, uid, arg.UseSession); err != nil {
+		return res, err
+	}
+	// decorate body for use in chat
+	if res != nil {
+		res.BioDecorated = utils.PresentDecoratedUserBio(ctx, res.Bio)
+	}
+	return res, nil
 }
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {

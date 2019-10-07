@@ -46,8 +46,9 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
       )
     }
     case UsersGen.updateBio: {
-      return state.updateIn(['infoMap', action.payload.username], (userInfo = blankUserInfo) =>
-        userInfo.set('bio', action.payload.userCard.bio)
+      return state.updateIn(
+        ['infoMap', action.payload.username],
+        (userInfo = blankUserInfo) => userInfo.set('bio', action.payload.userCard.bioDecorated) // using bioDecorated to make links clickable and shruggies whole
       )
     }
     case Tracker2Gen.updatedDetails:

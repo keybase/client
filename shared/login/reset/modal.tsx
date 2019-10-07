@@ -58,7 +58,7 @@ const ResetModal = (_: Props) => {
             type="Danger"
             fullWidth={true}
             onClick={onCancelReset}
-            waitingKey={Constants.waitingKeyCancelReset}
+            waitingKey={Constants.cancelResetWaitingKey}
             label="Cancel account reset"
           />
         </Kb.Box2>

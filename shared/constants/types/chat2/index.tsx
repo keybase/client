@@ -46,6 +46,7 @@ export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
 export type _InboxSearchTextHit = {
   conversationIDKey: Common.ConversationIDKey
+  name: string
   numHits: number
   query: string
   teamType: 'big' | 'small'
@@ -56,6 +57,7 @@ export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
 
 export type _InboxSearchConvHit = {
   conversationIDKey: Common.ConversationIDKey
+  name: string
   teamType: 'big' | 'small'
 }
 
@@ -134,6 +136,7 @@ export type State = Readonly<{
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
   createConversationError: string | null
   dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
+  draftMap: Map<Common.ConversationIDKey, string>
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
   explodingModeLocks: I.Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   explodingModes: I.Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
@@ -153,6 +156,7 @@ export type State = Readonly<{
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>> // ordered ordinals in a thread,
   metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean> // if we have more data to load,
+  mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: I.Map<Common.ConversationIDKey, number> // last message we've seen,
   paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>

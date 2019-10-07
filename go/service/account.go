@@ -224,7 +224,8 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewAccountReset(h.G(), arg.UsernameOrEmail)
-	if arg.Passphrase != "" {
+	// In noninteractive mode, use this to set skipPassword
+	if arg.Passphrase != "" || !arg.Interactive {
 		eng.SetPassphrase(arg.Passphrase)
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)

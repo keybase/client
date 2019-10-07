@@ -29,7 +29,7 @@ type Props = {
   fullName?: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const
+const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const // approximates BodySmall since markdown does not support text type
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -78,7 +78,7 @@ const Header = (p: Props) => {
   if (withoutSelf && withoutSelf.length === 1 && p.desc) {
     description = (
       <>
-        <Kb.Text type="Body" style={styles.desc}>
+        <Kb.Text type="BodySmall" style={styles.desc}>
           &nbsp;•&nbsp;
         </Kb.Text>
         <Kb.Markdown
@@ -147,13 +147,13 @@ const Header = (p: Props) => {
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
             {withoutSelf && withoutSelf.length === 1 ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.desc}>
+              <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
                 <Kb.ConnectedUsernames
                   colorFollowing={true}
                   underline={true}
                   inline={true}
                   commaColor={Styles.globalColors.black_50}
-                  type="Body"
+                  type="BodySmallSemibold"
                   usernames={[withoutSelf[0]]}
                   onUsernameClicked="profile"
                 />
@@ -260,7 +260,7 @@ const Connected = Container.connect(
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc =
       meta.teamType === 'adhoc' && otherParticipants.length === 1
-        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio
+        ? stateProps._userInfo.get(otherParticipants[0], {bio: ''}).bio.replace(/(\r\n|\n|\r)/gm, ' ')
         : meta.descriptionDecorated
 
     const fullName =
