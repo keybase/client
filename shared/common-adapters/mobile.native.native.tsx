@@ -362,7 +362,7 @@ module.exports = {
     return require('react-native-reanimated').Easing
   },
   get RectButton() {
-    return require('react-native-gesture-handler').default
+    return require('react-native-gesture-handler').RectButton
   },
   get Reloadable() {
     return Index.Reloadable
