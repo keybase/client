@@ -403,8 +403,8 @@ export const sendNotificationFooter = (
     direction="horizontal"
     fullWidth={!Styles.isMobile}
     style={{
-      paddingLeft: Styles.globalMargins.small,
       paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
     }}
   >
