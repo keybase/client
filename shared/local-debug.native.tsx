@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Uncomment this to disable yellowboxes
-console.disableYellowBox = true
+// console.disableYellowBox = true
 //
 // Ignore some yellowboxes on 3rd party libs we can't control
 YellowBox.ignoreWarnings([
@@ -27,7 +27,7 @@ window.console._info = window.console.info
 // require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config = {
   allowMultipleInstances: false,

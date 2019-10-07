@@ -351,7 +351,7 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 }
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
-const routeToInitialScreen = /*async*/ (state: Container.TypedState) => {
+const routeToInitialScreen = (state: Container.TypedState) => {
   if (routeToInitialScreenOnce) {
     return
   }
