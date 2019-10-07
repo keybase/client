@@ -93,7 +93,7 @@ const Header = (props: HeaderProps) => {
         setMeasuredLater()
       }
     },
-    [measured, widerWidth]
+    [measured, widerWidth, setMeasuredLater]
   )
   const sideWidth = widerWidth + headerSidePadding * 2
   // end mobile only

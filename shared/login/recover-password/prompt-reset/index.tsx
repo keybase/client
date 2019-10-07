@@ -19,9 +19,9 @@ const PromptReset = (_: Props) => {
           ? AutoresetGen.createResetAccount({})
           : nav.safeNavigateAppendPayload({path: ['resetKnowPassword']})
       ),
-    []
+    [dispatch, skipPassword, nav]
   )
-  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [])
+  const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
   return (
     <SignupScreen
       buttons={[

@@ -65,7 +65,7 @@ module.exports = {
     'object-curly-spacing': 'off',
     'prefer-const': 'warn',
     'quote-props': 'off',
-    'react-hooks/exhaustive-deps': 'warn',
+    'react-hooks/exhaustive-deps': 'error',
     'react-hooks/rules-of-hooks': 'error',
     'react/boolean-prop-naming': 'error',
     'react/button-has-type': 'off',

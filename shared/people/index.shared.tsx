@@ -94,6 +94,7 @@ const ResentEmailVerificationBanner = () => {
             email: '',
           })
         ),
+    // eslint-disable-next-line
     []
   )
 

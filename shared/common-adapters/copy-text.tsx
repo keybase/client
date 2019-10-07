@@ -41,17 +41,19 @@ const CopyText = (props: Props) => {
       }
       props.loadText()
     }
-  }, []) // only run this effect once, on first render
+    //  only run this effect once, on first render
+    // eslint-disable-next-line
+  }, [])
 
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
 
   const dispatch = Container.useDispatch()
-  const copyToClipboard = (text: string) => dispatch(ConfigGen.createCopyToClipboard({text}))
+  const {text, loadText, onCopy, hideOnCopy} = props
 
-  const copy = () => {
-    if (!props.text) {
-      if (!props.loadText) {
+  const copy = React.useCallback(() => {
+    if (!text) {
+      if (!loadText) {
         logger.warn('no text to copy and no loadText method provided')
         return
       }
@@ -59,27 +61,27 @@ const CopyText = (props: Props) => {
     } else {
       setShowingToast(true)
       textRef.current && textRef.current.highlightText()
-      copyToClipboard(props.text)
-      props.onCopy && props.onCopy()
-      if (props.hideOnCopy) {
+      dispatch(ConfigGen.createCopyToClipboard({text}))
+      onCopy && onCopy()
+      if (hideOnCopy) {
         setRevealed(false)
       }
     }
-  }
+  }, [text, loadText, setRequestedCopy, setShowingToast, dispatch, onCopy, hideOnCopy])
 
   React.useEffect(() => {
-    if (requestedCopy && props.loadText) {
+    if (requestedCopy && loadText) {
       // we're requesting a copy
-      if (!props.text) {
+      if (!text) {
         // no text has been loaded
-        props.loadText()
+        loadText()
       } else {
         // we want to copy something + have something to copy
         copy() // props.text exists so this will not cause a recursive loop
         setRequestedCopy(false)
       }
     }
-  }, [requestedCopy, props.text])
+  }, [requestedCopy, text, copy, loadText])
 
   const reveal = () => {
     if (!props.text && props.loadText) {
