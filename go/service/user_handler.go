@@ -61,7 +61,6 @@ func (r *userHandler) identityChange(m libkb.MetaContext) error {
 
 func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
 	m.Debug("userHandler: %s received", category)
-	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx())
 	return r.G().GregorState.DismissItem(m.Ctx(), cli, item.Metadata().MsgID())
 }
 
@@ -73,6 +72,7 @@ func (r *userHandler) passphraseStateUpdate(m libkb.MetaContext, cli gregor1.Inc
 		return err
 	}
 	libkb.MaybeSavePassphraseState(m, msg.PassphraseState)
+	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx())
 	// Don't dismiss the item, so other devices know about it
 	return nil
 }
