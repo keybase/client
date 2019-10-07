@@ -38,3 +38,4 @@ export const isDarkMode = () => {
 }
 
 export const isDarkModeSystemSupported = () => systemSupported
+export const isSystemDarkMode = () => systemDarkMode
