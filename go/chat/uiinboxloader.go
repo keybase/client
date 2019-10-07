@@ -578,7 +578,9 @@ func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
-	query := h.Query()
-	query.ConvIDs = convIDs
+	query := chat1.GetInboxLocalQuery{
+		ComputeActiveList: true,
+		ConvIDs:           convIDs,
+	}
 	return h.LoadNonblock(ctx, &query, nil, nil, true)
 }
