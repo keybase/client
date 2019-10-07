@@ -56,7 +56,7 @@ class AutoMaxSizeImage extends React.Component<
               height: Math.min(this.state.height, screenHeight),
               opacity: this.props.opacity,
               width: Math.min(this.state.width, screenWidth),
-            }
+            },
           ])}
         />
       </Kb.ZoomableBox>
@@ -69,24 +69,13 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
   _setLoaded = () => this.setState({loaded: true})
   render() {
     return (
-      <Kb.SafeAreaViewTop
-        style={styles.safeAreaTop}
-      >
-        <Kb.Text
-          type="Body"
-          onClick={this.props.onClose}
-          style={styles.close}
-        >
+      <Kb.SafeAreaViewTop style={styles.safeAreaTop}>
+        <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
           Close
         </Kb.Text>
         <Kb.Box style={styles.assetWrapper}>
           {!!this.props.path && this.props.isVideo ? (
-            <Kb.Box2
-              direction="vertical"
-              fullWidth={true}
-              centerChildren={true}
-              style={styles.videoWrapper}
-            >
+            <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.videoWrapper}>
               <RNVideo
                 source={{uri: `${this.props.path}&contentforce=true`}}
                 onError={e => {
@@ -109,12 +98,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
               opacity={this.state.loaded ? 1 : 0}
             />
           )}
-          {!this.state.loaded && (
-            <Kb.ProgressIndicator
-              style={styles.progressIndicator}
-              white={true}
-            />
-          )}
+          {!this.state.loaded && <Kb.ProgressIndicator style={styles.progressIndicator} white={true} />}
         </Kb.Box>
         <Kb.Icon
           type="iconfont-ellipsis"
