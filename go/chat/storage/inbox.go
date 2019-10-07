@@ -867,7 +867,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-	layoutChanged := false
+	layoutChanged := true
 	defer func() {
 		if layoutChanged {
 			i.layoutNotifier.UpdateLayout(ctx, "new conversation")
@@ -916,7 +916,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 		}
 
 		// only chat convs for layout changed
-		layoutChanged = layoutChanged || conv.GetTopicType() == chat1.TopicType_CHAT
+		layoutChanged = conv.GetTopicType() == chat1.TopicType_CHAT
 		ibox.Conversations = append(utils.RemoteConvs([]chat1.Conversation{conv}), ibox.Conversations...)
 	} else {
 		i.Debug(ctx, "NewConversation: skipping update, conversation exists in inbox")
