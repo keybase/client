@@ -42,9 +42,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [UsersGen.updateBio]: (draftState, action) => {
     const {username, userCard} = action.payload
-    const {bio} = userCard
+    const {bioDecorated} = userCard // using bioDecorated to make links clickable and shruggies whole
     const infoMap = new Map(draftState.infoMap)
-    updateInfo(infoMap, username, {bio})
+    updateInfo(infoMap, username, {bio: bioDecorated})
     draftState.infoMap = infoMap
   },
   [Tracker2Gen.updatedDetails]: (draftState, action) => {

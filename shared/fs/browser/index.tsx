@@ -42,7 +42,6 @@ const SelfReset = (_: Props) => (
     </Kb.Banner>
     <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
       <Kb.Icon type={isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
-      <Kb.Icon type="icon-access-denied-266" />
     </Kb.Box2>
   </Kb.Box2>
 )

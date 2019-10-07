@@ -126,7 +126,7 @@ const createLoadMoreSection = (
           />
         )
       } else if (status === 'loading') {
-        return <Kb.ProgressIndicator style={styles.loadMoreProgress} />
+        return <Kb.ProgressIndicator type="Small" style={styles.loadMoreProgress} />
       } else if (status === 'error') {
         return (
           <Kb.Button
@@ -538,9 +538,7 @@ const styles = Styles.styleSheetCreate(
       },
       loadMoreProgress: {
         alignSelf: 'center',
-        height: 16,
         marginTop: Styles.globalMargins.tiny,
-        width: 16,
       },
       loading: {
         bottom: '50%',

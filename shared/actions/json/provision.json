@@ -51,6 +51,10 @@
     "forgotUsernameResult": {
       "result": "string"
     },
-    "cancelProvision": {}
+    "cancelProvision": {},
+    "backToDeviceList": {"username": "string"},
+    "provisionDone": {
+      "_description": "We're no longer holding an open provisioning session; it is safe to start another."
+    }
   }
 }

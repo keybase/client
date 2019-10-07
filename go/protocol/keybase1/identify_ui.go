@@ -343,6 +343,7 @@ type UserCard struct {
 	FullName             string             `codec:"fullName" json:"fullName"`
 	Location             string             `codec:"location" json:"location"`
 	Bio                  string             `codec:"bio" json:"bio"`
+	BioDecorated         string             `codec:"bioDecorated" json:"bioDecorated"`
 	Website              string             `codec:"website" json:"website"`
 	Twitter              string             `codec:"twitter" json:"twitter"`
 	YouFollowThem        bool               `codec:"youFollowThem" json:"youFollowThem"`
@@ -360,6 +361,7 @@ func (o UserCard) DeepCopy() UserCard {
 		FullName:      o.FullName,
 		Location:      o.Location,
 		Bio:           o.Bio,
+		BioDecorated:  o.BioDecorated,
 		Website:       o.Website,
 		Twitter:       o.Twitter,
 		YouFollowThem: o.YouFollowThem,

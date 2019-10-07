@@ -94,7 +94,7 @@ const _rowBox = {
 const ManageChannels = (props: Props) => {
   let channelDisplay
   if (!props.isFiltered && (props.channels.length === 0 || props.waitingForGet)) {
-    channelDisplay = <Kb.ProgressIndicator style={{width: 48}} />
+    channelDisplay = <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />
   } else {
     channelDisplay = (
       <Kb.Text
@@ -188,7 +188,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   cover: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_50OrWhite_75,
+    backgroundColor: Styles.globalColors.black_50OrBlack_60,
     justifyContent: 'center',
   },
   create: {
@@ -202,6 +202,10 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {marginRight: Styles.globalMargins.xtiny},
     isElectron: {display: 'block'},
   }),
+  progressIndicator: {
+    margin: Styles.globalMargins.xtiny,
+    width: 48,
+  },
   searchBox: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.medium,

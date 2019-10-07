@@ -198,7 +198,7 @@ class Header extends React.PureComponent<Props> {
                 <Kb.Icon
                   type="iconfont-arrow-left"
                   color={iconColor}
-                  className={Styles.classNames({hover_contained_color_black: this.props.allowBack})}
+                  className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.allowBack})}
                   boxStyle={styles.icon}
                 />
               </Kb.Box>

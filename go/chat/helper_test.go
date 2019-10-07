@@ -128,7 +128,7 @@ func TestTopicNameRace(t *testing.T) {
 		case chat1.ConversationMembersType_KBFS:
 			return
 		default:
-			// Nothing to do[ for other member types.
+			// Nothing to do for other member types.
 		}
 		ctc := makeChatTestContext(t, "TestTopicNameRace", 1)
 		defer ctc.cleanup()

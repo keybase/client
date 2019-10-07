@@ -1,14 +1,16 @@
 /* eslint-disable sort-keys */
+import Animation from './animation'
 import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
-import Icon, {castPlatformStyles} from './icon'
+import Icon from './icon'
 import * as React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
 import './button.css'
 
 const Kb = {
+  Animation,
   Badge,
   Box,
   Box2,
@@ -44,9 +46,9 @@ export type Props = {
 
 const Progress = ({small, white}) => (
   <Kb.Box style={styles.progressContainer}>
-    <Kb.Icon
-      style={castPlatformStyles(small ? styles.progressSmall : styles.progressNormal)}
-      type={white ? 'icon-progress-white-animated' : 'icon-progress-grey-animated'}
+    <Kb.Animation
+      animationType={white ? 'spinnerWhite' : 'spinnerGrey'}
+      style={small ? styles.progressSmall : styles.progressNormal}
     />
   </Kb.Box>
 )

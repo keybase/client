@@ -8,7 +8,6 @@ import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from '.'
 import {connect, lifecycle, TypedState} from '../../util/container'
-import {DarkModePreference} from '../../styles/dark-mode'
 
 type OwnProps = {}
 const mapStateToProps = (state: TypedState) => {
@@ -16,7 +15,6 @@ const mapStateToProps = (state: TypedState) => {
   const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
   return {
     allowTlsMitmToggle: state.settings.didToggleCertificatePinning,
-    darkModePreference: state.config.darkModePreference,
     hasRandomPW: !!state.settings.password.randomPW,
     lockdownModeEnabled: state.settings.lockdownModeEnabled,
     openAtLogin: state.config.openAtLogin,
@@ -47,8 +45,6 @@ const mapDispatchToProps = dispatch => ({
   onExtraKBFSLogging: () => dispatch(FSGen.createSetDebugLevel({level: 'vlog1'})),
   onProcessorProfile: (durationSeconds: number) =>
     dispatch(SettingsGen.createProcessorProfile({durationSeconds})),
-  onSetDarkModePreference: (preference: DarkModePreference) =>
-    dispatch(ConfigGen.createSetDarkModePreference({preference})),
   onSetOpenAtLogin: (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin})),
   onToggleRuntimeStats: () => dispatch(SettingsGen.createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds})),

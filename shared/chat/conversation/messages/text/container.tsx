@@ -7,6 +7,7 @@ import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 
 type OwnProps = {
+  isHighlighted?: boolean
   message: Types.MessageText
 }
 
@@ -100,6 +101,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     claim: mergeClaimProps(stateProps, dispatchProps),
     isEditing: stateProps.isEditing,
+    isHighlighted: ownProps.isHighlighted,
     message: ownProps.message,
     reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
     text: ownProps.message.decoratedText

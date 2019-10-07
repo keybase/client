@@ -4,7 +4,8 @@ import * as Kb from '../../common-adapters'
 import {UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
 
-const patternRequire = require('../../images/upload-pattern-2-80.png')
+const lightPatternImage = require('../../images/upload-pattern-80.png')
+const darkPatternImage = require('../../images/dark-upload-pattern-80.png')
 
 type UploadState = {
   backgroundTop: NativeAnimated.AnimatedValue
@@ -128,7 +129,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
             <Kb.Box style={styles.backgroundBox}>
               <NativeAnimated.Image
                 resizeMode="repeat"
-                source={patternRequire}
+                source={Styles.isDarkMode ? darkPatternImage : lightPatternImage}
                 style={{...styles.backgroundImage, marginTop: this.state.backgroundTop}}
               />
             </Kb.Box>
@@ -178,7 +179,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: -48,
       },
       text: {
-        color: Styles.globalColors.white,
+        color: Styles.globalColors.whiteOrWhite,
       },
     } as const)
 )

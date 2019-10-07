@@ -8,7 +8,6 @@ const YouAreReset = () => (
       style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}
     >
       <Icon type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'} />
-      <Icon type="icon-access-denied-266" />
     </Box>
     <Box style={styles.box}>
       <Text type="BodySemibold" negative={true} style={{textAlign: 'center' as const}}>

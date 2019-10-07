@@ -266,6 +266,7 @@ export const aboutTab = 'settingsTabs.aboutTab'
 export const advancedTab = 'settingsTabs.advancedTab'
 export const chatTab = 'settingsTabs.chatTab'
 export const devicesTab = 'settingsTabs.devicesTab'
+export const displayTab = 'settingsTabs.displayTab'
 export const feedbackTab = 'settingsTabs.feedbackTab'
 export const foldersTab = 'settingsTabs.foldersTab'
 export const fsTab = 'settingsTabs.fsTab'
@@ -289,6 +290,7 @@ export type SettingsTab =
   | typeof feedbackTab
   | typeof aboutTab
   | typeof devicesTab
+  | typeof displayTab
   | typeof gitTab
   | typeof foldersTab
   | typeof fsTab

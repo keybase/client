@@ -96,6 +96,7 @@ const Claim = (props: ClaimProps) => {
 export type Props = {
   claim?: ClaimProps
   isEditing: boolean
+  isHighlighted?: boolean
   // eslint-disable-next-line
   message: Types.MessageText
   reply?: ReplyProps
@@ -103,12 +104,12 @@ export type Props = {
   type: 'error' | 'pending' | 'sent'
 }
 
-const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
+const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, type}: Props) => {
   const markdown = (
     <Kb.Markdown
-      style={getStyle(type, isEditing)}
+      style={getStyle(type, isEditing, isHighlighted)}
       meta={{message}}
-      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
+      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing, isHighlighted)} : undefined}
       allowFontScaling={true}
     >
       {text}
@@ -132,8 +133,10 @@ const MessageText = ({claim, isEditing, message, reply, text, type}: Props) => {
 }
 
 // Encoding all 4 states as static objects so we don't re-render
-const getStyle = (type, isEditing) => {
-  if (type === 'sent') {
+const getStyle = (type, isEditing, isHighlighted) => {
+  if (isHighlighted) {
+    return styles.highlighted
+  } else if (type === 'sent') {
     return isEditing ? styles.sentEditing : styles.sent
   } else {
     return isEditing ? styles.pendingFailEditing : styles.pendingFail
@@ -143,7 +146,7 @@ const getStyle = (type, isEditing) => {
 const editing = {
   backgroundColor: Styles.globalColors.yellowLight,
   borderRadius: 2,
-  color: Styles.globalColors.blackOrWhite,
+  color: Styles.globalColors.blackOrBlack,
   paddingLeft: Styles.globalMargins.tiny,
   paddingRight: Styles.globalMargins.tiny,
 }
@@ -182,6 +185,9 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.white,
       },
       editing,
+      highlighted: {
+        color: Styles.globalColors.blackOrBlack,
+      },
       pendingFail,
       pendingFailEditing,
       quoteContainer: {

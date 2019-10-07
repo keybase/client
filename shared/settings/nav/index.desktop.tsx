@@ -35,6 +35,11 @@ const SettingsNav = (props: Props) => {
         onClick={() => props.onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
+        text="Display"
+        selected={props.selectedTab === Constants.displayTab}
+        onClick={() => props.onTabChange(Constants.displayTab)}
+      />
+      <SettingsItem
         text="Feedback"
         selected={props.selectedTab === Constants.feedbackTab}
         onClick={() => props.onTabChange(Constants.feedbackTab)}

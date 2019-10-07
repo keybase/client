@@ -35,6 +35,7 @@ export type AllowedColors = Values<
     | 'white'
     | 'white_75'
     | 'white_40'
+    | 'white_40OrWhite_40'
     | 'brown_75'
     | 'orange'
     | 'transparent'

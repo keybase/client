@@ -83,6 +83,17 @@
           "name": "snippetDecoration"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": "boolean",
+          "name": "isMuted"
+        },
+        {
           "type": "boolean",
           "name": "isTeam"
         }
@@ -111,6 +122,17 @@
         {
           "type": "string",
           "name": "channelname"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "draft"
+        },
+        {
+          "type": "boolean",
+          "name": "isMuted"
         }
       ]
     },

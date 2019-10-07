@@ -62,6 +62,7 @@ const markdownStyles = Styles.styleSheetCreate(
       codeSnippetBlockTextStyle: Styles.platformStyles({
         isMobile: {
           ...Styles.globalStyles.fontTerminal,
+          backgroundColor: Styles.globalColors.redLighter,
           color: Styles.globalColors.black,
           fontSize: 15,
         },
