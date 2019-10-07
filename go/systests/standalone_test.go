@@ -45,7 +45,7 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	svc := service.NewService(tctx.G, false)
 	err = svc.SetupCriticalSubServices()
 	require.NoError(t, err)
-	err = svc.StartLoopbackServer()
+	err = svc.StartLoopbackServer(libkb.LoginAttemptOffline)
 	require.NoError(t, err)
 
 	g.StandaloneChatConnector = svc
