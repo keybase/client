@@ -550,13 +550,14 @@ func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reason string) {
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool) {
+	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
 	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage")()
 	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout for big team")
 		return
 	}
-	if firstConv && msg.GetMessageID() > 2 {
+	if firstConv && msg.GetMessageID() > 2 &&
+		utils.GetConversationStatusBehavior(previousStatus).ShowInInbox {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
 		return
 	}
