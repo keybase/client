@@ -680,24 +680,24 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     if (renderMessages) {
       if (this.props.ordinals === this.lastVisibleChildrenOrdinals && this.lastVisibleChildren) {
         // cache children to skip re-rendering
-        return this.lastVisibleChildren
+        content = this.lastVisibleChildren
+      } else {
+        const messages = this.props.ordinals.map((o, idx) => {
+          const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
+          return this.props.rowRenderer(o, previous, this.measure)
+        })
+        content = (
+          <Measure bounds={true} onResize={this.onResize}>
+            {({measureRef}) => (
+              <div data-key={this.props.id} ref={measureRef}>
+                {messages}
+              </div>
+            )}
+          </Measure>
+        )
+        this.lastVisibleChildrenOrdinals = this.props.ordinals
+        this.lastVisibleChildren = content
       }
-
-      const messages = this.props.ordinals.map((o, idx) => {
-        const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
-        return this.props.rowRenderer(o, previous, this.measure)
-      })
-      content = (
-        <Measure bounds={true} onResize={this.onResize}>
-          {({measureRef}) => (
-            <div data-key={this.props.id} ref={measureRef}>
-              {messages}
-            </div>
-          )}
-        </Measure>
-      )
-      this.lastVisibleChildrenOrdinals = this.props.ordinals
-      this.lastVisibleChildren = content
     } else {
       content = <div data-key={this.props.id} style={{height: this.state.height}} />
     }
