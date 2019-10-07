@@ -129,14 +129,27 @@ func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (re
 	if err != nil {
 		return res, err
 	}
+	return h.teamGet(ctx, res, arg.Name)
+}
 
-	if res.Settings.Open {
-		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", arg.Name)
-		res.Members.Writers = keybase1.FilterInactiveMembers(res.Members.Writers)
-		res.Members.Readers = keybase1.FilterInactiveMembers(res.Members.Readers)
+func (h *TeamsHandler) TeamGetByID(ctx context.Context, arg keybase1.TeamGetByIDArg) (res keybase1.TeamDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetByID(%s)", arg.Id), func() error { return err })()
+
+	res, err = teams.DetailsByID(ctx, h.G().ExternalG(), arg.Id)
+	if err != nil {
+		return res, err
 	}
+	return h.teamGet(ctx, res, arg.Id.String())
+}
 
-	return res, nil
+func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
+	if details.Settings.Open {
+		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)
+		details.Members.Writers = keybase1.FilterInactiveMembers(details.Members.Writers)
+		details.Members.Readers = keybase1.FilterInactiveMembers(details.Members.Readers)
+	}
+	return details, nil
 }
 
 func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {

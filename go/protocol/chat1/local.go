@@ -6174,6 +6174,12 @@ type GetBotMemberSettingsArg struct {
 	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
+type TeamIDFromTLFNameArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -6263,6 +6269,7 @@ type LocalInterface interface {
 	RemoveBotMember(context.Context, RemoveBotMemberArg) error
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
+	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -7544,6 +7551,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamIDFromTLFName": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamIDFromTLFNameArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamIDFromTLFNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamIDFromTLFNameArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamIDFromTLFName(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -8007,5 +8029,10 @@ func (c LocalClient) SetBotMemberSettings(ctx context.Context, __arg SetBotMembe
 
 func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getBotMemberSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.teamIDFromTLFName", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

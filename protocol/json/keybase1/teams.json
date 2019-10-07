@@ -2947,6 +2947,19 @@
       ],
       "response": "TeamCreateResult"
     },
+    "teamGetByID": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamDetails"
+    },
     "teamGet": {
       "request": [
         {
