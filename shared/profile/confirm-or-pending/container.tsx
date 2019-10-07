@@ -33,7 +33,6 @@ export default Container.connect(
   dispatch => ({
     onCancel: () => {
       dispatch(ProfileGen.createBackToProfile())
-      dispatch(RouteTreeGen.createClearModals())
     },
   }),
   (s, d, o: OwnProps) => ({...o, ...s, ...d})

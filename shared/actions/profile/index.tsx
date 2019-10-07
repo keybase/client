@@ -153,8 +153,8 @@ const editAvatar = () =>
     : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'profileEditAvatar'}]})
 
 const backToProfile = (state: TypedState) => [
+  RouteTreeGen.createNavigateUp(),
   Tracker2Gen.createShowUser({asTracker: false, username: state.config.username}),
-  RouteTreeGen.createNavigateAppend({path: ['profile']}),
 ]
 
 function* _profileSaga() {
