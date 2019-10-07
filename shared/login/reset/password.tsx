@@ -56,6 +56,7 @@ const EnterPassword = () => {
   const [password, setPassword] = React.useState('')
 
   const error = Container.useSelector(state => state.autoreset.error)
+  const endTime = Container.useSelector(state => state.autoreset.endTime)
   const waiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
 
   const dispatch = Container.useDispatch()
@@ -65,9 +66,12 @@ const EnterPassword = () => {
     () => dispatch(AutoresetGen.createResetAccount({password: new HiddenString(password)})),
     [password]
   )
+
+  // If we're here because the timer has run out, change the title.
+  const title = Date.now() > endTime ? 'Almost done' : 'Your password'
   return (
     <SignupScreen
-      title="Your password"
+      title={title}
       onBack={onBack}
       banners={
         error ? (

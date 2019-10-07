@@ -13,6 +13,7 @@ type Props = {
   onForgotUsername: () => void
   onGoToSignup: () => void
   onSubmit: (username: string) => void
+  resetBannerUser: string | null
   submittedUsername: string
   waiting: boolean
 }
@@ -26,6 +27,18 @@ const Username = (props: Props) => {
   return (
     <SignupScreen
       banners={[
+        ...(props.resetBannerUser
+          ? [
+              <Kb.Banner color="green" key="resetBanner">
+                <Kb.BannerParagraph
+                  bannerColor="green"
+                  content={`You have successfully reset your account, ${
+                    props.resetBannerUser
+                  }. You can now log in as usual.`}
+                />
+              </Kb.Banner>,
+            ]
+          : []),
         ...errorBanner(props.error),
         ...(props.inlineSignUpLink
           ? [

@@ -530,7 +530,10 @@ const showFinalErrorPage = (_: Container.TypedState, action: ProvisionGen.ShowFi
   ]
 }
 
-const showUsernameEmailPage = () => RouteTreeGen.createNavigateAppend({path: ['username']})
+const showUsernameEmailPage = (_: Container.TypedState, action: ProvisionGen.StartProvisionPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {fromReset: action.payload.fromReset}, selected: 'username'}],
+  })
 
 const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {

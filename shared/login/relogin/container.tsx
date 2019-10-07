@@ -89,7 +89,7 @@ const LoginWrapper = (props: Props) => {
 }
 
 export default Container.connect(
-  state => ({
+  (state: Container.TypedState) => ({
     _users: state.config.configuredAccounts,
     error: state.login.error,
     selectedUser: state.config.defaultUsername,

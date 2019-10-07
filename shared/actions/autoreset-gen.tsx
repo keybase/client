@@ -8,6 +8,7 @@ export const resetStore = 'common:resetStore' // not a part of autoreset but is 
 export const typePrefix = 'autoreset:'
 export const cancelReset = 'autoreset:cancelReset'
 export const displayProgress = 'autoreset:displayProgress'
+export const finishedReset = 'autoreset:finishedReset'
 export const resetAccount = 'autoreset:resetAccount'
 export const resetCancelled = 'autoreset:resetCancelled'
 export const resetError = 'autoreset:resetError'
@@ -20,6 +21,7 @@ export const updateAutoresetState = 'autoreset:updateAutoresetState'
 // Payload Types
 type _CancelResetPayload = void
 type _DisplayProgressPayload = {readonly endTime: number; readonly needVerify: boolean}
+type _FinishedResetPayload = void
 type _ResetAccountPayload = {readonly password?: HiddenString}
 type _ResetCancelledPayload = void
 type _ResetErrorPayload = {readonly error: RPCError}
@@ -67,6 +69,10 @@ export const createDisplayProgress = (payload: _DisplayProgressPayload): Display
   payload,
   type: displayProgress,
 })
+export const createFinishedReset = (payload: _FinishedResetPayload): FinishedResetPayload => ({
+  payload,
+  type: finishedReset,
+})
 export const createResetError = (payload: _ResetErrorPayload): ResetErrorPayload => ({
   payload,
   type: resetError,
@@ -88,6 +94,10 @@ export type CancelResetPayload = {readonly payload: _CancelResetPayload; readonl
 export type DisplayProgressPayload = {
   readonly payload: _DisplayProgressPayload
   readonly type: typeof displayProgress
+}
+export type FinishedResetPayload = {
+  readonly payload: _FinishedResetPayload
+  readonly type: typeof finishedReset
 }
 export type ResetAccountPayload = {readonly payload: _ResetAccountPayload; readonly type: typeof resetAccount}
 export type ResetCancelledPayload = {
@@ -118,6 +128,7 @@ export type UpdateAutoresetStatePayload = {
 export type Actions =
   | CancelResetPayload
   | DisplayProgressPayload
+  | FinishedResetPayload
   | ResetAccountPayload
   | ResetCancelledPayload
   | ResetErrorPayload
