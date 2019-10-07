@@ -7,6 +7,7 @@ import {execSync} from 'child_process'
 import path from 'path'
 import fs from 'fs'
 import rimraf from 'rimraf'
+import patcher from './patcher'
 
 const [, , command, ...rest] = process.argv
 
@@ -27,10 +28,11 @@ const commands = {
   },
   postinstall: {
     code: () => {
-      fixModules()
-      fixTypes()
-      checkFSEvents()
-      clearTSCache()
+      // fixModules()
+      // fixTypes()
+      // checkFSEvents()
+      // clearTSCache()
+      patcher()
     },
     help: '',
   },
