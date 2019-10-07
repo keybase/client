@@ -29,7 +29,7 @@ const FloatingPicker = <T extends string | number>(props: Props<T>) => {
           onValueChange={itemValue => props.onSelect(itemValue)}
           prompt={props.promptString}
           style={styles.picker}
-          itemStyle={Styles.globalStyles.fontRegular}
+          itemStyle={styles.item}
         >
           {props.items.map(item => (
             <Picker.Item key={item.label} {...item} />
@@ -51,6 +51,10 @@ const styles = Styles.styleSheetCreate(
       },
       flexOne: {
         flex: 1,
+      },
+      item: {
+        ...Styles.globalStyles.fontRegular,
+        color: Styles.globalColors.black,
       },
       link: {
         color: Styles.globalColors.blueDark,
