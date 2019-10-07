@@ -40,18 +40,23 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		return chat1.UIInboxLayout{}
 	}
 
+	var layout chat1.UIInboxLayout
 	t.Logf("basic")
 	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
-	layout := recvLayout()
-	require.Equal(t, 1, len(layout.SmallTeams))
-	require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+	for i := 0; i < 2; i++ {
+		layout = recvLayout()
+		require.Equal(t, 1, len(layout.SmallTeams))
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+	}
 	conv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, users[2])
-	layout = recvLayout()
-	require.Equal(t, 2, len(layout.SmallTeams))
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
-	require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+	for i := 0; i < 2; i++ {
+		layout = recvLayout()
+		require.Equal(t, 2, len(layout.SmallTeams))
+		require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+	}
 	select {
 	case <-chatUI.InboxLayoutCb:
 		require.Fail(t, "unexpected layout")
