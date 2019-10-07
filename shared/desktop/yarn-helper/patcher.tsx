@@ -3,10 +3,13 @@ import * as path from 'path'
 import * as crypto from 'crypto'
 import * as child_process from 'child_process'
 
+const modulesRoot = path.join(__dirname, '../../node_modules')
+
 export default () => {
   try {
     const patches = fs.readdirSync(path.join(__dirname, '../../patches'))
     patches.forEach(patch => {
+      if (patch === 'README.md') return
       const decoded = decodeURIComponent(patch)
       const filenamePlusHash = path.basename(decoded)
       const parts = filenamePlusHash.split('.')
@@ -15,6 +18,12 @@ export default () => {
       const fullDir = path.join(__dirname, '../../node_modules', path.dirname(decoded))
       const fullPath = path.join(fullDir, filename)
 
+      // sanity check path
+      const rel = path.relative(modulesRoot, fullPath)
+      if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) {
+        console.log('Skipping patch due to rel: ', fullPath, rel)
+      }
+
       const toMatchHash = crypto
         .createHash('md5')
         .update(fs.readFileSync(fullPath, {encoding: 'utf8'}))
@@ -22,9 +31,9 @@ export default () => {
 
       if (hash === toMatchHash) {
         console.log(`Applying patch: ${fullPath} (${hash})`)
-        const patchFullPath = path.join(__dirname, '../../patches', patch)
-        const command = `git apply ${patchFullPath}`
-        child_process.execSync(command, {cwd: fullDir, encoding: 'utf8', env: process.env, stdio: 'inherit'})
+        // const patchFullPath = path.join(__dirname, '../../patches', patch)
+        // const command = `git apply ${patchFullPath}`
+        // child_process.execSync(command, {cwd: fullDir, encoding: 'utf8', env: process.env, stdio: 'inherit'})
       } else {
         console.log('Skipping patch: ', fullPath, hash)
       }
