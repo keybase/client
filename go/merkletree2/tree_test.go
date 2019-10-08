@@ -2,6 +2,7 @@ package merkletree2
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -323,7 +324,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, kvp.Key.Equal(kvpRet.Key))
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 			}
 
 			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2)
@@ -335,7 +336,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash2))
+				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash2))
 			}
 
 			for _, kvp := range test.kvps1 {
@@ -343,7 +344,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, kvp.Key.Equal(kvpRet.Key))
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 			}
 
 		})
@@ -407,7 +408,7 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, key.Equal(kvpRet.Key))
 				require.Equal(t, kvp1[i].Value, kvpRet.Value)
-				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp1[i], proof, rootHash1)
+				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp1[i], &proof, rootHash1)
 				require.NoErrorf(t, err, "Error verifying proof for key %v: %v", key, err)
 			}
 
@@ -420,13 +421,13 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 				require.NoError(t, err)
 				require.True(t, key.Equal(kvpRet.Key))
 				require.Equal(t, kvp2[i].Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp2[i], proof, rootHash2))
+				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp2[i], &proof, rootHash2))
 
 				kvpRet, proof, err = tree.GetKeyValuePairWithProof(NewLoggerContextTodoForTesting(t), nil, 1, key)
 				require.NoError(t, err)
 				require.True(t, key.Equal(kvpRet.Key))
 				require.Equal(t, kvp1[i].Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp1[i], proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp1[i], &proof, rootHash1))
 			}
 		})
 	}
@@ -475,11 +476,11 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 				kvpRet, proof, err := tree.GetKeyValuePairWithProof(NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Value, kvpRet.Value)
-				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
+				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 
 				// Change the value
 				kvpFakeVal := KeyValuePair{Key: kvp.Key, Value: "ALTERED_VALUE"}
-				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvpFakeVal, proof, rootHash1)
+				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvpFakeVal, &proof, rootHash1)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
@@ -487,24 +488,24 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 				keyFake := Key(append([]byte(nil), ([]byte(kvp.Key))...))
 				([]byte(keyFake))[0] = 1 + ([]byte(keyFake))[0]
 				kvpFakeKey := KeyValuePair{Key: keyFake, Value: kvp.Value}
-				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvpFakeKey, proof, rootHash1)
+				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvpFakeKey, &proof, rootHash1)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// Change the root hash
 				rootHashFake := Hash(append([]byte(nil), ([]byte(rootHash1))...))
 				([]byte(rootHashFake))[0] = 1 + ([]byte(rootHashFake))[0]
-				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHashFake)
+				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHashFake)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// nil root hash
-				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, nil)
+				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, nil)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
 				// empty proof
-				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, MerkleInclusionProof{}, rootHash1)
+				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &MerkleInclusionProof{}, rootHash1)
 				require.Error(t, err)
 				require.IsType(t, ProofVerificationFailedError{}, err)
 
@@ -517,7 +518,7 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 					([]byte(fakeKSS))[0] = 1 + ([]byte(fakeKSS))[0]
 					fakeProof := proof
 					fakeProof.KeySpecificSecret = fakeKSS
-					err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
+					err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeProof, rootHash1)
 					require.Error(t, err)
 					require.IsType(t, ProofVerificationFailedError{}, err)
 				}
@@ -544,7 +545,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 
 	tree, err := NewTree(cfg, defaultStep, NewInMemoryStorageEngine(cfg))
 	require.NoError(t, err)
-	verifier := MerkleProofVerifier{cfg: cfg}
+	verifier := NewMerkleProofVerifier(cfg)
 
 	s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
 	require.NoError(t, err)
@@ -555,12 +556,17 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	kvpRet, proof, err := tree.GetKeyValuePairWithProof(NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 	require.NoError(t, err)
 	require.Equal(t, kvp.Value, kvpRet.Value)
-	require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
+	require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
+
+	// nil proof
+	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, nil, rootHash1)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "nil proof")
 
 	// Wrong key length
 	fakeKvp := kvp
 	fakeKvp.Key = []byte{0x00}
-	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), fakeKvp, proof, rootHash1)
+	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), fakeKvp, &proof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Key has wrong length")
@@ -568,7 +574,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	// Proof has too many key hash pairs
 	fakeProof := proof
 	fakeProof.OtherPairsInLeaf = make([]KeyHashPair, cfg.MaxValuesPerLeaf)
-	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
+	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Too many keys in leaf")
@@ -578,7 +584,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	fakeProof.OtherPairsInLeaf = make([]KeyHashPair, len(proof.OtherPairsInLeaf))
 	copy(fakeProof.OtherPairsInLeaf, proof.OtherPairsInLeaf)
 	fakeProof.OtherPairsInLeaf[0], fakeProof.OtherPairsInLeaf[1] = fakeProof.OtherPairsInLeaf[1], fakeProof.OtherPairsInLeaf[0]
-	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
+	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Error in Leaf Key ordering or duplicated key")
@@ -586,7 +592,7 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	// wrong number of siblings
 	fakeProof = proof
 	fakeProof.SiblingHashesOnPath = fakeProof.SiblingHashesOnPath[1:]
-	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, fakeProof, rootHash1)
+	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeProof, rootHash1)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "Invalid number of SiblingHashes")
@@ -594,11 +600,10 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 	// Change the root hash
 	rootHashFake := Hash(append([]byte(nil), ([]byte(rootHash1))...))
 	([]byte(rootHashFake))[0] = 1 + ([]byte(rootHashFake))[0]
-	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHashFake)
+	err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHashFake)
 	require.Error(t, err)
 	require.IsType(t, ProofVerificationFailedError{}, err)
 	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
-
 }
 
 func TestTreeWithoutInternalNodes(t *testing.T) {
@@ -619,7 +624,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 			require.NoError(t, err)
 			tree, err := NewTree(cfg, test.step, NewInMemoryStorageEngine(cfg))
 			require.NoError(t, err)
-			verifier := MerkleProofVerifier{cfg: cfg}
+			verifier := NewMerkleProofVerifier(cfg)
 
 			kvps1 := []KeyValuePair{
 				{Key: []byte{0x00, 0x00}, Value: "key0x0000Seqno1"},
@@ -634,7 +639,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, kvp.Key.Equal(kvpRet.Key))
 			require.Equal(t, kvp.Value, kvpRet.Value)
-			require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash1))
+			require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 
 			kvps2 := []KeyValuePair{
 				{Key: []byte{0x00, 0x00}, Value: "key0x0000Seqno2"},
@@ -651,7 +656,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, kvp.Key.Equal(kvpRet.Key))
 			require.Equal(t, kvp.Value, kvpRet.Value)
-			require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, proof, rootHash2))
+			require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash2))
 		})
 	}
 }
@@ -744,6 +749,317 @@ func TestNodeEncodingBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, n2, dn2)
 	require.NotEqual(t, dn, dn2)
+}
+
+func TestInclusionExtensionProofsPass(t *testing.T) {
+	cfg, err := NewConfig(SHA512_256Encoder{}, false, 1, 1, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+
+	// make test deterministic
+	rand.Seed(1)
+
+	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg))
+	require.NoError(t, err)
+
+	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
+	require.NoError(t, err)
+
+	rootHashes := make(map[Seqno]Hash)
+
+	maxSeqno := Seqno(100)
+	// build a bunch of tree versions:
+	for j := Seqno(1); j < maxSeqno; j++ {
+		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		require.NoError(t, err)
+		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+		rootHashes[j] = hash
+		require.NoError(t, err)
+	}
+
+	verifier := NewMerkleProofVerifier(cfg)
+
+	numTests := 50
+	for j := 0; j < numTests; j++ {
+		startSeqno := Seqno(rand.Intn(int(maxSeqno)-1) + 1)
+		endSeqno := Seqno(rand.Intn(int(maxSeqno)-1) + 1)
+		if startSeqno > endSeqno {
+			startSeqno, endSeqno = endSeqno, startSeqno
+		}
+
+		eProof, err := tree.GetExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno)
+		require.NoError(t, err)
+
+		err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+		require.NoError(t, err)
+
+		k := keys[rand.Intn(len(keys))]
+
+		kvp, ieProof, err := tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)
+		require.NoError(t, err)
+		require.Equal(t, k, kvp.Key)
+
+		err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+		require.NoError(t, err)
+	}
+
+	// Test the special cases start == end and start == end - 1
+	startSeqno := Seqno(rand.Intn(int(maxSeqno)-1) + 1)
+	endSeqno := startSeqno
+
+	eProof, err := tree.GetExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno)
+	require.NoError(t, err)
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+
+	k := keys[rand.Intn(len(keys))]
+
+	kvp, ieProof, err := tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)
+	require.NoError(t, err)
+	require.Equal(t, k, kvp.Key)
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+
+	endSeqno = startSeqno + 1
+
+	eProof, err = tree.GetExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno)
+	require.NoError(t, err)
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+
+	kvp, ieProof, err = tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)
+	require.NoError(t, err)
+	require.Equal(t, k, kvp.Key)
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+}
+
+func TestExtensionProofsFailureBranches(t *testing.T) {
+	cfg, err := NewConfig(SHA512_256Encoder{}, false, 1, 1, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+
+	// make test deterministic
+	rand.Seed(1)
+
+	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg))
+	require.NoError(t, err)
+
+	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
+	require.NoError(t, err)
+
+	rootHashes := make(map[Seqno]Hash)
+
+	maxSeqno := Seqno(100)
+	// build a bunch of tree versions:
+	for j := Seqno(1); j < maxSeqno; j++ {
+		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		require.NoError(t, err)
+		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+		rootHashes[j] = hash
+		require.NoError(t, err)
+	}
+
+	verifier := NewMerkleProofVerifier(cfg)
+
+	startSeqno := Seqno(20)
+	endSeqno := Seqno(39)
+
+	// real proof verifies successfully
+	eProof, err := tree.GetExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno)
+	require.NoError(t, err)
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+
+	// nil proof
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "nil proof")
+
+	// "good proofs" verified wrt the wrong parameters should fail
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, endSeqno, rootHashes[startSeqno], startSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "start > end")
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno+1, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno+1, rootHashes[startSeqno], endSeqno+1, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of root hashes")
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno+1, rootHashes[startSeqno+1], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &eProof, startSeqno+1, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno+1])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	// no previous roots
+	fakeEProof := eProof
+	fakeEProof.PreviousRootsNoSkips = nil
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	// no root hashes
+	fakeEProof = eProof
+	fakeEProof.RootHashes = nil
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of root hashes")
+
+	// a root hash has been tampered with
+	fakeEProof = eProof
+	fakeEProof.RootHashes = make([]Hash, len(eProof.RootHashes))
+	copy(fakeEProof.RootHashes, eProof.RootHashes)
+	fakeHashB := sha256.Sum256([]byte("tampered hash!"))
+	fakeHash := Hash(fakeHashB[:])
+	fakeEProof.RootHashes[1] = fakeHash
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "hash mismatch")
+
+	// no PreviousRootsNoSkips
+	fakeEProof = eProof
+	fakeEProof.PreviousRootsNoSkips = nil
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	// a root metadata has been tampered with
+	fakeEProof = eProof
+	fakeEProof.PreviousRootsNoSkips = make([]RootMetadata, len(eProof.PreviousRootsNoSkips))
+	copy(fakeEProof.PreviousRootsNoSkips, eProof.PreviousRootsNoSkips)
+	fakeRoot := RootMetadata{Seqno: Seqno(257), SkipPointersHash: fakeHash}
+	fakeEProof.PreviousRootsNoSkips[1] = fakeRoot
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "hash mismatch")
+}
+
+func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
+	cfg, err := NewConfig(SHA512_256Encoder{}, false, 1, 1, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+
+	// make test deterministic
+	rand.Seed(1)
+
+	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg))
+	require.NoError(t, err)
+
+	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
+	require.NoError(t, err)
+
+	rootHashes := make(map[Seqno]Hash)
+
+	maxSeqno := Seqno(100)
+	// build a bunch of tree versions:
+	for j := Seqno(1); j < maxSeqno; j++ {
+		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		require.NoError(t, err)
+		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+		rootHashes[j] = hash
+		require.NoError(t, err)
+	}
+
+	verifier := NewMerkleProofVerifier(cfg)
+
+	startSeqno := Seqno(20)
+	endSeqno := Seqno(39)
+
+	k := keys[rand.Intn(len(keys))]
+
+	// real proof verifies successfully
+	kvp, ieProof, err := tree.GetKeyValuePairWithInclusionExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, endSeqno, k)
+	require.NoError(t, err)
+	require.Equal(t, k, kvp.Key)
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+
+	// nil proof
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, nil, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "nil proof")
+
+	// "good proofs" verified wrt the wrong parameters should fail
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, endSeqno, rootHashes[startSeqno], startSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "start > end")
+
+	fakeKvp := KeyValuePair{Key: kvp.Key, Value: EncodedValue([]byte("fake value"))}
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), fakeKvp, &ieProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
+
+	fakeKvp = KeyValuePair{Key: Key([]byte{0x00, 0x01, 0x02}), Value: kvp.Value}
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), fakeKvp, &ieProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno+1, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno+1, rootHashes[startSeqno], endSeqno+1, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of root hashes")
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno+1, rootHashes[startSeqno+1], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &ieProof, startSeqno+1, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno+1])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	// no previous roots
+	fakeIEProof := ieProof
+	fakeIEProof.PreviousRootsNoSkips = nil
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	// no root hashes
+	fakeIEProof = ieProof
+	fakeIEProof.RootHashes = nil
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of root hashes")
+
+	// a root hash has been tampered with
+	fakeIEProof = ieProof
+	fakeIEProof.RootHashes = make([]Hash, len(ieProof.RootHashes))
+	copy(fakeIEProof.RootHashes, ieProof.RootHashes)
+	fakeHashB := sha256.Sum256([]byte("tampered hash!"))
+	fakeHash := Hash(fakeHashB[:])
+	fakeIEProof.RootHashes[1] = fakeHash
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
+
+	// no PreviousRootsNoSkips
+	fakeIEProof = ieProof
+	fakeIEProof.PreviousRootsNoSkips = nil
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "The proof does not have the expected number of roots")
+
+	// a root metadata has been tampered with
+	fakeIEProof = ieProof
+	fakeIEProof.PreviousRootsNoSkips = make([]RootMetadata, len(ieProof.PreviousRootsNoSkips))
+	copy(fakeIEProof.PreviousRootsNoSkips, ieProof.PreviousRootsNoSkips)
+	fakeRoot := RootMetadata{Seqno: Seqno(257), SkipPointersHash: fakeHash}
+	fakeIEProof.PreviousRootsNoSkips[1] = fakeRoot
+	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "expected rootHash does not match the computed one")
+
 }
 
 func NewLoggerContextTodoForTesting(t *testing.T) logger.ContextInterface {

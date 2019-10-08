@@ -14,7 +14,10 @@ func NewMerkleProofVerifier(c Config) MerkleProofVerifier {
 	return MerkleProofVerifier{cfg: c}
 }
 
-func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof MerkleInclusionProof, expRootHash Hash) error {
+func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionProof, expRootHash Hash) error {
+	if proof == nil {
+		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
+	}
 
 	// Hash the key value pair
 	kvpHash, err := m.cfg.Encoder.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)
@@ -99,4 +102,181 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, 
 
 	// Success!
 	return nil
+}
+
+func (m *MerkleProofVerifier) computeSkipsHashForSeqno(s Seqno, skipsMap map[Seqno]Hash) (Hash, error) {
+	skipSeqnos := SkipPointersForSeqno(s)
+	skips := make([]Hash, len(skipSeqnos))
+	for i, s := range skipSeqnos {
+		skip, found := skipsMap[s]
+		if !found {
+			return nil, fmt.Errorf("the skipsMap in the proof does not contain necessary hash of seqno %v ", s)
+		}
+		skips[i] = skip
+	}
+	_, hash, err := m.cfg.Encoder.EncodeAndHashGeneric(skips)
+	if err != nil {
+		return nil, fmt.Errorf("Error encoding %+v: %v", skips, err)
+	}
+
+	return hash, nil
+}
+
+// computeFinalSkipPointersHashFromPath recomputes the SkipPointersHash for all
+// the seqnos on the SkipPointersPath(initialSeqno, finalSeqno), using the
+// information contained in the proof and returns the last one, as well as a
+// boolean indicating wether the proof is a full proof or is compressed (i.e. it
+// is part of a MerkleInclusionExtensionProof).
+func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.ContextInterface, proof *MerkleExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno) (h Hash, isPartOfIncExtProof bool, err error) {
+	rootHashMap := make(map[Seqno]Hash)
+	rootHashes, err := ComputeRootHashesNeededInExtensionProof(initialSeqno, finalSeqno)
+	if err != nil {
+		return nil, false, NewProofVerificationFailedError(err)
+	}
+	if len(rootHashes) != len(proof.RootHashes) {
+		return nil, false, NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of root hashes: exp %v, got %v", len(rootHashes), len(proof.RootHashes)))
+	}
+	for i, s := range rootHashes {
+		rootHashMap[s] = proof.RootHashes[i]
+	}
+
+	rootMap := make(map[Seqno]RootMetadata)
+	roots, err := ComputeRootsNeededInExtensionProof(initialSeqno, finalSeqno, true)
+	if err != nil {
+		return nil, false, NewProofVerificationFailedError(err)
+	}
+	if len(roots) == len(proof.PreviousRootsNoSkips) {
+		// compressed proof
+		isPartOfIncExtProof = true
+	} else if len(roots) == len(proof.PreviousRootsNoSkips)-1 {
+		// full proof
+		isPartOfIncExtProof = false
+	} else {
+		// invalid proof
+		return nil, false, NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of roots: exp %v or %v, got %v", len(roots), len(roots)+1, len(proof.PreviousRootsNoSkips)))
+	}
+
+	for i, s := range roots {
+		rootMap[s] = proof.PreviousRootsNoSkips[i]
+	}
+
+	prevRootHash := initialRootHash
+	prevSeqno := initialSeqno
+
+	var currentSkipsHash Hash
+
+	skipPath, err := SkipPointersPath(initialSeqno, finalSeqno)
+	if err != nil {
+		return nil, false, NewProofVerificationFailedError(err)
+	}
+	for i, currentSeqno := range skipPath {
+		rootHashMap[prevSeqno] = prevRootHash
+
+		currentSkipsHash, err = m.computeSkipsHashForSeqno(currentSeqno, rootHashMap)
+		if err != nil {
+			return nil, false, NewProofVerificationFailedError(err)
+		}
+
+		// the rest of the loop prepares for the next loop iteration, so we can
+		// skip it the last time.
+		if i == len(skipPath)-1 {
+			break
+		}
+
+		currentMeta := rootMap[currentSeqno]
+		currentMeta.SkipPointersHash = currentSkipsHash
+		_, currRootHash, err := m.cfg.Encoder.EncodeAndHashGeneric(currentMeta)
+		if err != nil {
+			return nil, false, NewProofVerificationFailedError(err)
+		}
+
+		prevSeqno = currentSeqno
+		prevRootHash = currRootHash
+	}
+
+	return currentSkipsHash, isPartOfIncExtProof, nil
+}
+
+func (m *MerkleProofVerifier) verifyExtensionProofFinal(ctx logger.ContextInterface, rootMetadata RootMetadata, skipsHash Hash, expRootHash Hash) error {
+	rootMetadata.SkipPointersHash = skipsHash
+	_, hash, err := m.cfg.Encoder.EncodeAndHashGeneric(rootMetadata)
+	if err != nil {
+		return NewProofVerificationFailedError(err)
+	}
+	if !hash.Equal(expRootHash) {
+		return NewProofVerificationFailedError(fmt.Errorf("verifyExtensionProofFinal: hash mismatch %X != %X", expRootHash, hash))
+	}
+	return nil
+}
+
+func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, proof *MerkleExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno, expRootHash Hash) error {
+	if proof == nil {
+		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
+	}
+
+	// Optimization: if initialSeqno == finalSeqno it is enough to compare
+	// hashes, so if the proof is empty we can just do that.
+	if initialSeqno == finalSeqno && len(proof.PreviousRootsNoSkips) == 0 && len(proof.RootHashes) == 0 {
+		if initialRootHash.Equal(expRootHash) {
+			return nil
+		}
+		return NewProofVerificationFailedError(fmt.Errorf("Hash mismatch: initialSeqno == finalSeqno == %v but %X != %X", initialSeqno, initialRootHash, expRootHash))
+	}
+
+	skipsHash, isPartOfIncExtProof, err := m.computeFinalSkipPointersHashFromPath(ctx, proof, initialSeqno, initialRootHash, finalSeqno)
+	if err != nil {
+		return err
+	}
+	if isPartOfIncExtProof {
+		return NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of roots: it appears to be a compressed proof, but is not part of a MerkleInclusionExtensionProof"))
+	}
+
+	return m.verifyExtensionProofFinal(ctx, proof.PreviousRootsNoSkips[len(proof.PreviousRootsNoSkips)-1], skipsHash, expRootHash)
+}
+
+func (m *MerkleProofVerifier) VerifyInclusionExtensionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno, expRootHash Hash) (err error) {
+	if proof == nil {
+		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
+	}
+
+	// Shallow copy so that we can modify some fields without altering the original proof.
+	incProof := proof.MerkleInclusionProof
+
+	switch incProof.RootMetadataNoHash.Seqno {
+	case finalSeqno:
+		// pass
+	case 0:
+		// the seqno can be omitted for efficiency.
+		incProof.RootMetadataNoHash.Seqno = finalSeqno
+	default:
+		return NewProofVerificationFailedError(fmt.Errorf("inclusion proof contains wrong Seqno: exp %v got %v", finalSeqno, incProof.RootMetadataNoHash.Seqno))
+	}
+
+	// If initialSeqno == finalSeqno, no extension proof is necessary so if it is not there we skip checking it.
+	if initialSeqno != finalSeqno || len(proof.MerkleExtensionProof.PreviousRootsNoSkips) > 0 || len(proof.MerkleExtensionProof.PreviousRootsNoSkips) > 0 {
+		skipsHashForNewRoot, isPartOfIncExtProof, err := m.computeFinalSkipPointersHashFromPath(ctx, &proof.MerkleExtensionProof, initialSeqno, initialRootHash, incProof.RootMetadataNoHash.Seqno)
+		if err != nil {
+			return err
+		}
+
+		if !isPartOfIncExtProof {
+			// The server did not compress the inner extension proof, so we check it.
+			err := m.verifyExtensionProofFinal(ctx, proof.PreviousRootsNoSkips[len(proof.PreviousRootsNoSkips)-1], skipsHashForNewRoot, expRootHash)
+			if err != nil {
+				return err
+			}
+		}
+
+		// the server can also send a proof with an empty
+		// proof.RootMetadataNoHash.SkipPointersHash. If this value is not sent, and
+		// there was some other tampering, the skipsHashForNewRoot will cause the
+		// inclusion proof to fail.
+		if incProof.RootMetadataNoHash.SkipPointersHash != nil && !incProof.RootMetadataNoHash.SkipPointersHash.Equal(skipsHashForNewRoot) {
+			return NewProofVerificationFailedError(
+				fmt.Errorf("extension proof failed: expected %X but got %X", skipsHashForNewRoot, proof.RootMetadataNoHash.SkipPointersHash))
+		}
+		incProof.RootMetadataNoHash.SkipPointersHash = skipsHashForNewRoot
+	}
+
+	return m.VerifyInclusionProof(ctx, kvp, &incProof, expRootHash)
 }
