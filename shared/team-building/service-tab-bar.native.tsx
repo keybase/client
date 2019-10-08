@@ -1,12 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
-import {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLongLabel,
-  serviceIdToWonderland,
-} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLongLabel, serviceIdToBadge} from './shared'
 import {Props, IconProps} from './service-tab-bar'
 
 const mapRange = (v: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
@@ -44,7 +39,7 @@ const ServiceIcon = (props: IconProps) => {
         ])}
       >
         <Kb.Box2 direction="vertical" style={{position: 'relative'}}>
-          {serviceIdToWonderland(props.service) && (
+          {serviceIdToBadge(props.service) && (
             <Kb.Badge
               border={true}
               height={9}
