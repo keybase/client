@@ -1850,6 +1850,12 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	layoutChanged := false
+	defer func() {
+		if layoutChanged {
+			i.layoutNotifier.UpdateLayout(ctx, "existence")
+		}
+	}()
 
 	i.Debug(ctx, "ConversationsUpdate: updating %d convs", len(convUpdates))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1874,6 +1880,9 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	for idx, conv := range ibox.Conversations {
 		if update, ok := updateMap[conv.GetConvID().String()]; ok {
 			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
+			if ibox.Conversations[idx].Conv.Metadata.Existence != update.Existence {
+				layoutChanged = true
+			}
 			ibox.Conversations[idx].Conv.Metadata.Existence = update.Existence
 		}
 	}

@@ -1886,7 +1886,8 @@ const changeSelectedConversation = (
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
     | Chat2Gen.HideConversationPayload
-    | TeamsGen.LeaveTeamPayload,
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!isMobile) {
@@ -1905,7 +1906,8 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
     | Chat2Gen.HideConversationPayload
-    | TeamsGen.LeaveTeamPayload,
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload,
   logger: Saga.SagaLogger
 ) => {
   // If there is a team we should avoid when selecting a new conversation (e.g.
@@ -1944,7 +1946,8 @@ const _maybeAutoselectNewestConversation = (
   } else if (
     (action.type === Chat2Gen.leaveConversation ||
       action.type === Chat2Gen.blockConversation ||
-      action.type === Chat2Gen.hideConversation) &&
+      action.type === Chat2Gen.hideConversation ||
+      action.type === TeamsGen.deleteChannelConfirmed) &&
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
@@ -3346,6 +3349,7 @@ function* chat2Saga() {
       Chat2Gen.blockConversation,
       Chat2Gen.hideConversation,
       TeamsGen.leaveTeam,
+      TeamsGen.deleteChannelConfirmed,
     ],
     changeSelectedConversation,
     'changeSelectedConversation'
