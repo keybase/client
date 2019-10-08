@@ -27,142 +27,138 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null =>
   if (info.last || info.status !== 'success') {
     return null
   }
-  const lastMessage = info.messages.size > 0 ? info.messages.last<null>() : null
+  const lastMessage = info.messages.length > 0 ? info.messages[info.messages.length - 1] : null
   return lastMessage ? lastMessage.id : null
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const conversationIDKey = ownProps.conversationIDKey
-  const meta = Constants.getMeta(state, conversationIDKey)
-
-  let admin = false
-  let canEditChannel = false
-  let canSetMinWriterRole = false
-  let canSetRetention = false
-  let canDeleteHistory = false
-  if (meta.teamname) {
-    const yourOperations = TeamConstants.getCanPerform(state, meta.teamname)
-    admin = yourOperations.manageMembers
-    canEditChannel = yourOperations.editTeamDescription
-    canSetMinWriterRole = yourOperations.setMinWriterRole
-    canSetRetention = yourOperations.setRetentionPolicy
-    canDeleteHistory = yourOperations.deleteChatHistory
-  } else {
-    canDeleteHistory = true
-  }
-  const isPreview = meta.membershipType === 'youArePreviewing'
-  const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
-  const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
-  const attachmentInfo: Types.AttachmentViewInfo = state.chat2.attachmentViewMap.getIn(
-    [conversationIDKey, selectedAttachmentView],
-    Constants.makeAttachmentViewInfo()
-  )
-  const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
-  return {
-    _attachmentInfo: attachmentInfo,
-    _fromMsgID: getFromMsgID(attachmentInfo),
-    _infoMap: state.users.infoMap,
-    _participantToContactName: meta.participantToContactName,
-    _participants: meta.participants,
-    _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
-    admin,
-    attachmentsLoading,
-    canDeleteHistory,
-    canEditChannel,
-    canSetMinWriterRole,
-    canSetRetention,
-    channelname: meta.channelname,
-    description: meta.descriptionDecorated,
-    ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
-    isPreview,
-    selectedAttachmentView,
-    selectedConversationIDKey: conversationIDKey,
-    selectedTab,
-    smallTeam: meta.teamType !== 'big',
-    spinnerForHide: Container.anyWaiting(
-      state,
-      Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
-    ),
-    teamname: meta.teamname,
-  }
-}
-
-const mapDispatchToProps = (
-  dispatch: Container.TypedDispatch,
-  {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
-) => ({
-  _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
-  _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
-  _onEditChannel: (teamname: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
-      })
-    ),
-  _onLoadMore: (viewType, fromMsgID) =>
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
-  _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
-  _onShowClearConversationDialog: () => {
-    dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
-      })
-    )
-  },
-  _onShowInFinder: message =>
-    message.downloadPath &&
-    dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
-  onAttachmentViewChange: viewType => {
-    dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
-    onSelectAttachmentView(viewType)
-  },
-  onBack: onBack
-    ? () => {
-        onBack()
-        dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
-      }
-    : undefined,
-  onCancel: onCancel
-    ? () => {
-        onCancel()
-        dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
-      }
-    : undefined,
-  onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
-  onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
-  onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-  onShowBlockConversationDialog: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey},
-            selected: 'chatShowBlockConversationDialog',
-          },
-        ],
-      })
-    )
-  },
-  onShowNewTeamDialog: () => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey},
-            selected: 'chatShowNewTeamDialog',
-          },
-        ],
-      })
-    )
-  },
-  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
-  onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
-})
-
 const ConnectedInfoPanel = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const conversationIDKey = ownProps.conversationIDKey
+    const meta = Constants.getMeta(state, conversationIDKey)
+
+    let admin = false
+    let canEditChannel = false
+    let canSetMinWriterRole = false
+    let canSetRetention = false
+    let canDeleteHistory = false
+    if (meta.teamname) {
+      const yourOperations = TeamConstants.getCanPerform(state, meta.teamname)
+      admin = yourOperations.manageMembers
+      canEditChannel = yourOperations.editTeamDescription
+      canSetMinWriterRole = yourOperations.setMinWriterRole
+      canSetRetention = yourOperations.setRetentionPolicy
+      canDeleteHistory = yourOperations.deleteChatHistory
+    } else {
+      canDeleteHistory = true
+    }
+    const isPreview = meta.membershipType === 'youArePreviewing'
+    const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
+    const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
+    const attachmentInfo: Types.AttachmentViewInfo = state.chat2.attachmentViewMap.getIn(
+      [conversationIDKey, selectedAttachmentView],
+      Constants.makeAttachmentViewInfo()
+    )
+    const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
+    return {
+      _attachmentInfo: attachmentInfo,
+      _fromMsgID: getFromMsgID(attachmentInfo),
+      _infoMap: state.users.infoMap,
+      _participantToContactName: meta.participantToContactName,
+      _participants: meta.participants,
+      _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
+      admin,
+      attachmentsLoading,
+      canDeleteHistory,
+      canEditChannel,
+      canSetMinWriterRole,
+      canSetRetention,
+      channelname: meta.channelname,
+      description: meta.descriptionDecorated,
+      ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
+      isPreview,
+      selectedAttachmentView,
+      selectedConversationIDKey: conversationIDKey,
+      selectedTab,
+      smallTeam: meta.teamType !== 'big',
+      spinnerForHide: Container.anyWaiting(
+        state,
+        Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
+      ),
+      teamname: meta.teamname,
+    }
+  },
+  (
+    dispatch: Container.TypedDispatch,
+    {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
+  ) => ({
+    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
+    _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
+    _onEditChannel: (teamname: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
+        })
+      ),
+    _onLoadMore: (viewType, fromMsgID) =>
+      dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
+    _onMediaClick: message => dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
+    _onShowClearConversationDialog: () => {
+      dispatch(Chat2Gen.createNavigateToThread())
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
+        })
+      )
+    },
+    _onShowInFinder: message =>
+      message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath})),
+    onAttachmentViewChange: viewType => {
+      dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType}))
+      onSelectAttachmentView(viewType)
+    },
+    onBack: onBack
+      ? () => {
+          onBack()
+          dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+        }
+      : undefined,
+    onCancel: onCancel
+      ? () => {
+          onCancel()
+          dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
+        }
+      : undefined,
+    onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
+    onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+    onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
+    onShowBlockConversationDialog: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey},
+              selected: 'chatShowBlockConversationDialog',
+            },
+          ],
+        })
+      )
+    },
+    onShowNewTeamDialog: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey},
+              selected: 'chatShowNewTeamDialog',
+            },
+          ],
+        })
+      )
+    },
+    onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
+    onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     admin: stateProps.admin,
     attachmentsLoading: stateProps.attachmentsLoading,
@@ -176,7 +172,7 @@ const ConnectedInfoPanel = Container.connect(
     docs:
       stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.doc
         ? {
-            docs: (stateProps._attachmentInfo.messages as I.List<Types.MessageAttachment>)
+            docs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
               .map(m => ({
                 author: m.author,
                 ctime: m.timestamp,
@@ -189,8 +185,7 @@ const ConnectedInfoPanel = Container.connect(
                 onShowInFinder:
                   !Container.isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
                 progress: m.transferProgress,
-              }))
-              .toArray(),
+              })),
             onLoadMore: stateProps._fromMsgID
               ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.doc, stateProps._fromMsgID)
               : null,
@@ -242,7 +237,7 @@ const ConnectedInfoPanel = Container.connect(
               ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
               : null,
             status: stateProps._attachmentInfo.status,
-            thumbs: (stateProps._attachmentInfo.messages as I.List<Types.MessageAttachment>)
+            thumbs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
               .map(m => ({
                 ctime: m.timestamp,
                 height: m.previewHeight,
@@ -250,8 +245,7 @@ const ConnectedInfoPanel = Container.connect(
                 onClick: () => dispatchProps._onMediaClick(m),
                 previewURL: m.previewURL,
                 width: m.previewWidth,
-              }))
-              .toArray(),
+              })),
           }
         : {onLoadMore: () => {}, status: 'loading', thumbs: []},
     onAttachmentViewChange: dispatchProps.onAttachmentViewChange,

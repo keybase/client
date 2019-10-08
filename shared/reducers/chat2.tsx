@@ -572,7 +572,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           : {summary: action.payload.summary}
         return
       case Chat2Gen.clearPaymentConfirmInfo:
-        draftState.paymentConfirmInfo = null
+        draftState.paymentConfirmInfo = undefined
         return
       case Chat2Gen.badgesUpdated: {
         const badgeMap = I.Map<Types.ConversationIDKey, number>(
@@ -639,12 +639,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.messageSetQuoting: {
         const {ordinal, sourceConversationIDKey, targetConversationIDKey} = action.payload
         const counter = (draftState.quote ? draftState.quote.counter : 0) + 1
-        draftState.quote = Constants.makeQuoteInfo({
+        draftState.quote = {
           counter,
           ordinal,
           sourceConversationIDKey,
           targetConversationIDKey,
-        })
+        }
         return
       }
       case Chat2Gen.messagesAdd: {
@@ -1261,23 +1261,25 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.inboxSearchSetTextStatus:
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+        draftState.inboxSearch = {
+          ...(draftState.inboxSearch || Constants.makeInboxSearchInfo()),
           textStatus: action.payload.status,
-        })
+        }
         return
-      case Chat2Gen.inboxSearchSetIndexPercent:
+      case Chat2Gen.inboxSearchSetIndexPercent: {
         if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
           return
         }
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
-          indexPercent: action.payload.percent,
-        })
+        const {percent} = action.payload
+        draftState.inboxSearch.indexPercent = percent
         return
+      }
       case Chat2Gen.toggleInboxSearch: {
-        if (action.payload.enabled && !draftState.inboxSearch) {
+        const {enabled} = action.payload
+        if (enabled && !draftState.inboxSearch) {
           draftState.inboxSearch = Constants.makeInboxSearchInfo()
-        } else if (!action.payload.enabled && draftState.inboxSearch) {
-          draftState.inboxSearch = null
+        } else if (!enabled && draftState.inboxSearch) {
+          draftState.inboxSearch = undefined
         }
         return
       }
@@ -1285,37 +1287,34 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (!draftState.inboxSearch || draftState.inboxSearch.textStatus !== 'inprogress') {
           return
         }
+        const {result} = action.payload
+        const {conversationIDKey} = result
         const old = draftState.inboxSearch || Constants.makeInboxSearchInfo()
-        const textResults = old.textResults
-          .filter(r => r.conversationIDKey !== action.payload.result.conversationIDKey)
-          .push(action.payload.result)
-          .sort((l: Types.InboxSearchTextHit, r: Types.InboxSearchTextHit) => r.time - l.time)
-        draftState.inboxSearch = old.merge({textResults})
+        const textResults = old.textResults.filter(r => r.conversationIDKey !== conversationIDKey)
+        textResults.push(result)
+        draftState.inboxSearch.textResults = textResults.sort((l, r) => r.time - l.time)
         return
       }
       case Chat2Gen.inboxSearchStarted:
         if (!draftState.inboxSearch) {
           return
         }
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
+        draftState.inboxSearch = {
+          ...(draftState.inboxSearch || Constants.makeInboxSearchInfo()),
           nameStatus: 'inprogress',
           selectedIndex: 0,
-          textResults: I.List(),
+          textResults: [],
           textStatus: 'inprogress',
-        })
+        }
         return
       case Chat2Gen.inboxSearchNameResults: {
         if (!draftState.inboxSearch || draftState.inboxSearch.nameStatus !== 'inprogress') {
           return
         }
-        const results = action.payload.results.reduce((l, r) => {
-          return l.push(r)
-        }, I.List())
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
-          nameResults: results,
-          nameResultsUnread: action.payload.unread,
-          nameStatus: 'success',
-        })
+        const {results, unread} = action.payload
+        draftState.inboxSearch.nameResults = results
+        draftState.inboxSearch.nameResultsUnread = unread
+        draftState.inboxSearch.nameStatus = 'success'
         return
       }
       case Chat2Gen.inboxSearchMoveSelectedIndex: {
@@ -1323,34 +1322,34 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           return
         }
         let selectedIndex = draftState.inboxSearch.selectedIndex
-        const totalResults = draftState.inboxSearch.nameResults.size + draftState.inboxSearch.textResults.size
+        const totalResults =
+          draftState.inboxSearch.nameResults.length + draftState.inboxSearch.textResults.length
         if (action.payload.increment && selectedIndex < totalResults - 1) {
           selectedIndex++
         } else if (!action.payload.increment && selectedIndex > 0) {
           selectedIndex--
         }
 
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
-          selectedIndex,
-        })
+        draftState.inboxSearch.selectedIndex = selectedIndex
         return
       }
-      case Chat2Gen.inboxSearchSelect:
-        if (!draftState.inboxSearch || action.payload.selectedIndex == null) {
+      case Chat2Gen.inboxSearchSelect: {
+        const {selectedIndex} = action.payload
+        if (!draftState.inboxSearch || selectedIndex == null) {
           return
         }
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
-          selectedIndex: action.payload.selectedIndex,
-        })
+        draftState.inboxSearch.selectedIndex = selectedIndex
         return
-      case Chat2Gen.inboxSearch:
+      }
+      case Chat2Gen.inboxSearch: {
         if (!draftState.inboxSearch) {
           return
         }
-        draftState.inboxSearch = (draftState.inboxSearch || Constants.makeInboxSearchInfo()).merge({
-          query: action.payload.query,
-        })
+
+        const {query} = action.payload
+        draftState.inboxSearch.query = query
         return
+      }
       case Chat2Gen.loadAttachmentView:
         draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
           [action.payload.conversationIDKey, action.payload.viewType],

@@ -658,7 +658,7 @@
     },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",
-      "results": "I.List<Types.InboxSearchConvHit>",
+      "results": "Array<Types.InboxSearchConvHit>",
       "unread": "boolean"
     },
     "inboxSearchTextResult": {

@@ -27,7 +27,7 @@ const emptySet = new Set()
 
 export const makeState = (): Types.State => ({
   accountsInfoMap: I.Map(),
-  attachmentFullscreenSelection: null,
+  attachmentFullscreenSelection: undefined,
   attachmentViewMap: I.Map(),
   badgeMap: I.Map(), // id to the badge count
   botCommandsUpdateStatusMap: I.Map(),
@@ -47,7 +47,7 @@ export const makeState = (): Types.State => ({
   giphyWindowMap: I.Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
-  inboxSearch: null,
+  inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
   lastCoord: null,
@@ -59,16 +59,16 @@ export const makeState = (): Types.State => ({
   moreToLoadMap: I.Map(), // if we have more data to load,
   mutedMap: new Map(),
   orangeLineMap: I.Map(), // last message we've seen,
-  paymentConfirmInfo: null,
+  paymentConfirmInfo: undefined,
   paymentStatusMap: I.Map(),
   pendingOutboxToOrdinal: I.Map(), // messages waiting to be sent,
   prependTextMap: I.Map(),
   previousSelectedConversation: noConversationIDKey,
-  quote: null,
+  quote: undefined,
   replyToMap: I.Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
-  staticConfig: null,
+  staticConfig: undefined,
   teamBuilding: TeamBuildingConstants.makeSubState(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
@@ -81,14 +81,7 @@ export const makeState = (): Types.State => ({
   userReacjis: defaultUserReacjis,
 })
 
-export const makeQuoteInfo = I.Record<Types._QuoteInfo>({
-  counter: 0,
-  ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: noConversationIDKey,
-  targetConversationIDKey: noConversationIDKey,
-})
-
-export const makeStaticConfig = I.Record<Types._StaticConfig>({
+export const makeStaticConfig = () => ({
   builtinCommands: {
     [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: emptyArray,
     [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: emptyArray,
@@ -96,7 +89,7 @@ export const makeStaticConfig = I.Record<Types._StaticConfig>({
     [RPCChatTypes.ConversationBuiltinCommandTyp.none]: emptyArray,
     [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: emptyArray,
   },
-  deletableByDeleteHistory: I.Set(),
+  deletableByDeleteHistory: new Set(),
 })
 
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
@@ -110,24 +103,24 @@ export const inboxSearchMaxTextResults = 50
 export const inboxSearchMaxNameResults = 7
 export const inboxSearchMaxUnreadNameResults = isMobile ? 5 : 10
 
-export const makeInboxSearchInfo = I.Record<Types._InboxSearchInfo>({
+export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   indexPercent: 0,
-  nameResults: I.List(),
+  nameResults: [],
   nameResultsUnread: false,
   nameStatus: 'initial',
   query: new HiddenString(''),
   selectedIndex: 0,
-  textResults: I.List(),
+  textResults: [],
   textStatus: 'initial',
 })
 
-export const makeInboxSearchConvHit = I.Record<Types._InboxSearchConvHit>({
+export const makeInboxSearchConvHit = (): Types.InboxSearchConvHit => ({
   conversationIDKey: noConversationIDKey,
   name: '',
   teamType: 'small',
 })
 
-export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
+export const makeInboxSearchTextHit = (): Types.InboxSearchTextHit => ({
   conversationIDKey: noConversationIDKey,
   name: '',
   numHits: 0,
@@ -136,17 +129,17 @@ export const makeInboxSearchTextHit = I.Record<Types._InboxSearchTextHit>({
   time: 0,
 })
 
-export const makeAttachmentViewInfo = I.Record<Types._AttachmentViewInfo>({
+export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   last: false,
-  messages: I.List(),
+  messages: [],
   status: 'loading',
 })
 
 export const initialAttachmentViewInfo = makeAttachmentViewInfo()
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
-  if (inboxSearch.selectedIndex < inboxSearch.nameResults.size) {
-    const maybeNameResults = inboxSearch.nameResults.get(inboxSearch.selectedIndex)
+  if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {
+    const maybeNameResults = inboxSearch.nameResults[inboxSearch.selectedIndex]
     const conversationIDKey =
       maybeNameResults === null || maybeNameResults === undefined
         ? undefined
@@ -157,8 +150,8 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
         query: undefined,
       }
     }
-  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.size + inboxSearch.textResults.size) {
-    const result = inboxSearch.textResults.get(inboxSearch.selectedIndex - inboxSearch.nameResults.size)
+  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.length + inboxSearch.textResults.length) {
+    const result = inboxSearch.textResults[inboxSearch.selectedIndex - inboxSearch.nameResults.length]
     if (result) {
       return {
         conversationIDKey: result.conversationIDKey,

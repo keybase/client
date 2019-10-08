@@ -8,14 +8,13 @@ import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
 import HiddenString from '../../../util/hidden-string'
 
-export type _QuoteInfo = {
+export type QuoteInfo = {
   // Always positive and monotonically increasing.
   counter: number
   ordinal: Message.Ordinal
   sourceConversationIDKey: Common.ConversationIDKey
   targetConversationIDKey: Common.ConversationIDKey
 }
-export type QuoteInfo = I.RecordOf<_QuoteInfo>
 
 export type PaymentConfirmInfo = {
   error?: RPCTypes.Status
@@ -23,13 +22,12 @@ export type PaymentConfirmInfo = {
 }
 
 // Static config data we use for various things
-export type _StaticConfig = {
-  deletableByDeleteHistory: I.Set<Message.MessageType>
+export type StaticConfig = {
+  deletableByDeleteHistory: Set<Message.MessageType>
   builtinCommands: {
     [K in RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>
   }
 }
-export type StaticConfig = I.RecordOf<_StaticConfig>
 
 export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
@@ -44,7 +42,7 @@ export type ThreadSearchInfo = {
 
 export type InboxSearchStatus = 'initial' | 'inprogress' | 'success' | 'error'
 
-export type _InboxSearchTextHit = {
+export type InboxSearchTextHit = {
   conversationIDKey: Common.ConversationIDKey
   name: string
   numHits: number
@@ -53,28 +51,22 @@ export type _InboxSearchTextHit = {
   time: number
 }
 
-export type InboxSearchTextHit = I.RecordOf<_InboxSearchTextHit>
-
-export type _InboxSearchConvHit = {
+export type InboxSearchConvHit = {
   conversationIDKey: Common.ConversationIDKey
   name: string
   teamType: 'big' | 'small'
 }
 
-export type InboxSearchConvHit = I.RecordOf<_InboxSearchConvHit>
-
-export type _InboxSearchInfo = {
+export type InboxSearchInfo = {
   indexPercent: number
-  nameResults: I.List<InboxSearchConvHit>
+  nameResults: Array<InboxSearchConvHit>
   nameStatus: InboxSearchStatus
   nameResultsUnread: boolean
   query: HiddenString
   selectedIndex: number
-  textResults: I.List<InboxSearchTextHit>
+  textResults: Array<InboxSearchTextHit>
   textStatus: InboxSearchStatus
 }
-
-export type InboxSearchInfo = I.RecordOf<_InboxSearchInfo>
 
 // Where focus should be going to.
 // Null represents the default chat input.
@@ -91,13 +83,11 @@ export type CenterOrdinal = {
 
 export type AttachmentViewStatus = 'loading' | 'success' | 'error'
 
-export type _AttachmentViewInfo = {
+export type AttachmentViewInfo = {
   status: AttachmentViewStatus
-  messages: I.List<Message.Message>
+  messages: Array<Message.Message>
   last: boolean
 }
-
-export type AttachmentViewInfo = I.RecordOf<_AttachmentViewInfo>
 
 export type AttachmentFullscreenSelection = {
   autoPlay: boolean
@@ -126,7 +116,7 @@ export type State = Readonly<{
     Common.ConversationIDKey,
     I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
-  attachmentFullscreenSelection: AttachmentFullscreenSelection | null
+  attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   badgeMap: ConversationCountMap // id to the badge count,
   botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
@@ -146,7 +136,7 @@ export type State = Readonly<{
   giphyWindowMap: I.Map<Common.ConversationIDKey, boolean>
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
-  inboxSearch: InboxSearchInfo | null
+  inboxSearch?: InboxSearchInfo
   inboxShowNew: boolean // mark search as new,
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   lastCoord: Coordinate | null
@@ -158,16 +148,16 @@ export type State = Readonly<{
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: I.Map<Common.ConversationIDKey, number> // last message we've seen,
-  paymentConfirmInfo: PaymentConfirmInfo | null // chat payment confirm screen data,
+  paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
   prependTextMap: I.Map<Common.ConversationIDKey, HiddenString | null>
   previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
-  quote: QuoteInfo | null // last quoted message,
+  quote?: QuoteInfo // last quoted message,
   replyToMap: I.Map<Common.ConversationIDKey, Message.Ordinal>
   selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
   smallTeamsExpanded: boolean // if we're showing all small teams,
-  staticConfig: StaticConfig | null // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
+  staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>

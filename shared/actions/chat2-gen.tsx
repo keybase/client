@@ -251,7 +251,7 @@ type _InboxRefreshPayload = {
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
-  readonly results: I.List<Types.InboxSearchConvHit>
+  readonly results: Array<Types.InboxSearchConvHit>
   readonly unread: boolean
 }
 type _InboxSearchPayload = {readonly query: HiddenString}
