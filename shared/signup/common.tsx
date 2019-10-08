@@ -152,7 +152,7 @@ export const SignupScreen = (props: SignupScreenProps) => (
     fullWidth={true}
     fullHeight={true}
     alignItems="center"
-    style={props.noBackground ? styles.whiteBackground : styles.blueBackground}
+    style={styles.whiteBackground}
   >
     {!Styles.isMobile && (
       <Header
