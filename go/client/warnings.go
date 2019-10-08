@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	context "golang.org/x/net/context"
 )
@@ -41,9 +40,13 @@ func PrintAccountResetWarning(g *libkb.GlobalContext) {
 	case 0:
 		msg = "Your account is ready to be reset."
 	default:
-		msg = fmt.Sprintf("Your account is scheduled to be reset in %v.", humanize.Time(resetState.EndTime.Time()))
+		t := resetState.EndTime.Time()
+		msg = fmt.Sprintf("Your account is scheduled to be reset %s.", libkb.HumanizeResetTime(t))
 	}
 	g.Log.Warning(msg)
+	g.Log.Warning(`An account reset will make all chats, files, and wallet funds
+unrecoverable. Since you have access to a Keybase device, you should cancel
+this reset request. You can use this device to provision another one.`)
 	g.Log.Warning("To cancel the process run `keybase account reset-cancel`")
 }
 

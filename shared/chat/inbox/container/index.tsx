@@ -95,6 +95,7 @@ const makeBigRows = (
         return {
           channelname: t.channel.channelname,
           conversationIDKey: Types.stringToConversationIDKey(t.channel.convID),
+          isMuted: t.channel.isMuted,
           teamname: t.channel.teamname,
           type: 'big',
         }
@@ -116,9 +117,7 @@ const mergeProps = (
   const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
   let smallTeams = stateProps._inboxLayout ? stateProps._inboxLayout.smallTeams || [] : []
   const smallTeamsBelowTheFold = !showAllSmallRows && smallTeams.length > smallTeamsCollapsedMaxShown
-  if (showAllSmallRows) {
-    bigTeams = []
-  } else {
+  if (!showAllSmallRows) {
     smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
   }
   const smallRows = makeSmallRows(smallTeams)

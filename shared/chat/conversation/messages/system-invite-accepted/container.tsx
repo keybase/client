@@ -10,6 +10,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps) => ({
+  role: ownProps.role,
   teamname: Constants.getMeta(state, ownProps.message.conversationIDKey).teamname,
   you: state.config.username,
 })
@@ -23,6 +24,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   message: ownProps.message,
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
+  role: stateProps.role,
   teamname: stateProps.teamname,
   you: stateProps.you,
 })

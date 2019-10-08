@@ -11,7 +11,7 @@ import * as TeamBuildingConstants from './team-building'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
-export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
+export const teamRoleTypes = ['restrictedbot', 'bot', 'reader', 'writer', 'admin', 'owner']
 
 export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
   [K in RPCTypes.TeamMemberStatus]: keyof typeof RPCTypes.TeamMemberStatus
@@ -107,6 +107,19 @@ export const makeEmailInviteError = I.Record<Types._EmailInviteError>({
   message: '',
 })
 
+export const teamRoleWithBotsByEnum = ((m: {[K in Types.MaybeTeamRoleTypeWithBots]: RPCTypes.TeamRole}) => {
+  const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleTypeWithBots} = {}
+  for (const roleStr in m) {
+    // roleStr is typed as string; see
+    // https://github.com/facebook/flow/issues/1736 .
+    // @ts-ignore
+    const role: Types.TeamRoleType = roleStr
+    const e = m[role]
+    mInv[e] = role
+  }
+  return mInv
+})(RPCTypes.TeamRole)
+
 export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.TeamRole}) => {
   const mInv: {[K in RPCTypes.TeamRole]?: Types.MaybeTeamRoleType} = {}
   for (const roleStr in m) {
@@ -124,6 +137,15 @@ export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
   owner: 'Owner',
   reader: 'Reader',
+  writer: 'Writer',
+}
+
+export const typeToLabelWithBots: Types.TypeMapWithBots = {
+  admin: 'Admin',
+  bot: 'Bot',
+  owner: 'Owner',
+  reader: 'Reader',
+  restrictedbot: 'Restricted Bot',
   writer: 'Writer',
 }
 

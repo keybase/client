@@ -225,6 +225,7 @@ const BottomRow = (props: {
       <Kb.ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         scrollEventThrottle={1000}
         contentContainerStyle={styles.bottomRowScrollContainer}
       >

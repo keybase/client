@@ -581,7 +581,6 @@ func TestProvisionAutoreset(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tcX, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	// create user (and device X)
 	userX := CreateAndSignupFakeUser(tcX, "login")
@@ -591,7 +590,6 @@ func TestProvisionAutoreset(t *testing.T) {
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "provision_y")
 	defer tcY.Cleanup()
-	libkb.AddEnvironmentFeatureForTest(tcY, libkb.EnvironmentFeatureAutoresetPipeline)
 
 	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIChooseNoDevice(),

@@ -19,9 +19,10 @@ type Props = {
 
 const Username = (props: Props) => {
   const [username, setUsername] = React.useState(props.initialUsername)
+  const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
-    props.onSubmit(username)
-  }, [props.onSubmit, username])
+    _onSubmit(username)
+  }, [_onSubmit, username])
 
   return (
     <SignupScreen

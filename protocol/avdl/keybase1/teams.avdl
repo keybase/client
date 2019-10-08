@@ -1136,6 +1136,10 @@ protocol teams {
 
   // A user can hope for success if and only if they are a member of
   // the team or an admin of any of its ancestors.
+  TeamDetails teamGetByID(int sessionID, TeamID id);
+
+  // A user can hope for success if and only if they are a member of
+  // the team or an admin of any of its ancestors.
   TeamDetails teamGet(int sessionID, string name);
 
   // Get the members of the team

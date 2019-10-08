@@ -37,7 +37,7 @@ const getIcon = status => {
     case 'completed':
       return 'iconfont-success'
     case 'claimable':
-      return 'iconfont-time'
+      return 'iconfont-success'
     case 'pending':
       return 'iconfont-time'
     case 'error':
@@ -124,9 +124,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       claimable: {
-        backgroundColor: Styles.globalColors.black_05OrBlack_60,
+        backgroundColor: Styles.globalColors.purple_10OrPurple,
         borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.black_50OrWhite,
+        color: Styles.globalColors.purpleDarkOrWhite,
       },
       claimableIcon: {},
       completed: {
