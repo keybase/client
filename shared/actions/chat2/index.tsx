@@ -1585,43 +1585,39 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
   const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
-        results: (resp.hits.hits || []).reduce<I.List<Types.InboxSearchConvHit>>((l, h) => {
-          return l.push(
-            Constants.makeInboxSearchConvHit({
-              conversationIDKey: Types.stringToConversationIDKey(h.convID),
-              name: h.name,
-              teamType: teamType(h.teamType),
-            })
-          )
-        }, I.List()),
+        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
+          arr.push({
+            conversationIDKey: Types.stringToConversationIDKey(h.convID),
+            name: h.name,
+            teamType: teamType(h.teamType),
+          })
+          return arr
+        }, []),
         unread: resp.hits.unreadMatches,
       })
     )
   }
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const conversationIDKey = Types.conversationIDToKey(resp.searchHit.convID)
-    return Saga.put({
-      result: Constants.makeInboxSearchTextHit({
-        conversationIDKey,
-        name: resp.searchHit.convName,
-        numHits: (resp.searchHit.hits || []).length,
-        query: resp.searchHit.query,
-        teamType: teamType(resp.searchHit.teamType),
-        time: resp.searchHit.time,
-      }),
-    })
+    return Saga.put(
+      Chat2Gen.createInboxSearchTextResult({
+        result: {
+          conversationIDKey,
+          name: resp.searchHit.convName,
+          numHits: (resp.searchHit.hits || []).length,
+          query: resp.searchHit.query,
+          teamType: teamType(resp.searchHit.teamType),
+          time: resp.searchHit.time,
+        },
+      })
+    )
   }
-  const onStart = () => {
-    return Saga.put(Chat2Gen.createInboxSearchStarted())
-  }
-  const onDone = () => {
-    return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
-  }
-  const onIndexStatus = (
-    resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']
-  ) => {
-    return Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
-  }
+  const onStart = () => Saga.put(Chat2Gen.createInboxSearchStarted())
+  const onDone = () => Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
+
+  const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
+    Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
+
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {

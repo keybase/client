@@ -114,12 +114,6 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   textStatus: 'initial',
 })
 
-export const makeInboxSearchConvHit = (): Types.InboxSearchConvHit => ({
-  conversationIDKey: noConversationIDKey,
-  name: '',
-  teamType: 'small',
-})
-
 export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   last: false,
   messages: [],

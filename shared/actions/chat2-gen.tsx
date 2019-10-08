@@ -363,7 +363,7 @@ type _MessagesWereDeletedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageIDs?: Array<RPCChatTypes.MessageID>
   readonly upToMessageID?: RPCChatTypes.MessageID
-  readonly deletableMessageTypes?: I.Set<Types.MessageType>
+  readonly deletableMessageTypes?: Set<Types.MessageType>
   readonly ordinals?: Array<Types.Ordinal>
 }
 type _MetaDeletePayload = {

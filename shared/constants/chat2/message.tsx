@@ -120,7 +120,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
       return []
   }
 }
-export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
+export const allMessageTypes: Set<Types.MessageType> = new Set([
   'attachment',
   'deleted',
   'requestPayment',

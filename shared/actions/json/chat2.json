@@ -224,7 +224,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageIDs?": "Array<RPCChatTypes.MessageID>",
       "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
-      "deletableMessageTypes?": "I.Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
+      "deletableMessageTypes?": "Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
       "ordinals?": "Array<Types.Ordinal>"
     },
     "messagesExploded": {
