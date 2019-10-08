@@ -238,15 +238,20 @@ func TestChatOutboxPurge(t *testing.T) {
 	})
 }
 
-func TestChatOutboxMarkAll(t *testing.T) {
+func TestChatOutboxMarkConv(t *testing.T) {
 	runOutboxTest(func(engine string) {
 		tc, ob, uid, cl := setupOutboxTest(t, engine, "outbox")
 		defer tc.Cleanup()
 
 		var obrs []chat1.OutboxRecord
 		conv := makeConvo(gregor1.Time(5), 1, 1)
+		conv2 := makeConvo(gregor1.Time(5), 1, 1)
 		for i := 0; i < 5; i++ {
-			obr, err := ob.PushMessage(context.TODO(), conv.GetConvID(),
+			convID := conv.GetConvID()
+			if i%2 == 0 {
+				convID = conv2.GetConvID()
+			}
+			obr, err := ob.PushMessage(context.TODO(), convID,
 				makeMsgPlaintext("hi", uid),
 				nil, nil, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 			require.NoError(t, err)
@@ -254,6 +259,7 @@ func TestChatOutboxMarkAll(t *testing.T) {
 			cl.Advance(time.Millisecond)
 		}
 
+		errConvID := obrs[0].ConvID
 		newObr, err := ob.MarkAsError(context.TODO(), obrs[0], chat1.OutboxStateError{
 			Message: "failed",
 			Typ:     chat1.OutboxErrorType_MISC,
@@ -264,17 +270,33 @@ func TestChatOutboxMarkAll(t *testing.T) {
 		require.Equal(t, chat1.OutboxStateType_ERROR, st)
 		require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
 
-		newObrs, err := ob.MarkAllAsError(context.TODO(), chat1.OutboxStateError{
+		newObrs, err := ob.MarkConvAsError(context.TODO(), errConvID, chat1.OutboxStateError{
 			Message: "failed",
 			Typ:     chat1.OutboxErrorType_MISC,
 		})
 		require.NoError(t, err)
-		require.Equal(t, 4, len(newObrs))
+		require.Equal(t, 2, len(newObrs))
 		for _, newObr := range newObrs {
 			st, err := newObr.State.State()
 			require.NoError(t, err)
+			require.True(t, newObr.ConvID.Eq(errConvID))
 			require.Equal(t, chat1.OutboxStateType_ERROR, st)
 			require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
+		}
+
+		obrs, err = ob.PullAllConversations(context.TODO(), true, false)
+		require.NoError(t, err)
+		require.Len(t, obrs, 5)
+		for _, obr := range obrs {
+			st, err := obr.State.State()
+			require.NoError(t, err)
+			if obr.ConvID.Eq(errConvID) {
+				require.Equal(t, chat1.OutboxStateType_ERROR, st)
+				require.Equal(t, chat1.OutboxErrorType_MISC, newObr.State.Error().Typ)
+			} else {
+				require.Equal(t, chat1.OutboxStateType_SENDING, st)
+				require.Equal(t, 0, obr.State.Sending())
+			}
 		}
 	})
 }

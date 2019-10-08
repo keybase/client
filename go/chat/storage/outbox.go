@@ -306,7 +306,8 @@ func (o *Outbox) RecordFailedAttempt(ctx context.Context, oldObr chat1.OutboxRec
 	return nil
 }
 
-func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
+func (o *Outbox) MarkConvAsError(ctx context.Context, convID chat1.ConversationID,
+	errRec chat1.OutboxStateError) (res []chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 	obox, err := o.readStorage(ctx)
@@ -314,18 +315,18 @@ func (o *Outbox) MarkAllAsError(ctx context.Context, errRec chat1.OutboxStateErr
 		return res, err
 	}
 	var recs []chat1.OutboxRecord
-	for _, obr := range obox.Records {
-		state, err := obr.State.State()
+	for _, iobr := range obox.Records {
+		state, err := iobr.State.State()
 		if err != nil {
 			o.Debug(ctx, "MarkAllAsError: unknown state item: adding: err: %s", err.Error())
-			recs = append(recs, obr)
+			recs = append(recs, iobr)
 			continue
 		}
-		if state != chat1.OutboxStateType_ERROR {
-			obr.State = chat1.NewOutboxStateWithError(errRec)
-			res = append(res, obr)
+		if iobr.ConvID.Eq(convID) && state != chat1.OutboxStateType_ERROR {
+			iobr.State = chat1.NewOutboxStateWithError(errRec)
+			res = append(res, iobr)
 		}
-		recs = append(recs, obr)
+		recs = append(recs, iobr)
 	}
 	obox.Records = recs
 	if err := o.writeStorage(ctx, obox); err != nil {

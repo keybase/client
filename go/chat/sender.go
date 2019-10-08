@@ -1402,7 +1402,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	switch oserr.Typ {
 	case chat1.OutboxErrorType_TOOMANYATTEMPTS:
 		s.Debug(ctx, "failMessage: too many attempts failure, marking whole outbox failed")
-		if marked, err = s.outbox.MarkAllAsError(ctx, oserr); err != nil {
+		if marked, err = s.outbox.MarkConvAsError(ctx, obr.ConvID, oserr); err != nil {
 			s.Debug(ctx, "failMessage: unable to mark all as error on outbox: uid: %s err: %s",
 				s.outbox.GetUID(), err.Error())
 			return err
