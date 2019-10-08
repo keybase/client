@@ -7074,7 +7074,7 @@ func TestTeamBotSettings(t *testing.T) {
 			}
 
 			botSettings := keybase1.TeamBotSettings{
-				Triggers: []string{".*"},
+				Triggers: []string{"HI"},
 			}
 			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
 				TlfName:     created.TlfName,
