@@ -90,6 +90,7 @@ const Troubleshooting = (props: Props) => {
               hideBorder: true,
             }
       }
+      mobileStyle={styles.mobileModal}
       mode="Wide"
     >
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
@@ -171,4 +172,7 @@ const styles = Styles.styleSheetCreate(() => ({
       maxWidth: 188,
     },
   }),
+  mobileModal: {
+    backgroundColor: Styles.globalColors.white,
+  },
 }))
