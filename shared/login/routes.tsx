@@ -42,7 +42,7 @@ const RootLogin = Container.connect(
 )(_RootLogin)
 
 export const newRoutes = {
-  feedback: {getScreen: (): typeof Feedback => require('../settings/feedback/container').default},
+  feedback: {getScreen: (): typeof Feedback => require('../signup/feedback/container').default},
   login: {getScreen: () => RootLogin},
   resetConfirm: {getScreen: (): typeof Confirm => require('./reset/confirm').default},
   resetEnterPassword: {getScreen: (): typeof EnterPassword => require('./reset/password').EnterPassword},
