@@ -17,18 +17,10 @@ const Intro = (props: IntroProps) => {
         Styles.isMobile
           ? {
               leftButton: (
-                <Kb.Button
-                  key={0}
-                  type="Dim"
-                  mode="Primary"
-                  small={true}
-                  label="Close"
-                  onClick={props.onClose}
-                  style={styles.closeButton}
-                  labelStyle={styles.closeLabelStyle}
-                />
+                <Kb.Text style={styles.closeLabelStyle} type="BodyBigLink" onClick={props.onClose}>
+                  Close
+                </Kb.Text>
               ),
-              style: styles.background,
             }
           : undefined
       }
@@ -90,7 +82,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.small,
       },
       buttonStyle: {backgroundColor: Styles.globalColors.white},
-      closeButton: {backgroundColor: Styles.globalColors.transparent},
       closeLabelStyle: {color: Styles.globalColors.white},
       container: {
         backgroundColor: Styles.globalColors.purple,
