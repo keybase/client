@@ -182,3 +182,17 @@ func lookupServiceSummariesFromServer(ctx context.Context, g libkb.UIDMapperCont
 }
 
 var _ libkb.ServiceSummaryMapper = (*ServiceSummaryMap)(nil)
+
+type OfflineServiceSummaryMap struct{}
+
+func NewOfflineServiceSummaryMap() *OfflineServiceSummaryMap {
+	return &OfflineServiceSummaryMap{}
+}
+
+func (s *OfflineServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID,
+	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
+	// Return empty map.
+	return make(map[keybase1.UID]libkb.UserServiceSummaryPackage)
+}
+
+var _ libkb.ServiceSummaryMapper = (*OfflineServiceSummaryMap)(nil)

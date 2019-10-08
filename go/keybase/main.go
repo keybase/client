@@ -262,6 +262,7 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 func configOtherLibraries(g *libkb.GlobalContext) error {
 	// Set our UID -> Username mapping service
 	g.SetUIDMapper(uidmap.NewUIDMap(g.Env.GetUIDMapFullNameCacheSize()))
+	g.SetServiceSummaryMapper(uidmap.NewServiceSummaryMap(1000))
 	return nil
 }
 
