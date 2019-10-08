@@ -10,6 +10,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import * as Constants from '../../constants/config'
 import HiddenString from '../../util/hidden-string'
+import * as LoginConstants from '../../constants/login'
 
 type OwnProps = {}
 
@@ -19,6 +20,7 @@ export default Container.connect(
     accountRows: state.config.configuredAccounts,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     username: state.config.username,
+    waiting: Container.anyWaiting(state, LoginConstants.waitingKey),
   }),
   dispatch => ({
     _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -62,6 +64,7 @@ export default Container.connect(
 
       title: ' ',
       username: stateProps.username,
+      waiting: stateProps.waiting,
     }
   }
 )(AccountSwitcher)

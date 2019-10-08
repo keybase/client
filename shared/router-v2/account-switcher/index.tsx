@@ -18,6 +18,7 @@ export type Props = {
   onProfileClick: () => void
   onSelectAccount: (username: string) => void
   username: string
+  waiting: boolean
 } & HeaderHocProps
 
 const MobileHeader = (props: Props) => (
@@ -49,29 +50,54 @@ const MobileHeader = (props: Props) => (
     </Kb.Box2>
   </>
 )
+
+type AccountRowProps = {
+  entry: AccountRowItem
+  onSelectAccount: (user: string) => void
+  waiting: boolean
+}
+const AccountRow = (props: AccountRowProps) => {
+  const [clicked, setClicked] = React.useState(false)
+  const onClick = props.waiting
+    ? undefined
+    : () => {
+        setClicked(true)
+        props.onSelectAccount(props.entry.account.username)
+      }
+  return (
+    <Kb.ListItem2
+      type="Small"
+      icon={<Kb.Avatar size={32} username={props.entry.account.username} />}
+      firstItem={true}
+      body={
+        <Kb.Box2 direction="vertical" fullWidth={true} style={props.waiting ? styles.waiting : undefined}>
+          <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
+          <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
+            <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
+              {props.entry.fullName}
+            </Kb.Text>
+            {!props.entry.account.hasStoredSecret && (
+              <Kb.Text type="BodySmallItalic" style={styles.text2}>
+                {props.entry.fullName && '· '}Signed out
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+          {clicked && <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />}
+        </Kb.Box2>
+      }
+      onClick={onClick}
+    />
+  )
+}
+
 const AccountsRows = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {props.accountRows.map(entry => (
-      <Kb.ListItem2
-        type="Small"
-        icon={
-          <Kb.Avatar
-            size={32}
-            username={entry.account.username}
-            style={entry.account.hasStoredSecret ? undefined : styles.avatarSignedOut}
-          />
-        }
-        firstItem={true}
-        body={
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySemibold">{entry.account.username}</Kb.Text>
-            <Kb.Text type="BodySmall" lineClamp={1}>
-              {entry.fullName}
-            </Kb.Text>
-          </Kb.Box2>
-        }
-        key={entry.account.username}
-        onClick={() => props.onSelectAccount(entry.account.username)}
+      <AccountRow
+        entry={entry}
+        onSelectAccount={props.onSelectAccount}
+        waiting={props.waiting}
+        key={props.entry.account.username}
       />
     ))}
   </Kb.Box2>
@@ -96,7 +122,6 @@ const AccountSwitcher = (props: Props) => (
 export default Kb.HeaderHoc(AccountSwitcher)
 
 const styles = Styles.styleSheetCreate(() => ({
-  avatarSignedOut: {opacity: 0.4},
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
     maxHeight: 170,
@@ -104,11 +129,17 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   divider: {width: '100%'},
   nameText: Styles.platformStyles({
+    common: {flexShrink: 1},
     isElectron: {wordBreak: 'break-all'},
   }),
+  progressIndicator: {bottom: 0, position: 'absolute'},
   row: {
     maxWidth: 200,
     paddingBottom: -Styles.globalMargins.small,
     paddingTop: -Styles.globalMargins.small,
+  },
+  text2: {flexShrink: 0},
+  waiting: {
+    opacity: 0.5,
   },
 }))
