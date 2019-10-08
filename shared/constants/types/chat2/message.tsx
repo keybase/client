@@ -4,6 +4,7 @@ import * as RPCTypes from '../rpc-gen'
 import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
 import * as WalletTypes from '../wallets'
+import * as TeamTypes from '../teams'
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import {DeviceType} from '../devices'
@@ -252,6 +253,7 @@ export type _MessageSystemInviteAccepted = {
   invitee: string
   inviter: string
   team: string
+  role: TeamTypes.MaybeTeamRoleType
   type: 'systemInviteAccepted'
 } & _MessageCommonWithDeviceDeletableEditableReactions
 export type MessageSystemInviteAccepted = I.RecordOf<_MessageSystemInviteAccepted>
@@ -284,6 +286,7 @@ export type MessageSystemGitPush = I.RecordOf<_MessageSystemGitPush>
 export type _MessageSystemAddedToTeam = {
   addee: string
   adder: string
+  role: TeamTypes.MaybeTeamRoleTypeWithBots
   isAdmin: boolean
   team: string
   type: 'systemAddedToTeam'

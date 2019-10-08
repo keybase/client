@@ -2392,6 +2392,13 @@ func (r TeamRole) IsOrAbove(min TeamRole) bool {
 	return r.teamRoleForOrderingOnly() >= min.teamRoleForOrderingOnly()
 }
 
+func (r TeamRole) HumanString() string {
+	if r.IsRestrictedBot() {
+		return "restricted bot"
+	}
+	return strings.ToLower(r.String())
+}
+
 type idSchema struct {
 	length        int
 	magicSuffixes map[byte]bool

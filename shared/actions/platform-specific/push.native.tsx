@@ -383,7 +383,7 @@ function* getStartupDetailsFromInitialPush() {
     if (notification.username) {
       return {startupFollowUser: notification.username}
     }
-  } else if (notification.type === 'chat.newmessage') {
+  } else if (notification.type === 'chat.newmessage' || notification.type === 'chat.newmessageSilent_2') {
     if (notification.conversationIDKey) {
       return {startupConversation: notification.conversationIDKey}
     }

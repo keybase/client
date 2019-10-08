@@ -65,9 +65,9 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	}
 
 	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
+	// Autoreset hardcoded on for now.
 	// TODO: Y2K-3 cleanup for autoreset.
-	autoresetEnabled := mctx.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline)
-
+	autoresetEnabled := true
 	if !autoresetEnabled {
 		// The device has to be preprovisioned for this account in this flow
 		if !e.usernameFound {
@@ -147,14 +147,14 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	sort.Sort(devices)
 
 	// Choose an existing device
-	expDevices := make([]keybase1.Device, len(devices))
+	expDevices := make([]keybase1.Device, 0, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
-	for i, d := range devices {
+	for _, d := range devices {
 		// Don't show paper keys if the user has not provisioned on this device
 		if !e.usernameFound && d.Type == libkb.DeviceTypePaper {
 			continue
 		}
-		expDevices[i] = *d.ProtExport()
+		expDevices = append(expDevices, *d.ProtExport())
 		idMap[d.ID] = d
 	}
 	id, err := mctx.UIs().ProvisionUI.ChooseDevice(mctx.Ctx(), keybase1.ChooseDeviceArg{

@@ -25,7 +25,7 @@ const ForgotUsername = (props: Props) => {
     } else if (emailSelected) {
       onSubmit(email, '')
     }
-  }, [onSubmit, email, phoneNumber])
+  }, [onSubmit, email, phoneNumber, emailSelected])
 
   const error = props.forgotUsernameResult !== 'success' ? props.forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === null) || (emailSelected && !email)

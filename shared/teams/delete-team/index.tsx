@@ -60,7 +60,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const {checkChats, checkFolder, checkNotify} = checks
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
-  const {deleteWaiting, onBack} = props
+  const {deleteWaiting, onBack, clearWaiting} = props
   const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamname))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
@@ -68,8 +68,13 @@ const ReallyDeleteTeam = (props: Props) => {
       // Finished, nav up
       onBack()
     }
-  }, [deleteWaiting, prevDeleteWaiting, onBack])
-  React.useEffect(() => props.clearWaiting, [])
+  }, [deleteWaiting, prevDeleteWaiting, onBack, error])
+  React.useEffect(
+    () => () => clearWaiting(),
+    // only once on mount
+    // eslint-disable-next-line
+    []
+  )
   return (
     <Kb.ConfirmModal
       error={error ? error.message : ''}

@@ -197,7 +197,6 @@ export type ConversationMeta = Meta.ConversationMeta
 export type MembershipType = Meta.MembershipType
 export type MetaTrustedState = Meta.MetaTrustedState
 export type NotificationsType = Meta.NotificationsType
-export type TeamRoleType = Meta.TeamRoleType
 export type TeamType = Meta.TeamType
 
 // message passthroughs

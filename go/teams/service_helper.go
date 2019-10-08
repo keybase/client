@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/profiling"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -28,6 +29,22 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 		return res, err
 	}
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
+}
+
+// DetailsByID returns TeamDetails for team name. Keybase-type invites are
+// returned as members. It always repolls to ensure latest version of
+// a team, but member infos (username, full name, if they reset or not)
+// are subject to UIDMapper caching.
+func DetailsByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (res keybase1.TeamDetails, err error) {
+	tracer := g.CTimeTracer(ctx, "TeamDetails", true)
+	defer tracer.Finish()
+
+	tracer.Stage("load team")
+	t, err := GetMaybeAdminByID(ctx, g, id, id.IsPublic())
+	if err != nil {
+		return res, err
+	}
+	return details(ctx, g, t, tracer)
 }
 
 // Details returns TeamDetails for team name. Keybase-type invites are
@@ -46,6 +63,10 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keyb
 	if err != nil {
 		return res, err
 	}
+	return details(ctx, g, t, tracer)
+}
+
+func details(ctx context.Context, g *libkb.GlobalContext, t *Team, tracer profiling.TimeTracer) (res keybase1.TeamDetails, err error) {
 	res.KeyGeneration = t.Generation()
 	tracer.Stage("members")
 	res.Members, err = MembersDetails(ctx, g, t)

@@ -102,7 +102,7 @@ class GetTitles extends React.Component<Props, State> {
             {paths.length > 0 && !Styles.isMobile && (
               <Kb.Box2 direction="vertical" style={styles.filename}>
                 <Kb.Text type="BodySmallSemibold">Filename</Kb.Text>
-                <Kb.Text type="BodySmall">
+                <Kb.Text type="BodySmall" center={true}>
                   {info.filename} ({this.state.index + 1} of {paths.length})
                 </Kb.Text>
               </Kb.Box2>

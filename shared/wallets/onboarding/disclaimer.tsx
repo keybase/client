@@ -157,18 +157,10 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
           Styles.isMobile
             ? {
                 leftButton: (
-                  <Kb.Button
-                    key={0}
-                    type="Dim"
-                    mode="Primary"
-                    small={true}
-                    label="Close"
-                    onClick={props.onNotNow}
-                    style={styles.closeButton}
-                    labelStyle={styles.closeLabelStyle}
-                  />
+                  <Kb.Text style={styles.closeLabelStyle} type="BodyBigLink" onClick={props.onNotNow}>
+                    Close
+                  </Kb.Text>
                 ),
-                style: styles.background,
               }
             : undefined
         }
@@ -356,7 +348,6 @@ const styles = Styles.styleSheetCreate(
       }),
       buttonLabelStyle: {color: Styles.globalColors.purpleDark},
       buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
-      closeButton: {backgroundColor: Styles.globalColors.transparent},
       closeLabelStyle: {color: Styles.globalColors.white},
       container: {
         backgroundColor: Styles.globalColors.purple,

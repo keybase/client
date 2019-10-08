@@ -84,7 +84,7 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 	// See if any triggers match
 	matchText := msg.SearchableText()
 	for _, trigger := range botSettings.Triggers {
-		re, err := regexp.Compile(trigger)
+		re, err := regexp.Compile(fmt.Sprintf("(?i)%s", trigger))
 		if err != nil {
 			debug.Debug(ctx, "unable to compile trigger regex: %v", err)
 			continue
