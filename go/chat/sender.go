@@ -1130,7 +1130,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	return nil, boxed, nil
 }
 
-const deliverMaxAttempts = 24            // two minutes in default mode
+const deliverMaxAttempts = 180           // fifteen minutes in default mode
 const deliverDisconnectLimitMinutes = 10 // need to be offline for at least 10 minutes before auto failing a send
 
 type DelivererInfoError interface {
@@ -1375,16 +1375,12 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_TOOMANYATTEMPTS, errors.New("max send attempts reached"), true
 	}
 	if !s.connected {
-		// Check to see how long we have been disconnected to see if this should be retried
-		disconnTime := s.disconnectedTime()
-		noretry := false
-		if disconnTime.Minutes() > deliverDisconnectLimitMinutes {
-			noretry = true
+		// Check to see how long we have been disconnected to see if this
+		// should be retried
+		if disconnTime := s.disconnectedTime(); disconnTime.Minutes() > deliverDisconnectLimitMinutes {
 			s.Debug(ctx, "doNotRetryFailure: not retrying offline failure, disconnected for: %v",
 				disconnTime)
-		}
-		if noretry {
-			return chat1.OutboxErrorType_OFFLINE, err, noretry
+			return chat1.OutboxErrorType_OFFLINE, err, true
 		}
 	}
 	// Check for any errors that should cause us to give up right away
