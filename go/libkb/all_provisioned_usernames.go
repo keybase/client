@@ -1,9 +1,9 @@
 package libkb
 
 import (
-	"github.com/keybase/client/go/kbun"
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
