@@ -1350,37 +1350,54 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.inboxSearch.query = query
         return
       }
-      case Chat2Gen.loadAttachmentView:
-        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
-          [action.payload.conversationIDKey, action.payload.viewType],
-          (info = Constants.initialAttachmentViewInfo) => info.merge({status: 'loading'})
-        )
+      case Chat2Gen.loadAttachmentView: {
+        const {conversationIDKey, viewType} = action.payload
+        const attachmentViewMap = new Map(draftState.attachmentViewMap)
+        const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+        viewMap.set(viewType, {
+          ...(viewMap.get(viewType) || Constants.initialAttachmentViewInfo),
+          status: 'loading',
+        })
+        attachmentViewMap.set(conversationIDKey, viewMap)
+        draftState.attachmentViewMap = attachmentViewMap
         return
-      case Chat2Gen.addAttachmentViewMessage:
-        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
-          [action.payload.conversationIDKey, action.payload.viewType],
-          (info = Constants.initialAttachmentViewInfo) =>
-            info.merge({
-              messages:
-                info.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
-                  ? info.messages.push(action.payload.message).sort((l: any, r: any) => r.id - l.id)
-                  : info.messages,
-            })
-        )
+      }
+      case Chat2Gen.addAttachmentViewMessage: {
+        const {conversationIDKey, viewType} = action.payload
+        const attachmentViewMap = new Map(draftState.attachmentViewMap)
+        const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+        const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+        viewMap.set(viewType, {
+          ...old,
+          messages:
+            old.messages.findIndex((item: any) => item.id === action.payload.message.id) < 0
+              ? old.messages.concat(action.payload.message).sort((l: any, r: any) => r.id - l.id)
+              : old.messages,
+        })
+        attachmentViewMap.set(conversationIDKey, viewMap)
+        draftState.attachmentViewMap = attachmentViewMap
         return
-      case Chat2Gen.setAttachmentViewStatus:
-        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
-          [action.payload.conversationIDKey, action.payload.viewType],
-          (info = Constants.initialAttachmentViewInfo) =>
-            info.merge({
-              last: action.payload.last,
-              status: action.payload.status,
-            })
-        )
+      }
+      case Chat2Gen.setAttachmentViewStatus: {
+        const {conversationIDKey, viewType, last, status} = action.payload
+        const attachmentViewMap = new Map(draftState.attachmentViewMap)
+        const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+        viewMap.set(viewType, {
+          ...(viewMap.get(viewType) || Constants.initialAttachmentViewInfo),
+          last: !!last,
+          status,
+        })
+        attachmentViewMap.set(conversationIDKey, viewMap)
+        draftState.attachmentViewMap = attachmentViewMap
         return
-      case Chat2Gen.clearAttachmentView:
-        draftState.attachmentViewMap = draftState.attachmentViewMap.delete(action.payload.conversationIDKey)
+      }
+      case Chat2Gen.clearAttachmentView: {
+        const {conversationIDKey} = action.payload
+        const attachmentViewMap = new Map(draftState.attachmentViewMap)
+        attachmentViewMap.delete(conversationIDKey)
+        draftState.attachmentViewMap = attachmentViewMap
         return
+      }
       case Chat2Gen.staticConfigLoaded:
         draftState.staticConfig = action.payload.staticConfig
         return
@@ -1454,19 +1471,23 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
               .set('transferProgress', action.payload.ratio),
           }
         }
-        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
-          [action.payload.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
-          (info = Constants.initialAttachmentViewInfo) =>
-            info.merge({
-              messages: info.messages.update(
-                info.messages.findIndex((item: any) => item.id === action.payload.message.id),
-                (item: any) =>
-                  item
-                    ? item.set('transferState', 'downloading').set('transferProgress', action.payload.ratio)
-                    : item
-              ),
-            })
-        )
+
+        const {conversationIDKey} = action.payload
+        const viewType = RPCChatTypes.GalleryItemTyp.doc
+        const attachmentViewMap = new Map(draftState.attachmentViewMap)
+        const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+        const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+        const messages = old.messages
+        const idx = old.messages.findIndex(item => item.id === message.id)
+        if (idx !== -1) {
+          const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
+          old.messages[idx] = m
+            .set('transferState', 'downloading')
+            .set('transferProgress', action.payload.ratio)
+        }
+        viewMap.set(viewType, {...old, messages})
+        attachmentViewMap.set(conversationIDKey, viewMap)
+        draftState.attachmentViewMap = attachmentViewMap
 
         draftState.metaMap = metaMapReducer(draftState.metaMap, action)
         draftState.messageMap = messageMapReducer(

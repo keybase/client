@@ -117,12 +117,12 @@ export type State = Readonly<{
     I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
   attachmentFullscreenSelection?: AttachmentFullscreenSelection
-  attachmentViewMap: I.Map<Common.ConversationIDKey, I.Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
+  attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   badgeMap: ConversationCountMap // id to the badge count,
   botCommandsUpdateStatusMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   channelSearchText: string
   commandMarkdownMap: I.Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
-  commandStatusMap: I.Map<Common.ConversationIDKey, CommandStatusInfo>
+  commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: I.Map<Common.ConversationIDKey, boolean>
   createConversationError: string | null
   dismissedInviteBannersMap: I.Map<Common.ConversationIDKey, boolean>
@@ -139,7 +139,7 @@ export type State = Readonly<{
   inboxSearch?: InboxSearchInfo
   inboxShowNew: boolean // mark search as new,
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
-  lastCoord: Coordinate | null
+  lastCoord?: Coordinate
   maybeMentionMap: I.Map<string, RPCChatTypes.UIMaybeMentionInfo>
   messageCenterOrdinals: I.Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>> // messages in a thread,
