@@ -593,9 +593,9 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     }
     const {currentPosition} = p
     if (currentPosition) {
-      const isVisible = currentPosition === 'inside'
+      const isInside = currentPosition === 'inside'
       this.cancelAnim()
-      if (isVisible) {
+      if (isInside) {
         if (!this.isVisible) {
           this.isVisible = true
           this.customForceUpdate()
