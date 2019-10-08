@@ -340,7 +340,12 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
   },
   rowContainer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.medium, Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    ...Styles.padding(
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.medium,
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.xsmall
+    ),
     height: userResultHeight,
   },
   serviceIcon: {
