@@ -81,17 +81,6 @@ export const makeState = (): Types.State => ({
   userReacjis: defaultUserReacjis,
 })
 
-export const makeStaticConfig = () => ({
-  builtinCommands: {
-    [RPCChatTypes.ConversationBuiltinCommandTyp.adhoc]: emptyArray,
-    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteam]: emptyArray,
-    [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: emptyArray,
-    [RPCChatTypes.ConversationBuiltinCommandTyp.none]: emptyArray,
-    [RPCChatTypes.ConversationBuiltinCommandTyp.smallteam]: emptyArray,
-  },
-  deletableByDeleteHistory: new Set(),
-})
-
 export const makeThreadSearchInfo = (): Types.ThreadSearchInfo => ({
   hits: emptyArray,
   status: 'initial',
