@@ -21,7 +21,7 @@ const commands = {
   'start-cold': {
     help: 'Start electron with no hot reloading',
     nodeEnv: 'development',
-    shell: `electron ${path.resolve(__dirname, '../dist/node.dev.bundle.js')}`,
+    shell: `electron ${path.resolve(__dirname, '../dist/node.dev.bundle.js')} --inspect`,
   },
   'start-hot': {
     code: startHot,
@@ -64,7 +64,10 @@ function startHot() {
       // require in case we're trying to yarn install electron!
       const electron = require('electron')
       // @ts-ignore
-      spawn(electron, [...params, ...(isLinux ? ['--disable-gpu'] : [])], {env, stdio: 'inherit'})
+      spawn(electron, [...params, '--inspect', ...(isLinux ? ['--disable-gpu'] : [])], {
+        env,
+        stdio: 'inherit',
+      })
     })
     req.on('error', e => {
       console.log('Error: ', e)
