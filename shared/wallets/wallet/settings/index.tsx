@@ -372,6 +372,7 @@ const styles = Styles.styleSheetCreate(
       },
       header: {
         ...(!Styles.isMobile ? {minHeight: 48} : {}),
+        backgroundColor: Styles.globalColors.white,
         borderBottomColor: Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',
