@@ -28,9 +28,9 @@ const ResetPassword = () => {
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
         <Kb.Icon type="iconfont-skull" sizeType="Bigger" />
         <Kb.Box2 alignItems="center" direction="vertical">
-          <Kb.Text type="Body">If you have forgotten your password you can reset your password.</Kb.Text>
-          <Kb.Text type="Body">You will keep your username, but lose all your data,</Kb.Text>
-          <Kb.Text type="Body">including all of your uploaded encrypted PGP keys.</Kb.Text>
+          <Kb.Text type="Body">If you have forgotten your password you can reset it here.</Kb.Text>
+          <Kb.Text type="Body">You will keep your username, but lose all your encrypted data,</Kb.Text>
+          <Kb.Text type="Body">including all of your uploaded private PGP keys.</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </SignupScreen>
