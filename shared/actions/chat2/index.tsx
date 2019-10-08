@@ -2389,9 +2389,9 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
 
   // looking at the pending screen?
   if (
+    visible &&
     visible.routeName &&
     visible.routeName === 'chatConversation' &&
-    visible &&
     visible.params &&
     (visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
       visible.params.conversationIDKey === Constants.pendingErrorConversationIDKey)
