@@ -15,7 +15,7 @@ export default function(
     case ConfigGen.bootstrapStatusLoaded: {
       const {username} = action.payload
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.noDetails) =>
           old.merge({fullname: action.payload.fullname})
         ),
       })
@@ -30,7 +30,7 @@ export default function(
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn(
           [action.payload.assertion],
-          (old = Constants.makeDetails()) =>
+          (old = Constants.noDetails) =>
             old.merge({
               assertions: I.Map(), // just remove for now, maybe keep them
               guiID,
@@ -48,7 +48,7 @@ export default function(
         return state
       }
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.noDetails) =>
           old.merge({
             bio: action.payload.bio,
             blocked: action.payload.blocked,
@@ -74,7 +74,7 @@ export default function(
           `Some of ${username}'s proofs have changed since you last followed them.`)
 
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.noDetails) =>
           old.merge({
             reason: reason || old.reason,
             state: action.payload.result,
@@ -89,7 +89,7 @@ export default function(
       }
       logger.info(`Closing tracker for assertion: ${username}`)
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.noDetails) =>
           old.merge({showTracker: false})
         ),
       })
@@ -100,7 +100,7 @@ export default function(
         return state
       }
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.noDetails) =>
           old.updateIn(
             ['assertions', action.payload.assertion.assertionKey],
             (old: any = Constants.makeAssertion()) => old.merge(action.payload.assertion)
@@ -113,7 +113,7 @@ export default function(
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn(
           [action.payload.username],
-          (old = Constants.makeDetails()) =>
+          (old = Constants.noDetails) =>
             old.merge({
               followers: I.OrderedSet(action.payload.followers.map(f => f.username)),
               following: I.OrderedSet(action.payload.following.map(f => f.username)),
