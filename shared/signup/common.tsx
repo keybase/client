@@ -147,7 +147,13 @@ type SignupScreenProps = {
 
 // Screens with header + body bg color (i.e. all but join-or-login)
 export const SignupScreen = (props: SignupScreenProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} alignItems="center">
+  <Kb.Box2
+    direction="vertical"
+    fullWidth={true}
+    fullHeight={true}
+    alignItems="center"
+    style={props.noBackground ? styles.whiteBackground : styles.blueBackground}
+  >
     {!Styles.isMobile && (
       <Header
         onBack={props.onBack}

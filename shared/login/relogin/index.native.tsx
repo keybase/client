@@ -48,7 +48,7 @@ class LoginRender extends React.Component<Props> {
     ]
 
     return (
-      <Kb.NativeScrollView>
+      <Kb.NativeScrollView style={styles.scrollView}>
         <Kb.Box style={styles.container}>
           {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
             <Kb.Box style={styles.deviceNotSecureContainer}>
@@ -133,6 +133,9 @@ const styles = Styles.styleSheetCreate(
       },
       deviceNotSecureText: {
         color: Styles.globalColors.brown_75,
+      },
+      scrollView: {
+        backgroundColor: Styles.globalColors.white,
       },
     } as const)
 )
