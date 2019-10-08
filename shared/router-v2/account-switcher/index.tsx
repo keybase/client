@@ -97,7 +97,7 @@ const AccountsRows = (props: Props) => (
         entry={entry}
         onSelectAccount={props.onSelectAccount}
         waiting={props.waiting}
-        key={props.entry.account.username}
+        key={entry.account.username}
       />
     ))}
   </Kb.Box2>
