@@ -34,6 +34,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         nodeIntegrationInWorker: false,
       },
       width: 360,
+      alwaysOnTop: true,
     },
     icon: resolveImage(
       'menubarIcon',
@@ -166,6 +167,9 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     })
     mb.tray.on('click', (_: Electron.Event, bounds: Bounds) => {
       logger.info('Clicked tray icon:', bounds)
+    })
+    mb.on('focus-lost', () => {
+      mb.hideWindow()
     })
   })
 
