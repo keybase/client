@@ -42,8 +42,12 @@ const getUsernameToShow = (
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
-    case 'setChannelname':
       return !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
+    case 'setChannelname':
+      // suppress this message for the #general channel, it is redundant.
+      return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
+        ? message.author
+        : ''
     case 'systemAddedToTeam':
       return message.addee === you ? '' : message.addee
     case 'systemLeft':
