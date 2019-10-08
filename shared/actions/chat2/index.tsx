@@ -1600,18 +1600,16 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
   }
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const conversationIDKey = Types.conversationIDToKey(resp.searchHit.convID)
-    return Saga.put(
-      Chat2Gen.createInboxSearchTextResult({
-        result: Constants.makeInboxSearchTextHit({
-          conversationIDKey,
-          name: resp.searchHit.convName,
-          numHits: (resp.searchHit.hits || []).length,
-          query: resp.searchHit.query,
-          teamType: teamType(resp.searchHit.teamType),
-          time: resp.searchHit.time,
-        }),
-      })
-    )
+    return Saga.put({
+      result: Constants.makeInboxSearchTextHit({
+        conversationIDKey,
+        name: resp.searchHit.convName,
+        numHits: (resp.searchHit.hits || []).length,
+        query: resp.searchHit.query,
+        teamType: teamType(resp.searchHit.teamType),
+        time: resp.searchHit.time,
+      }),
+    })
   }
   const onStart = () => {
     return Saga.put(Chat2Gen.createInboxSearchStarted())
@@ -2900,8 +2898,8 @@ function* loadStaticConfig(
   )
   yield Saga.put(
     Chat2Gen.createStaticConfigLoaded({
-      staticConfig: Constants.makeStaticConfig({
-        builtinCommands: (res.builtinCommands || []).reduce<Types._StaticConfig['builtinCommands']>(
+      staticConfig: {
+        builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
           (map, c) => {
             map[c.typ] = c.commands || []
             return map
@@ -2914,8 +2912,8 @@ function* loadStaticConfig(
             [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
           }
         ),
-        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
-      }),
+        deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+      },
     })
   )
 

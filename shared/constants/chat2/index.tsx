@@ -120,15 +120,6 @@ export const makeInboxSearchConvHit = (): Types.InboxSearchConvHit => ({
   teamType: 'small',
 })
 
-export const makeInboxSearchTextHit = (): Types.InboxSearchTextHit => ({
-  conversationIDKey: noConversationIDKey,
-  name: '',
-  numHits: 0,
-  query: '',
-  teamType: 'small',
-  time: 0,
-})
-
 export const makeAttachmentViewInfo = (): Types.AttachmentViewInfo => ({
   last: false,
   messages: [],
