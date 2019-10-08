@@ -1,6 +1,7 @@
 // Entrypoint for the menubar node part
 import * as ConfigGen from '../../actions/config-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {mainWindowDispatch} from '../remote/util.desktop'
@@ -14,6 +15,7 @@ let icon = isWindows
   ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
   : 'icon-keybase-menubar-regular-white-22@2x.png'
 let selectedIcon = icon
+let devToolsState = false
 
 type Bounds = {
   x: number
@@ -92,6 +94,40 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     )
 
     mb.window && menubarWindowIDCallback(mb.window.id)
+
+    // On Windows, if you accidentally hit the fullscreen hotkey (F11) it will
+    // make the menu bar widget fullscreen and maximized.
+    // Setting a custom menu disables this behavior.
+    let menu: Electron.Menu | null = null
+
+    if (__DEV__) {
+      menu = Electron.Menu.buildFromTemplate([
+        new Electron.MenuItem({
+          label: 'Window',
+          submenu: Electron.Menu.buildFromTemplate([
+            new Electron.MenuItem({
+              accelerator: 'CmdOrCtrl+R',
+              click: (_, focusedWindow) => {
+                focusedWindow && focusedWindow.reload()
+              },
+              label: 'Reload',
+            }),
+            new Electron.MenuItem({
+              accelerator: (() => (isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I'))(),
+              click: (_, focusedWindow) => {
+                devToolsState = !devToolsState
+                devToolsState
+                  ? focusedWindow.webContents.openDevTools({mode: 'detach'})
+                  : focusedWindow.webContents.closeDevTools()
+              },
+              label: 'Toggle Developer Tools',
+            }),
+          ]),
+        }),
+      ])
+    }
+
+    mb.window && mb.window.setMenu(menu)
 
     if (showDevTools && !skipSecondaryDevtools) {
       mb.window && mb.window.webContents.openDevTools({mode: 'detach'})
