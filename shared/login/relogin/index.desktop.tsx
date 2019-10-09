@@ -78,17 +78,19 @@ class Login extends React.Component<Props, State> {
               position="bottom center"
               style={styles.userDropdown}
             />
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
-              <Kb.LabeledInput
-                autoFocus={true}
-                placeholder="Password"
-                onChangeText={this.props.passwordChange}
-                onEnterKeyDown={this.props.onSubmit}
-                ref={this._inputRef}
-                type="password"
-                value={this.props.password}
-              />
-            </Kb.Box2>
+            {!this.props.hidePasswordBox && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
+                <Kb.LabeledInput
+                  autoFocus={true}
+                  placeholder="Password"
+                  onChangeText={this.props.passwordChange}
+                  onEnterKeyDown={this.props.onSubmit}
+                  ref={this._inputRef}
+                  type="password"
+                  value={this.props.password}
+                />
+              </Kb.Box2>
+            )}
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>
               <Kb.Text
                 type="BodySmallSecondaryLink"

@@ -66,11 +66,13 @@ class LoginRender extends React.Component<Props> {
               onOther={this.props.onSomeoneElse}
               options={this.props.users.map(u => u.username)}
             />
-            <Kb.FormWithCheckbox
-              style={{alignSelf: 'stretch'}}
-              inputProps={inputProps}
-              checkboxesProps={checkboxProps}
-            />
+            {!this.props.hidePasswordBox && (
+              <Kb.FormWithCheckbox
+                style={{alignSelf: 'stretch'}}
+                inputProps={inputProps}
+                checkboxesProps={checkboxProps}
+              />
+            )}
             <Kb.WaitingButton
               disabled={!this.props.password}
               waitingKey={Constants.waitingKey}
