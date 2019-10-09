@@ -93,9 +93,6 @@
     "invitesReclaim": {
       "inviteId": "string"
     },
-    "invitesReclaimed": {
-      "errorText?": "string"
-    },
     "invitesRefresh": {},
     "invitesRefreshed": {
       "invites": "Types._InvitesState"

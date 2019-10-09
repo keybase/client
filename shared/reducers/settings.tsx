@@ -80,7 +80,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.invitesRefreshed:
       return state.update('invites', invites => invites.merge(action.payload.invites))
     case SettingsGen.invitesSent:
-      // TODO this doesn't do anything with the actual valid payload
       return state.update('invites', invites => invites.merge({error: action.payload.error}))
     case SettingsGen.invitesClearError:
       return state.update('invites', invites => invites.merge({error: null}))
@@ -257,7 +256,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.editEmail:
     case SettingsGen.editPhone:
     case SettingsGen.invitesReclaim:
-    case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
     case SettingsGen.invitesSend:
     case SettingsGen.loadRememberPassword:

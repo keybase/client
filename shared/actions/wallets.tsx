@@ -402,7 +402,7 @@ const loadAccounts = async (
   }
   if (
     (action.type === WalletsGen.linkedExistingAccount || action.type === WalletsGen.createdNewAccount) &&
-    action.payload.error
+    (action.payload.error || !action.payload.accountID)
   ) {
     return false
   }

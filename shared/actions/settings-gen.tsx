@@ -28,7 +28,6 @@ export const feedbackSent = 'settings:feedbackSent'
 export const importContactsLater = 'settings:importContactsLater'
 export const invitesClearError = 'settings:invitesClearError'
 export const invitesReclaim = 'settings:invitesReclaim'
-export const invitesReclaimed = 'settings:invitesReclaimed'
 export const invitesRefresh = 'settings:invitesRefresh'
 export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
@@ -113,7 +112,6 @@ type _FeedbackSentPayload = {readonly error: Error | null}
 type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
-type _InvitesReclaimedPayload = {readonly errorText?: string}
 type _InvitesRefreshPayload = void
 type _InvitesRefreshedPayload = {readonly invites: Types._InvitesState}
 type _InvitesSendPayload = {readonly email: string; readonly message: string | null}
@@ -316,9 +314,6 @@ export const createInvitesReclaim = (payload: _InvitesReclaimPayload): InvitesRe
   payload,
   type: invitesReclaim,
 })
-export const createInvitesReclaimed = (
-  payload: _InvitesReclaimedPayload = Object.freeze({})
-): InvitesReclaimedPayload => ({payload, type: invitesReclaimed})
 export const createInvitesRefresh = (payload: _InvitesRefreshPayload): InvitesRefreshPayload => ({
   payload,
   type: invitesRefresh,
@@ -530,10 +525,6 @@ export type InvitesClearErrorPayload = {
 export type InvitesReclaimPayload = {
   readonly payload: _InvitesReclaimPayload
   readonly type: typeof invitesReclaim
-}
-export type InvitesReclaimedPayload = {
-  readonly payload: _InvitesReclaimedPayload
-  readonly type: typeof invitesReclaimed
 }
 export type InvitesRefreshPayload = {
   readonly payload: _InvitesRefreshPayload
@@ -749,7 +740,6 @@ export type Actions =
   | ImportContactsLaterPayload
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
-  | InvitesReclaimedPayload
   | InvitesRefreshPayload
   | InvitesRefreshedPayload
   | InvitesSendPayload
