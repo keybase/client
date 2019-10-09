@@ -1702,6 +1702,10 @@
           "name": "username"
         },
         {
+          "type": "boolean",
+          "name": "inConvName"
+        },
+        {
           "type": [
             null,
             "string"

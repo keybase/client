@@ -393,6 +393,10 @@
           "name": "assertion"
         },
         {
+          "type": "boolean",
+          "name": "inConvName"
+        },
+        {
           "type": [
             null,
             "string"

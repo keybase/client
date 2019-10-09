@@ -448,14 +448,16 @@ func (e UIParticipantType) String() string {
 type UIParticipant struct {
 	Type        UIParticipantType `codec:"type" json:"type"`
 	Assertion   string            `codec:"assertion" json:"assertion"`
+	InConvName  bool              `codec:"inConvName" json:"inConvName"`
 	FullName    *string           `codec:"fullName,omitempty" json:"fullName,omitempty"`
 	ContactName *string           `codec:"contactName,omitempty" json:"contactName,omitempty"`
 }
 
 func (o UIParticipant) DeepCopy() UIParticipant {
 	return UIParticipant{
-		Type:      o.Type.DeepCopy(),
-		Assertion: o.Assertion,
+		Type:       o.Type.DeepCopy(),
+		Assertion:  o.Assertion,
+		InConvName: o.InConvName,
 		FullName: (func(x *string) *string {
 			if x == nil {
 				return nil

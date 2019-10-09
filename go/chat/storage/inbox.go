@@ -420,10 +420,10 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 				// Only write out participant names for general channel for teams, only thing needed
 				// by frontend
 				if topicName == globals.DefaultTeamTopic {
-					rcm.WriterNames = convLocal.Names()
+					rcm.WriterNames = convLocal.AllNames()
 				}
 			default:
-				rcm.WriterNames = convLocal.Names()
+				rcm.WriterNames = convLocal.AllNames()
 				rcm.ResetParticipants = convLocal.Info.ResetNames
 			}
 			ibox.Conversations[index].LocalMetadata = rcm

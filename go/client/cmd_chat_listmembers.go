@@ -80,7 +80,7 @@ func (c *CmdChatListMembers) getUntrustedConvMemberList(ctx context.Context) err
 
 	ui := c.G().UI.GetTerminalUI()
 	ui.Printf("Listing members in %s [#%s]:\n\n", c.tlfName, c.topicName)
-	for _, memb := range inboxRes.Conversations[0].Names() {
+	for _, memb := range inboxRes.Conversations[0].AllNames() {
 		ui.Printf("%s\n", memb)
 	}
 	return nil
