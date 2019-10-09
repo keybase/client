@@ -5,10 +5,11 @@ package libkb
 
 import (
 	"crypto/x509"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -59,7 +60,7 @@ func TestProductionCA(t *testing.T) {
 	if !ok {
 		t.Fatal("failed to cast API to internal api engine")
 	}
-	url := internal.getURL(arg)
+	url := internal.getURL(arg, false)
 	if url.String() != pingExpected {
 		t.Fatalf("api url: %s, expected %s", url.String(), pingExpected)
 	}
@@ -105,7 +106,7 @@ func TestProductionBadCA(t *testing.T) {
 	if !ok {
 		t.Fatal("failed to cast API to internal api engine")
 	}
-	iurl := internal.getURL(arg)
+	iurl := internal.getURL(arg, false)
 	if iurl.String() != pingExpected {
 		t.Fatalf("api url: %s, expected %s", iurl.String(), pingExpected)
 	}
