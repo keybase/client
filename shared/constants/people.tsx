@@ -2,7 +2,7 @@ import * as I from 'immutable'
 import * as Types from './types/people'
 import * as RPCTypes from './types/rpc-gen'
 import * as TeamBuildingConstants from './team-building'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 import {e164ToDisplay} from '../util/phone-numbers'

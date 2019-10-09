@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
-import {memoize} from 'lodash-es'
+import memoize from 'lodash/memoize'
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified

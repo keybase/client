@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import AddPeopleHow from '../header/add-people-how/container'

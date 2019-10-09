@@ -5,7 +5,7 @@ import {IncomingRequest, OutgoingRequest} from './request'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
-import {isArray} from 'lodash-es'
+import isArray from 'lodash/isArray'
 
 type WaitingKey = string | Array<string>
 

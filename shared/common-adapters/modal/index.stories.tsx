@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '..'
 import * as Styles from '../../styles'
-import {range} from 'lodash-es'
+import range from 'lodash/range'
 import Modal from '.'
 
 const padding = Styles.padding(10)

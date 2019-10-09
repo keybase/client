@@ -2,7 +2,7 @@ import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import NewTeamDialog from '.'
-import {upperFirst} from 'lodash-es'
+import upperFirst from 'lodash/upperFirst'
 import * as WaitingConstants from '../../constants/waiting'
 import * as Constants from '../../constants/teams'
 

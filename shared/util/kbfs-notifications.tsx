@@ -1,4 +1,4 @@
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import {FSErrorType, FSNotificationType, FSStatusCode, FSNotification} from '../constants/types/rpc-gen'
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'

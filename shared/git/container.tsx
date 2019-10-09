@@ -7,7 +7,7 @@ import * as Types from '../constants/types/git'
 import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
 import * as Container from '../util/container'
-import {sortBy} from 'lodash-es'
+import sortBy from 'lodash/sortBy'
 import {memoize} from '../util/memoize'
 import {HeaderTitle, HeaderRightActions} from './nav-header'
 

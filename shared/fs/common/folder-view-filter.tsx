@@ -5,7 +5,7 @@ import * as Kb from '../../common-adapters'
 import * as FsGen from '../../actions/fs-gen'
 import * as Styles from '../../styles'
 import * as React from 'react'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 
 type Props = {
   onCancel?: (() => void) | null

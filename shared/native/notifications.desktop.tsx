@@ -1,4 +1,4 @@
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import logger from '../logger'
 
 const rateLimit: {[K in string]: () => void} = {}

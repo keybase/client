@@ -11,7 +11,7 @@ import ChatInboxHeader from './row/chat-inbox-header/container'
 import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 
