@@ -17,7 +17,8 @@ const Waiting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [dispatch])
+
+  // const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [dispatch])
   const onClose = React.useCallback(
     () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
     [dispatch, nav]
@@ -31,6 +32,9 @@ const Waiting = (props: Props) => {
       const newFormattedTime = Constants.formatTimeLeft(endTime)
       if (formattedTime !== newFormattedTime) {
         setFormattedTime(newFormattedTime)
+      }
+      if (endTime < Date.now()) {
+        dispatch(nav.safeNavigateAppendPayload({path: ['resetEnterPassword'], replace: true}))
       }
     }
 
@@ -62,10 +66,10 @@ const Waiting = (props: Props) => {
                 The reset has been initiated. For security reasons, nothing will happen in the next{' '}
                 {formattedTime}. We will notify you once you can proceed with the reset.
               </Kb.Text>
-              <Kb.Text type="Body">Unless you would like to</Kb.Text>
+              {/* <Kb.Text type="Body">Unless you would like to</Kb.Text>
               <Kb.Text type="BodyPrimaryLink" onClick={onCancelReset}>
                 cancel the reset.
-              </Kb.Text>
+              </Kb.Text> */}
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" centerChildren={true}>
