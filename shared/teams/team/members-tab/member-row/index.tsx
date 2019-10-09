@@ -33,8 +33,10 @@ export type Props = {
 
 const showCrown: BoolTypeMap = {
   admin: true,
+  bot: false,
   owner: true,
   reader: false,
+  restrictedbot: false,
   writer: false,
 }
 

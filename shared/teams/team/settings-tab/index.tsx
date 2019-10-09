@@ -30,7 +30,7 @@ type RolePickerProps = {
   onOpenRolePicker: () => void
   onSelectRole: (role: Types.TeamRoleType) => void
   newOpenTeamRole: Types.TeamRoleType
-  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]: string}
+  disabledReasonsForRolePicker: {[K in Types.TeamRoleType]?: string}
 }
 
 type NewSettings = {
