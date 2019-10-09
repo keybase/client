@@ -27,8 +27,10 @@ export default Container.connect(
     onAddAccount: () => dispatch(ProvisionGen.createStartProvision()),
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
     onCreateAccount: () => dispatch(SignupGen.createRequestAutoInvite()),
-    onSelectAccountLoggedIn: (username: string) =>
-      dispatch(LoginGen.createLogin({password: new HiddenString(''), username})),
+    onSelectAccountLoggedIn: (username: string) => {
+      dispatch(ConfigGen.createSetUserSwitching({userSwitching: true}))
+      dispatch(LoginGen.createLogin({password: new HiddenString(''), username}))
+    },
     onSelectAccountLoggedOut: (username: string) => {
       dispatch(ConfigGen.createSetDefaultUsername({username}))
       dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: false}))

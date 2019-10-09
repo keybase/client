@@ -244,6 +244,7 @@ export type TypedActionsMap = {
   'config:setNavigator': config.SetNavigatorPayload
   'config:loggedOut': config.LoggedOutPayload
   'config:loggedIn': config.LoggedInPayload
+  'config:setUserSwitching': config.SetUserSwitchingPayload
   'config:updateMenubarWindowID': config.UpdateMenubarWindowIDPayload
   'config:copyToClipboard': config.CopyToClipboardPayload
   'config:checkForUpdate': config.CheckForUpdatePayload
