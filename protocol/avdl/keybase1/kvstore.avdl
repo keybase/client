@@ -1,0 +1,36 @@
+@namespace("keybase.1")
+
+protocol kvstore {
+  import idl "common.avdl";
+
+  record KVGetResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    string entryValue;
+    int revision;
+  }
+
+  record KVPutResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    int revision;
+  }
+
+  // for passing around internally
+  record KVEntryID {
+    TeamID teamID;
+    string namespace;
+    string entryKey;
+  }
+
+  record EncryptedKVEntry {
+    int v;                    // version
+    bytes e;                  // encrypted data
+    bytes n;                  // nonce
+  }
+
+  KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
+  KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, string entryValue);
+}

@@ -1,0 +1,144 @@
+{
+  "protocol": "kvstore",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "KVGetResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "string",
+          "name": "entryValue"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVPutResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVEntryID",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedKVEntry",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        }
+      ],
+      "response": "KVGetResult"
+    },
+    "putKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        },
+        {
+          "name": "entryValue",
+          "type": "string"
+        }
+      ],
+      "response": "KVPutResult"
+    }
+  },
+  "namespace": "keybase.1"
+}

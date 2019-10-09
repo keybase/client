@@ -841,7 +841,8 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(mctx libkb.MetaContext,
 	state *keybase1.TeamData, gen keybase1.PerTeamKeyGeneration) error {
 
 	for _, app := range keybase1.TeamApplicationMap {
-		if app == keybase1.TeamApplication_STELLAR_RELAY {
+		switch app {
+		case keybase1.TeamApplication_STELLAR_RELAY, keybase1.TeamApplication_KVSTORE:
 			// TODO CORE-7718 Allow clients to be missing these RKMs for now.
 			//                Will need a team cache bust to repair.
 			continue

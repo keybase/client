@@ -137,6 +137,8 @@ func applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase1.PerTeamK
 		derivationString = libkb.TeamSeitanTokenDerivationString
 	case keybase1.TeamApplication_STELLAR_RELAY:
 		derivationString = libkb.TeamStellarRelayDerivationString
+	case keybase1.TeamApplication_KVSTORE:
+		derivationString = libkb.TeamKVStoreDerivationString
 	default:
 		return keybase1.TeamApplicationKey{}, fmt.Errorf("unrecognized application id: %v", mask.Application)
 	}

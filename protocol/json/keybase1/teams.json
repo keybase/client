@@ -24,7 +24,8 @@
         "SALTPACK_3",
         "GIT_METADATA_4",
         "SEITAN_INVITE_TOKEN_5",
-        "STELLAR_RELAY_6"
+        "STELLAR_RELAY_6",
+        "KVSTORE_7"
       ]
     },
     {
