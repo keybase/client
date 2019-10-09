@@ -4,7 +4,6 @@ import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
 import {e164ToDisplay} from '../../util/phone-numbers'
-import {WithProfileCardPopup} from '../../profile/card'
 
 export type UserListItem = {
   username: string
@@ -60,6 +59,8 @@ function UsernameText(props: Props) {
     styles.joinerStyle,
     {color: props.commaColor},
   ])
+
+  const {WithProfileCardPopup} = require('../../profile/card')
   return (
     <>
       {props.users.map((u, i) => {
