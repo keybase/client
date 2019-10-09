@@ -801,7 +801,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		id := conv.GetConvID()
 		convID = &id
 	}
-	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, convID, membersType, atMentions)
+	botUIDs, err := s.applyTeamBotSettings(ctx, uid, msg, convID, membersType, atMentions, opts)
 	if err != nil {
 		return res, err
 	}
@@ -830,7 +830,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.UID,
 	msg chat1.MessagePlaintext, convID *chat1.ConversationID, membersType chat1.ConversationMembersType,
-	atMentions []gregor1.UID) ([]gregor1.UID, error) {
+	atMentions []gregor1.UID, opts chat1.SenderPrepareOptions) ([]gregor1.UID, error) {
 	// no bots in KBFS convs
 	if membersType == chat1.ConversationMembersType_KBFS {
 		return nil, nil
@@ -841,17 +841,19 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		return nil, nil
 	}
 
-	// Check if we are superseding a bot message. If so just take what the
-	// superseded has.
-	if msg.ClientHeader.Supersedes > 0 && convID != nil {
+	// Check if we are superseding a bot message. If so, just take what the
+	// superseded has. Don't automatically key for replies, run the normal checks.
+	if msg.ClientHeader.Supersedes > 0 && opts.ReplyTo == nil && convID != nil {
 		target, err := s.getMessage(ctx, uid, *convID, msg.ClientHeader.Supersedes, false /*resolveSupersedes */)
 		if err != nil {
 			return nil, err
 		}
 		botUID := target.ClientHeader.BotUID
 		if botUID == nil {
+			s.Debug(ctx, "applyTeamBotSettings: skipping, supersedes has nil botUID from msgID %d", msg.ClientHeader.Supersedes)
 			return nil, nil
 		}
+		s.Debug(ctx, "applyTeamBotSettings: supersedes botUID %v from msgID %d", botUID, msg.ClientHeader.Supersedes)
 		return []gregor1.UID{*botUID}, nil
 	}
 
