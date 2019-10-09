@@ -7,9 +7,7 @@
     "openPopup": {},
     "closePopup": {},
     "checkPaperKeyDone": {
-      "canError": {
-        "error": "string"
-      }
+      "error?": "string"
     },
     "closeDone": {},
     "finish": {},

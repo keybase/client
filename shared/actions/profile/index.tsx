@@ -85,7 +85,7 @@ const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRev
       return false
     } catch (e) {
       logger.info('error in dropping pgp key', e)
-      return ProfileGen.createRevokeFinishError({error: `Error in dropping Pgp Key: ${e}`})
+      return ProfileGen.createRevokeFinish({error: `Error in dropping Pgp Key: ${e}`})
     }
   } else {
     try {
@@ -96,7 +96,7 @@ const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRev
       return ProfileGen.createFinishRevoking()
     } catch (error) {
       logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-      return ProfileGen.createRevokeFinishError({
+      return ProfileGen.createRevokeFinish({
         error: 'There was an error revoking your proof. You can click the button to try again.',
       })
     }
@@ -118,7 +118,7 @@ const submitBlockUser = async (_: TypedState, action: ProfileGen.SubmitBlockUser
   } catch (e) {
     const error: RPCError = e
     logger.warn(`Error blocking user ${action.payload.username}`, error)
-    return ProfileGen.createFinishBlockUserError({
+    return ProfileGen.createFinishBlockUser({
       error: error.desc || `There was an error blocking ${action.payload.username}.`,
     })
   }

@@ -23,7 +23,7 @@ import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
-import {actionHasError, TypedActions, TypedState} from '../util/container'
+import {TypedActions, TypedState} from '../util/container'
 import {Action} from 'redux'
 
 const stateToBuildRequestParams = (state: TypedState) => ({
@@ -143,7 +143,7 @@ const createNewAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
+    return WalletsGen.createCreatedNewAccount({error: err.desc, name})
   }
 }
 
@@ -400,7 +400,10 @@ const loadAccounts = async (
     logger.error('not logged in')
     return false
   }
-  if (actionHasError(action)) {
+  if (
+    (action.type === WalletsGen.linkedExistingAccount || action.type === WalletsGen.createdNewAccount) &&
+    action.payload.error
+  ) {
     return false
   }
   try {
@@ -451,14 +454,14 @@ type LoadAssetsActions =
   | WalletsGen.AccountUpdateReceivedPayload
   | WalletsGen.AccountsReceivedPayload
 const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: Saga.SagaLogger) => {
-  if (actionHasError(action)) {
+  if (action.type === WalletsGen.linkedExistingAccount && action.payload.error) {
     return false
   }
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return false
   }
-  let accountID: Types.AccountID
+  let accountID: Types.AccountID | undefined
   switch (action.type) {
     case WalletsGen.loadAssets:
     case WalletsGen.linkedExistingAccount:
@@ -476,6 +479,11 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
       break
     default:
       return Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
+  }
+
+  // should be impossible
+  if (!accountID) {
+    return
   }
 
   // check that we've loaded the account, don't load assets if we don't have the account
@@ -518,22 +526,24 @@ type LoadPaymentsActions =
   | WalletsGen.SelectAccountPayload
   | WalletsGen.LinkedExistingAccountPayload
 const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logger: Saga.SagaLogger) => {
+  const {accountID} = action.payload
+
   if (!state.config.loggedIn) {
     logger.error('not logged in')
     return false
   }
-  if (actionHasError(action)) {
+  if ((action.type === WalletsGen.linkedExistingAccount && action.payload.error) || !accountID) {
     return false
   }
   if (
-    !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(action.payload.accountID)) ||
-    Types.isValidAccountID(Constants.getAccount(state, action.payload.accountID).accountID)
+    !!(action.type === WalletsGen.selectAccount && Types.isValidAccountID(accountID)) ||
+    Types.isValidAccountID(Constants.getAccount(state, accountID).accountID)
   ) {
     const [pending, payments] = await Promise.all([
-      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
+      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
     ])
-    return createPaymentsReceived(action.payload.accountID, payments, pending, true)
+    return createPaymentsReceived(accountID, payments, pending, true)
   }
   return false
 }
@@ -620,9 +630,7 @@ const setInflationDestination = async (_, action: WalletsGen.SetInflationDestina
       }),
     })
   } catch (error) {
-    return WalletsGen.createInflationDestinationReceivedError({
-      error: error.message,
-    })
+    return WalletsGen.createInflationDestinationReceived({error: error.message})
   }
 }
 
@@ -772,7 +780,7 @@ const linkExistingAccount = async (
     })
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
+    return WalletsGen.createLinkedExistingAccount({error: err.desc, name, secretKey})
   }
 }
 
@@ -790,7 +798,7 @@ const validateAccountName = async (
     return WalletsGen.createValidatedAccountName({name})
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createValidatedAccountNameError({error: err.desc, name})
+    return WalletsGen.createValidatedAccountName({error: err.desc, name})
   }
 }
 
@@ -808,7 +816,7 @@ const validateSecretKey = async (
     return WalletsGen.createValidatedSecretKey({secretKey})
   } catch (err) {
     logger.warn(`Error: ${err.desc}`)
-    return WalletsGen.createValidatedSecretKeyError({error: err.desc, secretKey})
+    return WalletsGen.createValidatedSecretKey({error: err.desc, secretKey})
   }
 }
 
@@ -828,7 +836,7 @@ const createdOrLinkedAccount = (
   _: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
-  if (actionHasError(action)) {
+  if (action.payload.error || !action.payload.accountID) {
     // Create new account failed, don't nav
     return false
   }
@@ -849,7 +857,7 @@ const navigateUp = (
   _: TypedState,
   action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
 ) => {
-  if (actionHasError(action)) {
+  if (action.type === WalletsGen.changedAccountName && action.payload.error) {
     // we don't want to nav on error
     return false
   }
@@ -1429,7 +1437,7 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
     _logger.warn(`Error: ${err.desc}`)
-    return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+    return [WalletsGen.createChangedTrustline({error: err.desc}), refresh]
   }
 }
 
@@ -1450,7 +1458,7 @@ const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}
     return [WalletsGen.createChangedTrustline(), refresh]
   } catch (err) {
     _logger.warn(`Error: ${err.desc}`)
-    return [WalletsGen.createChangedTrustlineError({error: err.desc}), refresh]
+    return [WalletsGen.createChangedTrustline({error: err.desc}), refresh]
   }
 }
 

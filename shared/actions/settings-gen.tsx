@@ -113,13 +113,11 @@ type _FeedbackSentPayload = {readonly error: Error | null}
 type _ImportContactsLaterPayload = void
 type _InvitesClearErrorPayload = void
 type _InvitesReclaimPayload = {readonly inviteId: string}
-type _InvitesReclaimedPayload = void
-type _InvitesReclaimedPayloadError = {readonly errorText: string}
+type _InvitesReclaimedPayload = {readonly errorText?: string}
 type _InvitesRefreshPayload = void
 type _InvitesRefreshedPayload = {readonly invites: Types._InvitesState}
 type _InvitesSendPayload = {readonly email: string; readonly message: string | null}
-type _InvitesSentPayload = void
-type _InvitesSentPayloadError = {readonly error: Error}
+type _InvitesSentPayload = {readonly error?: Error}
 type _LoadContactImportEnabledPayload = void
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
@@ -318,13 +316,9 @@ export const createInvitesReclaim = (payload: _InvitesReclaimPayload): InvitesRe
   payload,
   type: invitesReclaim,
 })
-export const createInvitesReclaimed = (payload: _InvitesReclaimedPayload): InvitesReclaimedPayload => ({
-  payload,
-  type: invitesReclaimed,
-})
-export const createInvitesReclaimedError = (
-  payload: _InvitesReclaimedPayloadError
-): InvitesReclaimedPayloadError => ({error: true, payload, type: invitesReclaimed})
+export const createInvitesReclaimed = (
+  payload: _InvitesReclaimedPayload = Object.freeze({})
+): InvitesReclaimedPayload => ({payload, type: invitesReclaimed})
 export const createInvitesRefresh = (payload: _InvitesRefreshPayload): InvitesRefreshPayload => ({
   payload,
   type: invitesRefresh,
@@ -337,12 +331,7 @@ export const createInvitesSend = (payload: _InvitesSendPayload): InvitesSendPayl
   payload,
   type: invitesSend,
 })
-export const createInvitesSent = (payload: _InvitesSentPayload): InvitesSentPayload => ({
-  payload,
-  type: invitesSent,
-})
-export const createInvitesSentError = (payload: _InvitesSentPayloadError): InvitesSentPayloadError => ({
-  error: true,
+export const createInvitesSent = (payload: _InvitesSentPayload = Object.freeze({})): InvitesSentPayload => ({
   payload,
   type: invitesSent,
 })
@@ -546,11 +535,6 @@ export type InvitesReclaimedPayload = {
   readonly payload: _InvitesReclaimedPayload
   readonly type: typeof invitesReclaimed
 }
-export type InvitesReclaimedPayloadError = {
-  readonly error: true
-  readonly payload: _InvitesReclaimedPayloadError
-  readonly type: typeof invitesReclaimed
-}
 export type InvitesRefreshPayload = {
   readonly payload: _InvitesRefreshPayload
   readonly type: typeof invitesRefresh
@@ -561,11 +545,6 @@ export type InvitesRefreshedPayload = {
 }
 export type InvitesSendPayload = {readonly payload: _InvitesSendPayload; readonly type: typeof invitesSend}
 export type InvitesSentPayload = {readonly payload: _InvitesSentPayload; readonly type: typeof invitesSent}
-export type InvitesSentPayloadError = {
-  readonly error: true
-  readonly payload: _InvitesSentPayloadError
-  readonly type: typeof invitesSent
-}
 export type LoadContactImportEnabledPayload = {
   readonly payload: _LoadContactImportEnabledPayload
   readonly type: typeof loadContactImportEnabled
@@ -771,12 +750,10 @@ export type Actions =
   | InvitesClearErrorPayload
   | InvitesReclaimPayload
   | InvitesReclaimedPayload
-  | InvitesReclaimedPayloadError
   | InvitesRefreshPayload
   | InvitesRefreshedPayload
   | InvitesSendPayload
   | InvitesSentPayload
-  | InvitesSentPayloadError
   | LoadContactImportEnabledPayload
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload

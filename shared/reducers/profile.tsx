@@ -3,7 +3,6 @@ import * as Types from '../constants/types/profile'
 import * as More from '../constants/types/more'
 import * as Constants from '../constants/profile'
 import * as Validators from '../util/simple-validators'
-import {actionHasError} from '../util/container'
 
 const updateUsername = (state: Types.State) => {
   let username = state.username || ''
@@ -52,11 +51,11 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.cleanupUsername:
       return updateUsername(state)
     case ProfileGen.revokeFinish:
-      return state.merge({revokeError: actionHasError(action) ? action.payload.error : ''})
+      return state.merge({revokeError: action.payload.error ? action.payload.error : ''})
     case ProfileGen.submitBlockUser:
       return state.merge({blockUserModal: 'waiting'})
     case ProfileGen.finishBlockUser:
-      return state.merge({blockUserModal: actionHasError(action) ? {error: action.payload.error} : null})
+      return state.merge({blockUserModal: action.payload.error ? {error: action.payload.error} : null})
     case ProfileGen.updateProofText:
       return state.merge({proofText: action.payload.proof})
     case ProfileGen.updateProofStatus:

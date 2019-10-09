@@ -3,14 +3,6 @@ import path from 'path'
 import json5 from 'json5'
 import fs from 'fs'
 
-interface Payload {
-  _description?: string
-}
-
-type ErrorPayload = {
-  canError: string
-} & Payload
-
 type ActionNS = string
 type ActionName = string
 type ActionDesc = any
@@ -34,7 +26,7 @@ const payloadHasType = (payload, toFind) => {
     if (Array.isArray(ps)) {
       return ps.some(p => toFind.exec(p))
     } else {
-      return param === 'canError' ? payloadHasType(ps, toFind) : toFind.exec(ps)
+      return toFind.exec(ps)
     }
   })
 }
@@ -71,10 +63,6 @@ ${compileAllActionsType(actions)}  | {type: 'common:resetStore', payload: {}}
 `
 }
 
-function canError(x: ActionDesc): x is ErrorPayload {
-  return !!(x as ErrorPayload).canError
-}
-
 const compileActionMap = (ns: ActionNS, actions: Actions) => {
   Object.keys(actions).forEach(name => {
     typeMap.push(`    '${ns}:${name}': ${cleanName(ns)}.${capitalize(name)}Payload`)
@@ -83,11 +71,7 @@ const compileActionMap = (ns: ActionNS, actions: Actions) => {
 
 function compileAllActionsType(actions: Actions): string {
   const actionsTypes = Object.keys(actions)
-    .map(
-      (name: ActionName) =>
-        `${capitalize(name)}Payload` +
-        (canError(actions[name]) ? `\n  | ${capitalize(name)}PayloadError` : '')
-    )
+    .map((name: ActionName) => `${capitalize(name)}Payload`)
     .sort()
     .join('\n  | ')
   return `// prettier-ignore
@@ -126,32 +110,17 @@ function printPayload(p: Object) {
     : 'void'
 }
 
-function compileActionPayloads(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return (
-    `export type ${capitalize(actionName)}Payload = {readonly payload: _${capitalize(
-      actionName
-    )}Payload, readonly type: typeof ${actionName}}` +
-    (canError(desc)
-      ? `\n export type ${capitalize(
-          actionName
-        )}PayloadError = {readonly error: true, readonly payload: _${capitalize(
-          actionName
-        )}PayloadError, readonly type: typeof ${actionName}}`
-      : '')
-  )
+function compileActionPayloads(_: ActionNS, actionName: ActionName) {
+  return `export type ${capitalize(actionName)}Payload = {readonly payload: _${capitalize(
+    actionName
+  )}Payload, readonly type: typeof ${actionName}}`
 }
 
 function compilePayloadTypes(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  const {canError, ...noErrorPayload} = desc as ErrorPayload
-
-  return (
-    `type _${capitalize(actionName)}Payload = ${printPayload(noErrorPayload)}` +
-    (canError ? `\n type _${capitalize(actionName)}PayloadError = ${printPayload(canError)}` : '')
-  )
+  return `type _${capitalize(actionName)}Payload = ${printPayload(desc)}`
 }
 
 function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  const {canError: canErrorStr, ...noErrorPayload} = desc as ErrorPayload
   return (
     (desc._description
       ? `/**
@@ -160,17 +129,10 @@ function compileActionCreator(_: ActionNS, actionName: ActionName, desc: ActionD
     `
       : '') +
     `export const create${capitalize(actionName)} = (payload: _${capitalize(actionName)}Payload${
-      payloadOptional(noErrorPayload) ? ' = Object.freeze({})' : ''
+      payloadOptional(desc) ? ' = Object.freeze({})' : ''
     }): ${capitalize(actionName)}Payload => (
   { payload, type: ${actionName}, }
-)` +
-    (canError(desc)
-      ? `\n export const create${capitalize(actionName)}Error = (payload: _${capitalize(
-          actionName
-        )}PayloadError): ${capitalize(actionName)}PayloadError  => (
-    { error: true, payload, type: ${actionName}, }
-  )`
-      : '')
+)`
   )
 }
 
