@@ -1241,8 +1241,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	}); err != nil {
 		return err
 	}
-	h.G().Badger.Send(ctx)
-	return nil
+	return h.G().Badger.Send(ctx)
 }
 
 func (h *Server) RetryPost(ctx context.Context, arg chat1.RetryPostArg) (err error) {

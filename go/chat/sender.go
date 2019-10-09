@@ -1426,7 +1426,10 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
 			chat1.ChatActivitySource_LOCAL)
 		s.alertFailureChannels(marked)
-		s.G().Badger.Send(context.Background())
+		if err := s.G().Badger.Send(context.Background()); err != nil {
+			s.Debug(ctx, "failMessage: unable to update badger: %v", err)
+			return err
+		}
 	}
 	return nil
 }
