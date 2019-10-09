@@ -59,7 +59,8 @@ class CodePage2 extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this.props.onClose()
+    // Troubleshooting modal may send us back to the devices page; it already cancels in that case
+    !this.state.troubleshooting && this.props.onClose()
   }
 
   static _validTabs = (deviceType: DeviceType, otherDeviceType) => {
@@ -126,7 +127,6 @@ class CodePage2 extends React.Component<Props, State> {
       <Kb.Box2
         direction="vertical"
         fullWidth={true}
-        fullHeight={true}
         style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
       >
         <Kb.Box2
@@ -164,7 +164,7 @@ class CodePage2 extends React.Component<Props, State> {
           </Kb.Box2>
         </Kb.Box2>
         {!this._inModal() &&
-          this.props.otherDeviceType === 'desktop' &&
+          currentDeviceType === 'desktop' &&
           !this.props.currentDeviceAlreadyProvisioned &&
           this._heyWaitBanner()}
         {!this._inModal() && this.state.troubleshooting && (
@@ -176,8 +176,7 @@ class CodePage2 extends React.Component<Props, State> {
     )
   }
   _footer = () => {
-    const showHeyWaitInFooter =
-      this.props.otherDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
+    const showHeyWaitInFooter = currentDeviceType === 'mobile' && !this.props.currentDeviceAlreadyProvisioned
     return {
       content: (
         <Kb.Box2
@@ -223,7 +222,9 @@ class CodePage2 extends React.Component<Props, State> {
       <Kb.Banner color="yellow">
         <Kb.BannerParagraph
           bannerColor="yellow"
-          content={[`Wait, I'm on that ${Styles.isMobile ? 'phone' : 'computer'} right now!`]}
+          content={[
+            `Wait, I'm on that ${this.props.otherDeviceType === 'mobile' ? 'phone' : 'computer'} right now!`,
+          ]}
         />
       </Kb.Banner>
     </Kb.ClickableBox>
@@ -233,6 +234,7 @@ class CodePage2 extends React.Component<Props, State> {
     <Troubleshooting
       mode={this.state.tab === 'QR' ? 'QR' : 'text'}
       onCancel={() => this.setState({troubleshooting: false})}
+      otherDeviceType={this.props.otherDeviceType}
     />
   )
   // We're in a modal unless this is a desktop being newly provisioned.
@@ -247,7 +249,13 @@ class CodePage2 extends React.Component<Props, State> {
     const content = this._body()
     if (this._inModal()) {
       return (
-        <Kb.Modal header={this._header()} footer={this._footer()} onClose={this.props.onBack} mode="Wide">
+        <Kb.Modal
+          header={this._header()}
+          footer={this._footer()}
+          onClose={this.props.onBack}
+          mode="Wide"
+          mobileStyle={{backgroundColor: this._tabBackground()}}
+        >
           {content}
         </Kb.Modal>
       )
@@ -419,8 +427,7 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.small,
           marginLeft: Styles.globalMargins.xsmall,
           marginTop: 56, // we're under the header, need to shift down
-          // else the background can go above things, annoyingly
-          zIndex: 1,
+          zIndex: undefined, // annoyingly this is set inside Kb.BackButton
         },
         isMobile: {
           marginBottom: 0,
@@ -443,6 +450,7 @@ const styles = Styles.styleSheetCreate(
       },
       codePageContainer: Styles.platformStyles({
         common: {
+          flex: 1,
           overflow: 'hidden',
           position: 'relative',
         },

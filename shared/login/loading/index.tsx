@@ -31,6 +31,7 @@ const Splash = (props: Props) => {
     if (!__STORYBOOK__) {
       setShowFeedbackTrueLater()
     }
+    // eslint-disable-next-line
   }, [])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">

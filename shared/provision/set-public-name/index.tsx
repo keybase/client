@@ -14,9 +14,10 @@ type Props = {
 const SetPublicName = (props: Props) => {
   const [deviceName, setDeviceName] = React.useState('')
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
+  const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
-    props.onSubmit(Constants.cleanDeviceName(cleanDeviceName))
-  }, [deviceName])
+    _onSubmit(Constants.cleanDeviceName(cleanDeviceName))
+  }, [cleanDeviceName, _onSubmit])
 
   return (
     <SignupScreen

@@ -150,6 +150,7 @@ const load = () => {
         search={Sb.action('search')}
         searchResults={[
           {
+            contact: false,
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
@@ -167,6 +168,7 @@ const load = () => {
             username: 'chris',
           },
           {
+            contact: false,
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
@@ -183,6 +185,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            contact: false,
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
@@ -244,6 +247,7 @@ const load = () => {
         search={Sb.action('search')}
         searchResults={[
           {
+            contact: false,
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
@@ -261,6 +265,7 @@ const load = () => {
             username: 'chris',
           },
           {
+            contact: false,
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
@@ -277,6 +282,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            contact: false,
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
@@ -385,6 +391,7 @@ const load = () => {
         search={Sb.action('search')}
         searchResults={[
           {
+            contact: false,
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
@@ -402,6 +409,7 @@ const load = () => {
             username: 'chris',
           },
           {
+            contact: false,
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
@@ -418,6 +426,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            contact: false,
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
@@ -460,6 +469,7 @@ const load = () => {
         search={Sb.action('search')}
         searchResults={[
           {
+            contact: false,
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
@@ -477,6 +487,7 @@ const load = () => {
             username: 'chris',
           },
           {
+            contact: false,
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
@@ -493,6 +504,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            contact: false,
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,
@@ -535,6 +547,7 @@ const load = () => {
         search={Sb.action('search')}
         searchResults={[
           {
+            contact: false,
             displayLabel: 'Chris Coyne',
             followingState: 'Following' as const,
             inTeam: true,
@@ -552,6 +565,7 @@ const load = () => {
             username: 'chris',
           },
           {
+            contact: false,
             displayLabel: 'Chris Mikacle',
             followingState: 'NotFollowing' as const,
             inTeam: false,
@@ -568,6 +582,7 @@ const load = () => {
             username: 'chrismikacle',
           },
           {
+            contact: false,
             displayLabel: 'Chris Nojima',
             followingState: 'Following' as const,
             inTeam: false,

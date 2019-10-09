@@ -3,9 +3,9 @@ import * as I from 'immutable'
 import * as Common from './common'
 import * as Message from './message'
 import * as RPCChatTypes from '../rpc-chat-gen'
+import * as TeamTypes from '../teams'
 import {RetentionPolicy} from '../retention-policy'
 
-export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type MembershipType = 'active' | 'youArePreviewing' | 'youAreReset'
 export type TeamType = 'small' | 'big' | 'adhoc'
 
@@ -33,7 +33,7 @@ export type _ConversationMeta = {
   maxMsgID: number
   maxVisibleMsgID: number
   membershipType: MembershipType
-  minWriterRole: TeamRoleType // minimum role to be able to write into a channel,
+  minWriterRole: TeamTypes.TeamRoleType // minimum role to be able to write into a channel,
   notificationsDesktop: NotificationsType
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -83,7 +82,7 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		Type:        keybase1.PassphraseType_PASS_PHRASE,
 		Username:    e.username,
 		Prompt: fmt.Sprintf("Please enter the Keybase password for %s ("+
-			"%d+ characters) if you know it", e.username, libkb.MinPassphraseLength),
+			"%d+ characters) if you know it (if not, cancel this prompt)", e.username, libkb.MinPassphraseLength),
 		Features: keybase1.GUIEntryFeatures{
 			ShowTyping: keybase1.Feature{
 				Allow:        true,
@@ -100,7 +99,7 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 	}
 
 	if len(e.username) == 0 {
-		err = libkb.NewResetMissingParamsError("Unable to start autoreset process, no username provided")
+		err = libkb.NewResetMissingParamsError("Unable to start reset process, no username provided")
 		return
 	}
 
@@ -131,14 +130,18 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		username = e.username
 	}
 
+	willVerifyUnverifiedState := false
 	if self {
 		status, err := e.loadResetStatus(mctx)
 		if err != nil {
 			return err
 		}
-		// If there's a reset, and it's been verified already
-		if status.ResetID != nil && status.EventType != libkb.AutoresetEventStart {
-			return e.resetPrompt(mctx, status)
+		if status.ResetID != nil {
+			if status.EventType == libkb.AutoresetEventStart {
+				willVerifyUnverifiedState = true
+			} else {
+				return e.resetPrompt(mctx, status)
+			}
 		}
 	}
 
@@ -154,7 +157,18 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 	mctx.G().Log.Debug("autoreset/enter result: %s", res.Body.MarshalToDebug())
-	mctx.G().Log.Info("Your account has been added to the reset pipeline.")
+	if willVerifyUnverifiedState {
+		// If we got here, then we supplied a correct passphrase thus verifying
+		// a pipeline that was previously in START.
+		mctx.G().Log.Info("Your account's reset request is now verified.")
+	} else {
+		mctx.G().Log.Info("Your account has been added to the reset pipeline.")
+		if !self {
+			mctx.G().Log.Info("Please check your email and phone for instructions on continuing. If you remember your correct password or you want to resend verification emails and texts, retry this command.")
+		} else {
+			mctx.G().Log.Info("To check the status of your reset request, login again with your Keybase password.")
+		}
+	}
 	e.resetPending = true
 
 	// Ask the server, so that we have the correct reset time to tell the UI
@@ -224,6 +238,7 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		}
 		if !shouldReset {
 			// noop
+			mctx.Info("Reset not completed.")
 			return nil
 		}
 
@@ -259,8 +274,8 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		notificationText = "Please log in to finish resetting your account."
 	default:
 		notificationText = fmt.Sprintf(
-			"You will be able to reset your account in %s.",
-			humanize.Time(readyTime),
+			"You will be able to reset your account %s.",
+			libkb.HumanizeResetTime(readyTime),
 		)
 	}
 	if err := mctx.UIs().LoginUI.DisplayResetProgress(mctx.Ctx(), keybase1.DisplayResetProgressArg{

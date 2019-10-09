@@ -61,6 +61,7 @@ export default namedConnect(
     )
     return {
       _containsLatestMessage,
+      _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
       _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
       _metaMap: state.chat2.metaMap,
@@ -173,9 +174,9 @@ export default namedConnect(
       const ret = stateProps.prependText ? stateProps.prependText.stringValue() + unsentText : unsentText
       // If we have nothing still, check to see if the service told us about a draft and fill that in
       if (!ret) {
-        const meta = stateProps._metaMap.get(stateProps.conversationIDKey)
-        if (meta && meta.draft) {
-          return meta.draft
+        const draft = stateProps._draft
+        if (draft) {
+          return draft
         }
       }
       return ret

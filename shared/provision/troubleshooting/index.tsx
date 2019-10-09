@@ -3,11 +3,12 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as DevicesConstants from '../../constants/devices'
-import * as DeviceTypes from '../../constants/types/devices'
+import * as Types from '../../constants/types/devices'
 import * as ProvisionGen from '../../actions/provision-gen'
 type Props = {
   mode: 'QR' | 'text'
   onCancel: () => void
+  otherDeviceType: Types.DeviceType
 }
 
 type BigButtonProps = {
@@ -15,41 +16,57 @@ type BigButtonProps = {
   mainText: string
   onClick: () => void
   subText: string
+  waiting: boolean
 }
 
-const BigButton = ({onClick, icon, mainText, subText}: BigButtonProps) => (
-  <Kb.ClickableBox onClick={onClick}>
+const BigButton = ({onClick, icon, mainText, subText, waiting}: BigButtonProps) => (
+  <Kb.ClickableBox onClick={waiting ? undefined : onClick}>
     <Kb.Box2
       direction={Styles.isMobile ? 'horizontal' : 'vertical'}
       style={styles.bigButton}
       className="hover_background_color_blueLighter2"
     >
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.buttonIcon} gap="tiny">
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        style={Styles.collapseStyles([styles.buttonIcon, waiting && Styles.globalStyles.opacity0])}
+        gap="tiny"
+      >
         <Kb.Icon type={icon} sizeType="Big" color={Styles.globalColors.blue} />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.buttonText}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.buttonText, waiting && Styles.globalStyles.opacity0])}
+      >
         <Kb.Text type="Body">{mainText}</Kb.Text>
         <Kb.Text type="BodySmall">{subText}</Kb.Text>
       </Kb.Box2>
+      {waiting && (
+        <Kb.Box2 direction="vertical" style={styles.bigButtonWaiting} centerChildren={true}>
+          <Kb.ProgressIndicator />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   </Kb.ClickableBox>
 )
 
 const Troubleshooting = (props: Props) => {
   const dispatch = Container.useDispatch()
+  const [waiting, setWaiting] = React.useState(false)
   const onBack = props.onCancel
   const username = Container.useSelector(state => state.provision.username)
   const onWayBack = React.useCallback(() => {
-    dispatch(ProvisionGen.createSubmitUsername({username}))
-  }, [username])
+    dispatch(ProvisionGen.createBackToDeviceList({username}))
+    setWaiting(true)
+  }, [dispatch, username])
 
   const deviceName = Container.useSelector(state => state.provision.codePageOtherDeviceName)
-  const deviceMap: Map<string, DeviceTypes.Device> = Container.useSelector(state => state.devices.deviceMap)
+  const deviceMap: Map<string, Types.Device> = Container.useSelector(state => state.devices.deviceMap)
   const deviceId = Container.useSelector(state => state.provision.codePageOtherDeviceId)
   const deviceIconNo = DevicesConstants.getDeviceIconNumberInner(deviceMap, deviceId)
 
   // If we can't load the device icon, show the wrong one instead of erroring the whole page.
-  const otherDeviceIcon = `icon-${Styles.isMobile ? 'phone' : 'computer'}-background-${
+  const otherDeviceIcon = `icon-${props.otherDeviceType === 'mobile' ? 'phone' : 'computer'}-background-${
     deviceIconNo === -1 ? 1 : deviceIconNo
   }-64` as Kb.IconType
 
@@ -73,6 +90,7 @@ const Troubleshooting = (props: Props) => {
               hideBorder: true,
             }
       }
+      mobileStyle={styles.mobileModal}
       mode="Wide"
     >
       <Kb.Box2 direction="vertical" gap="small" alignItems="center">
@@ -96,12 +114,14 @@ const Troubleshooting = (props: Props) => {
             icon={otherDeviceIcon}
             mainText={`I have my old "${deviceName}," let me use it to authorize.`}
             subText={`Back to ${props.mode} code`}
+            waiting={false}
           />
           <BigButton
             onClick={onWayBack}
             icon="iconfont-reply"
             mainText="I'll use a different device, or reset my account."
             subText="Back to list"
+            waiting={waiting}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -118,6 +138,7 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
+      position: 'relative',
     },
     isElectron: {
       maxWidth: 252,
@@ -127,6 +148,10 @@ const styles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
   }),
+  bigButtonWaiting: {
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.white_40,
+  },
   bodyMargins: Styles.platformStyles({
     isElectron: Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.xlarge, 0),
   }),
@@ -147,4 +172,7 @@ const styles = Styles.styleSheetCreate(() => ({
       maxWidth: 188,
     },
   }),
+  mobileModal: {
+    backgroundColor: Styles.globalColors.white,
+  },
 }))

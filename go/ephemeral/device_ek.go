@@ -184,17 +184,39 @@ func allDeviceEKMetadataMaybeStale(mctx libkb.MetaContext, merkleRoot libkb.Merk
 	// match deviceEK sigs with the device that issued them below. (Checking
 	// the signing key is intentionally the only way to do this, so that we're
 	// forced to check authenticity.)
-	kidToDevice := map[keybase1.KID]keybase1.PublicKey{}
-	self, _, err := mctx.G().GetUPAKLoader().Load(libkb.NewLoadUserArgWithMetaContext(
-		mctx).WithUID(mctx.ActiveDevice().UID()))
+	getDeviceKIDs := func(force bool) (map[keybase1.KID]keybase1.PublicKey, error) {
+		arg := libkb.NewLoadUserArgWithMetaContext(
+			mctx).WithUID(mctx.ActiveDevice().UID())
+		if force {
+			arg = arg.WithForceReload()
+		}
+		self, _, err := mctx.G().GetUPAKLoader().Load(arg)
+		if err != nil {
+			return nil, err
+		}
+		kidToDevice := map[keybase1.KID]keybase1.PublicKey{}
+		for _, device := range self.Base.DeviceKeys {
+			if device.IsRevoked {
+				continue
+			}
+			kidToDevice[device.KID] = device
+		}
+		return kidToDevice, nil
+	}
+
+	kidToDevice, err := getDeviceKIDs(false)
 	if err != nil {
 		return nil, err
 	}
-	for _, device := range self.Base.DeviceKeys {
-		if device.IsRevoked {
-			continue
+
+	if len(kidToDevice) != len(parsedResponse.Sigs) {
+		mctx.Debug("mismatch of active devices in UPAK to device EK sigs (%d (upak) != %d (ek sigs), attempting force reload.", len(kidToDevice), len(parsedResponse.Sigs))
+		// force a reload in case we are missing a device
+		kidToDevice, err = getDeviceKIDs(true)
+		if err != nil {
+			return nil, err
 		}
-		kidToDevice[device.KID] = device
+		mctx.Debug("%d active devices found after force reload vs %d sigs.", len(kidToDevice), len(parsedResponse.Sigs))
 	}
 
 	// The client now needs to verify two things about these blobs its

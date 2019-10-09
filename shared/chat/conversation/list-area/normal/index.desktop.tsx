@@ -559,21 +559,18 @@ type OrdinalWaypointProps = {
 }
 
 type OrdinalWaypointState = {
-  height?: number
-  heightForOrdinals: Array<Types.Ordinal>
-  isVisible: boolean
-  width?: number
+  force: number
 }
 
 class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypointState> {
   state = {
-    height: undefined,
-    heightForOrdinals: [],
-    isVisible: true,
-    //actually is used
-    // eslint-disable-next-line react/no-unused-state
-    width: undefined,
+    force: 0,
   }
+  // not state so we can really control the re-rendering
+  private height?: number
+  private heightForOrdinals: Array<Types.Ordinal> = []
+  private isVisible = true
+  private width?: number
   private animID?: number
 
   componentWillUnmount() {
@@ -593,22 +590,34 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
   // we defer settings things invisible for a little bit, which seems enough to fix it
   private handlePositionChange = p => {
     // lets ignore when this happens, this seems like a large source of jiggliness
-    if (this.state.isVisible && !p.event) {
+    if (this.isVisible && !p.event) {
       return
     }
     const {currentPosition} = p
     if (currentPosition) {
-      const isVisible = currentPosition === 'inside'
+      const isInside = currentPosition === 'inside'
       this.cancelAnim()
-      if (isVisible) {
-        this.setState(p => (!p.isVisible ? {isVisible: true} : null))
+      if (isInside) {
+        if (!this.isVisible) {
+          this.isVisible = true
+          this.customForceUpdate()
+        }
       } else {
         this.animID = window.requestAnimationFrame(() => {
           this.animID = 0
-          this.setState(p => (p.isVisible ? {isVisible: false} : null))
+          if (this.isVisible) {
+            this.isVisible = false
+            this.customForceUpdate()
+          }
         })
       }
     }
+  }
+
+  private customForceUpdate = () => {
+    // We really want to control when this re-renders. We measure but just need this for bookkeeping and don't want to pay for the second render etc
+    // eslint-disable-next-line react/no-access-state-in-setstate
+    this.setState({force: this.state.force + 1})
   }
 
   private onResize = debounce(({bounds}) => {
@@ -616,92 +625,79 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     const width = Math.ceil(bounds.width)
 
     if (height && width) {
-      this.setState(p => {
-        let nextHeightState = {}
-        let nextWidthState = {}
-
-        // don't have a width at all or its unchanged
-        if (!p.width || p.width === width) {
-          if (p.height !== height) {
-            nextHeightState = {height}
-          }
-        } else {
-          // toss height if width changes
-          nextHeightState = {height: null}
+      let changed = false
+      // don't have a width at all or its unchanged
+      if (!this.width || this.width === width) {
+        if (this.height !== height) {
+          this.heightForOrdinals = this.props.ordinals
+          this.height = height
+          // don't redraw in this case
         }
+      } else {
+        // toss height if width changes
+        this.height = undefined
+        changed = true
+      }
 
-        if (p.width !== width) {
-          nextWidthState = {width}
+      if (this.width !== width) {
+        if (this.width !== undefined) {
+          changed = true
         }
+        this.width = width
+      }
 
-        return {
-          ...nextHeightState,
-          ...nextWidthState,
-        }
-      })
+      if (changed) {
+        this.customForceUpdate()
+      }
     }
   }, 100)
 
   private measure = debounce(() => {
-    this.setState(p => (p.height ? {height: undefined} : null))
+    if (this.height !== undefined) {
+      this.height = undefined
+      // eslint-disable-next-line react/no-access-state-in-setstate
+      this.setState({force: this.state.force + 1})
+    }
   }, 100)
 
   shouldComponentUpdate(nextProps: OrdinalWaypointProps, nextState: OrdinalWaypointState) {
-    let shouldUpdate = false
-
-    if (this.state.isVisible !== nextState.isVisible) {
-      shouldUpdate = true
-    }
-
-    if (!shallowEqual(this.props.ordinals, nextProps.ordinals)) {
-      shouldUpdate = true
-    }
-
-    if (this.state.height !== nextState.height) {
-      shouldUpdate = true
-    }
-
-    return shouldUpdate
-  }
-
-  static getDerivedStateFromProps(props: OrdinalWaypointProps, state: OrdinalWaypointState) {
-    if (!shallowEqual(props.ordinals, state.heightForOrdinals)) {
-      // if the ordinals changed remeasure
-      return {height: null, heightForOrdinals: props.ordinals}
-    }
-    return null
+    return !shallowEqual(this.state, nextState) || !shallowEqual(this.props.ordinals, nextProps.ordinals)
   }
 
   // Cache rendered children if the ordinals are the same, else we'll thrash a lot as we scroll up and down
   private lastVisibleChildrenOrdinals: Array<Types.Ordinal> = []
   private lastVisibleChildren: React.ReactNode = null
   render() {
+    if (!shallowEqual(this.props.ordinals, this.heightForOrdinals)) {
+      this.height = undefined
+    }
+
     // Apply data-key to the dom node so we can search for editing messages
-    const renderMessages = !this.state.height || this.state.isVisible
+    const renderMessages = !this.height || this.isVisible
     let content: React.ReactNode
     if (renderMessages) {
       if (this.props.ordinals === this.lastVisibleChildrenOrdinals && this.lastVisibleChildren) {
         // cache children to skip re-rendering
-        return this.lastVisibleChildren
+        content = this.lastVisibleChildren
+      } else {
+        const messages = this.props.ordinals.map((o, idx) => {
+          const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
+          return this.props.rowRenderer(o, previous, this.measure)
+        })
+        content = (
+          <Measure bounds={true} onResize={this.onResize}>
+            {({measureRef}) => (
+              <div data-key={this.props.id} ref={measureRef}>
+                {messages}
+              </div>
+            )}
+          </Measure>
+        )
+        this.lastVisibleChildrenOrdinals = this.props.ordinals
+        this.lastVisibleChildren = content
       }
-
-      const messages = this.props.ordinals.map((o, idx) => {
-        const previous = idx ? this.props.ordinals[idx - 1] : this.props.previous
-        return this.props.rowRenderer(o, previous, this.measure)
-      })
-      content = (
-        <Measure bounds={true} onResize={this.onResize}>
-          {({measureRef}) => (
-            <div data-key={this.props.id} ref={measureRef}>
-              {messages}
-            </div>
-          )}
-        </Measure>
-      )
-      this.lastVisibleChildrenOrdinals = this.props.ordinals
-      this.lastVisibleChildren = content
     } else {
-      content = <div data-key={this.props.id} style={{height: this.state.height}} />
+      content = <div data-key={this.props.id} style={{height: this.height}} />
     }
     return (
       <Waypoint key={this.props.id} onPositionChange={this.handlePositionChange}>

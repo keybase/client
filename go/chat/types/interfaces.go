@@ -554,10 +554,10 @@ type ReplyFiller interface {
 
 type UIInboxLoader interface {
 	Resumable
-	UpdateLayout(ctx context.Context, reason string) error
+	UpdateLayout(ctx context.Context, reason string)
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-		msg chat1.MessageBoxed, firstConv bool) error
-	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) error
+		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
+	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery,
 		pagination *chat1.Pagination, maxUnbox *int, skipUnverified bool) error

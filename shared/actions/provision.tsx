@@ -355,11 +355,11 @@ class ProvisioningManager {
     logger.info('ProvisioningManager.maybeCancelProvision')
     if (this._done) {
       logger.info('But provisioning is already done, nothing to do')
-      return
+      return false
     } else if (this._canceled) {
       // Unexpected - that means cancel action was called multiple times.
       logger.warn('But provisioning is already canceled')
-      return
+      return false
     }
 
     if (this._stashedResponse && this._stashedResponseKey) {
@@ -370,6 +370,7 @@ class ProvisioningManager {
     }
 
     this._canceled = true
+    return true
   }
 }
 
@@ -432,6 +433,8 @@ function* startProvisioning(state: Container.TypedState) {
         yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
         break
     }
+  } finally {
+    yield Saga.put(ProvisionGen.createProvisionDone())
   }
 }
 
@@ -467,6 +470,8 @@ function* addNewDevice() {
 
     yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: true}))
     logger.error(`Provision -> Add device error: ${finalError.message}`)
+  } finally {
+    yield Saga.put(ProvisionGen.createProvisionDone())
   }
 }
 
@@ -485,7 +490,9 @@ const submitPasswordOrPaperkey = (
   state: Container.TypedState,
   action: ProvisionGen.SubmitPasswordPayload | ProvisionGen.SubmitPaperkeyPayload
 ) => ProvisioningManager.getSingleton().submitPasswordOrPaperkey(state, action)
-const maybeCancelProvision = () => ProvisioningManager.getSingleton().maybeCancelProvision()
+const maybeCancelProvision = () => {
+  ProvisioningManager.getSingleton().maybeCancelProvision()
+}
 
 const showDeviceListPage = (state: Container.TypedState) =>
   !state.provision.error.stringValue() &&
@@ -553,6 +560,15 @@ const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.Forg
   }
 }
 
+function* backToDeviceList(_: Container.TypedState, action: ProvisionGen.BackToDeviceListPayload) {
+  const cancelled = ProvisioningManager.getSingleton().maybeCancelProvision()
+  if (cancelled) {
+    // must wait for previous session to close
+    yield Saga.take(ProvisionGen.provisionDone)
+  }
+  yield Saga.put(ProvisionGen.createSubmitUsername({username: action.payload.username}))
+}
+
 function* provisionSaga() {
   // Always ensure we have one live
   makeProvisioningManager(false)
@@ -587,6 +603,7 @@ function* provisionSaga() {
   yield* Saga.chainAction2(ProvisionGen.forgotUsername, forgotUsername)
 
   yield* Saga.chainAction2(ProvisionGen.cancelProvision, maybeCancelProvision)
+  yield* Saga.chainGenerator(ProvisionGen.backToDeviceList, backToDeviceList)
 }
 
 export const _testing = {

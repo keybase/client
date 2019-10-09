@@ -377,7 +377,8 @@ type bigTeam struct {
 
 func (b *bigTeam) sort() {
 	sort.Slice(b.convs, func(i, j int) bool {
-		return strings.Compare(b.convs[i].GetTopicName(), b.convs[j].GetTopicName()) < 0
+		return strings.Compare(strings.ToLower(b.convs[i].GetTopicName()),
+			strings.ToLower(b.convs[j].GetTopicName())) < 0
 	})
 }
 
@@ -506,9 +507,11 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
 			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
-			_ = h.UpdateConvs(ctx, convIDs)
+			if err := h.UpdateConvs(ctx, convIDs); err != nil {
+				h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+			}
 			// update layout again after we have done all this work to get everything in the right order
-			_ = h.UpdateLayout(ctx, "big team unbox")
+			h.UpdateLayout(ctx, "big team unbox")
 		case <-shutdownCh:
 			return nil
 		}
@@ -537,32 +540,32 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 	}
 }
 
-func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reason string) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "UpdateLayout: %s", reason)()
+func (h *UIInboxLoader) UpdateLayout(ctx context.Context, reason string) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayout: %s", reason)()
 	select {
 	case h.layoutCh <- struct{}{}:
 	default:
-		return errors.New("failed to queue layout update, queue full")
+		h.Debug(ctx, "failed to queue layout update, queue full")
 	}
-	return nil
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "UpdateLayoutFromNewMessage")()
+	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromNewMessage")()
 	if conv.GetTeamType() == chat1.TeamType_COMPLEX {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout for big team")
-		return nil
+		return
 	}
-	if firstConv && msg.GetMessageID() > 2 {
+	if firstConv && msg.GetMessageID() > 2 &&
+		utils.GetConversationStatusBehavior(previousStatus).ShowInInbox {
 		h.Debug(ctx, "UpdateLayoutFromNewMessage: skipping layout on first conv change")
-		return nil
+		return
 	}
-	return h.UpdateLayout(ctx, "new message")
+	h.UpdateLayout(ctx, "new message")
 }
 
-func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "UpdateLayoutFromSubteamRename")()
+func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSubteamRename")()
 	var bigTeamConvs []chat1.ConversationID
 	for _, conv := range convs {
 		if conv.GetTeamType() == chat1.TeamType_COMPLEX {
@@ -572,12 +575,13 @@ func (h *UIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs
 	if len(bigTeamConvs) > 0 {
 		h.queueBigTeamUnbox(bigTeamConvs)
 	}
-	return nil
 }
 
 func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) (err error) {
 	defer h.Trace(ctx, func() error { return err }, "UpdateConvs")()
-	query := h.Query()
-	query.ConvIDs = convIDs
+	query := chat1.GetInboxLocalQuery{
+		ComputeActiveList: true,
+		ConvIDs:           convIDs,
+	}
 	return h.LoadNonblock(ctx, &query, nil, nil, true)
 }

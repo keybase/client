@@ -21,9 +21,8 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   proofProviders: true,
-  resetPipeline: false,
+  resetPipeline: true,
   stellarExternalPartners: true,
-  wonderland: false,
 }
 
 // load overrides
