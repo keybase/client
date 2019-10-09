@@ -179,7 +179,11 @@ type RootMetadata struct {
 
 func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction, curr *RootMetadata, newRootHash Hash) (RootMetadata, error) {
 	if curr == nil {
-		return RootMetadata{Seqno: 1, BareRootHash: newRootHash}, nil
+		return RootMetadata{
+			Seqno:        1,
+			BareRootHash: newRootHash,
+			EncoderType:  t.cfg.Encoder.GetEncodingType(),
+		}, nil
 	}
 	newSeqno := curr.Seqno + 1
 	skipSeqnos := SkipPointersForSeqno(newSeqno)

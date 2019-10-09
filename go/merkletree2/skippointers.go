@@ -3,7 +3,6 @@ package merkletree2
 import (
 	"fmt"
 	"math"
-	"sort"
 )
 
 // The SkipPointers struct is constructed for a specific Seqno s (version) of
@@ -95,8 +94,6 @@ func ComputeRootHashesNeededInExtensionProof(start, end Seqno) (ret []Seqno, err
 			unnecessarySeqnoMap[s2] = true
 		}
 	}
-
-	sort.Sort(SeqnoSortedAsInt(ret))
 
 	return ret, nil
 }
