@@ -28,7 +28,7 @@ import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailSearch from './email-search'
 import * as Constants from '../constants/team-building'
-import PeopleResult from './people-result'
+import PeopleResult from './people-result/container'
 
 export const numSectionLabel = '0-9'
 

@@ -1,10 +1,11 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
-import * as Types from '../constants/types/team-building'
-import * as ChatConstants from '../constants/chat2'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as Types from '../../constants/types/team-building'
+import * as Tracker2Types from '../../constants/types/tracker2'
+import * as ChatConstants from '../../constants/chat2'
 import capitalize from 'lodash/capitalize'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from '../shared'
 
 export type Props = {
   // They are already a member in the actual team, not this temporary set.
@@ -19,6 +20,26 @@ export type Props = {
   highlight: boolean
   onAdd: () => void
   onRemove: () => void
+
+  // container stuff
+  followThem: boolean
+  followsYou: boolean
+  blocked: boolean
+  onAccept: () => void
+  onAddToTeam: () => void
+  onBrowsePublicFolder: () => void
+  onChat: () => void
+  onEditProfile: (() => void) | null
+  onFollow: () => void
+  onIgnoreFor24Hours: () => void
+  onOpenPrivateFolder: () => void
+  onReload: () => void
+  onRequestLumens: () => void
+  onSendLumens: () => void
+  onUnfollow: () => void
+  onBlock: () => void
+  onUnblock: () => void
+  state: Tracker2Types.DetailsState
 }
 
 /*
@@ -99,19 +120,21 @@ const PeopleResult = (props: Props) => {
             waitingKey={ChatConstants.waitingKeyCreating}
             onClick={e => {
               e.stopPropagation()
-              return null
+              props.onChat()
             }}
           >
             <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
           </Kb.WaitingButton>
           <DropdownButton
             key="dropdown"
-            onAddToTeam={() => null}
-            onOpenPrivateFolder={() => null}
-            onBrowsePublicFolder={() => null}
-            onSendLumens={() => null}
-            onRequestLumens={() => null}
-            onBlock={() => null}
+            onAddToTeam={props.onAddToTeam}
+            onOpenPrivateFolder={props.onOpenPrivateFolder}
+            onBrowsePublicFolder={props.onBrowsePublicFolder}
+            onSendLumens={props.onSendLumens}
+            onRequestLumens={props.onRequestLumens}
+            onBlock={props.onBlock}
+            onUnblock={props.onUnblock}
+            blocked={props.blocked}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -298,31 +321,33 @@ const Username = (props: {
   </Kb.Text>
 )
 
-type DropdownProps = {
-  onAddToTeam?: () => void
-  onOpenPrivateFolder?: () => void
-  onBrowsePublicFolder?: () => void
-  onSendLumens?: () => void
-  onRequestLumens?: () => void
-  onBlock?: () => void
-  onUnblock?: () => void
-}
+type DropdownProps = Pick<
+  Props,
+  | 'onAddToTeam'
+  | 'onOpenPrivateFolder'
+  | 'onBrowsePublicFolder'
+  | 'onSendLumens'
+  | 'onRequestLumens'
+  | 'onBlock'
+  | 'onUnblock'
+  | 'blocked'
+> & {onUnfollow?: () => void}
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items = [
-    {onClick: () => null, title: 'Add to team...'},
-    {onClick: () => null, title: 'Send Lumens (XLM)'},
-    {onClick: () => null, title: 'Request Lumens (XLM)'},
-    {onClick: () => null, title: 'Open private folder'},
-    {onClick: () => null, title: 'Browse public folder'},
-    // () => null},
-    // p.blocked
-    //   ? { danger: true, onClick: () => null}
-    //   : { danger: true, onClick: () => null},
+    {onClick: p.onAddToTeam, title: 'Add to team...'},
+    {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
+    {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
+    {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
+    p.blocked
+      ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
+      : {danger: true, onClick: p.onBlock, title: 'Block'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr
   }, [])
+
   return (
     <Kb.ClickableBox
       onClick={e => {
