@@ -28,6 +28,7 @@ import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailSearch from './email-search'
 import * as Constants from '../constants/team-building'
+import PeopleResult from './people-result'
 
 export const numSectionLabel = '0-9'
 
@@ -380,6 +381,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   )
 
   _listBody = () => {
+    const ResultRow = this.props.namespace === 'people' ? PeopleResult : UserResult
     const showRecPending =
       !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
     const showLoading = !!this.props.searchString && !this.props.searchResults
@@ -426,7 +428,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
               result.isImportButton ? (
                 <ContactsImportButton {...this.props} />
               ) : (
-                <UserResult
+                <ResultRow
                   resultForService={this.props.selectedService}
                   username={result.username}
                   prettyName={result.prettyName}
@@ -452,6 +454,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         </Kb.Box2>
       )
     }
+
     return (
       <Kb.List
         items={this.props.searchResults || []}
@@ -463,7 +466,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
-          <UserResult
+          <ResultRow
             resultForService={this.props.selectedService}
             username={result.username}
             prettyName={result.prettyName}
