@@ -473,9 +473,7 @@ func TestNoPasswordCliSignup(t *testing.T) {
 	require.Equal(t, expectedPrompts, sui.terminalPrompts)
 
 	ucli := keybase1.UserClient{Cli: user.primaryDevice().rpcClient()}
-	res, err := ucli.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{
-		ForceRepoll: true,
-	})
+	res, err := ucli.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, res, keybase1.PassphraseState_RANDOM)
 

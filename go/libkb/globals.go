@@ -84,7 +84,6 @@ type GlobalContext struct {
 	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
-	hasRandomPWPrefetcher  *HasRandomPWPrefetcher
 	stellar                Stellar            // Stellar related ops
 	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
 	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
@@ -639,12 +638,6 @@ func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamBoxAuditor
-}
-
-func (g *GlobalContext) GetHasRandomPWPrefetcher() *HasRandomPWPrefetcher {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
-	return g.hasRandomPWPrefetcher
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -1239,12 +1232,6 @@ func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamBoxAuditor = a
-}
-
-func (g *GlobalContext) SetHasRandomPWPrefetcher(p *HasRandomPWPrefetcher) {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	g.hasRandomPWPrefetcher = p
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {

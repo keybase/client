@@ -46,7 +46,7 @@ func (c *CmdAccountReset) checkRandomPW() error {
 	if err != nil {
 		return err
 	}
-	passphraseState, err := cli.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	passphraseState, err := cli.LoadPassphraseState(context.Background(), 0)
 	if err != nil {
 		return err
 	}

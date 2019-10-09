@@ -335,6 +335,18 @@
           "name": "passphraseState"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UserPassphraseStateMsg",
+      "fields": [
+        {
+          "type": "PassphraseState",
+          "name": "passphraseState",
+          "jsonkey": "state"
+        }
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {
@@ -687,10 +699,6 @@
         {
           "name": "sessionID",
           "type": "int"
-        },
-        {
-          "name": "forceRepoll",
-          "type": "boolean"
         }
       ],
       "response": "PassphraseState"
