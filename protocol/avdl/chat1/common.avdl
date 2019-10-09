@@ -357,6 +357,8 @@
     // server
     @mpackkey("rt") @jsonkey("rt")
     union { null, gregor1.Time } rtime;
+    @mpackkey("ur") @jsonkey("ur")
+    keybase1.TeamRole untrustedTeamRole;
   }
 
   record MessagePreviousPointer {

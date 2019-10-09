@@ -940,6 +940,12 @@
           "name": "rtime",
           "mpackkey": "rt",
           "jsonkey": "rt"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "untrustedTeamRole",
+          "mpackkey": "ur",
+          "jsonkey": "ur"
         }
       ]
     },

@@ -1173,14 +1173,15 @@ func (o ReactionMap) DeepCopy() ReactionMap {
 }
 
 type MessageServerHeader struct {
-	MessageID    MessageID     `codec:"messageID" json:"messageID"`
-	SupersededBy MessageID     `codec:"supersededBy" json:"supersededBy"`
-	ReactionIDs  []MessageID   `codec:"r" json:"r"`
-	UnfurlIDs    []MessageID   `codec:"u" json:"u"`
-	Replies      []MessageID   `codec:"replies" json:"replies"`
-	Ctime        gregor1.Time  `codec:"ctime" json:"ctime"`
-	Now          gregor1.Time  `codec:"n" json:"n"`
-	Rtime        *gregor1.Time `codec:"rt,omitempty" json:"rt,omitempty"`
+	MessageID         MessageID         `codec:"messageID" json:"messageID"`
+	SupersededBy      MessageID         `codec:"supersededBy" json:"supersededBy"`
+	ReactionIDs       []MessageID       `codec:"r" json:"r"`
+	UnfurlIDs         []MessageID       `codec:"u" json:"u"`
+	Replies           []MessageID       `codec:"replies" json:"replies"`
+	Ctime             gregor1.Time      `codec:"ctime" json:"ctime"`
+	Now               gregor1.Time      `codec:"n" json:"n"`
+	Rtime             *gregor1.Time     `codec:"rt,omitempty" json:"rt,omitempty"`
+	UntrustedTeamRole keybase1.TeamRole `codec:"ur" json:"ur"`
 }
 
 func (o MessageServerHeader) DeepCopy() MessageServerHeader {
@@ -1229,6 +1230,7 @@ func (o MessageServerHeader) DeepCopy() MessageServerHeader {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Rtime),
+		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
 	}
 }
 
