@@ -1,11 +1,21 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import * as Types from '../../constants/types/team-building'
-import * as Tracker2Types from '../../constants/types/tracker2'
-import * as ChatConstants from '../../constants/chat2'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import * as Types from '../constants/types/team-building'
+import * as Tracker2Constants from '../constants/tracker2'
+import * as FsConstants from '../constants/fs'
+import * as FsTypes from '../constants/types/fs'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as ProfileGen from '../actions/profile-gen'
+import * as WalletsGen from '../actions/wallets-gen'
+import * as WalletsType from '../constants/types/wallets'
+import * as ChatConstants from '../constants/chat2'
+import * as Container from '../util/container'
+import * as Chat2Gen from '../actions/chat2-gen'
+import * as ConfigGen from '../actions/config-gen'
+
 import capitalize from 'lodash/capitalize'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from '../shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
 export type Props = {
   // They are already a member in the actual team, not this temporary set.
@@ -20,26 +30,6 @@ export type Props = {
   highlight: boolean
   onAdd: () => void
   onRemove: () => void
-
-  // container stuff
-  followThem: boolean
-  followsYou: boolean
-  blocked: boolean
-  onAccept: () => void
-  onAddToTeam: () => void
-  onBrowsePublicFolder: () => void
-  onChat: () => void
-  onEditProfile: (() => void) | null
-  onFollow: () => void
-  onIgnoreFor24Hours: () => void
-  onOpenPrivateFolder: () => void
-  onReload: () => void
-  onRequestLumens: () => void
-  onSendLumens: () => void
-  onUnfollow: () => void
-  onBlock: () => void
-  onUnblock: () => void
-  state: Tracker2Types.DetailsState
 }
 
 /*
@@ -58,6 +48,7 @@ export type Props = {
  *    {service icons} if the user has proofs
  */
 const PeopleResult = (props: Props) => {
+  const dispatch = Container.useDispatch()
   /*
    * Regardless of the service that is being searched, if we find that a
    * service user is also a keybase user, we also want to show their keybase
@@ -68,6 +59,102 @@ const PeopleResult = (props: Props) => {
   const serviceUsername = props.services[props.resultForService]
   const onAdd = !props.isPreExistingTeamMember ? props.onAdd : undefined
   const onRemove = !props.isPreExistingTeamMember ? props.onRemove : undefined
+
+  // action button specific definitions
+  const myUsername = Container.useSelector(state => state.config.username)
+  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
+  const blocked = userDetails.blocked
+
+  const onMenuAddToTeam = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {username: props.username}, selected: 'profileAddToTeam'}],
+      })
+    )
+  const onOpenPrivateFolder = React.useCallback(() => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(
+      FsConstants.makeActionForOpenPathInFilesTab(
+        FsTypes.stringToPath(`/keybase/private/${props.username},${myUsername}`)
+      )
+    )
+  }, [dispatch, myUsername, props.username])
+  const onBrowsePublicFolder = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(
+      FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${props.username}`))
+    )
+  }
+  const onSendLumens = () =>
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({
+        from: WalletsType.noAccountID,
+        isRequest: false,
+        recipientType: 'keybaseUser',
+        to: props.username,
+      })
+    )
+  const onRequestLumens = () =>
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({
+        from: WalletsType.noAccountID,
+        isRequest: true,
+        recipientType: 'keybaseUser',
+        to: props.username,
+      })
+    )
+  const onBlock = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {username: props.username}, selected: 'profileBlockUser'}],
+      })
+    )
+  const onUnblock = React.useCallback(
+    () => dispatch(ProfileGen.createSubmitUnblockUser({guiID: userDetails.guiID, username: props.username})),
+    [dispatch, props.username, userDetails.guiID]
+  )
+  const onChat = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(ConfigGen.createShowMain()) // TODO: ?
+    dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'tracker'}))
+  }
+
+  const dropdown = keybaseUsername ? (
+    <DropdownButton
+      key="dropdown"
+      onAddToTeam={onMenuAddToTeam}
+      onOpenPrivateFolder={onOpenPrivateFolder}
+      onBrowsePublicFolder={onBrowsePublicFolder}
+      onSendLumens={onSendLumens}
+      onRequestLumens={onRequestLumens}
+      onBlock={onBlock}
+      onUnblock={onUnblock}
+      blocked={blocked} // typing???
+    />
+  ) : (
+    <DropdownButton
+      // if a result isn't on keybase yet, the only action we can show is opening private folder
+      key="dropdown"
+      onOpenPrivateFolder={onOpenPrivateFolder}
+    />
+  )
+
+  const chatButton = (
+    <Kb.WaitingButton
+      key="Chat"
+      label="Chat"
+      small={true}
+      waitingKey={ChatConstants.waitingKeyCreating}
+      onClick={e => {
+        e.stopPropagation() // instead of using onAdd, use onChat logic
+        onChat()
+      }}
+    >
+      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
+    </Kb.WaitingButton>
+  )
+
+  const buttons = [chatButton, dropdown]
 
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
@@ -113,29 +200,7 @@ const PeopleResult = (props: Props) => {
           )}
         </Kb.Box2>
         <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal">
-          <Kb.WaitingButton
-            key="Chat"
-            label="Chat"
-            small={true}
-            waitingKey={ChatConstants.waitingKeyCreating}
-            onClick={e => {
-              e.stopPropagation()
-              props.onChat()
-            }}
-          >
-            <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
-          </Kb.WaitingButton>
-          <DropdownButton
-            key="dropdown"
-            onAddToTeam={props.onAddToTeam}
-            onOpenPrivateFolder={props.onOpenPrivateFolder}
-            onBrowsePublicFolder={props.onBrowsePublicFolder}
-            onSendLumens={props.onSendLumens}
-            onRequestLumens={props.onRequestLumens}
-            onBlock={props.onBlock}
-            onUnblock={props.onUnblock}
-            blocked={props.blocked}
-          />
+          {buttons}
         </Kb.Box2>
       </Kb.Box2>
     </Kb.ClickableBox>
@@ -321,28 +386,30 @@ const Username = (props: {
   </Kb.Text>
 )
 
-type DropdownProps = Pick<
-  Props,
-  | 'onAddToTeam'
-  | 'onOpenPrivateFolder'
-  | 'onBrowsePublicFolder'
-  | 'onSendLumens'
-  | 'onRequestLumens'
-  | 'onBlock'
-  | 'onUnblock'
-  | 'blocked'
-> & {onUnfollow?: () => void}
+type DropdownProps = {
+  onAddToTeam?: () => void
+  onOpenPrivateFolder?: () => void
+  onBrowsePublicFolder?: () => void
+  onSendLumens?: () => void
+  onRequestLumens?: () => void
+  onBlock?: () => void
+  onUnblock?: () => void
+  blocked?: boolean
+  onUnfollow?: () => void
+}
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items = [
-    {onClick: p.onAddToTeam, title: 'Add to team...'},
-    {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
-    p.blocked
-      ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
-      : {danger: true, onClick: p.onBlock, title: 'Block'},
+    p.onAddToTeam && {onClick: p.onAddToTeam, title: 'Add to team...'},
+    p.onSendLumens && {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    p.onRequestLumens && {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
+    p.onOpenPrivateFolder && {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
+    p.onBrowsePublicFolder && {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
+    p.onUnblock &&
+      p.onBlock &&
+      (p.blocked
+        ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
+        : {danger: true, onClick: p.onBlock, title: 'Block'}),
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i)
     return arr
