@@ -53,6 +53,9 @@ export type PlaintextProps = {
   title?: string
 }
 
+let WithProfileCardPopup: React.ComponentType<any> | null
+export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
+
 function UsernameText(props: Props) {
   const derivedJoinerStyle = Styles.collapseStyles([
     props.joinerStyle,
@@ -60,7 +63,6 @@ function UsernameText(props: Props) {
     {color: props.commaColor},
   ])
 
-  const {WithProfileCardPopup} = require('../../profile/card')
   return (
     <>
       {props.users.map((u, i) => {
@@ -126,7 +128,7 @@ function UsernameText(props: Props) {
             {i !== props.users.length - 1 && ' '}
           </Text>
         )
-        return props.withProfileCardPopup ? (
+        return props.withProfileCardPopup && WithProfileCardPopup ? (
           <WithProfileCardPopup username={u.username}>{renderText}</WithProfileCardPopup>
         ) : (
           renderText()

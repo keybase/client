@@ -1,4 +1,3 @@
-import * as Kb from '../common-adapters'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
@@ -6,8 +5,31 @@ import * as Container from '../util/container'
 import * as Tracker2Constants from '../constants/tracker2'
 import * as Tracker2Types from '../constants/types/tracker2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import {capitalize} from 'lodash-es'
-import FollowButton from './user/actions/follow-button'
+import capitalize from 'lodash-es/capitalize'
+import Box, {Box2} from './box'
+import ClickableBox from './clickable-box'
+import ConnectedNameWithIcon from './name-with-icon/container'
+import {_setWithProfileCardPopup} from './usernames'
+import FloatingMenu from './floating-menu'
+import Icon from './icon'
+import Meta from './meta'
+import ProgressIndicator from './progress-indicator'
+import Text from './text'
+import WithTooltip from './with-tooltip'
+import FollowButton from '../profile/user/actions/follow-button'
+
+const Kb = {
+  Box,
+  Box2,
+  ClickableBox,
+  ConnectedNameWithIcon,
+  FloatingMenu,
+  Icon,
+  Meta,
+  ProgressIndicator,
+  Text,
+  WithTooltip,
+}
 
 type Props = {
   clickToProfile?: true
@@ -176,6 +198,8 @@ export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupP
   )
 }
 
+_setWithProfileCardPopup(WithProfileCardPopup)
+
 export default ProfileCard
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -207,13 +231,13 @@ const styles = Styles.styleSheetCreate(() => ({
   expand: {
     paddingLeft: Styles.globalMargins.xtiny,
   },
-  serviceIcons: {
-    flexWrap: 'wrap',
-    padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
-  },
   popupTextContainer: Styles.platformStyles({
     isElectron: {
       display: 'inline-block',
     },
   }),
+  serviceIcons: {
+    flexWrap: 'wrap',
+    padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
+  },
 }))

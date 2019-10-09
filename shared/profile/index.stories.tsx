@@ -8,7 +8,6 @@ import proveWebsite from './prove-website-choice/index.stories'
 import revoke from './revoke/index.stories'
 import block from './block/index.stories'
 import profile from './profile.stories'
-import card from './card.stories'
 
 const load = () => {
   ;[
@@ -22,7 +21,6 @@ const load = () => {
     proveWebsite,
     revoke,
     block,
-    card,
   ].forEach(load => load())
 }
 

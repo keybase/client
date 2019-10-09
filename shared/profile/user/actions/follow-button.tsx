@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {WaitingButton} from '../../../common-adapters'
+import WaitingButton from '../../../common-adapters/waiting-button'
 import * as Styles from '../../../styles'
 
 type Props = {

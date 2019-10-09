@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import ProfileCard from './card'
+import ProfileCard from './profile-card'
 
 export const provider = Sb.createPropProviderWithCommon({})
 
