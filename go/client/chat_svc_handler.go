@@ -46,6 +46,7 @@ type ChatServiceHandler interface {
 	ListCommandsV1(context.Context, listCommandsOptionsV1) Reply
 	PinV1(context.Context, pinOptionsV1) Reply
 	UnpinV1(context.Context, unpinOptionsV1) Reply
+	ReplyV1(context.Context, replyOptionsV1, chat1.ChatUiInterface) Reply
 	GetResetConvMembersV1(context.Context) Reply
 	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
 }
@@ -404,6 +405,24 @@ func (c *chatServiceHandler) UnpinV1(ctx context.Context, opts unpinOptionsV1) R
 		RateLimits: c.aggRateLimits(allLimits),
 	}
 	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) ReplyV1(ctx context.Context, opts replyOptionsV1, chatUI chat1.ChatUiInterface) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
+	arg := sendArgV1{
+		conversationID:    convID,
+		channel:           opts.Channel,
+		body:              chat1.NewMessageBodyWithText(chat1.MessageText{ReplyTo: opts.ReplyTo, Body: opts.Message.Body}),
+		mtype:             chat1.MessageType_TEXT,
+		response:          "message replied to",
+		nonblock:          opts.Nonblock,
+		ephemeralLifetime: opts.EphemeralLifetime,
+		replyTo:           opts.ReplyTo,
+	}
+	return c.sendV1(ctx, arg, chatUI)
 }
 
 func (c *chatServiceHandler) GetResetConvMembersV1(ctx context.Context) Reply {

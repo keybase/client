@@ -49,6 +49,7 @@ const (
 	methodUnpin               = "unpin"
 	methodGetResetConvMembers = "getresetconvmembers"
 	methodAddResetConvMember  = "addresetconvmember"
+	methodReply               = "reply"
 )
 
 // ChatAPIHandler can handle all of the chat json api methods.
@@ -81,6 +82,7 @@ type ChatAPIHandler interface {
 	UnpinV1(context.Context, Call, io.Writer) error
 	GetResetConvMembersV1(context.Context, Call, io.Writer) error
 	AddResetConvMemberV1(context.Context, Call, io.Writer) error
+	ReplyV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -599,6 +601,33 @@ func (o unpinOptionsV1) Check() error {
 	return nil
 }
 
+func (e replyOptionsV1) Check() error {
+	if err := checkChannelConv(methodReply, e.Channel, e.ConversationID); err != nil {
+		return err
+	}
+
+	if e.ReplyTo == nil {
+		return ErrInvalidOptions{version: 1, method: methodReply, err: errors.New("invalid message id")}
+	}
+
+	if !e.Message.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodReply, err: errors.New("invalid message")}
+	}
+
+	return nil
+}
+
+type replyOptionsV1 struct {
+	Channel           ChatChannel
+	ConversationID    string `json:"conversation_id"`
+	Message           ChatMessage
+	Nonblock          bool              `json:"nonblock"`
+	MembersType       string            `json:"members_type"`
+	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
+	ConfirmLumenSend  bool              `json:"confirm_lumen_send"`
+	ReplyTo           *chat1.MessageID  `json:"reply_to"`
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -983,6 +1012,24 @@ func (a *ChatAPI) UnpinV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.UnpinV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) ReplyV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodReply, err: errors.New("empty options")}
+	}
+	var opts replyOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for reply v1
+
+	chatUI := NewChatAPIUI(AllowStellarPayments(opts.ConfirmLumenSend))
+	return a.encodeReply(c, a.svcHandler.ReplyV1(ctx, opts, chatUI), w)
 }
 
 type addResetConvMemberOptionsV1 struct {

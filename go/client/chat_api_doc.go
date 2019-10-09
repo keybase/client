@@ -111,4 +111,7 @@ Pin a message to a chat:
 
 Unpin the message of chat:
    {"method": "unpin", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Reply to a message:
+    {"method": "reply", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "reply_to": 314, "message": {"body": "reply message"}}}}
 `

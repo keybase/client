@@ -42,6 +42,7 @@ type handlerTracker struct {
 	listCommandsV1      int
 	pinV1               int
 	unpinV1             int
+	replyV1             int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -174,6 +175,11 @@ func (h *handlerTracker) UnpinV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) ReplyV1(context.Context, Call, io.Writer) error {
+	h.replyV1++
+	return nil
+}
+
 func (h *handlerTracker) GetResetConvMembersV1(context.Context, Call, io.Writer) error {
 	return nil
 }
@@ -295,6 +301,10 @@ func (c *chatEcho) UnpinV1(context.Context, unpinOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) ReplyV1(context.Context, replyOptionsV1, chat1.ChatUiInterface) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) GetResetConvMembersV1(context.Context) Reply {
 	return Reply{Result: echoOK}
 }
@@ -323,6 +333,7 @@ type topTest struct {
 	listConvsOnNameV1 int
 	pinV1             int
 	unpinV1           int
+	replyV1           int
 }
 
 var topTests = []topTest{
@@ -354,6 +365,7 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "listconvsonname", "params":{"version": 1}}`, listConvsOnNameV1: 1},
 	{input: `{"id": 39, "method": "pin", "params":{"version": 1}}`, pinV1: 1},
 	{input: `{"id": 39, "method": "unpin", "params":{"version": 1}}`, unpinV1: 1},
+	{input: `{"id": 29, "method": "reply", "params":{"version": 1}}`, replyV1: 1},
 }
 
 // TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
@@ -427,6 +439,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.unpinV1 != test.unpinV1 {
 			t.Errorf("test %d: input %s => unpinV1 = %d, expected %d",
 				i, test.input, h.unpinV1, test.unpinV1)
+		}
+		if h.replyV1 != test.replyV1 {
+			t.Errorf("test %d: input %s => replyV1 = %d, expected %d", i, test.input, h.replyV1, test.replyV1)
 		}
 	}
 }
@@ -696,6 +711,36 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"method": "unpin", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
+	{
+		input: `{"id": 29, "method": "reply", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 29, "method": "reply", "params":{"version": 1, "options": {}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reply", "params":{"version": 1, "options": {"reply_to": 0}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reply", "params":{"version": 1, "options": {"reply_to": 19}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reply", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "reply_to": 123, "message": {"body": ""}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reply", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "replied"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "reply", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "reply_to": 123, "message": {"body": "replied"}}}}`,
+	},
+	{
+		input: `{"id": 30, "method": "reply", "params":{"version": 1, "options": {"conversation_id": "333", "reply_to": 123, "message": {"body": "replied"}}}}`,
 	},
 }
 

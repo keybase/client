@@ -82,6 +82,8 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.PinV1(ctx, c, w)
 	case methodUnpin:
 		return d.handler.UnpinV1(ctx, c, w)
+	case methodReply:
+		return d.handler.ReplyV1(ctx, c, w)
 	case methodGetResetConvMembers:
 		return d.handler.GetResetConvMembersV1(ctx, c, w)
 	case methodAddResetConvMember:
