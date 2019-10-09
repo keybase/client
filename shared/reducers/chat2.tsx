@@ -541,9 +541,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           action.payload.info
         )
         return
-      case Chat2Gen.clearCommandStatusInfo:
-        draftState.commandStatusMap = draftState.commandStatusMap.delete(action.payload.conversationIDKey)
+      case Chat2Gen.clearCommandStatusInfo: {
+        const {conversationIDKey} = action.payload
+        const commandStatusMap = new Map(draftState.commandStatusMap)
+        commandStatusMap.delete(conversationIDKey)
+        draftState.commandStatusMap = commandStatusMap
         return
+      }
       case Chat2Gen.giphyToggleWindow: {
         const conversationIDKey = action.payload.conversationIDKey
         draftState.giphyWindowMap = draftState.giphyWindowMap.set(conversationIDKey, action.payload.show)
@@ -1499,7 +1503,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.attachmentDownloaded: {
-        const {message} = action.payload
+        // @ts-ignore remove canError actions soon
+        const {message, path, conversationIDKey} = action.payload
         if (
           !actionHasError(action) &&
           draftState.attachmentFullscreenSelection &&
@@ -1512,25 +1517,26 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             message: message.set('downloadPath', action.payload.path || null),
           }
         }
-        draftState.attachmentViewMap = draftState.attachmentViewMap.updateIn(
-          [message.conversationIDKey, RPCChatTypes.GalleryItemTyp.doc],
-          (info = Constants.initialAttachmentViewInfo) =>
-            info.merge({
-              messages: info.messages.update(
-                info.messages.findIndex((item: any) => item.id === message.id),
-                (item: any) =>
-                  item
-                    ? item.merge({
-                        // @ts-ignore we aren't checking for the errors!
-                        downloadPath: action.payload.path,
-                        fileURLCached: true,
-                        transferProgress: 0,
-                        transferState: null,
-                      })
-                    : item
-              ),
-            })
-        )
+
+        const attachmentViewMap = new Map(draftState.attachmentViewMap)
+        const viewMap = new Map(attachmentViewMap.get(conversationIDKey) || [])
+        const viewType = RPCChatTypes.GalleryItemTyp.doc
+        const old = viewMap.get(viewType) || Constants.initialAttachmentViewInfo
+        const messages = old.messages
+        const idx = old.messages.findIndex(item => item.id === message.id)
+        if (idx !== -1) {
+          const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
+          old.messages[idx] = m.merge({
+            // @ts-ignore we aren't checking for the errors!
+            downloadPath: path,
+            fileURLCached: true,
+            transferProgress: 0,
+            transferState: null,
+          })
+        }
+        viewMap.set(viewType, {...old, messages})
+        attachmentViewMap.set(conversationIDKey, viewMap)
+        draftState.attachmentViewMap = attachmentViewMap
 
         draftState.metaMap = metaMapReducer(draftState.metaMap, action)
         draftState.messageMap = messageMapReducer(

@@ -28,12 +28,12 @@ const emptySet = new Set()
 export const makeState = (): Types.State => ({
   accountsInfoMap: I.Map(),
   attachmentFullscreenSelection: undefined,
-  attachmentViewMap: I.Map(),
+  attachmentViewMap: new Map(),
   badgeMap: I.Map(), // id to the badge count
   botCommandsUpdateStatusMap: I.Map(),
   channelSearchText: '',
   commandMarkdownMap: I.Map(),
-  commandStatusMap: I.Map(),
+  commandStatusMap: new Map(),
   containsLatestMessageMap: I.Map(),
   createConversationError: null,
   dismissedInviteBannersMap: I.Map(),
@@ -50,7 +50,7 @@ export const makeState = (): Types.State => ({
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
-  lastCoord: null,
+  lastCoord: undefined,
   maybeMentionMap: I.Map(),
   messageCenterOrdinals: I.Map(), // ordinals to center threads on,
   messageMap: I.Map(), // messages in a thread,

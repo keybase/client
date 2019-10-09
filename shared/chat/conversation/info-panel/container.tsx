@@ -54,10 +54,8 @@ const ConnectedInfoPanel = Container.connect(
     const isPreview = meta.membershipType === 'youArePreviewing'
     const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
     const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
-    const attachmentInfo: Types.AttachmentViewInfo = state.chat2.attachmentViewMap.getIn(
-      [conversationIDKey, selectedAttachmentView],
-      Constants.makeAttachmentViewInfo()
-    )
+    const m = state.chat2.attachmentViewMap.get(conversationIDKey)
+    const attachmentInfo = (m && m.get(selectedAttachmentView)) || Constants.makeAttachmentViewInfo()
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
     return {
       _attachmentInfo: attachmentInfo,
