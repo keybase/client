@@ -124,6 +124,7 @@ protocol user {
     UID uid;
     string username;
     string fullname;
+    map<string, string> serviceMap;
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
 

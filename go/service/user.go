@@ -6,6 +6,9 @@ package service
 import (
 	"fmt"
 	"sort"
+	"time"
+
+	"github.com/keybase/client/go/uidmap"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
@@ -281,6 +284,10 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		h.G().Log.Debug("InterestingPeople: failed in UIDMapper: %s, but continuing", err.Error())
 	}
 
+	const serviceMapFreshness = 24 * time.Hour
+	serviceMaps := h.G().ServiceMapper.MapUIDsToServiceSummaries(ctx, h.G(), uids,
+		serviceMapFreshness, uidmap.DisallowNetworkBudget)
+
 	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {
 			// We asked UIDMapper for cached data only, this username was missing.
@@ -293,6 +300,9 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		}
 		if fn := packages[i].FullName; fn != nil {
 			ret.Fullname = fn.FullName.String()
+		}
+		if smap, found := serviceMaps[uid]; found {
+			ret.ServiceMap = smap.ServiceMap
 		}
 		res = append(res, ret)
 	}

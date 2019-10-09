@@ -216,9 +216,10 @@ func (o UserSummary2Set) DeepCopy() UserSummary2Set {
 }
 
 type InterestingPerson struct {
-	Uid      UID    `codec:"uid" json:"uid"`
-	Username string `codec:"username" json:"username"`
-	Fullname string `codec:"fullname" json:"fullname"`
+	Uid        UID               `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	Fullname   string            `codec:"fullname" json:"fullname"`
+	ServiceMap map[string]string `codec:"serviceMap" json:"serviceMap"`
 }
 
 func (o InterestingPerson) DeepCopy() InterestingPerson {
@@ -226,6 +227,18 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
 		Fullname: o.Fullname,
+		ServiceMap: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ServiceMap),
 	}
 }
 

@@ -229,6 +229,14 @@
         {
           "type": "string",
           "name": "fullname"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "serviceMap"
         }
       ]
     },

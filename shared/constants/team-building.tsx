@@ -155,13 +155,29 @@ export const selfToUser = (you: string): Types.User => ({
   username: you,
 })
 
+type HasServiceMap = {
+  username: string
+  serviceMap: {[key: string]: String}
+}
+
+const pluckServiceMap = (contact: HasServiceMap) =>
+  Object.entries(contact.serviceMap || {})
+    .concat([['keybase', contact.username]])
+    .reduce(
+      (acc, [service, username]) => {
+        acc[service] = username
+        return acc
+      },
+      {} as Types.ServiceMap
+    )
+
 export const contactToUser = (contact: RPCTypes.ProcessedContact): Types.User => ({
   contact: true,
   id: contact.assertion,
   label: contact.displayLabel,
   prettyName: contact.displayName,
   serviceId: contact.component.phoneNumber ? 'phone' : 'email',
-  serviceMap: {keybase: contact.username},
+  serviceMap: pluckServiceMap(contact),
   username: contact.component.email || contact.component.phoneNumber || '',
 })
 
@@ -171,7 +187,7 @@ export const interestingPersonToUser = (person: RPCTypes.InterestingPerson): Typ
     id: username,
     prettyName: fullname,
     serviceId: 'keybase' as const,
-    serviceMap: {keybase: username},
+    serviceMap: pluckServiceMap(person),
     username: username,
   }
 }

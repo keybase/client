@@ -6,6 +6,7 @@ package client
 import (
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -36,6 +37,8 @@ func (c *CmdInterestingPeople) Run() error {
 	for _, user := range users {
 		_ = c.G().UI.GetTerminalUI().Output(user.Username + "\n")
 	}
+
+	spew.Dump(users)
 	return nil
 }
 func NewCmdInterestingPeopleRunner(g *libkb.GlobalContext) *CmdInterestingPeople {
