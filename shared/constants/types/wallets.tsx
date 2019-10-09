@@ -315,7 +315,7 @@ export type AccountInflationDestination = I.RecordOf<_AccountInflationDestinatio
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
-export type AirdropState = 'loading' | 'accepted' | 'qualified' | 'unqualified' | 'needDisclaimer'
+export type AirdropState = 'loading' | 'accepted' | 'qualified' | 'unqualified' | 'needDisclaimer' | 'rejected'
 
 export type _AirdropQualification = {
   title: string

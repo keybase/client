@@ -200,7 +200,7 @@ class Qualified extends React.PureComponent<Props, State> {
               growFadeInSmall: true,
             })}
           >
-            {rows.map((r, idx) => (
+            {this.props.state !== 'rejected' && rows.map((r, idx) => (
               <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
             ))}
           </Kb.Box2>

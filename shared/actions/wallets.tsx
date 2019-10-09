@@ -1206,7 +1206,10 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
         // ignore those errors and we'll fix it when we refresh status below.
         break
       default:
-        throw err
+        return WalletsGen.createUpdatedAirdropState({
+          airdropQualifications: [],
+          airdropState: 'rejected',
+        })
     }
   }
   return WalletsGen.createUpdateAirdropState() // reload
