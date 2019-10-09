@@ -122,13 +122,10 @@ const reclaimInvite = async (_: TypedState, action: SettingsGen.InvitesReclaimPa
       },
       Constants.settingsWaitingKey
     )
-    return [SettingsGen.createInvitesReclaimed(), SettingsGen.createInvitesRefresh()]
+    return [SettingsGen.createInvitesRefresh()]
   } catch (e) {
     logger.warn('Error reclaiming an invite:', e)
-    return [
-      SettingsGen.createInvitesReclaimed({errorText: e.desc + e.name}),
-      SettingsGen.createInvitesRefresh(),
-    ]
+    return [SettingsGen.createInvitesRefresh()]
   }
 }
 
