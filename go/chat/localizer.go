@@ -994,7 +994,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
 			10*time.Second, true)
 		if err != nil {
-			s.Debug(ctx, "localizeConversation: UIDMapper returned an error: %s", err)
+			s.Debug(ctx, "localizeConversation: team UIDMapper returned an error: %s", err)
 		}
 		for _, row := range rows {
 			conversationLocal.Info.Participants = append(conversationLocal.Info.Participants,
@@ -1016,16 +1016,45 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			s.getResetUsernamesMetadata(ctx, umapper, conversationRemote),
 			resetUsernamesPegboard,
 		)
-		fallthrough
-	case chat1.ConversationMembersType_KBFS:
+		var kuids []keybase1.UID
+		for _, uid := range info.VerifiedMembers {
+			kuids = append(kuids, keybase1.UID(uid.String()))
+		}
+		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24, 10*time.Second, true)
+		if err != nil {
+			s.Debug(ctx, "localizeConversation: impteam UIDMapper returned an error: %s", err)
+			errMsg := fmt.Sprintf("error getting usernames of participants: %s", err)
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+		var verifiedUsernames []string
+		for _, row := range rows {
+			verifiedUsernames = append(verifiedUsernames, row.NormalizedUsername.String())
+		}
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(
+			s.G().MetaContext(ctx),
+			s.G(),
+			umapper,
+			conversationLocal.Info.TlfName,
+			verifiedUsernames,
+			conversationRemote.Metadata.ActiveList)
+		if err != nil {
+			errMsg := fmt.Sprintf("error reordering participants: %s", err)
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+		utils.AttachContactNames(s.G().MetaContext(ctx), conversationLocal.Info.Participants)
+	case chat1.ConversationMembersType_KBFS:
+		conversationLocal.Info.Participants, err = utils.ReorderParticipantsKBFS(
 			s.G().MetaContext(ctx),
 			s.G(),
 			umapper,
 			conversationLocal.Info.TlfName,
 			conversationRemote.Metadata.ActiveList)
 		if err != nil {
-			errMsg := fmt.Sprintf("error reordering participants: %v", err.Error())
+			errMsg := fmt.Sprintf("error reordering participants: %s", err)
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 			return conversationLocal
@@ -1098,7 +1127,7 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	rekeyInfo.TlfPublic = conversationRemote.MaxMsgSummaries[0].TlfPublic
 
 	// Fill readers and writers
-	parts, err := utils.ReorderParticipants(
+	parts, err := utils.ReorderParticipantsKBFS(
 		s.G().MetaContext(ctx),
 		s.G(),
 		s.G().UIDMapper,

@@ -110,7 +110,7 @@ export const TeamMember = (props: Props) => {
             color={Styles.globalColors.white}
           />
         </Kb.Button>
-        {props.admin && (
+        {props.admin && user.type !== 'bot' && user.type !== 'restrictedbot' && (
           <FloatingRolePicker
             selectedRole={props.selectedRole}
             presetRole={props.user.type}

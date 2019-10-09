@@ -14,7 +14,7 @@ type OwnProps = Container.PropsWithSafeNavigation<{
 
 const mapStateToProps = (state: Container.TypedState, {infoPanelOpen, conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  const _participants = meta.teamname ? null : meta.participants
+  const _participants = meta.teamname ? null : meta.nameParticipants
   const _contactNames = meta.participantToContactName
 
   return {

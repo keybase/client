@@ -541,7 +541,7 @@ const uiMessageToSystemMessage = (
       // TODO @mikem admins is always empty?
       const {adder = '', addee = '', team = '', admins = null} = body.addedtoteam || {}
       const roleEnum = body.addedtoteam ? body.addedtoteam.role : undefined
-      const role = roleEnum ? TeamConstants.teamRoleWithBotsByEnum[roleEnum] : 'none'
+      const role = roleEnum ? TeamConstants.teamRoleByEnum[roleEnum] : 'none'
       const isAdmin = (admins || []).includes(minimum.author)
       return makeMessageSystemAddedToTeam({
         ...minimum,

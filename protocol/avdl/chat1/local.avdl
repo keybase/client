@@ -540,6 +540,7 @@ protocol local {
 
   record ConversationLocalParticipant {
     string username;
+    boolean inConvName;
     union { null, string } fullname;
     union { null, string } contactName;
   }

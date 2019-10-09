@@ -34,12 +34,13 @@ export type _ConversationMeta = {
   maxVisibleMsgID: number
   membershipType: MembershipType
   minWriterRole: TeamTypes.TeamRoleType // minimum role to be able to write into a channel,
+  nameParticipants: I.List<string> // participants used for the conv name
   notificationsDesktop: NotificationsType
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
   participantToContactName: I.Map<string, string>
-  participants: I.List<string> // was OrderedSet but is quite slow,
+  participants: I.List<string> // participants to show in the info panel
   pinnedMsg: PinnedMessageInfo | null
   readMsgID: number
   rekeyers: I.Set<string>

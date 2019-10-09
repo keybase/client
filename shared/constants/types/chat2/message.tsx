@@ -286,7 +286,7 @@ export type MessageSystemGitPush = I.RecordOf<_MessageSystemGitPush>
 export type _MessageSystemAddedToTeam = {
   addee: string
   adder: string
-  role: TeamTypes.MaybeTeamRoleTypeWithBots
+  role: TeamTypes.MaybeTeamRoleType
   isAdmin: boolean
   team: string
   type: 'systemAddedToTeam'

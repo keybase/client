@@ -91,10 +91,10 @@ func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.Co
 func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
 	if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
-		name = publicConvNamePrefix + strings.Join(conv.Names(), ",")
+		name = publicConvNamePrefix + strings.Join(conv.ConvNameNames(), ",")
 	} else {
-		name = strings.Join(v.without(g, conv.Names(), myUsername), ",")
-		if len(conv.Names()) == 1 && conv.Names()[0] == myUsername {
+		name = strings.Join(v.without(g, conv.ConvNameNames(), myUsername), ",")
+		if len(conv.ConvNameNames()) == 1 && conv.ConvNameNames()[0] == myUsername {
 			// The user is the only writer.
 			name = myUsername
 		}

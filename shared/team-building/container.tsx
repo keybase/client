@@ -23,6 +23,11 @@ import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
 
+// TODO remove when bots are fully integrated in gui
+type TeamRoleTypeWithoutBots = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
+const filterRole = (r: TeamRoleType): TeamRoleTypeWithoutBots =>
+  r === 'bot' || r === 'restrictedbot' ? 'reader' : r
+
 type OwnProps = {
   filterServices?: Array<Types.ServiceIdWithContact>
   incFocusInputCounter: () => void
@@ -177,7 +182,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       state.config.following,
       preExistingTeamMembers
     ),
-    selectedRole: teamBuildingState.teamBuildingSelectedRole,
+    selectedRole: filterRole(teamBuildingState.teamBuildingSelectedRole),
     sendNotification: teamBuildingState.teamBuildingSendNotification,
     serviceResultCount: deriveServiceResultCount(
       teamBuildingState.teamBuildingSearchResults,
@@ -326,9 +331,9 @@ const deriveOnDownArrowKeyDown = memoize(
 
 const deriveRolePickerArrowKeyFns = memoize(
   (
-    selectedRole: TeamRoleType,
+    selectedRole: TeamRoleTypeWithoutBots,
     disabledRoles: DisabledReasonsForRolePicker,
-    onSelectRole: (role: TeamRoleType) => void
+    onSelectRole: (role: TeamRoleTypeWithoutBots) => void
   ) => ({
     downArrow: () => {
       const nextRole = nextRoleDown(selectedRole)

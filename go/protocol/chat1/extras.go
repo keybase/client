@@ -1248,7 +1248,16 @@ func (c ConversationLocal) MaxVisibleMsgID() MessageID {
 	return maxMsgID
 }
 
-func (c ConversationLocal) Names() (res []string) {
+func (c ConversationLocal) ConvNameNames() (res []string) {
+	for _, p := range c.Info.Participants {
+		if p.InConvName {
+			res = append(res, p.Username)
+		}
+	}
+	return res
+}
+
+func (c ConversationLocal) AllNames() (res []string) {
 	for _, p := range c.Info.Participants {
 		res = append(res, p.Username)
 	}
