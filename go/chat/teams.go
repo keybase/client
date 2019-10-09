@@ -702,9 +702,18 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 		return res, err
 	}
 	t.Debug(ctx, "LookupName: got name: %s", impTeamName.String())
+	members, err := team.Members()
+	if err != nil {
+		return res, err
+	}
+	var verifiedMembers []gregor1.UID
+	for _, member := range members.AllUIDs() {
+		verifiedMembers = append(verifiedMembers, gregor1.UID(member.ToBytes()))
+	}
 	return types.NameInfo{
-		ID:            tlfID,
-		CanonicalName: impTeamName.String(),
+		ID:              tlfID,
+		CanonicalName:   impTeamName.String(),
+		VerifiedMembers: verifiedMembers,
 	}, nil
 }
 

@@ -44,8 +44,9 @@ func NewAllCryptKeys() AllCryptKeys {
 }
 
 type NameInfo struct {
-	ID            chat1.TLFID
-	CanonicalName string
+	ID              chat1.TLFID
+	CanonicalName   string
+	VerifiedMembers []gregor1.UID // may be empty if we couldn't satisfy the request
 }
 
 func NewNameInfo() *NameInfo {

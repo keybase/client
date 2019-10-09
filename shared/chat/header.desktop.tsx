@@ -285,7 +285,7 @@ const Connected = Container.connect(
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
       onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? meta.participants.toArray() : null,
+      participants: meta.teamType === 'adhoc' ? meta.nameParticipants.toArray() : null,
       showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
       unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
       username: stateProps.username,
