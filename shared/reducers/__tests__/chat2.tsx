@@ -110,24 +110,20 @@ describe('chat2 reducer', () => {
       })
 
       const state1 = reducer(initialState, setAction)
-      expect(state1.quote).toEqual(
-        Constants.makeQuoteInfo({
-          counter: 1,
-          ordinal: Types.numberToOrdinal(1),
-          sourceConversationIDKey: conversationIDKey,
-          targetConversationIDKey: conversationIDKey,
-        })
-      )
+      expect(state1.quote).toEqual({
+        counter: 1,
+        ordinal: Types.numberToOrdinal(1),
+        sourceConversationIDKey: conversationIDKey,
+        targetConversationIDKey: conversationIDKey,
+      })
 
       const state2 = reducer(state1, setAction)
-      expect(state2.quote).toEqual(
-        Constants.makeQuoteInfo({
-          counter: 2,
-          ordinal: Types.numberToOrdinal(1),
-          sourceConversationIDKey: conversationIDKey,
-          targetConversationIDKey: conversationIDKey,
-        })
-      )
+      expect(state2.quote).toEqual({
+        counter: 2,
+        ordinal: Types.numberToOrdinal(1),
+        sourceConversationIDKey: conversationIDKey,
+        targetConversationIDKey: conversationIDKey,
+      })
     })
   })
 })
