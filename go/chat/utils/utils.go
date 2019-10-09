@@ -154,6 +154,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	}
 	for _, user := range srcWriterNames {
 		convNameUsers[user] = true
+		allowedWriters[user] = true
 	}
 
 	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24,
@@ -162,9 +163,7 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	if err == nil {
 		for i := 0; i < len(activeKuids); i++ {
 			part := UsernamePackageToParticipant(packages[i])
-			if convNameUsers[part.Username] {
-				part.InConvName = true
-			}
+			part.InConvName = convNameUsers[part.Username]
 			activeMap[activeKuids[i].String()] = part
 		}
 	}
@@ -184,18 +183,17 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
-	for _, user := range verifiedMembers {
-		if allowed := allowedWriters[user]; allowed {
-			part := UsernamePackageToParticipant(libkb.UsernamePackage{
-				NormalizedUsername: libkb.NewNormalizedUsername(user),
-				FullName:           nil,
-			})
-			if convNameUsers[part.Username] {
-				part.InConvName = true
-			}
-			writerNames = append(writerNames, part)
-			allowedWriters[user] = false
+	for user, available := range allowedWriters {
+		if !available {
+			continue
 		}
+		part := UsernamePackageToParticipant(libkb.UsernamePackage{
+			NormalizedUsername: libkb.NewNormalizedUsername(user),
+			FullName:           nil,
+		})
+		part.InConvName = convNameUsers[part.Username]
+		writerNames = append(writerNames, part)
+		allowedWriters[user] = false
 	}
 
 	return writerNames, nil
