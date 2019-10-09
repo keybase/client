@@ -6,8 +6,11 @@ import * as RPCChatTypes from './rpc-chat-gen'
 import {TeamBuildingSubState} from './team-building'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+// TODO HOTPOT-599 consolidate these into a single type
+export type TeamRoleTypeWithBots = 'restrictedbot' | 'bot' | TeamRoleType
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
+export type MaybeTeamRoleTypeWithBots = 'none' | TeamRoleTypeWithBots
 export type TeamOperations = RPCTypes.TeamOperation
 export type PublicitySettings = {
   ignoreAccessRequests: boolean
@@ -92,6 +95,7 @@ export type _SubteamInfo = {
 export type SubteamInfo = I.RecordOf<_SubteamInfo>
 
 export type TypeMap = {[K in TeamRoleType]: string}
+export type TypeMapWithBots = {[K in TeamRoleTypeWithBots]: string}
 
 export type BoolTypeMap = {[K in TeamRoleType]: boolean}
 

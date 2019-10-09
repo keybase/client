@@ -164,9 +164,7 @@ func (h *Server) suspendInboxSource(ctx context.Context) func() {
 func (h *Server) RequestInboxLayout(ctx context.Context) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxLayout")()
-	if err := h.G().UIInboxLoader.UpdateLayout(ctx, "UI request"); err != nil {
-		h.Debug(ctx, "RequestInboxLayout: failed to queue update request: %s", err)
-	}
+	h.G().UIInboxLoader.UpdateLayout(ctx, "UI request")
 	return nil
 }
 
@@ -2841,6 +2839,11 @@ func (h *Server) AddBotMember(ctx context.Context, arg chat1.AddBotMemberArg) (e
 	if err != nil {
 		return err
 	}
+	err = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), teamID, arg.TlfName,
+		arg.Username, arg.MembersType, arg.Role)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -2900,7 +2903,7 @@ func (h *Server) SetBotMemberSettings(ctx context.Context, arg chat1.SetBotMembe
 func (h *Server) GetBotMemberSettings(ctx context.Context, arg chat1.GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
+	defer h.Trace(ctx, func() error { return err }, "GetBotMemberSettings")()
 	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return res, err
@@ -2912,4 +2915,15 @@ func (h *Server) GetBotMemberSettings(ctx context.Context, arg chat1.GetBotMembe
 	}
 
 	return teams.GetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
+func (h *Server) TeamIDFromTLFName(ctx context.Context, arg chat1.TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "TeamIDFromTLFName")()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return res, err
+	}
+
+	return h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
 }

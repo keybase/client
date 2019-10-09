@@ -18,7 +18,7 @@ import {connect} from '../util/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createSwitchNavigator, StackActions} from '@react-navigation/core'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import {modalRoutes, routes, loggedOutRoutes, tabRoots} from './routes'
 import {useScreens} from 'react-native-screens'
 import {getPersistenceFunctions} from './persist.native'
@@ -114,10 +114,13 @@ const TabBarIconContainer = props => (
   </Kb.NativeTouchableWithoutFeedback>
 )
 
+// globalColors automatically respects dark mode pref
+const getBg = () => Styles.globalColors.white
+
 const VanillaTabNavigator = createBottomTabNavigator(
   tabs.reduce((map, tab) => {
     map[tab] = createStackNavigator(Shim.shim(routes), {
-      bgOnlyDuringTransition: Styles.isAndroid,
+      bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
       cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
       defaultNavigationOptions,
       headerMode,
@@ -198,7 +201,7 @@ const LoggedInStackNavigator = createStackNavigator(
     ...Shim.shim(modalRoutes),
   },
   {
-    bgOnlyDuringTransition: Styles.isAndroid,
+    bgOnlyDuringTransition: Styles.isAndroid ? getBg : undefined,
     cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
     headerMode: 'none',
     mode: 'modal',

@@ -1,8 +1,7 @@
-import RNFetchBlob from 'rn-fetch-blob'
 import {StatResult, WriteStream, Encoding} from './file'
 
 export function tmpDir(): string {
-  return RNFetchBlob.fs.dirs.CacheDir
+  return require('rn-fetch-blob').default.fs.dirs.CacheDir
 }
 
 export function tmpFile(suffix: string): string {
@@ -10,28 +9,30 @@ export function tmpFile(suffix: string): string {
 }
 
 export function copy(from: string, to: string): Promise<boolean> {
-  return RNFetchBlob.fs.cp(from, to)
+  return require('rn-fetch-blob').default.fs.cp(from, to)
 }
 
 export function exists(filepath: string): Promise<boolean> {
-  return RNFetchBlob.fs.exists(filepath)
+  return require('rn-fetch-blob').default.fs.exists(filepath)
 }
 
 export function stat(filepath: string): Promise<StatResult> {
   // @ts-ignore codemod-issue
-  return RNFetchBlob.fs.stat(filepath).then(stats => ({lastModified: stats.lastModified, size: stats.size}))
+  return require('rn-fetch-blob')
+    .default.fs.stat(filepath)
+    .then(stats => ({lastModified: stats.lastModified, size: stats.size}))
 }
 
 export function writeStream(filepath: string, encoding: Encoding, append?: boolean): Promise<WriteStream> {
-  return RNFetchBlob.fs.writeStream(filepath, encoding, append)
+  return require('rn-fetch-blob').default.fs.writeStream(filepath, encoding, append)
 }
 
 export function unlink(filepath: string): Promise<void> {
-  return RNFetchBlob.fs.unlink(filepath)
+  return require('rn-fetch-blob').default.fs.unlink(filepath)
 }
 
 export function readFile(filepath: string, encoding: Encoding): Promise<any> {
-  return RNFetchBlob.fs.readFile(filepath, encoding)
+  return require('rn-fetch-blob').default.fs.readFile(filepath, encoding)
 }
 
 export const cachesDirectoryPath = tmpDir()

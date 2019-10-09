@@ -59,14 +59,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type loginAttempt int
-
-const (
-	loginAttemptNone    loginAttempt = 0
-	loginAttemptOffline loginAttempt = 1
-	loginAttemptOnline  loginAttempt = 2
-)
-
 type Service struct {
 	libkb.Contextified
 	globals.ChatContextified
@@ -94,7 +86,7 @@ type Service struct {
 	avatarSrv       *avatars.Srv
 
 	loginAttemptMu  sync.Mutex
-	loginAttempt    loginAttempt
+	loginAttempt    libkb.LoginAttempt
 	loginSuccess    bool
 	oneshotUsername string
 	oneshotPaperkey string
@@ -386,8 +378,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.G().Log.Debug("RunBackgroundOperations: starting")
 	ctx := context.Background()
-	setupRandomPwPrefetcher(d.G())
-	d.tryLogin(ctx, loginAttemptOnline)
+	d.tryLogin(ctx, libkb.LoginAttemptOnline)
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
@@ -693,7 +684,7 @@ func (d *Service) addGlobalHooks() {
 	d.G().AddLogoutHook(d, "service/Service")
 }
 
-func (d *Service) StartLoopbackServer() error {
+func (d *Service) StartLoopbackServer(loginMode libkb.LoginAttempt) error {
 
 	ctx := context.Background()
 
@@ -710,7 +701,7 @@ func (d *Service) StartLoopbackServer() error {
 
 	// Make sure we have the same keys in memory in standalone mode as we do in
 	// regular service mode.
-	d.tryLogin(ctx, loginAttemptOffline)
+	d.tryLogin(ctx, loginMode)
 
 	go func() { _ = d.ListenLoop(l) }()
 
@@ -1362,13 +1353,13 @@ func (d *Service) configurePath() {
 // If that fails for any reason, LoginProvisionedDevice is used, which should get
 // around any issue where the session.json file is out of date or missing since the
 // last time the service started.
-func (d *Service) tryLogin(ctx context.Context, mode loginAttempt) {
+func (d *Service) tryLogin(ctx context.Context, mode libkb.LoginAttempt) {
 	d.loginAttemptMu.Lock()
 	defer d.loginAttemptMu.Unlock()
 
 	m := libkb.NewMetaContext(ctx, d.G())
 
-	if d.loginAttempt == loginAttemptOnline {
+	if d.loginAttempt == libkb.LoginAttemptOnline {
 		m.Debug("login online attempt already tried, nothing to do")
 		return
 	}
@@ -1377,12 +1368,12 @@ func (d *Service) tryLogin(ctx context.Context, mode loginAttempt) {
 		return
 	}
 
-	if mode == loginAttemptOffline && d.loginAttempt == loginAttemptOffline {
+	if mode == libkb.LoginAttemptOffline && d.loginAttempt == libkb.LoginAttemptOffline {
 		m.Debug("already tried a login attempt offline")
 		return
 	}
 
-	if mode == loginAttemptNone {
+	if mode == libkb.LoginAttemptNone {
 		m.Debug("no login attempt made due to loginAttemptNone flag passed")
 		return
 	}
@@ -1396,7 +1387,7 @@ func (d *Service) tryLogin(ctx context.Context, mode loginAttempt) {
 		return
 	}
 
-	if mode == loginAttemptOffline {
+	if mode == libkb.LoginAttemptOffline {
 		m.Debug("not continuing with online login")
 		return
 	}
@@ -1507,11 +1498,4 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
-}
-
-func setupRandomPwPrefetcher(g *libkb.GlobalContext) {
-	prefetcher := &libkb.HasRandomPWPrefetcher{}
-	g.SetHasRandomPWPrefetcher(prefetcher)
-	g.AddLoginHook(prefetcher)
-	g.AddLogoutHook(prefetcher, "HasRandomPWPrefetcher")
 }

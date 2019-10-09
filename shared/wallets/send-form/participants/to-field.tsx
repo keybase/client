@@ -6,7 +6,8 @@ import {isLargeScreen} from '../../../constants/platform'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import {Account} from '.'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
+import defer from 'lodash/defer'
 
 export type ToKeybaseUserProps = {
   isRequest: boolean
@@ -82,11 +83,13 @@ export type ToStellarPublicKeyProps = {
 
 const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
   const [recipientPublicKey, setRecipentPublicKey] = React.useState(props.recipientPublicKey)
-  const debouncedOnChangeRecip = React.useCallback(debounce(props.onChangeRecipient, 1e3), [])
+  const debouncedOnChangeRecip = React.useCallback(debounce(props.onChangeRecipient, 1e3), [
+    props.onChangeRecipient,
+  ])
 
   const {setReadyToReview} = props
   const onChangeRecipient = React.useCallback(
-    recipientPublicKey => {
+    (recipientPublicKey: string) => {
       setRecipentPublicKey(recipientPublicKey)
       setReadyToReview(false)
       debouncedOnChangeRecip(recipientPublicKey)
@@ -96,9 +99,10 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
 
   React.useEffect(() => {
     if (props.recipientPublicKey !== recipientPublicKey) {
-      setRecipentPublicKey(props.recipientPublicKey)
+      // Hot fix to let any empty string textChange callbacks happen before we change the value.
+      defer(() => setRecipentPublicKey(props.recipientPublicKey))
     }
-    // We purposely do not want this be called when the state changes
+    // We do not want this be called when the state changes
     // Only when the prop.recipientPublicKey changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.recipientPublicKey])

@@ -68,7 +68,7 @@ func (v *CmdPGPGen) Run() (err error) {
 		return err
 	}
 
-	passphraseState, err := user.LoadPassphraseState(context.TODO(), keybase1.LoadPassphraseStateArg{})
+	passphraseState, err := user.LoadPassphraseState(context.TODO(), 0)
 	if err != nil {
 		return err
 	}

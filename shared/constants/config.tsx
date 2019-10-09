@@ -1,6 +1,7 @@
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
-import {uniq, sortBy} from 'lodash-es'
+import uniq from 'lodash/uniq'
+import sortBy from 'lodash/sortBy'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
 

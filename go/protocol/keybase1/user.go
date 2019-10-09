@@ -362,6 +362,16 @@ func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	}
 }
 
+type UserPassphraseStateMsg struct {
+	PassphraseState PassphraseState `codec:"passphraseState" json:"state"`
+}
+
+func (o UserPassphraseStateMsg) DeepCopy() UserPassphraseStateMsg {
+	return UserPassphraseStateMsg{
+		PassphraseState: o.PassphraseState.DeepCopy(),
+	}
+}
+
 type LoadUncheckedUserSummariesArg struct {
 	SessionID int   `codec:"sessionID" json:"sessionID"`
 	Uids      []UID `codec:"uids" json:"uids"`
@@ -478,8 +488,7 @@ type CanLogoutArg struct {
 }
 
 type LoadPassphraseStateArg struct {
-	SessionID   int  `codec:"sessionID" json:"sessionID"`
-	ForceRepoll bool `codec:"forceRepoll" json:"forceRepoll"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type UserCardArg struct {
@@ -541,7 +550,7 @@ type UserInterface interface {
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
 	CanLogout(context.Context, int) (CanLogoutRes, error)
-	LoadPassphraseState(context.Context, LoadPassphraseStateArg) (PassphraseState, error)
+	LoadPassphraseState(context.Context, int) (PassphraseState, error)
 	UserCard(context.Context, UserCardArg) (*UserCard, error)
 	BlockUser(context.Context, string) error
 	UnblockUser(context.Context, string) error
@@ -892,7 +901,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LoadPassphraseStateArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadPassphraseState(ctx, typedArgs[0])
+					ret, err = i.LoadPassphraseState(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1088,7 +1097,8 @@ func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogout
 	return
 }
 
-func (c UserClient) LoadPassphraseState(ctx context.Context, __arg LoadPassphraseStateArg) (res PassphraseState, err error) {
+func (c UserClient) LoadPassphraseState(ctx context.Context, sessionID int) (res PassphraseState, err error) {
+	__arg := LoadPassphraseStateArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.loadPassphraseState", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

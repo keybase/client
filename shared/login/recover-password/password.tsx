@@ -11,9 +11,12 @@ const Password = () => {
   const errErr = React.useMemo(() => new Error(error.stringValue()), [error])
   const waiting = Container.useAnyWaiting(Constants.waitingKey)
 
-  const onSave = React.useCallback((pw: string) => {
-    dispatch(RecoverPasswordGen.createSubmitPassword({password: new HiddenString(pw)}))
-  }, [])
+  const onSave = React.useCallback(
+    (pw: string) => {
+      dispatch(RecoverPasswordGen.createSubmitPassword({password: new HiddenString(pw)}))
+    },
+    [dispatch]
+  )
   return <_Password error={errErr} hasRandomPW={false} onSave={onSave} waitingForResponse={waiting} />
 }
 Password.navigationOptions = {

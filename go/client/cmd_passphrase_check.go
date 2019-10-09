@@ -53,7 +53,7 @@ func (c *CmdPassphraseCheck) Run() error {
 		return err
 	}
 
-	passphraseState, err := cliUser.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	passphraseState, err := cliUser.LoadPassphraseState(context.Background(), 0)
 	if err != nil {
 		return err
 	}

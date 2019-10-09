@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
-import Flags from '../util/feature-flags'
 
 export type Props = {
   filter: string
@@ -179,7 +178,7 @@ const styles = Styles.styleSheetCreate(
       newChatButton: Styles.platformStyles({
         isElectron: {
           ...Styles.desktopStyles.windowDraggingClickable,
-          paddingRight: Flags.wonderland ? Styles.globalMargins.xtiny : Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
         },
       }),
       newChatButtonText: {

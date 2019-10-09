@@ -10,7 +10,8 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SettingsGen from './settings-gen'
 import * as WaitingGen from './waiting-gen'
-import {mapValues, trim} from 'lodash-es'
+import mapValues from 'lodash/mapValues'
+import trim from 'lodash/trim'
 import {delay} from 'redux-saga'
 import {isAndroidNewerThanN, isTestDevice, pprofDir, version} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
@@ -603,7 +604,7 @@ const loadHasRandomPW = async (state: TypedState) => {
     return false
   }
   try {
-    const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise({forceRepoll: false})
+    const passphraseState = await RPCTypes.userLoadPassphraseStateRpcPromise()
     const randomPW = passphraseState === RPCTypes.PassphraseState.random
     return SettingsGen.createLoadedHasRandomPw({randomPW})
   } catch (e) {

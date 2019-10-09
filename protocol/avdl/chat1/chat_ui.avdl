@@ -22,6 +22,8 @@ protocol chatUi {
     gregor1.Time time;
     union { null, string } snippet;
     union { null, string } snippetDecoration;
+    union { null, string } draft;
+    boolean isMuted;
     boolean isTeam;
   }
 
@@ -34,6 +36,8 @@ protocol chatUi {
     string convID;
     string teamname;
     string channelname;
+    union { null, string } draft;
+    boolean isMuted;
   }
 
   variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {

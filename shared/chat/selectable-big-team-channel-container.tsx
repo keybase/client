@@ -15,15 +15,15 @@ type OwnProps = {
 const mapStateToProps = (state, {conversationIDKey}) => {
   const showBold = Constants.getHasUnread(state, conversationIDKey)
   const showBadge = Constants.getHasBadge(state, conversationIDKey)
-  const {channelname, teamname} = Constants.getMeta(state, conversationIDKey)
-  return {channelname, showBadge, showBold, teamname}
+  const _meta = Constants.getMeta(state, conversationIDKey)
+  return {_meta, showBadge, showBold}
 }
 
 const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, _, ownProps: OwnProps) => {
-  let teamname = stateProps.teamname
-  let channelname = stateProps.channelname
+  let teamname = stateProps._meta.teamname
+  let channelname = stateProps._meta.channelname
   if (!teamname) {
     const parts = ownProps.name.split('#')
     if (parts.length >= 2) {
@@ -39,6 +39,8 @@ const mergeProps = (stateProps, _, ownProps: OwnProps) => {
     onSelectConversation: ownProps.onSelectConversation,
     showBadge: stateProps.showBadge,
     showBold: stateProps.showBold && !ownProps.isSelected,
+    snippet: stateProps._meta.snippet,
+    snippetDecoration: stateProps._meta.snippetDecoration,
     teamname,
   }
 }

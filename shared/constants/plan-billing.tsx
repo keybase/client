@@ -1,4 +1,4 @@
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import * as Types from './types/plan-billing'
 
 export function parseAvailablePlan({

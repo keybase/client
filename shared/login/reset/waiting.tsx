@@ -17,14 +17,15 @@ const Waiting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-  // const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [])
+
+  // const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [dispatch])
   const onClose = React.useCallback(
     () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
-    []
+    [dispatch, nav]
   )
 
   // TODO: visual feedback on click
-  const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [])
+  const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [dispatch])
 
   React.useEffect(() => {
     function tick() {
@@ -41,7 +42,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime])
+  }, [endTime, setFormattedTime, formattedTime])
 
   return (
     <SignupScreen

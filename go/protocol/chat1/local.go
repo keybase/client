@@ -437,15 +437,16 @@ func (e MessageSystemType) String() string {
 }
 
 type MessageSystemAddedToTeam struct {
-	Team           string   `codec:"team" json:"team"`
-	Adder          string   `codec:"adder" json:"adder"`
-	Addee          string   `codec:"addee" json:"addee"`
-	Owners         []string `codec:"owners" json:"owners"`
-	Admins         []string `codec:"admins" json:"admins"`
-	Writers        []string `codec:"writers" json:"writers"`
-	Readers        []string `codec:"readers" json:"readers"`
-	Bots           []string `codec:"bots" json:"bots"`
-	RestrictedBots []string `codec:"restrictedBots" json:"restrictedBots"`
+	Team           string            `codec:"team" json:"team"`
+	Adder          string            `codec:"adder" json:"adder"`
+	Addee          string            `codec:"addee" json:"addee"`
+	Role           keybase1.TeamRole `codec:"role" json:"role"`
+	Owners         []string          `codec:"owners" json:"owners"`
+	Admins         []string          `codec:"admins" json:"admins"`
+	Writers        []string          `codec:"writers" json:"writers"`
+	Readers        []string          `codec:"readers" json:"readers"`
+	Bots           []string          `codec:"bots" json:"bots"`
+	RestrictedBots []string          `codec:"restrictedBots" json:"restrictedBots"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -453,6 +454,7 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 		Team:  o.Team,
 		Adder: o.Adder,
 		Addee: o.Addee,
+		Role:  o.Role.DeepCopy(),
 		Owners: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -528,6 +530,7 @@ type MessageSystemInviteAddedToTeam struct {
 	Invitee    string                      `codec:"invitee" json:"invitee"`
 	Adder      string                      `codec:"adder" json:"adder"`
 	InviteType keybase1.TeamInviteCategory `codec:"inviteType" json:"inviteType"`
+	Role       keybase1.TeamRole           `codec:"role" json:"role"`
 }
 
 func (o MessageSystemInviteAddedToTeam) DeepCopy() MessageSystemInviteAddedToTeam {
@@ -537,6 +540,7 @@ func (o MessageSystemInviteAddedToTeam) DeepCopy() MessageSystemInviteAddedToTea
 		Invitee:    o.Invitee,
 		Adder:      o.Adder,
 		InviteType: o.InviteType.DeepCopy(),
+		Role:       o.Role.DeepCopy(),
 	}
 }
 
@@ -6170,6 +6174,12 @@ type GetBotMemberSettingsArg struct {
 	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
+type TeamIDFromTLFNameArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -6259,6 +6269,7 @@ type LocalInterface interface {
 	RemoveBotMember(context.Context, RemoveBotMemberArg) error
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
+	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -7540,6 +7551,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"teamIDFromTLFName": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamIDFromTLFNameArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamIDFromTLFNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamIDFromTLFNameArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamIDFromTLFName(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -8003,5 +8029,10 @@ func (c LocalClient) SetBotMemberSettings(ctx context.Context, __arg SetBotMembe
 
 func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getBotMemberSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.teamIDFromTLFName", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

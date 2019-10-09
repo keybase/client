@@ -23,7 +23,7 @@ import {
 import {Props as OriginalRolePickerProps} from '../teams/role-picker'
 import {TeamRoleType} from '../constants/types/teams'
 import {memoize} from '../util/memoize'
-import {throttle} from 'lodash-es'
+import throttle from 'lodash/throttle'
 import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailSearch from './email-search'
@@ -32,6 +32,7 @@ import * as Constants from '../constants/team-building'
 export const numSectionLabel = '0-9'
 
 export type SearchResult = {
+  contact: boolean
   userId: string
   username: string
   prettyName: string
@@ -413,7 +414,11 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             stickySectionHeadersEnabled={false}
             selectedIndex={Styles.isMobile ? undefined : this.props.highlightedIndex || 0}
             sections={this.props.recommendations}
-            keyExtractor={(item: SearchResult | ImportContactsEntry) => {
+            keyExtractor={(item: SearchResult | ImportContactsEntry, index: number) => {
+              if (!isImportContactsEntry(item) && item.contact) {
+                // Ids for contacts are not guaranteed to be unique
+                return item.userId + index
+              }
               return isImportContactsEntry(item) ? 'Import Contacts' : item.userId
             }}
             getItemLayout={this._getRecLayout}

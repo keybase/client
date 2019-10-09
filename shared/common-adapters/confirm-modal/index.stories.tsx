@@ -3,7 +3,7 @@ import * as Sb from '../../stories/storybook'
 import {Avatar, Box} from '..'
 import ConfirmModal from '.'
 import * as Styles from '../../styles'
-import {repeat} from 'lodash-es'
+import repeat from 'lodash/repeat'
 
 const styles = Styles.styleSheetCreate(() => ({
   avatarBox: {

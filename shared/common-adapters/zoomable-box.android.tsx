@@ -6,7 +6,7 @@ import {
   PanResponderGestureState,
 } from 'react-native'
 import Box from './box'
-import {clamp} from 'lodash-es'
+import clamp from 'lodash/clamp'
 import {Props} from './zoomable-box'
 
 const Kb = {

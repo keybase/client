@@ -316,17 +316,18 @@ const SEP7Confirm = (props: Props) => (
 
 const SEP7ConfirmWrapper = (props: Omit<Props, 'onChangeAmount' | 'readyToSend' | 'userAmount'>) => {
   const [userAmount, onChangeAmount] = React.useState('')
+  const {assetCode, path, onLookupPath, amount, onBack} = props
   React.useEffect(() => {
-    props.assetCode && !props.path.exchangeRate && props.onLookupPath()
-  }, [props.assetCode, props.path.exchangeRate])
+    assetCode && !path.exchangeRate && onLookupPath()
+  }, [assetCode, path.exchangeRate, onLookupPath])
   return props.loading ? (
-    <Loading onBack={props.onBack} />
+    <Loading onBack={onBack} />
   ) : (
     <SEP7Confirm
       {...props}
       onChangeAmount={onChangeAmount}
       userAmount={userAmount}
-      readyToSend={props.assetCode ? !!props.path.exchangeRate : !!props.amount || !!userAmount}
+      readyToSend={assetCode ? !!path.exchangeRate : !!amount || !!userAmount}
     />
   )
 }

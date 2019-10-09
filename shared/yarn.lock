@@ -8409,7 +8409,7 @@ locate-path@^5.0.0:
   dependencies:
     p-locate "^4.1.0"
 
-lodash-es@4.17.15, lodash-es@^4.17.11:
+lodash-es@^4.17.11:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.15.tgz#21bd96839354412f23d7a10340e5eac6ee455d78"
   integrity sha512-rlrc3yU3+JNOpZ9zj5pQtxnx2THmvRykwL4Xlxoa8I9lHBlVbbyPhgyPMioxVZ4NqyxaVVtaJnzsyOidQIhyyQ==
@@ -8541,10 +8541,9 @@ lottie-react-native@3.1.0:
     prop-types "^15.5.10"
     react-native-safe-modules "^1.0.0"
 
-lottie-react-web@2.1.4:
+"lottie-react-web@git://github.com/keybase/lottie-react-web#keybase-changes-off-214":
   version "2.1.4"
-  resolved "https://registry.yarnpkg.com/lottie-react-web/-/lottie-react-web-2.1.4.tgz#3159b4600b6baa858175a1c97daa595f85903d6e"
-  integrity sha512-/wcAxckdTo1uKUgv3hvUktDeeTQByNdRda+1iBQcteV3PyaIikCV0LleSOkBJccYA+v0mM/OZvoSbmQdWxt4+w==
+  resolved "git://github.com/keybase/lottie-react-web#20fa6a4bd69bc3157fe340e9e91bbec1036a9a9d"
   dependencies:
     babel-runtime "^6.26.0"
     lottie-api bodymovin/lottie-api#master
@@ -11123,9 +11122,9 @@ react-native@0.60.5:
     stacktrace-parser "^0.1.3"
     whatwg-fetch "^3.0.0"
 
-"react-navigation-stack@git://github.com/keybase/stack#marco/animated-background":
+"react-navigation-stack@git://github.com/keybase/stack#danny/marco-animated-background-plus-darkmode":
   version "1.0.4"
-  resolved "git://github.com/keybase/stack#c9ef4142d89a47791537699027debefe279c1dc4"
+  resolved "git://github.com/keybase/stack#7e88988111a5c2cb184b0f74a3024a9b1c0106e5"
 
 react-navigation-tabs@2.2.0:
   version "2.2.0"

@@ -1,6 +1,6 @@
 import {newRoutes as provisionNewRoutes} from '../provision/routes'
 import {modalizeRoute} from '../router-v2/modal-helper'
-import {mapValues} from 'lodash-es'
+import mapValues from 'lodash/mapValues'
 import DevicePage from './device-page/container'
 import DeviceRevoke from './device-revoke/container'
 import DevicesRoot from './container'

@@ -169,8 +169,8 @@ const styles = Styles.styleSheetCreate(
         common: {flex: 1},
       }),
       mainBox: {padding: Styles.globalMargins.small},
-      outerStyle: {backgroundColor: 'white'},
-      smallLabel: {color: 'black'},
+      outerStyle: {backgroundColor: Styles.globalColors.white},
+      smallLabel: {color: Styles.globalColors.black},
       text: Styles.platformStyles({
         isElectron: {cursor: 'default'},
       }),

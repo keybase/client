@@ -1324,7 +1324,7 @@ export type MessageTypes = {
     outParam: UserSettings
   }
   'keybase.1.user.loadPassphraseState': {
-    inParam: {readonly forceRepoll: Boolean}
+    inParam: void
     outParam: PassphraseState
   }
   'keybase.1.user.profileEdit': {
@@ -2876,6 +2876,7 @@ export type UserEkStatement = {readonly currentUserEkMetadata: UserEkMetadata}
 export type UserLogPoint = {readonly role: TeamRole; readonly sigMeta: SignatureMetadata}
 export type UserOrTeamID = String
 export type UserOrTeamLite = {readonly id: UserOrTeamID; readonly name: String}
+export type UserPassphraseStateMsg = {readonly passphraseState: PassphraseState}
 export type UserPhoneNumber = {readonly phoneNumber: PhoneNumber; readonly verified: Boolean; readonly superseded: Boolean; readonly visibility: IdentityVisibility; readonly ctime: UnixTime}
 export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: Array<PublicKey> | null; readonly remoteTracks?: Array<RemoteTrack> | null}
 export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: Array<PublicKey> | null; readonly revokedDeviceKeys?: Array<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: Array<PublicKey> | null; readonly perUserKeys?: Array<PerUserKey> | null; readonly resets?: Array<ResetSummary> | null}
@@ -3683,6 +3684,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
 // 'keybase.1.teams.teamCreateWithSettings'
+// 'keybase.1.teams.teamGetByID'
 // 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'

@@ -9,10 +9,10 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog, createClientType} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
-import {throttle} from 'lodash-es'
+import throttle from 'lodash/throttle'
 import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
-import {TypedActions, TypedState, Dispatch} from '../util/container'
+import {TypedState, Dispatch} from '../util/container'
 
 type WaitingKey = string | Array<string>
 
@@ -36,28 +36,7 @@ class Engine {
   // App tells us when the sagas are done loading so we can start emitting events
   _sagasAreReady: boolean = false
 
-  static _realDispatch: Dispatch
-
-  static _dispatchTimer: undefined | NodeJS.Timeout = undefined
-  static _dispatchDeque = () => {
-    Engine._dispatchTimer && clearTimeout(Engine._dispatchTimer)
-    Engine._dispatchTimer = undefined
-    if (!Engine._dispatchQueue.length) return
-
-    const toDispatch = Engine._dispatchQueue
-    Engine._dispatchQueue = []
-    toDispatch.forEach(d => Engine._realDispatch(d))
-  }
-  static _dispatchQueue: Array<TypedActions> = []
-
-  // So we can dispatch actions
-  static _dispatch: Dispatch = (a: TypedActions) => {
-    Engine._dispatchQueue.push(a)
-
-    if (!Engine._dispatchTimer) {
-      Engine._dispatchTimer = setTimeout(Engine._dispatchDeque, 0)
-    }
-  }
+  static _dispatch: Dispatch
 
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
@@ -85,7 +64,7 @@ class Engine {
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
     // setup some static vars
-    Engine._realDispatch = dispatch
+    Engine._dispatch = dispatch
     Engine._getState = getState
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),

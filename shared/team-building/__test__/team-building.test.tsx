@@ -7,6 +7,7 @@ import {SectionDivider} from '../../common-adapters/index'
 describe('team building list', () => {
   it('calculates list offsets properly', () => {
     const testSearchResult: SearchResult = {
+      contact: false,
       displayLabel: '',
       followingState: 'NotFollowing',
       inTeam: false,

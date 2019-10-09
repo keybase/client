@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
 
 export type Props = {
@@ -225,6 +225,7 @@ const BottomRow = (props: {
       <Kb.ScrollView
         horizontal={true}
         showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         scrollEventThrottle={1000}
         contentContainerStyle={styles.bottomRowScrollContainer}
       >

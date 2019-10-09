@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import SuggestionList from './suggestion-list'
 
 type TransformerData = {

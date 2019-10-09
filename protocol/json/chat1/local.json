@@ -347,6 +347,10 @@
           "name": "addee"
         },
         {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
@@ -413,6 +417,10 @@
         {
           "type": "keybase1.TeamInviteCategory",
           "name": "inviteType"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
         }
       ]
     },
@@ -5239,6 +5247,23 @@
         }
       ],
       "response": "keybase1.TeamBotSettings"
+    },
+    "teamIDFromTLFName": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        }
+      ],
+      "response": "keybase1.TeamID"
     }
   },
   "namespace": "chat.1"

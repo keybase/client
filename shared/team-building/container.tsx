@@ -2,7 +2,8 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import unidecode from 'unidecode'
-import {debounce, trim} from 'lodash-es'
+import debounce from 'lodash/debounce'
+import trim from 'lodash/trim'
 import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
@@ -21,7 +22,6 @@ import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
-import Flags from '../util/feature-flags'
 
 type OwnProps = {
   filterServices?: Array<Types.ServiceIdWithContact>
@@ -567,7 +567,7 @@ const mergeProps = (
               : {
                   custom: (
                     <Button
-                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
+                      label="Start"
                       mode="Primary"
                       onClick={dispatchProps.onFinishTeamBuilding}
                       small={true}

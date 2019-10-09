@@ -10,7 +10,7 @@ import {ChannelMembershipState} from '../../constants/types/teams'
 import {anyWaiting} from '../../constants/waiting'
 import {formatTimeRelativeToNow} from '../../util/timestamp'
 import {getChannelsWaitingKey, getCanPerform, getTeamChannelInfos, hasCanPerform} from '../../constants/teams'
-import {isEqual} from 'lodash-es'
+import isEqual from 'lodash/isEqual'
 import {makeInsertMatcher} from '../../util/string'
 
 type OwnProps = Container.RouteProps<{teamname: string}>

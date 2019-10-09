@@ -1,9 +1,8 @@
 import * as React from 'react'
-import {Box2, Button, Text, Emoji} from '../../../common-adapters'
+import {Box2, Button, Text} from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import Flags from '../../../util/feature-flags'
 
 export type InviteProps = {
   openShareSheet: () => void
@@ -46,10 +45,10 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
         <BannerText>{caption}</BannerText>
         <Box2 direction="horizontal" gap="tiny" fullWidth={true} centerChildren={true}>
           <Button
-            backgroundColor="blue"
-            label={Flags.wonderland ? '🐇 Send install link' : 'Send install link'}
+            label="Send install link"
             onClick={mobileClickInstall}
             small={true}
+            backgroundColor="blue"
           />
           <Button label="Dismiss" mode="Secondary" onClick={onDismiss} small={true} backgroundColor="blue" />
         </Box2>
@@ -61,11 +60,6 @@ const InviteBanner = ({users, openSMS, openShareSheet, usernameToContactName, on
     <BannerBox color={Styles.globalColors.blue}>
       <BannerText>{caption}</BannerText>
       <BannerText>
-        {Flags.wonderland && (
-          <>
-            <Emoji size={16} emojiName=":rabbit2:" />{' '}
-          </>
-        )}
         Send them this link:
         <BannerText
           onClickURL="https://keybase.io/app"
