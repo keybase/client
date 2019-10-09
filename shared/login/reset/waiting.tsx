@@ -17,7 +17,6 @@ const Waiting = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
-
   // const onCancelReset = React.useCallback(() => dispatch(AutoresetGen.createCancelReset()), [dispatch])
   const onClose = React.useCallback(
     () => dispatch(nav.safeNavigateAppendPayload({path: ['login'], replace: true})),
@@ -28,6 +27,9 @@ const Waiting = (props: Props) => {
   const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [dispatch])
 
   React.useEffect(() => {
+    if (!pipelineStarted) {
+      return
+    }
     function tick() {
       const newFormattedTime = Constants.formatTimeLeft(endTime)
       if (formattedTime !== newFormattedTime) {
@@ -42,7 +44,7 @@ const Waiting = (props: Props) => {
     return function cleanup() {
       removeTicker(tickerID)
     }
-  }, [endTime, setFormattedTime, formattedTime])
+  }, [endTime, setFormattedTime, formattedTime, pipelineStarted, dispatch, nav])
 
   return (
     <SignupScreen
