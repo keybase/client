@@ -5761,6 +5761,24 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 	}
 }
 
+type LocalConversationUpdate struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	Mtime  *gregor1.Time  `codec:"mtime,omitempty" json:"mtime,omitempty"`
+}
+
+func (o LocalConversationUpdate) DeepCopy() LocalConversationUpdate {
+	return LocalConversationUpdate{
+		ConvID: o.ConvID.DeepCopy(),
+		Mtime: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Mtime),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`

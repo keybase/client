@@ -1237,4 +1237,9 @@ protocol local {
   keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
+
+  record LocalConversationUpdate {
+    ConversationID convID;
+    union { null, gregor1.Time } mtime;
+  }
 }

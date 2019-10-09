@@ -92,9 +92,13 @@ type RemoteConversation struct {
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
+	LocalMtime     *gregor1.Time               `codec:"t"`
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {
+	if rc.LocalMtime != nil {
+		return *rc.LocalMtime
+	}
 	return rc.Conv.GetMtime()
 }
 

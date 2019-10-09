@@ -193,7 +193,7 @@ func (o *Outbox) PushMessage(ctx context.Context, convID chat1.ConversationID,
 	// Add any pending attachment previews for the notification and return value
 	if o.pendingPreviewer != nil {
 		if err := o.pendingPreviewer(ctx, &rec); err != nil {
-			o.Debug(ctx, "PushMessage: failed to add pending preview: %s", err)
+			o.Debug(ctx, "PushMessage: failed to add pending preview: %v", err)
 		}
 	}
 	// Run the notification before we write to the disk so that it is guaranteed to beat
@@ -227,7 +227,7 @@ func (o *Outbox) PullAllConversations(ctx context.Context, includeErrors bool, r
 	for _, obr := range obox.Records {
 		state, err := obr.State.State()
 		if err != nil {
-			o.Debug(ctx, "PullAllConversations: unknown state item: skipping: err: %s", err.Error())
+			o.Debug(ctx, "PullAllConversations: unknown state item: skipping: err: %v", err)
 			continue
 		}
 		if state == chat1.OutboxStateType_ERROR {
@@ -477,14 +477,14 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	return numCancelled, nil
 }
 
-func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
+func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (ret chat1.OutboxRecord, err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return err
+		return ret, err
 	}
 
 	// Scan to find the message and don't include it
@@ -492,15 +492,17 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) error {
 	for _, obr := range obox.Records {
 		if !obr.OutboxID.Eq(&obid) {
 			recs = append(recs, obr)
+		} else {
+			ret = obr
 		}
 	}
 	obox.Records = recs
 
 	// Write out box
 	if err := o.writeStorage(ctx, obox); err != nil {
-		return err
+		return ret, err
 	}
-	return nil
+	return ret, nil
 }
 
 func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
@@ -629,7 +631,7 @@ func (o *Outbox) OutboxPurge(ctx context.Context) (ephemeralPurged []chat1.Outbo
 	for _, obr := range obox.Records {
 		st, err := obr.State.State()
 		if err != nil {
-			o.Debug(ctx, "purging message from outbox with error getting state: %s", err)
+			o.Debug(ctx, "purging message from outbox with error getting state: %v", err)
 			continue
 		}
 		if st == chat1.OutboxStateType_ERROR {

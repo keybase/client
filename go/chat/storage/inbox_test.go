@@ -988,3 +988,48 @@ func TestInboxCacheOnLogout(t *testing.T) {
 	require.Nil(t, inboxMemCache.Get(gregor1.UID(uid)))
 	require.Empty(t, len(inboxMemCache.datMap))
 }
+
+func TestLocalConversationUpdates(t *testing.T) {
+	tc, inbox, uid := setupInboxTest(t, "local conv")
+	defer tc.Cleanup()
+	convs := []types.RemoteConversation{
+		makeConvo(gregor1.Time(1), 1, 1),
+		makeConvo(gregor1.Time(0), 1, 1),
+	}
+	err := inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil)
+	require.NoError(t, err)
+	mtime1 := gregor1.Time(5)
+	mtime2 := gregor1.Time(1)
+	err = inbox.LocalConversationUpdates(context.TODO(), uid, []chat1.LocalConversationUpdate{
+		{
+			ConvID: convs[0].GetConvID(),
+			Mtime:  &mtime1,
+		},
+		{
+			ConvID: convs[1].GetConvID(),
+			Mtime:  &mtime2,
+		},
+	})
+	require.NoError(t, err)
+
+	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
+	require.NoError(t, err)
+
+	require.Equal(t, mtime1, diskIbox.Conversations[0].GetMtime())
+	require.Equal(t, mtime2, diskIbox.Conversations[1].GetMtime())
+
+	err = inbox.LocalConversationUpdates(context.TODO(), uid, []chat1.LocalConversationUpdate{
+		{
+			ConvID: convs[0].GetConvID(),
+		},
+		{
+			ConvID: convs[1].GetConvID(),
+		},
+	})
+	require.NoError(t, err)
+
+	require.Nil(t, diskIbox.Conversations[0].LocalMtime)
+	require.Nil(t, diskIbox.Conversations[1].LocalMtime)
+	require.Equal(t, gregor1.Time(1), diskIbox.Conversations[0].GetMtime())
+	require.Equal(t, gregor1.Time(0), diskIbox.Conversations[1].GetMtime())
+}
