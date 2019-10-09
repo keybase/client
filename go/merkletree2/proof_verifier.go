@@ -129,7 +129,7 @@ func (m *MerkleProofVerifier) computeSkipsHashForSeqno(s Seqno, skipsMap map[Seq
 // is part of a MerkleInclusionExtensionProof).
 func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.ContextInterface, proof *MerkleExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno) (h Hash, isPartOfIncExtProof bool, err error) {
 	rootHashMap := make(map[Seqno]Hash)
-	rootHashes, err := ComputeRootHashesNeededInExtensionProof(initialSeqno, finalSeqno)
+	rootHashes, err := ComputeRootHashSeqnosNeededInExtensionProof(initialSeqno, finalSeqno)
 	if err != nil {
 		return nil, false, NewProofVerificationFailedError(err)
 	}
@@ -141,7 +141,7 @@ func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.Co
 	}
 
 	rootMap := make(map[Seqno]RootMetadata)
-	roots, err := ComputeRootsNeededInExtensionProof(initialSeqno, finalSeqno, true)
+	roots, err := ComputeRootMetadataSeqnosNeededInExtensionProof(initialSeqno, finalSeqno, true)
 	if err != nil {
 		return nil, false, NewProofVerificationFailedError(err)
 	}

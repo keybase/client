@@ -89,13 +89,13 @@ func TestComputeRootHashesNeededInExtensionProof(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("skips for %v->%v", test.s, test.e), func(t *testing.T) {
-			skips, err := ComputeRootHashesNeededInExtensionProof(test.s, test.e)
+			skips, err := ComputeRootHashSeqnosNeededInExtensionProof(test.s, test.e)
 			require.NoError(t, err)
 			require.EqualValues(t, test.pointers, skips)
 		})
 	}
 
-	_, err := ComputeRootHashesNeededInExtensionProof(3, 2)
+	_, err := ComputeRootHashSeqnosNeededInExtensionProof(3, 2)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "start > end")
 }

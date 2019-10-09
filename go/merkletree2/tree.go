@@ -626,7 +626,7 @@ func (t *Tree) getExtensionProof(ctx logger.ContextInterface, tr Transaction, fr
 		return MerkleExtensionProof{}, nil
 	}
 
-	seqnos, err := ComputeRootHashesNeededInExtensionProof(fromSeqno, toSeqno)
+	seqnos, err := ComputeRootHashSeqnosNeededInExtensionProof(fromSeqno, toSeqno)
 	if err != nil {
 		return MerkleExtensionProof{}, err
 	}
@@ -635,7 +635,7 @@ func (t *Tree) getExtensionProof(ctx logger.ContextInterface, tr Transaction, fr
 		return MerkleExtensionProof{}, err
 	}
 
-	seqnos, err = ComputeRootsNeededInExtensionProof(fromSeqno, toSeqno, isPartOfIncExtProof)
+	seqnos, err = ComputeRootMetadataSeqnosNeededInExtensionProof(fromSeqno, toSeqno, isPartOfIncExtProof)
 	if err != nil {
 		return MerkleExtensionProof{}, err
 	}

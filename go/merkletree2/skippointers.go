@@ -57,7 +57,7 @@ func SkipPointersPath(start, end Seqno) (pointers []Seqno, err error) {
 	return pointers, nil
 }
 
-func ComputeRootsNeededInExtensionProof(start, end Seqno, isPartOfIncExtProof bool) ([]Seqno, error) {
+func ComputeRootMetadataSeqnosNeededInExtensionProof(start, end Seqno, isPartOfIncExtProof bool) ([]Seqno, error) {
 	seqnos, err := SkipPointersPath(start, end)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func ComputeRootsNeededInExtensionProof(start, end Seqno, isPartOfIncExtProof bo
 	return seqnos, nil
 }
 
-func ComputeRootHashesNeededInExtensionProof(start, end Seqno) (ret []Seqno, err error) {
+func ComputeRootHashSeqnosNeededInExtensionProof(start, end Seqno) (ret []Seqno, err error) {
 	// this map prevents duplicates, as well as inserting the hashes of
 	// SkipPointersPath elements (as those can be recomputed from the rest).
 	unnecessarySeqnoMap := make(map[Seqno]bool)
