@@ -609,6 +609,7 @@ export const localValidateStellarURILocalRpcPromise = (params: MessageTypes['ste
 // 'stellar.1.remote.ping'
 // 'stellar.1.remote.networkOptions'
 // 'stellar.1.remote.detailsPlusPayments'
+// 'stellar.1.remote.allDetailsPlusPayments'
 // 'stellar.1.remote.assetSearch'
 // 'stellar.1.remote.fuzzyAssetSearch'
 // 'stellar.1.remote.listPopularAssets'
