@@ -920,7 +920,7 @@ func PickLatestMessageSummary(conv MessageSummaryContainer, typs []chat1.Message
 	}
 	for _, typ := range typs {
 		msg, err := conv.GetMaxMessage(typ)
-		if err == nil && msg.Ctime.After(res.Ctime) {
+		if err == nil && (msg.Ctime.After(res.Ctime) || res.Ctime.IsZero()) {
 			res = msg
 		}
 	}
