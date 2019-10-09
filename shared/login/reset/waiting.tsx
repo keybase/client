@@ -50,6 +50,7 @@ const Waiting = (props: Props) => {
     <SignupScreen
       title="Account reset"
       noBackground={true}
+      onBack={onClose}
       buttons={[{label: 'Close', onClick: onClose, type: 'Dim'}]}
     >
       <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} fullHeight={true} centerChildren={true}>

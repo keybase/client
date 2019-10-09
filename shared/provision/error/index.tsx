@@ -258,6 +258,7 @@ const styles = styleSheetCreate(
         marginTop: 46,
       },
       icon: {
+        alignSelf: 'center',
         height: 180,
         width: 240,
       },

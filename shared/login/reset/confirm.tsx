@@ -127,6 +127,10 @@ const ConfirmReset = (_: Props) => {
     </Kb.Modal>
   )
 }
+ConfirmReset.navigationOptions = {
+  gesturesEnabled: false,
+  header: null,
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {
