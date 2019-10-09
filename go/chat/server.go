@@ -1236,6 +1236,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 	if err := h.G().InboxSource.LocalConversationUpdates(ctx, uid, []chat1.LocalConversationUpdate{
 		{
 			ConvID: obr.ConvID,
+			Mtime:  nil, // zero out the conv's LocalMtime
 		},
 	}); err != nil {
 		return err

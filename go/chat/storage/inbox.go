@@ -1897,13 +1897,13 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 
 func (i *Inbox) LocalConversationUpdates(ctx context.Context, uid gregor1.UID,
 	convUpdates []chat1.LocalConversationUpdate) (err Error) {
-	defer i.Trace(ctx, func() error { return err }, "LocalConversationsUpdate")()
+	defer i.Trace(ctx, func() error { return err }, "LocalConversationUpdates")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	defer i.layoutNotifier.UpdateLayout(ctx, "local conversations update")
 
-	i.Debug(ctx, "LocalConversationsUpdate: updating %d convs", len(convUpdates))
+	i.Debug(ctx, "LocalConversationUpdates: updating %d convs", len(convUpdates))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
