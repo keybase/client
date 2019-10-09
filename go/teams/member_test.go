@@ -1217,7 +1217,8 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 
 	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false))
 	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, true))
-	require.Error(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false))
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, true), "doesnt error when canceling a canceled invite with allowInaction")
+	require.Error(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false), "errors when canceling a canceled invite without allowInaction")
 
 	assertNoInvite(tc, name, address, "email")
 
