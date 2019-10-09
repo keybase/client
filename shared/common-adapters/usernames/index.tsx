@@ -4,6 +4,7 @@ import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
 import {backgroundModeIsNegative} from '../text.shared'
 import {e164ToDisplay} from '../../util/phone-numbers'
+import {WithProfileCardPopup} from '../../profile/card'
 
 export type UserListItem = {
   username: string
@@ -37,6 +38,7 @@ export type BaseUsernamesProps = {
   title?: string
   type: TextType
   underline?: boolean
+  withProfileCardPopup?: boolean
 }
 
 export type Props = {
@@ -90,8 +92,8 @@ function UsernameText(props: Props) {
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
-        return (
-          <Text type={props.type} key={u.username}>
+        const renderText = (ref?: React.Ref<Text>) => (
+          <Text type={props.type} key={u.username} ref={ref}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 {'and '}
@@ -123,6 +125,11 @@ function UsernameText(props: Props) {
             {i !== props.users.length - 1 && ' '}
           </Text>
         )
+        return props.withProfileCardPopup ? (
+          <WithProfileCardPopup username={u.username}>{renderText}</WithProfileCardPopup>
+        ) : (
+          renderText()
+        )
       })}
     </>
   )
@@ -133,6 +140,7 @@ UsernameText.defaultProps = {
   selectable: undefined,
   showAnd: false,
   underline: true,
+  withProfileCardPopup: true,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}

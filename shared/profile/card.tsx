@@ -77,6 +77,7 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
   const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
   const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
+  const isSelf = Container.useSelector(state => state.config.username === username)
 
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
@@ -98,6 +99,7 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
         username={username}
         metaStyle={styles.connectedNameWithIconMetaStyle}
         metaTwo={userDetails.fullname || ''}
+        withProfileCardPopup={false}
       />
       {userDetails.state === 'checking' ? (
         <Kb.ProgressIndicator type="Large" />
@@ -111,25 +113,66 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
           )}
         </>
       )}
-      {followThem ? (
-        <FollowButton
-          key="unfollow"
-          following={true}
-          onUnfollow={() => _changeFollow(false)}
-          waitingKey={Tracker2Constants.waitingKey}
-          style={styles.button}
-        />
-      ) : (
-        <FollowButton
-          key="follow"
-          following={false}
-          followsYou={followsYou}
-          onFollow={() => _changeFollow(true)}
-          waitingKey={Tracker2Constants.waitingKey}
-          style={styles.button}
-        />
-      )}
+      {!isSelf &&
+        (followThem ? (
+          <FollowButton
+            key="unfollow"
+            following={true}
+            onUnfollow={() => _changeFollow(false)}
+            waitingKey={Tracker2Constants.waitingKey}
+            style={styles.button}
+          />
+        ) : (
+          <FollowButton
+            key="follow"
+            following={false}
+            followsYou={followsYou}
+            onFollow={() => _changeFollow(true)}
+            waitingKey={Tracker2Constants.waitingKey}
+            style={styles.button}
+          />
+        ))}
     </Kb.Box2>
+  )
+}
+
+type WithProfileCardPopupProps = {
+  username: string
+  children: (ref: React.Ref<any>) => React.ReactNode
+}
+
+export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupProps) => {
+  const ref = React.useRef(null)
+  const [showing, setShowing] = React.useState(false)
+  const popup = showing && (
+    <Kb.FloatingMenu
+      attachTo={() => ref.current}
+      closeOnSelect={true}
+      onHidden={() => setShowing(false)}
+      position="top center"
+      propagateOutsideClicks={!Styles.isMobile}
+      header={{
+        title: '',
+        view: <ProfileCard username={username} clickToProfile={true} />,
+      }}
+      items={[]}
+      visible={showing}
+    />
+  )
+  return Styles.isMobile ? (
+    <>
+      {children(ref)}
+      {popup}
+    </>
+  ) : (
+    <Kb.Box
+      style={styles.popupTextContainer}
+      onMouseOver={() => setShowing(true)}
+      onMouseLeave={() => setShowing(false)}
+    >
+      {children(ref)}
+      {popup}
+    </Kb.Box>
   )
 }
 
@@ -168,4 +211,9 @@ const styles = Styles.styleSheetCreate(() => ({
     flexWrap: 'wrap',
     padding: Styles.globalMargins.xtiny + Styles.globalMargins.xxtiny,
   },
+  popupTextContainer: Styles.platformStyles({
+    isElectron: {
+      display: 'inline-block',
+    },
+  }),
 }))
