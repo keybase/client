@@ -3028,20 +3028,38 @@ func (o MessageUnboxedPlaceholder) DeepCopy() MessageUnboxedPlaceholder {
 type MessageUnboxedCardType int
 
 const (
-	MessageUnboxedCardType_HELLO     MessageUnboxedCardType = 0
-	MessageUnboxedCardType_SOMETHING MessageUnboxedCardType = 1
+	MessageUnboxedCardType_WELCOME            MessageUnboxedCardType = 0
+	MessageUnboxedCardType_POPULAR_CHANNELS   MessageUnboxedCardType = 1
+	MessageUnboxedCardType_ADD_PEOPLE         MessageUnboxedCardType = 2
+	MessageUnboxedCardType_CREATE_CHANNELS    MessageUnboxedCardType = 3
+	MessageUnboxedCardType_MSG_ATTENTION      MessageUnboxedCardType = 4
+	MessageUnboxedCardType_USER_AWAY_FOR_LONG MessageUnboxedCardType = 5
+	MessageUnboxedCardType_CHANNEL_INACTIVE   MessageUnboxedCardType = 6
+	MessageUnboxedCardType_MSG_NO_ANSWER      MessageUnboxedCardType = 7
 )
 
 func (o MessageUnboxedCardType) DeepCopy() MessageUnboxedCardType { return o }
 
 var MessageUnboxedCardTypeMap = map[string]MessageUnboxedCardType{
-	"HELLO":     0,
-	"SOMETHING": 1,
+	"WELCOME":            0,
+	"POPULAR_CHANNELS":   1,
+	"ADD_PEOPLE":         2,
+	"CREATE_CHANNELS":    3,
+	"MSG_ATTENTION":      4,
+	"USER_AWAY_FOR_LONG": 5,
+	"CHANNEL_INACTIVE":   6,
+	"MSG_NO_ANSWER":      7,
 }
 
 var MessageUnboxedCardTypeRevMap = map[MessageUnboxedCardType]string{
-	0: "HELLO",
-	1: "SOMETHING",
+	0: "WELCOME",
+	1: "POPULAR_CHANNELS",
+	2: "ADD_PEOPLE",
+	3: "CREATE_CHANNELS",
+	4: "MSG_ATTENTION",
+	5: "USER_AWAY_FOR_LONG",
+	6: "CHANNEL_INACTIVE",
+	7: "MSG_NO_ANSWER",
 }
 
 func (e MessageUnboxedCardType) String() string {
