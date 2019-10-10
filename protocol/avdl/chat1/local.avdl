@@ -513,12 +513,23 @@ protocol local {
     boolean hidden;
   }
 
+  enum MessageUnboxedCardType {
+    HELLO_0,
+    SOMETHING_1
+  }
+
+  record MessageUnboxedCard {
+    MessageUnboxedCardType cardType;
+    string data;
+  }
+
   // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case CARD: MessageUnboxedCard;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +

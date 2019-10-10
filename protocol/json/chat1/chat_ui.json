@@ -1096,7 +1096,8 @@
         "VALID_1",
         "ERROR_2",
         "OUTBOX_3",
-        "PLACEHOLDER_4"
+        "PLACEHOLDER_4",
+        "CARD_5"
       ]
     },
     {
@@ -1134,6 +1135,13 @@
             "def": false
           },
           "body": "MessageUnboxedPlaceholder"
+        },
+        {
+          "label": {
+            "name": "CARD",
+            "def": false
+          },
+          "body": "MessageUnboxedCard"
         }
       ]
     },
