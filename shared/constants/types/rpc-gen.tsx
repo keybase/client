@@ -2229,6 +2229,7 @@ export enum StatusCode {
   scteambotkeygenerationexists = 3800,
   scteambotkeyoldboxedgeneration = 3801,
   scteambotkeybadgeneration = 3802,
+  scairdropregisterfailedmisc = 4207,
 }
 
 export enum SubscriptionTopic {

@@ -251,7 +251,7 @@ type _InboxRefreshPayload = {
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
-  readonly results: I.List<Types.InboxSearchConvHit>
+  readonly results: Array<Types.InboxSearchConvHit>
   readonly unread: boolean
 }
 type _InboxSearchPayload = {readonly query: HiddenString}
@@ -363,7 +363,7 @@ type _MessagesWereDeletedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageIDs?: Array<RPCChatTypes.MessageID>
   readonly upToMessageID?: RPCChatTypes.MessageID
-  readonly deletableMessageTypes?: I.Set<Types.MessageType>
+  readonly deletableMessageTypes?: Set<Types.MessageType>
   readonly ordinals?: Array<Types.Ordinal>
 }
 type _MetaDeletePayload = {

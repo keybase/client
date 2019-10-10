@@ -51,7 +51,7 @@ export default namedConnect(
     const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
     const prependText = state.chat2.prependTextMap.get(conversationIDKey)
     const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
-    const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey, null)
+    const showCommandStatus = !!state.chat2.commandStatusMap.get(conversationIDKey)
     const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
     const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
     const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
