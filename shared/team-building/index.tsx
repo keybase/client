@@ -217,7 +217,7 @@ const FilteredServiceTabBar = (
 
   return services.length === 1 && services[0] === 'keybase' ? null : (
     <ServiceTabBar
-      services={Constants.allServices}
+      services={services}
       selectedService={props.selectedService}
       onChangeService={props.onChangeService}
       serviceResultCount={props.serviceResultCount}
@@ -517,6 +517,15 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         content = (
           <>
             {this._searchInput()}
+            {props.namespace === 'people' && (
+              <FilteredServiceTabBar
+                filterServices={props.filterServices}
+                selectedService={props.selectedService}
+                onChangeService={props.onChangeService}
+                serviceResultCount={props.serviceResultCount}
+                showServiceResultCount={props.showServiceResultCount}
+              />
+            )}
             {this._listBody()}
             {props.waitingForCreate && (
               <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -543,19 +552,20 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     )
 
     // Handle when team-building is making a new chat v.s. adding members to a team.
-    const chatHeader = props.rolePickerProps ? (
-      <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-        <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
-        <Kb.Text type="Header">{props.title}</Kb.Text>
-        <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="Header" style={styles.newChatHeader}>
-          {props.title}
-        </Kb.Text>
-      </Kb.Box2>
-    )
+    const chatHeader =
+      props.namespace === 'people' ? null : props.rolePickerProps ? (
+        <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+          <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+          <Kb.Text type="Header">{props.title}</Kb.Text>
+          <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Text type="Header" style={styles.newChatHeader}>
+            {props.title}
+          </Kb.Text>
+        </Kb.Box2>
+      )
 
     // If there are no filterServices or if the filterServices has a phone
     const showContactsBanner =
@@ -586,13 +596,15 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        <FilteredServiceTabBar
-          filterServices={props.filterServices}
-          selectedService={props.selectedService}
-          onChangeService={props.onChangeService}
-          serviceResultCount={props.serviceResultCount}
-          showServiceResultCount={props.showServiceResultCount}
-        />
+        {props.namespace !== 'people' && (
+          <FilteredServiceTabBar
+            filterServices={props.filterServices}
+            selectedService={props.selectedService}
+            onChangeService={props.onChangeService}
+            serviceResultCount={props.serviceResultCount}
+            showServiceResultCount={props.showServiceResultCount}
+          />
+        )}
         {showContactsBanner && (
           <ContactsBanner
             {...props}

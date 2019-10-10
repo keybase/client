@@ -610,7 +610,7 @@ const mergeProps = (
                 backgroundColor: 'initial',
                 justifyContent: 'flex-start',
                 ...Styles.padding(
-                  Styles.globalMargins.large,
+                  Styles.globalMargins.mediumLarge + 2, // adding this +2 to line up with the normal search bar (on macos at least) but it feels icky
                   Styles.globalMargins.xsmall,
                   Styles.globalMargins.small,
                   160 + Styles.globalMargins.xsmall

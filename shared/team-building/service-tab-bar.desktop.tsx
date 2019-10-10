@@ -135,7 +135,7 @@ export const ServiceTabBar = (props: Props) => {
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
   const {services, onChangeService: propsOnChangeService} = props
-  const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
+  const nLocked = 5 // Services always out front on the left. Add one to get the number out front. // TODO: can we change this via a prop or by media query?
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {

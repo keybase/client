@@ -78,7 +78,7 @@ const PeopleResult = (props: Props) => {
         FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
       )
     )
-  }, [dispatch, myUsername, props.username])
+  }, [dispatch, myUsername, decoratedUsername])
   const onBrowsePublicFolder = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
@@ -87,33 +87,39 @@ const PeopleResult = (props: Props) => {
       )
     )
   }
+
   const onSendLumens = () =>
+    keybaseUsername &&
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: WalletsType.noAccountID,
         isRequest: false,
         recipientType: 'keybaseUser',
-        to: props.username,
+        to: keybaseUsername,
       })
     )
   const onRequestLumens = () =>
+    keybaseUsername &&
     dispatch(
       WalletsGen.createOpenSendRequestForm({
         from: WalletsType.noAccountID,
         isRequest: true,
         recipientType: 'keybaseUser',
-        to: props.username,
+        to: keybaseUsername,
       })
     )
   const onBlock = () =>
+    keybaseUsername &&
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: props.username}, selected: 'profileBlockUser'}],
+        path: [{props: {username: keybaseUsername}, selected: 'profileBlockUser'}],
       })
     )
   const onUnblock = React.useCallback(
-    () => dispatch(ProfileGen.createSubmitUnblockUser({guiID: userDetails.guiID, username: props.username})),
-    [dispatch, props.username, userDetails.guiID]
+    () =>
+      keybaseUsername &&
+      dispatch(ProfileGen.createSubmitUnblockUser({guiID: userDetails.guiID, username: keybaseUsername})),
+    [dispatch, keybaseUsername, userDetails.guiID]
   )
   const onChat = () => {
     dispatch(RouteTreeGen.createNavigateUp())
