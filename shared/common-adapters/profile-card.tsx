@@ -10,7 +10,7 @@ import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
-import Overlay from './overlay'
+import FloatingMenu from './floating-menu'
 import Icon from './icon'
 import Meta from './meta'
 import ProgressIndicator from './progress-indicator'
@@ -23,9 +23,9 @@ const Kb = {
   Box2,
   ClickableBox,
   ConnectedNameWithIcon,
+  FloatingMenu,
   Icon,
   Meta,
-  Overlay,
   ProgressIndicator,
   Text,
   WithTooltip,
@@ -33,6 +33,7 @@ const Kb = {
 
 type Props = {
   clickToProfile?: true
+  containerStyle?: Styles.StylesCrossPlatform
   showClose?: true
   username: string
 }
@@ -87,7 +88,7 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
           <Kb.Icon fontSize={14} type={Platforms.serviceIdToIcon(serviceId)} />
         </Kb.WithTooltip>
       ))}
-      {expandLabel && (
+      {!!expandLabel && (
         <Kb.ClickableBox onClick={() => setExpanded(true)} style={styles.expand}>
           <Kb.Meta title={expandLabel} backgroundColor={Styles.globalColors.greyDark} />
         </Kb.ClickableBox>
@@ -96,7 +97,7 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
   )
 }
 
-const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
+const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Props) => {
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, username))
   const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
   const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
@@ -115,8 +116,12 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
   )
 
   return (
-    <Kb.Box2 direction="vertical" style={styles.container} alignItems="center">
-      {showClose && (
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([styles.container, containerStyle])}
+      alignItems="center"
+    >
+      {!!showClose && (
         <Kb.Icon type="iconfont-close" onClick={() => {}} boxStyle={styles.close} padding="tiny" />
       )}
       <Kb.ConnectedNameWithIcon
@@ -132,7 +137,7 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
       ) : (
         <>
           <ServiceIcons userDetails={userDetails} />
-          {userDetails.bio && (
+          {!!userDetails.bio && (
             <Kb.Text type="Body" center={true}>
               {userDetails.bio}
             </Kb.Text>
@@ -164,27 +169,33 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
 
 type WithProfileCardPopupProps = {
   username: string
-  children: (ref: React.Ref<any>) => React.ReactNode
+  children: (onLongPress?: () => void) => React.ReactElement<typeof Text>
 }
 
 export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupProps) => {
   const ref = React.useRef(null)
   const [showing, setShowing] = React.useState(false)
   const popup = showing && (
-    <Kb.Overlay
+    <Kb.FloatingMenu
       attachTo={() => ref.current}
+      closeOnSelect={true}
       onHidden={() => setShowing(false)}
       position="top center"
       positionFallbacks={['top center', 'bottom center']}
       propagateOutsideClicks={!Styles.isMobile}
       visible={showing}
-    >
-      <ProfileCard username={username} clickToProfile={true} />
-    </Kb.Overlay>
+      header={{
+        title: '',
+        view: (
+          <ProfileCard containerStyle={styles.profileCardPopup} username={username} clickToProfile={true} />
+        ),
+      }}
+      items={[]}
+    />
   )
   return Styles.isMobile ? (
     <>
-      {children(ref)}
+      {children(() => setShowing(true))}
       {popup}
     </>
   ) : (
@@ -192,8 +203,9 @@ export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupP
       style={styles.popupTextContainer}
       onMouseOver={() => setShowing(true)}
       onMouseLeave={() => setShowing(false)}
+      ref={ref}
     >
-      {children(ref)}
+      {children()}
       {popup}
     </Kb.Box>
   )
@@ -238,6 +250,9 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {
       display: 'inline-block',
     },
+  }),
+  profileCardPopup: Styles.platformStyles({
+    isMobile: Styles.padding(Styles.globalMargins.large, undefined, Styles.globalMargins.small, undefined),
   }),
   serviceIcons: {
     flexWrap: 'wrap',

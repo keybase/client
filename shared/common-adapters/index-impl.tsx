@@ -54,6 +54,10 @@ module.exports = {
     return require('./confirm-modal/index').default
   },
   get ConnectedNameWithIcon() {
+    // explicitly require this to make popup work if it's not been imported
+    // explicitly
+    require('./profile-card').default
+
     return require('./name-with-icon/container').default
   },
   get ConnectedUsernames() {

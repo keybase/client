@@ -97,8 +97,8 @@ function UsernameText(props: Props) {
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
-        const renderText = (ref?: React.Ref<Text>) => (
-          <Text type={props.type} key={u.username} ref={ref}>
+        const renderText = (onLongPress?: () => void) => (
+          <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
                 {'and '}
@@ -109,6 +109,7 @@ function UsernameText(props: Props) {
               negative={isNegative}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
+              onLongPress={onLongPress}
               onClick={
                 _onUsernameClicked
                   ? evt => {

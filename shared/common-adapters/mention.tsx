@@ -15,14 +15,14 @@ export type Props = {
 } & OwnProps
 export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
   <WithProfileCardPopup username={username}>
-    {(ref: React.Ref<Text>) => (
+    {(onLongPress?: () => void) => (
       <Text
         type="BodySemibold"
         onClick={onClick || undefined}
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
         style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
         allowFontScaling={allowFontScaling}
-        ref={ref}
+        onLongPress={onLongPress}
       >
         @{username}
       </Text>
