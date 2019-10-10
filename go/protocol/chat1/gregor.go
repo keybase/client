@@ -58,13 +58,14 @@ func (o NewConversationPayload) DeepCopy() NewConversationPayload {
 }
 
 type NewMessagePayload struct {
-	Action       string           `codec:"Action" json:"Action"`
-	ConvID       ConversationID   `codec:"convID" json:"convID"`
-	Message      MessageBoxed     `codec:"message" json:"message"`
-	InboxVers    InboxVers        `codec:"inboxVers" json:"inboxVers"`
-	TopicType    TopicType        `codec:"topicType" json:"topicType"`
-	UnreadUpdate *UnreadUpdate    `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
-	MaxMsgs      []MessageSummary `codec:"maxMsgs" json:"maxMsgs"`
+	Action            string            `codec:"Action" json:"Action"`
+	ConvID            ConversationID    `codec:"convID" json:"convID"`
+	Message           MessageBoxed      `codec:"message" json:"message"`
+	InboxVers         InboxVers         `codec:"inboxVers" json:"inboxVers"`
+	TopicType         TopicType         `codec:"topicType" json:"topicType"`
+	UnreadUpdate      *UnreadUpdate     `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+	UntrustedTeamRole keybase1.TeamRole `codec:"untrustedTeamRole" json:"untrustedTeamRole"`
+	MaxMsgs           []MessageSummary  `codec:"maxMsgs" json:"maxMsgs"`
 }
 
 func (o NewMessagePayload) DeepCopy() NewMessagePayload {
@@ -81,6 +82,7 @@ func (o NewMessagePayload) DeepCopy() NewMessagePayload {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.UnreadUpdate),
+		UntrustedTeamRole: o.UntrustedTeamRole.DeepCopy(),
 		MaxMsgs: (func(x []MessageSummary) []MessageSummary {
 			if x == nil {
 				return nil
