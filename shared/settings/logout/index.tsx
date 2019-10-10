@@ -131,7 +131,9 @@ class LogOut extends React.Component<Props, State> {
             <Kb.PlainInput
               keyboardType={keyboardType}
               onEnterKeyDown={() => {
-                this.props.onCheckPassword(this.state.password)
+                this.props.checkPasswordIsCorrect
+                  ? this.logOut()
+                  : this.props.onCheckPassword(this.state.password)
               }}
               onChangeText={password => this.setState({password})}
               placeholder="Your password"
