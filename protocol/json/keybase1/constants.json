@@ -228,7 +228,8 @@
         "SCNoPaperKeys_3605",
         "SCTeambotKeyGenerationExists_3800",
         "SCTeambotKeyOldBoxedGeneration_3801",
-        "SCTeambotKeyBadGeneration_3802"
+        "SCTeambotKeyBadGeneration_3802",
+        "SCAirdropRegisterFailedMisc_4207"
       ]
     }
   ],

@@ -1037,10 +1037,7 @@ const pendingPaymentsUpdate = (
 }
 
 const recentPaymentsUpdate = (_: TypedState, action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload) => {
-  const {
-    accountID,
-    firstPage: {payments, cursor, oldestUnread},
-  } = action.payload.params
+  const {accountID, firstPage: {payments, cursor, oldestUnread}} = action.payload.params
   return WalletsGen.createRecentPaymentsReceived({
     accountID: Types.stringToAccountID(accountID),
     oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
@@ -1052,9 +1049,7 @@ const recentPaymentsUpdate = (_: TypedState, action: EngineGen.Stellar1NotifyRec
 }
 
 const paymentReviewed = (_: TypedState, action: EngineGen.Stellar1UiPaymentReviewedPayload) => {
-  const {
-    msg: {bid, reviewID, seqno, banners, nextButton},
-  } = action.payload.params
+  const {msg: {bid, reviewID, seqno, banners, nextButton}} = action.payload.params
   return WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})
 }
 
@@ -1205,11 +1200,13 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
         // If you're already out of (inputerror) or in (duplicate) the airdrop,
         // ignore those errors and we'll fix it when we refresh status below.
         break
-      default:
+      case RPCTypes.StatusCode.scairdropregisterfailedmisc:
         return WalletsGen.createUpdatedAirdropState({
           airdropQualifications: [],
           airdropState: 'rejected',
         })
+      default:
+        throw err
     }
   }
   return WalletsGen.createUpdateAirdropState() // reload

@@ -233,6 +233,7 @@ const (
 	StatusCode_SCTeambotKeyGenerationExists                StatusCode = 3800
 	StatusCode_SCTeambotKeyOldBoxedGeneration              StatusCode = 3801
 	StatusCode_SCTeambotKeyBadGeneration                   StatusCode = 3802
+	StatusCode_SCAirdropRegisterFailedMisc                 StatusCode = 4207
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -461,6 +462,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeambotKeyGenerationExists":                3800,
 	"SCTeambotKeyOldBoxedGeneration":              3801,
 	"SCTeambotKeyBadGeneration":                   3802,
+	"SCAirdropRegisterFailedMisc":                 4207,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -687,6 +689,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	3800: "SCTeambotKeyGenerationExists",
 	3801: "SCTeambotKeyOldBoxedGeneration",
 	3802: "SCTeambotKeyBadGeneration",
+	4207: "SCAirdropRegisterFailedMisc",
 }
 
 func (e StatusCode) String() string {

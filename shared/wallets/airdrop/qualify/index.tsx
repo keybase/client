@@ -91,11 +91,12 @@ const Row = p => (
         />
       )}
     </Kb.Box2>
-    {!p.loading && !!p.subTitle && (
-      <Kb.Text type="Body" style={styles.rowText}>
-        {p.subTitle}
-      </Kb.Text>
-    )}
+    {!p.loading &&
+      !!p.subTitle && (
+        <Kb.Text type="Body" style={styles.rowText}>
+          {p.subTitle}
+        </Kb.Text>
+      )}
   </Kb.Box2>
 )
 
@@ -200,9 +201,10 @@ class Qualified extends React.PureComponent<Props, State> {
               growFadeInSmall: true,
             })}
           >
-            {this.props.state !== 'rejected' && rows.map((r, idx) => (
-              <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
-            ))}
+            {this.props.state !== 'rejected' &&
+              rows.map((r, idx) => (
+                <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
+              ))}
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.grow} />
           {this.props.state === 'qualified' && (
