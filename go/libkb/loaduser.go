@@ -426,12 +426,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		cacheUserServiceSummary(m, ret)
 	} else if !arg.publicKeyOptional {
 		m.Debug("No active key for user: %s", ret.GetUID())
-
-		var emsg string
-		if arg.self {
-			emsg = "You don't have a public key; try `keybase pgp select` or `keybase pgp import` if you have a key; or `keybase pgp gen` if you don't"
-		}
-		err = NoKeyError{emsg}
+		return ret, NoKeyError{}
 	}
 
 	return ret, err
