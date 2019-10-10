@@ -1205,6 +1205,11 @@ const changeAirdrop = async (_: TypedState, action: WalletsGen.ChangeAirdropPayl
         // If you're already out of (inputerror) or in (duplicate) the airdrop,
         // ignore those errors and we'll fix it when we refresh status below.
         break
+      case RPCTypes.StatusCode.scairdropregisterfailedmisc:
+        return WalletsGen.createUpdatedAirdropState({
+          airdropQualifications: [],
+          airdropState: 'rejected',
+        })
       default:
         throw err
     }
