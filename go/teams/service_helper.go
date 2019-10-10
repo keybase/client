@@ -1593,6 +1593,7 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 		case libkb.NotFoundError:
 			team.MetaContext(ctx).Debug("remoteInviteID suppressing error due to allowInaction: %v", err)
 			return nil
+		default:
 		}
 		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamInviteBadCancel) {
 			team.MetaContext(ctx).Debug("remoteInviteID suppressing error due to allowInaction: %v", err)
