@@ -8,7 +8,7 @@ import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
-import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
+import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
 export const teamRoleTypes = ['restrictedbot', 'bot', 'reader', 'writer', 'admin', 'owner']
@@ -136,7 +136,8 @@ export const makeTeamSettings = I.Record<Types._TeamSettings>({
   open: false,
 })
 
-export const makeRetentionPolicy = I.Record<_RetentionPolicy>({
+export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPolicy => ({
+  ...(r || {}),
   seconds: 0,
   title: '',
   type: 'retain',

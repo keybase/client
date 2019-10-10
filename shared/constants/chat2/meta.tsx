@@ -1,5 +1,4 @@
 // Meta manages the metadata about a conversation. Participants, isMuted, reset people, etc. Things that drive the inbox
-import * as I from 'immutable'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
@@ -275,10 +274,10 @@ export const inboxUIItemToConversationMeta = (
   }
 
   // We only treat implied adhoc teams as having resetParticipants
-  const resetParticipants = I.Set(
+  const resetParticipants = new Set(
     (i.membersType === RPCChatTypes.ConversationMembersType.impteamnative ||
       i.membersType === RPCChatTypes.ConversationMembersType.impteamupgrade) &&
-      i.resetParticipants
+    i.resetParticipants
       ? i.resetParticipants
       : []
   )

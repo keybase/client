@@ -729,7 +729,7 @@ const getChannelInfo = async (
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: meta.participants.size,
+    numParticipants: meta.participants.length,
   })
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
