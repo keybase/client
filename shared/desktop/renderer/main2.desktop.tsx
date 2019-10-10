@@ -15,10 +15,24 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
+import {_setDarkModePreference} from '../../styles/dark-mode'
 import {isDarwin} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import {TypedActions} from '../../actions/typed-actions-gen'
+
+// node side plumbs through initial pref so we avoid flashes
+const darkModeFromNode = window.location.search.match(/darkModePreference=(alwaysLight|alwaysDark|system)/)
+
+if (darkModeFromNode) {
+  const dm = darkModeFromNode[1]
+  switch (dm) {
+    case 'alwaysLight':
+    case 'alwaysDark':
+    case 'system':
+      _setDarkModePreference(dm)
+  }
+}
 
 // Top level HMR accept
 if (module.hot) {
@@ -104,8 +118,10 @@ const DarkCSSInjector = () => {
     // inject it in body so modals get darkMode also
     if (isDark) {
       document.body.classList.add('darkMode')
+      document.body.classList.remove('lightMode')
     } else {
       document.body.classList.remove('darkMode')
+      document.body.classList.add('lightMode')
     }
   }, [isDark])
   return null

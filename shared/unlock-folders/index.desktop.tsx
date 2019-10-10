@@ -48,7 +48,7 @@ const UnlockFolders = (props: Props) => {
   return (
     <div
       style={styles.container}
-      className={props.darkMode ? 'darkMode' : ''}
+      className={props.darkMode ? 'darkMode' : 'lightMode'}
       key={props.darkMode ? 'darkMode' : 'light'}
     >
       <div style={styles.header}>
