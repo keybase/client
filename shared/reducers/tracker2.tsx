@@ -139,7 +139,7 @@ export default Container.makeReducer<
   [Tracker2Gen.loadedNonUserProfile]: (draftState, action) => {
     const {assertion, ...rest} = action.payload
     const usernameToNonUserDetails = new Map(draftState.usernameToNonUserDetails)
-    const old = usernameToNonUserDetails.get(assertion) || Constants.noNonUserDetails()
+    const old = usernameToNonUserDetails.get(assertion) || Constants.noNonUserDetails
     usernameToNonUserDetails.set(assertion, {
       ...old,
       ...rest,
