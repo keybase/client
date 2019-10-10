@@ -658,13 +658,92 @@ func CreateAccountXLMTransactionWithMemo(from SeedStr, to AddressStr, amount str
 }
 
 // AccountMergeTransaction creates a signed transaction to merge the account `from` into `to`.
+// It will also create the `to` account if it does not already exist. If it does exist, and if
+// the `from` account has custom assets, this transaction will include payments of all of the
+// custom assets, and deletion of the `from` account's trustlines. AccountMergeTransaction will
+// error if the `from` account has a balance for an asset that the `to` account does not "trust."
 func AccountMergeTransaction(from SeedStr, to AddressStr,
-	seqnoProvider build.SequenceProvider, baseFee uint64) (res SignResult, err error) {
+	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds, baseFee uint64) (res SignResult, err error) {
 	t, err := newBaseTxSeed(from, seqnoProvider, baseFee)
 	if err != nil {
 		return res, err
 	}
+
+	fromAddr, err := from.Address()
+	if err != nil {
+		return res, err
+	}
+	fromAccount := NewAccount(fromAddr)
+	toAccount := NewAccount(to)
+	var targetAccountIsNew bool
+	if _, err = toAccount.BalanceXLM(); err == ErrSourceAccountNotFound {
+		// if the target account doesn't exist yet, create it.
+		t.AddCreateAccountOp(to, "1")
+		targetAccountIsNew = true
+	}
+	balances, err := fromAccount.Balances()
+	if err != nil {
+		return res, err
+	}
+
+	// if the target account is new, it won't have any trustlines
+	// which is only OK if the merging account doesnt have any non-native assets
+	var toTrustlines []Trustline
+	if !targetAccountIsNew {
+		toTrustlines, err = toAccount.Trustlines()
+		if err != nil {
+			return res, err
+		}
+	}
+	toAccountHasTrustline := func(asset AssetMinimal) bool {
+		if targetAccountIsNew {
+			return false
+		}
+		for _, tline := range toTrustlines {
+			if tline.Code == asset.CodeString() && tline.Issuer == asset.IssuerString() {
+				return true
+			}
+		}
+		return false
+	}
+
+	// pay all the non-native assets with balances to the target
+	for _, balance := range balances {
+		if balance.Asset.Type == "native" || balance.Balance == "0.0000000" {
+			continue
+		}
+		asset, err := NewAssetMinimal(balance.Asset.Code, balance.Asset.Issuer)
+		if err != nil {
+			return res, err
+		}
+		if !toAccountHasTrustline(asset) {
+			return res, fmt.Errorf("cannot merge %s:%s asset into an account without a trustline", asset.CodeString(), asset.IssuerString())
+		}
+		assetXDR, err := assetBaseToXDR(asset)
+		if err != nil {
+			return res, err
+		}
+		t.AddAssetPaymentOp(to, assetXDR, balance.Balance)
+	}
+
+	// delete all the trustlines in the from account
+	trustlines, err := fromAccount.Trustlines()
+	if err != nil {
+		return res, err
+	}
+	for _, trustline := range trustlines {
+		if trustline.Type == "native" {
+			continue
+		}
+		assetIssuer, err := NewAddressStr(trustline.Issuer)
+		if err != nil {
+			return res, err
+		}
+		t.AddDeleteTrustlineOp(trustline.Code, assetIssuer)
+	}
+
 	t.AddAccountMergeOp(to)
+	t.AddBuiltTimeBounds(timeBounds)
 	t.AddMemoText(defaultMemo)
 
 	return t.Sign(from)
