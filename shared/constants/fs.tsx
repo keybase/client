@@ -25,14 +25,13 @@ export const ExitCodeFuseKextPermissionError = 5
 // See Installer.m: KBExitAuthCanceledError
 export const ExitCodeAuthCanceledError = 6
 
-export const makeNewFolder = I.Record<Types._NewFolder>({
+export const emptyNewFolder = {
   hint: 'New Folder',
   name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
   status: Types.EditStatusType.Editing,
   type: Types.EditType.NewFolder,
-})
-export const emptyFolder = makeNewFolder()
+}
 
 const makePrefetchNotStarted = I.Record<Types._PrefetchNotStarted>({
   state: Types.PrefetchState.NotStarted,
@@ -171,49 +170,23 @@ export const defaultTlfListPathUserSetting = makePathUserSetting({
   sort: Types.SortSetting.TimeAsc,
 })
 
-export const makeDownloadState = I.Record<Types._DownloadState>({
+export const emptyDownloadState = {
   canceled: false,
   done: false,
   endEstimate: 0,
   error: '',
   localPath: '',
   progress: 0,
-})
+}
 
-export const emptyDownloadState = makeDownloadState()
-
-export const makeDownloadInfo = I.Record<Types._DownloadInfo>({
+export const emptyDownloadInfo = {
   filename: '',
   isRegularDownload: false,
   path: defaultPath,
   startTime: 0,
-})
-
-export const emptyDownloadInfo = makeDownloadInfo()
-
-export const makeDownloads = I.Record<Types._Downloads>({
-  info: I.Map(),
-  regularDownloads: I.List(),
-  state: I.Map(),
-})
-
-export const makeUploads = I.Record<Types._Uploads>({
-  endEstimate: undefined,
-  errors: I.Map(),
-
-  syncingPaths: I.Set(),
-  totalSyncingBytes: 0,
-  writingToJournal: I.Set(),
-})
+}
 
 const placeholderAction = FsGen.createPlaceholderAction()
-
-const _makeError = I.Record<Types._FsError>({
-  errorMessage: 'unknown error',
-  erroredAction: placeholderAction,
-  retriableAction: undefined,
-  time: 0,
-})
 
 type _MakeErrorArgs = {
   time?: number
@@ -221,35 +194,17 @@ type _MakeErrorArgs = {
   erroredAction: FsGen.Actions | EngineGen.Actions
   retriableAction?: FsGen.Actions | EngineGen.Actions
 }
-export const makeError = (args?: _MakeErrorArgs): I.RecordOf<Types._FsError> => {
+export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
-  let {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
-  return _makeError({
+  const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
+  return {
     errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
-    erroredAction,
+    erroredAction: erroredAction || placeholderAction,
     retriableAction,
     time: time || Date.now(),
-  })
+  }
 }
-
-export const makeMoveOrCopySource = I.Record<Types._MoveOrCopySource>({
-  path: Types.stringToPath(''),
-  type: Types.DestinationPickerSource.MoveOrCopy,
-})
-
-export const makeIncomingShareSource = I.Record<Types._IncomingShareSource>({
-  localPath: Types.stringToLocalPath(''),
-  type: Types.DestinationPickerSource.IncomingShare,
-})
-
-export const makeNoSource = I.Record<Types._NoSource>({
-  type: Types.DestinationPickerSource.None,
-})
-
-export const makeDestinationPicker = I.Record<Types._DestinationPicker>({
-  destinationParentPath: I.List(),
-  source: makeNoSource(),
-})
+export const emptyError = makeError()
 
 export const makeSendAttachmentToChat = I.Record<Types._SendAttachmentToChat>({
   convID: ChatConstants.noConversationIDKey,
@@ -316,12 +271,11 @@ export const makePathInfo = I.Record<Types._PathInfo>({
 
 export const emptyPathInfo = makePathInfo()
 
-export const makeFileContext = I.Record<Types._FileContext>({
+export const emptyFileContext = {
   contentType: '',
   url: '',
   viewType: RPCTypes.GUIViewType.default,
-})
-export const emptyFileContext = makeFileContext()
+}
 
 // RPC expects a string that's interpreted as [16]byte on Go side.
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0).toString()

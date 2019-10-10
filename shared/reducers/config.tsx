@@ -70,6 +70,7 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
           menubarWindowID: draftState.menubarWindowID,
           pushLoaded: draftState.pushLoaded,
           startupDetailsLoaded: draftState.startupDetailsLoaded,
+          userSwitching: draftState.userSwitching,
         }
       case ConfigGen.restartHandshake:
         draftState.daemonError = undefined
@@ -181,6 +182,9 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
         draftState.registered = action.payload.registered
         draftState.uid = action.payload.uid
         draftState.username = action.payload.username
+        if (action.payload.loggedIn) {
+          draftState.userSwitching = false
+        }
         return
       case ConfigGen.followerInfoUpdated:
         if (draftState.uid === action.payload.uid) {
@@ -264,6 +268,9 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
         draftState.defaultUsername = defaultUsername
         return
       }
+      case ConfigGen.setUserSwitching:
+        draftState.userSwitching = action.payload.userSwitching
+        return
       case ConfigGen.setDefaultUsername:
         draftState.defaultUsername = action.payload.username
         return

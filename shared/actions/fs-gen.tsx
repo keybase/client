@@ -161,8 +161,8 @@ type _LoadSettingsPayload = void
 type _LoadTlfSyncConfigPayload = {readonly tlfPath: Types.Path}
 type _LoadedDownloadInfoPayload = {readonly downloadID: string; readonly info: Types.DownloadInfo}
 type _LoadedDownloadStatusPayload = {
-  readonly regularDownloads: I.List<string>
-  readonly state: I.Map<string, Types.DownloadState>
+  readonly regularDownloads: Array<string>
+  readonly state: Map<string, Types.DownloadState>
 }
 type _LoadedFileContextPayload = {readonly path: Types.Path; readonly fileContext: Types.FileContext}
 type _LoadedPathInfoPayload = {readonly path: Types.Path; readonly pathInfo: Types.PathInfo}

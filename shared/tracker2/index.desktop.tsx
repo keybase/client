@@ -140,7 +140,7 @@ const Tracker = (props: Props) => {
       fullWidth={true}
       fullHeight={true}
       style={styles.container}
-      className={props.darkMode ? 'darkMode' : ''}
+      className={props.darkMode ? 'darkMode' : 'lightMode'}
       key={props.darkMode ? 'darkMode' : 'light'}
     >
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>

@@ -60,7 +60,7 @@ const RootWrapper = ({children}) => {
         <div
           key={darkMode ? 'dark' : 'light'}
           style={{height: '100%', width: '100%'}}
-          className={darkMode ? 'darkMode' : ''}
+          className={darkMode ? 'darkMode' : 'lightMode'}
         >
           {children}
           <div id="modal-root" key={darkMode ? 'dark' : 'light'} />

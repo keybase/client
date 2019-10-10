@@ -22,8 +22,8 @@ type ChooseComponentProps = {
 const ChooseComponent = (props: ChooseComponentProps) => {
   const {emitBarePreview, waitForKbfsDaemon} = props
 
-  const fileContext = Container.useSelector(state =>
-    state.fs.fileContext.get(props.path, Constants.emptyFileContext)
+  const fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(props.path) || Constants.emptyFileContext
   )
   const bare = Container.isMobile && fileContext.viewType === RPCTypes.GUIViewType.image
   React.useEffect(() => {

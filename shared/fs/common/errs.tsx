@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 
-type ErrProps = {
+export type ErrProps = {
   dismiss: () => void
+  key: string
   msg: string
   onFeedback?: () => void
   retry?: () => void
@@ -23,18 +24,14 @@ const Err = (props: ErrProps) => (
 )
 
 type ErrsProps = {
-  errs: Array<
-    ErrProps & {
-      key: string
-    }
-  >
+  errs: Array<ErrProps>
 }
 
 const Errs = (props: ErrsProps) => (
   <>
     <Kb.Box2 fullWidth={true} direction="vertical">
-      {props.errs.map(({key, ...errProps}, index) => (
-        <React.Fragment key={key}>
+      {props.errs.map((errProps, index) => (
+        <React.Fragment key={errProps.key}>
           <Err {...errProps} />
           {props.errs.length > 1 && index !== props.errs.length && <Kb.Divider />}
         </React.Fragment>

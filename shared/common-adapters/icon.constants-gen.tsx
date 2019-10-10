@@ -3884,6 +3884,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-placeholder-avatar-960.png'),
   },
+  'icon-placeholder-avatar-circular-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-circular-32.png'),
+  },
+  'icon-placeholder-avatar-circular-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-circular-48.png'),
+  },
+  'icon-placeholder-avatar-circular-reversed-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png'),
+  },
+  'icon-placeholder-avatar-circular-reversed-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png'),
+  },
   'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
     isFont: false,

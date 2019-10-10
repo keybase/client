@@ -31,7 +31,7 @@ export default Container.connect(
     _settingsEmailBanner: state.settings.email.addedEmail,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     isWalletsNew: state.chat2.isWalletsNew,
-    uploading: state.fs.uploads.syncingPaths.count() > 0 || state.fs.uploads.writingToJournal.count() > 0,
+    uploading: state.fs.uploads.syncingPaths.size > 0 || state.fs.uploads.writingToJournal.size > 0,
     username: state.config.username,
   }),
   (dispatch, ownProps: OwnProps) => ({
@@ -43,7 +43,6 @@ export default Container.connect(
       if (ownProps.selectedTab !== Tabs.chatTab && tab === Tabs.chatTab) {
         dispatch(Chat2Gen.createTabSelected())
       }
-
       // Clear "just signed up email" when you leave the people tab after signup
       if (justSignedUpEmail && ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
         dispatch(SignupGen.createClearJustSignedUpEmail())
