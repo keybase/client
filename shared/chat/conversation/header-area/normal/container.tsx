@@ -68,7 +68,7 @@ export default Container.withSafeNavigation(
       0
     ),
     channelName: stateProps.channelName,
-    contactNames: stateProps._contactNames.toObject(),
+    contactNames: stateProps._contactNames,
     infoPanelOpen: stateProps.infoPanelOpen,
     muted: stateProps.muted,
     onBack: dispatchProps.onBack,
@@ -76,7 +76,7 @@ export default Container.withSafeNavigation(
     onShowProfile: dispatchProps.onShowProfile,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
     onToggleThreadSearch: dispatchProps.onToggleThreadSearch,
-    participants: (stateProps._participants && stateProps._participants.toArray()) || [],
+    participants: stateProps._participants || [],
     pendingWaiting: stateProps.pendingWaiting,
     smallTeam: stateProps.smallTeam,
     teamName: stateProps.teamName,

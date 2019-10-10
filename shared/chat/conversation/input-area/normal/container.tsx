@@ -35,8 +35,7 @@ const getTeams = memoize(metaMap =>
     .sort((a, b) => a.teamname.localeCompare(b.teamname))
 )
 
-export default Container.connectDEBUG(
-  //Container.namedConnect(
+export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
@@ -258,5 +257,6 @@ export default Container.connectDEBUG(
     unsentTextChanged: (text: string) => {
       dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
     },
-  }) // , 'Input'
+  }),
+  'Input'
 )(Input)

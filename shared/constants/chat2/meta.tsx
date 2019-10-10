@@ -4,7 +4,6 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
-import * as TeamTypes from '../types/teams'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import {produce} from 'immer'
@@ -261,7 +260,7 @@ export const inboxUIItemToConversationMeta = (
   state: TypedState,
   i: RPCChatTypes.InboxUIItem,
   allowEmpty?: boolean
-) => {
+): ConversationMeta | null => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
     return null
@@ -298,7 +297,7 @@ export const inboxUIItemToConversationMeta = (
 
   const minWriterRoleEnum =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.role : undefined
-  let minWriterRole = minWriterRoleEnum ? TeamConstants.teamRoleByEnum[minWriterRoleEnum] : 'reader'
+  let minWriterRole = (minWriterRoleEnum && TeamConstants.teamRoleByEnum[minWriterRoleEnum]) || 'reader'
   if (minWriterRole === 'none') {
     // means nothing. set it to reader.
     minWriterRole = 'reader'
@@ -307,7 +306,7 @@ export const inboxUIItemToConversationMeta = (
   const cannotWrite =
     i.convSettings && i.convSettings.minWriterRoleInfo ? i.convSettings.minWriterRoleInfo.cannotWrite : false
   const conversationIDKey = Types.stringToConversationIDKey(i.convID)
-  let pinnedMsg: PinnedMessageInfo | null = null
+  let pinnedMsg: PinnedMessageInfo | undefined
   if (i.pinnedMsg) {
     const message = Message.uiMessageToMessage(state, conversationIDKey, i.pinnedMsg.message)
     if (message) {
@@ -317,6 +316,7 @@ export const inboxUIItemToConversationMeta = (
       }
     }
   }
+  const participants = i.participants || []
   return {
     ...makeConversationMeta(),
     botCommands: i.botCommands,
@@ -335,26 +335,26 @@ export const inboxUIItemToConversationMeta = (
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
-    nameParticipants: I.List(
-      (i.participants || []).reduce<Array<string>>((l, part) => {
-        if (part.inConvName) {
-          l.push(part.assertion)
-        }
-        return l
-      }, [])
-    ),
+    nameParticipants: (i.participants || []).reduce<Array<string>>((l, part) => {
+      if (part.inConvName) {
+        l.push(part.assertion)
+      }
+      return l
+    }, []),
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participantToContactName: I.Map(
-      (i.participants || []).reduce<{[key: string]: string}>((map, part) => {
-        if (part.contactName) {
-          map[part.assertion] = part.contactName
-        }
-        return map
-      }, {})
-    ),
-    participants: I.List((i.participants || []).map(part => part.assertion)),
+    participantToContactName: participants
+      ? new Map(
+          participants.reduce<Array<[string, string]>>((arr, part) => {
+            if (part.contactName) {
+              arr.push([part.assertion, part.contactName])
+            }
+            return arr
+          }, [])
+        )
+      : new Map(),
+    participants: (i.participants || []).map(part => part.assertion),
     pinnedMsg,
     readMsgID: i.readMsgID,
     resetParticipants,
@@ -389,12 +389,12 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   isMuted: false,
   maxMsgID: -1,
   maxVisibleMsgID: -1,
-  membershipType: 'active' as Types.MembershipType,
-  minWriterRole: 'reader' as TeamTypes.TeamRoleType,
+  membershipType: 'active' as const,
+  minWriterRole: 'reader' as const,
   nameParticipants: [],
-  notificationsDesktop: 'never' as Types.NotificationsType,
+  notificationsDesktop: 'never' as const,
   notificationsGlobalIgnoreMentions: false,
-  notificationsMobile: 'never' as Types.NotificationsType,
+  notificationsMobile: 'never' as const,
   offline: false,
   participantToContactName: new Map(),
   participants: [],
