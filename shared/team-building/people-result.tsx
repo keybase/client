@@ -136,11 +136,11 @@ const PeopleResult = (props: Props) => {
       onRequestLumens={onRequestLumens}
       onBlock={onBlock}
       onUnblock={onUnblock}
-      blocked={blocked} // typing???
+      blocked={blocked}
     />
   ) : (
     <DropdownButton
-      // if a result isn't on keybase yet, the only action we can show is opening private folder
+      // if a result doesn't include a keybase account, the only action we can show is opening private folder
       key="dropdown"
       onOpenPrivateFolder={onOpenPrivateFolder}
     />
