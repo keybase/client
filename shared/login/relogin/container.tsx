@@ -71,6 +71,7 @@ const LoginWrapper = (props: Props) => {
   return (
     <Login
       error={props.error}
+      needPassword={!loggedInMap.get(selectedUser)}
       onFeedback={props.onFeedback}
       onForgotPassword={() => props.onForgotPassword(selectedUser)}
       onLogin={onLogin}
