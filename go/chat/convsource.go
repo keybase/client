@@ -89,9 +89,6 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
 	conv *chat1.ConversationLocal, thread *chat1.ThreadView) {
 
-	s.Debug(ctx, "********************************************************* addConversationCards *************************************")
-	defer s.Debug(ctx, "********************************************************* leave addConversationCards *************************************")
-
 	// Maybe this should only be created once and reused, but for now, just make
 	// a new one.
 	cc := newCardChecker(s.G())
@@ -323,8 +320,6 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, false, &conv); err != nil {
 		return chat1.ThreadView{}, err
 	}
-
-	s.Debug(ctx, "thread: %+v", thread)
 
 	return thread, nil
 }
