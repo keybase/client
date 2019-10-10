@@ -380,7 +380,7 @@ const styles = Styles.styleSheetCreate(() => ({
     marginLeft: Styles.globalMargins.xsmall,
   },
   removeIconNonFullWidth: {
-    margin: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
   spinnerFullWidth: {
     height: 20,
