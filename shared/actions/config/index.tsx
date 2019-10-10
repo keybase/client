@@ -36,7 +36,9 @@ const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1Notif
 const onLoggedOut = (state: Container.TypedState) => {
   logger.info('keybase.1.NotifySession.loggedOut')
   // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+  logger.info('@@@@@@@ hello')
   if (state.config.loggedIn) {
+    logger.info('@@@@@@@ goodbye')
     return ConfigGen.createLoggedOut()
   }
   return undefined

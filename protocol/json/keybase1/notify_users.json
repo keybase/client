@@ -19,7 +19,12 @@
       "notify": ""
     },
     "passwordChanged": {
-      "request": [],
+      "request": [
+        {
+          "name": "state",
+          "type": "PassphraseState"
+        }
+      ],
       "response": null,
       "oneway": true
     },
