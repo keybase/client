@@ -12,7 +12,6 @@ import * as WalletsType from '../constants/types/wallets'
 import * as ChatConstants from '../constants/chat2'
 import * as Container from '../util/container'
 import * as Chat2Gen from '../actions/chat2-gen'
-import * as ConfigGen from '../actions/config-gen'
 
 import capitalize from 'lodash/capitalize'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
@@ -64,6 +63,7 @@ const PeopleResult = (props: Props) => {
   const myUsername = Container.useSelector(state => state.config.username)
   const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
   const blocked = userDetails.blocked
+  const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
   const onMenuAddToTeam = () =>
     dispatch(
@@ -75,14 +75,16 @@ const PeopleResult = (props: Props) => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
-        FsTypes.stringToPath(`/keybase/private/${props.username},${myUsername}`)
+        FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
       )
     )
   }, [dispatch, myUsername, props.username])
   const onBrowsePublicFolder = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
-      FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${props.username}`))
+      FsConstants.makeActionForOpenPathInFilesTab(
+        FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
+      )
     )
   }
   const onSendLumens = () =>
@@ -115,8 +117,7 @@ const PeopleResult = (props: Props) => {
   )
   const onChat = () => {
     dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(ConfigGen.createShowMain()) // TODO: ?
-    dispatch(Chat2Gen.createPreviewConversation({participants: [props.username], reason: 'tracker'}))
+    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'tracker'}))
   }
 
   const dropdown = keybaseUsername ? (
@@ -154,12 +155,12 @@ const PeopleResult = (props: Props) => {
     </Kb.WaitingButton>
   )
 
-  const buttons = [chatButton, dropdown]
+  const buttons = Styles.isMobile ? [] : [chatButton, dropdown] // don't show action buttons on mobile for space reasons
 
   return (
     <Kb.ClickableBox onClick={props.inTeam ? onRemove : onAdd}>
       <Kb.Box2
-        className="hover_background_color_blueLighter2"
+        className="hover_background_color_blueLighter2 people-result-row"
         direction="horizontal"
         fullWidth={true}
         centerChildren={true}
@@ -199,7 +200,13 @@ const PeopleResult = (props: Props) => {
             </>
           )}
         </Kb.Box2>
-        <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal">
+        <Kb.Box2
+          gap="tiny"
+          centerChildren={true}
+          direction="horizontal"
+          className="result-actions"
+          style={props.highlight ? styles.actionButtonsHighlighted : undefined}
+        >
           {buttons}
         </Kb.Box2>
       </Kb.Box2>
@@ -442,18 +449,9 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
 
 export const userResultHeight = Styles.isMobile ? Styles.globalMargins.xlarge : 48
 const styles = Styles.styleSheetCreate(() => ({
-  actionButton: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
+  actionButtonsHighlighted: Styles.platformStyles({
     isElectron: {
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
-    },
-    isMobile: {
-      height: Styles.globalMargins.large,
-      marginRight: Styles.globalMargins.tiny,
-      width: Styles.globalMargins.large,
+      visibility: 'visible',
     },
   }),
   bottomRowContainer: {
