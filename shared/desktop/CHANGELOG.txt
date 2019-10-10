@@ -1,6 +1,6 @@
-Chat:
-• Replies will automatically notify who you're replying to
-
-Misc:
-• Configure a HTTP or SOCKS proxy in advanced settings
-• Support user lookup by phone number
+• Dark mode!
+• Faster chat inbox
+• Show bios in 1-on-1 conversations
+• Better search experience
+• Better provisioning flow of existing device
+• Filter in manage channels screen
