@@ -1,6 +1,7 @@
 import * as Constants from '../constants/provision'
 import * as LoginConstants from '../constants/login'
 import * as RouteTreeGen from './route-tree-gen'
+import * as LoginGen from './login-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -530,10 +531,17 @@ const showFinalErrorPage = (_: Container.TypedState, action: ProvisionGen.ShowFi
   ]
 }
 
-const showUsernameEmailPage = (_: Container.TypedState, action: ProvisionGen.StartProvisionPayload) =>
-  RouteTreeGen.createNavigateAppend({
+const showUsernameEmailPage = async (
+  state: Container.TypedState,
+  action: ProvisionGen.StartProvisionPayload
+) => {
+  if (state.config.loggedIn) {
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+  }
+  return RouteTreeGen.createNavigateAppend({
     path: [{props: {fromReset: action.payload.fromReset}, selected: 'username'}],
   })
+}
 
 const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {

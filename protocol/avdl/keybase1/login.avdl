@@ -47,7 +47,7 @@ protocol login {
     */
   void loginWithPaperKey(int sessionID, string username);
 
-  void logout(int sessionID, boolean force);
+  void logout(int sessionID, boolean force, boolean keepSecrets);
   void deprovision(int sessionID, string username, boolean doRevoke);
 
   void recoverAccountFromEmailAddress(string email);

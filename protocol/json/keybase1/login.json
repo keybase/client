@@ -120,6 +120,10 @@
         {
           "name": "force",
           "type": "boolean"
+        },
+        {
+          "name": "keepSecrets",
+          "type": "boolean"
         }
       ],
       "response": null
