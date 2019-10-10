@@ -89,9 +89,12 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
 	conv *chat1.ConversationLocal, thread *chat1.ThreadView) {
 
+	s.Debug(ctx, "********************************************************* addConversationCards *************************************")
+	defer s.Debug(ctx, "********************************************************* leave addConversationCards *************************************")
+
 	// Maybe this should only be created once and reused, but for now, just make
 	// a new one.
-	cc := newCardChecker()
+	cc := newCardChecker(s.G())
 	card, err := cc.Next(ctx, uid, conv, thread)
 	if err != nil {
 		s.Debug(ctx, "error getting next conversation card: %s", err)
@@ -99,6 +102,7 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 	}
 
 	if card == nil {
+		s.Debug(ctx, "card is nil")
 		return
 	}
 
@@ -293,7 +297,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -310,15 +314,17 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv.Conv)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, nil, true, false, nil); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, false, &conv); err != nil {
 		return chat1.ThreadView{}, err
 	}
+
+	s.Debug(ctx, "thread: %+v", thread)
 
 	return thread, nil
 }
@@ -595,8 +601,12 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				s.Debug(ctx, "Pull: skipping mark as read call")
 			}
 			// Run post process stuff
-			if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, nil); err != nil {
-				return thread, err
+			vconv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+			if err == nil {
+				if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, nil, true, true, &vconv); err != nil {
+					return thread, err
+				}
+				s.Debug(ctx, "b thread: %+v", thread)
 			}
 			return thread, nil
 		}
