@@ -169,10 +169,6 @@ const ConnectedInfoPanel = Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const conversationIDKey = ownProps.conversationIDKey
     const meta = Constants.getMeta(state, conversationIDKey)
-<<<<<<< HEAD
->>>>>>> More immer chat (#20214)
-=======
->>>>>>> resolve
 
     let admin = false
     let canEditChannel = false
@@ -446,6 +442,7 @@ const ConnectedInfoPanel = Container.connect(
           } else if (!leftIsAdmin && rightIsAdmin) {
             return 1
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -612,6 +609,8 @@ const ConnectedInfoPanel = Container.connect(
 =======
 >>>>>>> resolve
 >>>>>>> 0a6ade8651... resolve
+=======
+>>>>>>> c69d9a2914... sigh
           }
           return l.username.localeCompare(r.username)
         }),
