@@ -5,12 +5,12 @@ import * as Container from '../util/container'
 import * as Tracker2Constants from '../constants/tracker2'
 import * as Tracker2Types from '../constants/types/tracker2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
-import capitalize from 'lodash-es/capitalize'
+import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
-import FloatingMenu from './floating-menu'
+import Overlay from './overlay'
 import Icon from './icon'
 import Meta from './meta'
 import ProgressIndicator from './progress-indicator'
@@ -23,9 +23,9 @@ const Kb = {
   Box2,
   ClickableBox,
   ConnectedNameWithIcon,
-  FloatingMenu,
   Icon,
   Meta,
+  Overlay,
   ProgressIndicator,
   Text,
   WithTooltip,
@@ -49,7 +49,7 @@ const assertionTypeToServiceId = (assertionType): Platforms.ServiceId | null => 
     case 'github':
     case 'hackernews':
     case 'keybase:':
-    case 'reddit:':
+    case 'reddit':
     case 'twitter':
       return assertionType
     default:
@@ -69,6 +69,7 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
   const [expanded, setExpanded] = React.useState(false)
   const expandLabel =
     !expanded && serviceIds.length > maxIcons ? `+${serviceIds.length - (maxIcons - 1)}` : ''
+  const serviceIdsShowing = serviceIds.slice(0, expandLabel ? maxIcons - 1 : undefined)
   return (
     <Kb.Box2
       direction="horizontal"
@@ -77,7 +78,7 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
       fullWidth={true}
       centerChildren={true}
     >
-      {serviceIds.slice(0, expandLabel ? maxIcons - 1 : undefined).map(serviceId => (
+      {serviceIdsShowing.map(serviceId => (
         <Kb.WithTooltip
           key={serviceId}
           tooltip={`${services.get(serviceId)} on ${capitalize(serviceId)}`}
@@ -86,9 +87,9 @@ const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
           <Kb.Icon fontSize={14} type={Platforms.serviceIdToIcon(serviceId)} />
         </Kb.WithTooltip>
       ))}
-      {!expanded && serviceIds.length > 4 && (
+      {expandLabel && (
         <Kb.ClickableBox onClick={() => setExpanded(true)} style={styles.expand}>
-          <Kb.Meta title={`+${serviceIds.length - 3}`} backgroundColor={Styles.globalColors.greyDark} />
+          <Kb.Meta title={expandLabel} backgroundColor={Styles.globalColors.greyDark} />
         </Kb.ClickableBox>
       )}
     </Kb.Box2>
@@ -102,9 +103,12 @@ const ProfileCard = ({clickToProfile, showClose, username}: Props) => {
   const isSelf = Container.useSelector(state => state.config.username === username)
 
   const dispatch = Container.useDispatch()
+
+  const {state: userDetailsState} = userDetails
   React.useEffect(() => {
-    dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
-  }, [dispatch, username])
+    ;['error', 'notAUserYet'].includes(userDetailsState) &&
+      dispatch(Tracker2Gen.createShowUser({asTracker: false, skipNav: true, username}))
+  }, [dispatch, username, userDetailsState])
   const _changeFollow = React.useCallback(
     (follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID})),
     [dispatch, userDetails]
@@ -167,19 +171,16 @@ export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupP
   const ref = React.useRef(null)
   const [showing, setShowing] = React.useState(false)
   const popup = showing && (
-    <Kb.FloatingMenu
+    <Kb.Overlay
       attachTo={() => ref.current}
-      closeOnSelect={true}
       onHidden={() => setShowing(false)}
       position="top center"
+      positionFallbacks={['top center', 'bottom center']}
       propagateOutsideClicks={!Styles.isMobile}
-      header={{
-        title: '',
-        view: <ProfileCard username={username} clickToProfile={true} />,
-      }}
-      items={[]}
       visible={showing}
-    />
+    >
+      <ProfileCard username={username} clickToProfile={true} />
+    </Kb.Overlay>
   )
   return Styles.isMobile ? (
     <>
@@ -221,10 +222,12 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   container: {
     backgroundColor: Styles.globalColors.white,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.small,
+    ...Styles.padding(
+      Styles.globalMargins.small,
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.tiny
+    ),
     position: 'relative',
     width: 170,
   },

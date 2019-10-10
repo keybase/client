@@ -7,9 +7,9 @@ import ProfileCard from './profile-card'
 export const provider = Sb.createPropProviderWithCommon({})
 
 const load = () => {
-  Sb.storiesOf('Profile/Card', module)
+  Sb.storiesOf('Common', module)
     .addDecorator(provider)
-    .add('Basic', () => (
+    .add('ProfileCard', () => (
       <Kb.Box2
         direction="horizontal"
         gap="tiny"

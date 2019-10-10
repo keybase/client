@@ -57,6 +57,10 @@ module.exports = {
     return require('./name-with-icon/container').default
   },
   get ConnectedUsernames() {
+    // explicitly require this to make popup work if it's not been imported
+    // explicitly
+    require('./profile-card').default
+
     return require('./usernames/container').default
   },
   get CopyText() {
@@ -220,6 +224,9 @@ module.exports = {
   },
   get PopupHeaderText() {
     return require('./popup-header-text').default
+  },
+  get ProfileCard() {
+    return require('./profile-card').default
   },
   get ProgressBar() {
     return require('./progress-bar').default

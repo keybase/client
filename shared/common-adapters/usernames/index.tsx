@@ -53,6 +53,8 @@ export type PlaintextProps = {
   title?: string
 }
 
+// common-adapters/profile-card.tsx already imports this, so have it assign
+// this here instead of importing directly to avoid an import cycle.
 let WithProfileCardPopup: React.ComponentType<any> | null
 export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
 
