@@ -1116,6 +1116,7 @@ const (
 	MessageUnboxedState_ERROR       MessageUnboxedState = 2
 	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
 	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
+	MessageUnboxedState_CARD        MessageUnboxedState = 5
 )
 
 func (o MessageUnboxedState) DeepCopy() MessageUnboxedState { return o }
@@ -1125,6 +1126,7 @@ var MessageUnboxedStateMap = map[string]MessageUnboxedState{
 	"ERROR":       2,
 	"OUTBOX":      3,
 	"PLACEHOLDER": 4,
+	"CARD":        5,
 }
 
 var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
@@ -1132,6 +1134,7 @@ var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 	2: "ERROR",
 	3: "OUTBOX",
 	4: "PLACEHOLDER",
+	5: "CARD",
 }
 
 func (e MessageUnboxedState) String() string {
@@ -1147,6 +1150,7 @@ type UIMessage struct {
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
 	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
+	Card__        *MessageUnboxedCard        `codec:"card,omitempty" json:"card,omitempty"`
 }
 
 func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
@@ -1169,6 +1173,11 @@ func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_PLACEHOLDER:
 		if o.Placeholder__ == nil {
 			err = errors.New("unexpected nil value for Placeholder__")
+			return ret, err
+		}
+	case MessageUnboxedState_CARD:
+		if o.Card__ == nil {
+			err = errors.New("unexpected nil value for Card__")
 			return ret, err
 		}
 	}
@@ -1215,6 +1224,16 @@ func (o UIMessage) Placeholder() (res MessageUnboxedPlaceholder) {
 	return *o.Placeholder__
 }
 
+func (o UIMessage) Card() (res MessageUnboxedCard) {
+	if o.State__ != MessageUnboxedState_CARD {
+		panic("wrong case accessed")
+	}
+	if o.Card__ == nil {
+		return
+	}
+	return *o.Card__
+}
+
 func NewUIMessageWithValid(v UIMessageValid) UIMessage {
 	return UIMessage{
 		State__: MessageUnboxedState_VALID,
@@ -1240,6 +1259,13 @@ func NewUIMessageWithPlaceholder(v MessageUnboxedPlaceholder) UIMessage {
 	return UIMessage{
 		State__:       MessageUnboxedState_PLACEHOLDER,
 		Placeholder__: &v,
+	}
+}
+
+func NewUIMessageWithCard(v MessageUnboxedCard) UIMessage {
+	return UIMessage{
+		State__: MessageUnboxedState_CARD,
+		Card__:  &v,
 	}
 }
 
@@ -1274,6 +1300,13 @@ func (o UIMessage) DeepCopy() UIMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Placeholder__),
+		Card__: (func(x *MessageUnboxedCard) *MessageUnboxedCard {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Card__),
 	}
 }
 

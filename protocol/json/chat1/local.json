@@ -1642,6 +1642,28 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageUnboxedCardType",
+      "symbols": [
+        "HELLO_0",
+        "SOMETHING_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageUnboxedCard",
+      "fields": [
+        {
+          "type": "MessageUnboxedCardType",
+          "name": "cardType"
+        },
+        {
+          "type": "string",
+          "name": "data"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageUnboxed",
       "switch": {
@@ -1676,6 +1698,13 @@
             "def": false
           },
           "body": "MessageUnboxedPlaceholder"
+        },
+        {
+          "label": {
+            "name": "CARD",
+            "def": false
+          },
+          "body": "MessageUnboxedCard"
         }
       ]
     },
