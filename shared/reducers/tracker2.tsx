@@ -14,7 +14,7 @@ function actionToUsername<A extends {payload: {guiID: string}}>(state: Types.Sta
 
 const cloneMapGetItem = (state: Types.State, username: string) => {
   const usernameToDetails = new Map(state.usernameToDetails)
-  const old = usernameToDetails.get(username) || Constants.makeDetails()
+  const old = usernameToDetails.get(username) || Constants.noDetails
   return {old, usernameToDetails}
 }
 
@@ -26,7 +26,7 @@ export default Container.makeReducer<
   [ConfigGen.bootstrapStatusLoaded]: (draftState, action) => {
     const {username, fullname} = action.payload
     const usernameToDetails = new Map(draftState.usernameToDetails)
-    const old = usernameToDetails.get(username) || Constants.makeDetails()
+    const old = usernameToDetails.get(username) || Constants.noDetails
     usernameToDetails.set(username, {
       ...old,
       fullname,
@@ -139,7 +139,7 @@ export default Container.makeReducer<
   [Tracker2Gen.loadedNonUserProfile]: (draftState, action) => {
     const {assertion, ...rest} = action.payload
     const usernameToNonUserDetails = new Map(draftState.usernameToNonUserDetails)
-    const old = usernameToNonUserDetails.get(assertion) || Constants.makeNonUserDetails()
+    const old = usernameToNonUserDetails.get(assertion) || Constants.noNonUserDetails()
     usernameToNonUserDetails.set(assertion, {
       ...old,
       ...rest,

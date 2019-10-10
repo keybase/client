@@ -116,7 +116,7 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
 }
 
 export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion => ({
-  ...makeAssertion(),
+  ...noAssertion,
   assertionKey: `${row.key}:${row.value}`,
   color: rpcRowColorToColor(row.color),
   kid: row.kid || ',',
@@ -136,7 +136,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
 export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion => {
   const ourKey = s.key === 'web' ? 'dnsOrGenericWebSite' : s.key
   return {
-    ...makeAssertion(),
+    ...noAssertion,
     // we have a special case where we want to differentiate between a dns or web proof, so we have a special pseudo type we use
     assertionKey: ourKey,
     belowFold: s.belowFold,
