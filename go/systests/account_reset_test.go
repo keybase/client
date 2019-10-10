@@ -14,9 +14,10 @@ func assertResetBadgeState(t *testing.T, user *userPlusDevice, expectedDaysLeft 
 	user.kickAutoresetd()
 	pollForTrue(t, g, func(i int) bool {
 		badges := getBadgeState(t, user)
-		g.Log.Debug("Iter loop %d badge state: %+v", i, badges)
+		g.Log.Warning("Iter loop %d badge state: %+v", i, badges)
 		if expectedDaysLeft > 0 {
 			daysLeft := int(time.Until(badges.ResetState.EndTime.Time()) / (time.Hour * 24))
+			g.Log.Warning("Iter loop %d cmp: %v vs %v", i, daysLeft, expectedDaysLeft)
 			return expectedDaysLeft == daysLeft
 		}
 		return badges.ResetState.EndTime == 0
@@ -34,8 +35,6 @@ func processReset(tc libkb.TestContext) error {
 }
 
 func TestCancelResetPipeline(t *testing.T) {
-	t.Skip()
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -68,7 +67,7 @@ func TestCancelResetPipeline(t *testing.T) {
 	require.NoError(t, err)
 
 	ann.login()
-	assertResetBadgeState(t, ann, 2)
+	assertResetBadgeState(t, ann, 4) // 1 device = 5 days
 	err = libkb.CancelResetPipeline(mctx)
 	require.NoError(t, err)
 	require.NoError(t, processReset(*tc))
