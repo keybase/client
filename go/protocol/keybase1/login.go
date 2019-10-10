@@ -51,8 +51,9 @@ type LoginWithPaperKeyArg struct {
 }
 
 type LogoutArg struct {
-	SessionID int  `codec:"sessionID" json:"sessionID"`
-	Force     bool `codec:"force" json:"force"`
+	SessionID   int  `codec:"sessionID" json:"sessionID"`
+	Force       bool `codec:"force" json:"force"`
+	KeepSecrets bool `codec:"keepSecrets" json:"keepSecrets"`
 }
 
 type DeprovisionArg struct {

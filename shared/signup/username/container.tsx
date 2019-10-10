@@ -17,12 +17,9 @@ const ConnectedEnterUsername = Container.connect(
     waiting: anyWaiting(state, Constants.waitingKey),
   }),
   dispatch => ({
-    _onBack: () => {
+    onBack: () => {
       dispatch(SignupGen.createRestartSignup())
       dispatch(RouteTreeGen.createNavigateUp())
-    },
-    _onReturnToMain: () => {
-      dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
     },
     onContinue: (username: string) => dispatch(SignupGen.createCheckUsername({username})),
     onLogin: (initUsername: string) => dispatch(ProvisionGen.createStartProvision({initUsername})),
@@ -31,7 +28,6 @@ const ConnectedEnterUsername = Container.connect(
     ...s,
     ...d,
     ...o,
-    onBack: s._users.some(account => account.hasStoredSecret) ? d._onReturnToMain : d._onBack,
   })
 )(EnterUsername)
 
