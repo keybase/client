@@ -14,10 +14,10 @@ func assertResetBadgeState(t *testing.T, user *userPlusDevice, expectedDaysLeft 
 	user.kickAutoresetd()
 	pollForTrue(t, g, func(i int) bool {
 		badges := getBadgeState(t, user)
-		g.Log.Warning("Iter loop %d badge state: %+v", i, badges)
+		t.Logf("Iter loop %d badge state: %+v", i, badges)
 		if expectedDaysLeft > 0 {
 			daysLeft := int(time.Until(badges.ResetState.EndTime.Time()) / (time.Hour * 24))
-			g.Log.Warning("Iter loop %d cmp: %v vs %v", i, daysLeft, expectedDaysLeft)
+			t.Logf("Iter loop %d cmp: %v vs %v", i, daysLeft, expectedDaysLeft)
 			return expectedDaysLeft == daysLeft
 		}
 		return badges.ResetState.EndTime == 0
