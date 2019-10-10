@@ -47,6 +47,15 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "", getRes.EntryValue)
 	require.Equal(t, 0, getRes.Revision)
+	// and list
+	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
+	listNamespacesRes, err := handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{})
+	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
+	listEntriesRes, err := handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
 
 	// put a secret
 	cleartextSecret := "lorem ipsum blah blah blah"
@@ -94,6 +103,15 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	require.IsType(t, teams.PrecheckAppendError{}, err)
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
+
+	// it lists correctly
+	listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}
+	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 }
 
 func TestKvStoreMultiUserTeam(t *testing.T) {
@@ -121,6 +139,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	require.NotNil(t, teamID)
 	_, err = teams.AddMember(context.Background(), tcAlice.G, teamName, bob.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
+	t.Logf("%s created team %s:%s", alice.Username, teamName, teamID)
 
 	// Alice puts a secret
 	namespace := "myapp"
@@ -144,6 +163,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	putRes, err := aliceHandler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 1, putRes.Revision)
+	t.Logf("alice successfully wrote an entry at revision 1")
 
 	// Bob can read it
 	getArg := keybase1.GetKVEntryArg{
@@ -155,12 +175,19 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
 	require.Equal(t, 1, getRes.Revision)
+	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
+	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 1}
+	listEntriesRes, err := bobHandler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{expectedKey})
+	t.Logf("bob can GET and LIST it")
 
 	// Alice kicks bob out of the team.
 	err = teams.RemoveMember(ctx, tcAlice.G, teamName, bob.Username)
 	require.NoError(t, err)
 	err = teams.RotateKeyVisible(context.TODO(), tcAlice.G, *teamID)
 	require.NoError(t, err)
+	t.Logf("bob is no longer in the team")
 
 	// Bob cannot read the entry anymore.
 	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
@@ -170,10 +197,20 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	if aerr.Code != libkb.SCTeamBadMembership {
 		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
 	}
+	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
+	_, err = bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ = err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamBadMembership {
+		t.Fatalf("expected an SCTeamBadMembership error but got %v", err)
+	}
+	t.Logf("bob can no longer GET or LIST the entry")
 
 	// New user to the team can overwrite the existing entry without specifying a revision
 	_, err = teams.AddMember(ctx, tcAlice.G, teamName, charlie.Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
+	t.Logf("new user, charlie, is added to the team")
 	cleartextSecret = []byte("overwritten")
 	putArg = keybase1.PutKVEntryArg{
 		SessionID:  0,
@@ -185,10 +222,19 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	putRes, err = charlieHandler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	require.Equal(t, 2, putRes.Revision)
+	t.Logf("charlie can write to the entry")
 	getRes, err = charlieHandler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
 	require.Equal(t, string(cleartextSecret), getRes.EntryValue)
 	require.Equal(t, 2, getRes.Revision)
+	listNamespacesRes, err := charlieHandler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	listEntriesRes, err = charlieHandler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	expectedKey = keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 2}
+	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
+	t.Logf("charlie can fetch and list the entry")
 }
 
 func TestRevisionCache(t *testing.T) {

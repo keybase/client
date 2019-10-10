@@ -90,6 +90,58 @@
           "name": "n"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KVListNamespaceResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "namespaces"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVListEntryKey",
+      "fields": [
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KVListEntryResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "KVListEntryKey"
+          },
+          "name": "entryKeys"
+        }
+      ]
     }
   ],
   "messages": {
@@ -138,6 +190,36 @@
         }
       ],
       "response": "KVPutResult"
+    },
+    "listKVNamespaces": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "KVListNamespaceResult"
+    },
+    "listKVEntries": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        }
+      ],
+      "response": "KVListEntryResult"
     }
   },
   "namespace": "keybase.1"

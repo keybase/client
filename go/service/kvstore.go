@@ -237,3 +237,111 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		Revision:  apiRes.Revision,
 	}, nil
 }
+
+type getListNamespacesAPIRes struct {
+	Status     libkb.AppStatus `json:"status"`
+	TeamID     keybase1.TeamID `json:"team_id"`
+	Namespaces []string        `json:"namespaces"`
+}
+
+func (k *getListNamespacesAPIRes) GetAppStatus() *libkb.AppStatus {
+	return &k.Status
+}
+
+func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.ListKVNamespacesArg) (res keybase1.KVListNamespaceResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "KV")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#ListKVNamespaces: t:%s", arg.TeamName), func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		mctx.Debug("not logged in err: %v", err)
+		return res, err
+	}
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
+	if err != nil {
+		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
+		return res, err
+	}
+
+	var apiRes getListNamespacesAPIRes
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/storage/list",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"team_id": libkb.S{Val: teamID.String()},
+		},
+	}
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+	if apiRes.TeamID != teamID {
+		mctx.Debug("list KV Namespaces server returned an unexpected, mismatching teamID")
+		return res, fmt.Errorf("expected teamID %s from the server, got %s", teamID, apiRes.TeamID)
+	}
+	return keybase1.KVListNamespaceResult{
+		TeamName:   arg.TeamName,
+		Namespaces: apiRes.Namespaces,
+	}, nil
+}
+
+type getListEntriesAPIRes struct {
+	Status    libkb.AppStatus      `json:"status"`
+	TeamID    keybase1.TeamID      `json:"team_id"`
+	Namespace string               `json:"namespace"`
+	EntryKeys []compressedEntryKey `json:"entry_keys"`
+}
+
+type compressedEntryKey struct {
+	EntryKey string `json:"k"`
+	Revision int    `json:"r"`
+}
+
+func (k *getListEntriesAPIRes) GetAppStatus() *libkb.AppStatus {
+	return &k.Status
+}
+
+func (h *KVStoreHandler) ListKVEntries(ctx context.Context, arg keybase1.ListKVEntriesArg) (res keybase1.KVListEntryResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "KV")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#ListKVEntries: t:%s, n:%s", arg.TeamName, arg.Namespace), func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		mctx.Debug("not logged in err: %v", err)
+		return res, err
+	}
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
+	if err != nil {
+		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
+		return res, err
+	}
+	var apiRes getListEntriesAPIRes
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/storage/list",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"team_id":   libkb.S{Val: teamID.String()},
+			"namespace": libkb.S{Val: arg.Namespace},
+		},
+	}
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+	if apiRes.TeamID != teamID {
+		mctx.Debug("list KV Namespaces server returned an unexpected, mismatching teamID")
+		return res, fmt.Errorf("expected teamID %s from the server, got %s", teamID, apiRes.TeamID)
+	}
+	if apiRes.Namespace != arg.Namespace {
+		mctx.Debug("list KV EntryKeys server returned an unexpected, mismatching namespace")
+		return res, fmt.Errorf("expected namespace %s from the server, got %s", arg.Namespace, apiRes.Namespace)
+	}
+	resKeys := []keybase1.KVListEntryKey{}
+	for _, ek := range apiRes.EntryKeys {
+		k := keybase1.KVListEntryKey{EntryKey: ek.EntryKey, Revision: ek.Revision}
+		resKeys = append(resKeys, k)
+	}
+	return keybase1.KVListEntryResult{
+		TeamName:  arg.TeamName,
+		Namespace: arg.Namespace,
+		EntryKeys: resKeys,
+	}, nil
+}

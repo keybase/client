@@ -2585,6 +2585,9 @@ export type KBFSTeamSettings = {readonly tlfID: TLFID}
 export type KID = String
 export type KVEntryID = {readonly teamID: TeamID; readonly namespace: String; readonly entryKey: String}
 export type KVGetResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue: String; readonly revision: Int}
+export type KVListEntryKey = {readonly entryKey: String; readonly revision: Int}
+export type KVListEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKeys?: Array<KVListEntryKey> | null}
+export type KVListNamespaceResult = {readonly teamName: String; readonly namespaces?: Array<String> | null}
 export type KVPutResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KbClientStatus = {readonly version: String}
 export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String}
@@ -3495,6 +3498,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.Kex2Provisioner.kexStart'
 // 'keybase.1.kvstore.getKVEntry'
 // 'keybase.1.kvstore.putKVEntry'
+// 'keybase.1.kvstore.listKVNamespaces'
+// 'keybase.1.kvstore.listKVEntries'
 // 'keybase.1.log.registerLogger'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'

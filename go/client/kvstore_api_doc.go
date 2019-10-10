@@ -9,4 +9,10 @@ Get an entry:
 
 Put an entry (reads value from stdin):
 	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
+
+List all namespaces:
+	{"method": "list", "params": {"options": {"team": "phoenix"}}}
+
+List all entryKeys in a namespace:
+	{"method": "list", "params": {"options": {"team": "phoenix", "namespace": "pw-manager"}}}
 `
