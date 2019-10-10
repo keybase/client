@@ -51,7 +51,6 @@ class Login extends React.Component<Props, State> {
       .map(u => <UserRow user={u.username} key={u.username} hasStoredSecret={u.hasStoredSecret} />)
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
-    const needPassword = !this.props.hidePasswordBox
     return (
       <SignupScreen
         banners={errorBanner(this.props.error)}
@@ -80,7 +79,7 @@ class Login extends React.Component<Props, State> {
               position="bottom center"
               style={styles.userDropdown}
             />
-            {needPassword && (
+            {this.props.needPassword && (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
                 <Kb.LabeledInput
                   autoFocus={true}
@@ -109,7 +108,7 @@ class Login extends React.Component<Props, State> {
               style={styles.loginSubmitContainer}
             >
               <Kb.WaitingButton
-                disabled={needPassword && !this.props.password}
+                disabled={this.props.needPassword && !this.props.password}
                 fullWidth={true}
                 waitingKey={Constants.waitingKey}
                 style={styles.loginSubmitButton}

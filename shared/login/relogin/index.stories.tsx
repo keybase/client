@@ -9,7 +9,7 @@ const makeAccount = (username: string) => ({
 
 const commonProps: Props = {
   error: '',
-  hidePasswordBox: false,
+  needPassword: true,
   onFeedback: Sb.action('onFeedback'),
   onForgotPassword: Sb.action('onForgotPassword'),
   onLogin: Sb.action('onLogin'),

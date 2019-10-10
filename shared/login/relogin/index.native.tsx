@@ -46,7 +46,6 @@ class LoginRender extends React.Component<Props> {
         },
       },
     ]
-    const needPassword = !this.props.hidePasswordBox
 
     return (
       <Kb.NativeScrollView>
@@ -67,7 +66,7 @@ class LoginRender extends React.Component<Props> {
               onOther={this.props.onSomeoneElse}
               options={this.props.users.map(u => u.username)}
             />
-            {needPassword && (
+            {this.props.needPassword && (
               <Kb.FormWithCheckbox
                 style={{alignSelf: 'stretch'}}
                 inputProps={inputProps}
@@ -75,7 +74,7 @@ class LoginRender extends React.Component<Props> {
               />
             )}
             <Kb.WaitingButton
-              disabled={needPassword && !this.props.password}
+              disabled={this.props.needPassword && !this.props.password}
               waitingKey={Constants.waitingKey}
               style={{marginTop: 0, width: '100%'}}
               fullWidth={true}
