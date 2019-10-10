@@ -230,6 +230,9 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 }
 
 func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
+	// In case someone comes from "GetInterestingPeople" command in standalone
+	// mode:
+	h.G().StartStandaloneChat()
 
 	// Chat source
 	chatFn := func(uid keybase1.UID) (kuids []keybase1.UID, err error) {
