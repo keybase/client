@@ -294,12 +294,12 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.uploadWritingSuccess]: (draftState, action) => {
     const {path} = action.payload
     if (draftState.uploads.errors.has(path)) {
-      const errors = new Map([...draftState.uploads.errors])
+      const errors = new Map(draftState.uploads.errors)
       errors.delete(path)
       draftState.uploads.errors = errors
     }
     if (draftState.uploads.writingToJournal.has(path)) {
-      const writingToJournal = new Set([...draftState.uploads.writingToJournal])
+      const writingToJournal = new Set(draftState.uploads.writingToJournal)
       writingToJournal.delete(path)
       draftState.uploads.writingToJournal = writingToJournal
     }
@@ -378,7 +378,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.discardEdit]: (draftState, action) => {
     if (draftState.edits.has(action.payload.editID)) {
-      const edits = new Map([...draftState.edits])
+      const edits = new Map(draftState.edits)
       edits.delete(action.payload.editID)
       draftState.edits = edits
     }
@@ -391,7 +391,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.dismissFsError]: (draftState, action) => {
     if (draftState.errors.has(action.payload.key)) {
-      const errors = new Map([...draftState.errors])
+      const errors = new Map(draftState.errors)
       errors.delete(action.payload.key)
       draftState.errors = errors
     }
@@ -415,9 +415,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.setDestinationPickerParentPath]: (draftState, action) => {
     if (draftState.destinationPicker.destinationParentPath[action.payload.index] !== action.payload.path) {
-      const destinationParentPath = [...draftState.destinationPicker.destinationParentPath]
-      destinationParentPath[action.payload.index] = action.payload.path
-      draftState.destinationPicker.destinationParentPath = destinationParentPath
+      draftState.destinationPicker.destinationParentPath[action.payload.index] = action.payload.path
     }
   },
   [FsGen.showIncomingShare]: (draftState, action) => {
@@ -578,7 +576,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       downloadID => !action.payload.state.has(downloadID)
     )
     if (toDelete.length) {
-      const info = new Map([...draftState.downloads.info])
+      const info = new Map(draftState.downloads.info)
       toDelete.forEach(downloadID => info.delete(downloadID))
       draftState.downloads.info = info
     }
