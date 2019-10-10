@@ -1037,7 +1037,10 @@ const pendingPaymentsUpdate = (
 }
 
 const recentPaymentsUpdate = (_: TypedState, action: EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload) => {
-  const {accountID, firstPage: {payments, cursor, oldestUnread}} = action.payload.params
+  const {
+    accountID,
+    firstPage: {payments, cursor, oldestUnread},
+  } = action.payload.params
   return WalletsGen.createRecentPaymentsReceived({
     accountID: Types.stringToAccountID(accountID),
     oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
@@ -1049,7 +1052,9 @@ const recentPaymentsUpdate = (_: TypedState, action: EngineGen.Stellar1NotifyRec
 }
 
 const paymentReviewed = (_: TypedState, action: EngineGen.Stellar1UiPaymentReviewedPayload) => {
-  const {msg: {bid, reviewID, seqno, banners, nextButton}} = action.payload.params
+  const {
+    msg: {bid, reviewID, seqno, banners, nextButton},
+  } = action.payload.params
   return WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})
 }
 

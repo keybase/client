@@ -91,12 +91,11 @@ const Row = p => (
         />
       )}
     </Kb.Box2>
-    {!p.loading &&
-      !!p.subTitle && (
-        <Kb.Text type="Body" style={styles.rowText}>
-          {p.subTitle}
-        </Kb.Text>
-      )}
+    {!p.loading && !!p.subTitle && (
+      <Kb.Text type="Body" style={styles.rowText}>
+        {p.subTitle}
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
