@@ -670,10 +670,16 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 }
 
 func cacheUserServiceSummary(mctx MetaContext, user *User) {
+	serviceMapper := mctx.G().ServiceMapper
+	if serviceMapper == nil {
+		// no service summary mapper in current context - e.g. in tests.
+		return
+	}
+
 	remoteProofs := user.idTable.remoteProofLinks
 	if remoteProofs != nil {
 		summary := remoteProofs.toServiceSummary()
-		err := mctx.G().ServiceMapper.InformOfServiceSummary(mctx.Ctx(), mctx.G(), user.id, summary)
+		err := serviceMapper.InformOfServiceSummary(mctx.Ctx(), mctx.G(), user.id, summary)
 		if err != nil {
 			mctx.Debug("cacheUserServiceSummary for %q uid: %q: error: %s", user.name, user.id, err)
 		}
