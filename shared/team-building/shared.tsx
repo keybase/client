@@ -32,8 +32,9 @@ const serviceColors: {[K in ServiceIdWithContact]: string} = {
 
 const services: {
   [K in ServiceIdWithContact]: {
+    avatarIcon?: IconType // icon to show as avatar for results, if different than `icon`
     badge?: boolean
-    icon: IconType
+    icon: IconType // icon to show in tab bar
     label: string
     longLabel: Array<string>
     searchPlaceholder: string
@@ -65,6 +66,9 @@ const services: {
     searchPlaceholder: 'Hacker News',
   },
   keybase: {
+    avatarIcon: Styles.isMobile
+      ? 'icon-placeholder-avatar-circular-48'
+      : 'icon-placeholder-avatar-circular-32',
     icon: 'iconfont-contact-book',
     label: 'Keybase and contacts',
     longLabel: Styles.isMobile ? ['Keybase &', 'Contacts'] : ['A Keybase', 'user'],
@@ -91,22 +95,16 @@ const services: {
   },
 }
 
-const serviceIdToAccentColor = (service: ServiceIdWithContact): string => serviceColors[service]
-const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
-const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
-const serviceIdToLongLabel = (service: ServiceIdWithContact): Array<string> => services[service].longLabel
-const serviceIdToSearchPlaceholder = (service: ServiceIdWithContact): string =>
+export const serviceIdToAccentColor = (service: ServiceIdWithContact): string => serviceColors[service]
+export const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
+export const serviceIdToAvatarIcon = (service: ServiceIdWithContact): IconType =>
+  services[service].avatarIcon || services[service].icon
+export const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
+export const serviceIdToLongLabel = (service: ServiceIdWithContact): Array<string> =>
+  services[service].longLabel
+export const serviceIdToSearchPlaceholder = (service: ServiceIdWithContact): string =>
   services[service].searchPlaceholder
-const serviceIdToBadge = (service: ServiceIdWithContact): boolean => services[service].badge === true
+export const serviceIdToBadge = (service: ServiceIdWithContact): boolean => services[service].badge === true
 
-const serviceMapToArray = (services: ServiceMap) => allServices.filter(x => x !== 'keybase' && x in services)
-
-export {
-  serviceIdToIconFont,
-  serviceIdToAccentColor,
-  serviceIdToLabel,
-  serviceIdToLongLabel,
-  serviceIdToSearchPlaceholder,
-  serviceIdToBadge,
-  serviceMapToArray,
-}
+export const serviceMapToArray = (services: ServiceMap) =>
+  allServices.filter(x => x !== 'keybase' && x in services)

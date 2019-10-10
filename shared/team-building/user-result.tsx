@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import capitalize from 'lodash/capitalize'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray, serviceIdToAvatarIcon} from './shared'
 
 export type Props = {
   // They are already a member in the actual team, not this temporary set.
@@ -117,14 +117,12 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
-    return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (
     <Kb.Icon
       fontSize={avatarSize}
-      type={serviceIdToIconFont(resultForService)}
+      type={serviceIdToAvatarIcon(resultForService)}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
   )
