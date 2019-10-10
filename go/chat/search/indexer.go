@@ -461,10 +461,18 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID, convID *chat1
 			pagination.Previous = nil
 		}
 		for _, conv := range inbox.ConvsUnverified {
-			if conv.Conv.GetFinalizeInfo() == nil {
-				convID := conv.GetConvID()
-				convMap[convID.String()] = conv
+			if conv.Conv.GetFinalizeInfo() != nil {
+				continue
 			}
+			// Don't index any conversation if we are a RESTRICTEDBOT member,
+			// we won't have full access to the messages. We use
+			// UntrustedTeamRole here since the server could just deny serving
+			// us instead of lying about the role.
+			if conv.Conv.ReaderInfo != nil && conv.Conv.ReaderInfo.UntrustedTeamRole == keybase1.TeamRole_RESTRICTEDBOT {
+				continue
+			}
+			convID := conv.GetConvID()
+			convMap[convID.String()] = conv
 		}
 	}
 	return convMap, nil
