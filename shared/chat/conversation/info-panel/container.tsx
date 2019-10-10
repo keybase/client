@@ -166,7 +166,9 @@ const ConnectedInfoPanel = Container.connect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let participants = stateProps._participants.toArray()
     let teamMembers = stateProps._teamMembers
-    if (teamMembers && stateProps.channelname === 'general') {
+    const isGeneral = stateProps.channelname === 'general'
+    const showAuditingBanner = isGeneral && !teamMembers
+    if (teamMembers && isGeneral) {
       participants = teamMembers
         .valueSeq()
         .toArray()
@@ -318,6 +320,7 @@ const ConnectedInfoPanel = Container.connect(
       selectedAttachmentView: stateProps.selectedAttachmentView,
       selectedConversationIDKey: stateProps.selectedConversationIDKey,
       selectedTab: stateProps.selectedTab,
+      showAuditingBanner,
       smallTeam: stateProps.smallTeam,
       spinnerForHide: stateProps.spinnerForHide,
       teamname: stateProps.teamname,

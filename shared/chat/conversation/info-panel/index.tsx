@@ -69,6 +69,8 @@ type LinkProps = {
   status: Types.AttachmentViewStatus
 }
 
+const auditingBannerItem = 'auditing banner'
+
 export type InfoPanelProps = {
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
@@ -81,6 +83,7 @@ export type InfoPanelProps = {
   spinnerForHide: boolean
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp
   selectedTab: Panel
+  showAuditingBanner: boolean
 
   // Attachment stuff
   docs: DocProps
@@ -302,20 +305,30 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             return 56
           }
         }
+        if (this.props.showAuditingBanner) {
+          tabsSection.data.push(auditingBannerItem)
+        }
         tabsSection.data = tabsSection.data.concat(this.props.participants)
         tabsSection.renderItem = ({item}) => {
-          if (!item.username) {
+          if (item === auditingBannerItem) {
+            return (
+              <Kb.Banner color="grey" small={true}>
+                Auditing team members...
+              </Kb.Banner>
+            )
+          } else if (!item.username) {
             return null
+          } else {
+            return (
+              <Participant
+                fullname={item.fullname}
+                isAdmin={item.isAdmin}
+                isOwner={item.isOwner}
+                username={item.username}
+                onShowProfile={this.props.onShowProfile}
+              />
+            )
           }
-          return (
-            <Participant
-              fullname={item.fullname}
-              isAdmin={item.isAdmin}
-              isOwner={item.isOwner}
-              username={item.username}
-              onShowProfile={this.props.onShowProfile}
-            />
-          )
         }
         sections.push(tabsSection)
         break
