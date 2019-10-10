@@ -29,6 +29,7 @@ type APIArg struct {
 	InitialTimeout  time.Duration // optional
 	RetryMultiplier float64       // optional
 	RetryCount      int           // optional
+	UseText         bool
 }
 
 // NewAPIArg creates a standard APIArg that will result
