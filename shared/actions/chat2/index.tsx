@@ -2328,16 +2328,6 @@ const loadCanUserPerform = (state: TypedState, action: Chat2Gen.SelectConversati
   return undefined
 }
 
-const loadTeamForConv = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const teamname = meta.teamname
-  if (!teamname) {
-    return
-  }
-  return TeamsGen.createGetMembers({teamname})
-}
-
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversationPayload) {
   const {conversationIDKey} = action.payload
@@ -2406,6 +2396,24 @@ const navigateToThread = (state: TypedState) => {
     return
   }
   return navigateToThreadRoute(state.chat2.selectedConversation)
+}
+
+const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
+  const metas = action.payload.metas
+  const filtered = metas.filter(m => m.conversationIDKey === state.chat2.selectedConversation)
+  if (filtered.length === 0) {
+    return false
+  }
+  const meta = filtered[0]
+  const teamname = meta.teamname
+  if (!meta.teamname) {
+    return false
+  }
+  const members = state.teams.teamNameToMembers.get(teamname)
+  if (members) {
+    return false
+  }
+  return TeamsGen.createGetMembers({teamname})
 }
 
 const ensureSelectedMeta = (state: TypedState) => {
@@ -3354,6 +3362,7 @@ function* chat2Saga() {
     inboxRefresh,
     'inboxRefresh'
   )
+  yield* Saga.chainAction2(Chat2Gen.metasReceived, ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest, 'queueMetaToRequest')
   // We have some items in the queue to process
@@ -3416,7 +3425,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.confirmScreenResponse, confirmScreenResponse, 'confirmScreenResponse')
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, loadCanUserPerform, 'loadCanUserPerform')
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, loadTeamForConv, 'loadTeamForConv')
 
   // Giphy
   yield* Saga.chainAction2(Chat2Gen.unsentTextChanged, unsentTextChanged, 'unsentTextChanged')
