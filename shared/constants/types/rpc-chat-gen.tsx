@@ -731,8 +731,14 @@ export enum MessageType {
 }
 
 export enum MessageUnboxedCardType {
-  hello = 0,
-  something = 1,
+  welcome = 0,
+  popularChannels = 1,
+  addPeople = 2,
+  createChannels = 3,
+  msgAttention = 4,
+  userAwayForLong = 5,
+  channelInactive = 6,
+  msgNoAnswer = 7,
 }
 
 export enum MessageUnboxedErrorType {
