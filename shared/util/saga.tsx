@@ -7,7 +7,7 @@ import * as ConfigGen from '../actions/config-gen'
 import {TypedState} from '../constants/reducer'
 import {TypedActions, TypedActionsMap} from '../actions/typed-actions-gen'
 import put from './typed-put'
-import {isArray} from 'lodash-es'
+import isArray from 'lodash/isArray'
 
 type ActionType = keyof TypedActionsMap
 

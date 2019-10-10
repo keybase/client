@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -166,6 +165,8 @@ func (e *AccountReset) Run(mctx libkb.MetaContext) (err error) {
 		mctx.G().Log.Info("Your account has been added to the reset pipeline.")
 		if !self {
 			mctx.G().Log.Info("Please check your email and phone for instructions on continuing. If you remember your correct password or you want to resend verification emails and texts, retry this command.")
+		} else {
+			mctx.G().Log.Info("To check the status of your reset request, login again with your Keybase password.")
 		}
 	}
 	e.resetPending = true
@@ -273,8 +274,8 @@ func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetS
 		notificationText = "Please log in to finish resetting your account."
 	default:
 		notificationText = fmt.Sprintf(
-			"You will be able to reset your account in %s.",
-			humanize.Time(readyTime),
+			"You will be able to reset your account %s.",
+			libkb.HumanizeResetTime(readyTime),
 		)
 	}
 	if err := mctx.UIs().LoginUI.DisplayResetProgress(mctx.Ctx(), keybase1.DisplayResetProgressArg{

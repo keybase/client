@@ -427,6 +427,7 @@ const styles = Styles.styleSheetCreate(
           marginBottom: Styles.globalMargins.small,
           marginLeft: Styles.globalMargins.xsmall,
           marginTop: 56, // we're under the header, need to shift down
+          position: 'relative', // otherwise the absolutely positioned background makes this unclickable
           zIndex: undefined, // annoyingly this is set inside Kb.BackButton
         },
         isMobile: {

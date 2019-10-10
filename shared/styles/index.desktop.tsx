@@ -3,7 +3,7 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import * as Shared from './shared'
 import {isDarkMode} from './dark-mode'
-import {isEmpty} from 'lodash-es'
+import isEmpty from 'lodash/isEmpty'
 import styleSheeCreateProxy from './style-sheet-proxy'
 import * as CSS from './css'
 

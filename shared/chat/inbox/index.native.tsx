@@ -8,11 +8,10 @@ import * as Types from '../../constants/types/chat2'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
-import Flags from '../../util/feature-flags'
 import InboxSearch from '../inbox-search/container'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 
@@ -36,11 +35,7 @@ const NoChats = (props: {onNewChat: () => void}) => (
         end-to-end encrypted.
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Button
-      onClick={props.onNewChat}
-      mode="Primary"
-      label={Flags.wonderland ? 'Start a new chat 🐇' : 'Start a new chat'}
-    />
+    <Kb.Button onClick={props.onNewChat} mode="Primary" label="Start a new chat" />
   </Kb.Box2>
 )
 

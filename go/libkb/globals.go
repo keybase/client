@@ -84,7 +84,6 @@ type GlobalContext struct {
 	loadUserLockTab        *LockTable
 	teamAuditor            TeamAuditor
 	teamBoxAuditor         TeamBoxAuditor
-	hasRandomPWPrefetcher  *HasRandomPWPrefetcher
 	stellar                Stellar            // Stellar related ops
 	deviceEKStorage        DeviceEKStorage    // Store device ephemeral keys
 	userEKBoxStorage       UserEKBoxStorage   // Store user ephemeral key boxes
@@ -101,6 +100,7 @@ type GlobalContext struct {
 	paramProofStore        MerkleStore        // a cache and fetcher for param proofs
 	externalURLStore       MerkleStore        // a cache and fetcher for external urls
 	PayloadCache           *PayloadCache      // cache of ChainLink payload json wrappers
+	kvRevisionCache        KVRevisionCacher   // cache of revisions for verifying key-value store results
 	Pegboard               *Pegboard
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -641,12 +641,6 @@ func (g *GlobalContext) GetTeamBoxAuditor() TeamBoxAuditor {
 	return g.teamBoxAuditor
 }
 
-func (g *GlobalContext) GetHasRandomPWPrefetcher() *HasRandomPWPrefetcher {
-	g.cacheMu.RLock()
-	defer g.cacheMu.RUnlock()
-	return g.hasRandomPWPrefetcher
-}
-
 func (g *GlobalContext) GetStellar() Stellar {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -699,6 +693,18 @@ func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	g.iteamCacher = l
+}
+
+func (g *GlobalContext) GetKVRevisionCache() KVRevisionCacher {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.kvRevisionCache
+}
+
+func (g *GlobalContext) SetKVRevisionCache(kvr KVRevisionCacher) {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	g.kvRevisionCache = kvr
 }
 
 func (g *GlobalContext) GetFullSelfer() FullSelfer {
@@ -1239,12 +1245,6 @@ func (g *GlobalContext) SetTeamBoxAuditor(a TeamBoxAuditor) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.teamBoxAuditor = a
-}
-
-func (g *GlobalContext) SetHasRandomPWPrefetcher(p *HasRandomPWPrefetcher) {
-	g.cacheMu.Lock()
-	defer g.cacheMu.Unlock()
-	g.hasRandomPWPrefetcher = p
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {

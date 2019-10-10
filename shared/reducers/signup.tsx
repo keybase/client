@@ -4,7 +4,7 @@ import * as SignupGen from '../actions/signup-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import HiddenString from '../util/hidden-string'
 import {actionHasError} from '../util/container'
-import {trim} from 'lodash-es'
+import trim from 'lodash/trim'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()

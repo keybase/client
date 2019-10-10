@@ -13,19 +13,33 @@ type Props = {
   onForgotUsername: () => void
   onGoToSignup: () => void
   onSubmit: (username: string) => void
+  resetBannerUser: string | null
   submittedUsername: string
   waiting: boolean
 }
 
 const Username = (props: Props) => {
   const [username, setUsername] = React.useState(props.initialUsername)
+  const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
-    props.onSubmit(username)
-  }, [props.onSubmit, username])
+    _onSubmit(username)
+  }, [_onSubmit, username])
 
   return (
     <SignupScreen
       banners={[
+        ...(props.resetBannerUser
+          ? [
+              <Kb.Banner color="green" key="resetBanner">
+                <Kb.BannerParagraph
+                  bannerColor="green"
+                  content={`You have successfully reset your account, ${
+                    props.resetBannerUser
+                  }. You can now log in as usual.`}
+                />
+              </Kb.Banner>,
+            ]
+          : []),
         ...errorBanner(props.error),
         ...(props.inlineSignUpLink
           ? [

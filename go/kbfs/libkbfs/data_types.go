@@ -617,6 +617,12 @@ func (bra BlockRequestAction) StopIfFull() bool {
 	return bra&blockRequestStopIfFull > 0
 }
 
+// AddStopIfFull returns a new action that adds the "stop-if-full"
+// behavior in addition to the original request.
+func (bra BlockRequestAction) AddStopIfFull() BlockRequestAction {
+	return bra | blockRequestStopIfFull
+}
+
 // DelayedCacheCheckAction returns a new action that adds the
 // delayed-cache-check feature to `bra`.
 func (bra BlockRequestAction) DelayedCacheCheckAction() BlockRequestAction {

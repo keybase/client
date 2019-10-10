@@ -1118,3 +1118,8 @@ type SyncedContactListProvider interface {
 	RetrieveAssertionToName(MetaContext) (map[string]string, error)
 	UnresolveContactsWithComponent(MetaContext, *keybase1.PhoneNumber, *keybase1.EmailAddress)
 }
+
+type KVRevisionCacher interface {
+	PutCheck(mctx MetaContext, entryID keybase1.KVEntryID, entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error)
+	Fetch(mctx MetaContext, entryID keybase1.KVEntryID) (entryHash string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int)
+}

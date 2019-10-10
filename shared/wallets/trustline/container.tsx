@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Waiting from '../../constants/waiting'
-import {debounce} from 'lodash-es'
+import debounce from 'lodash/debounce'
 import Trustline from '.'
 
 type OwnProps = Container.RouteProps<{accountID: Types.AccountID}>

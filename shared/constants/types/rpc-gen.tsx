@@ -400,7 +400,7 @@ export type MessageTypes = {
     outParam: APIRes
   }
   'keybase.1.apiserver.GetWithSession': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
+    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null; readonly useText?: Boolean | null}
     outParam: APIRes
   }
   'keybase.1.apiserver.Post': {
@@ -1324,7 +1324,7 @@ export type MessageTypes = {
     outParam: UserSettings
   }
   'keybase.1.user.loadPassphraseState': {
-    inParam: {readonly forceRepoll: Boolean}
+    inParam: void
     outParam: PassphraseState
   }
   'keybase.1.user.profileEdit': {
@@ -2229,6 +2229,7 @@ export enum StatusCode {
   scteambotkeygenerationexists = 3800,
   scteambotkeyoldboxedgeneration = 3801,
   scteambotkeybadgeneration = 3802,
+  scairdropregisterfailedmisc = 4207,
 }
 
 export enum SubscriptionTopic {
@@ -2270,6 +2271,7 @@ export enum TeamApplication {
   gitMetadata = 4,
   seitanInviteToken = 5,
   stellarRelay = 6,
+  kvstore = 7,
 }
 
 export enum TeamEphemeralKeyType {
@@ -2467,6 +2469,7 @@ export type EmailAddressVerifiedMsg = {readonly email: EmailAddress}
 export type EmailLookupResult = {readonly email: EmailAddress; readonly uid?: UID | null}
 export type EncryptedBytes32 = string | null
 export type EncryptedGitMetadata = {readonly v: Int; readonly e: Bytes; readonly n: BoxNonce; readonly gen: PerTeamKeyGeneration}
+export type EncryptedKVEntry = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type ErrorNum = Int
 export type ExtendedStatus = {readonly standalone: Boolean; readonly passphraseStreamCached: Boolean; readonly tsecCached: Boolean; readonly deviceSigKeyCached: Boolean; readonly deviceEncKeyCached: Boolean; readonly paperSigKeyCached: Boolean; readonly paperEncKeyCached: Boolean; readonly storedSecret: Boolean; readonly secretPromptSkip: Boolean; readonly rememberPassphrase: Boolean; readonly device?: Device | null; readonly deviceErr?: LoadDeviceErr | null; readonly logDir: String; readonly session?: SessionStatus | null; readonly defaultUsername: String; readonly provisionedUsernames?: Array<String> | null; readonly configuredAccounts?: Array<ConfiguredAccount> | null; readonly Clients?: Array<ClientStatus> | null; readonly deviceEkNames?: Array<String> | null; readonly platformInfo: PlatformInfo; readonly defaultDeviceID: DeviceID; readonly localDbStats?: Array<String> | null; readonly localChatDbStats?: Array<String> | null; readonly localBlockCacheDbStats?: Array<String> | null; readonly localSyncCacheDbStats?: Array<String> | null; readonly cacheDirSizeInfo?: Array<DirSizeInfo> | null; readonly uiRouterMapping: {[key: string]: Int}}
 export type ExternalServiceConfig = {readonly schemaVersion: Int; readonly display?: ServiceDisplayConfig | null; readonly config?: ParamProofServiceConfig | null}
@@ -2581,6 +2584,9 @@ export type KBFSRootHash = Bytes
 export type KBFSStatus = {readonly version: String; readonly installedVersion: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly mount: String}
 export type KBFSTeamSettings = {readonly tlfID: TLFID}
 export type KID = String
+export type KVEntryID = {readonly teamID: TeamID; readonly namespace: String; readonly entryKey: String}
+export type KVGetResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue: String; readonly revision: Int}
+export type KVPutResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KbClientStatus = {readonly version: String}
 export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String}
 export type KeyBundle = {readonly version: Int; readonly bundle: Bytes}
@@ -2876,6 +2882,7 @@ export type UserEkStatement = {readonly currentUserEkMetadata: UserEkMetadata}
 export type UserLogPoint = {readonly role: TeamRole; readonly sigMeta: SignatureMetadata}
 export type UserOrTeamID = String
 export type UserOrTeamLite = {readonly id: UserOrTeamID; readonly name: String}
+export type UserPassphraseStateMsg = {readonly passphraseState: PassphraseState}
 export type UserPhoneNumber = {readonly phoneNumber: PhoneNumber; readonly verified: Boolean; readonly superseded: Boolean; readonly visibility: IdentityVisibility; readonly ctime: UnixTime}
 export type UserPlusAllKeys = {readonly base: UserPlusKeys; readonly pgpKeys?: Array<PublicKey> | null; readonly remoteTracks?: Array<RemoteTrack> | null}
 export type UserPlusKeys = {readonly uid: UID; readonly username: String; readonly eldestSeqno: Seqno; readonly status: StatusCode; readonly deviceKeys?: Array<PublicKey> | null; readonly revokedDeviceKeys?: Array<RevokedKey> | null; readonly pgpKeyCount: Int; readonly uvv: UserVersionVector; readonly deletedDeviceKeys?: Array<PublicKey> | null; readonly perUserKeys?: Array<PerUserKey> | null; readonly resets?: Array<ResetSummary> | null}
@@ -3487,6 +3494,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.Kex2Provisionee2.hello2'
 // 'keybase.1.Kex2Provisionee2.didCounterSign2'
 // 'keybase.1.Kex2Provisioner.kexStart'
+// 'keybase.1.kvstore.getKVEntry'
+// 'keybase.1.kvstore.putKVEntry'
 // 'keybase.1.log.registerLogger'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
@@ -3683,6 +3692,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
 // 'keybase.1.teams.teamCreateWithSettings'
+// 'keybase.1.teams.teamGetByID'
 // 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'

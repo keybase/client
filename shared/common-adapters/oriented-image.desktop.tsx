@@ -1,7 +1,8 @@
 import * as React from 'react'
 import fs from 'fs'
 import EXIF from 'exif-js'
-import {noop, isNumber} from 'lodash-es'
+import noop from 'lodash/noop'
+import isNumber from 'lodash/isNumber'
 import logger from '../logger'
 import {Props} from './oriented-image.types'
 

@@ -7,7 +7,7 @@ import * as Styles from '../../../styles'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
-import {chunk} from 'lodash-es'
+import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
 import {Section} from '.'
 

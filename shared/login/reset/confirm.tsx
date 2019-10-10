@@ -15,15 +15,15 @@ const ConfirmReset = (_: Props) => {
 
   const onContinue = React.useCallback(
     () => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: true})),
-    []
+    [dispatch]
   )
   const onCancelReset = React.useCallback(() => {
     dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: false}))
     dispatch(AutoresetGen.createCancelReset())
-  }, [])
+  }, [dispatch])
   const onClose = React.useCallback(
     () => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: false})),
-    []
+    [dispatch]
   )
 
   const [checks, setChecks] = React.useState({
@@ -126,6 +126,10 @@ const ConfirmReset = (_: Props) => {
       </Kb.Box2>
     </Kb.Modal>
   )
+}
+ConfirmReset.navigationOptions = {
+  gesturesEnabled: false,
+  header: null,
 }
 
 const styles = Styles.styleSheetCreate(() => ({

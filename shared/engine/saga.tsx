@@ -6,7 +6,7 @@ import {sequentially} from '../util/saga'
 import {CommonResponseHandler} from './types'
 import {RPCError} from '../util/errors'
 import {printOutstandingRPCs} from '../local-debug'
-import {isArray} from 'lodash-es'
+import isArray from 'lodash/isArray'
 
 type WaitingKey = string | Array<string>
 

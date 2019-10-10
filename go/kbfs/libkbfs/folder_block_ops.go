@@ -1192,7 +1192,9 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 	parentUndo, err := fbo.updateParentDirEntryLocked(
 		ctx, lState, dir, kmd, true, true)
 	if err != nil {
-		unlinkUndoFn()
+		if unlinkUndoFn != nil {
+			unlinkUndoFn()
+		}
 		_, _ = dd.AddEntry(ctx, oldName, oldDe)
 		return nil, err
 	}
@@ -1200,9 +1202,15 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 	undoDirtyFn := fbo.makeDirDirtyLocked(lState, dir.TailPointer(), unrefs)
 	return func() {
 		_, _ = dd.AddEntry(ctx, oldName, oldDe)
-		undoDirtyFn()
-		parentUndo()
-		unlinkUndoFn()
+		if undoDirtyFn != nil {
+			undoDirtyFn()
+		}
+		if parentUndo != nil {
+			parentUndo()
+		}
+		if unlinkUndoFn != nil {
+			unlinkUndoFn()
+		}
 	}, nil
 }
 

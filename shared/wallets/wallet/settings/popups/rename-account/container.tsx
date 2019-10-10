@@ -1,4 +1,4 @@
-import {capitalize} from 'lodash-es'
+import capitalize from 'lodash/capitalize'
 import * as Container from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'

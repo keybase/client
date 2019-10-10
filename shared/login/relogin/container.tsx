@@ -6,7 +6,7 @@ import * as SignupGen from '../../actions/signup-gen'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {sortBy} from 'lodash-es'
+import sortBy from 'lodash/sortBy'
 import * as Container from '../../util/container'
 import flags from '../../util/feature-flags'
 import * as ConfigTypes from '../../constants/types/config'
@@ -89,7 +89,7 @@ const LoginWrapper = (props: Props) => {
 }
 
 export default Container.connect(
-  state => ({
+  (state: Container.TypedState) => ({
     _users: state.config.configuredAccounts,
     error: state.login.error,
     selectedUser: state.config.defaultUsername,

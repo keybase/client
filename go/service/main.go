@@ -145,6 +145,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.InstallProtocol(NewInstallHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG(), d)),
 		keybase1.KbfsMountProtocol(NewKBFSMountHandler(xp, g)),
+		keybase1.KvstoreProtocol(NewKVStoreHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
@@ -378,7 +379,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	// backgrounded.
 	d.G().Log.Debug("RunBackgroundOperations: starting")
 	ctx := context.Background()
-	setupRandomPwPrefetcher(d.G())
 	d.tryLogin(ctx, libkb.LoginAttemptOnline)
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
@@ -1499,11 +1499,4 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
-}
-
-func setupRandomPwPrefetcher(g *libkb.GlobalContext) {
-	prefetcher := &libkb.HasRandomPWPrefetcher{}
-	g.SetHasRandomPWPrefetcher(prefetcher)
-	g.AddLoginHook(prefetcher)
-	g.AddLogoutHook(prefetcher, "HasRandomPWPrefetcher")
 }

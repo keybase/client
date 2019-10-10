@@ -112,11 +112,9 @@ func (e *Login) Run(m libkb.MetaContext) (err error) {
 	if err != nil {
 		m.Debug("loginProvisionedDevice error: %s", err)
 
-		if m.G().Env.GetFeatureFlags().HasFeature(libkb.EnvironmentFeatureAutoresetPipeline) {
-			// Suggest autoreset if user failed to log in and we're provisioned
-			if _, ok := err.(libkb.PassphraseError); ok {
-				return e.suggestRecoveryForgotPassword(m)
-			}
+		// Suggest autoreset if user failed to log in and we're provisioned
+		if _, ok := err.(libkb.PassphraseError); ok {
+			return e.suggestRecoveryForgotPassword(m)
 		}
 
 		return err

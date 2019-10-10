@@ -255,6 +255,11 @@ class AccountSettings extends React.Component<SettingsProps> {
                   gapEnd={true}
                 >
                   <Kb.Text type="BodySmallSemibold">External tools and partners</Kb.Text>
+                  <Kb.Text style={styles.externalPartnersText} type="BodySmall">
+                    Note: Partners listed here are not affiliated with Keybase and are listed for convenience
+                    only. If you choose to visit a partner, that partner will see your Keybase username and
+                    Stellar address.
+                  </Kb.Text>
                   {props.externalPartners.map(partner => (
                     <Kb.Box2
                       key={partner.url}
@@ -370,8 +375,12 @@ const styles = Styles.styleSheetCreate(
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
       },
+      externalPartnersText: {
+        marginBottom: Styles.globalMargins.tiny,
+      },
       header: {
         ...(!Styles.isMobile ? {minHeight: 48} : {}),
+        backgroundColor: Styles.globalColors.white,
         borderBottomColor: Styles.globalColors.black_10,
         borderBottomWidth: 1,
         borderStyle: 'solid',

@@ -1585,15 +1585,14 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
   const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
     return Saga.put(
       Chat2Gen.createInboxSearchNameResults({
-        results: (resp.hits.hits || []).reduce<I.List<Types.InboxSearchConvHit>>((l, h) => {
-          return l.push(
-            Constants.makeInboxSearchConvHit({
-              conversationIDKey: Types.stringToConversationIDKey(h.convID),
-              name: h.name,
-              teamType: teamType(h.teamType),
-            })
-          )
-        }, I.List()),
+        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
+          arr.push({
+            conversationIDKey: Types.stringToConversationIDKey(h.convID),
+            name: h.name,
+            teamType: teamType(h.teamType),
+          })
+          return arr
+        }, []),
         unread: resp.hits.unreadMatches,
       })
     )
@@ -1602,28 +1601,23 @@ function* inboxSearch(_: TypedState, action: Chat2Gen.InboxSearchPayload, logger
     const conversationIDKey = Types.conversationIDToKey(resp.searchHit.convID)
     return Saga.put(
       Chat2Gen.createInboxSearchTextResult({
-        result: Constants.makeInboxSearchTextHit({
+        result: {
           conversationIDKey,
           name: resp.searchHit.convName,
           numHits: (resp.searchHit.hits || []).length,
           query: resp.searchHit.query,
           teamType: teamType(resp.searchHit.teamType),
           time: resp.searchHit.time,
-        }),
+        },
       })
     )
   }
-  const onStart = () => {
-    return Saga.put(Chat2Gen.createInboxSearchStarted())
-  }
-  const onDone = () => {
-    return Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
-  }
-  const onIndexStatus = (
-    resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']
-  ) => {
-    return Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
-  }
+  const onStart = () => Saga.put(Chat2Gen.createInboxSearchStarted())
+  const onDone = () => Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'success'}))
+
+  const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
+    Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
+
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
@@ -1886,7 +1880,8 @@ const changeSelectedConversation = (
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
     | Chat2Gen.HideConversationPayload
-    | TeamsGen.LeaveTeamPayload,
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload,
   logger: Saga.SagaLogger
 ) => {
   if (!isMobile) {
@@ -1905,7 +1900,8 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
     | Chat2Gen.HideConversationPayload
-    | TeamsGen.LeaveTeamPayload,
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload,
   logger: Saga.SagaLogger
 ) => {
   // If there is a team we should avoid when selecting a new conversation (e.g.
@@ -1944,7 +1940,8 @@ const _maybeAutoselectNewestConversation = (
   } else if (
     (action.type === Chat2Gen.leaveConversation ||
       action.type === Chat2Gen.blockConversation ||
-      action.type === Chat2Gen.hideConversation) &&
+      action.type === Chat2Gen.hideConversation ||
+      action.type === TeamsGen.deleteChannelConfirmed) &&
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
@@ -2331,16 +2328,6 @@ const loadCanUserPerform = (state: TypedState, action: Chat2Gen.SelectConversati
   return undefined
 }
 
-const loadTeamForConv = (state: TypedState, action: Chat2Gen.SelectConversationPayload) => {
-  const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const teamname = meta.teamname
-  if (!teamname) {
-    return
-  }
-  return TeamsGen.createGetMembers({teamname})
-}
-
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversationPayload) {
   const {conversationIDKey} = action.payload
@@ -2386,9 +2373,9 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
 
   // looking at the pending screen?
   if (
+    visible &&
     visible.routeName &&
     visible.routeName === 'chatConversation' &&
-    visible &&
     visible.params &&
     (visible.params.conversationIDKey === Constants.pendingWaitingConversationIDKey ||
       visible.params.conversationIDKey === Constants.pendingErrorConversationIDKey)
@@ -2409,6 +2396,24 @@ const navigateToThread = (state: TypedState) => {
     return
   }
   return navigateToThreadRoute(state.chat2.selectedConversation)
+}
+
+const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
+  const metas = action.payload.metas
+  const filtered = metas.filter(m => m.conversationIDKey === state.chat2.selectedConversation)
+  if (filtered.length === 0) {
+    return false
+  }
+  const meta = filtered[0]
+  const teamname = meta.teamname
+  if (!meta.teamname) {
+    return false
+  }
+  const members = state.teams.teamNameToMembers.get(teamname)
+  if (members) {
+    return false
+  }
+  return TeamsGen.createGetMembers({teamname})
 }
 
 const ensureSelectedMeta = (state: TypedState) => {
@@ -2900,8 +2905,8 @@ function* loadStaticConfig(
   )
   yield Saga.put(
     Chat2Gen.createStaticConfigLoaded({
-      staticConfig: Constants.makeStaticConfig({
-        builtinCommands: (res.builtinCommands || []).reduce<Types._StaticConfig['builtinCommands']>(
+      staticConfig: {
+        builtinCommands: (res.builtinCommands || []).reduce<Types.StaticConfig['builtinCommands']>(
           (map, c) => {
             map[c.typ] = c.commands || []
             return map
@@ -2914,8 +2919,8 @@ function* loadStaticConfig(
             [RPCChatTypes.ConversationBuiltinCommandTyp.bigteamgeneral]: [],
           }
         ),
-        deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
-      }),
+        deletableByDeleteHistory: new Set(deletableByDeleteHistory),
+      },
     })
   )
 
@@ -3346,6 +3351,7 @@ function* chat2Saga() {
       Chat2Gen.blockConversation,
       Chat2Gen.hideConversation,
       TeamsGen.leaveTeam,
+      TeamsGen.deleteChannelConfirmed,
     ],
     changeSelectedConversation,
     'changeSelectedConversation'
@@ -3356,6 +3362,7 @@ function* chat2Saga() {
     inboxRefresh,
     'inboxRefresh'
   )
+  yield* Saga.chainAction2(Chat2Gen.metasReceived, ensureSelectedTeamLoaded)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest, 'queueMetaToRequest')
   // We have some items in the queue to process
@@ -3418,7 +3425,6 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.confirmScreenResponse, confirmScreenResponse, 'confirmScreenResponse')
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, loadCanUserPerform, 'loadCanUserPerform')
-  yield* Saga.chainAction2(Chat2Gen.selectConversation, loadTeamForConv, 'loadTeamForConv')
 
   // Giphy
   yield* Saga.chainAction2(Chat2Gen.unsentTextChanged, unsentTextChanged, 'unsentTextChanged')

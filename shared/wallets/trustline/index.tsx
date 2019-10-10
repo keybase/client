@@ -106,6 +106,7 @@ const Body = (props: BodyProps) => {
   React.useEffect(() => {
     props.refresh()
     return () => props.clearTrustlineModal()
+    // eslint-disable-next-line
   }, [])
   const {onFocusChange} = props
   return (

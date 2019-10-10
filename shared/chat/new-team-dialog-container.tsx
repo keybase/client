@@ -6,7 +6,7 @@ import * as ChatConstants from '../constants/chat2'
 import * as Constants from '../constants/teams'
 import * as Container from '../util/container'
 import NewTeamDialog from '../teams/new-team'
-import {upperFirst} from 'lodash-es'
+import upperFirst from 'lodash/upperFirst'
 
 type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey}>
 

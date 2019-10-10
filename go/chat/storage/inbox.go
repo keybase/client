@@ -93,7 +93,7 @@ type SharedInboxItem struct {
 type InboxLayoutChangedNotifier interface {
 	UpdateLayout(ctx context.Context, reason string)
 	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
-		msg chat1.MessageBoxed, firstConv bool)
+		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation)
 }
 
@@ -103,7 +103,8 @@ func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context, reaso
 }
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
-	conv types.RemoteConversation, msg chat1.MessageBoxed, firstConv bool) {
+	conv types.RemoteConversation, msg chat1.MessageBoxed, firstConv bool,
+	previousStatus chat1.ConversationStatus) {
 }
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromSubteamRename(ctx context.Context,
@@ -419,10 +420,10 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 				// Only write out participant names for general channel for teams, only thing needed
 				// by frontend
 				if topicName == globals.DefaultTeamTopic {
-					rcm.WriterNames = convLocal.Names()
+					rcm.WriterNames = convLocal.AllNames()
 				}
 			default:
-				rcm.WriterNames = convLocal.Names()
+				rcm.WriterNames = convLocal.AllNames()
 				rcm.ResetParticipants = convLocal.Info.ResetNames
 			}
 			ibox.Conversations[index].LocalMetadata = rcm
@@ -1125,6 +1126,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 		conv.Conv.MaxMsgSummaries = maxMsgs
 	}
 
+	var previousStatus = conv.Conv.Metadata.Status
 	// If we are all up to date on the thread (and the sender is the current user),
 	// mark this message as read too
 	if conv.Conv.ReaderInfo.ReadMsgid == conv.Conv.ReaderInfo.MaxMsgid &&
@@ -1152,7 +1154,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	// if we have a conv at all, then we want to let any layout engine know about this
 	// new message
 	if mconv.GetTopicType() == chat1.TopicType_CHAT {
-		defer i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg, index == 0)
+		defer i.layoutNotifier.UpdateLayoutFromNewMessage(ctx, mconv, msg, index == 0, previousStatus)
 	}
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))
@@ -1848,6 +1850,12 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	layoutChanged := false
+	defer func() {
+		if layoutChanged {
+			i.layoutNotifier.UpdateLayout(ctx, "existence")
+		}
+	}()
 
 	i.Debug(ctx, "ConversationsUpdate: updating %d convs", len(convUpdates))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1872,6 +1880,9 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	for idx, conv := range ibox.Conversations {
 		if update, ok := updateMap[conv.GetConvID().String()]; ok {
 			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
+			if ibox.Conversations[idx].Conv.Metadata.Existence != update.Existence {
+				layoutChanged = true
+			}
 			ibox.Conversations[idx].Conv.Metadata.Existence = update.Existence
 		}
 	}

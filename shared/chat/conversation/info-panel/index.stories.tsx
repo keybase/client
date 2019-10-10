@@ -200,6 +200,7 @@ const conversationProps = {
   onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
   selectedTab: 'attachments',
+  showAuditingBanner: false,
   smallTeam: false,
   teamname: undefined,
 } as const
@@ -216,6 +217,7 @@ const teamCommonProps = {
   onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp.media,
   selectedTab: 'settings',
+  showAuditingBanner: false,
   teamname: 'someteam',
 } as const
 
@@ -338,6 +340,9 @@ const load = () => {
         selectedAttachmentView={RPCChatTypes.GalleryItemTyp.link}
         selectedTab="attachments"
       />
+    ))
+    .add('Small team (audit bar)', () => (
+      <InfoPanel {...smallTeamProps} selectedTab="members" showAuditingBanner={true} />
     ))
     .add('Big team lotsa users', () => <InfoPanel {...bigTeamLotsaUsersCommonProps} selectedTab="members" />)
     .add('Big team preview', () => <InfoPanel {...bigTeamPreviewProps} selectedTab="members" />)

@@ -125,12 +125,21 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 	return res
 }
 
+func ReorderParticipantsKBFS(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+	tlfName string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx, tlfName, false)
+	if err != nil {
+		return writerNames, err
+	}
+	return ReorderParticipants(mctx, g, umapper, tlfName, srcWriterNames, activeList)
+}
+
 // ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
 func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
-	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
-	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx, tlfname, false)
+	tlfName string, verifiedMembers []string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx, tlfName, false)
 	if err != nil {
 		return writerNames, err
 	}
@@ -138,19 +147,25 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24, 10*time.Second,
-		true)
+	allowedWriters := make(map[string]bool)
+	convNameUsers := make(map[string]bool)
+	for _, user := range verifiedMembers {
+		allowedWriters[user] = true
+	}
+	for _, user := range srcWriterNames {
+		convNameUsers[user] = true
+		allowedWriters[user] = true
+	}
+
+	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24,
+		10*time.Second, true)
 	activeMap := make(map[string]chat1.ConversationLocalParticipant)
 	if err == nil {
 		for i := 0; i < len(activeKuids); i++ {
-			activeMap[activeKuids[i].String()] = UsernamePackageToParticipant(packages[i])
+			part := UsernamePackageToParticipant(packages[i])
+			part.InConvName = convNameUsers[part.Username]
+			activeMap[activeKuids[i].String()] = part
 		}
-	}
-	allowedWriters := make(map[string]bool)
-
-	// Allow all writers from tlfname.
-	for _, user := range srcWriterNames {
-		allowedWriters[user] = true
 	}
 
 	// Fill from the active list first.
@@ -168,14 +183,17 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
-	for _, user := range srcWriterNames {
-		if allowed := allowedWriters[user]; allowed {
-			writerNames = append(writerNames, UsernamePackageToParticipant(libkb.UsernamePackage{
-				NormalizedUsername: libkb.NewNormalizedUsername(user),
-				FullName:           nil,
-			}))
-			allowedWriters[user] = false
+	for user, available := range allowedWriters {
+		if !available {
+			continue
 		}
+		part := UsernamePackageToParticipant(libkb.UsernamePackage{
+			NormalizedUsername: libkb.NewNormalizedUsername(user),
+			FullName:           nil,
+		})
+		part.InConvName = convNameUsers[part.Username]
+		writerNames = append(writerNames, part)
+		allowedWriters[user] = false
 	}
 
 	return writerNames, nil
@@ -920,7 +938,7 @@ func PickLatestMessageSummary(conv MessageSummaryContainer, typs []chat1.Message
 	}
 	for _, typ := range typs {
 		msg, err := conv.GetMaxMessage(typ)
-		if err == nil && msg.Ctime.After(res.Ctime) {
+		if err == nil && (msg.Ctime.After(res.Ctime) || res.Ctime.IsZero()) {
 			res = msg
 		}
 	}
@@ -989,7 +1007,7 @@ func showSenderPrefix(mvalid chat1.MessageUnboxedValid, conv chat1.ConversationL
 	case chat1.ConversationMembersType_TEAM:
 		showPrefix = true
 	default:
-		showPrefix = len(conv.Names()) > 2
+		showPrefix = len(conv.AllNames()) > 2
 	}
 	return showPrefix
 }
@@ -1262,6 +1280,7 @@ func presentConversationParticipantsLocal(ctx context.Context, rawParticipants [
 		participantType := getParticipantType(p.Username)
 		participants = append(participants, chat1.UIParticipant{
 			Assertion:   p.Username,
+			InConvName:  p.InConvName,
 			ContactName: p.ContactName,
 			FullName:    p.Fullname,
 			Type:        participantType,

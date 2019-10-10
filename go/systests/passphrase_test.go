@@ -4,13 +4,16 @@
 package systests
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -371,4 +374,97 @@ func (n *testRecoverUIRecover) TerminalSize() (width int, height int) {
 func (n *testRecoverUIRecover) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	res.Passphrase = n.passphrase
 	return res, nil
+}
+
+type errorAPIMock struct {
+	*libkb.APIArgRecorder
+	realAPI     libkb.API
+	shouldError bool
+}
+
+func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	if arg.Endpoint == "user/has_random_pw" {
+		if r.shouldError {
+			return errors.New("some api error")
+		}
+	}
+	return r.realAPI.GetDecode(mctx, arg, w)
+}
+
+func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	if arg.Endpoint == "user/has_random_pw" {
+		if r.shouldError {
+			return nil, errors.New("some api error")
+		}
+	}
+	return r.realAPI.Get(mctx, arg)
+}
+
+func TestPassphraseStateGregor(t *testing.T) {
+	set := newTestDeviceSet(t, nil)
+	defer set.cleanup()
+	dev1 := set.newDevice("primary").start(4)
+	set.signupUserWithRandomPassphrase(dev1, true)
+	dev2 := set.provisionNewDevice("secondary", 4)
+	dev3 := set.provisionNewStandaloneDevice("ternary", 4)
+	dev4 := set.provisionNewStandaloneDevice("quaternary", 4)
+
+	ucli1 := keybase1.UserClient{Cli: dev1.cli}
+	res, err := ucli1.LoadPassphraseState(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
+
+	ucli2 := keybase1.UserClient{Cli: dev2.cli}
+	res, err = ucli2.LoadPassphraseState(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
+
+	ucli3 := keybase1.UserClient{Cli: dev3.cli}
+	res, err = ucli3.LoadPassphraseState(context.Background(), 0)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PassphraseState_RANDOM, res)
+
+	mctx1 := libkb.NewMetaContextForTest(*dev1.tctx)
+	eng := engine.NewPassphraseChange(dev1.tctx.G, &keybase1.PassphraseChangeArg{
+		Passphrase: "password2",
+		Force:      true,
+	})
+	err = eng.Run(mctx1)
+	require.NoError(t, err)
+
+	// The device that made the change learns about the state
+	pollForTrue(t, dev1.tctx.G, func(int) bool {
+		res, err = ucli1.LoadPassphraseState(context.Background(), 0)
+		if err != nil {
+			return false
+		}
+		return keybase1.PassphraseState_KNOWN == res
+	})
+
+	// Devices that did not execute the passphrase change learns about the state
+	pollForTrue(t, dev2.tctx.G, func(int) bool {
+		res, err = ucli2.LoadPassphraseState(context.Background(), 0)
+		if err != nil {
+			return false
+		}
+		return keybase1.PassphraseState_KNOWN == res
+	})
+
+	time.Sleep(1 * time.Second) // wait for any potential gregor messages to be received
+
+	res, err = ucli3.LoadPassphraseState(context.Background(), 0)
+	require.NoError(t, err)
+	// device not getting gregor messages will force repoll
+	require.Equal(t, res, keybase1.PassphraseState_KNOWN)
+
+	ucli4 := keybase1.UserClient{Cli: dev4.cli}
+	fakeAPI := &errorAPIMock{
+		realAPI:     dev4.tctx.G.API,
+		shouldError: true,
+	}
+	dev4.tctx.G.API = fakeAPI
+	res, err = ucli4.LoadPassphraseState(context.Background(), 0)
+	// device has no gregor state *and* api call failed, so this will error
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "some api error")
 }

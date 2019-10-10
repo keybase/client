@@ -64,7 +64,7 @@ func (c *CmdEditPhoneNumber) Run() error {
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Printf("A verification code has been sent to your phone number; verify with `keybase phonenumber verify <phone number> <code>.`\n")
+	c.G().UI.GetTerminalUI().Printf("A verification code has been sent to your phone number; verify with `keybase account phonenumber verify <phone number> <code>.`\n")
 	return nil
 }
 

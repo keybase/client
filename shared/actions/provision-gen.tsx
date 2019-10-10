@@ -52,7 +52,7 @@ type _ShowNewDeviceNamePagePayload = {
 }
 type _ShowPaperkeyPagePayload = {readonly error: HiddenString | null}
 type _ShowPasswordPagePayload = {readonly error: HiddenString | null}
-type _StartProvisionPayload = {readonly initUsername?: string}
+type _StartProvisionPayload = {readonly fromReset?: boolean; readonly initUsername?: string}
 type _SubmitDeviceNamePayload = {readonly name: string}
 type _SubmitDeviceSelectPayload = {readonly name: string}
 type _SubmitGPGMethodPayload = {readonly exportKey: boolean}

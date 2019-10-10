@@ -5,6 +5,7 @@ import * as Container from '../../util/container'
 import * as Constants from '../../constants/autoreset'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as AutoresetGen from '../../actions/autoreset-gen'
+import {formatDurationForAutoreset} from '../../util/timestamp'
 
 export type Props = {}
 
@@ -15,8 +16,15 @@ const ResetModal = (_: Props) => {
     if (!active) {
       dispatch(RouteTreeGen.createNavigateUp())
     }
-  }, [active])
-  const timeNice = Constants.formatTimeLeft(endTime)
+  }, [active, dispatch])
+  let msg = ''
+  const now = Date.now()
+  const timeLeft = endTime - now
+  if (timeLeft < 0) {
+    msg = 'This account is eligible to be reset.'
+  } else {
+    msg = `This account will reset in ${formatDurationForAutoreset(timeLeft)}.`
+  }
   const onCancelReset = () => {
     dispatch(AutoresetGen.createCancelReset())
   }
@@ -36,7 +44,7 @@ const ResetModal = (_: Props) => {
         >
           <Kb.Icon type="iconfont-skull" color={Styles.globalColors.black_20} fontSize={48} />
           <Kb.Text type="Body" center={true}>
-            This account will reset in {timeNice}.
+            {msg}
           </Kb.Text>
           <Kb.Text type="Body" center={true}>
             But... it looks like you’re already logged in. Congrats! You should cancel the reset, since

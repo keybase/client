@@ -6080,7 +6080,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 4, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
 		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
@@ -6191,7 +6191,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 4, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -6200,7 +6200,7 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 		require.Nil(t, iboxRes.Conversations[0].Error)
-		require.Equal(t, 4, len(iboxRes.Conversations[0].Names()))
+		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
 
@@ -7046,40 +7046,13 @@ func TestTeamBotSettings(t *testing.T) {
 				}
 			}
 
-			botSettings := keybase1.TeamBotSettings{
-				Triggers: []string{".*"},
-			}
-			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua.Username,
-				Role:        keybase1.TeamRole_RESTRICTEDBOT,
-				BotSettings: &botSettings,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			})
-			require.NoError(t, err)
-			pollForSeqno(3)
-
-			botSettings2 := keybase1.TeamBotSettings{
-				Mentions: true,
-			}
-			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua2.Username,
-				Role:        keybase1.TeamRole_RESTRICTEDBOT,
-				BotSettings: &botSettings2,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
-			})
-			require.NoError(t, err)
-			pollForSeqno(5)
-
 			var unboxed chat1.UIMessage
 			consumeBotMessage := func(botUID *gregor1.UID, msgTyp chat1.MessageType, l *serverChatListener) {
 				select {
 				case info := <-l.newMessageRemote:
 					unboxed = info.Message
 					require.True(t, unboxed.IsValid(), "invalid message")
+					t.Logf("got message with searchable text: %v", unboxed.SearchableText())
 					require.Equal(t, msgTyp, unboxed.GetMessageType(), "invalid type")
 					if botUID == nil {
 						require.Nil(t, unboxed.Valid().BotUID)
@@ -7100,6 +7073,48 @@ func TestTeamBotSettings(t *testing.T) {
 				default:
 				}
 			}
+
+			botSettings := keybase1.TeamBotSettings{
+				Triggers: []string{"HI"},
+			}
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			pollForSeqno(3)
+
+			// system message for adding the bot to the team
+			consumeNewPendingMsg(t, listener)
+			consumeBotMessage(nil, chat1.MessageType_SYSTEM, listener)
+			assertNoMessage(botuaListener)
+			assertNoMessage(botuaListener2)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+
+			botSettings2 := keybase1.TeamBotSettings{
+				Mentions: true,
+			}
+			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+				TlfName:     created.TlfName,
+				Username:    botua2.Username,
+				Role:        keybase1.TeamRole_RESTRICTEDBOT,
+				BotSettings: &botSettings2,
+				MembersType: mt,
+				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			})
+			require.NoError(t, err)
+			pollForSeqno(5)
+
+			// system message for adding the bot to the team
+			consumeNewPendingMsg(t, listener)
+			consumeBotMessage(nil, chat1.MessageType_SYSTEM, listener)
+			assertNoMessage(botuaListener)
+			assertNoMessage(botuaListener2)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 
 			t.Logf("send a text message")
 			arg := chat1.PostTextNonblockArg{
@@ -7168,6 +7183,26 @@ func TestTeamBotSettings(t *testing.T) {
 			consumeBotMessage(&botuaUID, chat1.MessageType_EDIT, botuaListener)
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_EDIT)
+
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+				ConversationID: created.Id,
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        created.Triple,
+						MessageType: chat1.MessageType_TEXT,
+						TlfName:     created.TlfName,
+					},
+					MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: "REPLY",
+					}),
+				},
+				ReplyTo: &targetMsgID,
+			})
+			require.NoError(t, err)
+			consumeBotMessage(nil, chat1.MessageType_TEXT, listener)
+			assertNoMessage(botuaListener)
+			assertNoMessage(botuaListener2)
+			consumeNewMsgLocal(t, listener, chat1.MessageType_TEXT)
 
 			// Repost a reaction and ensure it is deleted
 			t.Logf("repost reaction = delete reaction")

@@ -4,14 +4,14 @@ import * as Types from './types/teams'
 import * as RPCTypes from './types/rpc-gen'
 import * as RPCChatTypes from './types/rpc-chat-gen'
 import {getFullRoute} from './router2'
-import {invert} from 'lodash-es'
+import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
-export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
+export const teamRoleTypes = ['restrictedbot', 'bot', 'reader', 'writer', 'admin', 'owner']
 
 export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
   [K in RPCTypes.TeamMemberStatus]: keyof typeof RPCTypes.TeamMemberStatus
@@ -63,11 +63,13 @@ export const rpcDetailsToMemberInfos = (
   allRoleMembers: RPCTypes.TeamMembersDetails
 ): I.Map<string, Types.MemberInfo> => {
   const infos: Array<[string, Types.MemberInfo]> = []
-  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner', 'bot', 'restrictedbot']
   const typeToKey: Types.TypeMap = {
     admin: 'admins',
+    bot: 'bots',
     owner: 'owners',
     reader: 'readers',
+    restrictedbot: 'restrictedBots',
     writer: 'writers',
   }
   types.forEach(type => {
@@ -122,8 +124,10 @@ export const teamRoleByEnum = ((m: {[K in Types.MaybeTeamRoleType]: RPCTypes.Tea
 
 export const typeToLabel: Types.TypeMap = {
   admin: 'Admin',
+  bot: 'Bot',
   owner: 'Owner',
   reader: 'Reader',
+  restrictedbot: 'Restricted bot',
   writer: 'Writer',
 }
 

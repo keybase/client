@@ -13,6 +13,7 @@ import {BadgeType} from '../constants/types/notifications'
 import {isDarwin, isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
+import {isSystemDarkMode} from '../styles/dark-mode'
 
 const _windowOpts = {}
 
@@ -36,7 +37,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const badged = isBadged ? 'badged-' : ''
 
   if (isDarwin) {
-    color = Styles.isDarkMode() ? 'white' : 'black'
+    color = isSystemDarkMode() ? 'white' : 'black'
   } else if (isWindows) {
     color = 'black'
     platform = 'windows-'
@@ -45,7 +46,7 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   const size = isWindows ? 16 : 22
   const icon = `icon-${platform}keybase-menubar-${badged}${iconType}-${color}-${size}${devMode}@2x.png`
   // Only used on Darwin
-  const iconSelected = `icon-${platform}keybase-menubar-${badged}${iconType}-${colorSelected}-${size}${devMode}@2x.png`
+  const iconSelected = `icon-${platform}keybase-menubar-${iconType}-${colorSelected}-${size}${devMode}@2x.png`
   return [icon, iconSelected]
 }
 

@@ -8,7 +8,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import {usernameHint} from '../../constants/signup'
 import {anyWaiting} from '../../constants/waiting'
 
-type OwnProps = {}
+type OwnProps = Container.RouteProps<{fromReset: boolean}>
 
 const decodeInlineError = inlineRPCError => {
   let inlineError = ''
@@ -34,6 +34,7 @@ const mapStateToProps = (state: Container.TypedState) => {
   const error = state.provision.error.stringValue()
   const {inlineError, inlineSignUpLink} = decodeInlineError(state.provision.inlineError)
   return {
+    _resetBannerUser: state.autoreset.username,
     error: error ? error : inlineError && !inlineSignUpLink ? inlineError : '',
     initialUsername: state.provision.initialUsername,
     inlineError,
@@ -53,6 +54,15 @@ const dispatchToProps = (dispatch: Container.TypedDispatch) => ({
 })
 
 export default Container.compose(
-  Container.connect(mapStateToProps, dispatchToProps, (s, d, _: OwnProps) => ({...s, ...d})),
+  Container.connect(mapStateToProps, dispatchToProps, (s, d, o: OwnProps) => ({
+    ...d,
+    error: s.error,
+    initialUsername: s.initialUsername,
+    inlineError: s.inlineError,
+    inlineSignUpLink: s.inlineSignUpLink,
+    resetBannerUser: Container.getRouteProps(o, 'fromReset', false) ? s._resetBannerUser : null,
+    submittedUsername: s.submittedUsername,
+    waiting: s.waiting,
+  })),
   Container.safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError', 'inlineSignUpLink'])
 )(Username)

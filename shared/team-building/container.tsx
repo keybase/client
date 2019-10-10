@@ -2,7 +2,8 @@ import logger from '../logger'
 import * as React from 'react'
 import * as I from 'immutable'
 import unidecode from 'unidecode'
-import {debounce, trim} from 'lodash-es'
+import debounce from 'lodash/debounce'
+import trim from 'lodash/trim'
 import TeamBuilding, {RolePickerProps, SearchResult, SearchRecSection, numSectionLabel} from '.'
 import RolePickerHeaderAction from './role-picker-header-action'
 import * as WaitingConstants from '../constants/waiting'
@@ -21,7 +22,11 @@ import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
-import Flags from '../util/feature-flags'
+
+// TODO remove when bots are fully integrated in gui
+type TeamRoleTypeWithoutBots = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
+const filterRole = (r: TeamRoleType): TeamRoleTypeWithoutBots =>
+  r === 'bot' || r === 'restrictedbot' ? 'reader' : r
 
 type OwnProps = {
   filterServices?: Array<Types.ServiceIdWithContact>
@@ -177,7 +182,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       state.config.following,
       preExistingTeamMembers
     ),
-    selectedRole: teamBuildingState.teamBuildingSelectedRole,
+    selectedRole: filterRole(teamBuildingState.teamBuildingSelectedRole),
     sendNotification: teamBuildingState.teamBuildingSendNotification,
     serviceResultCount: deriveServiceResultCount(
       teamBuildingState.teamBuildingSearchResults,
@@ -326,9 +331,9 @@ const deriveOnDownArrowKeyDown = memoize(
 
 const deriveRolePickerArrowKeyFns = memoize(
   (
-    selectedRole: TeamRoleType,
+    selectedRole: TeamRoleTypeWithoutBots,
     disabledRoles: DisabledReasonsForRolePicker,
-    onSelectRole: (role: TeamRoleType) => void
+    onSelectRole: (role: TeamRoleTypeWithoutBots) => void
   ) => ({
     downArrow: () => {
       const nextRole = nextRoleDown(selectedRole)
@@ -567,7 +572,7 @@ const mergeProps = (
               : {
                   custom: (
                     <Button
-                      label={Flags.wonderland ? 'Start 🐇' : 'Start'}
+                      label="Start"
                       mode="Primary"
                       onClick={dispatchProps.onFinishTeamBuilding}
                       small={true}

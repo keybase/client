@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {isEqual} from 'lodash-es'
+import isEqual from 'lodash/isEqual'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'

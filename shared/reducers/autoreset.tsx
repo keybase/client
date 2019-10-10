@@ -45,8 +45,8 @@ export default (state: Types.State = initialState, action: AutoresetGen.Actions)
         }
         return
 
-      // TODO: clear error on submit final prompt
       // Actions that just reset the error
+      case AutoresetGen.finishedReset:
       case AutoresetGen.cancelReset:
       case AutoresetGen.resetAccount:
       case AutoresetGen.submittedReset:

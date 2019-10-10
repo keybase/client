@@ -44,8 +44,9 @@ func NewAllCryptKeys() AllCryptKeys {
 }
 
 type NameInfo struct {
-	ID            chat1.TLFID
-	CanonicalName string
+	ID              chat1.TLFID
+	CanonicalName   string
+	VerifiedMembers []gregor1.UID // may be empty if we couldn't satisfy the request
 }
 
 func NewNameInfo() *NameInfo {
@@ -621,7 +622,7 @@ func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Con
 }
 
 func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
-	msg chat1.MessageBoxed, firstConv bool) {
+	msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus) {
 }
 
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {

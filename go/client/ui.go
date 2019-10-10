@@ -826,10 +826,16 @@ func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptRese
 	}
 	switch kind {
 	case keybase1.ResetPromptType_COMPLETE:
+		msg = `Your account is ready to be reset. Resetting your account will make all chat,
+file, and unbacked-up wallet funds unrecoverable. Any teams you were the only
+admin or owner of will be orphaned and unrecoverable. If you have access to a
+Keybase device, log in and cancel this reset process.`
 	case keybase1.ResetPromptType_ENTER_NO_DEVICES:
 		msg = `The only way to provision this device is with access to one of your existing
 devices. You can try again later, or if you have lost access to all your
-existing devices you can reset your account and start fresh.`
+existing devices you can reset your account and start fresh. You will lose all
+file and chat data, and any unbacked-up wallet funds. Any teams you were the
+only owner or admin of will be orphaned and unrecoverable.`
 	case keybase1.ResetPromptType_ENTER_FORGOT_PW:
 		msg = `If you have forgotten your password and either lost all of your devices, or if you
 uninstalled Keybase from all of them, you can reset your account. You will keep your username,
@@ -840,11 +846,11 @@ username, but lose all your data, including all of your uploaded encrypted PGP k
 	default:
 		return false, fmt.Errorf("Unknown prompt type - got %v", kind)
 	}
+	_, _ = l.parent.PrintfUnescaped("%s\n\n", msg)
 	var question string
 	if kind == keybase1.ResetPromptType_COMPLETE {
 		question = "Would you like to complete the reset of your account?"
 	} else {
-		_, _ = l.parent.PrintfUnescaped("%s\n\n", msg)
 		question = "Would you like to request a reset of your account?"
 	}
 	return l.parent.PromptYesNo(PromptDescriptorResetAccount, question, libkb.PromptDefaultNo)

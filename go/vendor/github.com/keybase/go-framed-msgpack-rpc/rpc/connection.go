@@ -588,7 +588,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// connect
 	transport, err := c.transport.Dial(ctx)
 	if err != nil {
-		c.log.Warning("Connection: error %s: %s",
+		c.log.Warning("Connection: error %s: %v",
 			LogField{Key: ConnectionLogMsgKey, Value: "dialing transport"},
 			LogField{Key: "error", Value: err})
 		return err
@@ -607,7 +607,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	c.log.Debug("Connection: %s", LogField{Key: ConnectionLogMsgKey, Value: "calling OnConnect"})
 	err = c.handler.OnConnect(ctx, c, client, server)
 	if err != nil {
-		c.log.Warning("Connection: error calling %s handler: %s",
+		c.log.Warning("Connection: error calling %s handler: %v",
 			LogField{Key: ConnectionLogMsgKey, Value: "OnConnect"},
 			LogField{Key: "error", Value: err})
 		return err
@@ -785,7 +785,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	err := backoff.RetryNotifyWithContext(ctx, func() (err error) {
 		c.log.Debug("RetryNotify %s", LogField{Key: ConnectionLogMsgKey, Value: "attempt"})
 		defer func() {
-			c.log.Debug("RetryNotify operation result: %s", LogField{Key: ConnectionLogMsgKey, Value: err})
+			c.log.Debug("RetryNotify operation result: %v", LogField{Key: ConnectionLogMsgKey, Value: err})
 		}()
 		// try to connect
 		err = c.connect(ctx)
@@ -801,7 +801,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 		if !c.handler.ShouldRetryOnConnect(err) {
 			// A fatal error happened.
 			*reconnectErrPtr = err
-			c.log.Debug("RetryNotify ShouldRetryOnConnect: %s", LogField{Key: ConnectionLogMsgKey, Value: err})
+			c.log.Debug("RetryNotify ShouldRetryOnConnect: %v", LogField{Key: ConnectionLogMsgKey, Value: err})
 			// short-circuit Retry
 			return nil
 		}
@@ -809,7 +809,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	}, c.reconnectBackoff(),
 		// give the caller a chance to log any other error or adjust state
 		c.handler.OnConnectError)
-	c.log.Debug("RetryNotify complete %s", LogField{Key: ConnectionLogMsgKey, Value: err})
+	c.log.Debug("RetryNotify complete %v", LogField{Key: ConnectionLogMsgKey, Value: err})
 
 	if err != nil {
 		// this shouldn't happen, but just in case.

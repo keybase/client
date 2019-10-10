@@ -44,6 +44,7 @@ type GetWithSessionArg struct {
 	Args          []StringKVPair `codec:"args" json:"args"`
 	HttpStatus    []int          `codec:"httpStatus" json:"httpStatus"`
 	AppStatusCode []int          `codec:"appStatusCode" json:"appStatusCode"`
+	UseText       *bool          `codec:"useText,omitempty" json:"useText,omitempty"`
 }
 
 type PostArg struct {

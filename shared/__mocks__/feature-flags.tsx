@@ -22,7 +22,6 @@ const ff: FeatureFlags = {
   proofProviders: true,
   resetPipeline: true,
   stellarExternalPartners: false,
-  wonderland: true,
 }
 
 console.warn('feature flag mock in effect')

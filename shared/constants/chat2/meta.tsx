@@ -4,6 +4,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
+import * as TeamTypes from '../types/teams'
 import * as TeamConstants from '../teams'
 import * as Message from './message'
 import {memoize} from '../../util/memoize'
@@ -82,6 +83,7 @@ export const unverifiedInboxUIItemToConversationMeta = (i: RPCChatTypes.Unverifi
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
+    nameParticipants: participants,
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
@@ -149,6 +151,7 @@ export const updateMeta = (
       return newMeta.withMutations(nm => {
         // keep immutable stuff to reduce render thrashing
         I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
+        I.is(oldMeta.nameParticipants, nm.nameParticipants) && nm.set('nameParticipants', oldMeta.nameParticipants)
         I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
         I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
         I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
@@ -315,6 +318,14 @@ export const inboxUIItemToConversationMeta = (
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
+    nameParticipants: I.List(
+      (i.participants || []).reduce<Array<string>>((l, part) => {
+        if (part.inConvName) {
+          l.push(part.assertion)
+        }
+        return l
+      }, [])
+    ),
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
@@ -362,7 +373,8 @@ export const makeConversationMeta = I.Record<_ConversationMeta>({
   maxMsgID: -1,
   maxVisibleMsgID: -1,
   membershipType: 'active' as Types.MembershipType,
-  minWriterRole: 'reader' as Types.TeamRoleType,
+  minWriterRole: 'reader' as TeamTypes.TeamRoleType,
+  nameParticipants: I.List<string>(),
   notificationsDesktop: 'never' as Types.NotificationsType,
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never' as Types.NotificationsType,
@@ -489,7 +501,7 @@ export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationI
   return (
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
-    meta.participants.filter(u => u !== state.config.username).size === 1
+    meta.nameParticipants.filter(u => u !== state.config.username).size === 1
   )
 }
 
@@ -532,7 +544,7 @@ export const getConversationIDKeyMetasToLoad = (
   }, [])
 
 export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
-  meta.participants
+  meta.nameParticipants
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.size === 1 ? true : participant !== username))
 

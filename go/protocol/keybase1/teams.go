@@ -60,6 +60,7 @@ const (
 	TeamApplication_GIT_METADATA        TeamApplication = 4
 	TeamApplication_SEITAN_INVITE_TOKEN TeamApplication = 5
 	TeamApplication_STELLAR_RELAY       TeamApplication = 6
+	TeamApplication_KVSTORE             TeamApplication = 7
 )
 
 func (o TeamApplication) DeepCopy() TeamApplication { return o }
@@ -71,6 +72,7 @@ var TeamApplicationMap = map[string]TeamApplication{
 	"GIT_METADATA":        4,
 	"SEITAN_INVITE_TOKEN": 5,
 	"STELLAR_RELAY":       6,
+	"KVSTORE":             7,
 }
 
 var TeamApplicationRevMap = map[TeamApplication]string{
@@ -80,6 +82,7 @@ var TeamApplicationRevMap = map[TeamApplication]string{
 	4: "GIT_METADATA",
 	5: "SEITAN_INVITE_TOKEN",
 	6: "STELLAR_RELAY",
+	7: "KVSTORE",
 }
 
 func (e TeamApplication) String() string {
@@ -3311,6 +3314,11 @@ type TeamCreateWithSettingsArg struct {
 	Settings    TeamSettings `codec:"settings" json:"settings"`
 }
 
+type TeamGetByIDArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        TeamID `codec:"id" json:"id"`
+}
+
 type TeamGetArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -3617,6 +3625,7 @@ type FtlArg struct {
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
+	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
@@ -3718,6 +3727,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreateWithSettings(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetByID": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetByIDArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetByIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetByIDArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetByID(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4516,6 +4540,11 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res T
 
 func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreateWithSettingsArg) (res TeamCreateResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamGetByID(ctx context.Context, __arg TeamGetByIDArg) (res TeamDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetByID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

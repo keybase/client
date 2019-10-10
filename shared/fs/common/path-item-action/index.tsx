@@ -60,7 +60,7 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
   const onClick = React.useCallback(() => {
     dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))
     setShowingMenu(true)
-  }, [initView, dispatch])
+  }, [initView, dispatch, setShowingMenu])
   const hide = React.useCallback(() => {
     setShowingMenu(false)
     dispatch(FsGen.createSetPathItemActionMenuDownload({downloadID: null, intent: null}))

@@ -35,17 +35,17 @@ func TestSignupRandomPWUser(t *testing.T) {
 	require.NoError(t, err)
 
 	userHandler := NewUserHandler(nil, tc.G, nil, nil)
-	ret, err := userHandler.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	ret, err := userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
 
 	// Another call to test the caching
-	ret, err = userHandler.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{})
+	ret, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
 
 	// Another one with ForceRepoll
-	ret, err = userHandler.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{ForceRepoll: true})
+	ret, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, ret, keybase1.PassphraseState_RANDOM)
 
@@ -170,9 +170,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	require.Equal(t, 0, fakeAPI.callCount) // still 0 calls.
 
 	// Since it's now KNOWN, ForceRepoll has no effect.
-	_, err = userHandler.LoadPassphraseState(context.Background(), keybase1.LoadPassphraseStateArg{
-		ForceRepoll: true,
-	})
+	_, err = userHandler.LoadPassphraseState(context.Background(), 0)
 	require.NoError(t, err)
 	require.Equal(t, 0, fakeAPI.callCount)
 }
