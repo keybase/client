@@ -161,6 +161,7 @@ class CodePage2 extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
               <Instructions {...this.props} />
               {content}
+              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
               {!this._inModal() && this._footer().content}
             </Kb.Box2>
           </Kb.Box2>
@@ -210,7 +211,6 @@ class CodePage2 extends React.Component<Props, State> {
               waitingKey={Constants.waitingKey}
             />
           )}
-          <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
           {showHeyWaitInFooter && this._heyWaitBanner()}
         </Kb.Box2>
       ),
@@ -567,7 +567,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       switchTab: {
-        marginBottom: 4,
+        marginBottom: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.tiny,
       },
       switchTabContainer: {
         alignItems: 'center',
