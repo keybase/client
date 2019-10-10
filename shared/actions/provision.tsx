@@ -1,7 +1,6 @@
 import * as Constants from '../constants/provision'
 import * as LoginConstants from '../constants/login'
 import * as RouteTreeGen from './route-tree-gen'
-import * as LoginGen from './login-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
