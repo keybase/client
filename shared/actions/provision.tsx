@@ -534,6 +534,7 @@ const showUsernameEmailPage = async (
   state: Container.TypedState,
   action: ProvisionGen.StartProvisionPayload
 ) => {
+  // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
   if (state.config.loggedIn) {
     await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
   }
