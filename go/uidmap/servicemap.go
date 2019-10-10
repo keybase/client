@@ -181,6 +181,18 @@ func lookupServiceSummariesFromServer(ctx context.Context, g libkb.UIDMapperCont
 	return resp.ServiceMaps, nil
 }
 
+func (s *ServiceSummaryMap) InformOfServiceSummary(ctx context.Context, g libkb.UIDMapperContext,
+	uid keybase1.UID, summary libkb.UserServiceSummary) error {
+
+	pkg := libkb.UserServiceSummaryPackage{
+		CachedAt:   keybase1.ToTime(g.GetClock().Now()),
+		ServiceMap: summary,
+	}
+	s.memCache.Add(uid, pkg)
+	key := serviceMapDBKey(uid)
+	return g.GetKVStore().PutObj(key, nil, pkg)
+}
+
 var _ libkb.ServiceSummaryMapper = (*ServiceSummaryMap)(nil)
 
 type OfflineServiceSummaryMap struct{}
@@ -193,6 +205,12 @@ func (s *OfflineServiceSummaryMap) MapUIDsToServiceSummaries(ctx context.Context
 	freshness time.Duration, networkTimeBudget time.Duration) (res map[keybase1.UID]libkb.UserServiceSummaryPackage) {
 	// Return empty map.
 	return make(map[keybase1.UID]libkb.UserServiceSummaryPackage)
+}
+
+func (s *OfflineServiceSummaryMap) InformOfServiceSummary(ctx context.Context, g libkb.UIDMapperContext,
+	uid keybase1.UID, summary libkb.UserServiceSummary) error {
+	// Do nothing, successfully.
+	return nil
 }
 
 var _ libkb.ServiceSummaryMapper = (*OfflineServiceSummaryMap)(nil)
