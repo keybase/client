@@ -7,16 +7,13 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-// should probably be in avdl
-type Card struct{}
-
 type cardChecker struct{}
 
 func newCardChecker() *cardChecker {
 	return &cardChecker{}
 }
 
-func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*Card, error) {
+func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*chat1.MessageUnboxedCard, error) {
 	if conv == nil {
 		// if no verified conversation parameter, don't do anything
 		return nil, nil
@@ -29,6 +26,11 @@ func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.Co
 	if conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
 		// currently, cards only exist in team conversations
 		return nil, nil
+	}
+
+	// for testing initial card, always show one if channel name is kb_cards_kb
+	if conv.Info.TopicName == "kb_cards_kb" {
+		return &chat1.MessageUnboxedCard{CardType: chat1.MessageUnboxedCardType_HELLO, Data: "nothing"}, nil
 	}
 
 	return nil, nil
