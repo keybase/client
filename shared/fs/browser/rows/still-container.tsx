@@ -22,11 +22,12 @@ const getDownloadIntent = (
   downloads: Types.Downloads,
   pathItemActionMenu: Types.PathItemActionMenu
 ): Types.DownloadIntent | null => {
-  const downloadID = downloads.info.findKey(info => info.path === path)
-  if (!downloadID) {
+  const found = [...downloads.info].find(([_, info]) => info.path === path)
+  if (!found) {
     return null
   }
-  const dlState = downloads.state.get(downloadID, Constants.emptyDownloadState)
+  const [downloadID] = found
+  const dlState = downloads.state.get(downloadID) || Constants.emptyDownloadState
   if (!Constants.downloadIsOngoing(dlState)) {
     return null
   }

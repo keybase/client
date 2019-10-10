@@ -9,11 +9,20 @@ import * as Container from '../util/container'
 import {produce, Draft} from 'immer'
 
 const initialState: Types.State = {
-  destinationPicker: Constants.makeDestinationPicker(),
-  downloads: Constants.makeDownloads(),
-  edits: I.Map(),
-  errors: I.Map(),
-  fileContext: I.Map(),
+  destinationPicker: {
+    destinationParentPath: [],
+    source: {
+      type: Types.DestinationPickerSource.None,
+    },
+  },
+  downloads: {
+    info: new Map(),
+    regularDownloads: [],
+    state: new Map(),
+  },
+  edits: new Map(),
+  errors: new Map(),
+  fileContext: new Map(),
   folderViewFilter: '',
   kbfsDaemonStatus: Constants.makeKbfsDaemonStatus(),
   lastPublicBannerClosedTlf: '',
@@ -33,7 +42,13 @@ const initialState: Types.State = {
     public: new Map(),
     team: new Map(),
   },
-  uploads: Constants.makeUploads(),
+  uploads: {
+    endEstimate: undefined,
+    errors: new Map(),
+    syncingPaths: new Set(),
+    totalSyncingBytes: 0,
+    writingToJournal: new Set(),
+  },
 }
 
 export const _initialStateForTest = initialState
@@ -162,7 +177,18 @@ const withFsErrorBar = (draftState: Draft<Types.State>, action: FsGen.FsErrorPay
   }
   logger.error('error (fs)', fsError.erroredAction.type, fsError.errorMessage)
   // @ts-ignore TS is correct here. TODO fix we're passing buffers as strings
-  draftState.errors = draftState.errors.set(Constants.makeUUID(), fsError)
+  draftState.errors = new Map([...draftState.errors, [Constants.makeUUID(), fsError]])
+}
+
+const updateExistingEdit = (
+  draftState: Draft<Types.State>,
+  editID: Types.EditID,
+  change: (draftEdit: Draft<Types.Edit>) => void
+) => {
+  const existing = draftState.edits.get(editID)
+  if (existing) {
+    draftState.edits = new Map([...draftState.edits, [editID, produce(existing, change)]])
+  }
 }
 
 const reduceFsError = (draftState: Draft<Types.State>, action: FsGen.FsErrorPayload) => {
@@ -171,20 +197,23 @@ const reduceFsError = (draftState: Draft<Types.State>, action: FsGen.FsErrorPayl
   switch (erroredAction.type) {
     case FsGen.commitEdit:
       withFsErrorBar(draftState, action)
-      draftState.edits = draftState.edits.update(erroredAction.payload.editID, edit =>
-        edit.set('status', Types.EditStatusType.Failed)
+      updateExistingEdit(
+        draftState,
+        erroredAction.payload.editID,
+        draftEdit => (draftEdit.status = Types.EditStatusType.Failed)
       )
       return
     case FsGen.upload:
       // Don't show error bar in this case, as the uploading row already shows
       // a "retry" button.
-      draftState.uploads = draftState.uploads.update('errors', errors =>
-        errors.set(
+      draftState.uploads.errors = new Map([
+        ...draftState.uploads.errors,
+        [
           Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
 
-          fsError
-        )
-      )
+          fsError,
+        ],
+      ])
       return
     case FsGen.saveMedia:
     case FsGen.shareNative:
@@ -257,26 +286,29 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     )
   },
   [FsGen.uploadStarted]: (draftState, action) => {
-    draftState.uploads = draftState.uploads.update('writingToJournal', writingToJournal =>
-      writingToJournal.add(action.payload.path)
-    )
+    draftState.uploads.writingToJournal = new Set([
+      ...draftState.uploads.writingToJournal,
+      action.payload.path,
+    ])
   },
   [FsGen.uploadWritingSuccess]: (draftState, action) => {
     const {path} = action.payload
-    draftState.uploads = draftState.uploads
-      .removeIn(['errors', path])
-      .update('writingToJournal', writingToJournal => writingToJournal.remove(path))
+    if (draftState.uploads.errors.has(path)) {
+      const errors = new Map(draftState.uploads.errors)
+      errors.delete(path)
+      draftState.uploads.errors = errors
+    }
+    if (draftState.uploads.writingToJournal.has(path)) {
+      const writingToJournal = new Set(draftState.uploads.writingToJournal)
+      writingToJournal.delete(path)
+      draftState.uploads.writingToJournal = writingToJournal
+    }
   },
   [FsGen.journalUpdate]: (draftState, action) => {
     const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
-    draftState.uploads = draftState.uploads
-      .set('syncingPaths', I.Set(syncingPaths))
-      .set('totalSyncingBytes', totalSyncingBytes)
-    if (endEstimate) {
-      draftState.uploads = draftState.uploads.set('endEstimate', endEstimate)
-    } else {
-      draftState.uploads = draftState.uploads.remove('endEstimate')
-    }
+    draftState.uploads.syncingPaths = new Set(syncingPaths)
+    draftState.uploads.totalSyncingBytes = totalSyncingBytes
+    draftState.uploads.endEstimate = endEstimate || undefined
   },
   [FsGen.favoriteIgnore]: (draftState, action) => {
     const elems = Types.getPathElements(action.payload.path)
@@ -310,12 +342,7 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       return
     }
 
-    const existingNewFolderNames = new Set(
-      draftState.edits
-        .filter(edit => edit.parentPath === parentPath)
-        .map(edit => edit.name)
-        .toSet()
-    )
+    const existingNewFolderNames = new Set([...draftState.edits].map(([_, {name}]) => name))
 
     let newFolderName = 'New Folder'
     for (
@@ -326,28 +353,35 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       newFolderName = `New Folder ${i}`
     }
 
-    draftState.edits = draftState.edits.set(
-      Constants.makeEditID(),
-      Constants.makeNewFolder({
-        hint: newFolderName,
-        name: newFolderName,
-        parentPath,
-      })
-    )
+    draftState.edits = new Map([
+      ...draftState.edits,
+      [
+        Constants.makeEditID(),
+        {
+          ...Constants.emptyNewFolder,
+          hint: newFolderName,
+          name: newFolderName,
+          parentPath,
+        },
+      ],
+    ])
   },
   [FsGen.newFolderName]: (draftState, action) => {
-    draftState.edits = draftState.edits.update(
-      action.payload.editID,
-      edit => edit && edit.set('name', action.payload.name)
-    )
+    updateExistingEdit(draftState, action.payload.editID, draftEdit => {
+      draftEdit.name = action.payload.name
+    })
   },
   [FsGen.commitEdit]: (draftState, action) => {
-    draftState.edits = draftState.edits.update(action.payload.editID, edit =>
-      edit.set('status', Types.EditStatusType.Saving)
-    )
+    updateExistingEdit(draftState, action.payload.editID, draftEdit => {
+      draftEdit.status = Types.EditStatusType.Saving
+    })
   },
   [FsGen.discardEdit]: (draftState, action) => {
-    draftState.edits = draftState.edits.remove(action.payload.editID)
+    if (draftState.edits.has(action.payload.editID)) {
+      const edits = new Map(draftState.edits)
+      edits.delete(action.payload.editID)
+      draftState.edits = edits
+    }
   },
   [FsGen.fsError]: (draftState, action) => {
     reduceFsError(draftState, action)
@@ -356,38 +390,49 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.tlfUpdates = action.payload.tlfUpdates
   },
   [FsGen.dismissFsError]: (draftState, action) => {
-    draftState.errors = draftState.errors.remove(action.payload.key)
+    if (draftState.errors.has(action.payload.key)) {
+      const errors = new Map(draftState.errors)
+      errors.delete(action.payload.key)
+      draftState.errors = errors
+    }
   },
   [FsGen.showMoveOrCopy]: (draftState, action) => {
-    draftState.destinationPicker = draftState.destinationPicker
-      .update('source', source =>
-        source.type === Types.DestinationPickerSource.MoveOrCopy ? source : Constants.makeMoveOrCopySource()
-      )
-      .set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+    draftState.destinationPicker.source =
+      draftState.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+        ? draftState.destinationPicker.source
+        : ({
+            path: Constants.defaultPath,
+            type: Types.DestinationPickerSource.MoveOrCopy,
+          } as const)
+
+    draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
   },
   [FsGen.setMoveOrCopySource]: (draftState, action) => {
-    draftState.destinationPicker = draftState.destinationPicker.set(
-      'source',
-      Constants.makeMoveOrCopySource({path: action.payload.path})
-    )
+    draftState.destinationPicker.source = {
+      path: action.payload.path,
+      type: Types.DestinationPickerSource.MoveOrCopy,
+    }
   },
   [FsGen.setDestinationPickerParentPath]: (draftState, action) => {
-    draftState.destinationPicker = draftState.destinationPicker.update('destinationParentPath', list =>
-      list.set(action.payload.index, action.payload.path)
-    )
+    if (draftState.destinationPicker.destinationParentPath[action.payload.index] !== action.payload.path) {
+      draftState.destinationPicker.destinationParentPath[action.payload.index] = action.payload.path
+    }
   },
   [FsGen.showIncomingShare]: (draftState, action) => {
-    draftState.destinationPicker = (draftState.destinationPicker.source.type ===
-    Types.DestinationPickerSource.IncomingShare
-      ? draftState.destinationPicker
-      : draftState.destinationPicker.set('source', Constants.makeIncomingShareSource())
-    ).set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
+    draftState.destinationPicker.source =
+      draftState.destinationPicker.source.type === Types.DestinationPickerSource.IncomingShare
+        ? draftState.destinationPicker.source
+        : ({
+            localPath: Types.stringToLocalPath(''),
+            type: Types.DestinationPickerSource.IncomingShare,
+          } as const)
+    draftState.destinationPicker.destinationParentPath = [action.payload.initialDestinationParentPath]
   },
   [FsGen.setIncomingShareLocalPath]: (draftState, action) => {
-    draftState.destinationPicker = draftState.destinationPicker.set(
-      'source',
-      Constants.makeIncomingShareSource({localPath: action.payload.localPath})
-    )
+    draftState.destinationPicker.source = {
+      localPath: action.payload.localPath,
+      type: Types.DestinationPickerSource.IncomingShare,
+    } as const
   },
   [FsGen.initSendAttachmentToChat]: (draftState, action) => {
     draftState.sendAttachmentToChat = Constants.makeSendAttachmentToChat({
@@ -517,23 +562,39 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
     draftState.pathInfos = draftState.pathInfos.set(action.payload.path, action.payload.pathInfo)
   },
   [FsGen.loadedDownloadStatus]: (draftState, action) => {
-    draftState.downloads = draftState.downloads
-      .update('regularDownloads', regularDownloads =>
-        regularDownloads.equals(action.payload.regularDownloads)
-          ? regularDownloads
-          : action.payload.regularDownloads
-      )
-      .update('state', s => (s.equals(action.payload.state) ? s : action.payload.state))
-      .update('info', info => info.filter((_, downloadID) => action.payload.state.has(downloadID)))
+    draftState.downloads.regularDownloads = isEqual(
+      draftState.downloads.regularDownloads,
+      action.payload.regularDownloads
+    )
+      ? draftState.downloads.regularDownloads
+      : action.payload.regularDownloads
+    draftState.downloads.state = isEqual(draftState.downloads.state, action.payload.state)
+      ? draftState.downloads.state
+      : action.payload.state
+
+    const toDelete = [...draftState.downloads.info.keys()].filter(
+      downloadID => !action.payload.state.has(downloadID)
+    )
+    if (toDelete.length) {
+      const info = new Map(draftState.downloads.info)
+      toDelete.forEach(downloadID => info.delete(downloadID))
+      draftState.downloads.info = info
+    }
   },
   [FsGen.loadedDownloadInfo]: (draftState, action) => {
-    draftState.downloads = draftState.downloads.update('info', info =>
-      info.set(action.payload.downloadID, action.payload.info)
+    draftState.downloads.info = isEqual(
+      draftState.downloads.info.get(action.payload.downloadID),
+      action.payload.info
     )
+      ? draftState.downloads.info
+      : new Map([...draftState.downloads.info, [action.payload.downloadID, action.payload.info]])
   },
   [FsGen.loadedFileContext]: (draftState, action) => {
-    draftState.fileContext = draftState.fileContext.update(action.payload.path, oldFileContext =>
-      action.payload.fileContext.equals(oldFileContext) ? oldFileContext : action.payload.fileContext
-    )
+    if (!isEqual(draftState.fileContext.get(action.payload.path), action.payload.fileContext)) {
+      draftState.fileContext = new Map([
+        ...draftState.fileContext,
+        [action.payload.path, action.payload.fileContext],
+      ])
+    }
   },
 })

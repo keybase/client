@@ -114,8 +114,8 @@ export const useFsSoftError = (path: Types.Path): Types.SoftError | null => {
 }
 
 export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
-  const info = Container.useSelector(state =>
-    state.fs.downloads.info.get(downloadID, Constants.emptyDownloadInfo)
+  const info = Container.useSelector(
+    state => state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   )
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
@@ -149,15 +149,15 @@ export const useFsFileContext = (path: Types.Path) => {
 
 export const useFsWatchDownloadForMobile = isMobile
   ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
-      const dlState = Container.useSelector(state =>
-        state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
+      const dlState = Container.useSelector(
+        state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )
       const finished = dlState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(dlState)
 
       const dlInfo = useFsDownloadInfo(downloadID)
       useFsFileContext(dlInfo.path)
-      const mimeType = Container.useSelector(state =>
-        state.fs.fileContext.get(dlInfo.path, Constants.emptyFileContext)
+      const mimeType = Container.useSelector(
+        state => state.fs.fileContext.get(dlInfo.path) || Constants.emptyFileContext
       ).contentType
 
       const dispatch = useDispatchWhenConnected()
