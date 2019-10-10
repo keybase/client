@@ -75,7 +75,8 @@ const Header = (p: Props) => {
       ? p.participants.filter(part => part !== p.username)
       : p.participants
 
-  if (withoutSelf && withoutSelf.length === 1 && p.desc) {
+  if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
+    // trim() call makes sure that string is not just whitespace
     description = (
       <>
         <Kb.Text type="BodySmall" style={styles.desc}>
