@@ -47,8 +47,7 @@ const getSortedConversationIDKeys = memoize(
   }> => {
     const staleCutoff = getAWeekAgo()
     return metaMap
-      .valueSeq()
-      .toArray()
+      .values()
       .sort((a, b) => {
         // leveled order rules:
         // 1. unmuted before muted

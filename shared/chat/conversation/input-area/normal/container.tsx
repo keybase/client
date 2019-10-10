@@ -5,7 +5,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
-import {namedConnect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
 import Input from '.'
 
@@ -35,7 +35,8 @@ const getTeams = memoize(metaMap =>
     .sort((a, b) => a.teamname.localeCompare(b.teamname))
 )
 
-export default namedConnect(
+export default Container.connectDEBUG(
+  //Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
@@ -181,7 +182,6 @@ export default namedConnect(
       }
       return ret
     },
-
     isActiveForFocus: stateProps.isActiveForFocus,
     isEditExploded: stateProps.isEditExploded,
     isEditing: !!stateProps._editOrdinal,
@@ -258,7 +258,5 @@ export default namedConnect(
     unsentTextChanged: (text: string) => {
       dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
     },
-  }),
-
-  'Input'
+  }) // , 'Input'
 )(Input)

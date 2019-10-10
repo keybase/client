@@ -106,7 +106,7 @@ const inboxRefresh = (
 
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
-  ids.filter(id => state.chat2.metaMap.getIn([id, 'trustedState'], 'untrusted') === 'untrusted')
+  ids.filter(id => (state.chat2.metaMap.get(id) || {trustedState: 'untrusted'}).trustedState === 'untrusted')
 
 // We keep a set of conversations to unbox
 let metaQueue = I.OrderedSet()
@@ -1209,7 +1209,7 @@ function* getUnreadline(
     return
   }
 
-  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
+  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
   try {
     const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
       convID,
@@ -2541,9 +2541,9 @@ const fetchConversationBio = async (state: TypedState, action: Chat2Gen.SelectCo
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '')
-  if (otherParticipants.count() === 1) {
+  if (otherParticipants.lenth === 1) {
     // we're in a one-on-one convo
-    const username = otherParticipants.first('')
+    const username = otherParticipants[0] || ''
 
     if (username === '') {
       return // if for some reason we get a garbage username, don't do anything

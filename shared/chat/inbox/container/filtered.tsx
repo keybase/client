@@ -106,7 +106,7 @@ const makeBigItem = (meta, filter, insertMatcher) => {
 
 // Ignore headers, score based on matches of participants, ignore total non matches
 const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: string, username: string) => {
-  const metas = metaMap.valueSeq().toArray()
+  const metas = [...metaMap.values()]
   const lcFilter = filter.toLowerCase()
   const lcYou = username.toLowerCase()
   const insertMatcher = makeInsertMatcher(filter)

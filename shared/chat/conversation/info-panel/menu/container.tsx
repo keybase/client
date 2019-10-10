@@ -38,7 +38,7 @@ const mapStateToProps = (state, {teamname, conversationIDKey, isSmallTeam, visib
   let convProps: ConvProps | null = null
   if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
     const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
-    const participants = ChatConstants.getRowParticipants(meta, state.config.username).toArray()
+    const participants = ChatConstants.getRowParticipants(meta, state.config.username)
     // If it's a one-on-one chat, we need the user's fullname.
     const fullname =
       participants.length === 1 ? state.users.infoMap.get(participants[0], {fullname: ''}).fullname : ''
