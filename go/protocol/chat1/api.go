@@ -839,6 +839,42 @@ func (o GetResetConvMembersRes) DeepCopy() GetResetConvMembersRes {
 	}
 }
 
+type DeviceInfo struct {
+	DeviceID          string `codec:"deviceID" json:"id"`
+	DeviceDescription string `codec:"deviceDescription" json:"description"`
+	DeviceType        string `codec:"deviceType" json:"type"`
+	DeviceCtime       int64  `codec:"deviceCtime" json:"ctime"`
+}
+
+func (o DeviceInfo) DeepCopy() DeviceInfo {
+	return DeviceInfo{
+		DeviceID:          o.DeviceID,
+		DeviceDescription: o.DeviceDescription,
+		DeviceType:        o.DeviceType,
+		DeviceCtime:       o.DeviceCtime,
+	}
+}
+
+type GetDeviceInfoRes struct {
+	Devices []DeviceInfo `codec:"devices" json:"devices"`
+}
+
+func (o GetDeviceInfoRes) DeepCopy() GetDeviceInfoRes {
+	return GetDeviceInfoRes{
+		Devices: (func(x []DeviceInfo) []DeviceInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DeviceInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Devices),
+	}
+}
+
 type ApiInterface interface {
 }
 

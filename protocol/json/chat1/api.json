@@ -874,6 +874,45 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "DeviceInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "deviceID",
+          "jsonkey": "id"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription",
+          "jsonkey": "description"
+        },
+        {
+          "type": "string",
+          "name": "deviceType",
+          "jsonkey": "type"
+        },
+        {
+          "type": "int64",
+          "name": "deviceCtime",
+          "jsonkey": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetDeviceInfoRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "DeviceInfo"
+          },
+          "name": "devices"
+        }
+      ]
     }
   ],
   "messages": {},

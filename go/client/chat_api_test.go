@@ -42,6 +42,7 @@ type handlerTracker struct {
 	listCommandsV1      int
 	pinV1               int
 	unpinV1             int
+	getDeviceInfoV1     int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -182,6 +183,11 @@ func (h *handlerTracker) AddResetConvMemberV1(context.Context, Call, io.Writer) 
 	return nil
 }
 
+func (h *handlerTracker) GetDeviceInfoV1(context.Context, Call, io.Writer) error {
+	h.getDeviceInfoV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -303,6 +309,10 @@ func (c *chatEcho) AddResetConvMemberV1(context.Context, addResetConvMemberOptio
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) GetDeviceInfoV1(context.Context) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
 	input             string
 	err               error
@@ -323,6 +333,7 @@ type topTest struct {
 	listConvsOnNameV1 int
 	pinV1             int
 	unpinV1           int
+	getDeviceInfoV1   int
 }
 
 var topTests = []topTest{
@@ -354,6 +365,7 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "listconvsonname", "params":{"version": 1}}`, listConvsOnNameV1: 1},
 	{input: `{"id": 39, "method": "pin", "params":{"version": 1}}`, pinV1: 1},
 	{input: `{"id": 39, "method": "unpin", "params":{"version": 1}}`, unpinV1: 1},
+	{input: `{"id": 39, "method": "getdeviceinfo", "params":{"version": 1}}`, getDeviceInfoV1: 1},
 }
 
 // TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
@@ -427,6 +439,10 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.unpinV1 != test.unpinV1 {
 			t.Errorf("test %d: input %s => unpinV1 = %d, expected %d",
 				i, test.input, h.unpinV1, test.unpinV1)
+		}
+		if h.getDeviceInfoV1 != test.getDeviceInfoV1 {
+			t.Errorf("test %d: input %s => getDeviceInfoV1 = %d, expected %d",
+				i, test.input, h.getDeviceInfoV1, test.getDeviceInfoV1)
 		}
 	}
 }
