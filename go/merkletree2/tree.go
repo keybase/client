@@ -18,6 +18,8 @@ type Tree struct {
 	cfg Config
 	eng StorageEngine
 
+	newRootVersion RootVersion
+
 	// step is an optimization parameter for GetKeyValuePairWithProof that
 	// controls how many path positions at a time the tree requests from the
 	// storage engine. Lower values result in more storage engine requests, but
@@ -30,7 +32,7 @@ type Tree struct {
 }
 
 // NewTree makes a new tree
-func NewTree(c Config, step int, e StorageEngine) (*Tree, error) {
+func NewTree(c Config, step int, e StorageEngine, v RootVersion) (*Tree, error) {
 	if c.UseBlindedValueHashes {
 		_, ok := e.(StorageEngineWithBlinding)
 		if !ok {
@@ -41,7 +43,11 @@ func NewTree(c Config, step int, e StorageEngine) (*Tree, error) {
 		return nil, fmt.Errorf("step must be a positive integer")
 	}
 
-	return &Tree{cfg: c, eng: e, step: step}, nil
+	if v.GetEncodingType() != c.Encoder.GetEncodingType() {
+		return nil, fmt.Errorf("RootVersion doesn't match the encoding type.")
+	}
+
+	return &Tree{cfg: c, eng: e, step: step, newRootVersion: v}, nil
 }
 
 // Hash is a byte-array, used to represent a full collision-resistant hash.
@@ -168,21 +174,48 @@ type PositionHashPair struct {
 	Hash     Hash     `codec:"h"`
 }
 
+type RootVersion uint8
+
+const (
+	RootVersionV1      RootVersion = 1
+	CurrentRootVersion RootVersion = RootVersionV1
+
+	RootVersionTesting RootVersion = 127
+)
+
+func (r RootVersion) GetEncodingType() EncodingType {
+	switch r {
+	case RootVersionV1:
+		return EncodingTypeBlindedSHA512_256v1
+	case RootVersionTesting:
+		return EncodingTypeForTesting
+	default:
+		panic(fmt.Sprintf("Unrecognized root version: %v", r))
+	}
+}
+
 type RootMetadata struct {
-	// TODO Add timestamp, version.....
-	_struct          struct{}     `codec:",toarray"` //nolint
-	Seqno            Seqno        `codec:"n"`
-	BareRootHash     Hash         `codec:"r"`
-	SkipPointersHash Hash         `codec:"s"`
-	EncoderType      EncodingType `codec:"e"`
+	_struct          struct{} `codec:",toarray"` //nolint
+	RootVersion      RootVersion
+	Seqno            Seqno
+	BareRootHash     Hash
+	SkipPointersHash Hash
+
+	//  AddOnsHash is the (currently empty) hash of a (not yet defined) data
+	//  structure which will contain a map[string]Hash (or even
+	//  map[string]interface{}) which can contain arbitrary values. This AddOn
+	//  struct is not used in verifying proofs, and new elements can be added to
+	//  this map without bumping the RootVersion. Clients are expected to ignore
+	//  fields in this map which they do not understand.
+	AddOnsHash Hash
 }
 
 func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction, curr *RootMetadata, newRootHash Hash) (RootMetadata, error) {
 	if curr == nil {
 		return RootMetadata{
+			RootVersion:  t.newRootVersion,
 			Seqno:        1,
 			BareRootHash: newRootHash,
-			EncoderType:  t.cfg.Encoder.GetEncodingType(),
 		}, nil
 	}
 	newSeqno := curr.Seqno + 1
@@ -199,10 +232,10 @@ func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction,
 	}
 
 	return RootMetadata{
+		RootVersion:      t.newRootVersion,
 		Seqno:            curr.Seqno + 1,
 		SkipPointersHash: skipsHash,
 		BareRootHash:     newRootHash,
-		EncoderType:      t.cfg.Encoder.GetEncodingType(),
 	}, nil
 }
 
@@ -452,8 +485,9 @@ type MerkleExtensionProof struct {
 // MerkleExtensionProof. The redundant fields are deleted so that sending a
 // combined proof is more efficient than sending both of them individually.
 type MerkleInclusionExtensionProof struct {
-	MerkleInclusionProof
-	MerkleExtensionProof
+	_struct              struct{} `codec:",toarray"` //nolint
+	MerkleInclusionProof MerkleInclusionProof
+	MerkleExtensionProof MerkleExtensionProof
 }
 
 // This type orders positionHashPairs by position, more specificelly first by

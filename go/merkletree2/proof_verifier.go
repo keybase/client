@@ -3,6 +3,7 @@ package merkletree2
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 )
 
@@ -17,6 +18,10 @@ func NewMerkleProofVerifier(c Config) MerkleProofVerifier {
 func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionProof, expRootHash Hash) error {
 	if proof == nil {
 		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
+	}
+
+	if proof.RootMetadataNoHash.RootVersion != RootVersionV1 && proof.RootMetadataNoHash.RootVersion != RootVersionTesting {
+		return NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("RootVersion %v is not supported (this client can only handle V1)", proof.RootMetadataNoHash.RootVersion)))
 	}
 
 	// Hash the key value pair
@@ -128,51 +133,87 @@ func (m *MerkleProofVerifier) computeSkipsHashForSeqno(s Seqno, skipsMap map[Seq
 // boolean indicating wether the proof is a full proof or is compressed (i.e. it
 // is part of a MerkleInclusionExtensionProof).
 func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.ContextInterface, proof *MerkleExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno) (h Hash, isPartOfIncExtProof bool, err error) {
+	// This function is annotated with an inline example.
+
+	// We denote with Hi the hash of the RootMetadata Ri with seqno i.
+	// Example inputs:
+	// initialSeqno = 11
+	// initialRootHash = H11
+	// finalSeqno = 30
+	// the proof contains:
+	// - RootHashes = [ H8, H10, H14, H15, H24, H28, H29]
+	// - PreviousRootsNoSkips = [R12, R16, (R30)] Note that R30 here is optional.
+	//      We set isPartOfIncExtProof = true if it isn't there, but the output h is the same.
+
+	// Note that:
+	// SkipPointersPath(11,30) = [12,16,30]
+	// SkipPointersForSeqno(12) = [8,10,11]
+	// SkipPointersForSeqno(16) = [8,12,14,15]
+	// SkipPointersForSeqno(30) = [16,24,28,29]
+
 	rootHashMap := make(map[Seqno]Hash)
-	rootHashes, err := ComputeRootHashSeqnosNeededInExtensionProof(initialSeqno, finalSeqno)
+	rootHashSeqnos, err := ComputeRootHashSeqnosNeededInExtensionProof(initialSeqno, finalSeqno)
+	// rootHashSeqnos = [8, 10, 14, 15, 24, 28, 29]
 	if err != nil {
 		return nil, false, NewProofVerificationFailedError(err)
 	}
-	if len(rootHashes) != len(proof.RootHashes) {
-		return nil, false, NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of root hashes: exp %v, got %v", len(rootHashes), len(proof.RootHashes)))
+	if len(rootHashSeqnos) != len(proof.RootHashes) {
+		return nil, false, NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of root hashes: exp %v, got %v", len(rootHashSeqnos), len(proof.RootHashes)))
 	}
-	for i, s := range rootHashes {
+	for i, s := range rootHashSeqnos {
 		rootHashMap[s] = proof.RootHashes[i]
 	}
+	// rootHashMap : { 8 -> H8, 10 -> H10, 14 -> H14, ... }
 
 	rootMap := make(map[Seqno]RootMetadata)
-	roots, err := ComputeRootMetadataSeqnosNeededInExtensionProof(initialSeqno, finalSeqno, true)
+	rootSeqnos, err := ComputeRootMetadataSeqnosNeededInExtensionProof(initialSeqno, finalSeqno, true)
+	// rootSeqnos = [12, 16]
 	if err != nil {
 		return nil, false, NewProofVerificationFailedError(err)
 	}
-	if len(roots) == len(proof.PreviousRootsNoSkips) {
+	if len(rootSeqnos) == len(proof.PreviousRootsNoSkips) {
 		// compressed proof
 		isPartOfIncExtProof = true
-	} else if len(roots) == len(proof.PreviousRootsNoSkips)-1 {
+		// if len(proof.PreviousRootsNoSkips) == 2 (R30 is not there), we set isPartOfIncExtProof == true
+	} else if len(rootSeqnos) == len(proof.PreviousRootsNoSkips)-1 {
 		// full proof
 		isPartOfIncExtProof = false
+		// if len(proof.PreviousRootsNoSkips) == 3 (R30 is there), we set isPartOfIncExtProof == false
 	} else {
 		// invalid proof
-		return nil, false, NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of roots: exp %v or %v, got %v", len(roots), len(roots)+1, len(proof.PreviousRootsNoSkips)))
+		return nil, false, NewProofVerificationFailedError(fmt.Errorf("The proof does not have the expected number of roots: exp %v or %v, got %v", len(rootSeqnos), len(rootSeqnos)+1, len(proof.PreviousRootsNoSkips)))
 	}
 
-	for i, s := range roots {
+	for i, s := range rootSeqnos {
+		if proof.PreviousRootsNoSkips[i].RootVersion != RootVersionV1 && proof.PreviousRootsNoSkips[i].RootVersion != RootVersionTesting {
+			return nil, false, NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("computeFinalSkipPointersHashFromPath: RootVersion %v at seqno %v is not supported (this client can only handle V1)", proof.PreviousRootsNoSkips[i].RootVersion, s)))
+		}
+
 		rootMap[s] = proof.PreviousRootsNoSkips[i]
 	}
+	// rootMap : { 12 -> R12, 16 -> R16}
 
 	prevRootHash := initialRootHash
+	// prevRootHash = H11
 	prevSeqno := initialSeqno
+	// prevSeqno = 11
 
 	var currentSkipsHash Hash
 
 	skipPath, err := SkipPointersPath(initialSeqno, finalSeqno)
+	// SkipPointersPath(11,30) = [12,16,30]
 	if err != nil {
 		return nil, false, NewProofVerificationFailedError(err)
 	}
 	for i, currentSeqno := range skipPath {
+		// We annotate this loop for i = 0, currentSeqno = 12
+
 		rootHashMap[prevSeqno] = prevRootHash
+		// rootHashMap : { 11 -> H11, 8 -> H8, 10 -> H10, 14 -> H14, ... }
 
 		currentSkipsHash, err = m.computeSkipsHashForSeqno(currentSeqno, rootHashMap)
+		// currentSkipsHash = SHA( [ H8, H10, H11 ] )
+		// It is the expected value of SkipPointersHash for the root at currentSeqno = 12
 		if err != nil {
 			return nil, false, NewProofVerificationFailedError(err)
 		}
@@ -184,21 +225,34 @@ func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.Co
 		}
 
 		currentMeta := rootMap[currentSeqno]
+		// currentMeta = R12 (note that R12.SkipPointersHash = nil)
 		currentMeta.SkipPointersHash = currentSkipsHash
+		// set R12.SkipPointersHash to the value computed above
 		_, currRootHash, err := m.cfg.Encoder.EncodeAndHashGeneric(currentMeta)
+		// compute H12 (the expected hash of the root at seqno 12)
 		if err != nil {
 			return nil, false, NewProofVerificationFailedError(err)
 		}
 
 		prevSeqno = currentSeqno
+		// prevSeqno = 12
 		prevRootHash = currRootHash
+		// prevRootHash = H12
 	}
+	// At the end of the loop, currentSkipsHash contains the expected
+	// SkipPointersHash for the root at Seqno 30.
 
 	return currentSkipsHash, isPartOfIncExtProof, nil
 }
 
+// verifyExtensionProofFinal inserts skipsHash as the SkipsPointersHash in
+// rootMetadata, hashes it and checks that such hash matches expRootHash.
 func (m *MerkleProofVerifier) verifyExtensionProofFinal(ctx logger.ContextInterface, rootMetadata RootMetadata, skipsHash Hash, expRootHash Hash) error {
 	rootMetadata.SkipPointersHash = skipsHash
+	if rootMetadata.RootVersion != RootVersionV1 && rootMetadata.RootVersion != RootVersionTesting {
+		return NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("verifyExtensionProofFinal: RootVersion %v is not supported (this client can only handle V1)", rootMetadata.RootVersion)))
+	}
+
 	_, hash, err := m.cfg.Encoder.EncodeAndHashGeneric(rootMetadata)
 	if err != nil {
 		return NewProofVerificationFailedError(err)
@@ -224,6 +278,10 @@ func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, 
 	}
 
 	skipsHash, isPartOfIncExtProof, err := m.computeFinalSkipPointersHashFromPath(ctx, proof, initialSeqno, initialRootHash, finalSeqno)
+	// For exmaple, if finalSeqno = 30, then skipsHash will be the expected
+	// SkipPointersHash of the root at seqno 30 (i.e. SHA512([H16, H24, H28,
+	// H29]) where Hi is the hash of the RootMetadata at seqno i)
+
 	if err != nil {
 		return err
 	}
@@ -232,6 +290,9 @@ func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, 
 	}
 
 	return m.verifyExtensionProofFinal(ctx, proof.PreviousRootsNoSkips[len(proof.PreviousRootsNoSkips)-1], skipsHash, expRootHash)
+	// For exmaple, if finalSeqno = 30, this function uses the skipsHash above,
+	// puts it inside RootMetadata at seqno 30, hashes it and checks the hash
+	// matches expRootHash.
 }
 
 func (m *MerkleProofVerifier) VerifyInclusionExtensionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno, expRootHash Hash) (err error) {
@@ -261,7 +322,7 @@ func (m *MerkleProofVerifier) VerifyInclusionExtensionProof(ctx logger.ContextIn
 
 		if !isPartOfIncExtProof {
 			// The server did not compress the inner extension proof, so we check it.
-			err := m.verifyExtensionProofFinal(ctx, proof.PreviousRootsNoSkips[len(proof.PreviousRootsNoSkips)-1], skipsHashForNewRoot, expRootHash)
+			err := m.verifyExtensionProofFinal(ctx, proof.MerkleExtensionProof.PreviousRootsNoSkips[len(proof.MerkleExtensionProof.PreviousRootsNoSkips)-1], skipsHashForNewRoot, expRootHash)
 			if err != nil {
 				return err
 			}
@@ -273,7 +334,7 @@ func (m *MerkleProofVerifier) VerifyInclusionExtensionProof(ctx logger.ContextIn
 		// inclusion proof to fail.
 		if incProof.RootMetadataNoHash.SkipPointersHash != nil && !incProof.RootMetadataNoHash.SkipPointersHash.Equal(skipsHashForNewRoot) {
 			return NewProofVerificationFailedError(
-				fmt.Errorf("extension proof failed: expected %X but got %X", skipsHashForNewRoot, proof.RootMetadataNoHash.SkipPointersHash))
+				fmt.Errorf("extension proof failed: expected %X but got %X", skipsHashForNewRoot, incProof.RootMetadataNoHash.SkipPointersHash))
 		}
 		incProof.RootMetadataNoHash.SkipPointersHash = skipsHashForNewRoot
 	}
