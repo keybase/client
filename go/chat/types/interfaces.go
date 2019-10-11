@@ -238,6 +238,7 @@ type Syncer interface {
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 		updates []chat1.ConversationStaleUpdate, immediate bool)
 	SelectConversation(ctx context.Context, convID chat1.ConversationID)
+	GetSelectedConversation() chat1.ConversationID
 	Shutdown()
 }
 

@@ -414,6 +414,7 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 	for _, bt := range bts {
 		res = append(res, chat1.NewUIInboxBigTeamRowWithLabel(bt.name))
 		for _, conv := range bt.convs {
+
 			row := utils.PresentRemoteConversationAsBigTeamChannelRow(ctx, conv)
 			res = append(res, chat1.NewUIInboxBigTeamRowWithChannel(row))
 		}
@@ -424,7 +425,12 @@ func (c *bigTeamCollector) finalize(ctx context.Context) (res []chat1.UIInboxBig
 func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res chat1.UIInboxLayout) {
 	var btunboxes []chat1.ConversationID
 	btcollector := newBigTeamCollector()
+	selectedInLayout := false
+	selectedConv := h.G().Syncer.GetSelectedConversation()
 	for _, conv := range inbox.ConvsUnverified {
+		if conv.GetConvID().Eq(selectedConv) {
+			selectedInLayout = true
+		}
 		switch conv.GetTeamType() {
 		case chat1.TeamType_COMPLEX:
 			if conv.LocalMetadata == nil {
@@ -446,6 +452,15 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox) (res
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
 	})
 	res.BigTeams = btcollector.finalize(ctx)
+	if !selectedInLayout {
+		// select a new conv for the UI
+		var reselect chat1.UIInboxReselectInfo
+		reselect.OldConvID = selectedConv.String()
+		if len(res.SmallTeams) > 0 {
+			reselect.NewConvID = &res.SmallTeams[0].ConvID
+		}
+		res.ReselectInfo = &reselect
+	}
 	if len(btunboxes) > 0 {
 		h.Debug(ctx, "buildLayout: big teams missing names, unboxing: %v", len(btunboxes))
 		h.queueBigTeamUnbox(btunboxes)
