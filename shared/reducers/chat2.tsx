@@ -594,10 +594,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.giphyToggleWindow: {
         const conversationIDKey = action.payload.conversationIDKey
-        draftState.giphyWindowMap = draftState.giphyWindowMap.set(conversationIDKey, action.payload.show)
+
+        const giphyWindowMap = new Map(draftState.giphyWindowMap)
+        giphyWindowMap.set(conversationIDKey, action.payload.show)
+        draftState.giphyWindowMap = giphyWindowMap
         if (!action.payload.show) {
           const giphyResultMap = new Map(draftState.giphyResultMap)
-          giphyResultMap.set(conversationIDKey, null)
+          giphyResultMap.set(conversationIDKey, undefined)
           draftState.giphyResultMap = giphyResultMap
         }
         if (action.payload.clearInput) {
@@ -1192,12 +1195,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
 
         return
       }
-      case Chat2Gen.updateMoreToLoad:
-        draftState.moreToLoadMap = draftState.moreToLoadMap.set(
-          action.payload.conversationIDKey,
-          action.payload.moreToLoad
-        )
+      case Chat2Gen.updateMoreToLoad: {
+        const moreToLoadMap = new Map(draftState.moreToLoadMap)
+        moreToLoadMap.set(action.payload.conversationIDKey, action.payload.moreToLoad)
+        draftState.moreToLoadMap = moreToLoadMap
         return
+      }
       case Chat2Gen.updateConvExplodingModes: {
         const {modes} = action.payload
         draftState.explodingModes = new Map(
@@ -1227,7 +1230,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.giphySend: {
-        draftState.giphyWindowMap = draftState.giphyWindowMap.set(action.payload.conversationIDKey, false)
+        const giphyWindowMap = new Map(draftState.giphyWindowMap)
+        giphyWindowMap.set(action.payload.conversationIDKey, false)
+        draftState.giphyWindowMap = giphyWindowMap
         const unsentTextMap = new Map(draftState.unsentTextMap)
         unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
         draftState.unsentTextMap = unsentTextMap
@@ -1236,7 +1241,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.toggleGiphyPrefill: {
         // if the window is up, just blow it away
         const unsentTextMap = new Map(draftState.unsentTextMap)
-        if (draftState.giphyWindowMap.get(action.payload.conversationIDKey, false)) {
+        if (draftState.giphyWindowMap.get(action.payload.conversationIDKey)) {
           unsentTextMap.set(action.payload.conversationIDKey, new HiddenString(''))
         } else {
           unsentTextMap.set(action.payload.conversationIDKey, new HiddenString('/giphy '))
@@ -1505,7 +1510,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.setMaybeMentionInfo: {
         const {name, info} = action.payload
-        draftState.maybeMentionMap = draftState.maybeMentionMap.set(name, info)
+        const maybeMentionMap = new Map(draftState.maybeMentionMap)
+        maybeMentionMap.set(name, info)
+        draftState.maybeMentionMap = maybeMentionMap
         return
       }
       case Chat2Gen.requestInfoReceived: {

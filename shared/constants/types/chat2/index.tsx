@@ -132,7 +132,7 @@ export type State = Readonly<{
   explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   focus: Focus
-  giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults>
+  giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
