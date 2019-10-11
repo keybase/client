@@ -32,8 +32,9 @@ export default () => {
       if (hash === toMatchHash) {
         console.log(`Applying patch: ${fullPath} (${hash})`)
         const patchFullPath = path.join(__dirname, '../../patches', patch)
-        const command = `git apply ${patchFullPath}`
+        const command = `patch -p1 < ${patchFullPath}`
         child_process.execSync(command, {cwd: fullDir, encoding: 'utf8', env: process.env, stdio: 'inherit'})
+        console.log('Patch applied')
       } else {
         console.log('Skipping patch: ', fullPath, hash)
       }

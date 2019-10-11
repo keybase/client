@@ -55,7 +55,7 @@ export const makeState = (): Types.State => ({
   messageCenterOrdinals: I.Map(), // ordinals to center threads on,
   messageMap: I.Map(), // messages in a thread,
   messageOrdinals: I.Map(), // ordered ordinals in a thread,
-  metaMap: I.Map(), // metadata about a thread, There is a special node for the pending conversation,
+  metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: I.Map(), // if we have more data to load,
   mutedMap: new Map(),
   orangeLineMap: I.Map(), // last message we've seen,

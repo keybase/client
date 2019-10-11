@@ -29,7 +29,7 @@ export type StaticConfig = {
   }
 }
 
-export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
+export type MetaMap = Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
 export type ThreadSearchStatus = 'initial' | 'inprogress' | 'done'
