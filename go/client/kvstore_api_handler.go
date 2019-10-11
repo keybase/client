@@ -32,12 +32,14 @@ const (
 	getEntryMethod = "get"
 	putEntryMethod = "put"
 	listMethod     = "list"
+	delEntryMethod = "del"
 )
 
 var validKvstoreMethodsV1 = map[string]bool{
 	getEntryMethod: true,
 	putEntryMethod: true,
 	listMethod:     true,
+	delEntryMethod: true,
 }
 
 func (t *kvStoreAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) error {
@@ -58,6 +60,8 @@ func (t *kvStoreAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) e
 		return t.putEntry(ctx, c, w)
 	case listMethod:
 		return t.list(ctx, c, w)
+	case delEntryMethod:
+		return t.deleteEntry(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}
@@ -136,6 +140,43 @@ func (t *kvStoreAPIHandler) putEntry(ctx context.Context, c Call, w io.Writer) e
 		EntryValue: opts.EntryValue,
 	}
 	res, err := t.cli.PutKVEntry(ctx, arg)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	return t.encodeResult(c, res, w)
+}
+
+type deleteEntryOptions struct {
+	Team      string `json:"team"`
+	Namespace string `json:"namespace"`
+	EntryKey  string `json:"entryKey"`
+}
+
+func (a *deleteEntryOptions) Check() error {
+	if len(a.Team) == 0 {
+		return errors.New("`team` field required")
+	}
+	if len(a.Namespace) == 0 {
+		return errors.New("`namespace` field required")
+	}
+	if len(a.EntryKey) == 0 {
+		return errors.New("`entryKey` field required")
+	}
+	return nil
+}
+
+func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer) error {
+	var opts putEntryOptions
+	if err := unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	arg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  opts.Team,
+		Namespace: opts.Namespace,
+		EntryKey:  opts.EntryKey,
+	}
+	res, err := t.cli.DelKVEntry(ctx, arg)
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}

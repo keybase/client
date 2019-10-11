@@ -237,6 +237,94 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	t.Logf("charlie can fetch and list the entry")
 }
 
+func TestDelete(t *testing.T) {
+	tc := kvTestSetup(t)
+	defer tc.Cleanup()
+	mctx := libkb.NewMetaContextForTest(tc)
+	ctx := context.Background()
+	user, err := kbtest.CreateAndSignupFakeUser("kv", tc.G)
+	require.NoError(t, err)
+	handler := NewKVStoreHandler(nil, tc.G)
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	namespace := "myapp"
+	entryKey := "entry-key-whatever"
+	// delete a non-existent entry
+	delArg := keybase1.DelKVEntryArg{
+		SessionID: 0,
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	_, err = handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ := err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamStorageNotFound {
+		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
+	}
+	t.Logf("attempting to delete a non-existent entry errors")
+
+	// create the new entry
+	putArg := keybase1.PutKVEntryArg{
+		SessionID:  0,
+		TeamName:   teamName,
+		Namespace:  namespace,
+		EntryKey:   entryKey,
+		EntryValue: "secret value",
+	}
+	putRes, err := handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 1, putRes.Revision)
+
+	// delete it
+	delRes, err := handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.NoError(t, err)
+	require.Equal(t, 2, delRes.Revision)
+
+	t.Logf("deleting an entry returns the next revision")
+	getArg := keybase1.GetKVEntryArg{
+		TeamName:  teamName,
+		Namespace: namespace,
+		EntryKey:  entryKey,
+	}
+	getRes, err := handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, 2, getRes.Revision)
+	require.Equal(t, teamName, getRes.TeamName)
+	require.Equal(t, namespace, getRes.Namespace)
+	require.Equal(t, entryKey, getRes.EntryKey)
+	require.Equal(t, "", getRes.EntryValue)
+	t.Logf("fetching a deleted entry has the correct revision and empty value")
+
+	// delete it again
+	delRes, err = handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	aerr, _ = err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamStorageNotFound {
+		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
+	}
+	t.Logf("attempting to delete a deleted entry errors")
+
+	// recreate it after deletion
+	putRes, err = handler.PutKVEntry(ctx, putArg)
+	require.NoError(t, err)
+	require.Equal(t, 3, putRes.Revision)
+	getRes, err = handler.GetKVEntry(ctx, getArg)
+	require.NoError(t, err)
+	require.Equal(t, 3, getRes.Revision)
+	require.Equal(t, "secret value", getRes.EntryValue)
+
+	// delete it again
+	delRes, err = handler.DelKVEntry(mctx.Ctx(), delArg)
+	require.NoError(t, err)
+	require.Equal(t, 4, delRes.Revision)
+}
+
 func TestRevisionCache(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()

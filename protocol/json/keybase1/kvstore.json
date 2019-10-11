@@ -142,6 +142,28 @@
           "name": "entryKeys"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KVDeleteEntryResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "string",
+          "name": "namespace"
+        },
+        {
+          "type": "string",
+          "name": "entryKey"
+        },
+        {
+          "type": "int",
+          "name": "revision"
+        }
+      ]
     }
   ],
   "messages": {
@@ -220,6 +242,27 @@
         }
       ],
       "response": "KVListEntryResult"
+    },
+    "delKVEntry": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "namespace",
+          "type": "string"
+        },
+        {
+          "name": "entryKey",
+          "type": "string"
+        }
+      ],
+      "response": "KVDeleteEntryResult"
     }
   },
   "namespace": "keybase.1"

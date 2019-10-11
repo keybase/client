@@ -158,17 +158,17 @@ func (k *putEntryAPIRes) GetAppStatus() *libkb.AppStatus {
 	return &k.Status
 }
 
-func (h *KVStoreHandler) fetchRevisionFromCacheOrServer(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (int, error) {
-	_, _, prevRevision := mctx.G().GetKVRevisionCache().Fetch(mctx, entryID)
-	if prevRevision == 0 {
-		// not in the cache. check if it's in the server.
-		serverRes, err := h.serverFetch(mctx, entryID)
+func (h *KVStoreHandler) fetchRevisionFromCacheOrServer(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (entryHash string, gen keybase1.PerTeamKeyGeneration, revision int, err error) {
+	entryHash, gen, revision = mctx.G().GetKVRevisionCache().Fetch(mctx, entryID)
+	if revision == 0 {
+		// fetch from the server (which populates the cache) and then check the cache again
+		_, err := h.serverFetch(mctx, entryID)
 		if err != nil {
-			return 0, err
+			return entryHash, gen, revision, err
 		}
-		prevRevision = serverRes.Revision
+		entryHash, gen, revision = mctx.G().GetKVRevisionCache().Fetch(mctx, entryID)
 	}
-	return prevRevision, nil
+	return entryHash, gen, revision, nil
 }
 
 func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
@@ -189,7 +189,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		Namespace: arg.Namespace,
 		EntryKey:  arg.EntryKey,
 	}
-	prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, entryID)
+	_, teamKeyGen, prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, entryID)
 	if err != nil {
 		mctx.Debug("error fetching the revision for %+v from the local cache: %v", entryID, err)
 		return res, err
@@ -235,6 +235,67 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		Namespace: arg.Namespace,
 		EntryKey:  arg.EntryKey,
 		Revision:  apiRes.Revision,
+	}, nil
+}
+
+func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntryArg) (res keybase1.KVDeleteEntryResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "KV")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#DeleteKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		mctx.Debug("not logged in err: %v", err)
+		return res, err
+	}
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
+	if err != nil {
+		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
+		return res, err
+	}
+	entryID := keybase1.KVEntryID{
+		TeamID:    teamID,
+		Namespace: arg.Namespace,
+		EntryKey:  arg.EntryKey,
+	}
+	_, teamKeyGen, prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, entryID)
+	if err != nil {
+		mctx.Debug("error fetching the revision for %+v from the local cache: %v", entryID, err)
+		return res, err
+	}
+	revision := prevRevision + 1
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/storage",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"team_id":   libkb.S{Val: entryID.TeamID.String()},
+			"namespace": libkb.S{Val: entryID.Namespace},
+			"entry_key": libkb.S{Val: entryID.EntryKey},
+			"revision":  libkb.I{Val: revision},
+		},
+	}
+	apiRes, err := mctx.G().API.Delete(mctx, apiArg)
+	if err != nil {
+		mctx.Debug("error making delete request for entry %v: %v", entryID, err)
+		return res, err
+	}
+	responseRevision, err := apiRes.Body.AtKey("revision").GetInt()
+	if err != nil {
+		mctx.Debug("error getting the revision from the server response: %v", err)
+		return res, err
+	}
+	if responseRevision != revision {
+		mctx.Debug("expected the server to return revision %d but got %d for %+v", revision, responseRevision, entryID)
+		return res, fmt.Errorf("kvstore DEL revision error. expected %d, got %d", prevRevision+1, responseRevision)
+	}
+	err = mctx.G().GetKVRevisionCache().PutCheck(mctx, entryID, "", teamKeyGen, responseRevision)
+	if err != nil {
+		mctx.Debug("error loading %+v into the revision cache: %v", entryID, err)
+		return res, err
+	}
+	return keybase1.KVDeleteEntryResult{
+		TeamName:  arg.TeamName,
+		Namespace: arg.Namespace,
+		EntryKey:  arg.EntryKey,
+		Revision:  responseRevision,
 	}, nil
 }
 

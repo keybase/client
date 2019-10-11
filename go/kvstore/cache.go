@@ -78,7 +78,12 @@ func (k *KVRevisionCache) Fetch(mctx libkb.MetaContext, entryID keybase1.KVEntry
 	return entry.EntryHash, entry.TeamKeyGen, entry.Revision
 }
 
+// Hash is a sha256 on the input string. If the string is empty, then Hash will also be an
+// empty string for tracking "deleted" entries in perpetuity.
 func Hash(ciphertext string) string {
+	if len(ciphertext) == 0 {
+		return ""
+	}
 	b := sha256.Sum256([]byte(ciphertext))
 	return hex.EncodeToString(b[:])
 }

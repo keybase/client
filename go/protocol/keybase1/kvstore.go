@@ -139,6 +139,22 @@ func (o KVListEntryResult) DeepCopy() KVListEntryResult {
 	}
 }
 
+type KVDeleteEntryResult struct {
+	TeamName  string `codec:"teamName" json:"teamName"`
+	Namespace string `codec:"namespace" json:"namespace"`
+	EntryKey  string `codec:"entryKey" json:"entryKey"`
+	Revision  int    `codec:"revision" json:"revision"`
+}
+
+func (o KVDeleteEntryResult) DeepCopy() KVDeleteEntryResult {
+	return KVDeleteEntryResult{
+		TeamName:  o.TeamName,
+		Namespace: o.Namespace,
+		EntryKey:  o.EntryKey,
+		Revision:  o.Revision,
+	}
+}
+
 type GetKVEntryArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamName  string `codec:"teamName" json:"teamName"`
@@ -165,11 +181,19 @@ type ListKVEntriesArg struct {
 	Namespace string `codec:"namespace" json:"namespace"`
 }
 
+type DelKVEntryArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	TeamName  string `codec:"teamName" json:"teamName"`
+	Namespace string `codec:"namespace" json:"namespace"`
+	EntryKey  string `codec:"entryKey" json:"entryKey"`
+}
+
 type KvstoreInterface interface {
 	GetKVEntry(context.Context, GetKVEntryArg) (KVGetResult, error)
 	PutKVEntry(context.Context, PutKVEntryArg) (KVPutResult, error)
 	ListKVNamespaces(context.Context, ListKVNamespacesArg) (KVListNamespaceResult, error)
 	ListKVEntries(context.Context, ListKVEntriesArg) (KVListEntryResult, error)
+	DelKVEntry(context.Context, DelKVEntryArg) (KVDeleteEntryResult, error)
 }
 
 func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
@@ -236,6 +260,21 @@ func KvstoreProtocol(i KvstoreInterface) rpc.Protocol {
 					return
 				},
 			},
+			"delKVEntry": {
+				MakeArg: func() interface{} {
+					var ret [1]DelKVEntryArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DelKVEntryArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DelKVEntryArg)(nil), args)
+						return
+					}
+					ret, err = i.DelKVEntry(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -261,5 +300,10 @@ func (c KvstoreClient) ListKVNamespaces(ctx context.Context, __arg ListKVNamespa
 
 func (c KvstoreClient) ListKVEntries(ctx context.Context, __arg ListKVEntriesArg) (res KVListEntryResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kvstore.listKVEntries", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c KvstoreClient) DelKVEntry(ctx context.Context, __arg DelKVEntryArg) (res KVDeleteEntryResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kvstore.delKVEntry", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

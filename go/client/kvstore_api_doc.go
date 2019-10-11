@@ -15,4 +15,7 @@ List all namespaces:
 
 List all entryKeys in a namespace:
 	{"method": "list", "params": {"options": {"team": "phoenix", "namespace": "pw-manager"}}}
+
+Delete an entry:
+	{"method": "del", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
 `

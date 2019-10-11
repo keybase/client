@@ -54,4 +54,13 @@ protocol kvstore {
   }
 
   KVListEntryResult listKVEntries(int sessionID, string teamName, string namespace);
+
+  record KVDeleteEntryResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    int revision;
+  }
+
+  KVDeleteEntryResult delKVEntry(int sessionID, string teamName, string namespace, string entryKey);
 }
