@@ -413,6 +413,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.dispatchOldPagesJob(ctx, uid, convID, pagination, resultPagination)
 		}
 	}()
+	// Set last select conversation on syncer
+	t.G().Syncer.SelectConversation(ctx, convID)
+
 	// Lock conversation while this is running
 	if err := t.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
 		return err
@@ -432,9 +435,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		t.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	}
-
-	// Set last select conversation on syncer
-	t.G().Syncer.SelectConversation(ctx, convID)
 
 	// Decode presentation form pagination
 	if pagination, err = utils.DecodePagination(uipagination); err != nil {

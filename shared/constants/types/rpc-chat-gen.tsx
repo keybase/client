@@ -428,7 +428,7 @@ export type MessageTypes = {
     outParam: {[key: string]: ProfileSearchConvStats}
   }
   'chat.1.local.requestInboxLayout': {
-    inParam: void
+    inParam: {readonly reselectMode: InboxLayoutReselectMode}
     outParam: void
   }
   'chat.1.local.requestInboxUnbox': {
@@ -669,6 +669,11 @@ export enum HeaderPlaintextVersion {
   v8 = 8,
   v9 = 9,
   v10 = 10,
+}
+
+export enum InboxLayoutReselectMode {
+  default = 0,
+  force = 1,
 }
 
 export enum InboxResType {
@@ -1234,7 +1239,8 @@ export type UICoinFlipStatus = {readonly gameID: String; readonly phase: UICoinF
 export type UICommandMarkdown = {readonly body: String; readonly title?: String | null}
 export type UIInboxBigTeamChannelRow = {readonly convID: String; readonly teamname: String; readonly channelname: String; readonly draft?: String | null; readonly isMuted: Boolean}
 export type UIInboxBigTeamRow = {state: UIInboxBigTeamRowTyp.label; label: String} | {state: UIInboxBigTeamRowTyp.channel; channel: UIInboxBigTeamChannelRow}
-export type UIInboxLayout = {readonly smallTeams?: Array<UIInboxSmallTeamRow> | null; readonly bigTeams?: Array<UIInboxBigTeamRow> | null}
+export type UIInboxLayout = {readonly smallTeams?: Array<UIInboxSmallTeamRow> | null; readonly bigTeams?: Array<UIInboxBigTeamRow> | null; readonly reselectInfo?: UIInboxReselectInfo | null}
+export type UIInboxReselectInfo = {readonly oldConvID: String; readonly newConvID?: String | null}
 export type UIInboxSmallTeamRow = {readonly convID: String; readonly name: String; readonly time: Gregor1.Time; readonly snippet?: String | null; readonly snippetDecoration?: String | null; readonly draft?: String | null; readonly isMuted: Boolean; readonly isTeam: Boolean}
 export type UILinkDecoration = {readonly display: String; readonly url: String}
 export type UIMaybeMentionInfo = {status: UIMaybeMentionStatus.unknown} | {status: UIMaybeMentionStatus.user} | {status: UIMaybeMentionStatus.team; team: UITeamMention} | {status: UIMaybeMentionStatus.nothing}

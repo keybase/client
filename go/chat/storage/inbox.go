@@ -91,7 +91,7 @@ type SharedInboxItem struct {
 }
 
 type InboxLayoutChangedNotifier interface {
-	UpdateLayout(ctx context.Context, reason string)
+	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
 	UpdateLayoutFromNewMessage(ctx context.Context, conv types.RemoteConversation,
 		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []types.RemoteConversation)
@@ -99,7 +99,8 @@ type InboxLayoutChangedNotifier interface {
 
 type dummyInboxLayoutChangedNotifier struct{}
 
-func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context, reason string) {
+func (d dummyInboxLayoutChangedNotifier) UpdateLayout(ctx context.Context,
+	reselectMode chat1.InboxLayoutReselectMode, reason string) {
 }
 
 func (d dummyInboxLayoutChangedNotifier) UpdateLayoutFromNewMessage(ctx context.Context,
@@ -871,7 +872,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	layoutChanged := true
 	defer func() {
 		if layoutChanged {
-			i.layoutNotifier.UpdateLayout(ctx, "new conversation")
+			i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "new conversation")
 		}
 	}()
 
@@ -1214,7 +1215,7 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-	defer i.layoutNotifier.UpdateLayout(ctx, "set status")
+	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "set status")
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1521,7 +1522,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-	defer i.layoutNotifier.UpdateLayout(ctx, "team type")
+	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "team type")
 
 	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1639,7 +1640,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-	defer i.layoutNotifier.UpdateLayout(ctx, "sync")
+	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "sync")
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
@@ -1714,7 +1715,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	layoutChanged := false
 	defer func() {
 		if layoutChanged {
-			i.layoutNotifier.UpdateLayout(ctx, "membership")
+			i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "membership")
 		}
 	}()
 
@@ -1853,7 +1854,7 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	layoutChanged := false
 	defer func() {
 		if layoutChanged {
-			i.layoutNotifier.UpdateLayout(ctx, "existence")
+			i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "existence")
 		}
 	}()
 

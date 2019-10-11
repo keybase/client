@@ -100,7 +100,10 @@ const inboxRefresh = (
   if (clearExistingMessages) {
     actions.push(Chat2Gen.createClearMessages())
   }
-  RPCChatTypes.localRequestInboxLayoutRpcPromise()
+  const reselectMode = state.chat2.inboxHasLoaded
+    ? RPCChatTypes.InboxLayoutReselectMode.default
+    : RPCChatTypes.InboxLayoutReselectMode.force
+  RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
   return actions
 }
 
@@ -226,6 +229,41 @@ const onGetInboxConvFailed = (
         error,
         username: state.config.username,
       })
+  }
+}
+
+const maybeChangeSelectedConv = (
+  state: TypedState,
+  _: EngineGen.Chat1ChatUiChatInboxLayoutPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (!state.chat2.inboxLayout || !state.chat2.inboxLayout.reselectInfo) {
+    return false
+  }
+  if (
+    !Constants.isValidConversationIDKey(state.chat2.selectedConversation) ||
+    state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
+  ) {
+    if (state.chat2.inboxLayout.reselectInfo.newConvID) {
+      logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
+      return Chat2Gen.createSelectConversation({
+        conversationIDKey: state.chat2.inboxLayout.reselectInfo.newConvID,
+        reason: 'findNewestConversation',
+      })
+    } else {
+      logger.info(`onChatInboxLayout: deselecting conv, service provided no new conv`)
+      return Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.noConversationIDKey,
+        reason: 'clearSelected',
+      })
+    }
+  } else {
+    logger.info(
+      `onChatInboxLayout: selected conv mismatch on reselect (ignoring): selected: ${
+        state.chat2.selectedConversation
+      } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
+    )
+    return false
   }
 }
 
@@ -1870,141 +1908,6 @@ const previewConversationTeam = async (state: TypedState, action: Chat2Gen.Previ
 const startupInboxLoad = (state: TypedState) =>
   !!state.config.username && Chat2Gen.createInboxRefresh({reason: 'bootstrap'})
 
-const changeSelectedConversation = (
-  state: TypedState,
-  action:
-    | Chat2Gen.MetasReceivedPayload
-    | Chat2Gen.LeaveConversationPayload
-    | Chat2Gen.MetaDeletePayload
-    | Chat2Gen.MessageSendPayload
-    | Chat2Gen.AttachmentsUploadPayload
-    | Chat2Gen.BlockConversationPayload
-    | Chat2Gen.HideConversationPayload
-    | TeamsGen.LeaveTeamPayload
-    | TeamsGen.DeleteChannelConfirmedPayload,
-  logger: Saga.SagaLogger
-) => {
-  if (!isMobile) {
-    return _maybeAutoselectNewestConversation(state, action, logger)
-  }
-  return false
-}
-
-const _maybeAutoselectNewestConversation = (
-  state: TypedState,
-  action:
-    | Chat2Gen.MetasReceivedPayload
-    | Chat2Gen.LeaveConversationPayload
-    | Chat2Gen.MetaDeletePayload
-    | Chat2Gen.MessageSendPayload
-    | Chat2Gen.AttachmentsUploadPayload
-    | Chat2Gen.BlockConversationPayload
-    | Chat2Gen.HideConversationPayload
-    | TeamsGen.LeaveTeamPayload
-    | TeamsGen.DeleteChannelConfirmedPayload,
-  logger: Saga.SagaLogger
-) => {
-  // If there is a team we should avoid when selecting a new conversation (e.g.
-  // on team leave) put the name in `avoidTeam` and `isEligibleConvo` below will
-  // take it into account
-  let avoidTeam = ''
-  if (action.type === TeamsGen.leaveTeam) {
-    avoidTeam = action.payload.teamname
-  }
-  let selected = Constants.getSelectedConversation(state)
-  if (selected === Constants.pendingWaitingConversationIDKey) {
-    // never auto select when we're building one
-    return
-  }
-  const selectedMeta = state.chat2.metaMap.get(selected)
-
-  let avoidConversationID = Constants.noConversationIDKey
-  if (action.type === Chat2Gen.hideConversation) {
-    avoidConversationID = selected
-  }
-  if (action.type === Chat2Gen.metaDelete) {
-    if (!action.payload.selectSomethingElse) {
-      return
-    }
-    // only do this if we blocked the current conversation
-    if (selected !== Constants.noConversationIDKey && selected !== action.payload.conversationIDKey) {
-      return
-    }
-  }
-
-  if (action.type === Chat2Gen.metasReceived) {
-    // If we have new activity, don't switch to it unless no convo was selected
-    if (selected !== Constants.noConversationIDKey) {
-      return
-    }
-  } else if (
-    (action.type === Chat2Gen.leaveConversation ||
-      action.type === Chat2Gen.blockConversation ||
-      action.type === Chat2Gen.hideConversation ||
-      action.type === TeamsGen.deleteChannelConfirmed) &&
-    action.payload.conversationIDKey === selected
-  ) {
-    // Intentional fall-through -- force select a new one
-  } else if (
-    Constants.isValidConversationIDKey(selected) &&
-    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
-  ) {
-    return
-    // Stay with our existing convo if it was not empty or pending, or the
-    // selected convo already doesn't belong to the team we're trying to switch
-    // away from, or we're not avoiding it because it's a channel we're leaving
-  }
-
-  const isEligibleConvo = (meta: Types.ConversationMeta) => {
-    if (meta.teamType === 'big') {
-      // Don't select a big team channel
-      return false
-    }
-    if (meta.status === RPCChatTypes.ConversationStatus.ignored) {
-      return false
-    }
-    if (avoidTeam && meta.teamname === avoidTeam) {
-      // We just left this team, don't select a convo from it
-      return false
-    }
-    if (
-      avoidConversationID !== Constants.noConversationIDKey &&
-      meta.conversationIDKey === avoidConversationID
-    ) {
-      return false
-    }
-    return true
-  }
-
-  // If we got here we're auto selecting the newest convo
-  const meta = [...state.chat2.metaMap.values()].reduce<{max: number; maxMeta?: Types.ConversationMeta}>(
-    (i, m) => {
-      const t = (isEligibleConvo(m) && m.timestamp) || 0
-      if (t > i.max) {
-        return {
-          max: t,
-          maxMeta: m,
-        }
-      }
-      return i
-    },
-    {max: 0}
-  ).maxMeta
-
-  if (meta && isEligibleConvo(meta)) {
-    return Chat2Gen.createSelectConversation({
-      conversationIDKey: meta.conversationIDKey,
-      reason: 'findNewestConversation',
-    })
-  }
-  // No conversations. Select nothing
-  logger.info(`no eligible conversations left in inbox; selecting nothing`)
-  return Chat2Gen.createSelectConversation({
-    conversationIDKey: Constants.noConversationIDKey,
-    reason: 'clearSelected',
-  })
-}
-
 const startupUserReacjisLoad = (_: TypedState, action: ConfigGen.BootstrapStatusLoadedPayload) =>
   Chat2Gen.createUpdateUserReacjis({userReacjis: action.payload.userReacjis})
 
@@ -3352,22 +3255,6 @@ function* chat2Saga() {
     yield* Saga.chainAction2(Chat2Gen.selectConversation, desktopNavigateOnSelect)
   }
 
-  // Sometimes change the selection
-  yield* Saga.chainAction2(
-    [
-      Chat2Gen.metasReceived,
-      Chat2Gen.leaveConversation,
-      Chat2Gen.metaDelete,
-      Chat2Gen.messageSend,
-      Chat2Gen.attachmentsUpload,
-      Chat2Gen.blockConversation,
-      Chat2Gen.hideConversation,
-      TeamsGen.leaveTeam,
-      TeamsGen.deleteChannelConfirmed,
-    ],
-    changeSelectedConversation,
-    'changeSelectedConversation'
-  )
   // Refresh the inbox
   yield* Saga.chainAction2(
     [Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale],
@@ -3397,6 +3284,11 @@ function* chat2Saga() {
     'onGetInboxUnverifiedConvs'
   )
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed, 'onGetInboxConvFailed')
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatInboxLayout,
+    maybeChangeSelectedConv,
+    'maybeChangeSelectedConv'
+  )
 
   // Load the selected thread
   yield* Saga.chainGenerator<

@@ -2429,6 +2429,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "InboxLayoutReselectMode",
+      "symbols": [
+        "DEFAULT_0",
+        "FORCE_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "PostLocalRes",
       "fields": [
@@ -3720,7 +3728,12 @@
       "response": "GetInboxAndUnboxUILocalRes"
     },
     "requestInboxLayout": {
-      "request": [],
+      "request": [
+        {
+          "name": "reselectMode",
+          "type": "InboxLayoutReselectMode"
+        }
+      ],
       "response": null
     },
     "requestInboxUnbox": {
