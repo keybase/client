@@ -137,10 +137,10 @@ export const makeTeamSettings = I.Record<Types._TeamSettings>({
 })
 
 export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPolicy => ({
-  ...(r || {}),
   seconds: 0,
   title: '',
   type: 'retain',
+  ...(r || {}),
 })
 
 export const makeState = I.Record<Types._State>({
