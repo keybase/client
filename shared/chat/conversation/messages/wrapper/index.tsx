@@ -42,7 +42,6 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
-  canWrite: boolean
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
   decorate: boolean
