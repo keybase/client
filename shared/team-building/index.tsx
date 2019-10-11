@@ -222,6 +222,7 @@ const FilteredServiceTabBar = (
       onChangeService={props.onChangeService}
       serviceResultCount={props.serviceResultCount}
       showServiceResultCount={props.showServiceResultCount}
+      servicesShown={props.servicesShown}
     />
   )
 }
@@ -524,6 +525,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 onChangeService={props.onChangeService}
                 serviceResultCount={props.serviceResultCount}
                 showServiceResultCount={props.showServiceResultCount}
+                servicesShown={5} // wider bar, show more services
               />
             )}
             {this._listBody()}

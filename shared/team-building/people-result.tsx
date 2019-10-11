@@ -66,9 +66,10 @@ const PeopleResult = (props: Props) => {
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
   const onMenuAddToTeam = () =>
+    keybaseUsername &&
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: props.username}, selected: 'profileAddToTeam'}],
+        path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
       })
     )
   const onOpenPrivateFolder = React.useCallback(() => {

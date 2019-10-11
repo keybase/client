@@ -13,6 +13,7 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
+import * as Styles from '../styles'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {memoizeShallow, memoize} from '../util/memoize'
@@ -23,7 +24,6 @@ import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
-import * as Styles from '../styles'
 
 // TODO remove when bots are fully integrated in gui
 type TeamRoleTypeWithoutBots = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
@@ -168,6 +168,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     numContactsImported: state.settings.contacts.importedCount,
   }
 
+  const smallWindow = state.config.windowState.width <= 800
+
   return {
     ...contactProps,
     disabledRoles,
@@ -193,6 +195,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
+    smallWindow,
     teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),
@@ -602,22 +605,19 @@ const mergeProps = (
           ownProps.namespace === 'people'
             ? {
                 width: '100%',
+                ...Styles.padding(0, Styles.globalMargins.xsmall),
               }
             : null,
         coverStyleOverrides:
           ownProps.namespace === 'people'
             ? {
                 backgroundColor: 'initial',
-                justifyContent: 'flex-start',
-                ...Styles.padding(
-                  Styles.globalMargins.mediumLarge + 2, // adding this +2 to line up with the normal search bar (on macos at least) but it feels icky
-                  Styles.globalMargins.xsmall,
-                  Styles.globalMargins.small,
-                  160 + Styles.globalMargins.xsmall
-                ), // TODO: figure out how to handle smol tab bar
+                alignItems: 'flex-start',
+                ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
               }
             : null,
         onClosePopup: dispatchProps._onCancelTeamBuilding,
+        tabBarShim: true,
       }
 
   return {

@@ -11,6 +11,7 @@ export type Props = {
   onChangeService: (newService: ServiceIdWithContact) => void
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showServiceResultCount: boolean
+  servicesShown?: number
 }
 
 export type IconProps = {
