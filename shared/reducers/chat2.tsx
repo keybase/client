@@ -465,6 +465,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             logger.info(
               `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
             )
+            const orangeLineMap = new Map(draftState.orangeLineMap)
             if (maxVisibleMsgID > readMsgID) {
               // Store the message ID that will display the orange line above it,
               // which is the first message after the last read message. We can't
@@ -483,15 +484,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
               })
               const message = ord && messageMap.get(ord)
               if (message && message.id) {
-                draftState.orangeLineMap = draftState.orangeLineMap.set(conversationIDKey, message.id)
+                orangeLineMap.set(conversationIDKey, message.id)
               } else {
-                draftState.orangeLineMap = draftState.orangeLineMap.delete(conversationIDKey)
+                orangeLineMap.delete(conversationIDKey)
               }
             } else {
               // If there aren't any new messages, we don't want to display an
               // orange line so remove its entry from orangeLineMap
-              draftState.orangeLineMap = draftState.orangeLineMap.delete(conversationIDKey)
+              orangeLineMap.delete(conversationIDKey)
             }
+            draftState.orangeLineMap = orangeLineMap
           }
           const prevConvIDKey = draftState.selectedConversation
           // blank out draft so we don't flash old data when switching convs
@@ -522,16 +524,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.conversationErrored:
         draftState.createConversationError = action.payload.message
         return
-      case Chat2Gen.updateUnreadline:
+      case Chat2Gen.updateUnreadline: {
+        const orangeLineMap = new Map(draftState.orangeLineMap)
         if (action.payload.messageID > 0) {
-          draftState.orangeLineMap = draftState.orangeLineMap.set(
-            action.payload.conversationIDKey,
-            action.payload.messageID
-          )
+          orangeLineMap.set(action.payload.conversationIDKey, action.payload.messageID)
         } else {
-          draftState.orangeLineMap = draftState.orangeLineMap.delete(action.payload.conversationIDKey)
+          orangeLineMap.delete(action.payload.conversationIDKey)
         }
+        draftState.orangeLineMap = orangeLineMap
         return
+      }
       case Chat2Gen.unfurlTogglePrompt: {
         const {show, domain, conversationIDKey, messageID} = action.payload
         const unfurlPromptMap = new Map(draftState.unfurlPromptMap || [])
