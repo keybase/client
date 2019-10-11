@@ -54,7 +54,11 @@ const ResetModal = (_: Props) => {
             style={styles.textContainer}
             centerChildren={true}
           >
-            <Kb.Icon type="iconfont-skull" color={Styles.globalColors.black_20} fontSize={48} />
+            <Kb.Icon
+              type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+              color={Styles.globalColors.black_20}
+              fontSize={48}
+            />
             <Kb.Text type="Body" center={true}>
               {msg}
             </Kb.Text>
