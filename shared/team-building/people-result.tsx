@@ -32,6 +32,13 @@ export type Props = {
 }
 
 /*
+ * This component is intended to be a drop-in replacement for UserResult.
+ * It replaces the team-builder checkbox with a 'chat' button and action menu on desktop.
+ * It retains most of the display code and logic from UserResult, but also includes
+ * a bunch of React hooks to handle all the stateful logic needed to make the menu and chat button work.
+ */
+
+/*
  * Case 1: the service is 'keybase' (isKeybaseResult = true)
  *
  *    Top: "{keybaseUsername}" (with following state color)
