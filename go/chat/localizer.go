@@ -734,9 +734,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		TeamType:     conversationRemote.Metadata.TeamType,
 		Version:      conversationRemote.Metadata.Version,
 		LocalVersion: conversationRemote.Metadata.LocalVersion,
+		FinalizeInfo: conversationRemote.Metadata.FinalizeInfo,
 		Draft:        rc.LocalDraft,
 	}
-	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 
 	conversationLocal.Supersedes = append(
 		conversationLocal.Supersedes, conversationRemote.Metadata.Supersedes...)
@@ -893,8 +893,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				maxValidID = mm.GetMessageID()
 			}
 		} else {
-			st, _ := mm.State()
-			s.Debug(ctx, "skipping invalid max msg: state: %v", st)
+			_, err := mm.State()
+			s.Debug(ctx, "skipping invalid max msg: state: %v", err)
 		}
 	}
 	// Resolve edits/deletes on snippet message
@@ -935,10 +935,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		tlfName := conversationLocal.Info.TlfName
+		if tlfName == "" {
+			tlfName = unverifiedTLFName
+		}
 		info, ierr = infoSource.LookupName(ctx,
 			conversationLocal.Info.Triple.Tlfid,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-			conversationLocal.Info.TlfName,
+			tlfName,
 		)
 	default:
 		if len(conversationLocal.Info.TlfName) == 0 {

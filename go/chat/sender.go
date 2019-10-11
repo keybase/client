@@ -964,8 +964,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
 		return nil, nil, err
 	}
-	s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
-		conv.GetConvID(), conv.ReaderInfo.Status)
+	s.Debug(ctx, "Send: uid: %s in conversation %s (tlfName: %s) with status: %v", sender,
+		conv.GetConvID(), conv.Info.TlfName, conv.ReaderInfo.Status)
 
 	// If we are in preview mode, then just join the conversation right now.
 	switch conv.ReaderInfo.Status {
