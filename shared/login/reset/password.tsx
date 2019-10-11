@@ -68,7 +68,7 @@ const EnterPassword = () => {
   )
 
   // If we're here because the timer has run out, change the title.
-  const title = Date.now() > endTime ? 'Almost done' : 'Your password'
+  const title = Date.now() > endTime ? 'Almost done.' : 'Your password'
   return (
     <SignupScreen
       title={title}

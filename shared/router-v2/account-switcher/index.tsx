@@ -77,8 +77,8 @@ const AccountRow = (props: AccountRowProps) => {
               {props.entry.fullName}
             </Kb.Text>
             {!props.entry.account.hasStoredSecret && (
-              <Kb.Text type="BodySmallItalic" style={styles.text2}>
-                {props.entry.fullName && '· '}Signed out
+              <Kb.Text type="BodySmall" style={styles.text2}>
+                {props.entry.fullName && '• '}Signed out
               </Kb.Text>
             )}
           </Kb.Box2>
