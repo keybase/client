@@ -555,7 +555,7 @@ type ReplyFiller interface {
 
 type UIInboxLoader interface {
 	Resumable
-	UpdateLayout(ctx context.Context, reason string)
+	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
 		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)

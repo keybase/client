@@ -100,7 +100,10 @@ const inboxRefresh = (
   if (clearExistingMessages) {
     actions.push(Chat2Gen.createClearMessages())
   }
-  RPCChatTypes.localRequestInboxLayoutRpcPromise()
+  const reselectMode = state.chat2.inboxHasLoaded
+    ? RPCChatTypes.InboxLayoutReselectMode.default
+    : RPCChatTypes.InboxLayoutReselectMode.force
+  RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
   return actions
 }
 
@@ -235,7 +238,10 @@ const onChatInboxLayout = (
   logger: Saga.SagaLogger
 ) => {
   if (state.chat2.inboxLayout && state.chat2.inboxLayout.reselectInfo) {
-    if (state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID) {
+    if (
+      !Constants.isValidConversationIDKey(state.chat2.selectedConversation) ||
+      state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
+    ) {
       if (state.chat2.inboxLayout.reselectInfo.newConvID) {
         logger.info(
           `onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`
@@ -3281,7 +3287,7 @@ function* chat2Saga() {
     'onGetInboxUnverifiedConvs'
   )
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed, 'onGetInboxConvFailed')
-  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, onChatInboxLayout)
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, onChatInboxLayout, 'onChatInboxLayout')
 
   // Load the selected thread
   yield* Saga.chainGenerator<

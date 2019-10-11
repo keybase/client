@@ -428,7 +428,7 @@ export type MessageTypes = {
     outParam: {[key: string]: ProfileSearchConvStats}
   }
   'chat.1.local.requestInboxLayout': {
-    inParam: void
+    inParam: {readonly reselectMode: InboxLayoutReselectMode}
     outParam: void
   }
   'chat.1.local.requestInboxUnbox': {
@@ -669,6 +669,11 @@ export enum HeaderPlaintextVersion {
   v8 = 8,
   v9 = 9,
   v10 = 10,
+}
+
+export enum InboxLayoutReselectMode {
+  default = 0,
+  force = 1,
 }
 
 export enum InboxResType {

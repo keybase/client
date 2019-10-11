@@ -4078,6 +4078,32 @@ func (o GetInboxAndUnboxUILocalRes) DeepCopy() GetInboxAndUnboxUILocalRes {
 	}
 }
 
+type InboxLayoutReselectMode int
+
+const (
+	InboxLayoutReselectMode_DEFAULT InboxLayoutReselectMode = 0
+	InboxLayoutReselectMode_FORCE   InboxLayoutReselectMode = 1
+)
+
+func (o InboxLayoutReselectMode) DeepCopy() InboxLayoutReselectMode { return o }
+
+var InboxLayoutReselectModeMap = map[string]InboxLayoutReselectMode{
+	"DEFAULT": 0,
+	"FORCE":   1,
+}
+
+var InboxLayoutReselectModeRevMap = map[InboxLayoutReselectMode]string{
+	0: "DEFAULT",
+	1: "FORCE",
+}
+
+func (e InboxLayoutReselectMode) String() string {
+	if v, ok := InboxLayoutReselectModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PostLocalRes struct {
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	MessageID        MessageID                     `codec:"messageID" json:"messageID"`
@@ -5675,6 +5701,7 @@ type GetInboxAndUnboxUILocalArg struct {
 }
 
 type RequestInboxLayoutArg struct {
+	ReselectMode InboxLayoutReselectMode `codec:"reselectMode" json:"reselectMode"`
 }
 
 type RequestInboxUnboxArg struct {
@@ -6189,7 +6216,7 @@ type LocalInterface interface {
 	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
-	RequestInboxLayout(context.Context) error
+	RequestInboxLayout(context.Context, InboxLayoutReselectMode) error
 	RequestInboxUnbox(context.Context, []ConversationID) error
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
@@ -6374,7 +6401,12 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.RequestInboxLayout(ctx)
+					typedArgs, ok := args.(*[1]RequestInboxLayoutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]RequestInboxLayoutArg)(nil), args)
+						return
+					}
+					err = i.RequestInboxLayout(ctx, typedArgs[0].ReselectMode)
 					return
 				},
 			},
@@ -7606,8 +7638,9 @@ func (c LocalClient) GetInboxAndUnboxUILocal(ctx context.Context, __arg GetInbox
 	return
 }
 
-func (c LocalClient) RequestInboxLayout(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.requestInboxLayout", []interface{}{RequestInboxLayoutArg{}}, nil, 0*time.Millisecond)
+func (c LocalClient) RequestInboxLayout(ctx context.Context, reselectMode InboxLayoutReselectMode) (err error) {
+	__arg := RequestInboxLayoutArg{ReselectMode: reselectMode}
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxLayout", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
