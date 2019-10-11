@@ -39,6 +39,16 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		}
 		return chat1.UIInboxLayout{}
 	}
+	consumeAllLayout := func() chat1.UIInboxLayout {
+		var layout chat1.UIInboxLayout
+		for {
+			select {
+			case layout = <-chatUI.InboxLayoutCb:
+			case <-time.After(timeout):
+				return layout
+			}
+		}
+	}
 
 	var layout chat1.UIInboxLayout
 	t.Logf("basic")
@@ -142,22 +152,7 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	for i := 0; i < 2; i++ {
-		// layout 1: team type changed
-		// layout 2: new conv
-		layout = recvLayout()
-	}
-	// there is a race where sometimes we need a third or fourth of these
-	select {
-	case layout = <-chatUI.InboxLayoutCb:
-	case <-time.After(timeout):
-		// charge forward
-	}
-	select {
-	case layout = <-chatUI.InboxLayoutCb:
-	case <-time.After(timeout):
-		// charge forward
-	}
+	layout = consumeAllLayout()
 	dat, _ := json.Marshal(layout)
 	t.Logf("LAYOUT: %s", string(dat))
 	require.Equal(t, 1, len(layout.SmallTeams))
@@ -178,4 +173,103 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	require.Equal(t, channel.Conv.GetConvID().String(), layout.BigTeams[2].Channel().ConvID)
 	require.Equal(t, teamConv.TlfName, layout.BigTeams[2].Channel().Teamname)
 	require.Equal(t, topicName, layout.BigTeams[2].Channel().Channelname)
+}
+
+func TestUIInboxLoaderReselect(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestUIInboxLoaderReselect", 2)
+	defer ctc.cleanup()
+	timeout := 2 * time.Second
+
+	users := ctc.users()
+	chatUI := kbtest.NewChatUI()
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	tc.G.UIRouter = kbtest.NewMockUIRouter(chatUI)
+	tc.ChatG.UIInboxLoader = NewUIInboxLoader(tc.Context())
+	tc.ChatG.UIInboxLoader.Start(ctx, uid)
+	defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
+	tc.ChatG.UIInboxLoader.(*UIInboxLoader).testingLayoutForceMode = true
+	tc.ChatG.UIInboxLoader.(*UIInboxLoader).batchDelay = time.Hour
+
+	recvLayout := func() chat1.UIInboxLayout {
+		select {
+		case layout := <-chatUI.InboxLayoutCb:
+			return layout
+		case <-time.After(timeout):
+			require.Fail(t, "no layout received")
+		}
+		return chat1.UIInboxLayout{}
+	}
+	consumeAllLayout := func() chat1.UIInboxLayout {
+		var layout chat1.UIInboxLayout
+		for {
+			select {
+			case layout = <-chatUI.InboxLayoutCb:
+			case <-time.After(timeout):
+				return layout
+			}
+		}
+	}
+
+	var layout chat1.UIInboxLayout
+	conv1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM, users[1])
+	for i := 0; i < 2; i++ {
+		layout = recvLayout()
+		require.Equal(t, 1, len(layout.SmallTeams))
+		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+	}
+	tc.Context().Syncer.SelectConversation(ctx, conv1.Id)
+
+	topicName := "mike"
+	channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+		chat1.NewConversationLocalArg{
+			TlfName:     conv1.TlfName,
+			TopicType:   chat1.TopicType_CHAT,
+			TopicName:   &topicName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		})
+	require.NoError(t, err)
+
+	// there is a race where sometimes we need a third or fourth of these
+	layout = consumeAllLayout()
+	require.Nil(t, layout.ReselectInfo)
+	require.Equal(t, 3, len(layout.BigTeams))
+	st, err := layout.BigTeams[0].State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UIInboxBigTeamRowTyp_LABEL, st)
+	require.Equal(t, conv1.TlfName, layout.BigTeams[0].Label())
+	st, err = layout.BigTeams[1].State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UIInboxBigTeamRowTyp_CHANNEL, st)
+	require.Equal(t, conv1.Id.String(), layout.BigTeams[1].Channel().ConvID)
+	require.Equal(t, conv1.TlfName, layout.BigTeams[1].Channel().Teamname)
+	st, err = layout.BigTeams[2].State()
+	require.NoError(t, err)
+	require.Equal(t, chat1.UIInboxBigTeamRowTyp_CHANNEL, st)
+	require.Equal(t, channel.Conv.GetConvID().String(), layout.BigTeams[2].Channel().ConvID)
+	require.Equal(t, conv1.TlfName, layout.BigTeams[2].Channel().Teamname)
+	require.Equal(t, topicName, layout.BigTeams[2].Channel().Channelname)
+
+	select {
+	case <-chatUI.InboxLayoutCb:
+		require.Fail(t, "unexpected layout")
+	default:
+	}
+	tc.Context().Syncer.SelectConversation(ctx, channel.Conv.GetConvID())
+	_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+		chat1.DeleteConversationLocalArg{
+			ConvID:      channel.Conv.GetConvID(),
+			ChannelName: channel.Conv.GetTopicName(),
+			Confirmed:   true,
+		})
+	require.NoError(t, err)
+
+	layout = consumeAllLayout()
+	require.Equal(t, 1, len(layout.SmallTeams))
+	require.Zero(t, len(layout.BigTeams))
+	require.NotNil(t, layout.ReselectInfo)
 }

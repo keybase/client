@@ -251,7 +251,7 @@ const onChatInboxLayout = (
           reason: 'findNewestConversation',
         })
       } else {
-        logger.info(`onChatInboxLayout: delecting conv, service provided no new conv`)
+        logger.info(`onChatInboxLayout: deselecting conv, service provided no new conv`)
         return Chat2Gen.createSelectConversation({
           conversationIDKey: Constants.noConversationIDKey,
           reason: 'clearSelected',
@@ -259,7 +259,7 @@ const onChatInboxLayout = (
       }
     } else {
       logger.info(
-        `onChatInboxLayout: selected conv mismatch on reselect: selected: ${
+        `onChatInboxLayout: selected conv mismatch on reselect (ignoring): selected: ${
           state.chat2.selectedConversation
         } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
       )
