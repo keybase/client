@@ -23,6 +23,7 @@ export class ImageRender extends React.Component<Props> {
     }
     this.videoRef.current.play()
     this.videoRef.current.setAttribute('controls', 'controls')
+    this.videoRef.current.setAttribute('disablepictureinpicture', 'disablepictureinpicture')
   }
 
   render() {
