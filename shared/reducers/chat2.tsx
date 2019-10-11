@@ -649,7 +649,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
 
         // clearing
         if (!editLastUser && !ordinal) {
-          draftState.editingMap = draftState.editingMap.delete(conversationIDKey)
+          const editingMap = new Map(draftState.editingMap)
+          editingMap.delete(conversationIDKey)
+          draftState.editingMap = editingMap
           return
         }
 
@@ -659,7 +661,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (ordinal) {
           const message = messageMap.get(ordinal)
           if (message && message.type === 'text') {
-            draftState.editingMap = draftState.editingMap.set(conversationIDKey, ordinal)
+            const editingMap = new Map(draftState.editingMap)
+            editingMap.set(conversationIDKey, ordinal)
+            draftState.editingMap = editingMap
             return
           } else {
             return
@@ -679,7 +683,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           )
         })
         if (found) {
-          draftState.editingMap = draftState.editingMap.set(conversationIDKey, found)
+          const editingMap = new Map(draftState.editingMap)
+          editingMap.set(conversationIDKey, found)
+          draftState.editingMap = editingMap
           return
         }
         return
