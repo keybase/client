@@ -32,10 +32,11 @@ const PromptReset = (_: Props) => {
         },
       ]}
       onBack={onBack}
+      noBackground={true}
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
-        <Kb.Icon type="iconfont-skull" sizeType="Bigger" />
+        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Styles.globalColors.black} />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body" center={true} style={styles.main}>
             If you have lost all of your devices, or if you logged out or uninstalled Keybase from all of them
