@@ -23,8 +23,8 @@ const Waiting = (props: Props) => {
     [dispatch, nav]
   )
 
-  // TODO: visual feedback on click
   const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [dispatch])
+  const sendAgainWaiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
 
   React.useEffect(() => {
     if (!pipelineStarted) {
@@ -79,9 +79,16 @@ const Waiting = (props: Props) => {
               <Kb.Text type="Body" style={styles.mainText} center={true}>
                 We are sending instructions to your email address or phone number.
               </Kb.Text>
-              <Kb.Text type="BodyPrimaryLink" onClick={onSendAgain}>
-                Send again
-              </Kb.Text>
+              <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.positionRelative}>
+                <Kb.Text type="BodyPrimaryLink" onClick={sendAgainWaiting ? undefined : onSendAgain}>
+                  Send again
+                </Kb.Text>
+                {sendAgainWaiting && (
+                  <Kb.Box2 direction="horizontal" style={styles.progressContainer} centerChildren={true}>
+                    <Kb.ProgressIndicator />
+                  </Kb.Box2>
+                )}
+              </Kb.Box2>
             </Kb.Box2>
           )}
         </Kb.Box2>
@@ -102,5 +109,12 @@ const styles = Styles.styleSheetCreate(() => ({
   mainText: {
     ...Styles.padding(0, Styles.globalMargins.xsmall),
     maxWidth: 300,
+  },
+  positionRelative: {
+    position: 'relative',
+  },
+  progressContainer: {
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.white_40OrBlack_60,
   },
 }))
