@@ -68,11 +68,16 @@ class PlainInput extends Component<InternalProps> {
     const newTextInfo = fn(currentTextInfo)
     const newCheckedSelection = this._sanityCheckSelection(newTextInfo.selection, newTextInfo.text)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text})
-    // hacky workaround to RN input crappiness, otherwise leaves the selection randomly inside
-    setTimeout(() => {
+    if (isIOS) {
+      this.setNativeProps({text: newTextInfo.text})
+      // hacky workaround to RN input crappiness, otherwise leaves the selection randomly inside
+      setTimeout(() => {
+        this.setNativeProps({selection: newCheckedSelection})
+      }, 1)
+    } else {
+      this.setNativeProps({text: newTextInfo.text})
       this.setNativeProps({selection: newCheckedSelection})
-    }, 1)
+    }
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newCheckedSelection
     if (reflectChange) {
