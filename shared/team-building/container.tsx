@@ -607,8 +607,8 @@ const mergeProps = (
         coverStyleOverrides:
           ownProps.namespace === 'people'
             ? {
-                backgroundColor: 'initial',
                 alignItems: 'flex-start',
+                backgroundColor: 'initial',
                 ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
               }
             : null,
