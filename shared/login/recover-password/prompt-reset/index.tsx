@@ -12,6 +12,7 @@ const PromptReset = (_: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const skipPassword = Container.useSelector(state => state.autoreset.skipPassword)
+  const error = Container.useSelector(state => state.autoreset.error)
   const onContinue = React.useCallback(
     () =>
       dispatch(
@@ -31,6 +32,13 @@ const PromptReset = (_: Props) => {
           type: 'Default' as ButtonType,
         },
       ]}
+      banners={
+        error ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null
+      }
       onBack={onBack}
       title="Recover password"
     >
