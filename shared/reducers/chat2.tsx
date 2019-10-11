@@ -1612,10 +1612,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.dismissBottomBanner: {
-        draftState.dismissedInviteBannersMap = draftState.dismissedInviteBannersMap.set(
-          action.payload.conversationIDKey,
-          true
-        )
+        const dismissedInviteBannersMap = new Map(draftState.dismissedInviteBannersMap)
+        dismissedInviteBannersMap.set(action.payload.conversationIDKey, true)
+        draftState.dismissedInviteBannersMap = dismissedInviteBannersMap
         return
       }
       // metaMap/messageMap/messageOrdinalsList only actions

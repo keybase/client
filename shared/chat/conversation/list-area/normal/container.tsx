@@ -20,7 +20,7 @@ const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnPr
   const maybeCenterMessage = Constants.getMessageCenterOrdinal(state, conversationIDKey)
   const centeredOrdinal =
     maybeCenterMessage === null || maybeCenterMessage === undefined ? undefined : maybeCenterMessage.ordinal
-  const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
+  const containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
   let lastMessageIsOurs = false
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
