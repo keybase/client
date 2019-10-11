@@ -909,7 +909,7 @@ export type MessageTypes = {
   }
   'keybase.1.loginUi.promptResetAccount': {
     inParam: {readonly prompt: ResetPrompt}
-    outParam: Boolean
+    outParam: ResetPromptResponse
   }
   'keybase.1.loginUi.promptRevokePaperKeys': {
     inParam: {readonly device: Device; readonly index: Int}
@@ -1931,6 +1931,12 @@ export enum RekeyEventType {
   deviceLoadError = 6,
   harass = 7,
   noGregorMessages = 8,
+}
+
+export enum ResetPromptResponse {
+  nothing = 0,
+  cancelReset = 1,
+  confirmReset = 2,
 }
 
 export enum ResetPromptType {

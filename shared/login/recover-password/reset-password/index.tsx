@@ -3,14 +3,18 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
 const ResetPassword = () => {
   const dispatch = Container.useDispatch()
-  const onContinue = (action: boolean) => {
-    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action}))
-  }
+  const onContinue = (startReset: boolean) =>
+    dispatch(
+      RecoverPasswordGen.createSubmitResetPrompt({
+        action: startReset ? RPCTypes.ResetPromptResponse.confirmReset : RPCTypes.ResetPromptResponse.nothing,
+      })
+    )
 
   return (
     <SignupScreen

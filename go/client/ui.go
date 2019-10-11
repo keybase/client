@@ -728,6 +728,8 @@ type LoginUI struct {
 	noPrompt bool
 }
 
+var _ libkb.LoginUI = (*LoginUI)(nil)
+
 func NewLoginUI(t libkb.TerminalUI, noPrompt bool) LoginUI {
 	return LoginUI{t, noPrompt}
 }
@@ -818,11 +820,12 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 	return nil
 }
 
-func (l LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+func (l LoginUI) PromptResetAccount(ctx context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	var msg string
 	kind, err := arg.Prompt.T()
 	if err != nil {
-		return false, err
+		return keybase1.ResetPromptResponse_NOTHING, err
 	}
 	switch kind {
 	case keybase1.ResetPromptType_COMPLETE:
@@ -844,7 +847,7 @@ but lose all your data.`
 		msg = `If you have forgotten your password you can reset your password. You will keep your
 username, but lose all your data, including all of your uploaded encrypted PGP keys.`
 	default:
-		return false, fmt.Errorf("Unknown prompt type - got %v", kind)
+		return keybase1.ResetPromptResponse_NOTHING, fmt.Errorf("Unknown prompt type - got %v", kind)
 	}
 	_, _ = l.parent.PrintfUnescaped("%s\n\n", msg)
 	var question string
@@ -853,7 +856,14 @@ username, but lose all your data, including all of your uploaded encrypted PGP k
 	} else {
 		question = "Would you like to request a reset of your account?"
 	}
-	return l.parent.PromptYesNo(PromptDescriptorResetAccount, question, libkb.PromptDefaultNo)
+	userWantsToReset, err := l.parent.PromptYesNo(PromptDescriptorResetAccount, question,
+		libkb.PromptDefaultNo)
+
+	if userWantsToReset {
+		return keybase1.ResetPromptResponse_CONFIRM_RESET, err
+	} else {
+		return keybase1.ResetPromptResponse_NOTHING, err
+	}
 }
 
 func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
