@@ -1895,7 +1895,7 @@ func TestBuildPaymentLocalATSRounding(t *testing.T) {
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, false, bres.ReadyToReview)
 	require.Equal(t, "", bres.ToErrMsg)
-	// Before the fix AmountErrMsg had $2.32
+	// Before the fix, AmountErrMsg had $2.32
 	require.Equal(t, "You only have *$2.31 USD* worth of Lumens available to send.", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
