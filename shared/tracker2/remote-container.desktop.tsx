@@ -39,7 +39,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  assertionKeys: stateProps.assertions ? stateProps.assertions.keySeq().toArray() : null,
+  assertionKeys: stateProps.assertions ? [...stateProps.assertions.keys()] : undefined,
   bio: stateProps.bio,
   darkMode: stateProps.darkMode,
   followThem: stateProps.followThem,
@@ -57,7 +57,7 @@ const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
   onReload: () => dispatchProps._onReload(stateProps.username),
   reason: stateProps.reason,
   state: stateProps.state,
-  teamShowcase: stateProps.teamShowcase ? stateProps.teamShowcase.map(t => t.toObject()).toArray() : null,
+  teamShowcase: stateProps.teamShowcase,
   username: stateProps.username,
 })
 
