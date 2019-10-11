@@ -17,7 +17,6 @@ import DelayInterval from './delay-interval'
 
 export type Props = {
   active: boolean
-  canWrite: boolean
   className?: string
   conversationIDKey: Types.ConversationIDKey
   count: number
@@ -66,12 +65,11 @@ const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !
 const ReactButton = (props: Props) => (
   <ButtonBox
     border={0}
-    className={Styles.classNames(props.className, {noShadow: props.active || !props.canWrite})}
-    noEffect={!props.canWrite}
+    className={Styles.classNames(props.className, {noShadow: props.active})}
     onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
     onMouseOver={props.onMouseOver}
-    onClick={props.canWrite && props.onClick}
+    onClick={props.onClick}
     style={Styles.collapseStyles([
       styles.borderBase,
       styles.buttonBox,
