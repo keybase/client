@@ -29,11 +29,18 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const getTeams = memoize(metaMap =>
-  Constants.getTeams(metaMap)
-    .map(t => ({fullName: '', teamname: t, username: ''}))
-    .sort((a, b) => a.teamname.localeCompare(b.teamname))
-)
+const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
+  const bigTeams = (layout && layout.bigTeams) || []
+  return bigTeams
+    .reduce<Array<string>>((arr, l) => {
+      if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
+        arr.push(l.label)
+      }
+      return arr
+    }, [])
+    .sort()
+    .map(teamname => ({fullName: '', teamname, username: ''}))
+})
 
 export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
@@ -90,6 +97,7 @@ export default Container.namedConnect(
       suggestBotCommandsUpdateStatus,
       suggestChannels: Constants.getChannelSuggestions(state, teamname),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
+      suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
       typing: Constants.getTyping(state, conversationIDKey),
       unsentText,
@@ -251,7 +259,7 @@ export default Container.namedConnect(
     suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
     suggestChannels: stateProps.suggestChannels,
     suggestCommands: stateProps.suggestCommands,
-    suggestTeams: getTeams(stateProps._metaMap),
+    suggestTeams: stateProps.suggestTeams,
     suggestUsers: stateProps.suggestUsers,
     unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
     unsentTextChanged: (text: string) => {
