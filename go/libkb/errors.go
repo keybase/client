@@ -2666,12 +2666,8 @@ func (e InvalidStellarAccountIDError) Verbose() string {
 type ResetWithActiveDeviceError struct {
 }
 
-func NewResetWithActiveDeviceError() error {
-	return ResetWithActiveDeviceError{}
-}
-
 func (e ResetWithActiveDeviceError) Error() string {
-	return "You cannot reset your account if you have an active device!"
+	return "You cannot reset your account from a logged-in device."
 }
 
 //=============================================================================
