@@ -232,40 +232,39 @@ const onGetInboxConvFailed = (
   }
 }
 
-const onChatInboxLayout = (
+const maybeChangeSelectedConv = (
   state: TypedState,
   _: EngineGen.Chat1ChatUiChatInboxLayoutPayload,
   logger: Saga.SagaLogger
 ) => {
-  if (state.chat2.inboxLayout && state.chat2.inboxLayout.reselectInfo) {
-    if (
-      !Constants.isValidConversationIDKey(state.chat2.selectedConversation) ||
-      state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
-    ) {
-      if (state.chat2.inboxLayout.reselectInfo.newConvID) {
-        logger.info(
-          `onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`
-        )
-        return Chat2Gen.createSelectConversation({
-          conversationIDKey: state.chat2.inboxLayout.reselectInfo.newConvID,
-          reason: 'findNewestConversation',
-        })
-      } else {
-        logger.info(`onChatInboxLayout: deselecting conv, service provided no new conv`)
-        return Chat2Gen.createSelectConversation({
-          conversationIDKey: Constants.noConversationIDKey,
-          reason: 'clearSelected',
-        })
-      }
-    } else {
-      logger.info(
-        `onChatInboxLayout: selected conv mismatch on reselect (ignoring): selected: ${
-          state.chat2.selectedConversation
-        } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
-      )
-    }
+  if (!state.chat2.inboxLayout || !state.chat2.inboxLayout.reselectInfo) {
+    return false
   }
-  return false
+  if (
+    !Constants.isValidConversationIDKey(state.chat2.selectedConversation) ||
+    state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
+  ) {
+    if (state.chat2.inboxLayout.reselectInfo.newConvID) {
+      logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
+      return Chat2Gen.createSelectConversation({
+        conversationIDKey: state.chat2.inboxLayout.reselectInfo.newConvID,
+        reason: 'findNewestConversation',
+      })
+    } else {
+      logger.info(`onChatInboxLayout: deselecting conv, service provided no new conv`)
+      return Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.noConversationIDKey,
+        reason: 'clearSelected',
+      })
+    }
+  } else {
+    logger.info(
+      `onChatInboxLayout: selected conv mismatch on reselect (ignoring): selected: ${
+        state.chat2.selectedConversation
+      } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
+    )
+    return false
+  }
 }
 
 // We want to unbox rows that have scroll into view
@@ -3285,7 +3284,11 @@ function* chat2Saga() {
     'onGetInboxUnverifiedConvs'
   )
   yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxFailed, onGetInboxConvFailed, 'onGetInboxConvFailed')
-  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, onChatInboxLayout, 'onChatInboxLayout')
+  yield* Saga.chainAction2(
+    EngineGen.chat1ChatUiChatInboxLayout,
+    maybeChangeSelectedConv,
+    'maybeChangeSelectedConv'
+  )
 
   // Load the selected thread
   yield* Saga.chainGenerator<
