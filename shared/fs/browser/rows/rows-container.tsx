@@ -16,10 +16,9 @@ type OwnProps = {
 }
 
 const getEditingRows = memoize(
-  (edits: I.Map<Types.EditID, Types.Edit>, parentPath: Types.Path): Array<RowTypes.EditingRowItem> =>
-    edits
-      .filter(edit => edit.parentPath === parentPath)
-      .toArray()
+  (edits: Map<Types.EditID, Types.Edit>, parentPath: Types.Path): Array<RowTypes.EditingRowItem> =>
+    [...edits]
+      .filter(([_, edit]) => edit.parentPath === parentPath)
       .map(([editID, edit]) => ({
         editID,
         editType: edit.type,

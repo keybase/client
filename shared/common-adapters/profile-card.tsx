@@ -61,7 +61,7 @@ const assertionTypeToServiceId = (assertionType): Platforms.ServiceId | null => 
 const ServiceIcons = ({userDetails}: ServiceIconsProps) => {
   const services = new Map(
     userDetails.assertions
-      ? userDetails.assertions.toArray().map(([_, assertion]) => [assertion.type, assertion.value])
+      ? [...userDetails.assertions.values()].map(assertion => [assertion.type, assertion.value])
       : []
   )
   const serviceIds = [...services]

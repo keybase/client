@@ -24,7 +24,7 @@ export default (props: Props) => {
       confirmLabel={`Add as ${pluralize(props.rolePickerProps.selectedRole, props.count)}`}
       disabledRoles={props.rolePickerProps.disabledRoles}
       footerComponent={sendNotificationFooter(
-        'Announce them in team chats',
+        'Announce them in #general',
         props.rolePickerProps.sendNotification,
         props.rolePickerProps.changeSendNotification
       )}

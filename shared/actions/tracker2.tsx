@@ -14,7 +14,6 @@ const identify3Result = (
 ) =>
   Tracker2Gen.createUpdateResult({
     guiID: action.payload.params.guiID,
-    reason: null,
     result: Constants.rpcResultToStatus(action.payload.params.result),
   })
 
@@ -157,9 +156,7 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
     })
   } catch (err) {
     if (err.code === RPCTypes.StatusCode.scresolutionfailed) {
-      yield Saga.put(
-        Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, reason: null, result: 'notAUserYet'})
-      )
+      yield Saga.put(Tracker2Gen.createUpdateResult({guiID: action.payload.guiID, result: 'notAUserYet'}))
     }
     // hooked into reloadable
     logger.error(`Error loading profile: ${err.message}`)

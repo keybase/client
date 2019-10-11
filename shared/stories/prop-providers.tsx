@@ -197,52 +197,62 @@ export const createStoreWithCommon = () => {
         preferredMountDirs: I.List(['/Volumes/Keybase', '/Volumes/Keybase (meatball)']),
       }),
     },
-    tracker2: root.tracker2.update('usernameToDetails', usernameToDetails =>
-      usernameToDetails.set(
-        't_alice',
-        Tracker2Constants.noDetails.merge({
-          assertions: I.Map([
-            [
-              'twitter:alice',
-              Tracker2Constants.noAssertion.merge({
-                type: 'twitter',
-                value: 'alice',
-              }),
-            ],
-            [
-              'facebook:alice',
-              Tracker2Constants.noAssertion.merge({
-                type: 'facebook',
-                value: 'alice',
-              }),
-            ],
-            [
-              'github:alice',
-              Tracker2Constants.noAssertion.merge({
-                type: 'github',
-                value: 'alice',
-              }),
-            ],
-            [
-              'hackernews:alice',
-              Tracker2Constants.noAssertion.merge({
-                type: 'hackernews',
-                value: 'alice',
-              }),
-            ],
-            [
-              'reddit:alice',
-              Tracker2Constants.noAssertion.merge({
-                type: 'reddit',
-                value: 'alice',
-              }),
-            ],
-          ]),
-          bio: 'The Alice at Keybase since the beginning of time.',
-          state: 'valid',
-          username: 't_alice',
-        })
-      )
-    ),
+    tracker2: {
+      ...root.tracker2,
+      usernameToDetails: new Map([
+        ...root.tracker2.usernameToDetails,
+        [
+          't_alice',
+          {
+            ...Tracker2Constants.noDetails,
+            assertions: new Map([
+              [
+                'twitter:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'twitter',
+                  value: 'alice',
+                },
+              ],
+              [
+                'facebook:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'facebook',
+                  value: 'alice',
+                },
+              ],
+              [
+                'github:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'github',
+                  value: 'alice',
+                },
+              ],
+              [
+                'hackernews:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'hackernews',
+                  value: 'alice',
+                },
+              ],
+              [
+                'reddit:alice',
+                {
+                  ...Tracker2Constants.noAssertion,
+                  type: 'reddit',
+                  value: 'alice',
+                },
+              ],
+            ]),
+            bio: 'The Alice at Keybase since the beginning of time.',
+            state: 'valid',
+            username: 't_alice',
+          },
+        ],
+      ]),
+    },
   }
 }

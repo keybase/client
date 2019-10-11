@@ -280,7 +280,8 @@ const ConnectedInfoPanel = Container.connect(
       participants: participants
         .map(p => ({
           fullname:
-            stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName.get(p, ''),
+            (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
+            stateProps._participantToContactName.get(p, ''),
           isAdmin: stateProps.teamname
             ? TeamConstants.userIsRoleInTeamWithInfo(
                 // @ts-ignore

@@ -36,7 +36,7 @@ const makeErrorHandler = (
         return [FsGen.createSetTlfSoftError({path: tlfPath, softError: Types.SoftError.NoAccess})]
       }
     }
-    if (errorDesc.includes('file does not exist')) {
+    if (errorDesc.includes('file does not exist') || errorDesc.includes(" doesn't exist")) {
       return [FsGen.createSetPathSoftError({path, softError: Types.SoftError.Nonexistent})]
     }
     if (errorDesc.includes('KBFS client not found.')) {

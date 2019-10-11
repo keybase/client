@@ -11,11 +11,13 @@ type State = {
 
 const other = 'Someone else...'
 
-const UserRow = ({user}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow}>
+const UserRow = ({user, hasStoredSecret}) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.userRow} gap="small">
+    {hasStoredSecret && <Kb.Box style={styles.leftBox} />}
     <Kb.Text type="Header" style={user === other ? styles.other : styles.provisioned}>
       {user}
     </Kb.Text>
+    {hasStoredSecret && <Kb.Text type="BodySmallItalic">Signed in</Kb.Text>}
   </Kb.Box2>
 )
 
@@ -46,10 +48,9 @@ class Login extends React.Component<Props, State> {
   render() {
     const userRows = this.props.users
       .concat({hasStoredSecret: false, username: other})
-      .map(u => <UserRow user={u.username} key={u.username} />)
+      .map(u => <UserRow user={u.username} key={u.username} hasStoredSecret={u.hasStoredSecret} />)
 
     const selectedIdx = this.props.users.findIndex(u => u.username === this.props.selectedUser)
-
     return (
       <SignupScreen
         banners={errorBanner(this.props.error)}
@@ -78,17 +79,19 @@ class Login extends React.Component<Props, State> {
               position="bottom center"
               style={styles.userDropdown}
             />
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
-              <Kb.LabeledInput
-                autoFocus={true}
-                placeholder="Password"
-                onChangeText={this.props.passwordChange}
-                onEnterKeyDown={this.props.onSubmit}
-                ref={this._inputRef}
-                type="password"
-                value={this.props.password}
-              />
-            </Kb.Box2>
+            {this.props.needPassword && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputRow}>
+                <Kb.LabeledInput
+                  autoFocus={true}
+                  placeholder="Password"
+                  onChangeText={this.props.passwordChange}
+                  onEnterKeyDown={this.props.onSubmit}
+                  ref={this._inputRef}
+                  type="password"
+                  value={this.props.password}
+                />
+              </Kb.Box2>
+            )}
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.forgotPasswordContainer}>
               <Kb.Text
                 type="BodySmallSecondaryLink"
@@ -105,7 +108,7 @@ class Login extends React.Component<Props, State> {
               style={styles.loginSubmitContainer}
             >
               <Kb.WaitingButton
-                disabled={!this.props.password}
+                disabled={this.props.needPassword && !this.props.password}
                 fullWidth={true}
                 waitingKey={Constants.waitingKey}
                 style={styles.loginSubmitButton}
@@ -150,6 +153,9 @@ const styles = Styles.styleSheetCreate(
         marginBottom: 0,
         marginTop: Styles.globalMargins.tiny,
         width: '100%',
+      },
+      leftBox: {
+        width: 54,
       },
       loginSubmitButton: {
         marginTop: 0,

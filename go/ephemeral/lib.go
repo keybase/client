@@ -60,13 +60,7 @@ func NewEKLib(mctx libkb.MetaContext) *EKLib {
 		stopCh:                 make(chan struct{}),
 	}
 	if !mctx.G().GetEnv().GetDisableEKBackgroundKeygen() {
-		// If we are in standalone run this synchronously to avoid racing if we
-		// are attempting logout.
-		if mctx.G().Standalone {
-			ekLib.backgroundKeygen(mctx)
-		} else {
-			go ekLib.backgroundKeygen(mctx)
-		}
+		go ekLib.backgroundKeygen(mctx)
 	}
 	return ekLib
 }
@@ -1163,11 +1157,18 @@ func (e *EKLib) purgeDeviceEKsIfOneshot(mctx libkb.MetaContext) {
 }
 
 func (e *EKLib) OnLogin(mctx libkb.MetaContext) error {
-	go func() {
+	keygen := func() {
 		if err := e.KeygenIfNeeded(mctx); err != nil {
 			mctx.Debug("OnLogin error: %v", err)
 		}
-	}()
+	}
+	if mctx.G().Standalone {
+		// If we are in standalone run this synchronously to avoid racing if we
+		// are attempting logout.
+		keygen()
+	} else {
+		go keygen()
+	}
 	if deviceEKStorage := mctx.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.SetLogPrefix(mctx)
 	}
