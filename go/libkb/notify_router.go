@@ -2384,7 +2384,7 @@ func (n *NotifyRouter) HandleChatRequestInfo(ctx context.Context, uid keybase1.U
 	n.G().Log.CDebugf(ctx, "- Sent ChatRequestInfo notification")
 }
 
-func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context) {
+func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context, passphraseState keybase1.PassphraseState) {
 	if n == nil {
 		return
 	}
@@ -2393,7 +2393,7 @@ func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context) {
 			go func() {
 				_ = (keybase1.NotifyUsersClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).PasswordChanged(context.Background())
+				}).PasswordChanged(context.Background(), passphraseState)
 			}()
 		}
 		return true

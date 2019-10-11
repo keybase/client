@@ -14,6 +14,7 @@ type UserChangedArg struct {
 }
 
 type PasswordChangedArg struct {
+	State PassphraseState `codec:"state" json:"state"`
 }
 
 type IdentifyUpdateArg struct {
@@ -23,7 +24,7 @@ type IdentifyUpdateArg struct {
 
 type NotifyUsersInterface interface {
 	UserChanged(context.Context, UID) error
-	PasswordChanged(context.Context) error
+	PasswordChanged(context.Context, PassphraseState) error
 	IdentifyUpdate(context.Context, IdentifyUpdateArg) error
 }
 
@@ -52,7 +53,12 @@ func NotifyUsersProtocol(i NotifyUsersInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.PasswordChanged(ctx)
+					typedArgs, ok := args.(*[1]PasswordChangedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]PasswordChangedArg)(nil), args)
+						return
+					}
+					err = i.PasswordChanged(ctx, typedArgs[0].State)
 					return
 				},
 			},
@@ -85,8 +91,9 @@ func (c NotifyUsersClient) UserChanged(ctx context.Context, uid UID) (err error)
 	return
 }
 
-func (c NotifyUsersClient) PasswordChanged(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.passwordChanged", []interface{}{PasswordChangedArg{}}, 0*time.Millisecond)
+func (c NotifyUsersClient) PasswordChanged(ctx context.Context, state PassphraseState) (err error) {
+	__arg := PasswordChangedArg{State: state}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.passwordChanged", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
