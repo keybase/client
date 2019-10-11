@@ -37,6 +37,7 @@ export type BaseUsernamesProps = {
   title?: string
   type: TextType
   underline?: boolean
+  withProfileCardPopup?: boolean
 }
 
 export type Props = {
@@ -52,12 +53,18 @@ export type PlaintextProps = {
   title?: string
 }
 
+// common-adapters/profile-card.tsx already imports this, so have it assign
+// this here instead of importing directly to avoid an import cycle.
+let WithProfileCardPopup: React.ComponentType<any> | null
+export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
+
 function UsernameText(props: Props) {
   const derivedJoinerStyle = Styles.collapseStyles([
     props.joinerStyle,
     styles.joinerStyle,
     {color: props.commaColor},
   ])
+
   return (
     <>
       {props.users.map((u, i) => {
@@ -90,7 +97,7 @@ function UsernameText(props: Props) {
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
         const isNegative = backgroundModeIsNegative(props.backgroundMode || null)
-        return (
+        const renderText = (onLongPress?: () => void) => (
           <Text type={props.type} key={u.username}>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} negative={isNegative} style={derivedJoinerStyle}>
@@ -102,6 +109,7 @@ function UsernameText(props: Props) {
               negative={isNegative}
               className={Styles.classNames({'hover-underline': props.underline})}
               selectable={props.selectable}
+              onLongPress={onLongPress}
               onClick={
                 _onUsernameClicked
                   ? evt => {
@@ -123,6 +131,11 @@ function UsernameText(props: Props) {
             {i !== props.users.length - 1 && ' '}
           </Text>
         )
+        return props.withProfileCardPopup && WithProfileCardPopup ? (
+          <WithProfileCardPopup username={u.username}>{renderText}</WithProfileCardPopup>
+        ) : (
+          renderText()
+        )
       })}
     </>
   )
@@ -133,6 +146,7 @@ UsernameText.defaultProps = {
   selectable: undefined,
   showAnd: false,
   underline: true,
+  withProfileCardPopup: true,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}

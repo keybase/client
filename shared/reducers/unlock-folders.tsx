@@ -3,7 +3,6 @@ import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
 import * as Types from '../constants/types/unlock-folders'
 import * as DeviceTypes from '../constants/types/devices'
-import {actionHasError} from '../util/container'
 
 const initialState = Constants.makeState()
 
@@ -23,7 +22,7 @@ export default function(state: Types.State = initialState, action: UnlockFolders
     case UnlockFoldersGen.toPaperKeyInput:
       return state.merge({phase: 'paperKeyInput'})
     case UnlockFoldersGen.checkPaperKeyDone:
-      if (actionHasError(action)) {
+      if (action.payload.error) {
         return state.merge({paperkeyError: action.payload.error})
       }
       return state.merge({phase: 'success'})

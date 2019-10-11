@@ -59,7 +59,7 @@ const checkInviteCode = async (state: Container.TypedState) => {
     return SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode})
   } catch (e) {
     const err: RPCError = e
-    return SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: state.signup.inviteCode})
+    return SignupGen.createCheckedInviteCode({error: err.desc, inviteCode: state.signup.inviteCode})
   }
 }
 
@@ -72,7 +72,7 @@ const requestAutoInvite = async (state: Container.TypedState) => {
     const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
     return SignupGen.createRequestedAutoInvite({inviteCode})
   } catch (_) {
-    return SignupGen.createRequestedAutoInviteError()
+    return SignupGen.createRequestedAutoInvite({})
   }
 }
 
@@ -91,7 +91,7 @@ const requestInvite = async (state: Container.TypedState) => {
     })
   } catch (e) {
     const err: RPCError = e
-    return SignupGen.createRequestedInviteError({
+    return SignupGen.createRequestedInvite({
       email: state.signup.email,
       emailError: `Sorry can't get an invite: ${err.desc}`,
       name: state.signup.name,
@@ -143,7 +143,7 @@ const checkDevicename = async (state: Container.TypedState) => {
     return SignupGen.createCheckedDevicename({devicename: state.signup.devicename})
   } catch (e) {
     const err: RPCError = e
-    return SignupGen.createCheckedDevicenameError({
+    return SignupGen.createCheckedDevicename({
       devicename: state.signup.devicename,
       error: `Device name is invalid: ${err.desc}.`,
     })
@@ -196,7 +196,7 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
     })
     yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
-    yield Saga.put(SignupGen.createSignedupError({error}))
+    yield Saga.put(SignupGen.createSignedup({error}))
   }
 }
 

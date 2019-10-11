@@ -11,7 +11,7 @@ import * as TeamBuildingConstants from './team-building'
 import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
-export const teamRoleTypes = ['restrictedbot', 'bot', 'reader', 'writer', 'admin', 'owner']
+export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 
 export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
   [K in RPCTypes.TeamMemberStatus]: keyof typeof RPCTypes.TeamMemberStatus

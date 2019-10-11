@@ -1749,7 +1749,7 @@ function* messageSend(state: TypedState, action: Chat2Gen.MessageSendPayload, lo
     response: StellarConfirmWindowResponse
   ) => {
     storeStellarConfirmWindowResponse(false, response)
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({error}))
   }
 
   try {
@@ -1990,7 +1990,7 @@ function* downloadAttachment(downloadToCache: boolean, message: Types.Message) {
   } catch (e) {
     logger.error(`downloadAttachment error: ${e.message}`)
     yield Saga.put(
-      Chat2Gen.createAttachmentDownloadedError({error: e.message || 'Error downloading attachment', message})
+      Chat2Gen.createAttachmentDownloaded({error: e.message || 'Error downloading attachment', message})
     )
     return undefined
   }

@@ -41,6 +41,7 @@ export type NameWithIconProps = {
   titleStyle?: StylesTextCrossPlatform
   underline?: boolean
   username?: string
+  withProfileCardPopup?: boolean
 }
 
 // If lineclamping isn't working, try adding a static width in containerStyle
@@ -119,6 +120,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorYou={this.props.notFollowingColorOverride || true}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
         style={this.props.size === 'smaller' ? {} : styles.fullWidthText}
+        withProfileCardPopup={this.props.withProfileCardPopup}
       />
     )
 

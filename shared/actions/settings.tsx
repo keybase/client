@@ -122,13 +122,10 @@ const reclaimInvite = async (_: TypedState, action: SettingsGen.InvitesReclaimPa
       },
       Constants.settingsWaitingKey
     )
-    return [SettingsGen.createInvitesReclaimed(), SettingsGen.createInvitesRefresh()]
+    return [SettingsGen.createInvitesRefresh()]
   } catch (e) {
     logger.warn('Error reclaiming an invite:', e)
-    return [
-      SettingsGen.createInvitesReclaimedError({errorText: e.desc + e.name}),
-      SettingsGen.createInvitesRefresh(),
-    ]
+    return [SettingsGen.createInvitesRefresh()]
   }
 }
 
@@ -219,7 +216,7 @@ const sendInvite = async (_: TypedState, action: SettingsGen.InvitesSendPayload)
     }
   } catch (e) {
     logger.warn('Error sending an invite:', e)
-    return [SettingsGen.createInvitesSentError({error: e}), SettingsGen.createInvitesRefresh()]
+    return [SettingsGen.createInvitesSent({error: e}), SettingsGen.createInvitesRefresh()]
   }
 }
 
@@ -614,7 +611,13 @@ const loadHasRandomPW = async (state: TypedState) => {
 }
 
 // Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = () => SettingsGen.createLoadedHasRandomPw({randomPW: false})
+const passwordChanged = async (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload
+) => {
+  const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
+  return SettingsGen.createLoadedHasRandomPw({randomPW})
+}
 
 const stop = async (_: TypedState, action: SettingsGen.StopPayload) => {
   await RPCTypes.ctlStopRpcPromise({exitCode: action.payload.exitCode})

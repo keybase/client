@@ -57,7 +57,7 @@ describe('requestAutoInvite', () => {
   })
 
   it('goes to invite page on error', () => {
-    const action = SignupGen.createRequestedAutoInviteError()
+    const action = SignupGen.createRequestedAutoInvite({})
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showInviteScreen()).toEqual(
@@ -88,7 +88,7 @@ describe('requestInvite', () => {
   it('shows error if it matches', () => {
     const preAction = SignupGen.createRequestInvite({email: 'email@email.com', name: 'name'})
     const preNextState = makeTypedState(reducer(state, preAction))
-    const action = SignupGen.createRequestedInviteError({
+    const action = SignupGen.createRequestedInvite({
       email: preNextState.signup.email,
       emailError: 'email error',
       name: preNextState.signup.name,
@@ -102,7 +102,7 @@ describe('requestInvite', () => {
   it("ignore error if it doesn't match", () => {
     const preAction = SignupGen.createRequestInvite({email: 'email@email.com', name: 'name'})
     const preNextState = makeTypedState(reducer(state, preAction))
-    const action = SignupGen.createRequestedInviteError({
+    const action = SignupGen.createRequestedInvite({
       email: 'different email',
       emailError: 'email error',
       name: preNextState.signup.name,
@@ -137,7 +137,7 @@ describe('checkInviteCode', () => {
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
     const preAction = SignupGen.createRequestedAutoInvite({inviteCode: 'invite code'})
     const preState = makeTypedState(reducer(state, preAction))
-    const action = SignupGen.createCheckedInviteCodeError({
+    const action = SignupGen.createCheckedInviteCode({
       error: 'bad invitecode',
       inviteCode: 'invite code',
     })
@@ -149,7 +149,7 @@ describe('checkInviteCode', () => {
   it("ignores error if invite doesn't match", () => {
     const preAction = SignupGen.createRequestedAutoInvite({inviteCode: 'a different invite code'})
     const preState = makeTypedState(reducer(state, preAction))
-    const action = SignupGen.createCheckedInviteCodeError({
+    const action = SignupGen.createCheckedInviteCode({
       error: 'bad invitecode',
       inviteCode: 'invite code',
     })
@@ -266,7 +266,7 @@ describe('deviceScreen', () => {
 
   it("ignores if devicename doesn't match", () => {
     const state = Constants.makeState({devicename: 'a device'})
-    const action = SignupGen.createCheckedDevicenameError({devicename: 'different name', error: 'an error'})
+    const action = SignupGen.createCheckedDevicename({devicename: 'different name', error: 'an error'})
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
     expect(nextState).toEqual(makeTypedState(state))
@@ -274,7 +274,7 @@ describe('deviceScreen', () => {
 
   it('shows error', () => {
     const state = Constants.makeState({devicename: 'devicename'})
-    const action = SignupGen.createCheckedDevicenameError({devicename: 'devicename', error: 'an error'})
+    const action = SignupGen.createCheckedDevicename({devicename: 'devicename', error: 'an error'})
     const nextState = makeTypedState(reducer(makeTypedState(state).signup, action))
     expect(nextState.signup.devicename).toEqual(action.payload.devicename)
     expect(nextState.signup.devicenameError).toEqual(action.payload.error)
@@ -332,7 +332,7 @@ describe('actually sign up', () => {
   })
   it('updates error', () => {
     const state = Constants.makeState()
-    const action = SignupGen.createSignedupError({error: new RPCError('an error', 0)})
+    const action = SignupGen.createSignedup({error: new RPCError('an error', 0)})
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.signupError).toEqual(action.payload.error)
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(

@@ -725,7 +725,6 @@ export type TypedActionsMap = {
   'settings:clearAddedPhone': settings.ClearAddedPhonePayload
   'settings:invitesClearError': settings.InvitesClearErrorPayload
   'settings:invitesReclaim': settings.InvitesReclaimPayload
-  'settings:invitesReclaimed': settings.InvitesReclaimedPayload
   'settings:invitesRefresh': settings.InvitesRefreshPayload
   'settings:invitesRefreshed': settings.InvitesRefreshedPayload
   'settings:invitesSend': settings.InvitesSendPayload
