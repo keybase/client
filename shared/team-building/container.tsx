@@ -48,7 +48,6 @@ type OwnProps = {
   showRolePicker: boolean
   showServiceResultCount: boolean
   title: string
-  noPopup?: boolean
 }
 
 type LocalState = {
@@ -168,8 +167,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     numContactsImported: state.settings.contacts.importedCount,
   }
 
-  const smallWindow = state.config.windowState.width <= 800
-
   return {
     ...contactProps,
     disabledRoles,
@@ -195,7 +192,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     ),
     showResults: deriveShowResults(ownProps.searchString),
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
-    smallWindow,
     teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamBuildingTeamSoFar),
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.teamBuildingUserRecs),

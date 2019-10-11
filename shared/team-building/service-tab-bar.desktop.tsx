@@ -134,7 +134,6 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
-  console.warn('props', props)
   const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
