@@ -506,10 +506,10 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           const threadLoadStatus = new Map(draftState.threadLoadStatus)
           threadLoadStatus.delete(conversationIDKey)
           draftState.threadLoadStatus = threadLoadStatus
-          draftState.containsLatestMessageMap = draftState.containsLatestMessageMap.set(
-            conversationIDKey,
-            true
-          )
+
+          const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
+          containsLatestMessageMap.set(conversationIDKey, true)
+          draftState.containsLatestMessageMap = containsLatestMessageMap
           draftState.previousSelectedConversation = prevConvIDKey
           draftState.selectedConversation = conversationIDKey
           if (Constants.isValidConversationIDKey(conversationIDKey)) {
@@ -555,17 +555,22 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         })
         return
       }
-      case Chat2Gen.messageSend:
-        draftState.commandMarkdownMap = draftState.commandMarkdownMap.delete(action.payload.conversationIDKey)
+      case Chat2Gen.messageSend: {
+        const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
+        commandMarkdownMap.delete(action.payload.conversationIDKey)
+        draftState.commandMarkdownMap = commandMarkdownMap
         draftState.replyToMap = draftState.replyToMap.delete(action.payload.conversationIDKey)
         return
+      }
       case Chat2Gen.setCommandMarkdown: {
         const {conversationIDKey, md} = action.payload
+        const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
         if (md) {
-          draftState.commandMarkdownMap = draftState.commandMarkdownMap.set(conversationIDKey, md)
+          commandMarkdownMap.set(conversationIDKey, md)
         } else {
-          draftState.commandMarkdownMap = draftState.commandMarkdownMap.delete(conversationIDKey)
+          commandMarkdownMap.delete(conversationIDKey)
         }
+        draftState.commandMarkdownMap = commandMarkdownMap
         return
       }
       case Chat2Gen.setThreadLoadStatus: {
@@ -574,12 +579,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.threadLoadStatus = threadLoadStatus
         return
       }
-      case Chat2Gen.setCommandStatusInfo:
-        draftState.commandStatusMap = draftState.commandStatusMap.set(
-          action.payload.conversationIDKey,
-          action.payload.info
-        )
+      case Chat2Gen.setCommandStatusInfo: {
+        const commandStatusMap = new Map(draftState.commandStatusMap)
+        commandStatusMap.set(action.payload.conversationIDKey, action.payload.info)
+        draftState.commandStatusMap = commandStatusMap
         return
+      }
       case Chat2Gen.clearCommandStatusInfo: {
         const {conversationIDKey} = action.payload
         const commandStatusMap = new Map(draftState.commandStatusMap)
@@ -876,31 +881,34 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           }
         )
 
-        const containsLatestMessageMap = draftState.containsLatestMessageMap.withMutations(map => {
-          Object.keys(convoToMessages).forEach(cid => {
-            const conversationIDKey = Types.stringToConversationIDKey(cid)
-            if (!action.payload.forceContainsLatestCalc && map.get(conversationIDKey, false)) {
-              return
+        const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
+        Object.keys(convoToMessages).forEach(cid => {
+          const conversationIDKey = Types.stringToConversationIDKey(cid)
+          if (
+            !action.payload.forceContainsLatestCalc &&
+            containsLatestMessageMap.get(conversationIDKey, false)
+          ) {
+            return
+          }
+          const meta = draftState.metaMap.get(conversationIDKey)
+          const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
+          let maxMsgID = 0
+          const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
+          for (let i = ordinals.length - 1; i >= 0; i--) {
+            const ordinal = ordinals[i]
+            const message = convMsgMap.get(ordinal)
+            if (message && message.id > 0) {
+              maxMsgID = message.id
+              break
             }
-            const meta = draftState.metaMap.get(conversationIDKey)
-            const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
-            let maxMsgID = 0
-            const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())
-            for (let i = ordinals.length - 1; i >= 0; i--) {
-              const ordinal = ordinals[i]
-              const message = convMsgMap.get(ordinal)
-              if (message && message.id > 0) {
-                maxMsgID = message.id
-                break
-              }
-            }
-            if (meta && maxMsgID >= meta.maxVisibleMsgID) {
-              map.set(conversationIDKey, true)
-            } else if (action.payload.forceContainsLatestCalc) {
-              map.set(conversationIDKey, false)
-            }
-          })
+          }
+          if (meta && maxMsgID >= meta.maxVisibleMsgID) {
+            containsLatestMessageMap.set(conversationIDKey, true)
+          } else if (action.payload.forceContainsLatestCalc) {
+            containsLatestMessageMap.set(conversationIDKey, false)
+          }
         })
+        draftState.containsLatestMessageMap = containsLatestMessageMap
 
         let messageCenterOrdinals = draftState.messageCenterOrdinals
         const centeredMessageIDs = action.payload.centeredMessageIDs || []
@@ -938,10 +946,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         )
         return
       case Chat2Gen.setContainsLastMessage:
-        draftState.containsLatestMessageMap = draftState.containsLatestMessageMap.set(
-          action.payload.conversationIDKey,
-          action.payload.contains
-        )
+        const containsLatestMessageMap = draftState.containsLatestMessageMap
+        containsLatestMessageMap.set(action.payload.conversationIDKey, action.payload.contains)
+        draftState.containsLatestMessageMap = containsLatestMessageMap
         return
       case Chat2Gen.messageRetry: {
         const {conversationIDKey, outboxID} = action.payload
