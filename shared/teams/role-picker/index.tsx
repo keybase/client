@@ -74,9 +74,11 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
     case 'admin':
       return {
         cans: [
-          'Can manage team members roles',
-          'Can create subteams and channels',
-          'Can write and read in chats and folders',
+          `Can create chat channels`,
+          `Can create subteams`,
+          `Can add and remove members`,
+          `Can manage team members' roles`,
+          `Can write and read in chats and folders`,
         ],
         cants: [`Can't delete the team`],
         icon: (
@@ -91,10 +93,12 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
     case 'owner':
       return {
         cans: [
-          'Can manage team members roles',
-          'Can create subteams and channels',
-          'Can write and read in chats and folders',
-          'Can delete team',
+          `Can create chat channels`,
+          `Can create subteams`,
+          `Can add and remove members`,
+          `Can manage team members' roles`,
+          `Can write and read in chats and folders`,
+          `Can delete team`,
         ],
         cants: [],
         extra: ['A team can have multiple owners'],
@@ -111,7 +115,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
       return {
         cans: ['Can write in chats but read only in folders'],
         cants: [
-          `Can't create channels`,
+          `Can't create chat channels`,
           `Can't create subteams`,
           `Can't add and remove members`,
           `Can't manage team members' roles`,
@@ -121,7 +125,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
       }
     case 'writer':
       return {
-        cans: ['Can create channels', 'Can write and read in chats and folders'],
+        cans: ['Can write and read in chats and folders', 'Can create chat channels'],
         cants: [
           `Can't create subteams`,
           `Can't add and remove members`,
@@ -404,9 +408,9 @@ export const sendNotificationFooter = (
   <Kb.Box2
     direction="horizontal"
     fullWidth={!Styles.isMobile}
-    centerChildren={true}
     style={{
       paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.tiny,
     }}
   >

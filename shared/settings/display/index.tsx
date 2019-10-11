@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 import {DarkModePreference, isDarkModeSystemSupported} from '../../styles/dark-mode'
 
 type Props = {
@@ -13,30 +12,28 @@ type Props = {
 const Display = (props: Props) => (
   <Kb.ScrollView style={styles.scrollview}>
     <Kb.Box style={styles.container}>
-      {flags.darkMode && (
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Text type="Header">Appearance</Kb.Text>
-            {isDarkModeSystemSupported() && (
-              <Kb.RadioButton
-                label="Respect system settings"
-                selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
-                onSelect={() => props.onSetDarkModePreference('system')}
-              />
-            )}
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Text type="Header">Appearance</Kb.Text>
+          {isDarkModeSystemSupported() && (
             <Kb.RadioButton
-              label="Dark"
-              selected={props.darkModePreference === 'alwaysDark'}
-              onSelect={() => props.onSetDarkModePreference('alwaysDark')}
+              label="Respect system settings"
+              selected={props.darkModePreference === 'system' || props.darkModePreference === undefined}
+              onSelect={() => props.onSetDarkModePreference('system')}
             />
-            <Kb.RadioButton
-              label={<Kb.Text type="Body">Light</Kb.Text>}
-              selected={props.darkModePreference === 'alwaysLight'}
-              onSelect={() => props.onSetDarkModePreference('alwaysLight')}
-            />
-          </Kb.Box2>
+          )}
+          <Kb.RadioButton
+            label="Dark"
+            selected={props.darkModePreference === 'alwaysDark'}
+            onSelect={() => props.onSetDarkModePreference('alwaysDark')}
+          />
+          <Kb.RadioButton
+            label={<Kb.Text type="Body">Light</Kb.Text>}
+            selected={props.darkModePreference === 'alwaysLight'}
+            onSelect={() => props.onSetDarkModePreference('alwaysLight')}
+          />
         </Kb.Box2>
-      )}
+      </Kb.Box2>
     </Kb.Box>
   </Kb.ScrollView>
 )

@@ -47,6 +47,7 @@ export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
 export const setSystemDarkMode = 'config:setSystemDarkMode'
 export const setUseNativeFrame = 'config:setUseNativeFrame'
+export const setUserSwitching = 'config:setUserSwitching'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -130,6 +131,7 @@ type _SetStartupDetailsPayload = {
 }
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
+type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -333,6 +335,10 @@ export const createSetUseNativeFrame = (payload: _SetUseNativeFramePayload): Set
   payload,
   type: setUseNativeFrame,
 })
+export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUserSwitchingPayload => ({
+  payload,
+  type: setUserSwitching,
+})
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
 export const createUpdateHTTPSrvInfo = (payload: _UpdateHTTPSrvInfoPayload): UpdateHTTPSrvInfoPayload => ({
   payload,
@@ -457,6 +463,10 @@ export type SetUseNativeFramePayload = {
   readonly payload: _SetUseNativeFramePayload
   readonly type: typeof setUseNativeFrame
 }
+export type SetUserSwitchingPayload = {
+  readonly payload: _SetUserSwitchingPayload
+  readonly type: typeof setUserSwitching
+}
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
@@ -521,6 +531,7 @@ export type Actions =
   | SetStartupDetailsPayload
   | SetSystemDarkModePayload
   | SetUseNativeFramePayload
+  | SetUserSwitchingPayload
   | ShowMainPayload
   | StartHandshakePayload
   | UpdateCriticalCheckStatusPayload

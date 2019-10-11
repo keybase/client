@@ -10,7 +10,7 @@ type OwnProps = {
 
 export default namedConnect(
   (state, {editID}: OwnProps) => ({
-    _edit: state.fs.edits.get(editID, Constants.emptyFolder),
+    _edit: state.fs.edits.get(editID) || Constants.emptyNewFolder,
   }),
   (dispatch, {editID}: OwnProps) => ({
     onCancel: () => dispatch(FsGen.createDiscardEdit({editID})),

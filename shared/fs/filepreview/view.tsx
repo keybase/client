@@ -27,8 +27,8 @@ const FilePreviewView = ({path, onLoadingStateChange}: Props) => {
   const reload = () => setLoadedLastModifiedTimestamp(pathItem.lastModifiedTimestamp)
   const tooLargeForText = pathItem.type === Types.PathType.File && pathItem.size > textViewUpperLimit
 
-  const fileContext = Container.useSelector(state =>
-    state.fs.fileContext.get(path, Constants.emptyFileContext)
+  const fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(path) || Constants.emptyFileContext
   )
 
   if (pathItem.type === Types.PathType.Symlink) {

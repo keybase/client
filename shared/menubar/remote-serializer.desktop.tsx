@@ -1,14 +1,24 @@
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
+import * as UsersTypes from '../constants/types/users'
+import * as ChatTypes from '../constants/types/chat2'
+import * as ConfigTypes from '../constants/types/config'
+import * as NotificationTypes from '../constants/types/notifications'
+import * as FSTypes from '../constants/types/fs'
+import {Tab} from '../constants/tabs'
 import {
   serialize as conversationSerialize,
   changeAffectsWidget as conversationChangeAffectsWidget,
 } from '../chat/inbox/container/remote'
 import GetRowsFromTlfUpdate from '../fs/remote-container'
+import shallowEqual from 'shallowequal'
+
+type ConvMap = Array<{hasBadge: boolean; hasUnread: boolean; conversation: ChatTypes.ConversationMeta}>
+type FileRows = {_tlfUpdates: FSTypes.UserTlfUpdates; _uploads: FSTypes.Uploads}
 
 export const serialize: any = {
   ...Avatar.serialize,
-  badgeKeys: v => [...v.keys()],
-  badgeMap: (v, o) =>
+  badgeKeys: (v: Map<Tab, number>) => [...v.keys()],
+  badgeMap: (v: Map<Tab, number>, o: Map<Tab, number>) =>
     [...v.keys()].reduce((map, k) => {
       if (!o || v.get(k) !== o.get(k)) {
         map[k] = v.get(k)
@@ -16,8 +26,8 @@ export const serialize: any = {
       return map
     }, {}),
   clearCacheTrigger: () => undefined,
-  conversationIDs: v => v.map(v => v.conversation.conversationIDKey),
-  conversationMap: (v, o) =>
+  conversationIDs: (v: ConvMap) => v.map(v => v.conversation.conversationIDKey),
+  conversationMap: (v: ConvMap, o: ConvMap) =>
     v.reduce((map, toSend) => {
       const oldConv =
         o &&
@@ -32,35 +42,35 @@ export const serialize: any = {
             [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
           }
     }, {}),
-  daemonHandshakeState: v => v,
-  darkMode: v => v,
-  diskSpaceStatus: v => v,
-  endEstimate: v => v,
-  externalRemoteWindow: v => v,
-  fileName: v => v,
-  fileRows: (v, o) =>
+  daemonHandshakeState: (v: ConfigTypes.DaemonHandshakeState) => v,
+  darkMode: (v: boolean) => v,
+  diskSpaceStatus: (v: FSTypes.DiskSpaceStatus) => v,
+  endEstimate: (v: number) => v,
+  externalRemoteWindow: (v: Electron.BrowserWindow | null) => v,
+  fileName: (v: FSTypes.Path) => v,
+  fileRows: (v: FileRows, o: FileRows) =>
     o && v._tlfUpdates === o._tlfUpdates && v._uploads === o._uploads
       ? null
       : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)).toArray(),
-  files: v => v,
-  kbfsDaemonStatus: v => v,
-  kbfsEnabled: v => v,
-  loggedIn: v => v,
-  outOfDate: v => v,
-  showingDiskSpaceBanner: v => v,
-  totalSyncingBytes: v => v,
+  files: (v: number) => v,
+  kbfsDaemonStatus: (v: FSTypes.KbfsDaemonStatus) => v,
+  kbfsEnabled: (v: boolean) => v,
+  loggedIn: (v: boolean) => v,
+  outOfDate: (v: boolean) => v,
+  showingDiskSpaceBanner: (v: boolean) => v,
+  totalSyncingBytes: (v: number) => v,
   // Just send broken over, if its the same send null
-  userInfo: (v, o) => {
-    const toSend = v.filter(u => u.broken)
-    const old = o && o.filter(u => u.broken)
-    return toSend.equals(old) ? undefined : toSend
+  userInfo: (v: Map<string, UsersTypes.UserInfo>, o: Map<string, UsersTypes.UserInfo>) => {
+    const toSend = [...v.entries()].filter(e => e[1].broken)
+    const old = o && [...o.entries()].filter(e => e[1].broken)
+    return shallowEqual(toSend, old) ? undefined : toSend
   },
-  username: v => v,
-  widgetBadge: v => v,
-  windowComponent: v => v,
-  windowOpts: v => v,
-  windowParam: v => v,
-  windowTitle: v => v,
+  username: (v: string) => v,
+  widgetBadge: (v: NotificationTypes.BadgeType) => v,
+  windowComponent: (v: string) => v,
+  windowOpts: (v: Object) => v,
+  windowParam: (v: string) => v,
+  windowTitle: (v: string) => v,
 }
 
 const initialState = {

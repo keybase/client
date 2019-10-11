@@ -73,7 +73,7 @@ export default Container.connect(
       type = 'none'
     } else {
       const broken = stateProps._meta.participants.filter(
-        p => stateProps._users.infoMap.getIn([p, 'broken'], false) && stateProps._following.has(p)
+        p => (stateProps._users.infoMap.get(p) || {broken: false}).broken && stateProps._following.has(p)
       )
       if (broken.length > 0) {
         type = 'broken'

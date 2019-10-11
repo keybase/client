@@ -745,6 +745,7 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 	t.AddAccountMergeOp(to)
 	t.AddBuiltTimeBounds(timeBounds)
 	t.AddMemoText(defaultMemo)
+
 	return t.Sign(from)
 }
 

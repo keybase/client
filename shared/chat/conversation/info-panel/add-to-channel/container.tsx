@@ -46,7 +46,7 @@ export default Container.namedConnect(
     const users = stateProps._allMembers
       .map(username => ({
         alreadyAdded: stateProps._alreadyAdded.includes(username),
-        fullname: stateProps._fullnames.get(username, {fullname: ''}).fullname,
+        fullname: (stateProps._fullnames.get(username) || {fullname: ''}).fullname,
         username,
       }))
       .sort((a, b) => {

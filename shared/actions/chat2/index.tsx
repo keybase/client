@@ -2556,8 +2556,9 @@ const fetchConversationBio = async (state: TypedState, action: Chat2Gen.SelectCo
     // we're in a one-on-one convo
     const username = otherParticipants[0] || ''
 
-    if (username === '') {
-      return // if for some reason we get a garbage username, don't do anything
+    // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
+    if (username === '' || username.includes('@')) {
+      return
     }
 
     return UsersGen.createGetBio({username})

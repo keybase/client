@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Types from '../constants/types/team-building'
 import capitalize from 'lodash/capitalize'
-import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, serviceMapToArray, serviceIdToAvatarIcon} from './shared'
 
 export type Props = {
   // They are already a member in the actual team, not this temporary set.
@@ -117,14 +117,12 @@ const Avatar = ({
 }) => {
   if (keybaseUsername) {
     return <Kb.Avatar size={avatarSize} username={keybaseUsername} />
-  } else if (resultForService === 'keybase' || Types.isContactServiceId(resultForService)) {
-    return <Kb.Avatar size={avatarSize} username="invalid username for placeholder avatar" />
   }
 
   return (
     <Kb.Icon
       fontSize={avatarSize}
-      type={serviceIdToIconFont(resultForService)}
+      type={serviceIdToAvatarIcon(resultForService)}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
   )
@@ -164,7 +162,7 @@ const ServicesIcons = (props: {
           >
             {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
             <Kb.Icon
-              fontSize={14}
+              sizeType="Small"
               type={serviceIdToIconFont(serviceName)}
               style={Styles.isMobile && iconStyle}
               boxStyle={!Styles.isMobile && iconStyle}
@@ -295,7 +293,7 @@ const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () =
 }
 
 const AddButton = () => (
-  <Kb.Icon type="iconfont-circle" fontSize={actionButtonSize} color={Styles.globalColors.black_10} />
+  <Kb.Icon type="iconfont-circle" fontSize={actionButtonSize} color={Styles.globalColors.black_20} />
 )
 
 const AlreadyAddedIconButton = () => (
@@ -340,12 +338,17 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
   },
   rowContainer: {
-    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
+    ...Styles.padding(
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.medium,
+      Styles.globalMargins.tiny,
+      Styles.globalMargins.xsmall
+    ),
     height: userResultHeight,
   },
   serviceIcon: {
     marginLeft: Styles.globalMargins.xtiny,
-    marginTop: 1,
+    marginTop: Styles.globalMargins.xtiny,
   },
   services: {
     justifyContent: 'flex-start',

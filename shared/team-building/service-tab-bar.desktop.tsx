@@ -188,7 +188,7 @@ const styles = Styles.styleSheetCreate(
       },
       badgeContainerStyle: {
         position: 'absolute',
-        right: 0,
+        right: -4,
         top: 10,
       },
       badgeStyle: {backgroundColor: Styles.globalColors.blue},

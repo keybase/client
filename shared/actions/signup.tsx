@@ -63,7 +63,11 @@ const checkInviteCode = async (state: Container.TypedState) => {
   }
 }
 
-const requestAutoInvite = async () => {
+const requestAutoInvite = async (state: Container.TypedState) => {
+  // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+  if (state.config.loggedIn) {
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+  }
   try {
     const inviteCode = await RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
     return SignupGen.createRequestedAutoInvite({inviteCode})

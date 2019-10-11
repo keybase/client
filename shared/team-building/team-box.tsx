@@ -117,7 +117,7 @@ const TeamBox = (props: Props) => {
               disabledRoles={props.rolePickerProps.disabledRoles}
               confirmLabel={`Add as ${pluralize(props.rolePickerProps.selectedRole, props.teamSoFar.length)}`}
               footerComponent={sendNotificationFooter(
-                'Announce them in team chats',
+                'Announce them in #general',
                 props.rolePickerProps.sendNotification,
                 props.rolePickerProps.changeSendNotification
               )}

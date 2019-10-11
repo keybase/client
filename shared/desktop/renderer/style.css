@@ -398,6 +398,9 @@ body {
   opacity: 1;
 }
 
+.lightMode {
+  background-color: #ffffff;
+}
 .darkMode {
   background-color: #191919;
 }

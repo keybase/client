@@ -28,8 +28,8 @@ export const ensureDownloadPermissionPromise = async () => {
 
 const finishedRegularDownload = async (state: TypedState, action: FsGen.FinishedRegularDownloadPayload) => {
   const {downloadID, mimeType} = action.payload
-  const downloadState = state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
-  const downloadInfo = state.fs.downloads.info.get(downloadID, Constants.emptyDownloadInfo)
+  const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
+  const downloadInfo = state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
     logger.warn('missing download', downloadID)
     return null

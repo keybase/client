@@ -45,6 +45,7 @@ const ServiceIcon = (props: IconProps) => {
               height={9}
               containerStyle={styles.badgeContainerStyle}
               badgeStyle={styles.badgeStyle}
+              leftRightPadding={0}
             />
           )}
           <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
