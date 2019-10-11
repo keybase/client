@@ -8,7 +8,7 @@ type OwnProps = {conversationIDKey: Types.ConversationIDKey}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const giphy = state.chat2.giphyResultMap.get(conversationIDKey, null)
+  const giphy = state.chat2.giphyResultMap.get(conversationIDKey) || null
   return {
     // Auto generated from flowToTs. Please clean me!
     galleryURL:

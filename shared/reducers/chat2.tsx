@@ -548,11 +548,11 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.updateCoinFlipStatus: {
-        draftState.flipStatusMap = draftState.flipStatusMap.withMutations(fm => {
-          action.payload.statuses.forEach(status => {
-            fm.set(status.gameID, status)
-          })
+        const flipStatusMap = draftState.flipStatusMap
+        action.payload.statuses.forEach(status => {
+          flipStatusMap.set(status.gameID, status)
         })
+        draftState.flipStatusMap = flipStatusMap
         return
       }
       case Chat2Gen.messageSend: {
@@ -596,7 +596,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const conversationIDKey = action.payload.conversationIDKey
         draftState.giphyWindowMap = draftState.giphyWindowMap.set(conversationIDKey, action.payload.show)
         if (!action.payload.show) {
-          draftState.giphyResultMap = draftState.giphyResultMap.set(conversationIDKey, null)
+          const giphyResultMap = new Map(draftState.giphyResultMap)
+          giphyResultMap.set(conversationIDKey, null)
+          draftState.giphyResultMap = giphyResultMap
         }
         if (action.payload.clearInput) {
           const unsentTextMap = new Map(draftState.unsentTextMap)
@@ -608,12 +610,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       case Chat2Gen.updateLastCoord:
         draftState.lastCoord = action.payload.coord
         return
-      case Chat2Gen.giphyGotSearchResult:
-        draftState.giphyResultMap = draftState.giphyResultMap.set(
-          action.payload.conversationIDKey,
-          action.payload.results
-        )
+      case Chat2Gen.giphyGotSearchResult: {
+        const giphyResultMap = new Map(draftState.giphyResultMap)
+        giphyResultMap.set(action.payload.conversationIDKey, action.payload.results)
+        draftState.giphyResultMap = giphyResultMap
         return
+      }
       case Chat2Gen.setPaymentConfirmInfo:
         draftState.paymentConfirmInfo = action.payload.error
           ? {error: action.payload.error}
@@ -1198,24 +1200,29 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       case Chat2Gen.updateConvExplodingModes: {
         const {modes} = action.payload
-        const explodingMap = modes.reduce((map, mode) => {
-          map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
-          return map
-        }, {})
-        draftState.explodingModes = I.Map(explodingMap)
+        draftState.explodingModes = new Map(
+          modes.reduce((map, mode) => {
+            map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
+            return map
+          }, {})
+        )
         return
       }
       case Chat2Gen.setExplodingModeLock: {
         const {conversationIDKey, unset} = action.payload
-        const mode = draftState.explodingModes.get(conversationIDKey, 0)
+        const mode = draftState.explodingModes.get(conversationIDKey) || 0
         // we already have the new mode in `explodingModes`, if we've already locked it we shouldn't update
-        const alreadyLocked = draftState.explodingModeLocks.get(conversationIDKey, null) !== null
+        const alreadyLocked = (draftState.explodingModeLocks.get(conversationIDKey) || null) !== null
         if (unset) {
-          draftState.explodingModeLocks = draftState.explodingModeLocks.delete(conversationIDKey)
+          const explodingModeLocks = new Map(draftState.explodingModeLocks)
+          explodingModeLocks.delete(conversationIDKey)
+          draftState.explodingModeLocks = explodingModeLocks
           return
         }
         if (!alreadyLocked) {
-          draftState.explodingModeLocks = draftState.explodingModeLocks.set(conversationIDKey, mode)
+          const explodingModeLocks = new Map(draftState.explodingModeLocks)
+          explodingModeLocks.set(conversationIDKey, mode)
+          draftState.explodingModeLocks = explodingModeLocks
         }
         return
       }
