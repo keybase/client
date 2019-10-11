@@ -62,10 +62,10 @@ export default Container.namedConnect(
     const showGiphySearch = state.chat2.giphyWindowMap.get(conversationIDKey, false)
     const _replyTo = Constants.getReplyToMessageID(state, conversationIDKey)
     const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey, false)
-    const suggestBotCommandsUpdateStatus = state.chat2.botCommandsUpdateStatusMap.get(
-      conversationIDKey,
+    const suggestBotCommandsUpdateStatus =
+      state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
       RPCChatTypes.UIBotCommandsUpdateStatus.blank
-    )
+
     return {
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),

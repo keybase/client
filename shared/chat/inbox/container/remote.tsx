@@ -39,7 +39,7 @@ const valuesCached = memoize(
       )
       .map(([, v]) => ({
         conversation: v,
-        hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
+        hasBadge: (badgeMap.get(v.conversationIDKey) || 0) > 0,
         hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
       }))
       .sort((a, b) =>

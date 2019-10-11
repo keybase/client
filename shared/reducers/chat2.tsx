@@ -618,13 +618,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.paymentConfirmInfo = undefined
         return
       case Chat2Gen.badgesUpdated: {
-        const badgeMap = I.Map<Types.ConversationIDKey, number>(
+        const badgeMap = new Map<Types.ConversationIDKey, number>(
           action.payload.conversations.map(({convID, badgeCounts}) => [
             Types.conversationIDToKey(convID),
             badgeCounts[badgeKey] || 0,
           ])
         )
-        if (!draftState.badgeMap.equals(badgeMap)) {
+        if (!shallowEqual([...badgeMap.entries()], [...draftState.badgeMap.entries()])) {
           draftState.badgeMap = badgeMap
         }
         const unreadMap = I.Map<Types.ConversationIDKey, number>(
@@ -1013,12 +1013,15 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         }
         return
       }
-      case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus:
-        draftState.botCommandsUpdateStatusMap = draftState.botCommandsUpdateStatusMap.set(
+      case EngineGen.chat1ChatUiChatBotCommandsUpdateStatus: {
+        const botCommandsUpdateStatusMap = new Map(draftState.botCommandsUpdateStatusMap)
+        botCommandsUpdateStatusMap.set(
           Types.stringToConversationIDKey(action.payload.params.convID),
           action.payload.params.status
         )
+        draftState.botCommandsUpdateStatusMap = botCommandsUpdateStatusMap
         return
+      }
       case EngineGen.chat1NotifyChatChatTypingUpdate: {
         const {typingUpdates} = action.payload.params
         const typingMap = new Map(
@@ -1468,11 +1471,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.paymentInfoReceived: {
         const {conversationIDKey, messageID, paymentInfo} = action.payload
-        draftState.accountsInfoMap = draftState.accountsInfoMap.setIn(
-          [conversationIDKey, messageID],
-          paymentInfo
-        )
-        draftState.paymentStatusMap = draftState.paymentStatusMap.setIn([paymentInfo.paymentID], paymentInfo)
+
+        const accountsInfoMap = new Map(draftState.accountsInfoMap)
+        const convMap = new Map(accountsInfoMap.get(conversationIDKey) || [])
+        convMap.set(messageID, paymentInfo)
+        accountsInfoMap.set(conversationIDKey, convMap)
+        draftState.accountsInfoMap = accountsInfoMap
+
+        const paymentStatusMap = new Map(draftState.paymentStatusMap)
+        paymentStatusMap.set(paymentInfo.paymentID, paymentInfo)
+        draftState.paymentStatusMap = paymentStatusMap
         return
       }
       case Chat2Gen.setMaybeMentionInfo: {
@@ -1482,10 +1490,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.requestInfoReceived: {
         const {conversationIDKey, messageID, requestInfo} = action.payload
-        draftState.accountsInfoMap = draftState.accountsInfoMap.setIn(
-          [conversationIDKey, messageID],
-          requestInfo
-        )
+
+        const accountsInfoMap = new Map(draftState.accountsInfoMap)
+        const convMap = new Map(accountsInfoMap.get(conversationIDKey) || [])
+        convMap.set(messageID, requestInfo)
+        accountsInfoMap.set(conversationIDKey, convMap)
+        draftState.accountsInfoMap = accountsInfoMap
         return
       }
       case Chat2Gen.attachmentFullscreenSelection: {

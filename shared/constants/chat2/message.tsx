@@ -33,8 +33,9 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
 export const getRequestMessageInfo = (
   state: TypedState,
   message: Types.MessageRequestPayment
-): MessageTypes.ChatRequestInfo | null => {
-  const maybeRequestInfo = state.chat2.accountsInfoMap.getIn([message.conversationIDKey, message.id], null)
+): MessageTypes.ChatRequestInfo => {
+  const convMap = state.chat2.accountsInfoMap.get(message.conversationIDKey)
+  const maybeRequestInfo = convMap && convMap.get(message.id)
   if (!maybeRequestInfo) {
     return message.requestInfo
   }
@@ -51,8 +52,9 @@ export const getRequestMessageInfo = (
 export const getPaymentMessageInfo = (
   state: TypedState,
   message: Types.MessageSendPayment | Types.MessageText
-): MessageTypes.ChatPaymentInfo | null => {
-  const maybePaymentInfo = state.chat2.accountsInfoMap.getIn([message.conversationIDKey, message.id], null)
+): MessageTypes.ChatPaymentInfo => {
+  const convMap = state.chat2.accountsInfoMap.get(message.conversationIDKey)
+  const maybePaymentInfo = convMap && convMap.get(message.id)
   if (!maybePaymentInfo) {
     return message.paymentInfo
   }
