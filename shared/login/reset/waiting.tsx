@@ -13,6 +13,8 @@ const Waiting = (props: Props) => {
   const pipelineStarted = Container.getRouteProps(props, 'pipelineStarted', false)
   const endTime = Container.useSelector(state => state.autoreset.endTime)
   const [formattedTime, setFormattedTime] = React.useState('a bit')
+  const [hasSentAgain, setHasSentAgain] = React.useState(false)
+  const [sendAgainSuccess, setSendAgainSuccess] = React.useState(false)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -23,8 +25,19 @@ const Waiting = (props: Props) => {
     [dispatch, nav]
   )
 
-  const onSendAgain = React.useCallback(() => dispatch(AutoresetGen.createResetAccount({})), [dispatch])
-  const sendAgainWaiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
+  const onSendAgain = React.useCallback(() => {
+    setHasSentAgain(true)
+    setSendAgainSuccess(false)
+    dispatch(AutoresetGen.createResetAccount({}))
+  }, [dispatch])
+  const _sendAgainWaiting = Container.useAnyWaiting(Constants.enterPipelineWaitingKey)
+  const sendAgainWaiting = hasSentAgain && _sendAgainWaiting
+  const prevSendAgainWaiting = Container.usePrevious(sendAgainWaiting)
+  React.useEffect(() => {
+    if (prevSendAgainWaiting !== undefined && prevSendAgainWaiting && !sendAgainWaiting) {
+      setSendAgainSuccess(true)
+    }
+  }, [prevSendAgainWaiting, sendAgainWaiting])
 
   React.useEffect(() => {
     if (!pipelineStarted) {
@@ -51,6 +64,15 @@ const Waiting = (props: Props) => {
       title="Account reset"
       noBackground={true}
       onBack={onClose}
+      banners={
+        sendAgainSuccess
+          ? [
+              <Kb.Banner color="green" key="success">
+                Instructions sent.
+              </Kb.Banner>,
+            ]
+          : []
+      }
       buttons={[{label: 'Close', onClick: onClose, type: 'Dim'}]}
     >
       <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} fullHeight={true} centerChildren={true}>
