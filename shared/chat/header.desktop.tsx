@@ -237,7 +237,7 @@ const Connected = Container.connect(
 
     const otherParticipants = Constants.getRowParticipants(_meta, state.config.username)
     const first: string =
-      _meta.teamType === 'adhoc' && otherParticipants.size === 1 ? otherParticipants.first() : ''
+      _meta.teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
     const otherInfo = userInfo.get(first)
     // If it's a one-on-one chat, use the user's fullname as the description
     const desc = (otherInfo && otherInfo.bio.replace(/(\r\n|\n|\r)/gm, ' ')) || _meta.descriptionDecorated
@@ -264,6 +264,7 @@ const Connected = Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const meta = stateProps._meta
+
     return {
       canEditDesc: stateProps.canEditDesc,
       channel:
@@ -281,7 +282,7 @@ const Connected = Container.connect(
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
       onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? meta.nameParticipants.toArray() : null,
+      participants: meta.teamType === 'adhoc' ? meta.nameParticipants : null,
       showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
       unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
       username: stateProps.username,

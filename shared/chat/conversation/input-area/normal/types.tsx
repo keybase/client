@@ -1,43 +1,43 @@
-import * as I from 'immutable'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
   cannotWrite: boolean | null
+  clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
+  editText: string
+  explodingModeSeconds: number
+  focusInputCounter: number
+  getUnsentText: () => string
   isEditExploded: boolean
   isEditing: boolean
   isExploding: boolean
   isSearching: boolean
-  explodingModeSeconds: number
-  focusInputCounter: number
-  clearInboxFilter: () => void
-  minWriterRole: string
+  minWriterRole: TeamTypes.TeamRoleType
   onAttach: (paths: Array<string>) => void
-  onEditLastMessage: () => void
   onCancelEditing: () => void
   onCancelReply: () => void
+  onEditLastMessage: () => void
   onFilePickerError: (error: Error) => void
   onGiphyToggle: () => void
   onRequestScrollDown: () => void
   onRequestScrollUp: () => void
   onSubmit: (text: string) => void
+  prependText: string | null
+  quoteCounter: number
+  quoteText: string
+  sendTyping: (typing: boolean) => void
+  setUnsentText: (text: string) => void
   showCommandMarkdown: boolean
   showCommandStatus: boolean
   showGiphySearch: boolean
   showReplyPreview: boolean
   showTypingStatus: boolean
   showWalletsIcon: boolean
-  editText: string
-  quoteCounter: number
-  quoteText: string
-  getUnsentText: () => string
-  setUnsentText: (text: string) => void
-  sendTyping: (typing: boolean) => void
-  unsentTextChanged: (text: string) => void
   unsentText: string | null
-  prependText: string | null
+  unsentTextChanged: (text: string) => void
 }
 
 export type InputProps = {
@@ -47,13 +47,13 @@ export type InputProps = {
     fullName: string
     teamname: string
   }>
-  suggestUsers: I.List<{
+  suggestUsers: Array<{
     username: string
     fullName: string
     teamname?: string
   }>
-  suggestChannels: I.List<string>
-  suggestAllChannels: I.List<{
+  suggestChannels: Array<string>
+  suggestAllChannels: Array<{
     teamname: string
     channelname: string
   }>

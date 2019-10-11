@@ -50,88 +50,126 @@ const messageIDToOrdinal = (
   return null
 }
 
-const metaMapReducer = (metaMap: Container.Draft<Types.State['metaMap']>, action: Chat2Gen.Actions) => {
+const metaMapReducer = (
+  metaMap: Container.Draft<Types.State['metaMap']>,
+  action: Chat2Gen.Actions
+): Container.Draft<Types.State['metaMap']> => {
   switch (action.type) {
-    case Chat2Gen.setConversationOffline:
-      return metaMap.update(action.payload.conversationIDKey, meta =>
-        meta ? meta.set('offline', action.payload.offline) : meta
+    case Chat2Gen.setConversationOffline: {
+      const {conversationIDKey, offline} = action.payload
+      const old = metaMap.get(conversationIDKey)
+      if (old) {
+        const mm = new Map(metaMap)
+        mm.set(conversationIDKey, {
+          ...old,
+          offline,
+        })
+        return mm
+      }
+      return metaMap
+    }
+    case Chat2Gen.metaDelete: {
+      const {conversationIDKey} = action.payload
+      const mm = new Map(metaMap)
+      mm.delete(conversationIDKey)
+      return mm
+    }
+    case Chat2Gen.notificationSettingsUpdated: {
+      const {conversationIDKey, settings} = action.payload
+      const old = metaMap.get(conversationIDKey)
+      if (old) {
+        const mm = new Map(metaMap)
+        mm.set(conversationIDKey, Constants.updateMetaWithNotificationSettings(old, settings))
+        return mm
+      }
+      return metaMap
+    }
+    case Chat2Gen.metaRequestingTrusted: {
+      const {conversationIDKeys} = action.payload
+      const mm = new Map(metaMap)
+      const ids = Constants.getConversationIDKeyMetasToLoad(
+        conversationIDKeys,
+        metaMap as Types.State['metaMap']
       )
-    case Chat2Gen.metaDelete:
-      return metaMap.delete(action.payload.conversationIDKey)
-    case Chat2Gen.notificationSettingsUpdated:
-      return metaMap.update(action.payload.conversationIDKey, meta =>
-        meta ? Constants.updateMetaWithNotificationSettings(meta, action.payload.settings) : meta
-      )
-    case Chat2Gen.metaRequestingTrusted:
-      return metaMap.withMutations(map =>
-        Constants.getConversationIDKeyMetasToLoad(
-          action.payload.conversationIDKeys,
-          metaMap as Types.State['metaMap']
-        ).forEach(conversationIDKey =>
-          map.update(conversationIDKey, meta => (meta ? meta.set('trustedState', 'requesting') : meta))
-        )
-      )
+      ids.forEach(conversationIDKey => {
+        const old = mm.get(conversationIDKey)
+        if (old) {
+          mm.set(conversationIDKey, {...old, trustedState: 'requesting'})
+        }
+      })
+      return mm
+    }
     case Chat2Gen.metaReceivedError: {
-      const {error} = action.payload
+      const {error, username, conversationIDKey} = action.payload
       if (error) {
         switch (error.typ) {
           case RPCChatTypes.ConversationErrorType.otherrekeyneeded: // fallthrough
           case RPCChatTypes.ConversationErrorType.selfrekeyneeded: {
-            const {username, conversationIDKey} = action.payload
             const rekeyInfo = error.rekeyInfo
-            const participants = rekeyInfo
-              ? I.Set<string>(
-                  ([] as Array<string>)
-                    .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
-                    .filter(Boolean)
-                ).toList()
-              : I.OrderedSet<string>(error.unverifiedTLFName.split(',')).toList()
+            const participants = [
+              ...(rekeyInfo
+                ? new Set<string>(
+                    ([] as Array<string>)
+                      .concat(rekeyInfo.writerNames || [], rekeyInfo.readerNames || [])
+                      .filter(Boolean)
+                  )
+                : new Set<string>(error.unverifiedTLFName.split(','))),
+            ]
 
-            const rekeyers = I.Set<string>(
+            const rekeyers = new Set<string>(
               error.typ === RPCChatTypes.ConversationErrorType.selfrekeyneeded
                 ? [username || '']
                 : (error.rekeyInfo && error.rekeyInfo.rekeyers) || []
             )
-            let newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
+            const newMeta = Constants.unverifiedInboxUIItemToConversationMeta(error.remoteConv)
             if (!newMeta) {
               // public conversation, do nothing
               return metaMap
             }
-            newMeta = newMeta.merge({
+            const mm = new Map(metaMap)
+            mm.set(conversationIDKey, {
+              ...newMeta,
               participants,
               rekeyers,
               snippet: error.message,
               snippetDecoration: '',
               trustedState: 'error' as const,
             })
-            return metaMap.set(conversationIDKey, newMeta)
+            return mm
           }
-          default:
-            return metaMap.update(action.payload.conversationIDKey, old =>
-              old
-                ? old.withMutations(m => {
-                    m.set('trustedState', 'error')
-                    m.set('snippet', error.message)
-                    m.set('snippetDecoration', '')
-                  })
-                : old
-            )
+          default: {
+            const old = metaMap.get(conversationIDKey)
+            if (old) {
+              const mm = new Map(metaMap)
+              mm.set(conversationIDKey, {
+                ...old,
+                snippet: error.message,
+                snippetDecoration: '',
+                trustedState: 'error',
+              })
+              return mm
+            }
+            return metaMap
+          }
         }
       } else {
-        return metaMap.delete(action.payload.conversationIDKey)
+        const mm = new Map(metaMap)
+        mm.delete(action.payload.conversationIDKey)
+        return mm
       }
     }
     case Chat2Gen.clearMetas:
-      return metaMap.clear()
-    case Chat2Gen.metasReceived:
-      return metaMap.withMutations(map => {
-        map.deleteAll(action.payload.removals || [])
-        action.payload.metas.forEach(meta => {
-          map.update(meta.conversationIDKey, old => {
-            return old ? Constants.updateMeta(old, meta) : meta
-          })
-        })
+      return new Map()
+    case Chat2Gen.metasReceived: {
+      const mm = new Map(metaMap)
+      const {removals, metas} = action.payload
+      ;(removals || []).forEach(m => mm.delete(m))
+      metas.forEach(m => {
+        const old = mm.get(m.conversationIDKey)
+        mm.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
       })
+      return mm
+    }
     case Chat2Gen.updateConvRetentionPolicy: {
       const {meta} = action.payload
       const newMeta = meta
@@ -143,26 +181,28 @@ const metaMapReducer = (metaMap: Container.Draft<Types.State['metaMap']>, action
     }
     case Chat2Gen.updateTeamRetentionPolicy: {
       const {metas} = action.payload
-      const newMetas = metas.reduce<{[key: string]: Types.ConversationMeta}>((updated, meta) => {
-        const newMeta = meta
-        if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
+      const mm = new Map(metaMap)
+      metas.forEach(meta => {
+        if (meta && metaMap.has(meta.conversationIDKey)) {
           // only insert if the convo is already in the inbox
-          updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
+          mm.set(meta.conversationIDKey, meta)
         }
-        return updated
-      }, {})
-      return metaMap.merge(newMetas)
+      })
+      return mm
     }
     case Chat2Gen.saveMinWriterRole: {
       const {cannotWrite, conversationIDKey, role} = action.payload
-      return metaMap.update(conversationIDKey, old => {
-        if (old) {
-          return old.set('cannotWrite', cannotWrite).set('minWriterRole', role)
-        }
-        // if we haven't loaded it yet we'll load it on navigation into the
-        // convo
-        return old
+      const old = metaMap.get(conversationIDKey)
+      if (!old) {
+        return metaMap
+      }
+      const mm = new Map(metaMap)
+      mm.set(conversationIDKey, {
+        ...old,
+        cannotWrite,
+        minWriterRole: role,
       })
+      return mm
     }
     default:
       return metaMap
@@ -419,10 +459,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
 
           const conversationIDKey = action.payload.conversationIDKey
           if (conversationIDKey) {
-            const {readMsgID, maxVisibleMsgID} = draftState.metaMap.get(
-              conversationIDKey,
-              Constants.makeConversationMeta()
-            )
+            const {readMsgID, maxVisibleMsgID} =
+              draftState.metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
+
             logger.info(
               `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
             )
@@ -456,12 +495,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           }
           const prevConvIDKey = draftState.selectedConversation
           // blank out draft so we don't flash old data when switching convs
-          draftState.metaMap = draftState.metaMap.updateIn(
-            ['metaMap', prevConvIDKey],
-            (m: Types.ConversationMeta) => {
-              return m ? m.merge({draft: ''}) : m
-            }
-          )
+          const meta = draftState.metaMap.get(prevConvIDKey)
+          if (meta) {
+            const metaMap = new Map(draftState.metaMap)
+            meta.draft = ''
+            metaMap.set(prevConvIDKey, meta)
+            draftState.metaMap = metaMap
+          }
           draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(conversationIDKey)
           const threadLoadStatus = new Map(draftState.threadLoadStatus)
           threadLoadStatus.delete(conversationIDKey)
@@ -842,7 +882,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             if (!action.payload.forceContainsLatestCalc && map.get(conversationIDKey, false)) {
               return
             }
-            const meta = draftState.metaMap.get(conversationIDKey, null)
+            const meta = draftState.metaMap.get(conversationIDKey)
             const ordinals = messageOrdinals.get(conversationIDKey, I.OrderedSet()).toArray()
             let maxMsgID = 0
             const convMsgMap = messageMap.get(conversationIDKey, I.Map<Types.Ordinal, Types.Message>())

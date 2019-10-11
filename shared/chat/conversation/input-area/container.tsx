@@ -23,7 +23,7 @@ type Props = {
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
-  let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
+  let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
   const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
 
   if (

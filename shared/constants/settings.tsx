@@ -123,7 +123,7 @@ export const getExtraChatLogsForLogSend = (state: TypedState) => {
   const chat = state.chat2
   const c = state.chat2.selectedConversation
   if (c) {
-    const metaMap = getMeta(state, c).toJS()
+    const metaMap = getMeta(state, c)
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),

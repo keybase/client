@@ -5,7 +5,7 @@ import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import HiddenString from '../../../../util/hidden-string'
-import {namedConnect} from '../../../../util/container'
+import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
 import Input from '.'
 
@@ -29,13 +29,20 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const getTeams = memoize(metaMap =>
-  Constants.getTeams(metaMap)
-    .map(t => ({fullName: '', teamname: t, username: ''}))
-    .sort((a, b) => a.teamname.localeCompare(b.teamname))
-)
+const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
+  const bigTeams = (layout && layout.bigTeams) || []
+  return bigTeams
+    .reduce<Array<string>>((arr, l) => {
+      if (l.state === RPCChatTypes.UIInboxBigTeamRowTyp.label) {
+        arr.push(l.label)
+      }
+      return arr
+    }, [])
+    .sort()
+    .map(teamname => ({fullName: '', teamname, username: ''}))
+})
 
-export default namedConnect(
+export default Container.namedConnect(
   (state, {conversationIDKey}: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, conversationIDKey)
     const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
@@ -90,6 +97,7 @@ export default namedConnect(
       suggestBotCommandsUpdateStatus,
       suggestChannels: Constants.getChannelSuggestions(state, teamname),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
+      suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
       typing: Constants.getTyping(state, conversationIDKey),
       unsentText,
@@ -181,7 +189,6 @@ export default namedConnect(
       }
       return ret
     },
-
     isActiveForFocus: stateProps.isActiveForFocus,
     isEditExploded: stateProps.isEditExploded,
     isEditing: !!stateProps._editOrdinal,
@@ -252,13 +259,12 @@ export default namedConnect(
     suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
     suggestChannels: stateProps.suggestChannels,
     suggestCommands: stateProps.suggestCommands,
-    suggestTeams: getTeams(stateProps._metaMap),
+    suggestTeams: stateProps.suggestTeams,
     suggestUsers: stateProps.suggestUsers,
     unsentText: stateProps.unsentText ? stateProps.unsentText.stringValue() : null,
     unsentTextChanged: (text: string) => {
       dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
     },
   }),
-
   'Input'
 )(Input)

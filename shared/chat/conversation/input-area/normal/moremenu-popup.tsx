@@ -58,7 +58,7 @@ const MoreMenuPopup = (props: Props) => {
   let to = ''
   if (wallet) {
     const otherParticipants = meta.participants.filter(u => u !== you)
-    to = otherParticipants.first()
+    to = (otherParticipants && otherParticipants[0]) || ''
   }
   const onSendLumens = wallet ? () => onLumens(to, false) : undefined
   const onRequestLumens = wallet ? () => onLumens(to, true) : undefined

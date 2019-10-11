@@ -106,7 +106,7 @@ const inboxRefresh = (
 
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: TypedState, ids: Array<Types.ConversationIDKey>) =>
-  ids.filter(id => state.chat2.metaMap.getIn([id, 'trustedState'], 'untrusted') === 'untrusted')
+  ids.filter(id => (state.chat2.metaMap.get(id) || {trustedState: 'untrusted'}).trustedState === 'untrusted')
 
 // We keep a set of conversations to unbox
 let metaQueue = I.OrderedSet()
@@ -1057,7 +1057,7 @@ function* loadMoreMessages(
 
   const meta = Constants.getMeta(state, conversationIDKey)
 
-  if (meta.membershipType === 'youAreReset' || !meta.rekeyers.isEmpty()) {
+  if (meta.membershipType === 'youAreReset' || meta.rekeyers.size > 0) {
     logger.info('bail: we are reset')
     return
   }
@@ -1209,7 +1209,7 @@ function* getUnreadline(
     return
   }
 
-  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
+  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey) || Constants.makeConversationMeta()
   try {
     const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
       convID,
@@ -1977,7 +1977,19 @@ const _maybeAutoselectNewestConversation = (
   }
 
   // If we got here we're auto selecting the newest convo
-  const meta = state.chat2.metaMap.maxBy(meta => (isEligibleConvo(meta) ? meta.timestamp : 0))
+  const meta = [...state.chat2.metaMap.values()].reduce<{max: number; maxMeta?: Types.ConversationMeta}>(
+    (i, m) => {
+      const t = (isEligibleConvo(m) && m.timestamp) || 0
+      if (t > i.max) {
+        return {
+          max: t,
+          maxMeta: m,
+        }
+      }
+      return i
+    },
+    {max: 0}
+  ).maxMeta
 
   if (meta && isEligibleConvo(meta)) {
     return Chat2Gen.createSelectConversation({
@@ -2030,9 +2042,7 @@ const onUpdateUserReacjis = (state: TypedState) => {
 const openFolder = (state: TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc'
-      ? teamFolder(meta.teamname)
-      : privateFolderWithUsers(meta.participants.toArray())
+    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.participants)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
@@ -2211,9 +2221,10 @@ const resetChatWithoutThem = (state: TypedState, action: Chat2Gen.ResetChatWitho
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   // remove all bad people
-  const goodParticipants = meta.participants.toSet().subtract(meta.resetParticipants)
+  const goodParticipants = new Set(meta.participants)
+  meta.resetParticipants.forEach(r => goodParticipants.delete(r))
   return Chat2Gen.createPreviewConversation({
-    participants: goodParticipants.toArray(),
+    participants: [...goodParticipants],
     reason: 'resetChatWithoutThem',
   })
 }
@@ -2541,10 +2552,9 @@ const fetchConversationBio = async (state: TypedState, action: Chat2Gen.SelectCo
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '')
-
-  // we're in a one-on-one convo
-  if (otherParticipants.count() === 1) {
-    const username = otherParticipants.first('')
+  if (otherParticipants.length === 1) {
+    // we're in a one-on-one convo
+    const username = otherParticipants[0] || ''
 
     // if this is an SBS/phone/email convo or we get a garbage username, don't do anything
     if (username === '' || username.includes('@')) {

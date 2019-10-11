@@ -39,7 +39,7 @@ type OwnProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const showResetParticipants = !meta.resetParticipants.isEmpty() ? ownProps.conversationIDKey : null
+  const showResetParticipants = meta.resetParticipants.size !== 0 ? ownProps.conversationIDKey : null
   const showSuperseded =
     meta && (meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey)
       ? ownProps.conversationIDKey

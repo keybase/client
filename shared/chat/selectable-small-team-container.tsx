@@ -36,7 +36,7 @@ const mergeProps = (stateProps, _, ownProps) => {
 
   // order participants by hit, if it's set
   const filter = ownProps.filter || ''
-  const metaParts = Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray()
+  const metaParts = Constants.getRowParticipants(stateProps._meta, stateProps._username)
   let participants = metaParts.length > 0 ? metaParts : ownProps.name.split(',')
   participants = participants.sort((a, b) => {
     const ai = a.indexOf(filter)
