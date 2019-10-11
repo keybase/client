@@ -144,9 +144,9 @@ const metaMapReducer = (
               const mm = new Map(metaMap)
               mm.set(conversationIDKey, {
                 ...old,
-                trustedState: 'error',
                 snippet: error.message,
                 snippetDecoration: '',
+                trustedState: 'error',
               })
               return mm
             }
