@@ -43,25 +43,18 @@ func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
 // sort of unexpected state. If `ret` is `true`, then `uid` will convey
 // which user is logged in.
 //
-// Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
-// flow and therefore will try its best to unlocked locked keys if it can
-// without user interaction.
+// Under the hood, IsLoggedIn checks whether mctx's record of ActiveDevice
+// is complete.
 func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID, err error) {
-	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
-	return ret, uid, err
+	return m.ActiveDevice().Valid(), m.G().Env.GetUID(), nil
 }
 
 func isLoggedIn(m libkb.MetaContext) (ret bool, uid keybase1.UID) {
-	ret, uid, _ = libkb.BootstrapActiveDeviceWithMetaContext(m)
-	return ret, uid
+	return m.ActiveDevice().Valid(), m.G().Env.GetUID()
 }
 
 func isLoggedInAs(m libkb.MetaContext, uid keybase1.UID) (ret bool) {
-	ret, err := libkb.BootstrapActiveDeviceWithMetaContextAndAssertUID(m, uid)
-	if err != nil {
-		m.Debug("isLoggedAs error: %s", err)
-	}
-	return ret
+	return m.ActiveDevice().Valid() && uid == m.G().Env.GetUID()
 }
 
 func isLoggedInWithError(m libkb.MetaContext) (ret bool, err error) {
