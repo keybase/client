@@ -1,0 +1,60 @@
+[1;33mdiff --git a/RCTStatusBarManager.m b/RCTStatusBarManager.m[m
+[1;33mindex 9b6f9d6..95ccc68 100644[m
+[1;33m--- a/RCTStatusBarManager.m[m
+[1;33m+++ b/RCTStatusBarManager.m[m
+[1;35m@@ -14,17 +14,44 @@[m
+ #if !TARGET_OS_TV[m
+ @implementation RCTConvert (UIStatusBar)[m
+ [m
+[1;31m-RCT_ENUM_CONVERTER(UIStatusBarStyle, (@{[m
+[1;31m-  @"default": @(UIStatusBarStyleDefault),[m
+[1;31m-  @"light-content": @(UIStatusBarStyleLightContent),[m
+[1;31m-  @"dark-content": @(UIStatusBarStyleDefault),[m
+[1;31m-}), UIStatusBarStyleDefault, integerValue);[m
+[1;31m-[m
+[1;31m-RCT_ENUM_CONVERTER(UIStatusBarAnimation, (@{[m
+[1;31m-  @"none": @(UIStatusBarAnimationNone),[m
+[1;31m-  @"fade": @(UIStatusBarAnimationFade),[m
+[1;31m-  @"slide": @(UIStatusBarAnimationSlide),[m
+[1;31m-}), UIStatusBarAnimationNone, integerValue);[m
+[1;32m+[m[1;32m+ (UIStatusBarStyle)UIStatusBarStyle:(id)json RCT_DYNAMIC[m
+[1;32m+[m[1;32m{[m
+[1;32m+[m[1;32m  static NSDictionary *mapping;[m
+[1;32m+[m[1;32m  static dispatch_once_t onceToken;[m
+[1;32m+[m[1;32m  dispatch_once(&onceToken, ^{[m
+[1;32m+[m[1;32m    if (@available(iOS 13.0, *)) {[m
+[1;32m+[m[1;32m      mapping = @{[m
+[1;32m+[m[1;32m        @"default" : @(UIStatusBarStyleDefault),[m
+[1;32m+[m[1;32m        @"light-content" : @(UIStatusBarStyleLightContent),[m
+[1;32m+[m[1;32m#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && defined(__IPHONE_13_0) && \[m
+[1;32m+[m[1;32m    __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_13_0[m
+[1;32m+[m[1;32m        @"dark-content" : @(UIStatusBarStyleDarkContent)[m
+[1;32m+[m[1;32m#else[m
+[1;32m+[m[1;32m          @"dark-content": @(UIStatusBarStyleDefault)[m
+[1;32m+[m[1;32m#endif[m
+[1;32m+[m[1;32m      };[m
+[1;32m+[m
+[1;32m+[m[1;32m    } else {[m
+[1;32m+[m[1;32m      mapping = @{[m
+[1;32m+[m[1;32m        @"default" : @(UIStatusBarStyleDefault),[m
+[1;32m+[m[1;32m        @"light-content" : @(UIStatusBarStyleLightContent),[m
+[1;32m+[m[1;32m        @"dark-content" : @(UIStatusBarStyleDefault)[m
+[1;32m+[m[1;32m      };[m
+[1;32m+[m[1;32m    }[m
+[1;32m+[m[1;32m  });[m
+[1;32m+[m[1;32m  return _RCT_CAST([m
+[1;32m+[m[1;32m      type, [RCTConvertEnumValue("UIStatusBarStyle", mapping, @(UIStatusBarStyleDefault), json) integerValue]);[m
+[1;32m+[m[1;32m}[m
+[1;32m+[m
+[1;32m+[m[1;32mRCT_ENUM_CONVERTER([m
+[1;32m+[m[1;32m    UIStatusBarAnimation,[m
+[1;32m+[m[1;32m    (@{[m
+[1;32m+[m[1;32m      @"none" : @(UIStatusBarAnimationNone),[m
+[1;32m+[m[1;32m      @"fade" : @(UIStatusBarAnimationFade),[m
+[1;32m+[m[1;32m      @"slide" : @(UIStatusBarAnimationSlide),[m
+[1;32m+[m[1;32m    }),[m
+[1;32m+[m[1;32m    UIStatusBarAnimationNone,[m
+[1;32m+[m[1;32m    integerValue);[m
+ [m
+ @end[m
+ #endif[m
