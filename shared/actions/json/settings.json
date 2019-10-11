@@ -93,11 +93,6 @@
     "invitesReclaim": {
       "inviteId": "string"
     },
-    "invitesReclaimed": {
-      "canError": {
-        "errorText": "string"
-      }
-    },
     "invitesRefresh": {},
     "invitesRefreshed": {
       "invites": "Types._InvitesState"
@@ -107,9 +102,7 @@
       "message": "string | null"
     },
     "invitesSent": {
-      "canError": {
-        "error": "Error"
-      }
+      "error?": "Error"
     },
     "loadRememberPassword": {},
     "loadedRememberPassword": {

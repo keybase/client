@@ -17,8 +17,7 @@ export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
 export const waiting = 'unlock-folders:waiting'
 
 // Payload Types
-type _CheckPaperKeyDonePayload = void
-type _CheckPaperKeyDonePayloadError = {readonly error: string}
+type _CheckPaperKeyDonePayload = {readonly error?: string}
 type _CheckPaperKeyPayload = {readonly paperKey: string}
 type _CloseDonePayload = void
 type _ClosePopupPayload = void
@@ -38,13 +37,9 @@ export const createCheckPaperKey = (payload: _CheckPaperKeyPayload): CheckPaperK
   payload,
   type: checkPaperKey,
 })
-export const createCheckPaperKeyDone = (payload: _CheckPaperKeyDonePayload): CheckPaperKeyDonePayload => ({
-  payload,
-  type: checkPaperKeyDone,
-})
-export const createCheckPaperKeyDoneError = (
-  payload: _CheckPaperKeyDonePayloadError
-): CheckPaperKeyDonePayloadError => ({error: true, payload, type: checkPaperKeyDone})
+export const createCheckPaperKeyDone = (
+  payload: _CheckPaperKeyDonePayload = Object.freeze({})
+): CheckPaperKeyDonePayload => ({payload, type: checkPaperKeyDone})
 export const createCloseDone = (payload: _CloseDonePayload): CloseDonePayload => ({payload, type: closeDone})
 export const createClosePopup = (payload: _ClosePopupPayload): ClosePopupPayload => ({
   payload,
@@ -69,11 +64,6 @@ export const createWaiting = (payload: _WaitingPayload): WaitingPayload => ({pay
 // Action Payloads
 export type CheckPaperKeyDonePayload = {
   readonly payload: _CheckPaperKeyDonePayload
-  readonly type: typeof checkPaperKeyDone
-}
-export type CheckPaperKeyDonePayloadError = {
-  readonly error: true
-  readonly payload: _CheckPaperKeyDonePayloadError
   readonly type: typeof checkPaperKeyDone
 }
 export type CheckPaperKeyPayload = {
@@ -102,7 +92,6 @@ export type WaitingPayload = {readonly payload: _WaitingPayload; readonly type: 
 // prettier-ignore
 export type Actions =
   | CheckPaperKeyDonePayload
-  | CheckPaperKeyDonePayloadError
   | CheckPaperKeyPayload
   | CloseDonePayload
   | ClosePopupPayload

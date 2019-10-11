@@ -4,7 +4,6 @@ import * as I from 'immutable'
 import * as Constants from '../constants/wallets'
 import * as Types from '../constants/types/wallets'
 import * as WalletsGen from '../actions/wallets-gen'
-import {actionHasError} from '../util/container'
 import HiddenString from '../util/hidden-string'
 import teamBuildingReducer from './team-building'
 
@@ -39,16 +38,16 @@ export default function(
       return state.merge({accountMap: accountMap})
     }
     case WalletsGen.changedAccountName:
-    case WalletsGen.accountUpdateReceived:
+    case WalletsGen.accountUpdateReceived: {
+      const {account} = action.payload
       // accept the updated account if we've loaded it already
       // this is because we get the sort order from the full accounts load,
       // and can't figure it out from these notifications alone.
-      if (state.accountMap.get(action.payload.account.accountID)) {
-        return state.update('accountMap', am =>
-          am.update(action.payload.account.accountID, acc => acc.merge(action.payload.account))
-        )
+      if (account && state.accountMap.get(account.accountID)) {
+        return state.update('accountMap', am => am.update(account.accountID, acc => acc.merge(account)))
       }
       return state
+    }
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
     case WalletsGen.buildPayment:
@@ -352,8 +351,8 @@ export default function(
       }
       return state.merge({
         accountName: '',
-        accountNameError: actionHasError(action) ? action.payload.error : '',
-        accountNameValidationState: actionHasError(action) ? 'error' : 'valid',
+        accountNameError: action.payload.error ? action.payload.error : '',
+        accountNameValidationState: action.payload.error ? 'error' : 'valid',
       })
     case WalletsGen.validateSecretKey:
       return state.merge({
@@ -367,13 +366,11 @@ export default function(
       }
       return state.merge({
         secretKey: new HiddenString(''),
-        secretKeyError: actionHasError(action) ? action.payload.error : '',
-        secretKeyValidationState: actionHasError(action) ? 'error' : 'valid',
+        secretKeyError: action.payload.error ? action.payload.error : '',
+        secretKeyValidationState: action.payload.error ? 'error' : 'valid',
       })
     case WalletsGen.changedTrustline:
-      return actionHasError(action)
-        ? state.merge({changeTrustlineError: action.payload.error})
-        : state.merge({changeTrustlineError: ''})
+      return state.merge({changeTrustlineError: action.payload.error || ''})
     case WalletsGen.clearErrors:
       return state.merge({
         accountName: '',
@@ -389,7 +386,7 @@ export default function(
         sentPaymentError: '',
       })
     case WalletsGen.createdNewAccount:
-      return actionHasError(action)
+      return action.payload.error
         ? state.merge({createNewAccountError: action.payload.error})
         : state.merge({
             accountName: '',
@@ -404,7 +401,7 @@ export default function(
             selectedAccount: action.payload.accountID,
           })
     case WalletsGen.linkedExistingAccount:
-      return actionHasError(action)
+      return action.payload.error
         ? state.merge({linkExistingAccountError: action.payload.error})
         : state.merge({
             accountName: '',
@@ -442,7 +439,7 @@ export default function(
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.inflationDestinationReceived:
-      return actionHasError(action)
+      return action.payload.error || !action.payload.accountID || !action.payload.selected
         ? state.merge({inflationDestinationError: action.payload.error})
         : state.merge({
             inflationDestinationError: '',

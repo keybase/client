@@ -106,13 +106,11 @@
     },
     "createdNewAccount": {
       "_description": "The service responded with an error or that the create new account operation succeeded",
-      "accountID": "Types.AccountID",
+      "accountID?": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
-      "canError": {
-        "name": "string",
-        "error": "string"
-      }
+      "name?": "string",
+      "error?": "string"
     },
     "externalPartnersReceived": {
       "_description": "Update our list of external tools and partners",
@@ -148,10 +146,10 @@
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
-      "accountID": "Types.AccountID",
-      "selected": "Types.AccountInflationDestination",
+      "accountID?": "Types.AccountID",
+      "selected?": "Types.AccountInflationDestination",
       "options?": "Array<Types.InflationDestination>",
-      "canError": {"error": "string"}
+      "error?": "string"
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
@@ -201,12 +199,9 @@
     },
     "changedAccountName": {
       "_description": "A response from the service after an account's name is changed",
-      "account": "Types.Account",
-      "canError": {
-        "name": "string",
-        "account": "Types.Account",
-        "error": "string"
-      }
+      "name?": "string",
+      "account?": "Types.Account",
+      "error?": "string"
     },
     "setAccountAsDefault": {
       "_description": "Change the default account",
@@ -405,14 +400,12 @@
     },
     "linkedExistingAccount": {
       "_description": "The service responded with an error or that the link existing operation succeeded",
-      "accountID": "Types.AccountID",
+      "accountID?": "Types.AccountID",
       "showOnCreation?": "boolean",
       "setBuildingTo?": "boolean",
-      "canError": {
-        "name": "string",
-        "secretKey": "HiddenString",
-        "error": "string"
-      }
+      "name?": "string",
+      "secretKey?": "HiddenString",
+      "error?": "string"
     },
     "rejectDisclaimer": {
       "_description": "Reject (temporarily) the Stellar account disclaimer"
@@ -424,10 +417,7 @@
     "validatedAccountName": {
       "_description": "The service responded with an error or that the account name is valid.",
       "name": "string",
-      "canError": {
-        "name": "string",
-        "error": "string"
-      }
+      "error?": "string"
     },
     "validateSecretKey": {
       "_description": "Ask the service to validate an account secret key.",
@@ -436,10 +426,7 @@
     "validatedSecretKey": {
       "_description": "The service responded with an error or that the secret key is valid.",
       "secretKey": "HiddenString",
-      "canError": {
-        "secretKey": "HiddenString",
-        "error": "string"
-      }
+      "error?": "string"
     },
     "validateSEP7Link": {
       "_description": "Validate and handle a SEP7 Stellar URL link sent to the app.",
@@ -500,9 +487,7 @@
       "assetID": "Types.AssetID"
     },
     "changedTrustline": {
-      "canError": {
-        "error": "string"
-      }
+      "error?": "string"
     },
     "setTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID",

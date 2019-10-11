@@ -12,7 +12,6 @@ import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
-import {actionHasError} from '../util/container'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -297,14 +296,14 @@ const messageMapReducer = (
           if (!message || message.type !== 'attachment') {
             return message
           }
-          const path = (!actionHasError(action) && action.payload.path) || ''
+          const path = (!action.payload.error && action.payload.path) || ''
           return message
             .set('downloadPath', path)
             .set('transferProgress', 0)
             .set('transferState', null)
             .set(
               'transferErrMsg',
-              actionHasError(action) ? action.payload.error || 'Error downloading attachment' : null
+              action.payload.error ? action.payload.error || 'Error downloading attachment' : null
             )
             .set('fileURLCached', true) // assume we have this on the service now
         }
@@ -571,7 +570,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         )
         return
       case Chat2Gen.setPaymentConfirmInfo:
-        draftState.paymentConfirmInfo = actionHasError(action)
+        draftState.paymentConfirmInfo = action.payload.error
           ? {error: action.payload.error}
           : {summary: action.payload.summary}
         return
@@ -1506,7 +1505,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         // @ts-ignore remove canError actions soon
         const {message, path, conversationIDKey} = action.payload
         if (
-          !actionHasError(action) &&
+          !action.payload.error &&
           draftState.attachmentFullscreenSelection &&
           draftState.attachmentFullscreenSelection.message.conversationIDKey === message.conversationIDKey &&
           draftState.attachmentFullscreenSelection.message.id === message.id &&

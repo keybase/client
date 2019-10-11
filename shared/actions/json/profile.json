@@ -32,7 +32,7 @@
       "location": "string"
     },
     "revokeFinish": {
-      "canError": {"error": "string"}
+      "error?": "string"
     },
     "finishRevoking": {},
     "finishedWithKeyGen": {
@@ -54,7 +54,7 @@
       "guiID": "string"
     },
     "finishBlockUser": {
-      "canError": {"error": "string"}
+      "error?": "string"
     },
     "updateErrorText": {
       "errorText": "string",

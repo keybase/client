@@ -15,9 +15,6 @@ export const emptyArray: Array<any> = []
 export const emptySet = new Set<any>()
 export const emptyMap = new Map<any, any>()
 export const NullComponent = () => null
-export const actionHasError = <NoError extends {}, HasError extends {error: boolean}>(
-  a: NoError | HasError
-): a is HasError => Object.prototype.hasOwnProperty.call(a, 'error')
 
 export const networkErrorCodes = [
   StatusCode.scgenericapierror,
