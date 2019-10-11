@@ -43,10 +43,6 @@ func NewTree(c Config, step int, e StorageEngine, v RootVersion) (*Tree, error) 
 		return nil, fmt.Errorf("step must be a positive integer")
 	}
 
-	if v.GetEncodingType() != c.Encoder.GetEncodingType() {
-		return nil, fmt.Errorf("RootVersion doesn't match the encoding type.")
-	}
-
 	return &Tree{cfg: c, eng: e, step: step, newRootVersion: v}, nil
 }
 
@@ -179,24 +175,12 @@ type RootVersion uint8
 const (
 	RootVersionV1      RootVersion = 1
 	CurrentRootVersion RootVersion = RootVersionV1
-
-	RootVersionTesting RootVersion = 127
 )
-
-func (r RootVersion) GetEncodingType() EncodingType {
-	switch r {
-	case RootVersionV1:
-		return EncodingTypeBlindedSHA512_256v1
-	case RootVersionTesting:
-		return EncodingTypeForTesting
-	default:
-		panic(fmt.Sprintf("Unrecognized root version: %v", r))
-	}
-}
 
 type RootMetadata struct {
 	_struct          struct{} `codec:",toarray"` //nolint
 	RootVersion      RootVersion
+	EncodingType     EncodingType
 	Seqno            Seqno
 	BareRootHash     Hash
 	SkipPointersHash Hash
@@ -210,14 +194,21 @@ type RootMetadata struct {
 	AddOnsHash Hash
 }
 
-func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction, curr *RootMetadata, newRootHash Hash) (RootMetadata, error) {
-	if curr == nil {
-		return RootMetadata{
-			RootVersion:  t.newRootVersion,
-			Seqno:        1,
-			BareRootHash: newRootHash,
-		}, nil
+func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction, curr *RootMetadata, newRootHash Hash, addOnsHash Hash) (RootMetadata, error) {
+	root := RootMetadata{
+		RootVersion:  t.newRootVersion,
+		EncodingType: t.cfg.Encoder.GetEncodingType(),
+		BareRootHash: newRootHash,
+		AddOnsHash:   addOnsHash,
 	}
+
+	// If there is no previous root, we do not need to include any skips, so
+	// return early.
+	if curr == nil {
+		root.Seqno = 1
+		return root, nil
+	}
+
 	newSeqno := curr.Seqno + 1
 	skipSeqnos := SkipPointersForSeqno(newSeqno)
 
@@ -231,12 +222,10 @@ func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction,
 		return RootMetadata{}, fmt.Errorf("makeNextRootMetadata: error encoding %+v, err: %v", skips, err)
 	}
 
-	return RootMetadata{
-		RootVersion:      t.newRootVersion,
-		Seqno:            curr.Seqno + 1,
-		SkipPointersHash: skipsHash,
-		BareRootHash:     newRootHash,
-	}, nil
+	root.Seqno = curr.Seqno + 1
+	root.SkipPointersHash = skipsHash
+
+	return root, nil
 }
 
 func (t *Tree) GenerateAndStoreMasterSecret(
@@ -274,7 +263,7 @@ func (t *Tree) encodeKVPairs(sortedKVPairs []KeyValuePair) (kevPairs []KeyEncode
 // state. This function does not check the condition is true for efficiency
 // reasons.
 func (t *Tree) Build(
-	ctx logger.ContextInterface, tr Transaction, sortedKVPairs []KeyValuePair) (s Seqno, rootHash Hash, err error) {
+	ctx logger.ContextInterface, tr Transaction, sortedKVPairs []KeyValuePair, addOnsHash Hash) (s Seqno, rootHash Hash, err error) {
 	t.Lock()
 	defer t.Unlock()
 
@@ -318,7 +307,7 @@ func (t *Tree) Build(
 		return 0, nil, err
 	}
 
-	newRootMetadata, err := t.makeNextRootMetadata(ctx, tr, &rootMetadata, newBareRootHash)
+	newRootMetadata, err := t.makeNextRootMetadata(ctx, tr, &rootMetadata, newBareRootHash, addOnsHash)
 	if err != nil {
 		return 0, nil, err
 	}

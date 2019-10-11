@@ -36,7 +36,7 @@ func TestEmptyTree(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
-			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionTesting)
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
 			require.NoError(t, err)
 
 			seq, root, hash, err := tree.GetLatestRoot(NewLoggerContextTodoForTesting(t), nil)
@@ -63,7 +63,7 @@ func TestEmptyTree(t *testing.T) {
 			}
 
 			// building a tree without keys should succeed.
-			s, _, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, nil)
+			s, _, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, nil, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s)
 		})
@@ -93,7 +93,7 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
-			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionTesting)
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
 			require.NoError(t, err)
 
 			// This kvp has a key which is not part of test.kvps1
@@ -113,7 +113,7 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1)
+			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -148,7 +148,7 @@ func TestBuildTreeAndGetKeyValuePair(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2)
+			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2, nil)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -219,7 +219,7 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
-			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionTesting)
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
 			require.NoError(t, err)
 
 			// This kvp has a key which is not part of test.kvps1
@@ -233,7 +233,7 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, InvalidSeqnoError{}, err, "Expected InvalidSeqnoError, but got %v", err)
 
-			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1)
+			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -253,7 +253,7 @@ func TestBuildTreeAndGetKeyValuePairWithProof(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, KeyNotFoundError{}, err, "Expected KeyNotFoundError, but got %v", err)
 
-			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2)
+			_, _, err = tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2, nil)
 			require.NoError(t, err)
 
 			for _, kvp := range test.kvps1 {
@@ -311,11 +311,11 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
-			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionTesting)
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1)
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
@@ -327,7 +327,7 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 			}
 
-			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2)
+			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
@@ -381,7 +381,7 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 		{blindedBinaryTreeConfig, 1, 200, RootVersionV1},
 		{blindedBinaryTreeConfig, 2, 200, RootVersionV1},
 		{blindedBinaryTreeConfig, 80, 200, RootVersionV1},
-		{unblindedBinaryTreeConfig, 16, 1000, RootVersionTesting},
+		{unblindedBinaryTreeConfig, 16, 1000, RootVersionV1},
 		{blinded16aryTreeConfig, 16, 1000, RootVersionV1},
 		{blindedBinaryShallowTreeConfig, 16, 1000, RootVersionV1},
 		{blinded16aryShallowTreeConfig, 16, 1000, RootVersionV1},
@@ -400,7 +400,7 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 			kvp2, err := makeRandomKVPFromKeysForTesting(keys)
 			require.NoError(t, err)
 
-			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvp1)
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvp1, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
@@ -413,7 +413,7 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 				require.NoErrorf(t, err, "Error verifying proof for key %v: %v", key, err)
 			}
 
-			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvp2)
+			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvp2, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
@@ -464,11 +464,11 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
-			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionTesting)
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1)
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
@@ -544,11 +544,11 @@ func TestVerifyInclusionProofFailureBranches(t *testing.T) {
 		{Key: []byte{0x01, 0x12}, Value: "key0x0112Seqno1"},
 	}
 
-	tree, err := NewTree(cfg, defaultStep, NewInMemoryStorageEngine(cfg), RootVersionTesting)
+	tree, err := NewTree(cfg, defaultStep, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 	verifier := NewMerkleProofVerifier(cfg)
 
-	s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+	s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps, nil)
 	require.NoError(t, err)
 	require.EqualValues(t, 1, s1)
 
@@ -623,7 +623,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 
 			cfg, err := NewConfig(IdentityHasherBlinded{}, true, 2, 4, 2, ConstructStringValueContainer)
 			require.NoError(t, err)
-			tree, err := NewTree(cfg, test.step, NewInMemoryStorageEngine(cfg), RootVersionTesting)
+			tree, err := NewTree(cfg, test.step, NewInMemoryStorageEngine(cfg), RootVersionV1)
 			require.NoError(t, err)
 			verifier := NewMerkleProofVerifier(cfg)
 
@@ -631,7 +631,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 				{Key: []byte{0x00, 0x00}, Value: "key0x0000Seqno1"},
 			}
 
-			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps1)
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps1, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
@@ -648,7 +648,7 @@ func TestTreeWithoutInternalNodes(t *testing.T) {
 				{Key: []byte{0x00, 0x02}, Value: "key0x0002Seqno2"},
 			}
 
-			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps2)
+			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps2, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
@@ -691,10 +691,10 @@ func TestGetLatestRoot(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
-			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionTesting)
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
 			require.NoError(t, err)
 
-			s1, rootHash1Exp, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1)
+			s1, rootHash1Exp, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
@@ -702,7 +702,7 @@ func TestGetLatestRoot(t *testing.T) {
 			require.NoError(t, err)
 			require.True(t, rootHash1Exp.Equal(rootHash1))
 
-			s2, rootHash2Exp, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2)
+			s2, rootHash2Exp, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2, nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
@@ -759,7 +759,7 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	// make test deterministic
 	rand.Seed(1)
 
-	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionTesting)
+	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
 	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
@@ -771,8 +771,15 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	// build a bunch of tree versions:
 	for j := Seqno(1); j < maxSeqno; j++ {
 		kvps, err := makeRandomKVPFromKeysForTesting(keys)
+		addOnsHash := Hash(nil)
+		// put a random AddOnsHash in half of the tree roots
+		if rand.Intn(2) == 1 {
+			buf := make([]byte, 32)
+			rand.Read(buf)
+			addOnsHash = Hash(buf)
+		}
 		require.NoError(t, err)
-		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps, addOnsHash)
 		rootHashes[j] = hash
 		require.NoError(t, err)
 	}
@@ -845,7 +852,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	// make test deterministic
 	rand.Seed(1)
 
-	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionTesting)
+	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
 	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
@@ -858,7 +865,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	for j := Seqno(1); j < maxSeqno; j++ {
 		kvps, err := makeRandomKVPFromKeysForTesting(keys)
 		require.NoError(t, err)
-		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps, nil)
 		rootHashes[j] = hash
 		require.NoError(t, err)
 	}
@@ -936,7 +943,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	fakeEProof = eProof
 	fakeEProof.PreviousRootsNoSkips = make([]RootMetadata, len(eProof.PreviousRootsNoSkips))
 	copy(fakeEProof.PreviousRootsNoSkips, eProof.PreviousRootsNoSkips)
-	fakeRoot := RootMetadata{RootVersion: RootVersionTesting, Seqno: Seqno(257), SkipPointersHash: fakeHash}
+	fakeRoot := RootMetadata{RootVersion: RootVersionV1, Seqno: Seqno(257), SkipPointersHash: fakeHash}
 	fakeEProof.PreviousRootsNoSkips[1] = fakeRoot
 	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 	require.Error(t, err)
@@ -950,7 +957,7 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	// make test deterministic
 	rand.Seed(1)
 
-	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionTesting)
+	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
 	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
@@ -963,7 +970,7 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	for j := Seqno(1); j < maxSeqno; j++ {
 		kvps, err := makeRandomKVPFromKeysForTesting(keys)
 		require.NoError(t, err)
-		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps)
+		_, hash, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvps, nil)
 		rootHashes[j] = hash
 		require.NoError(t, err)
 	}
@@ -1055,7 +1062,7 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	fakeIEProof = ieProof
 	fakeIEProof.MerkleExtensionProof.PreviousRootsNoSkips = make([]RootMetadata, len(ieProof.MerkleExtensionProof.PreviousRootsNoSkips))
 	copy(fakeIEProof.MerkleExtensionProof.PreviousRootsNoSkips, ieProof.MerkleExtensionProof.PreviousRootsNoSkips)
-	fakeRoot := RootMetadata{RootVersion: RootVersionTesting, Seqno: Seqno(257), SkipPointersHash: fakeHash}
+	fakeRoot := RootMetadata{RootVersion: RootVersionV1, Seqno: Seqno(257), SkipPointersHash: fakeHash}
 	fakeIEProof.MerkleExtensionProof.PreviousRootsNoSkips[1] = fakeRoot
 	err = verifier.VerifyInclusionExtensionProof(NewLoggerContextTodoForTesting(t), kvp, &fakeIEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 	require.Error(t, err)

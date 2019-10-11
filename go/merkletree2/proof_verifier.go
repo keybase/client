@@ -20,7 +20,7 @@ func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, 
 		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
 	}
 
-	if proof.RootMetadataNoHash.RootVersion != RootVersionV1 && proof.RootMetadataNoHash.RootVersion != RootVersionTesting {
+	if proof.RootMetadataNoHash.RootVersion != RootVersionV1 {
 		return NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("RootVersion %v is not supported (this client can only handle V1)", proof.RootMetadataNoHash.RootVersion)))
 	}
 
@@ -185,7 +185,7 @@ func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.Co
 	}
 
 	for i, s := range rootSeqnos {
-		if proof.PreviousRootsNoSkips[i].RootVersion != RootVersionV1 && proof.PreviousRootsNoSkips[i].RootVersion != RootVersionTesting {
+		if proof.PreviousRootsNoSkips[i].RootVersion != RootVersionV1 {
 			return nil, false, NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("computeFinalSkipPointersHashFromPath: RootVersion %v at seqno %v is not supported (this client can only handle V1)", proof.PreviousRootsNoSkips[i].RootVersion, s)))
 		}
 
@@ -249,7 +249,7 @@ func (m *MerkleProofVerifier) computeFinalSkipPointersHashFromPath(ctx logger.Co
 // rootMetadata, hashes it and checks that such hash matches expRootHash.
 func (m *MerkleProofVerifier) verifyExtensionProofFinal(ctx logger.ContextInterface, rootMetadata RootMetadata, skipsHash Hash, expRootHash Hash) error {
 	rootMetadata.SkipPointersHash = skipsHash
-	if rootMetadata.RootVersion != RootVersionV1 && rootMetadata.RootVersion != RootVersionTesting {
+	if rootMetadata.RootVersion != RootVersionV1 {
 		return NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("verifyExtensionProofFinal: RootVersion %v is not supported (this client can only handle V1)", rootMetadata.RootVersion)))
 	}
 
