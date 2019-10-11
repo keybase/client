@@ -272,4 +272,6 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	require.Equal(t, 1, len(layout.SmallTeams))
 	require.Zero(t, len(layout.BigTeams))
 	require.NotNil(t, layout.ReselectInfo)
+	require.NotNil(t, layout.ReselectInfo.NewConvID)
+	require.Equal(t, conv1.Id.String(), *layout.ReselectInfo.NewConvID)
 }
