@@ -498,8 +498,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           const meta = draftState.metaMap.get(prevConvIDKey)
           if (meta) {
             const metaMap = new Map(draftState.metaMap)
-            meta.draft = ''
-            metaMap.set(prevConvIDKey, meta)
+            metaMap.set(prevConvIDKey, {...meta, draft: ''})
             draftState.metaMap = metaMap
           }
           draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(conversationIDKey)
