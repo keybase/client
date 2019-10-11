@@ -2,11 +2,13 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Platforms from '../util/platforms'
 import * as Container from '../util/container'
+import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Constants from '../constants/tracker2'
 import * as Tracker2Types from '../constants/types/tracker2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import capitalize from 'lodash/capitalize'
 import Box, {Box2} from './box'
+import Button from './button'
 import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
@@ -22,6 +24,7 @@ import FollowButton from '../profile/user/actions/follow-button'
 const Kb = {
   Box,
   Box2,
+  Button,
   ClickableBox,
   ConnectedNameWithIcon,
   FloatingMenu,
@@ -123,11 +126,16 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
   const followThem = Container.useSelector(state => Tracker2Constants.followThem(state, username))
   const followsYou = Container.useSelector(state => Tracker2Constants.followsYou(state, username))
   const isSelf = Container.useSelector(state => state.config.username === username)
-  // Don't show follow button for self; additionally if any proof is broken
-  // don't show follow button.
-  const showFollowButton =
-    !isSelf &&
-    ![...(userDetails.assertions || new Map()).values()].find(assertion => assertion.state !== 'valid')
+  const hasBrokenProof = [...(userDetails.assertions || new Map()).values()].find(
+    assertion => assertion.state !== 'valid'
+  )
+  const [showFollowButton, setShowFollowButton] = React.useState(false)
+  React.useEffect(() => {
+    // Don't show follow button for self; additionally if any proof is broken
+    // don't show follow button. If we are aleady following, don't "invite" to
+    // unfollow. But dont' hide the button if user has just followed the user.
+    !isSelf && !hasBrokenProof && !followThem && setShowFollowButton(true)
+  }, [isSelf, hasBrokenProof, followThem])
 
   const dispatch = Container.useDispatch()
 
@@ -141,6 +149,11 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
     (follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID: userDetails.guiID})),
     [dispatch, userDetails]
   )
+
+  const openProfile = React.useCallback(() => dispatch(ProfileGen.createShowUserProfile({username})), [
+    dispatch,
+    username,
+  ])
 
   return (
     <Kb.Box2
@@ -170,6 +183,15 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
             </Kb.Text>
           )}
         </>
+      )}
+      {clickToProfile && (
+        <Kb.Button
+          style={styles.button}
+          type="Default"
+          mode="Secondary"
+          label="View profile"
+          onClick={openProfile}
+        />
       )}
       {showFollowButton &&
         (followThem ? (
