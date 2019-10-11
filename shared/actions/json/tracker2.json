@@ -21,13 +21,13 @@
       "location": "string",
       "registeredForAirdrop": "boolean",
       "username": "string",
-      "teamShowcase": "Array<Types._TeamShowcase>",
+      "teamShowcase": "Array<Types.TeamShowcase>",
       "blocked": "boolean"
     },
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
-      "reason": "string | null"
+      "reason?": "string"
     },
     "closeTracker": {
       "guiID": "string"

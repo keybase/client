@@ -98,7 +98,6 @@ class CodePage2 extends React.Component<Props, State> {
   _header = () => {
     return Styles.isMobile
       ? {
-          hideBorder: true,
           leftButton: (
             <Kb.Text type="BodyBig" onClick={this.props.onBack} negative={true}>
               {this.props.currentDeviceAlreadyProvisioned ? 'Back' : 'Cancel'}
@@ -146,12 +145,15 @@ class CodePage2 extends React.Component<Props, State> {
           />
         </Kb.Box2>
         {!this.props.currentDeviceAlreadyProvisioned && !Styles.isMobile && (
-          <Kb.BackButton
-            onClick={this.props.onBack}
-            iconColor={Styles.globalColors.white}
-            style={styles.backButton}
-            textStyle={styles.backButtonText}
-          />
+          <>
+            <Kb.BackButton
+              onClick={this.props.onBack}
+              iconColor={Styles.globalColors.white}
+              style={styles.backButton}
+              textStyle={styles.backButtonText}
+            />
+            <Kb.Divider />
+          </>
         )}
         {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.scrollContainer}>
@@ -159,6 +161,7 @@ class CodePage2 extends React.Component<Props, State> {
             <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
               <Instructions {...this.props} />
               {content}
+              <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
               {!this._inModal() && this._footer().content}
             </Kb.Box2>
           </Kb.Box2>
@@ -208,7 +211,6 @@ class CodePage2 extends React.Component<Props, State> {
               waitingKey={Constants.waitingKey}
             />
           )}
-          <SwitchTab {...this.props} selected={this.state.tab} onSelect={tab => this.setState({tab})} />
           {showHeyWaitInFooter && this._heyWaitBanner()}
         </Kb.Box2>
       ),
@@ -424,9 +426,10 @@ const styles = Styles.styleSheetCreate(
     ({
       backButton: Styles.platformStyles({
         isElectron: {
-          marginBottom: Styles.globalMargins.small,
-          marginLeft: Styles.globalMargins.xsmall,
+          alignSelf: 'flex-start',
           marginTop: 56, // we're under the header, need to shift down
+          paddingBottom: Styles.globalMargins.small,
+          paddingLeft: Styles.globalMargins.xsmall,
           position: 'relative', // otherwise the absolutely positioned background makes this unclickable
           zIndex: undefined, // annoyingly this is set inside Kb.BackButton
         },
@@ -469,7 +472,7 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: Styles.globalMargins.small,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
-          paddingTop: 0, // increasing this makes it not visible all on one page in small iPhones, so let's leave it
+          paddingTop: Styles.globalMargins.small,
         },
       }),
       enterTextButton: {
@@ -564,7 +567,8 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
       },
       switchTab: {
-        marginBottom: 4,
+        marginBottom: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.tiny,
       },
       switchTabContainer: {
         alignItems: 'center',

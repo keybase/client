@@ -5,10 +5,10 @@ import * as Styles from '../../../styles'
 import OpenMeta from './openmeta'
 import TeamInfo from './teaminfo'
 
-type Props = {
+export type Props = {
   // lint totally confused
   // eslint-disable-next-line no-use-before-define
-  teamShowcase: ReadonlyArray<Types._TeamShowcase>
+  teamShowcase: ReadonlyArray<Types.TeamShowcase>
   teamMeta: {
     [K in string]: {
       inTeam: boolean
@@ -16,7 +16,7 @@ type Props = {
   }
   onJoinTeam: (arg0: string) => void
   onViewTeam: (arg0: string) => void
-  onEdit: (() => void) | null
+  onEdit?: () => void
 }
 
 const _TeamShowcase = p => (

@@ -71,6 +71,9 @@ func TestLoginTwiceLogoutOnce(t *testing.T) {
 	})
 	err = RunEngine2(mctx, eng)
 	require.NoError(t, err)
+	// Log back into the first user, but shouldn't need a password
+	err = u1.SwitchTo(tc.G, true)
+	require.NoError(t, err)
 	require.True(t, tc.G.ActiveDevice.Valid())
 	require.Equal(t, tc.G.ActiveDevice.UID(), u1.UID())
 }

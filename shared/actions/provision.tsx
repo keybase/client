@@ -530,10 +530,18 @@ const showFinalErrorPage = (_: Container.TypedState, action: ProvisionGen.ShowFi
   ]
 }
 
-const showUsernameEmailPage = (_: Container.TypedState, action: ProvisionGen.StartProvisionPayload) =>
-  RouteTreeGen.createNavigateAppend({
+const showUsernameEmailPage = async (
+  state: Container.TypedState,
+  action: ProvisionGen.StartProvisionPayload
+) => {
+  // If we're logged in, we're coming from the user switcher; log out first to prevent the service from getting out of sync with the GUI about our logged-in-ness
+  if (state.config.loggedIn) {
+    await RPCTypes.loginLogoutRpcPromise({force: false, keepSecrets: true})
+  }
+  return RouteTreeGen.createNavigateAppend({
     path: [{props: {fromReset: action.payload.fromReset}, selected: 'username'}],
   })
+}
 
 const forgotUsername = async (_: Container.TypedState, action: ProvisionGen.ForgotUsernamePayload) => {
   if (action.payload.email) {

@@ -7,20 +7,17 @@ type OwnProps = {
   width: number
 }
 
-const mapStateToProps = (state, ownProps) => {
-  return {
-    fullname: state.users.infoMap.getIn([ownProps.username, 'fullname'], ''),
+export default Container.namedConnect(
+  (state, ownProps: OwnProps) => ({
+    fullname: (state.users.infoMap.get(ownProps.username) || {fullname: ''}).fullname,
     username: ownProps.username,
-  }
-}
-const mapDispatchToProps = dispatch => ({
-  _onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-})
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  fullname: stateProps.fullname,
-  onClick: () => dispatchProps._onClick(stateProps.username),
-  username: stateProps.username,
-  width: ownProps.width,
-})
-
-export default Container.namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'Friend')(Friend)
+  }),
+  dispatch => ({_onClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username}))}),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    fullname: stateProps.fullname,
+    onClick: () => dispatchProps._onClick(stateProps.username),
+    username: stateProps.username,
+    width: ownProps.width,
+  }),
+  'Friend'
+)(Friend)

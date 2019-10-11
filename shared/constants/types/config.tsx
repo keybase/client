@@ -79,5 +79,6 @@ export type State = {
   uid: string
   userActive: boolean
   username: string
+  userSwitching: boolean
   useNativeFrame: boolean
 }

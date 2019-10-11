@@ -128,6 +128,7 @@ export const initialState: Types.State = {
   uid: '',
   useNativeFrame: defaultUseNativeFrame,
   userActive: true,
+  userSwitching: false,
   username: '',
   windowState: {
     dockHidden: false,

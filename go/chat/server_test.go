@@ -7095,6 +7095,18 @@ func TestTeamBotSettings(t *testing.T) {
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 
+			gilres, err := ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{created.Id},
+				},
+			})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(gilres.Conversations))
+			require.Equal(t, created.Id, gilres.Conversations[0].GetConvID())
+			gconv := gilres.Conversations[0]
+			require.NotNil(t, gconv.ReaderInfo)
+			require.Equal(t, keybase1.TeamRole_RESTRICTEDBOT, gconv.ReaderInfo.UntrustedTeamRole)
+
 			botSettings2 := keybase1.TeamBotSettings{
 				Mentions: true,
 			}
@@ -7115,6 +7127,18 @@ func TestTeamBotSettings(t *testing.T) {
 			assertNoMessage(botuaListener)
 			assertNoMessage(botuaListener2)
 			consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+
+			gilres, err = ctc.as(t, users[2]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{created.Id},
+				},
+			})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(gilres.Conversations))
+			require.Equal(t, created.Id, gilres.Conversations[0].GetConvID())
+			gconv = gilres.Conversations[0]
+			require.NotNil(t, gconv.ReaderInfo)
+			require.Equal(t, keybase1.TeamRole_RESTRICTEDBOT, gconv.ReaderInfo.UntrustedTeamRole)
 
 			t.Logf("send a text message")
 			arg := chat1.PostTextNonblockArg{

@@ -9,20 +9,20 @@ type Props = {
   color: Types.AssertionColor
   isSuggestion: boolean
   isYours: boolean
-  metas: ReadonlyArray<Types._AssertionMeta>
+  metas: ReadonlyArray<Types.AssertionMeta>
   notAUser: boolean
   onCopyAddress: () => void
   onRequestLumens: () => void
-  onRecheck: (() => void) | null
-  onRevoke: (() => void) | null
+  onRecheck?: () => void
+  onRevoke?: () => void
   onSendLumens: () => void
   onShowProof?: () => void
-  onShowSite: (() => void) | null
-  onCreateProof: (() => void) | null
+  onShowSite?: () => void
+  onCreateProof?: () => void
   onWhatIsStellar: () => void
   proofURL: string
-  siteIcon: Types.SiteIconSet | null
-  siteIconFull: Types.SiteIconSet | null
+  siteIcon?: Types.SiteIconSet
+  siteIconFull?: Types.SiteIconSet
   siteURL: string
   state: Types.AssertionState
   timestamp: number
@@ -30,7 +30,7 @@ type Props = {
   value: string
 }
 
-const proofTypeToDesc = proofType => {
+const proofTypeToDesc = (proofType: string) => {
   switch (proofType) {
     case 'btc':
     case 'zcash':
@@ -40,7 +40,7 @@ const proofTypeToDesc = proofType => {
   }
 }
 
-const stateToIcon = state => {
+const stateToIcon = (state: Types.AssertionState) => {
   switch (state) {
     case 'checking':
       return 'iconfont-proof-pending'
@@ -58,7 +58,7 @@ const stateToIcon = state => {
 }
 
 // alternate versions of the ones from `stateToIcon` for the popup menu header
-const stateToDecorationIcon = state => {
+const stateToDecorationIcon = (state: Types.AssertionState) => {
   switch (state) {
     case 'checking':
       return 'icon-proof-pending'
@@ -75,7 +75,7 @@ const stateToDecorationIcon = state => {
   }
 }
 
-const stateToValueTextStyle = state => {
+const stateToValueTextStyle = (state: Types.AssertionState) => {
   switch (state) {
     case 'revoked':
       return styles.strikeThrough
@@ -130,9 +130,7 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
 
 class _StellarValue extends React.PureComponent<
   Props & Kb.OverlayParentProps,
-  {
-    storedAttachmentRef: Kb.Box | null
-  }
+  {storedAttachmentRef: Kb.Box | null}
 > {
   state = {storedAttachmentRef: null}
   // only set this once ever
@@ -274,7 +272,7 @@ class Assertion extends React.PureComponent<Props, State> {
     }
 
     if (p.metas.find(m => m.label === 'pending')) {
-      let pendingMessage
+      let pendingMessage: undefined | string
       switch (p.type) {
         case 'hackernews':
           pendingMessage =

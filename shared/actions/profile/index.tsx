@@ -76,7 +76,7 @@ const onClickAvatar = (_: TypedState, action: ProfileGen.OnClickAvatarPayload) =
 const submitRevokeProof = async (state: TypedState, action: ProfileGen.SubmitRevokeProofPayload) => {
   const you = TrackerConstants.getDetails(state, state.config.username)
   if (!you || !you.assertions) return null
-  const proof = you.assertions.find(a => a.sigID === action.payload.proofId)
+  const proof = [...you.assertions.values()].find(a => a.sigID === action.payload.proofId)
   if (!proof) return null
 
   if (proof.type === 'pgp') {

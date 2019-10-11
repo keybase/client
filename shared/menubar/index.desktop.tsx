@@ -90,7 +90,7 @@ class MenubarRender extends React.Component<Props, State> {
   _renderLoggedOut() {
     return (
       <Kb.Box
-        className={this.props.darkMode ? 'darkMode' : ''}
+        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
         key={this.props.darkMode ? 'darkMode' : 'light'}
         style={styles.widgetContainer}
       >
@@ -160,7 +160,7 @@ class MenubarRender extends React.Component<Props, State> {
     return (
       <Kb.Box
         style={styles.widgetContainer}
-        className={this.props.darkMode ? 'darkMode' : ''}
+        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
         key={this.props.darkMode ? 'darkMode' : 'light'}
       >
         {isDarwin && <style>{_realCSS}</style>}
@@ -301,7 +301,7 @@ class MenubarRender extends React.Component<Props, State> {
     return (
       <Kb.Box
         style={styles.widgetContainer}
-        className={this.props.darkMode ? 'darkMode' : ''}
+        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
         key={this.props.darkMode ? 'darkMode' : 'light'}
       >
         {isDarwin && <style>{_realCSS}</style>}

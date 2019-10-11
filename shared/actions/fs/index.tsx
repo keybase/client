@@ -825,12 +825,12 @@ const loadDownloadInfo = async (_: TypedState, action: FsGen.LoadDownloadInfoPay
     })
     return FsGen.createLoadedDownloadInfo({
       downloadID: action.payload.downloadID,
-      info: Constants.makeDownloadInfo({
+      info: {
         filename: res.filename,
         isRegularDownload: res.isRegularDownload,
-        path: '/keybase' + res.path.path,
+        path: Types.stringToPath('/keybase' + res.path.path),
         startTime: res.startTime,
-      }),
+      },
     })
   } catch {
     return undefined
@@ -840,18 +840,18 @@ const loadDownloadInfo = async (_: TypedState, action: FsGen.LoadDownloadInfoPay
 const loadDownloadStatus = async () => {
   const res = await RPCTypes.SimpleFSSimpleFSGetDownloadStatusRpcPromise()
   return FsGen.createLoadedDownloadStatus({
-    regularDownloads: I.List(res.regularDownloadIDs || []),
-    state: I.Map(
+    regularDownloads: res.regularDownloadIDs || [],
+    state: new Map(
       (res.states || []).map(s => [
         s.downloadID,
-        Constants.makeDownloadState({
+        {
           canceled: s.canceled,
           done: s.done,
           endEstimate: s.endEstimate,
           error: s.error,
           localPath: s.localPath,
           progress: s.progress,
-        }),
+        },
       ])
     ),
   })
@@ -862,11 +862,11 @@ const loadFileContext = async (_: TypedState, action: FsGen.LoadFileContextPaylo
     path: Constants.pathToRPCPath(action.payload.path).kbfs,
   })
   return FsGen.createLoadedFileContext({
-    fileContext: Constants.makeFileContext({
+    fileContext: {
       contentType: res.contentType,
       url: res.url,
       viewType: res.viewType,
-    }),
+    },
     path: action.payload.path,
   })
 }

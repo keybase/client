@@ -27,7 +27,7 @@ const finishedDownloadWithIntent = async (
   action: FsGen.FinishedDownloadWithIntentPayload
 ) => {
   const {downloadID, downloadIntent, mimeType} = action.payload
-  const downloadState = state.fs.downloads.state.get(downloadID, Constants.emptyDownloadState)
+  const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
   if (downloadState === Constants.emptyDownloadState) {
     logger.warn('missing download', downloadID)
     return
