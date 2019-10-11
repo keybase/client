@@ -23,7 +23,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 23
+const inboxVersion = 24
 
 var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
 	chat1.ConversationMemberStatus_ACTIVE,
