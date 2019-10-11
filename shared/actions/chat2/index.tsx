@@ -2707,41 +2707,30 @@ function* createConversation(
     return
   }
 
-  try {
-    const result: Saga.RPCPromiseType<
-      typeof RPCChatTypes.localNewConversationLocalRpcPromise
-    > = yield RPCChatTypes.localNewConversationLocalRpcPromise(
-      {
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-        tlfName: I.Set([username])
-          .concat(action.payload.participants)
-          .join(','),
-        tlfVisibility: RPCTypes.TLFVisibility.private,
-        topicType: RPCChatTypes.TopicType.chat,
-      },
-      Constants.waitingKeyCreating
-    )
+  const result: Saga.RPCPromiseType<
+    typeof RPCChatTypes.localNewConversationLocalRpcPromise
+  > = yield RPCChatTypes.localNewConversationLocalRpcPromise(
+    {
+      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+      tlfName: I.Set([username])
+        .concat(action.payload.participants)
+        .join(','),
+      tlfVisibility: RPCTypes.TLFVisibility.private,
+      topicType: RPCChatTypes.TopicType.chat,
+    },
+    Constants.waitingKeyCreating
+  )
 
-    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-    if (!conversationIDKey) {
-      logger.warn("Couldn't make a new conversation?")
-    } else {
-      const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
-      if (meta) {
-        yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
-      }
-      yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
+  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+  if (!conversationIDKey) {
+    logger.warn("Couldn't make a new conversation?")
+  } else {
+    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
+    if (meta) {
+      yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
     }
-  } catch (e) {
-    logger.error(`Failed to create new conversation: ${e.message}`)
-    yield Saga.put(Chat2Gen.createConversationErrored({message: e.message}))
-    yield Saga.put(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey: Constants.pendingErrorConversationIDKey,
-        reason: 'justCreated',
-      })
-    )
+    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
   }
 }
 
