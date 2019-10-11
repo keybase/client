@@ -614,9 +614,12 @@ const loadHasRandomPW = async (state: TypedState) => {
 }
 
 // Mark that we are not randomPW anymore if we got a password change.
-const passwordChanged = async (_: TypedState, action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload) => {
-    const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
-    return SettingsGen.createLoadedHasRandomPw({randomPW})
+const passwordChanged = async (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyUsersPasswordChangedPayload
+) => {
+  const randomPW = action.payload.params.state === RPCTypes.PassphraseState.random
+  return SettingsGen.createLoadedHasRandomPw({randomPW})
 }
 
 const stop = async (_: TypedState, action: SettingsGen.StopPayload) => {
