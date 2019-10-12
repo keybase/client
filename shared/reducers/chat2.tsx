@@ -297,22 +297,36 @@ const messageMapReducer = (
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
-      return messageMap.updateIn([conversationIDKey, ordinal], message =>
-        !message || message.type !== 'text' ? message : message.set('text', text)
-      )
+
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      if (!old || old.type !== 'text') {
+        return messageMap
+      } else {
+        om.set(ordinal, {...old, text})
+      }
+      mm.set(conversationIDKey, om)
+      return mm
     }
     case Chat2Gen.attachmentUploading: {
-      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
-      const ordinal = convMap.get(action.payload.outboxID)
+      const {conversationIDKey, outboxID, ratio} = action.payload
+      const convMap = pendingOutboxToOrdinal.get(conversationIDKey)
+      const ordinal = convMap && convMap.get(outboxID)
       if (!ordinal) {
         return messageMap
       }
-      return messageMap.updateIn([action.payload.conversationIDKey, ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferProgress', action.payload.ratio).set('transferState', 'uploading')
-      })
+
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      if (!old || old.type !== 'attachment') {
+        return messageMap
+      } else {
+        om.set(ordinal, {...old, transferProgress: ratio, transferState: 'uploading'})
+      }
+      mm.set(conversationIDKey, om)
+      return mm
     }
     case Chat2Gen.attachmentLoading:
       return messageMap.updateIn(
