@@ -100,9 +100,10 @@ const inboxRefresh = (
   if (clearExistingMessages) {
     actions.push(Chat2Gen.createClearMessages())
   }
-  const reselectMode = state.chat2.inboxHasLoaded
-    ? RPCChatTypes.InboxLayoutReselectMode.default
-    : RPCChatTypes.InboxLayoutReselectMode.force
+  const reselectMode =
+    state.chat2.inboxHasLoaded || isMobile
+      ? RPCChatTypes.InboxLayoutReselectMode.default
+      : RPCChatTypes.InboxLayoutReselectMode.force
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
   return actions
 }
