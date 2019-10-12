@@ -59,6 +59,15 @@ func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
 func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("PassphraseRecover#Run", func() error { return err })()
 
+	// If no username was passed, ask for one
+	if e.arg.Username == "" {
+		res, err := mctx.UIs().LoginUI.GetEmailOrUsername(mctx.Ctx(), 0)
+		if err != nil {
+			return err
+		}
+		e.arg.Username = res
+	}
+
 	// Look up the passed username against the list of configured users
 	if err := e.processUsername(mctx); err != nil {
 		return err
@@ -234,6 +243,7 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 
 	// We are certain the user will not know their password, so we can disable that prompt.
 	eng := NewAccountReset(mctx.G(), e.arg.Username)
+	mctx.Info("huh %s", e.arg.Username)
 	eng.skipPasswordPrompt = true
 	if err := eng.Run(mctx); err != nil {
 		return err
