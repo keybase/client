@@ -235,12 +235,12 @@ const messageMapReducer = (
       const ordinalToM = messageMap.get(conversationIDKey)
       const message = ordinalToM && ordinalToM.get(ordinal)
       if (ordinalToM && message && message.type === 'text') {
+        const mm = new Map(messageMap)
         const oToM = new Map(ordinalToM)
         oToM.set(ordinal, {
           ...message,
           submitState: action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing',
         })
-        const mm = new Map(messageMap)
         mm.set(conversationIDKey, oToM)
         return mm
       }
@@ -252,9 +252,12 @@ const messageMapReducer = (
       if (!ordinal) {
         return messageMap
       }
-      return messageMap.updateIn([conversationIDKey, ordinal], old =>
-        old ? Constants.upgradeMessage(old, message) : message
-      )
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      om.set(ordinal, old ? Constants.upgradeMessage(old, message) : message)
+      mm.set(conversationIDKey, om)
+      return mm
     }
     case Chat2Gen.messageWasEdited: {
       const {
@@ -271,18 +274,26 @@ const messageMapReducer = (
         return messageMap
       }
 
-      return messageMap.updateIn([conversationIDKey, ordinal], message =>
-        !message || message.type !== 'text'
-          ? message
-          : message.withMutations((m: any) => {
-              m.set('text', text)
-              m.set('hasBeenEdited', true)
-              m.set('submitState', null)
-              m.set('mentionsAt', mentionsAt)
-              m.set('mentionsChannel', mentionsChannel)
-              m.set('mentionsChannelName', mentionsChannelName)
-            })
-      )
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      if (!old) {
+        return messageMap
+      } else if (old.type !== 'text') {
+        om.set(ordinal, old)
+      } else {
+        om.set(ordinal, {
+          ...old,
+          hasBeenEdited: true,
+          mentionsAt,
+          mentionsChannel,
+          mentionsChannelName,
+          submitState: null,
+          text,
+        })
+      }
+      mm.set(conversationIDKey, om)
+      return mm
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
