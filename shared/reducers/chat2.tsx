@@ -54,6 +54,31 @@ const messageIDToOrdinal = (
   return null
 }
 
+// update a message in a message map if the updater changes propagate up
+const updateMessageInMessageMap = (
+  messageMap: Map<Types.ConversationIDKey, Map<Types.Ordinal, Types.Message>>,
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+  updater: (m?: Types.Message) => undefined | Types.Message
+) => {
+  const ordToMsgMap = messageMap.get(conversationIDKey)
+  const oldMsg = (ordToMsgMap && ordToMsgMap.get(ordinal)) || undefined
+  const newMsg = updater(oldMsg)
+  if (oldMsg === newMsg) {
+    return messageMap
+  } else {
+    const newOrdToMsgMap = new Map(ordToMsgMap || [])
+    if (newMsg) {
+      newOrdToMsgMap.set(ordinal, newMsg)
+    } else {
+      newOrdToMsgMap.delete(ordinal)
+    }
+    const newMessageMap = new Map(messageMap)
+    newMessageMap.set(conversationIDKey, newOrdToMsgMap)
+    return newMessageMap
+  }
+}
+
 const metaMapReducer = (
   metaMap: Container.Draft<Types.State['metaMap']>,
   action: Chat2Gen.Actions
@@ -221,79 +246,51 @@ const messageMapReducer = (
   switch (action.type) {
     case Chat2Gen.markConversationsStale: {
       const {conversationIDKeys, updateType} = action.payload
-      if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-        const mm = new Map(messageMap)
-        conversationIDKeys.forEach(k => mm.delete(k))
-        return mm
-      } else {
+      if (updateType !== RPCChatTypes.StaleUpdateType.clear) {
         return messageMap
       }
+      const mm = new Map(messageMap)
+      conversationIDKeys.forEach(k => mm.delete(k))
+      return mm
     }
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete: {
       const {conversationIDKey, ordinal} = action.payload
-      const ordinalToM = messageMap.get(conversationIDKey)
-      const message = ordinalToM && ordinalToM.get(ordinal)
-      if (ordinalToM && message && message.type === 'text') {
-        const mm = new Map(messageMap)
-        const oToM = new Map(ordinalToM)
-        oToM.set(ordinal, {
-          ...message,
-          submitState: action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing',
-        })
-        mm.set(conversationIDKey, oToM)
-        return mm
-      }
-      return messageMap
+      const submitState = action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing'
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        m && m.type === 'text' ? {...m, submitState} : m
+      )
     }
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, placeholderID)
-      if (!ordinal) {
-        return messageMap
-      }
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      om.set(ordinal, old ? Constants.upgradeMessage(old, message) : message)
-      mm.set(conversationIDKey, om)
-      return mm
+      return ordinal
+        ? updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+            m ? Constants.upgradeMessage(m, message) : m
+          )
+        : messageMap
     }
     case Chat2Gen.messageWasEdited: {
-      const {
-        conversationIDKey,
-        messageID,
-        text,
-        mentionsAt,
-        mentionsChannel,
-        mentionsChannelName,
-      } = action.payload
-
+      const {conversationIDKey, messageID, text} = action.payload
+      const {mentionsAt, mentionsChannel, mentionsChannelName} = action.payload
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
-      if (!ordinal) {
-        return messageMap
-      }
+      if (!ordinal) return messageMap
 
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      if (!old) {
-        return messageMap
-      } else if (old.type !== 'text') {
-        om.set(ordinal, old)
-      } else {
-        om.set(ordinal, {
-          ...old,
-          hasBeenEdited: true,
-          mentionsAt,
-          mentionsChannel,
-          mentionsChannelName,
-          submitState: null,
-          text,
-        })
-      }
-      mm.set(conversationIDKey, om)
-      return mm
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m => {
+        if (!m || m.type !== 'text') {
+          return m
+        } else {
+          return {
+            ...m,
+            hasBeenEdited: true,
+            mentionsAt,
+            mentionsChannel,
+            mentionsChannelName,
+            submitState: null,
+            text,
+          }
+        }
+      })
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
@@ -328,35 +325,55 @@ const messageMapReducer = (
       mm.set(conversationIDKey, om)
       return mm
     }
-    case Chat2Gen.attachmentLoading:
-      return messageMap.updateIn(
-        [action.payload.conversationIDKey, action.payload.message.ordinal],
-        message => {
-          if (!message || message.type !== 'attachment') {
-            return message
-          }
-          return action.payload.isPreview
-            ? message.set('previewTransferState', 'downloading')
-            : message
-                .set('transferProgress', action.payload.ratio)
-                .set('transferState', 'downloading')
-                .set('transferErrMsg', null)
+    case Chat2Gen.attachmentLoading: {
+      const {message, conversationIDKey, isPreview, ratio} = action.payload
+      const {ordinal} = message
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      if (!old || old.type !== 'attachment') {
+        return messageMap
+      } else {
+        if (isPreview) {
+          om.set(ordinal, {...old, previewTransferState: 'downloading'})
+        } else {
+          om.set(ordinal, {
+            ...old,
+            transferErrMsg: null,
+            transferProgress: ratio,
+            transferState: 'downloading',
+          })
         }
-      )
-    case Chat2Gen.attachmentUploaded:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferProgress', 0).set('transferState', null)
-      })
-    case Chat2Gen.attachmentMobileSave:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferState', 'mobileSaving').set('transferErrMsg', null)
-      })
+      }
+      mm.set(conversationIDKey, om)
+      return mm
+    }
+    case Chat2Gen.attachmentUploaded: {
+      const {conversationIDKey, ordinal} = action.payload
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      if (!old || old.type !== 'attachment') {
+        return messageMap
+      } else {
+        om.set(ordinal, {...old, transferProgress: 0, transferState: null})
+      }
+      mm.set(conversationIDKey, om)
+      return mm
+    }
+    case Chat2Gen.attachmentMobileSave: {
+      const {conversationIDKey, ordinal} = action.payload
+      const mm = new Map(messageMap)
+      const om = new Map(mm.get(conversationIDKey) || [])
+      const old = om.get(ordinal)
+      if (!old || old.type !== 'attachment') {
+        return messageMap
+      } else {
+        om.set(ordinal, {...old, transferErrMsg: null, transferState: 'mobileSaving'})
+      }
+      mm.set(conversationIDKey, om)
+      return mm
+    }
     case Chat2Gen.attachmentMobileSaved:
       return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
         if (!message || message.type !== 'attachment') {
