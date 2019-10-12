@@ -63,6 +63,8 @@ func FindPinentry(log logger.Logger) (string, error) {
 	log.Debug("+ FindPinentry()")
 
 	cmds := []string{
+		"pinentry-gnome3",
+		"pinentry-qt",
 		"pinentry-gtk-2",
 		"pinentry-qt4",
 		"pinentry",
