@@ -204,7 +204,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyUsers.passwordChanged': {
-    inParam: void
+    inParam: {readonly state: PassphraseState}
     outParam: void
   }
   'keybase.1.NotifyUsers.userChanged': {

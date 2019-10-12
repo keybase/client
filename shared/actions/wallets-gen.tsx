@@ -173,14 +173,12 @@ type _ChangeAccountNamePayload = {readonly accountID: Types.AccountID; readonly 
 type _ChangeAirdropPayload = {readonly accept: boolean}
 type _ChangeDisplayCurrencyPayload = {readonly accountID: Types.AccountID; readonly code: Types.CurrencyCode}
 type _ChangeMobileOnlyModePayload = {readonly accountID: Types.AccountID; readonly enabled: boolean}
-type _ChangedAccountNamePayload = {readonly account: Types.Account}
-type _ChangedAccountNamePayloadError = {
-  readonly name: string
-  readonly account: Types.Account
-  readonly error: string
+type _ChangedAccountNamePayload = {
+  readonly name?: string
+  readonly account?: Types.Account
+  readonly error?: string
 }
-type _ChangedTrustlinePayload = void
-type _ChangedTrustlinePayloadError = {readonly error: string}
+type _ChangedTrustlinePayload = {readonly error?: string}
 type _CheckDisclaimerPayload = {readonly nextScreen: Types.NextScreenAfterAcceptance}
 type _ClearBuildingAdvancedPayload = void
 type _ClearBuildingPayload = void
@@ -194,11 +192,12 @@ type _CreateNewAccountPayload = {
   readonly setBuildingTo?: boolean
 }
 type _CreatedNewAccountPayload = {
-  readonly accountID: Types.AccountID
+  readonly accountID?: Types.AccountID
   readonly showOnCreation?: boolean
   readonly setBuildingTo?: boolean
+  readonly name?: string
+  readonly error?: string
 }
-type _CreatedNewAccountPayloadError = {readonly name: string; readonly error: string}
 type _DeleteAccountPayload = {readonly accountID: Types.AccountID}
 type _DeleteTrustlinePayload = {readonly accountID: Types.AccountID; readonly assetID: Types.AssetID}
 type _DeletedAccountPayload = void
@@ -214,11 +213,11 @@ type _ExportSecretKeyPayload = {readonly accountID: Types.AccountID}
 type _ExternalPartnersReceivedPayload = {readonly externalPartners: I.List<Types.PartnerUrl>}
 type _HideAirdropBannerPayload = void
 type _InflationDestinationReceivedPayload = {
-  readonly accountID: Types.AccountID
-  readonly selected: Types.AccountInflationDestination
+  readonly accountID?: Types.AccountID
+  readonly selected?: Types.AccountInflationDestination
   readonly options?: Array<Types.InflationDestination>
+  readonly error?: string
 }
-type _InflationDestinationReceivedPayloadError = {readonly error: string}
 type _LinkExistingAccountPayload = {
   readonly name: string
   readonly secretKey: HiddenString
@@ -226,14 +225,12 @@ type _LinkExistingAccountPayload = {
   readonly setBuildingTo?: boolean
 }
 type _LinkedExistingAccountPayload = {
-  readonly accountID: Types.AccountID
+  readonly accountID?: Types.AccountID
   readonly showOnCreation?: boolean
   readonly setBuildingTo?: boolean
-}
-type _LinkedExistingAccountPayloadError = {
-  readonly name: string
-  readonly secretKey: HiddenString
-  readonly error: string
+  readonly name?: string
+  readonly secretKey?: HiddenString
+  readonly error?: string
 }
 type _LoadAccountsPayload = {readonly reason: 'initial-load' | 'open-send-req-form'}
 type _LoadAssetsPayload = {readonly accountID: Types.AccountID}
@@ -387,10 +384,8 @@ type _ValidateAccountNamePayload = {readonly name: string}
 type _ValidateSEP7LinkErrorPayload = {readonly error: string}
 type _ValidateSEP7LinkPayload = {readonly link: string}
 type _ValidateSecretKeyPayload = {readonly secretKey: HiddenString}
-type _ValidatedAccountNamePayload = {readonly name: string}
-type _ValidatedAccountNamePayloadError = {readonly name: string; readonly error: string}
-type _ValidatedSecretKeyPayload = {readonly secretKey: HiddenString}
-type _ValidatedSecretKeyPayloadError = {readonly secretKey: HiddenString; readonly error: string}
+type _ValidatedAccountNamePayload = {readonly name: string; readonly error?: string}
+type _ValidatedSecretKeyPayload = {readonly secretKey: HiddenString; readonly error?: string}
 type _WalletDisclaimerReceivedPayload = {readonly accepted: boolean}
 
 // Action Creators
@@ -410,13 +405,9 @@ export const createDidSetAccountAsDefault = (
 /**
  * A response from the service after an account's name is changed
  */
-export const createChangedAccountName = (payload: _ChangedAccountNamePayload): ChangedAccountNamePayload => ({
-  payload,
-  type: changedAccountName,
-})
-export const createChangedAccountNameError = (
-  payload: _ChangedAccountNamePayloadError
-): ChangedAccountNamePayloadError => ({error: true, payload, type: changedAccountName})
+export const createChangedAccountName = (
+  payload: _ChangedAccountNamePayload = Object.freeze({})
+): ChangedAccountNamePayload => ({payload, type: changedAccountName})
 /**
  * Accept the Stellar account disclaimer
  */
@@ -585,11 +576,8 @@ export const createSentPaymentError = (payload: _SentPaymentErrorPayload): SentP
  * Got inflation destination
  */
 export const createInflationDestinationReceived = (
-  payload: _InflationDestinationReceivedPayload
+  payload: _InflationDestinationReceivedPayload = Object.freeze({})
 ): InflationDestinationReceivedPayload => ({payload, type: inflationDestinationReceived})
-export const createInflationDestinationReceivedError = (
-  payload: _InflationDestinationReceivedPayloadError
-): InflationDestinationReceivedPayloadError => ({error: true, payload, type: inflationDestinationReceived})
 /**
  * Handle a SEP6 Deposit link
  */
@@ -902,28 +890,18 @@ export const createLoadedMobileOnlyMode = (
 export const createValidatedAccountName = (
   payload: _ValidatedAccountNamePayload
 ): ValidatedAccountNamePayload => ({payload, type: validatedAccountName})
-export const createValidatedAccountNameError = (
-  payload: _ValidatedAccountNamePayloadError
-): ValidatedAccountNamePayloadError => ({error: true, payload, type: validatedAccountName})
 /**
  * The service responded with an error or that the create new account operation succeeded
  */
-export const createCreatedNewAccount = (payload: _CreatedNewAccountPayload): CreatedNewAccountPayload => ({
-  payload,
-  type: createdNewAccount,
-})
-export const createCreatedNewAccountError = (
-  payload: _CreatedNewAccountPayloadError
-): CreatedNewAccountPayloadError => ({error: true, payload, type: createdNewAccount})
+export const createCreatedNewAccount = (
+  payload: _CreatedNewAccountPayload = Object.freeze({})
+): CreatedNewAccountPayload => ({payload, type: createdNewAccount})
 /**
  * The service responded with an error or that the link existing operation succeeded
  */
 export const createLinkedExistingAccount = (
-  payload: _LinkedExistingAccountPayload
+  payload: _LinkedExistingAccountPayload = Object.freeze({})
 ): LinkedExistingAccountPayload => ({payload, type: linkedExistingAccount})
-export const createLinkedExistingAccountError = (
-  payload: _LinkedExistingAccountPayloadError
-): LinkedExistingAccountPayloadError => ({error: true, payload, type: linkedExistingAccount})
 /**
  * The service responded with an error or that the secret key is valid.
  */
@@ -931,9 +909,6 @@ export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload): V
   payload,
   type: validatedSecretKey,
 })
-export const createValidatedSecretKeyError = (
-  payload: _ValidatedSecretKeyPayloadError
-): ValidatedSecretKeyPayloadError => ({error: true, payload, type: validatedSecretKey})
 /**
  * Turn participation in airdrop on/off
  */
@@ -1062,13 +1037,9 @@ export const createAddTrustline = (payload: _AddTrustlinePayload): AddTrustlineP
 export const createCalculateBuildingAdvanced = (
   payload: _CalculateBuildingAdvancedPayload
 ): CalculateBuildingAdvancedPayload => ({payload, type: calculateBuildingAdvanced})
-export const createChangedTrustline = (payload: _ChangedTrustlinePayload): ChangedTrustlinePayload => ({
-  payload,
-  type: changedTrustline,
-})
-export const createChangedTrustlineError = (
-  payload: _ChangedTrustlinePayloadError
-): ChangedTrustlinePayloadError => ({error: true, payload, type: changedTrustline})
+export const createChangedTrustline = (
+  payload: _ChangedTrustlinePayload = Object.freeze({})
+): ChangedTrustlinePayload => ({payload, type: changedTrustline})
 export const createClearTrustlineSearchResults = (
   payload: _ClearTrustlineSearchResultsPayload
 ): ClearTrustlineSearchResultsPayload => ({payload, type: clearTrustlineSearchResults})
@@ -1239,18 +1210,8 @@ export type ChangedAccountNamePayload = {
   readonly payload: _ChangedAccountNamePayload
   readonly type: typeof changedAccountName
 }
-export type ChangedAccountNamePayloadError = {
-  readonly error: true
-  readonly payload: _ChangedAccountNamePayloadError
-  readonly type: typeof changedAccountName
-}
 export type ChangedTrustlinePayload = {
   readonly payload: _ChangedTrustlinePayload
-  readonly type: typeof changedTrustline
-}
-export type ChangedTrustlinePayloadError = {
-  readonly error: true
-  readonly payload: _ChangedTrustlinePayloadError
   readonly type: typeof changedTrustline
 }
 export type CheckDisclaimerPayload = {
@@ -1284,11 +1245,6 @@ export type CreateNewAccountPayload = {
 }
 export type CreatedNewAccountPayload = {
   readonly payload: _CreatedNewAccountPayload
-  readonly type: typeof createdNewAccount
-}
-export type CreatedNewAccountPayloadError = {
-  readonly error: true
-  readonly payload: _CreatedNewAccountPayloadError
   readonly type: typeof createdNewAccount
 }
 export type DeleteAccountPayload = {
@@ -1335,22 +1291,12 @@ export type InflationDestinationReceivedPayload = {
   readonly payload: _InflationDestinationReceivedPayload
   readonly type: typeof inflationDestinationReceived
 }
-export type InflationDestinationReceivedPayloadError = {
-  readonly error: true
-  readonly payload: _InflationDestinationReceivedPayloadError
-  readonly type: typeof inflationDestinationReceived
-}
 export type LinkExistingAccountPayload = {
   readonly payload: _LinkExistingAccountPayload
   readonly type: typeof linkExistingAccount
 }
 export type LinkedExistingAccountPayload = {
   readonly payload: _LinkedExistingAccountPayload
-  readonly type: typeof linkedExistingAccount
-}
-export type LinkedExistingAccountPayloadError = {
-  readonly error: true
-  readonly payload: _LinkedExistingAccountPayloadError
   readonly type: typeof linkedExistingAccount
 }
 export type LoadAccountsPayload = {readonly payload: _LoadAccountsPayload; readonly type: typeof loadAccounts}
@@ -1644,18 +1590,8 @@ export type ValidatedAccountNamePayload = {
   readonly payload: _ValidatedAccountNamePayload
   readonly type: typeof validatedAccountName
 }
-export type ValidatedAccountNamePayloadError = {
-  readonly error: true
-  readonly payload: _ValidatedAccountNamePayloadError
-  readonly type: typeof validatedAccountName
-}
 export type ValidatedSecretKeyPayload = {
   readonly payload: _ValidatedSecretKeyPayload
-  readonly type: typeof validatedSecretKey
-}
-export type ValidatedSecretKeyPayloadError = {
-  readonly error: true
-  readonly payload: _ValidatedSecretKeyPayloadError
   readonly type: typeof validatedSecretKey
 }
 export type WalletDisclaimerReceivedPayload = {
@@ -1690,9 +1626,7 @@ export type Actions =
   | ChangeDisplayCurrencyPayload
   | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
-  | ChangedAccountNamePayloadError
   | ChangedTrustlinePayload
-  | ChangedTrustlinePayloadError
   | CheckDisclaimerPayload
   | ClearBuildingAdvancedPayload
   | ClearBuildingPayload
@@ -1702,7 +1636,6 @@ export type Actions =
   | ClearTrustlineSearchResultsPayload
   | CreateNewAccountPayload
   | CreatedNewAccountPayload
-  | CreatedNewAccountPayloadError
   | DeleteAccountPayload
   | DeleteTrustlinePayload
   | DeletedAccountPayload
@@ -1714,10 +1647,8 @@ export type Actions =
   | ExternalPartnersReceivedPayload
   | HideAirdropBannerPayload
   | InflationDestinationReceivedPayload
-  | InflationDestinationReceivedPayloadError
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
-  | LinkedExistingAccountPayloadError
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
@@ -1796,8 +1727,6 @@ export type Actions =
   | ValidateSEP7LinkPayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload
-  | ValidatedAccountNamePayloadError
   | ValidatedSecretKeyPayload
-  | ValidatedSecretKeyPayloadError
   | WalletDisclaimerReceivedPayload
   | {type: 'common:resetStore', payload: {}}

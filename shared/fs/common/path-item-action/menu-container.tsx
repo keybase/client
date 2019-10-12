@@ -21,7 +21,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, {path}: OwnProps) => ({
   _downloadID: state.fs.pathItemActionMenu.downloadID,
   _downloads: state.fs.downloads,
-  _fileContext: state.fs.fileContext.get(path, Constants.emptyFileContext),
+  _fileContext: state.fs.fileContext.get(path) || Constants.emptyFileContext,
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _pathItemActionMenu: state.fs.pathItemActionMenu,
   _sfmiEnabled: state.fs.sfmi.driverStatus.type === Types.DriverStatusType.Enabled,
@@ -89,7 +89,7 @@ const getDownloadingState = memoize(
     if (!downloadID) {
       return {done: true, saving: false, sharing: false}
     }
-    const downloadState = downloads.state.get(downloadID, Constants.emptyDownloadState)
+    const downloadState = downloads.state.get(downloadID) || Constants.emptyDownloadState
     const intent = pathItemActionMenu.downloadIntent
     const done = downloadState !== Constants.emptyDownloadState && !Constants.downloadIsOngoing(downloadState)
     if (!intent) {

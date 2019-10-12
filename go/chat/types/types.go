@@ -614,7 +614,8 @@ func (d DummyUIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetIn
 	return nil
 }
 
-func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context, reason string) {
+func (d DummyUIInboxLoader) UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode,
+	reason string) {
 }
 
 func (d DummyUIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error {

@@ -16,7 +16,6 @@ import {
 
 export type Props = {
   btnClassName?: string
-  canWrite: boolean
   newBtnClassName?: string
   conversationIDKey: Types.ConversationIDKey
   emojis: Array<string>
@@ -77,25 +76,24 @@ class ReactionsRow extends React.Component<Props, State> {
             />
           </Box>
         ))}
-        {this.props.canWrite &&
-          (isMobile ? (
-            <ReactButton
-              conversationIDKey={this.props.conversationIDKey}
-              ref={this._setNewAttachmentRef}
-              getAttachmentRef={this._getNewAttachmentRef}
-              onLongPress={() => this._setShowMobileTooltip(true)}
-              ordinal={this.props.ordinal}
-              showBorder={true}
-              style={styles.button}
-            />
-          ) : (
-            <EmojiRow
-              className={classNames([this.props.btnClassName, this.props.newBtnClassName])}
-              conversationIDKey={this.props.conversationIDKey}
-              ordinal={this.props.ordinal}
-              style={styles.emojiRow}
-            />
-          ))}
+        {isMobile ? (
+          <ReactButton
+            conversationIDKey={this.props.conversationIDKey}
+            ref={this._setNewAttachmentRef}
+            getAttachmentRef={this._getNewAttachmentRef}
+            onLongPress={() => this._setShowMobileTooltip(true)}
+            ordinal={this.props.ordinal}
+            showBorder={true}
+            style={styles.button}
+          />
+        ) : (
+          <EmojiRow
+            className={classNames([this.props.btnClassName, this.props.newBtnClassName])}
+            conversationIDKey={this.props.conversationIDKey}
+            ordinal={this.props.ordinal}
+            style={styles.emojiRow}
+          />
+        )}
         <ReactionTooltip
           conversationIDKey={this.props.conversationIDKey}
           onHidden={() => this._setShowMobileTooltip(false)}

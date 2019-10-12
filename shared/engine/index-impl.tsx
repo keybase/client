@@ -14,6 +14,13 @@ import {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import {SessionID, SessionIDKey, WaitingHandlerType, MethodKey} from './types'
 import {TypedState, Dispatch} from '../util/container'
 
+// delay incoming to stop react from queueing too many setState calls and stopping rendering
+// only while debugging for now
+const DEFER_INCOMING_DURING_DEBUG = __DEV__ && true
+if (DEFER_INCOMING_DURING_DEBUG) {
+  console.log(new Array(1000).fill('DEFER_INCOMING_DURING_DEBUG is On!!!!!!!!!!!!!!!!!!!!!').join('\n'))
+}
+
 type WaitingKey = string | Array<string>
 
 function capitalize(s: string) {
@@ -64,7 +71,11 @@ class Engine {
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
     // setup some static vars
-    Engine._dispatch = dispatch
+    if (DEFER_INCOMING_DURING_DEBUG) {
+      Engine._dispatch = a => setTimeout(() => dispatch(a), 1)
+    } else {
+      Engine._dispatch = dispatch
+    }
     Engine._getState = getState
     this._rpcClient = createClient(
       payload => this._rpcIncoming(payload),

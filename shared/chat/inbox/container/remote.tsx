@@ -28,16 +28,16 @@ const valuesCached = memoize(
     hasUnread: boolean
     conversation: ChatTypes.ConversationMeta
   }> =>
-    metaMap
+    [...metaMap.entries()]
       .filter(
-        (v, id) =>
+        ([id, v]) =>
           Constants.isValidConversationIDKey(id) &&
           v.status !== RPCChatTypes.ConversationStatus.ignored &&
           v.status !== RPCChatTypes.ConversationStatus.blocked &&
           v.status !== RPCChatTypes.ConversationStatus.muted &&
           v.status !== RPCChatTypes.ConversationStatus.reported
       )
-      .map(v => ({
+      .map(([, v]) => ({
         conversation: v,
         hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
         hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
@@ -51,9 +51,12 @@ const valuesCached = memoize(
           ? 1
           : b.conversation.timestamp - a.conversation.timestamp
       )
-      .take(maxShownConversations)
-      .valueSeq()
-      .toArray()
+      .reduce<Array<any>>((arr, c) => {
+        if (arr.length < maxShownConversations) {
+          arr.push(c)
+        }
+        return arr
+      }, [])
 )
 
 // A hack to store the username to avoid plumbing.
@@ -110,9 +113,7 @@ export const serialize = ({
     isSelected: false,
     isTypingSnippet: false,
     participantNeedToRekey,
-    participants: conversation.teamname
-      ? []
-      : Constants.getRowParticipants(conversation, _username).toArray(),
+    participants: conversation.teamname ? [] : Constants.getRowParticipants(conversation, _username),
     showBold: styles.showBold,
     snippet: conversation.snippet,
     snippetDecoration: conversation.snippetDecoration,

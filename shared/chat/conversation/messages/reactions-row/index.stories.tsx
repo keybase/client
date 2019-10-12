@@ -24,7 +24,6 @@ const ordinalToEmojis = (m: Types.Ordinal) => {
 
 export const propProvider = {
   ReactionsRow: (props: OwnProps): ViewProps => ({
-    canWrite: true,
     conversationIDKey: props.conversationIDKey,
     emojis: ordinalToEmojis(props.ordinal),
     ordinal: props.ordinal,

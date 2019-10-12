@@ -243,7 +243,7 @@ func (h *notifyHandler) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return nil
 }
 
-func (h *notifyHandler) PasswordChanged(_ context.Context) error {
+func (h *notifyHandler) PasswordChanged(_ context.Context, _ keybase1.PassphraseState) error {
 	return nil
 }
 

@@ -4,20 +4,20 @@ import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
 
 export type Props = {
-  airdropIsLive: boolean | null
-  bio: string | null
-  followThem: boolean | null
-  followersCount: number | null
-  followingCount: number | null
-  followsYou: boolean | null
-  fullname: string | null
+  airdropIsLive?: boolean
+  bio?: string
+  followThem?: boolean
+  followersCount?: number
+  followingCount?: number
+  followsYou?: boolean
+  fullname?: string
   inTracker: boolean
-  location: string | null
+  location?: string
   onBack?: () => void
   onLearnMore?: () => void
-  registeredForAirdrop: boolean | null
-  youAreInAirdrop: boolean | null
-  sbsDescription: string | null
+  registeredForAirdrop?: boolean
+  youAreInAirdrop?: boolean
+  sbsDescription?: string
 }
 
 // Here we're using FloatingMenu, but we want to customize the button to match

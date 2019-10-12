@@ -209,7 +209,7 @@ class InboxWrapper extends React.PureComponent<Props> {
     }
     if (!this.props._hasLoadedTrusted && this.props.rows.length) {
       const toUnbox = this.props.rows.slice(0, 20).reduce<Array<Types.ConversationIDKey>>((arr, row) => {
-        if (row.type === 'small' || row.type === 'big') {
+        if (row.type === 'small') {
           arr.push(row.conversationIDKey)
         }
         return arr

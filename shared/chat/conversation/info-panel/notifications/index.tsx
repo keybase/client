@@ -32,10 +32,12 @@ const UnmutedNotificationPrefs = (props: Props) => {
           checked={!props.channelWide}
           label=""
           labelComponent={
-            <Kb.Text type="Body">
-              Ignore <Kb.Text type="BodySemibold">@here</Kb.Text> and{' '}
-              <Kb.Text type="BodySemibold">@channel</Kb.Text> mentions {ignoreMentionsSuffix}
-            </Kb.Text>
+            <Kb.Box2 direction="vertical" style={{flex: 1}}>
+              <Kb.Text type="Body">
+                Ignore <Kb.Text type="BodySemibold">@here</Kb.Text> and{' '}
+                <Kb.Text type="BodySemibold">@channel</Kb.Text> mentions {ignoreMentionsSuffix}
+              </Kb.Text>
+            </Kb.Box2>
           }
           onCheck={props.toggleChannelWide}
         />

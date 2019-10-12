@@ -5,7 +5,6 @@ import * as EngineGen from '../actions/engine-gen-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
 import * as Flow from '../util/flow'
-import {actionHasError} from '../util/container'
 import {isValidEmail} from '../util/simple-validators'
 
 const initialState: Types.State = Constants.makeState()
@@ -81,10 +80,7 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.invitesRefreshed:
       return state.update('invites', invites => invites.merge(action.payload.invites))
     case SettingsGen.invitesSent:
-      // TODO this doesn't do anything with the actual valid payload
-      return state.update('invites', invites =>
-        invites.merge({error: actionHasError(action) ? action.payload.error : undefined})
-      )
+      return state.update('invites', invites => invites.merge({error: action.payload.error}))
     case SettingsGen.invitesClearError:
       return state.update('invites', invites => invites.merge({error: null}))
     case SettingsGen.loadedSettings:
@@ -260,7 +256,6 @@ function reducer(state: Types.State = initialState, action: Actions): Types.Stat
     case SettingsGen.editEmail:
     case SettingsGen.editPhone:
     case SettingsGen.invitesReclaim:
-    case SettingsGen.invitesReclaimed:
     case SettingsGen.invitesRefresh:
     case SettingsGen.invitesSend:
     case SettingsGen.loadRememberPassword:

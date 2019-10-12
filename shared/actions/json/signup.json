@@ -7,16 +7,13 @@
     "goBackAndClearErrors": {},
     "requestAutoInvite": {},
     "requestedAutoInvite": {
-      "inviteCode": "string",
-      "canError": {}
+      "inviteCode?": "string",
+      "error?": "boolean"
     },
     "checkInviteCode": {"inviteCode": "string"},
     "checkedInviteCode": {
       "inviteCode": "string",
-      "canError": {
-        "inviteCode": "string",
-        "error": "string"
-      }
+      "error?": "string"
     },
     "checkPassword": {
       "pass1": "HiddenString",
@@ -37,28 +34,19 @@
     "requestedInvite": {
       "email": "string",
       "name": "string",
-      "canError": {
-        "emailError": "string",
-        "nameError": "string",
-        "email": "string",
-        "name": "string"
-      }
+      "emailError?": "string",
+      "nameError?": "string",
     },
     "restartSignup": {},
     "signedup": {
-      "canError": {
-        "error": "RPCError | null"
-      }
+      "error?": "RPCError"
     },
     "checkDevicename": {
       "devicename": "string"
     },
     "checkedDevicename": {
       "devicename": "string",
-      "canError": {
-        "devicename": "string",
-        "error": "string"
-      }
+      "error?": "string"
     },
     "setJustSignedUpEmail": {
       "email": "string"

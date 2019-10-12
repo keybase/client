@@ -158,7 +158,7 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    let participants = stateProps._participants.toArray()
+    let participants = stateProps._participants
     let teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
@@ -280,7 +280,9 @@ const ConnectedInfoPanel = Container.connect(
       participants: participants
         .map(p => ({
           fullname:
-            stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName.get(p, ''),
+            (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
+            stateProps._participantToContactName.get(p) ||
+            '',
           isAdmin: stateProps.teamname
             ? TeamConstants.userIsRoleInTeamWithInfo(
                 // @ts-ignore

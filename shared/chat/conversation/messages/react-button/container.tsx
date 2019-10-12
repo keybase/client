@@ -23,7 +23,6 @@ export type OwnProps = {
 
 export type WrapperProps = {
   active: boolean
-  canWrite: boolean
   count: number
   emoji: string
   onAddReaction: (emoji: string) => void
@@ -37,7 +36,6 @@ class Wrapper extends React.Component<WrapperProps> {
     return props.emoji ? (
       <ReactButton
         active={props.active}
-        canWrite={props.canWrite}
         className={props.className}
         conversationIDKey={props.conversationIDKey}
         count={props.count}
@@ -66,7 +64,6 @@ class Wrapper extends React.Component<WrapperProps> {
 
 const noEmoji = {
   active: false,
-  canWrite: true,
   count: 0,
   emoji: '',
 }
@@ -84,7 +81,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const active = reaction.some(r => r.username === me)
   return {
     active,
-    canWrite: !Constants.getMeta(state, ownProps.conversationIDKey).cannotWrite,
     count: reaction.size,
     emoji: ownProps.emoji || '',
   }
@@ -112,7 +108,6 @@ const mergeProps = (
   ownProps: OwnProps
 ) => ({
   active: stateProps.active,
-  canWrite: stateProps.canWrite,
   className: ownProps.className,
   conversationIDKey: ownProps.conversationIDKey,
   count: stateProps.count,

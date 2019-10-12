@@ -101,7 +101,7 @@ const UsernameHeader = (props: Props) => (
 const PhoneOrEmailHeader = (props: Props) => {
   const phoneOrEmail = props.participants.find(s => s.endsWith('@phone') || s.endsWith('@email')) || ''
   const formattedPhoneOrEmail = assertionToDisplay(phoneOrEmail)
-  const name = props.contactNames[phoneOrEmail]
+  const name = props.contactNames.get(phoneOrEmail)
   return (
     <Wrapper {...props}>
       <Box2 direction="vertical" style={styles.usernameHeaderContainer}>

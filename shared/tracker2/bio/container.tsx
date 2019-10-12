@@ -21,11 +21,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       ...common,
       bio: nonUser.bio,
       followThem: false,
-      followersCount: null,
-      followingCount: null,
       followsYou: false,
       fullname: nonUser.fullName,
-      location: null,
       registeredForAirdrop: false,
       sbsDescription: nonUser.description,
     }
@@ -40,7 +37,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       fullname: d.fullname,
       location: d.location,
       registeredForAirdrop: d.registeredForAirdrop,
-      sbsDescription: null,
     }
   }
 }

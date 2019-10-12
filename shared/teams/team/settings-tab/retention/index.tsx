@@ -98,10 +98,20 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}] as Kb.MenuItems
         case 'inherit':
           if (this.props.teamPolicy) {
+            let title = ''
+            switch (this.props.teamPolicy.type) {
+              case 'retain':
+                title = 'Team default (Never auto-delete)'
+                break
+              case 'expire':
+              case 'explode':
+                title = `Team default (${this.props.teamPolicy.title})`
+                break
+            }
             return [
               {
                 onClick: () => this._onSelect(policy),
-                title: `Team default (${this.props.teamPolicy.title})`,
+                title,
               },
               'Divider',
               ...arr,
