@@ -2275,7 +2275,10 @@ const markThreadAsRead = async (
 
   // Check to see if we do not have the latest message, and don't mark anything as read in that case
   // If we have no information at all, then just mark as read
-  if (!(state.chat2.containsLatestMessageMap.get(conversationIDKey) || true))) {
+  if (
+    !state.chat2.containsLatestMessageMap.has(conversationIDKey) ||
+    !state.chat2.containsLatestMessageMap.get(conversationIDKey)
+  ) {
     logger.info('bail on not containing latest message')
     return
   }

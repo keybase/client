@@ -30,10 +30,7 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
-export const getRequestMessageInfo = (
-  state: TypedState,
-  message: Types.MessageRequestPayment
-): MessageTypes.ChatRequestInfo => {
+export const getRequestMessageInfo = (state: TypedState, message: Types.MessageRequestPayment) => {
   const convMap = state.chat2.accountsInfoMap.get(message.conversationIDKey)
   const maybeRequestInfo = convMap && convMap.get(message.id)
   if (!maybeRequestInfo) {
@@ -52,7 +49,7 @@ export const getRequestMessageInfo = (
 export const getPaymentMessageInfo = (
   state: TypedState,
   message: Types.MessageSendPayment | Types.MessageText
-): MessageTypes.ChatPaymentInfo => {
+) => {
   const convMap = state.chat2.accountsInfoMap.get(message.conversationIDKey)
   const maybePaymentInfo = convMap && convMap.get(message.id)
   if (!maybePaymentInfo) {

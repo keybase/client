@@ -76,7 +76,7 @@ export const makeState = (): Types.State => ({
   trustedInboxHasLoaded: false,
   typingMap: new Map(), // who's typing currently,
   unfurlPromptMap: new Map(),
-  unreadMap: I.Map(),
+  unreadMap: new Map(),
   unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
 })
@@ -161,7 +161,7 @@ export const getMessageKey = (message: Types.Message) =>
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   (state.chat2.badgeMap.get(id) || 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.unreadMap.get(id, 0) > 0
+  (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   return state.chat2.replyToMap.get(conversationIDKey) || null

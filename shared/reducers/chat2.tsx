@@ -12,6 +12,7 @@ import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
+import shallowEqual from 'shallowequal'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
@@ -641,13 +642,14 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         if (!shallowEqual([...badgeMap.entries()], [...draftState.badgeMap.entries()])) {
           draftState.badgeMap = badgeMap
         }
-        const unreadMap = I.Map<Types.ConversationIDKey, number>(
+        const unreadMap = new Map<Types.ConversationIDKey, number>(
           action.payload.conversations.map(({convID, unreadMessages}) => [
             Types.conversationIDToKey(convID),
             unreadMessages,
           ])
         )
-        if (!draftState.unreadMap.equals(unreadMap)) {
+
+        if (!shallowEqual([...unreadMap.entries()], [...draftState.unreadMap.entries()])) {
           draftState.unreadMap = unreadMap
         }
 
@@ -899,10 +901,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const containsLatestMessageMap = new Map(draftState.containsLatestMessageMap)
         Object.keys(convoToMessages).forEach(cid => {
           const conversationIDKey = Types.stringToConversationIDKey(cid)
-          if (
-            !action.payload.forceContainsLatestCalc &&
-            containsLatestMessageMap.get(conversationIDKey, false)
-          ) {
+          if (!action.payload.forceContainsLatestCalc && containsLatestMessageMap.get(conversationIDKey)) {
             return
           }
           const meta = draftState.metaMap.get(conversationIDKey)
@@ -1207,12 +1206,11 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
       }
       case Chat2Gen.updateConvExplodingModes: {
         const {modes} = action.payload
-        draftState.explodingModes = new Map(
-          modes.reduce((map, mode) => {
-            map[Types.conversationIDKeyToString(mode.conversationIDKey)] = mode.seconds
-            return map
-          }, {})
+        const explodingModes = new Map()
+        modes.forEach(mode =>
+          explodingModes.set(Types.conversationIDKeyToString(mode.conversationIDKey), mode.seconds)
         )
+        draftState.explodingModes = explodingModes
         return
       }
       case Chat2Gen.setExplodingModeLock: {
