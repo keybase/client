@@ -958,11 +958,11 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           action.payload.conversationIDKey
         )
         return
-      case Chat2Gen.setContainsLastMessage:
+      case Chat2Gen.setContainsLastMessage: {
         const containsLatestMessageMap = draftState.containsLatestMessageMap
         containsLatestMessageMap.set(action.payload.conversationIDKey, action.payload.contains)
         draftState.containsLatestMessageMap = containsLatestMessageMap
-        return
+        return}
       case Chat2Gen.messageRetry: {
         const {conversationIDKey, outboxID} = action.payload
         const ordinal = draftState.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
