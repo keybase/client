@@ -29,20 +29,23 @@ const messageIDToOrdinal = (
   messageID: Types.MessageID
 ) => {
   // A message we didn't send in this session?
-  let m = messageMap.getIn([conversationIDKey, Types.numberToOrdinal(messageID)])
+  const mm = messageMap.get(conversationIDKey)
+  let m = mm && mm.get(Types.numberToOrdinal(messageID))
   if (m && m.id && m.id === messageID) {
     return m.ordinal
   }
   // Search through our sent messages
-  const pendingOrdinal = (
-    pendingOutboxToOrdinal.get(conversationIDKey) || I.Map<Types.OutboxID, Types.Ordinal>()
-  ).find(o => {
-    m = messageMap.getIn([conversationIDKey, o])
-    if (m && m.id && m.id === messageID) {
-      return true
-    }
-    return false
-  })
+  const pm = pendingOutboxToOrdinal.get(conversationIDKey)
+  const pendingOrdinal =
+    mm &&
+    pm &&
+    [...pm.values()].find(o => {
+      m = mm.get(o)
+      if (m && m.id && m.id === messageID) {
+        return true
+      }
+      return false
+    })
 
   if (pendingOrdinal) {
     return pendingOrdinal
@@ -216,17 +219,33 @@ const messageMapReducer = (
   pendingOutboxToOrdinal: Container.Draft<Types.State['pendingOutboxToOrdinal']>
 ) => {
   switch (action.type) {
-    case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
-        ? messageMap.deleteAll(action.payload.conversationIDKeys)
-        : messageMap
+    case Chat2Gen.markConversationsStale: {
+      const {conversationIDKeys, updateType} = action.payload
+      if (updateType === RPCChatTypes.StaleUpdateType.clear) {
+        const mm = new Map(messageMap)
+        conversationIDKeys.forEach(k => mm.delete(k))
+        return mm
+      } else {
+        return messageMap
+      }
+    }
     case Chat2Gen.messageEdit: // fallthrough
-    case Chat2Gen.messageDelete:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message =>
-        message && message.type === 'text'
-          ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
-          : message
-      )
+    case Chat2Gen.messageDelete: {
+      const {conversationIDKey, ordinal} = action.payload
+      const ordinalToM = messageMap.get(conversationIDKey)
+      const message = ordinalToM && ordinalToM.get(ordinal)
+      if (ordinalToM && message && message.type === 'text') {
+        const oToM = new Map(ordinalToM)
+        oToM.set(ordinal, {
+          ...message,
+          submitState: action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing',
+        })
+        const mm = new Map(messageMap)
+        mm.set(conversationIDKey, oToM)
+        return mm
+      }
+      return messageMap
+    }
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
       const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, placeholderID)

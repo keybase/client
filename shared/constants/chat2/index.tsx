@@ -52,16 +52,16 @@ export const makeState = (): Types.State => ({
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
-  messageCenterOrdinals: I.Map(), // ordinals to center threads on,
-  messageMap: I.Map(), // messages in a thread,
-  messageOrdinals: I.Map(), // ordered ordinals in a thread,
+  messageCenterOrdinals: new Map(), // ordinals to center threads on,
+  messageMap: new Map(), // messages in a thread,
+  messageOrdinals: new Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
   moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),
-  pendingOutboxToOrdinal: I.Map(), // messages waiting to be sent,
+  pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
   prependTextMap: new Map(),
   previousSelectedConversation: noConversationIDKey,
   quote: undefined,
@@ -139,15 +139,20 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
+const noOrdinals = new Set()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.OrderedSet<Types.Ordinal>())
+  state.chat2.messageOrdinals.get(id) || noOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
   state: TypedState,
   id: Types.ConversationIDKey,
   ordinal: Types.Ordinal
-): Types.Message | null => state.chat2.messageMap.getIn([id, ordinal])
+): Types.Message | null => {
+  const m = state.chat2.messageMap.get(id)
+  return (m && m.get(ordinal)) || null
+}
+
 export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
   return !(
     message.type === 'placeholder' ||
