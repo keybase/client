@@ -561,7 +561,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const commandMarkdownMap = new Map(draftState.commandMarkdownMap)
         commandMarkdownMap.delete(action.payload.conversationIDKey)
         draftState.commandMarkdownMap = commandMarkdownMap
-        draftState.replyToMap = draftState.replyToMap.delete(action.payload.conversationIDKey)
+        const replyToMap = new Map(draftState.replyToMap)
+        replyToMap.delete(action.payload.conversationIDKey)
+        draftState.replyToMap = replyToMap
         return
       }
       case Chat2Gen.setCommandMarkdown: {
@@ -1257,21 +1259,27 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.unsentTextMap = unsentTextMap
         return
       }
-      case Chat2Gen.setPrependText:
-        draftState.prependTextMap = draftState.prependTextMap.set(
-          action.payload.conversationIDKey,
-          action.payload.text
-        )
+      case Chat2Gen.setPrependText: {
+        const prependTextMap = new Map(draftState.prependTextMap)
+        prependTextMap.set(action.payload.conversationIDKey, action.payload.text)
+        draftState.prependTextMap = prependTextMap
         return
+      }
       case Chat2Gen.toggleReplyToMessage: {
         const {conversationIDKey, ordinal} = action.payload
         if (ordinal) {
-          draftState.replyToMap = draftState.replyToMap.set(conversationIDKey, ordinal)
+          const replyToMap = new Map(draftState.replyToMap)
+          replyToMap.set(conversationIDKey, ordinal)
+          draftState.replyToMap = replyToMap
           // we always put something in prepend to trigger the focus regain on the input bar
-          draftState.prependTextMap = draftState.prependTextMap.set(conversationIDKey, new HiddenString(''))
+          const prependTextMap = new Map(draftState.prependTextMap)
+          prependTextMap.set(conversationIDKey, new HiddenString(''))
+          draftState.prependTextMap = prependTextMap
           return
         } else {
-          draftState.replyToMap = draftState.replyToMap.delete(conversationIDKey)
+          const replyToMap = new Map(draftState.replyToMap)
+          replyToMap.delete(conversationIDKey)
+          draftState.replyToMap = replyToMap
           return
         }
       }
