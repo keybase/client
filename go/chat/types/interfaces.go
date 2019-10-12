@@ -238,6 +238,7 @@ type Syncer interface {
 	SendChatStaleNotifications(ctx context.Context, uid gregor1.UID,
 		updates []chat1.ConversationStaleUpdate, immediate bool)
 	SelectConversation(ctx context.Context, convID chat1.ConversationID)
+	GetSelectedConversation() chat1.ConversationID
 	Shutdown()
 }
 
@@ -554,7 +555,7 @@ type ReplyFiller interface {
 
 type UIInboxLoader interface {
 	Resumable
-	UpdateLayout(ctx context.Context, reason string)
+	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation,
 		msg chat1.MessageBoxed, firstConv bool, previousStatus chat1.ConversationStatus)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)

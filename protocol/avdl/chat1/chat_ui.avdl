@@ -45,9 +45,16 @@ protocol chatUi {
     case CHANNEL: UIInboxBigTeamChannelRow;
   }
 
+  record UIInboxReselectInfo {
+     // we use this to defeat any race conditions, the UI can double check it actually has this selected
+    string oldConvID;
+    union { null, string } newConvID;
+  }
+
   record UIInboxLayout {
     array<UIInboxSmallTeamRow> smallTeams;
     array<UIInboxBigTeamRow> bigTeams;
+    union { null, UIInboxReselectInfo } reselectInfo;
   }
 
   record UnverifiedInboxUIItemMetadata {

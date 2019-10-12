@@ -161,10 +161,10 @@ func (h *Server) suspendInboxSource(ctx context.Context) func() {
 	return utils.SuspendComponent(ctx, h.G(), h.G().InboxSource)
 }
 
-func (h *Server) RequestInboxLayout(ctx context.Context) (err error) {
+func (h *Server) RequestInboxLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer h.Trace(ctx, func() error { return err }, "RequestInboxLayout")()
-	h.G().UIInboxLoader.UpdateLayout(ctx, "UI request")
+	h.G().UIInboxLoader.UpdateLayout(ctx, reselectMode, "UI request")
 	return nil
 }
 

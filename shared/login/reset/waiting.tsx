@@ -63,7 +63,6 @@ const Waiting = (props: Props) => {
     <SignupScreen
       title="Account reset"
       noBackground={true}
-      onBack={onClose}
       banners={
         sendAgainSuccess
           ? [

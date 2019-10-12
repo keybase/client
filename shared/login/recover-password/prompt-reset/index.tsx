@@ -12,6 +12,7 @@ const PromptReset = (_: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const skipPassword = Container.useSelector(state => state.autoreset.skipPassword)
+  const error = Container.useSelector(state => state.autoreset.error)
   const onContinue = React.useCallback(
     () =>
       dispatch(
@@ -31,11 +32,19 @@ const PromptReset = (_: Props) => {
           type: 'Default' as ButtonType,
         },
       ]}
+      banners={
+        error ? (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={error} />
+          </Kb.Banner>
+        ) : null
+      }
       onBack={onBack}
+      noBackground={true}
       title="Recover password"
     >
       <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
-        <Kb.Icon type="iconfont-skull" sizeType="Bigger" />
+        <Kb.Icon type="iconfont-skull" sizeType="Big" color={Styles.globalColors.black} />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body" center={true} style={styles.main}>
             If you have lost all of your devices, or if you logged out or uninstalled Keybase from all of them

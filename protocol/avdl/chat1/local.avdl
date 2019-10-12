@@ -763,7 +763,11 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  void requestInboxLayout();
+  enum InboxLayoutReselectMode {
+    DEFAULT_0,
+    FORCE_1
+  }
+  void requestInboxLayout(InboxLayoutReselectMode reselectMode);
   void requestInboxUnbox(array<ConversationID> convIDs);
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
