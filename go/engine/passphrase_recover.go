@@ -243,7 +243,6 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 
 	// We are certain the user will not know their password, so we can disable that prompt.
 	eng := NewAccountReset(mctx.G(), e.arg.Username)
-	mctx.Info("huh %s", e.arg.Username)
 	eng.skipPasswordPrompt = true
 	if err := eng.Run(mctx); err != nil {
 		return err
