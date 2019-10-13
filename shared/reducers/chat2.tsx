@@ -294,122 +294,80 @@ const messageMapReducer = (
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
-
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      if (!old || old.type !== 'text') {
-        return messageMap
-      } else {
-        om.set(ordinal, {...old, text})
-      }
-      mm.set(conversationIDKey, om)
-      return mm
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'text' ? m : {...m, text}
+      )
     }
     case Chat2Gen.attachmentUploading: {
       const {conversationIDKey, outboxID, ratio} = action.payload
       const convMap = pendingOutboxToOrdinal.get(conversationIDKey)
       const ordinal = convMap && convMap.get(outboxID)
-      if (!ordinal) {
-        return messageMap
-      }
+      if (!ordinal) return messageMap
 
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      if (!old || old.type !== 'attachment') {
-        return messageMap
-      } else {
-        om.set(ordinal, {...old, transferProgress: ratio, transferState: 'uploading'})
-      }
-      mm.set(conversationIDKey, om)
-      return mm
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'attachment' ? m : {...m, transferProgress: ratio, transferState: 'uploading'}
+      )
     }
     case Chat2Gen.attachmentLoading: {
       const {message, conversationIDKey, isPreview, ratio} = action.payload
       const {ordinal} = message
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      if (!old || old.type !== 'attachment') {
-        return messageMap
-      } else {
-        if (isPreview) {
-          om.set(ordinal, {...old, previewTransferState: 'downloading'})
-        } else {
-          om.set(ordinal, {
-            ...old,
-            transferErrMsg: null,
-            transferProgress: ratio,
-            transferState: 'downloading',
-          })
+
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m => {
+        if (!m || m.type !== 'attachment') {
+          return m
         }
-      }
-      mm.set(conversationIDKey, om)
-      return mm
+        return isPreview
+          ? {...m, previewTransferState: 'downloading'}
+          : {
+              ...m,
+              transferErrMsg: null,
+              transferProgress: ratio,
+              transferState: 'downloading',
+            }
+      })
     }
     case Chat2Gen.attachmentUploaded: {
       const {conversationIDKey, ordinal} = action.payload
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      if (!old || old.type !== 'attachment') {
-        return messageMap
-      } else {
-        om.set(ordinal, {...old, transferProgress: 0, transferState: null})
-      }
-      mm.set(conversationIDKey, om)
-      return mm
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'attachment' ? m : {...m, transferProgress: 0, transferState: null}
+      )
     }
     case Chat2Gen.attachmentMobileSave: {
       const {conversationIDKey, ordinal} = action.payload
-      const mm = new Map(messageMap)
-      const om = new Map(mm.get(conversationIDKey) || [])
-      const old = om.get(ordinal)
-      if (!old || old.type !== 'attachment') {
-        return messageMap
-      } else {
-        om.set(ordinal, {...old, transferErrMsg: null, transferState: 'mobileSaving'})
-      }
-      mm.set(conversationIDKey, om)
-      return mm
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'attachment' ? m : {...m, transferErrMsg: null, transferState: 'mobileSaving'}
+      )
     }
-    case Chat2Gen.attachmentMobileSaved:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
-        if (!message || message.type !== 'attachment') {
-          return message
-        }
-        return message.set('transferState', null).set('transferErrMsg', null)
-      })
-    case Chat2Gen.attachmentDownload:
-      return messageMap.updateIn(
-        [action.payload.message.conversationIDKey, action.payload.message.ordinal],
-        message => {
-          if (!message || message.type !== 'attachment') {
-            return message
-          }
-          return message.set('transferState', 'downloading').set('transferErrMsg', null)
-        }
+    case Chat2Gen.attachmentMobileSaved: {
+      const {conversationIDKey, ordinal} = action.payload
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'attachment' ? m : {...m, transferErrMsg: null, transferState: null}
       )
-    case Chat2Gen.attachmentDownloaded:
-      return messageMap.updateIn(
-        [action.payload.message.conversationIDKey, action.payload.message.ordinal],
-        message => {
-          if (!message || message.type !== 'attachment') {
-            return message
-          }
-          const path = (!action.payload.error && action.payload.path) || ''
-          return message
-            .set('downloadPath', path)
-            .set('transferProgress', 0)
-            .set('transferState', null)
-            .set(
-              'transferErrMsg',
-              action.payload.error ? action.payload.error || 'Error downloading attachment' : null
-            )
-            .set('fileURLCached', true) // assume we have this on the service now
-        }
+    }
+    case Chat2Gen.attachmentDownload: {
+      const {message} = action.payload
+      const {conversationIDKey, ordinal} = message
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'attachment' ? m : {...m, transferErrMsg: null, transferState: 'downloading'}
       )
+    }
+    case Chat2Gen.attachmentDownloaded: {
+      const {message, error, path} = action.payload
+      const {conversationIDKey, ordinal} = message
+      const downloadPath = (!error && path) || ''
+      return updateMessageInMessageMap(messageMap, conversationIDKey, ordinal, m =>
+        !m || m.type !== 'attachment'
+          ? m
+          : {
+              ...m,
+              downloadPath,
+              fileURLCached: true, // assume we have this on the service now
+              transferErrMsg: error ? error || 'Error downloading attachment' : null,
+              transferProgress: 0,
+              transferState: null,
+            }
+      )
+    }
     case Chat2Gen.clearMessages:
       return messageMap.clear()
     case Chat2Gen.updateMessages: {
