@@ -369,64 +369,61 @@ const messageMapReducer = (
       )
     }
     case Chat2Gen.clearMessages:
-      return messageMap.clear()
+      return new Map()
     case Chat2Gen.updateMessages: {
-      const updateOrdinals = action.payload.messages.reduce<
-        Array<{msg: Types.Message; ordinal: Types.Ordinal}>
-      >((l, msg) => {
-        const ordinal = messageIDToOrdinal(
-          messageMap,
-          pendingOutboxToOrdinal,
-          action.payload.conversationIDKey,
-          msg.messageID
-        )
-        if (!ordinal) {
-          return l
-        }
-        // @ts-ignore TODO Fix not sure whats up
-        const m: Types.Message = msg.message.set('ordinal', ordinal)
-        return l.concat({msg: m, ordinal})
-      }, [])
-      return messageMap.updateIn(
-        [action.payload.conversationIDKey],
-        (messages: I.Map<number, Types.Message>) => {
-          if (!messages) {
-            return messages
+      const {messages, conversationIDKey} = action.payload
+      const updateOrdinals = messages.reduce<Array<{msg: Types.Message; ordinal: Types.Ordinal}>>(
+        (arr, m) => {
+          const ordinal = messageIDToOrdinal(
+            messageMap,
+            pendingOutboxToOrdinal,
+            action.payload.conversationIDKey,
+            m.messageID
+          )
+          if (ordinal) {
+            const msg = {...m.message, ordinal}
+            arr.push({msg, ordinal})
           }
-          return messages.withMutations(msgs => {
-            updateOrdinals.forEach(r => {
-              msgs.set(r.ordinal, r.msg)
-            })
-          })
-        }
+          return arr
+        },
+        []
       )
+      const mm = new Map(messageMap)
+      const ordToMsg = new Map(mm.get(conversationIDKey) || [])
+      updateOrdinals.forEach(({msg, ordinal}) => ordToMsg.set(ordinal, msg))
+      mm.set(conversationIDKey, ordToMsg)
+      return mm
     }
     case Chat2Gen.messagesExploded: {
-      const {conversationIDKey, messageIDs} = action.payload
+      const {conversationIDKey, messageIDs, explodedBy} = action.payload
       logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
-      const ordinals = messageIDs
-        .map(mid => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, mid))
-        .filter(Boolean)
+      const ordinals = messageIDs.reduce<Array<Types.Ordinal>>((arr, mid) => {
+        const ord = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, mid)
+        ord && arr.push(ord)
+        return arr
+      }, [])
       if (ordinals.length === 0) {
         // found nothing
         return messageMap
       }
-      return messageMap.updateIn([action.payload.conversationIDKey], messages => {
-        return messages.withMutations((msgs: any) => {
-          ordinals.forEach(ordinal =>
-            msgs.updateIn([ordinal], (msg: any) =>
-              msg
-                .set('exploded', true)
-                .set('explodedBy', action.payload.explodedBy || '')
-                .set('text', new HiddenString(''))
-                .set('mentionsAt', I.Set())
-                .set('reactions', I.Map())
-                .set('unfurls', I.Map())
-                .set('flipGameID', '')
-            )
-          )
+      const mm = new Map(messageMap)
+      const ordToMsg = new Map(mm.get(conversationIDKey) || [])
+      ordinals.forEach(ordinal => {
+        const old = ordToMsg.get(ordinal)
+        if (!old) return
+        ordToMsg.set(ordinal, {
+          ...old,
+          exploded: true,
+          explodedBy: explodedBy || '',
+          flipGameID: '',
+          mentionsAt: undefined,
+          reactions: undefined,
+          text: new HiddenString(''),
+          unfurls: undefined,
         })
       })
+      mm.set(conversationIDKey, ordToMsg)
+      return mm
     }
     default:
       return messageMap
