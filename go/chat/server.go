@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"sync"
@@ -77,7 +76,7 @@ func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISourc
 		identNotifier:                     NewCachingIdentifyNotifier(g),
 		uiThreadLoader:                    NewUIThreadLoader(g),
 		fileAttachmentDownloadCacheDir:    g.GetEnv().GetCacheDir(),
-		fileAttachmentDownloadDownloadDir: filepath.Join(g.GetEnv().GetHome(), "Downloads"),
+		fileAttachmentDownloadDownloadDir: g.GetEnv().GetDownloadsDir(),
 	}
 }
 
