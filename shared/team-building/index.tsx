@@ -223,11 +223,12 @@ const FilteredServiceTabBar = (
       serviceResultCount={props.serviceResultCount}
       showServiceResultCount={props.showServiceResultCount}
       servicesShown={props.servicesShown}
+      minimalBorder={props.minimalBorder}
     />
   )
 }
 
-const EmptyResultText = (props: {selectedService: ServiceIdWithContact}) => (
+const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: string}) => (
   <Kb.Box2
     alignSelf="center"
     centerChildren={!Styles.isMobile}
@@ -252,8 +253,8 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact}) => (
       </Kb.Text>
     )}
     <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-      Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a
-      Keybase account.
+      {props.action} anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a Keybase
+      account.
     </Kb.Text>
   </Kb.Box2>
 )
@@ -401,7 +402,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      return <EmptyResultText selectedService={this.props.selectedService} />
+      if (this.props.namespace === 'people') {
+        return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
+      } else {
+        return (
+          <EmptyResultText selectedService={this.props.selectedService} action="Start a Keybase chat with" />
+        )
+      }
     }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
@@ -441,6 +448,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                   highlight={
                     !Styles.isMobile &&
                     !!highlightDetails &&
+                    this.props.namespace !== 'people' &&
                     highlightDetails.section === section &&
                     highlightDetails.index === index
                   }
@@ -526,6 +534,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                 serviceResultCount={props.serviceResultCount}
                 showServiceResultCount={props.showServiceResultCount}
                 servicesShown={5} // wider bar, show more services
+                minimalBorder={true} // only show bottom border on icon when active
               />
             )}
             {this._listBody()}

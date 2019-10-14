@@ -131,7 +131,7 @@ const PeopleResult = (props: Props) => {
   )
   const onChat = () => {
     dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'tracker'}))
+    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
   }
 
   const dropdown = keybaseUsername ? (
