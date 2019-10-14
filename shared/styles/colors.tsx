@@ -81,6 +81,9 @@ export const colors = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
+  get brown_75OrYellow() {
+    return this.brown_75
+  },
   brown_75_on_white: 'rgb(117,87,78)',
   fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
@@ -258,6 +261,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
+  get brown_75OrYellow() {
+    return colors.yellow
+  },
   brown_75_on_white: 'rgb(117,87,78)',
   fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',

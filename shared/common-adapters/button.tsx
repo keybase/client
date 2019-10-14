@@ -293,7 +293,7 @@ const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
   Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
   Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
   Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
-  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75},
+  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
   Secondary: {...commonLabel(), color: Styles.globalColors.white},
 }))
 
