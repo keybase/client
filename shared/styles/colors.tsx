@@ -41,6 +41,9 @@ export const colors = {
   black_on_white: 'rgb(38,38,38)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrBlueLight() {
+    return this.blueDark
+  },
   get blueDarkOrGreyDarkest() {
     return this.blueDark
   },
@@ -209,6 +212,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_on_white: 'rgb(217, 217, 217)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrBlueLight() {
+    return colors.blueLight
+  },
   get blueDarkOrGreyDarkest() {
     return colors.greyDarkest
   },
