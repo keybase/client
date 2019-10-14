@@ -1118,6 +1118,12 @@ func (e *Env) GetEmail() string {
 	)
 }
 
+func (e *Env) GetStayLoggedOut() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.GetConfig().GetStayLoggedOut() },
+	)
+}
+
 // Upgrade sigchains to contain per-user-keys.
 func (e *Env) GetUpgradePerUserKey() bool {
 	return !e.Test.DisableUpgradePerUserKey
