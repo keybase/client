@@ -3,16 +3,15 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 
 type NextURI = string
 
-export declare function showShareActionSheetFromURL(options: {
-  url?: any | null
+export declare function showShareActionSheet(options: {
+  filePath?: any | null
   message?: any | null
-  mimeType?: string | null
+  mimeType: string
 }): Promise<{
   completed: boolean
   method: string
 }>
 
-export declare function showShareActionSheetFromFile(fileURL: string): Promise<void>
 export declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 export declare function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void>
 export declare function requestLocationPermission(mode: RPCChatTypes.UIWatchPositionPerm): Promise<void>
