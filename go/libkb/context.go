@@ -373,8 +373,10 @@ func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 	}
 	// Clear stayLoggedOut, so that if the service restarts for any reason
 	// we will know that we are logged in.
-	if err := cw.SetStayLoggedOut(false); err != nil {
-		return err
+	if g.Env.GetStayLoggedOut() {
+		if err := cw.SetStayLoggedOut(false); err != nil {
+			return err
+		}
 	}
 	return g.ActiveDevice.SetOrClear(m, ad)
 }
