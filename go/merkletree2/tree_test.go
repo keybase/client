@@ -930,7 +930,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	fakeEProof.RootHashes[1] = fakeHash
 	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "hash mismatch")
+	require.Contains(t, err.Error(), "verifyExtensionProofFinal: hash mismatch")
 
 	// no PreviousRootsNoSkips
 	fakeEProof = eProof
@@ -947,7 +947,18 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	fakeEProof.PreviousRootsNoSkips[1] = fakeRoot
 	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), &fakeEProof, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "hash mismatch")
+	require.Contains(t, err.Error(), "verifyExtensionProofFinal: hash mismatch")
+
+	//failure when the proof is not necessary
+	startSeqno = Seqno(20)
+	endSeqno = startSeqno
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, rootHashes[startSeqno], endSeqno, rootHashes[endSeqno])
+	require.NoError(t, err)
+
+	err = verifier.VerifyExtensionProof(NewLoggerContextTodoForTesting(t), nil, startSeqno, rootHashes[startSeqno], endSeqno, fakeHash)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Hash mismatch: initialSeqno == finalSeqno")
 }
 
 func TestInclusionExtensionProofsFailureBranches(t *testing.T) {

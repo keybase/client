@@ -264,17 +264,17 @@ func (m *MerkleProofVerifier) verifyExtensionProofFinal(ctx logger.ContextInterf
 }
 
 func (m *MerkleProofVerifier) VerifyExtensionProof(ctx logger.ContextInterface, proof *MerkleExtensionProof, initialSeqno Seqno, initialRootHash Hash, finalSeqno Seqno, expRootHash Hash) error {
-	if proof == nil {
-		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
-	}
-
 	// Optimization: if initialSeqno == finalSeqno it is enough to compare
 	// hashes, so if the proof is empty we can just do that.
-	if initialSeqno == finalSeqno && len(proof.PreviousRootsNoSkips) == 0 && len(proof.RootHashes) == 0 {
+	if initialSeqno == finalSeqno && (proof == nil || (len(proof.PreviousRootsNoSkips) == 0 && len(proof.RootHashes) == 0)) {
 		if initialRootHash.Equal(expRootHash) {
 			return nil
 		}
 		return NewProofVerificationFailedError(fmt.Errorf("Hash mismatch: initialSeqno == finalSeqno == %v but %X != %X", initialSeqno, initialRootHash, expRootHash))
+	}
+
+	if proof == nil {
+		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
 	}
 
 	skipsHash, isPartOfIncExtProof, err := m.computeFinalSkipPointersHashFromPath(ctx, proof, initialSeqno, initialRootHash, finalSeqno)
