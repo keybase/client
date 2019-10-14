@@ -78,6 +78,7 @@ func (n NullConfiguration) GetUsernameForUID(u keybase1.UID) NormalizedUsername 
 func (n NullConfiguration) GetUIDForUsername(u NormalizedUsername) keybase1.UID {
 	return keybase1.UID("")
 }
+func (n NullConfiguration) GetStayLoggedOut() (bool, bool)                        { return false, false }
 func (n NullConfiguration) GetAutoFork() (bool, bool)                             { return false, false }
 func (n NullConfiguration) GetRunMode() (RunMode, error)                          { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                           { return false, false }
