@@ -1160,11 +1160,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
 
         const upToOrdinals: Array<Types.Ordinal> = []
         if (upToMessageID) {
-          const ordinalToMessage = draftState.messageMap.get(
-            conversationIDKey,
-            I.Map<Types.Ordinal, Types.Message>()
-          )
-          ordinalToMessage.reduce((arr, m, ordinal) => {
+          const ordinalToMessage = draftState.messageMap.get(conversationIDKey) || new Map()
+          ;[...ordinalToMessage.entries()].reduce((arr, [ordinal, m]) => {
             if (m.id < upToMessageID && deletableMessageTypes.has(m.type)) {
               arr.push(ordinal)
             }
@@ -1192,33 +1189,29 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           }, [])
         )
 
-        draftState.messageMap = draftState.messageMap.update(
-          conversationIDKey,
-          I.Map(),
-          (map: I.Map<Types.Ordinal, Types.Message>) =>
-            map.withMutations(m => {
-              allOrdinals.forEach(ordinal => {
-                m.update(ordinal, message => {
-                  if (!message) {
-                    return message
-                  }
-                  return Constants.makeMessageDeleted({
-                    author: message.author,
-                    conversationIDKey: message.conversationIDKey,
-                    id: message.id,
-                    ordinal: message.ordinal,
-                    timestamp: message.timestamp,
-                  })
-                })
+        const messageMap = new Map(draftState.messageMap)
+        const ordToMsg = new Map(messageMap.get(conversationIDKey) || [])
+        allOrdinals.forEach(ordinal => {
+          const old = ordToMsg.get(ordinal)
+          if (old) {
+            ordToMsg.set(
+              ordinal,
+              Constants.makeMessageDeleted({
+                author: old.author,
+                conversationIDKey: old.conversationIDKey,
+                id: old.id,
+                ordinal: old.ordinal,
+                timestamp: old.timestamp,
               })
-            })
-        )
+            )
+          }
+        })
+        draftState.messageMap = messageMap
 
         const messageOrdinals = new Map(draftState.messageOrdinals)
-        // TODO
-        messageOrdinals.update(conversationIDKey, ordinals =>
-          ordinals ? ordinals.subtract(allOrdinals) : ordinals
-        )
+        const ords = new Set(messageOrdinals.get(conversationIDKey) || [])
+        allOrdinals.forEach(o => ords.delete(o))
+        messageOrdinals.set(conversationIDKey, ords)
         draftState.messageOrdinals = messageOrdinals
         return
       }
