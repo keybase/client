@@ -237,7 +237,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	t.Logf("charlie can fetch and list the entry")
 }
 
-func TestDelete(t *testing.T) {
+func TestKVDelete(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
 	mctx := libkb.NewMetaContextForTest(tc)
@@ -339,7 +339,7 @@ func TestRevisionCache(t *testing.T) {
 
 	// create a new entry and other basic setup
 	namespace := "myapp"
-	entryKey := "entry-key-whatever"
+	entryKey := "messin-withtha-cache"
 	secretData := "supersecret"
 	putArg := keybase1.PutKVEntryArg{
 		SessionID:  0,
@@ -365,16 +365,18 @@ func TestRevisionCache(t *testing.T) {
 	// Mutate the revision cache to simulate the cases where the server
 	// is lying to the client about the next fetched entry. First, fetch
 	// and assert some basic stuff about the revision cache.
-	revCache := tc.G.GetKVRevisionCache()
-	entryHash, generation, revision := revCache.Fetch(mctx, entryID)
+	kvRevCache := tc.G.GetKVRevisionCache().(*kvstore.KVRevisionCache)
+	entryHash, generation, revision := kvRevCache.Inspect(entryID)
 	require.NotEmpty(t, entryHash)
 	require.EqualValues(t, 1, generation)
 	require.Equal(t, 1, revision)
 
-	// bump the revision in the cache and verify error
+	// bump the revision in the cache and verify error when going through the handler
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
-	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, entryHash, generation, 2)
+	revCache := tc.G.GetKVRevisionCache()
+	err = revCache.Check(mctx, entryID, &secretData, generation, 2)
+	require.NoError(t, err)
+	err = revCache.Put(mctx, entryID, &secretData, generation, 2)
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
@@ -384,7 +386,9 @@ func TestRevisionCache(t *testing.T) {
 	// bump the team key generation and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, entryHash, keybase1.PerTeamKeyGeneration(2), revision)
+	err = revCache.Check(mctx, entryID, &secretData, keybase1.PerTeamKeyGeneration(2), revision)
+	require.NoError(t, err)
+	err = revCache.Put(mctx, entryID, &secretData, keybase1.PerTeamKeyGeneration(2), revision)
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
@@ -394,20 +398,16 @@ func TestRevisionCache(t *testing.T) {
 	// mutate the entry hash and verify error
 	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
 	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, "this-is-wrong", generation, revision)
+	differentCiphertext := "this-is-wrong"
+	err = revCache.Check(mctx, entryID, &differentCiphertext, generation, revision)
 	require.NoError(t, err)
+	err = revCache.Put(mctx, entryID, &differentCiphertext, generation, revision)
+	require.NoError(t, err)
+
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
 	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "hash of entry")
-
-	// verify that it does not error with the right things in the cache
-	tc.G.SetKVRevisionCache(kvstore.NewKVRevisionCache(tc.G))
-	revCache = tc.G.GetKVRevisionCache()
-	err = revCache.PutCheck(mctx, entryID, entryHash, generation, revision)
-	require.NoError(t, err)
-	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
-	require.NoError(t, err)
 }
 
 var _ kvstore.KVStoreBoxer = (*KVStoreTestBoxer)(nil)
@@ -440,7 +440,7 @@ func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 	return realBoxer.Unbox(mctx, entryID, revision, ciphertext, teamKeyGen, formatVersion, senderUID, senderEldestSeqno, senderDeviceID)
 }
 
-func TestEncryptionAndVerification(t *testing.T) {
+func TestKVEncryptionAndVerification(t *testing.T) {
 	ctx := context.TODO()
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
@@ -498,8 +498,6 @@ func TestEncryptionAndVerification(t *testing.T) {
 			return keybase1.PerTeamKeyGeneration(2)
 		},
 	}
-	_, err = handler.PutKVEntry(ctx, putArg)
-	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.IsType(t, signencrypt.Error{}, err)
@@ -520,6 +518,31 @@ func TestEncryptionAndVerification(t *testing.T) {
 	t.Logf("verifying a signature with the wrong revision fails")
 
 	// should error if given the wrong nonce
+	handler.Boxer = &KVStoreTestBoxer{
+		Contextified: libkb.NewContextified(tc.G),
+		UnboxMutateCiphertext: func(currentCiphertext string) (newCiphertext string) {
+			decoded, err := base64.StdEncoding.DecodeString(currentCiphertext)
+			require.NoError(t, err)
+			var box keybase1.EncryptedKVEntry
+			err = msgpack.Decode(&box, decoded)
+			require.NoError(t, err)
+			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
+			randBytes, err := libkb.RandBytes(16)
+			require.NoError(t, err)
+			box.N = randBytes
+			packed, err := msgpack.Encode(box)
+			require.NoError(t, err)
+			return base64.StdEncoding.EncodeToString(packed)
+		},
+	}
+	_, err = handler.GetKVEntry(ctx, getArg)
+	require.Error(t, err)
+	require.IsType(t, signencrypt.Error{}, err)
+	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
+	t.Logf("cannot decrypt with the wrong nonce")
+	// switch to a new, non-broken entry key to test that the nonce changes
+	putArg.EntryKey = "not-broken"
+	getArg.EntryKey = "not-broken"
 	var firstNonce, secondNonce [16]byte
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified: libkb.NewContextified(tc.G),
@@ -531,22 +554,14 @@ func TestEncryptionAndVerification(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, len(box.N), 16, "there is an actual 16 byte nonce")
 			copy(firstNonce[:], box.N)
-			randBytes, err := libkb.RandBytes(16)
-			require.NoError(t, err)
-			box.N = randBytes
-			packed, err := msgpack.Encode(box)
-			require.NoError(t, err)
-			return base64.StdEncoding.EncodeToString(packed)
+			return currentCiphertext
 		},
 	}
-	putRes, err = handler.PutKVEntry(ctx, putArg)
+	_, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
-	require.Error(t, err)
-	require.IsType(t, signencrypt.Error{}, err)
-	require.Equal(t, err.(signencrypt.Error).Type, signencrypt.BadSecretbox)
-	t.Logf("cannot decrypt with the wrong nonce")
-	// push and fetch another entry to verify that the nonce changed
+	require.NoError(t, err)
+	require.Equal(t, len(firstNonce), 16, "firstNonce got populated")
 	handler.Boxer = &KVStoreTestBoxer{
 		Contextified: libkb.NewContextified(tc.G),
 		UnboxMutateCiphertext: func(ciphertext string) string {
@@ -565,6 +580,7 @@ func TestEncryptionAndVerification(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(ctx, getArg)
 	require.NoError(t, err)
+	require.Equal(t, len(secondNonce), 16, "secondNonce got populated")
 	require.NotEqual(t, firstNonce, secondNonce)
 	t.Logf("two puts with identical data and keys use different nonces")
 }

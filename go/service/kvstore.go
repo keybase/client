@@ -99,11 +99,6 @@ func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KV
 	if apiRes.EntryKey != entryID.EntryKey {
 		return emptyRes, fmt.Errorf("api returned an unexpected entryKey: %s isn't %s", apiRes.EntryKey, entryID.EntryKey)
 	}
-	entryHash := kvstore.Hash(apiRes.Ciphertext)
-	err = mctx.G().GetKVRevisionCache().PutCheck(mctx, entryID, entryHash, apiRes.TeamKeyGen, apiRes.Revision)
-	if err != nil {
-		return emptyRes, err
-	}
 	return apiRes, nil
 }
 
@@ -131,22 +126,31 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 		mctx.Debug("error fetching %+v from server: %v", entryID, err)
 		return res, err
 	}
+	// check the server response against the local cache
+	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, &apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
+	if err != nil {
+		mctx.Debug("error comparing entry %v against cache: %v", entryID, err)
+		return res, err
+	}
 	var cleartext string
-	if apiRes.Ciphertext != "" {
+	if apiRes.Ciphertext != "" /* deleted or non-existent */ {
 		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID)
 		if err != nil {
 			mctx.Debug("error unboxing %+v: %v", entryID, err)
 			return res, err
 		}
 	}
-	res = keybase1.KVGetResult{
+	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, &apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
+	if err != nil {
+		return res, err
+	}
+	return keybase1.KVGetResult{
 		TeamName:   arg.TeamName,
 		Namespace:  arg.Namespace,
 		EntryKey:   arg.EntryKey,
 		EntryValue: cleartext,
 		Revision:   apiRes.Revision,
-	}
-	return res, nil
+	}, nil
 }
 
 type putEntryAPIRes struct {
@@ -156,19 +160,6 @@ type putEntryAPIRes struct {
 
 func (k *putEntryAPIRes) GetAppStatus() *libkb.AppStatus {
 	return &k.Status
-}
-
-func (h *KVStoreHandler) fetchRevisionFromCacheOrServer(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (entryHash string, gen keybase1.PerTeamKeyGeneration, revision int, err error) {
-	entryHash, gen, revision = mctx.G().GetKVRevisionCache().Fetch(mctx, entryID)
-	if revision == 0 {
-		// fetch from the server (which populates the cache) and then check the cache again
-		_, err := h.serverFetch(mctx, entryID)
-		if err != nil {
-			return entryHash, gen, revision, err
-		}
-		entryHash, gen, revision = mctx.G().GetKVRevisionCache().Fetch(mctx, entryID)
-	}
-	return entryHash, gen, revision, nil
 }
 
 func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
@@ -189,18 +180,33 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		Namespace: arg.Namespace,
 		EntryKey:  arg.EntryKey,
 	}
-	_, teamKeyGen, prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, entryID)
+
+	// populate the local cache (this will make more sense after PICNIC-534)
+	getRes, err := h.GetKVEntry(ctx, keybase1.GetKVEntryArg{
+		SessionID: arg.SessionID,
+		TeamName:  arg.TeamName,
+		Namespace: arg.Namespace,
+		EntryKey:  arg.EntryKey,
+	})
 	if err != nil {
-		mctx.Debug("error fetching the revision for %+v from the local cache: %v", entryID, err)
+		mctx.Debug("error populating the cache in team storage PUT flow: %+v", err)
 		return res, err
 	}
-	revision := prevRevision + 1
-	mctx.Debug("updating %+v from revision %d to %d", entryID, prevRevision, revision)
+	revision := getRes.Revision + 1
+	////////////////////////////////
+
+	mctx.Debug("updating %+v to revision %d", entryID, revision)
 	ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
 	if err != nil {
 		mctx.Debug("error boxing %+v: %v", entryID, err)
 		return res, err
 	}
+	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, &ciphertext, teamKeyGen, revision)
+	if err != nil {
+		mctx.Debug("error comparing new entry %v against existing cache: %v", entryID, err)
+		return res, err
+	}
+
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/storage",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -220,14 +226,13 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		mctx.Debug("error posting update for %+v to the server: %v", entryID, err)
 		return res, err
 	}
-	if apiRes.Revision != prevRevision+1 {
-		mctx.Debug("expected the server to return revision %d but got %d for %+v", prevRevision+1, apiRes.Revision, entryID)
-		return res, fmt.Errorf("kvstore PUT revision error. expected %d, got %d", prevRevision+1, apiRes.Revision)
+	if apiRes.Revision != revision {
+		mctx.Debug("expected the server to return revision %d but got %d for %+v", revision, apiRes.Revision, entryID)
+		return res, fmt.Errorf("kvstore PUT revision error. expected %d, got %d", revision, apiRes.Revision)
 	}
-	entryHash := kvstore.Hash(ciphertext)
-	err = mctx.G().GetKVRevisionCache().PutCheck(mctx, entryID, entryHash, teamKeyGen, apiRes.Revision)
+	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, &ciphertext, teamKeyGen, revision)
 	if err != nil {
-		mctx.Debug("error loading %+v into the revision cache: %v", entryID, err)
+		mctx.Debug("error putting %+v into the revision cache: %v", entryID, err)
 		return res, err
 	}
 	return keybase1.KVPutResult{
@@ -256,12 +261,22 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 		Namespace: arg.Namespace,
 		EntryKey:  arg.EntryKey,
 	}
-	_, teamKeyGen, prevRevision, err := h.fetchRevisionFromCacheOrServer(mctx, entryID)
+
+	// populate the local cache (this will make more sense after PICNIC-534)
+	getArg := keybase1.GetKVEntryArg(arg)
+	getRes, err := h.GetKVEntry(ctx, getArg)
 	if err != nil {
-		mctx.Debug("error fetching the revision for %+v from the local cache: %v", entryID, err)
+		mctx.Debug("error populating the cache in team storage DEL flow: %+v", err)
+	}
+	revision := getRes.Revision + 1
+	////////////////////////////////
+
+	mctx.Debug("deleting %+v at revision %d", entryID, revision)
+	err = mctx.G().GetKVRevisionCache().CheckDeletable(mctx, entryID, revision)
+	if err != nil {
+		mctx.Debug("error comparing new entry %v against existing cache: %v", entryID, err)
 		return res, err
 	}
-	revision := prevRevision + 1
 	apiArg := libkb.APIArg{
 		Endpoint:    "team/storage",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -284,18 +299,18 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 	}
 	if responseRevision != revision {
 		mctx.Debug("expected the server to return revision %d but got %d for %+v", revision, responseRevision, entryID)
-		return res, fmt.Errorf("kvstore DEL revision error. expected %d, got %d", prevRevision+1, responseRevision)
+		return res, fmt.Errorf("kvstore DEL revision error. expected %d, got %d", revision, responseRevision)
 	}
-	err = mctx.G().GetKVRevisionCache().PutCheck(mctx, entryID, "", teamKeyGen, responseRevision)
+	err = mctx.G().GetKVRevisionCache().MarkDeleted(mctx, entryID, revision)
 	if err != nil {
-		mctx.Debug("error loading %+v into the revision cache: %v", entryID, err)
+		mctx.Debug("error loading delete of %+v into the revision cache: %v", entryID, err)
 		return res, err
 	}
 	return keybase1.KVDeleteEntryResult{
 		TeamName:  arg.TeamName,
 		Namespace: arg.Namespace,
 		EntryKey:  arg.EntryKey,
-		Revision:  responseRevision,
+		Revision:  revision,
 	}, nil
 }
 
