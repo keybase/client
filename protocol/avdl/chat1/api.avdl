@@ -46,7 +46,9 @@ protocol api {
   }
 
 
-  // MsgSender is used for JSON output of the sender of a message.
+  /**
+  Information about the sender of a message.
+  */
   record MsgSender {
     @jsonkey("uid")
     string uid;
@@ -73,10 +75,9 @@ protocol api {
     array<KnownTeamMention> teamMentions;
   }
 
-  // MsgContent is used to retrieve the type name in addition to one of Text,
-  // Attachment, Edit, Reaction, Delete, Metadata depending on the type of
-  // message.
-  // It is included in MsgSummary.
+  /*
+  The actual content of a message. Includes information about the type of the message.
+  */
   record MsgContent {
     @jsonkey("type")
     string typeName;
@@ -108,7 +109,9 @@ protocol api {
     union { null, MsgFlipContent } flip;
   }
 
-  // MsgSummary is used to display JSON details for a message.
+  /**
+  Various details about a message.
+  */
   record MsgSummary {
     @jsonkey("id")
     MessageID id;
@@ -165,7 +168,9 @@ protocol api {
   }
 
 
-  // Message contains either a MsgSummary or an Error.  Used for JSON output.
+  /**
+  An individual message. Contains either a summary of the message or an error.
+  */
   record Message {
     @jsonkey("msg")
     union { null, MsgSummary } msg;
@@ -173,7 +178,9 @@ protocol api {
     union { null, string } error;
   }
 
-  // Thread is used for JSON output of a thread of messages.
+  /**
+  A thread of messages, i.e., the contents of a single conversation.
+  */
   record Thread {
     @jsonkey("messages")
     array<Message> messages;
@@ -222,7 +229,9 @@ protocol api {
     string error;
   }
 
-  // ChatList is a list of conversations in the inbox.
+  /**
+  ChatList is a list of conversations in the inbox.
+  */
   record ChatList {
     @jsonkey("conversations")
     array<ConvSummary> conversations;
@@ -238,7 +247,9 @@ protocol api {
     array<RateLimitRes> rateLimits;
   }
 
-  // SendRes is the result of successfully sending a message.
+  /**
+  A result after successfully sending a message.
+  */
   record SendRes {
     @jsonkey("message")
     string message;
