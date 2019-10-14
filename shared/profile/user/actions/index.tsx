@@ -63,7 +63,7 @@ const Actions = (p: Props) => {
       waitingKey={ChatConstants.waitingKeyCreating}
       onClick={p.onChat}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 

@@ -47,7 +47,7 @@ export type Props = {
 const Progress = ({small, white}) => (
   <Kb.Box style={styles.progressContainer}>
     <Kb.Animation
-      animationType={white ? 'spinnerWhite' : 'spinnerGrey'}
+      animationType={white ? 'spinnerWhite' : 'spinner'}
       style={small ? styles.progressSmall : styles.progressNormal}
     />
   </Kb.Box>
