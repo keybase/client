@@ -436,11 +436,15 @@ const messageOrdinalsReducer = (
 ): Container.Draft<Types.State['messageOrdinals']> => {
   switch (action.type) {
     case Chat2Gen.markConversationsStale:
-      return action.payload.updateType === RPCChatTypes.StaleUpdateType.clear
-        ? messageOrdinals.deleteAll(action.payload.conversationIDKeys)
-        : messageOrdinals
+      if (action.payload.updateType === RPCChatTypes.StaleUpdateType.clear) {
+        const m = new Map(messageOrdinals)
+        action.payload.conversationIDKeys.forEach(k => m.delete(k))
+        return m
+      } else {
+        return messageOrdinals
+      }
     case Chat2Gen.clearMessages:
-      return messageOrdinals.clear()
+      return new Map()
     default:
       return messageOrdinals
   }
@@ -520,7 +524,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             metaMap.set(prevConvIDKey, {...meta, draft: ''})
             draftState.metaMap = metaMap
           }
-          draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(conversationIDKey)
+          const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+          messageCenterOrdinals.delete(conversationIDKey)
+          draftState.messageCenterOrdinals = messageCenterOrdinals
           const threadLoadStatus = new Map(draftState.threadLoadStatus)
           threadLoadStatus.delete(conversationIDKey)
           draftState.threadLoadStatus = threadLoadStatus
@@ -1208,10 +1214,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             })
         )
 
-        draftState.messageOrdinals = draftState.messageOrdinals.update(conversationIDKey, ordinals =>
+        const messageOrdinals = new Map(draftState.messageOrdinals)
+        // TODO
+        messageOrdinals.update(conversationIDKey, ordinals =>
           ordinals ? ordinals.subtract(allOrdinals) : ordinals
         )
-
+        draftState.messageOrdinals = messageOrdinals
         return
       }
       case Chat2Gen.updateMoreToLoad: {
@@ -1297,11 +1305,12 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           return
         }
       }
-      case Chat2Gen.replyJump:
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+      case Chat2Gen.replyJump: {
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
+      }
       case Chat2Gen.threadSearchResults: {
         const threadSearchInfoMap = new Map(draftState.threadSearchInfoMap)
         const info =
@@ -1335,9 +1344,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         threadSearchInfoMap.set(action.payload.conversationIDKey, info)
         draftState.threadSearchInfoMap = threadSearchInfoMap
 
-        draftState.messageCenterOrdinals = draftState.messageCenterOrdinals.delete(
-          action.payload.conversationIDKey
-        )
+        const messageCenterOrdinals = new Map(draftState.messageCenterOrdinals)
+        messageCenterOrdinals.delete(action.payload.conversationIDKey)
+        draftState.messageCenterOrdinals = messageCenterOrdinals
         return
       }
       case Chat2Gen.threadSearch: {
@@ -1570,9 +1579,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         ) {
           draftState.attachmentFullscreenSelection = {
             autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
-            message: message
-              .set('transferState', 'downloading')
-              .set('transferProgress', action.payload.ratio),
+            message: {...message, transferState: 'downloading', transferProgress: action.payload.ratio},
           }
         }
 
@@ -1585,9 +1592,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const idx = old.messages.findIndex(item => item.id === message.id)
         if (idx !== -1) {
           const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
-          old.messages[idx] = m
-            .set('transferState', 'downloading')
-            .set('transferProgress', action.payload.ratio)
+          old.messages[idx] = {...m, transferState: 'downloading', transferProgress: action.payload.ratio}
         }
         viewMap.set(viewType, {...old, messages})
         attachmentViewMap.set(conversationIDKey, viewMap)
@@ -1626,13 +1631,13 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         const idx = old.messages.findIndex(item => item.id === message.id)
         if (idx !== -1) {
           const m: Types.MessageAttachment = messages[idx] as any // TODO don't cast
-          old.messages[idx] = m.merge({
-            // @ts-ignore we aren't checking for the errors!
+          old.messages[idx] = {
+            ...m,
             downloadPath: path,
             fileURLCached: true,
             transferProgress: 0,
-            transferState: null,
-          })
+            transferState: undefined,
+          }
         }
         viewMap.set(viewType, {...old, messages})
         attachmentViewMap.set(conversationIDKey, viewMap)
