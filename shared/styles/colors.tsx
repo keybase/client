@@ -51,6 +51,9 @@ export const colors = {
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(82,98,147)',
+  get blueDarkerOrBlack() {
+    return this.blueDarker
+  },
   get blueDarkerOrBlack_60() {
     return this.blueDarker
   },
@@ -222,6 +225,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(173, 157, 108)',
+  get blueDarkerOrBlack() {
+    return colors.black
+  },
   get blueDarkerOrBlack_60() {
     return colors.black_60
   },

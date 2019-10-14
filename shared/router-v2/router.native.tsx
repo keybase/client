@@ -79,7 +79,7 @@ const TabBarIcon = ({badgeNumber, focused, routeName}) => (
       type={icons[routeName]}
       fontSize={32}
       style={tabStyles.tab}
-      color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack_60}
+      color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}
     />
     {!!badgeNumber && <Kb.Badge badgeNumber={badgeNumber} badgeStyle={tabStyles.badge} />}
   </Kb.NativeView>
