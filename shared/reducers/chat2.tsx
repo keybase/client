@@ -1603,8 +1603,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.attachmentDownloaded: {
-        // @ts-ignore remove canError actions soon
-        const {message, path, conversationIDKey} = action.payload
+        const {message, path} = action.payload
+        const {conversationIDKey} = message
         if (
           !action.payload.error &&
           draftState.attachmentFullscreenSelection &&
@@ -1612,9 +1612,9 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
           draftState.attachmentFullscreenSelection.message.id === message.id &&
           message.type === 'attachment'
         ) {
-          draftState.attachmentFullscreenSelection = {
-            autoPlay: draftState.attachmentFullscreenSelection.autoPlay,
-            message: message.set('downloadPath', action.payload.path || null),
+          draftState.attachmentFullscreenSelection.message = {
+            ...message,
+            downloadPath: path,
           }
         }
 
