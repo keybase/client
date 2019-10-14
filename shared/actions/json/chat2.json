@@ -76,7 +76,8 @@
         "'sentPayment'",
         "'requestedPayment'",
         "'teamMention'",
-        "'appLink'"
+        "'appLink'",
+        "'search'"
       ]
     },
     "createConversation": {
@@ -341,7 +342,7 @@
     "attachmentDownloaded": {
       "message": "Types.Message",
       "error?": "string",
-      "path?": "string",
+      "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {
@@ -557,7 +558,7 @@
     "setPaymentConfirmInfo": {
       "_description": "Set the payment confirm modal payment data",
       "error?": "RPCTypes.Status",
-      "summary?": "RPCChatTypes.UIChatPaymentSummary",
+      "summary?": "RPCChatTypes.UIChatPaymentSummary"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",

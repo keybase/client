@@ -7,7 +7,16 @@ import * as RouteTreeGen from './route-tree-gen'
 // we actually type the routes / props
 export const appendPeopleBuilder = () =>
   RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'people', title: ''}, selected: 'peopleTeamBuilder'}],
+    path: [
+      {
+        props: {
+          filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
+          namespace: 'people',
+          title: '',
+        },
+        selected: 'peopleTeamBuilder',
+      },
+    ],
   })
 
 export const appendWalletPersonBuilder = () =>

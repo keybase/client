@@ -118,8 +118,9 @@ type Favorites struct {
 	inFlightLock sync.Mutex
 	inFlightAdds map[favorites.Folder]*favReq
 
-	muShutdown sync.RWMutex
-	shutdown   bool
+	shutdownChan chan struct{}
+	muShutdown   sync.RWMutex
+	shutdown     bool
 }
 
 func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
@@ -144,6 +145,7 @@ func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 		refreshWaiting:  make(chan struct{}, 1),
 		inFlightAdds:    make(map[favorites.Folder]*favReq),
 		log:             log,
+		shutdownChan:    make(chan struct{}),
 	}
 
 	return f
@@ -649,6 +651,7 @@ func (f *Favorites) Shutdown() error {
 	f.shutdown = true
 	close(f.reqChan)
 	close(f.bufferedReqChan)
+	close(f.shutdownChan)
 	if f.diskCache != nil {
 		err := f.diskCache.Close()
 		if err != nil {
@@ -889,10 +892,13 @@ func (f *Favorites) RefreshCacheWhenMTimeChanged(ctx context.Context) {
 	select {
 	case f.bufferedReqChan <- req:
 		go func() {
-			<-req.done
-			if req.err != nil {
-				f.log.CDebugf(ctx, "Failed to refresh cached Favorites ("+
-					"error in main loop): %+v", req.err)
+			select {
+			case <-req.done:
+				if req.err != nil {
+					f.log.CDebugf(ctx, "Failed to refresh cached Favorites ("+
+						"error in main loop): %+v", req.err)
+				}
+			case <-f.shutdownChan:
 			}
 		}()
 	default:

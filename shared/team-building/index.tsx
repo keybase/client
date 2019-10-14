@@ -28,6 +28,7 @@ import PhoneSearch from './phone-search'
 import AlphabetIndex from './alphabet-index'
 import EmailSearch from './email-search'
 import * as Constants from '../constants/team-building'
+import PeopleResult from './people-result'
 
 export const numSectionLabel = '0-9'
 
@@ -216,16 +217,18 @@ const FilteredServiceTabBar = (
 
   return services.length === 1 && services[0] === 'keybase' ? null : (
     <ServiceTabBar
-      services={Constants.allServices}
+      services={services}
       selectedService={props.selectedService}
       onChangeService={props.onChangeService}
       serviceResultCount={props.serviceResultCount}
       showServiceResultCount={props.showServiceResultCount}
+      servicesShown={props.servicesShown}
+      minimalBorder={props.minimalBorder}
     />
   )
 }
 
-const EmptyResultText = (props: {selectedService: ServiceIdWithContact}) => (
+const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: string}) => (
   <Kb.Box2
     alignSelf="center"
     centerChildren={!Styles.isMobile}
@@ -250,8 +253,8 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact}) => (
       </Kb.Text>
     )}
     <Kb.Text center={true} style={styles.emptyServiceText} type="BodySmall">
-      Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a
-      Keybase account.
+      {props.action} anyone on {serviceIdToLabel(props.selectedService)}, even if they don’t have a Keybase
+      account.
     </Kb.Text>
   </Kb.Box2>
 )
@@ -380,6 +383,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
   )
 
   _listBody = () => {
+    const ResultRow = this.props.namespace === 'people' ? PeopleResult : UserResult
     const showRecPending =
       !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
     const showLoading = !!this.props.searchString && !this.props.searchResults
@@ -398,7 +402,13 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      return <EmptyResultText selectedService={this.props.selectedService} />
+      if (this.props.namespace === 'people') {
+        return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
+      } else {
+        return (
+          <EmptyResultText selectedService={this.props.selectedService} action="Start a Keybase chat with" />
+        )
+      }
     }
     if (this.props.showRecs && this.props.recommendations) {
       const highlightDetails = this._listIndexToSectionAndLocalIndex(
@@ -426,7 +436,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
               result.isImportButton ? (
                 <ContactsImportButton {...this.props} />
               ) : (
-                <UserResult
+                <ResultRow
                   resultForService={this.props.selectedService}
                   username={result.username}
                   prettyName={result.prettyName}
@@ -438,6 +448,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
                   highlight={
                     !Styles.isMobile &&
                     !!highlightDetails &&
+                    this.props.namespace !== 'people' &&
                     highlightDetails.section === section &&
                     highlightDetails.index === index
                   }
@@ -452,6 +463,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         </Kb.Box2>
       )
     }
+
     return (
       <Kb.List
         items={this.props.searchResults || []}
@@ -463,7 +475,7 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         onEndReached={this._onEndReached}
         onEndReachedThreshold={0.1}
         renderItem={(index, result) => (
-          <UserResult
+          <ResultRow
             resultForService={this.props.selectedService}
             username={result.username}
             prettyName={result.prettyName}
@@ -514,6 +526,17 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
         content = (
           <>
             {this._searchInput()}
+            {props.namespace === 'people' && !Styles.isMobile && (
+              <FilteredServiceTabBar
+                filterServices={props.filterServices}
+                selectedService={props.selectedService}
+                onChangeService={props.onChangeService}
+                serviceResultCount={props.serviceResultCount}
+                showServiceResultCount={props.showServiceResultCount}
+                servicesShown={5} // wider bar, show more services
+                minimalBorder={true} // only show bottom border on icon when active
+              />
+            )}
             {this._listBody()}
             {props.waitingForCreate && (
               <Kb.Box2 direction="vertical" style={styles.waiting} alignItems="center">
@@ -540,26 +563,32 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
     )
 
     // Handle when team-building is making a new chat v.s. adding members to a team.
-    const chatHeader = props.rolePickerProps ? (
-      <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
-        <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
-        <Kb.Text type="Header">{props.title}</Kb.Text>
-        <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="Header" style={styles.newChatHeader}>
-          {props.title}
-        </Kb.Text>
-      </Kb.Box2>
-    )
+    const chatHeader =
+      props.namespace === 'people' ? null : props.rolePickerProps ? (
+        <Kb.Box2 direction="vertical" alignItems="center" style={styles.headerContainer}>
+          <Kb.Avatar teamname={props.teamname} size={32} style={styles.teamAvatar} />
+          <Kb.Text type="Header">{props.title}</Kb.Text>
+          <Kb.Text type="BodyTiny">Add as many members as you would like.</Kb.Text>
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" alignItems="center">
+          <Kb.Text type="Header" style={styles.newChatHeader}>
+            {props.title}
+          </Kb.Text>
+        </Kb.Box2>
+      )
 
     // If there are no filterServices or if the filterServices has a phone
     const showContactsBanner =
       Styles.isMobile && (!props.filterServices || props.filterServices.includes('phone'))
 
+    const containerStyle = Styles.collapseStyles([
+      styles.container,
+      props.namespace !== 'people' ? styles.fixedWidthContainer : null,
+    ])
+
     return (
-      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+      <Kb.Box2 direction="vertical" style={containerStyle} fullWidth={true}>
         {Styles.isMobile ? null : chatHeader}
         {teamBox &&
           (Styles.isMobile ? (
@@ -578,13 +607,15 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        <FilteredServiceTabBar
-          filterServices={props.filterServices}
-          selectedService={props.selectedService}
-          onChangeService={props.onChangeService}
-          serviceResultCount={props.serviceResultCount}
-          showServiceResultCount={props.showServiceResultCount}
-        />
+        {(props.namespace !== 'people' || Styles.isMobile) && (
+          <FilteredServiceTabBar
+            filterServices={props.filterServices}
+            selectedService={props.selectedService}
+            onChangeService={props.onChangeService}
+            serviceResultCount={props.serviceResultCount}
+            showServiceResultCount={props.showServiceResultCount}
+          />
+        )}
         {showContactsBanner && (
           <ContactsBanner
             {...props}
@@ -642,7 +673,6 @@ const styles = Styles.styleSheetCreate(
           height: 560,
           maxHeight: 560,
           overflow: 'visible',
-          width: 400,
         },
       }),
       emptyContainer: Styles.platformStyles({
@@ -656,6 +686,11 @@ const styles = Styles.styleSheetCreate(
       emptyServiceText: Styles.platformStyles({
         isMobile: {
           padding: Styles.globalMargins.small,
+        },
+      }),
+      fixedWidthContainer: Styles.platformStyles({
+        isElectron: {
+          width: 400,
         },
       }),
       headerContainer: Styles.platformStyles({
