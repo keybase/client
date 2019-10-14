@@ -224,6 +224,10 @@ type WithProfileCardPopupProps = {
 export const WithProfileCardPopup = ({username, children}: WithProfileCardPopupProps) => {
   const ref = React.useRef(null)
   const [showing, setShowing] = React.useState(false)
+  const isSelf = Container.useSelector(state => state.config.username === username)
+  if (isSelf) {
+    return children()
+  }
   const popup = showing && (
     <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
       <Kb.FloatingMenu
