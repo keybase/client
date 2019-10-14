@@ -59,6 +59,15 @@ func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
 func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("PassphraseRecover#Run", func() error { return err })()
 
+	// If no username was passed, ask for one
+	if e.arg.Username == "" {
+		res, err := mctx.UIs().LoginUI.GetEmailOrUsername(mctx.Ctx(), 0)
+		if err != nil {
+			return err
+		}
+		e.arg.Username = res
+	}
+
 	// Look up the passed username against the list of configured users
 	if err := e.processUsername(mctx); err != nil {
 		return err
