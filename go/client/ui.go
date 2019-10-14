@@ -861,9 +861,8 @@ username, but lose all your data, including all of your uploaded encrypted PGP k
 
 	if userWantsToReset {
 		return keybase1.ResetPromptResponse_CONFIRM_RESET, err
-	} else {
-		return keybase1.ResetPromptResponse_NOTHING, err
 	}
+	return keybase1.ResetPromptResponse_NOTHING, err
 }
 
 func (l LoginUI) DisplayResetProgress(ctx context.Context, arg keybase1.DisplayResetProgressArg) error {
