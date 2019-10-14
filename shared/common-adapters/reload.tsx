@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Constants from '../constants/waiting'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {Box2} from './box'
 import HeaderHoc from './header-hoc'
 import ScrollView from './scroll-view'
@@ -10,6 +11,8 @@ import Button from './button'
 import Icon from './icon'
 import {namedConnect} from '../util/container'
 import {RPCError} from '../util/errors'
+import {settingsTab} from '../constants/tabs'
+import {feedbackTab} from '../constants/settings'
 
 const Kb = {
   Box2,
@@ -21,6 +24,7 @@ const Kb = {
 
 type ReloadProps = {
   onBack?: () => void
+  onFeedback: () => void
   onReload: () => void
   reason: string
   title?: string
@@ -51,8 +55,10 @@ class Reload extends React.PureComponent<
         <Kb.Text type="BodySecondaryLink" onClick={this._toggle}>
           {this.state.expanded ? 'Hide details' : 'Show details'}
         </Kb.Text>
-
-        <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
+        <Kb.Box2 direction="horizontal" gap="tiny">
+          <Kb.Button label="Retry" mode="Secondary" onClick={this.props.onReload} />
+          <Kb.Button label="Feedback" mode="Primary" onClick={this.props.onFeedback} />
+        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -65,6 +71,7 @@ export type Props = {
   needsReload: boolean
   onBack?: () => void
   onReload: () => void
+  onFeedback: () => void
   reason: string
   reloadOnMount?: boolean
   title?: string
@@ -82,12 +89,13 @@ class Reloadable extends React.PureComponent<Props> {
     return this.props.onBack ? (
       <ReloadWithHeader
         onBack={this.props.onBack}
+        onFeedback={this.props.onFeedback}
         onReload={this.props.onReload}
         reason={this.props.reason}
         title={this.props.title}
       />
     ) : (
-      <Reload onReload={this.props.onReload} reason={this.props.reason} />
+      <Reload onReload={this.props.onReload} onFeedback={this.props.onFeedback} reason={this.props.reason} />
     )
   }
 }
@@ -147,13 +155,29 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   return {
     needsReload: !!error,
     reason: (error && error.message) || '',
+    _loggedIn: state.config.loggedIn,
   }
 }
-const mapDispatchToProps = () => ({})
-const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
+  _onFeedback: (loggedIn: boolean) => {
+    if (loggedIn) {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [settingsTab]}))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {heading: 'Oh no, a bug!'}, selected: feedbackTab}],
+        })
+      )
+    } else {
+      dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+    }
+  },
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   children: ownProps.children,
   needsReload: stateProps.needsReload,
   onBack: ownProps.onBack,
+  onFeedback: () => dispatchProps._onFeedback(stateProps._loggedIn),
   onReload: ownProps.onReload,
   reason: stateProps.reason,
   reloadOnMount: ownProps.reloadOnMount,
