@@ -607,16 +607,15 @@ class TeamBuilding extends React.PureComponent<Props, {}> {
             </Kb.Text>
           </Kb.Text>
         )}
-        {props.namespace !== 'people' ||
-          (Styles.isMobile && (
-            <FilteredServiceTabBar
-              filterServices={props.filterServices}
-              selectedService={props.selectedService}
-              onChangeService={props.onChangeService}
-              serviceResultCount={props.serviceResultCount}
-              showServiceResultCount={props.showServiceResultCount}
-            />
-          ))}
+        {(props.namespace !== 'people' || Styles.isMobile) && (
+          <FilteredServiceTabBar
+            filterServices={props.filterServices}
+            selectedService={props.selectedService}
+            onChangeService={props.onChangeService}
+            serviceResultCount={props.serviceResultCount}
+            showServiceResultCount={props.showServiceResultCount}
+          />
+        )}
         {showContactsBanner && (
           <ContactsBanner
             {...props}
