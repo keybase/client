@@ -252,7 +252,7 @@ const containerStyles = Styles.styleSheetCreate(() => {
 const commonLabel = () =>
   Styles.platformStyles({
     common: {
-      color: Styles.globalColors.white,
+      color: Styles.globalColors.whiteOrWhite,
       textAlign: 'center',
     },
     isElectron: {whiteSpace: 'pre'},
@@ -262,7 +262,7 @@ const commonLabel = () =>
 const labelStyles = Styles.styleSheetCreate(() => {
   const primaryWhiteBgLabel = {
     ...commonLabel(),
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.whiteOrWhite,
   }
   return {
     PrimaryDefault: primaryWhiteBgLabel,
