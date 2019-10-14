@@ -56,6 +56,7 @@ func (o ChatMessage) DeepCopy() ChatMessage {
 	}
 }
 
+// Information about the sender of a message.
 type MsgSender struct {
 	Uid        string `codec:"uid" json:"uid"`
 	Username   string `codec:"username,omitempty" json:"username,omitempty"`
@@ -224,6 +225,7 @@ func (o MsgContent) DeepCopy() MsgContent {
 	}
 }
 
+// Various details about a message.
 type MsgSummary struct {
 	Id                  MessageID                `codec:"id" json:"id"`
 	ConvID              string                   `codec:"convID" json:"conversation_id"`
@@ -316,6 +318,7 @@ func (o MsgSummary) DeepCopy() MsgSummary {
 	}
 }
 
+// An individual message. Contains either a summary of the message or an error.
 type Message struct {
 	Msg   *MsgSummary `codec:"msg,omitempty" json:"msg,omitempty"`
 	Error *string     `codec:"error,omitempty" json:"error,omitempty"`
@@ -340,6 +343,7 @@ func (o Message) DeepCopy() Message {
 	}
 }
 
+// A thread of messages, i.e., the contents of a single conversation.
 type Thread struct {
 	Messages         []Message                     `codec:"messages" json:"messages"`
 	Pagination       *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -461,6 +465,7 @@ func (o ConvSummary) DeepCopy() ConvSummary {
 	}
 }
 
+// ChatList is a list of conversations in the inbox.
 type ChatList struct {
 	Conversations    []ConvSummary                 `codec:"conversations" json:"conversations"`
 	Offline          bool                          `codec:"offline" json:"offline"`
@@ -515,6 +520,7 @@ func (o ChatList) DeepCopy() ChatList {
 	}
 }
 
+// A result after successfully sending a message.
 type SendRes struct {
 	Message          string                        `codec:"message" json:"message"`
 	MessageID        *MessageID                    `codec:"messageID,omitempty" json:"id,omitempty"`

@@ -125,7 +125,8 @@
           "jsonkey": "device_name",
           "optional": true
         }
-      ]
+      ],
+      "doc": "Information about the sender of a message."
     },
     {
       "type": "record",
@@ -413,7 +414,8 @@
           "name": "botUID",
           "jsonkey": "bot_uid"
         }
-      ]
+      ],
+      "doc": "Various details about a message."
     },
     {
       "type": "record",
@@ -435,7 +437,8 @@
           "name": "error",
           "jsonkey": "error"
         }
-      ]
+      ],
+      "doc": "An individual message. Contains either a summary of the message or an error."
     },
     {
       "type": "record",
@@ -481,7 +484,8 @@
           "jsonkey": "ratelimits",
           "optional": true
         }
-      ]
+      ],
+      "doc": "A thread of messages, i.e., the contents of a single conversation."
     },
     {
       "type": "record",
@@ -604,7 +608,8 @@
           "jsonkey": "ratelimits",
           "optional": true
         }
-      ]
+      ],
+      "doc": "ChatList is a list of conversations in the inbox."
     },
     {
       "type": "record",
@@ -649,7 +654,8 @@
           "jsonkey": "ratelimits",
           "optional": true
         }
-      ]
+      ],
+      "doc": "A result after successfully sending a message."
     },
     {
       "type": "record",
