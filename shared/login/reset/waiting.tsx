@@ -74,7 +74,14 @@ const Waiting = (props: Props) => {
       }
       buttons={[{label: 'Close', onClick: onClose, type: 'Dim'}]}
     >
-      <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Kb.Box2
+        direction="vertical"
+        gap="medium"
+        fullWidth={true}
+        fullHeight={true}
+        centerChildren={true}
+        style={styles.topGap}
+      >
         <Kb.Icon
           type={pipelineStarted ? 'iconfont-wave-2' : 'iconfont-mailbox'}
           color={Styles.globalColors.black}
@@ -138,4 +145,10 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.white_40OrBlack_60,
   },
+  topGap: Styles.platformStyles({
+    isMobile: {
+      justifyContent: 'flex-start',
+      marginTop: 120,
+    },
+  }),
 }))
