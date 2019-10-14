@@ -7,7 +7,10 @@ import {Props} from '.'
 import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
 const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
-const explodedIllustrationUrl = urlsToImgSet({'68': explodedIllustration}, 68)
+const explodedIllustrationDark = resolveRootAsURL('../images/icons/dark-pattern-ashes-desktop-400-68.png')
+const explodedIllustrationUrl = Styles.isDarkMode
+  ? urlsToImgSet({'68': explodedIllustrationDark}, 68)
+  : urlsToImgSet({'68': explodedIllustration}, 68)
 
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
