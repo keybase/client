@@ -380,6 +380,7 @@ function* removeMemberOrPendingInvite(
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
       {
+        allowInaction: true,
         email,
         inviteID,
         name: teamname,
