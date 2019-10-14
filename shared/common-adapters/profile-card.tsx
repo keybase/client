@@ -184,15 +184,6 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
           )}
         </>
       )}
-      {clickToProfile && (
-        <Kb.Button
-          style={styles.button}
-          type="Default"
-          mode="Secondary"
-          label="View profile"
-          onClick={openProfile}
-        />
-      )}
       {showFollowButton &&
         (followThem ? (
           <FollowButton
@@ -212,6 +203,15 @@ const ProfileCard = ({clickToProfile, showClose, containerStyle, username}: Prop
             style={styles.button}
           />
         ))}
+      {clickToProfile && (
+        <Kb.Button
+          style={styles.button}
+          type="Default"
+          mode="Secondary"
+          label="View profile"
+          onClick={openProfile}
+        />
+      )}
     </Kb.Box2>
   )
 }
