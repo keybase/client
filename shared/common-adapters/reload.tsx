@@ -9,7 +9,7 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import Icon from './icon'
-import {namedConnect} from '../util/container'
+import {namedConnect, isNetworkErr} from '../util/container'
 import {RPCError} from '../util/errors'
 import {settingsTab} from '../constants/tabs'
 import {feedbackTab} from '../constants/settings'
@@ -149,6 +149,10 @@ export type OwnProps = {
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   let error = Constants.anyErrors(state, ownProps.waitingKeys)
+
+  // make sure reloadable only responds to network-related errors
+  error = error && isNetworkErr(error.code) ? error : undefined
+
   if (error && ownProps.errorFilter) {
     error = ownProps.errorFilter(error) ? error : undefined
   }
