@@ -25,7 +25,14 @@ const ResetPassword = () => {
       onBack={() => onContinue(false)}
       title="Reset password"
     >
-      <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        gap="medium"
+        style={styles.topGap}
+      >
         <Kb.Icon type="iconfont-skull" sizeType="Bigger" />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">If you have forgotten your password you can reset it here.</Kb.Text>
@@ -52,3 +59,12 @@ ResetPassword.navigationOptions = {
 }
 
 export default ResetPassword
+
+const styles = Styles.styleSheetCreate(() => ({
+  topGap: Styles.platformStyles({
+    isMobile: {
+      justifyContent: 'flex-start',
+      marginTop: 120,
+    },
+  }),
+}))
