@@ -17,6 +17,7 @@ import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
 import {ServiceId} from 'util/platforms'
 import {assertNever} from '../../util/container'
+import invert from 'lodash/invert'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -1068,6 +1069,10 @@ const errorUIMessagetoMessage = (
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
   })
+}
+
+export const journeyCardTypeToType = invert(RPCChatTypes.JourneycardType) as {
+  [K in RPCChatTypes.JourneycardType]: keyof typeof RPCChatTypes.JourneycardType
 }
 
 const journeycardUIMessageToMessage = (

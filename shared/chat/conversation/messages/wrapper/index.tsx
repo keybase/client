@@ -31,6 +31,7 @@ import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
 import CoinFlip from '../coinflip/container'
+import TeamJourney from '../cards/team-journey'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
@@ -334,7 +335,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return {
         className: Styles.classNames(
           {
-            'WrapperMessage-author': this.props.showUsername,
+            'WrapperMessage-author': this.props.showUsername || this.props.message.type === 'journeycard',
             'WrapperMessage-centered': this._showCenteredHighlight(),
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
@@ -581,15 +582,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         <LongPressable
           {...this._containerProps()}
           children={[
-            this._authorAndContent([
-              this._messageAndButtons(),
-              this._isEdited(),
-              this._isFailed(),
-              this._unfurlPrompts(),
-              this._unfurlList(),
-              this._coinFlip(),
-              this._reactionsRow(),
-            ]),
+            this.props.message.type === 'journeycard' ? (
+              <TeamJourney message={this.props.message} />
+            ) : (
+              this._authorAndContent([
+                this._messageAndButtons(),
+                this._isEdited(),
+                this._isFailed(),
+                this._unfurlPrompts(),
+                this._unfurlList(),
+                this._coinFlip(),
+                this._reactionsRow(),
+              ])
+            ),
             this._orangeLine(),
             this._sendIndicator(),
           ]}
