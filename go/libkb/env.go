@@ -351,8 +351,12 @@ func (e *Env) GetMountDirDefault() string {
 	case keybase1.RuntimeGroup_DARWINLIKE:
 		volumes := "/Volumes"
 		user, err := user.Current()
+		var username string
 		if err != nil {
-			panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+			// The iOS simulator may not have a proper user set,
+			username = "<unknown>"
+		} else {
+			username = user.Username
 		}
 		var runmodeName string
 		switch e.GetRunMode() {
@@ -366,7 +370,7 @@ func (e *Env) GetMountDirDefault() string {
 			panic("Invalid run mode")
 		}
 		return filepath.Join(volumes, fmt.Sprintf(
-			"%s (%s)", runmodeName, user.Username))
+			"%s (%s)", runmodeName, username))
 	case keybase1.RuntimeGroup_LINUXLIKE:
 		return filepath.Join(e.GetRuntimeDir(), "kbfs")
 	// kbfsdokan depends on an empty default
