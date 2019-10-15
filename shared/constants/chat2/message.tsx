@@ -734,6 +734,7 @@ const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   m: RPCChatTypes.UIMessageValid
 ) => {
+  console.warn('in validUIMessagetoMessage with', m)
   const minimum = {
     author: m.senderUsername,
     conversationIDKey,
@@ -1060,6 +1061,7 @@ export const uiMessageToMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage
 ): Types.Message | null => {
+  console.warn('in uiMessageToMessage with', uiMessage)
   switch (uiMessage.state) {
     case RPCChatTypes.MessageUnboxedState.valid:
       return validUIMessagetoMessage(state, conversationIDKey, uiMessage.valid)
@@ -1069,6 +1071,8 @@ export const uiMessageToMessage = (
       return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
     case RPCChatTypes.MessageUnboxedState.placeholder:
       return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
+    case RPCChatTypes.MessageUnboxedState.card:
+    //return cardUIMessageToMessage(conversationIDKey, uiMessage.card)
     default:
       return null
   }
