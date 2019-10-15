@@ -2700,6 +2700,25 @@ func (c ChainLinkBadUnstubError) Error() string {
 
 //============================================================================
 
+// AppOutdatedError indicates that an operation failed because the client does
+// not support some necessary feature and needs to be updated.
+type AppOutdatedError struct {
+	cause error
+}
+
+func NewAppOutdatedError(cause error) AppOutdatedError {
+	return AppOutdatedError{cause: cause}
+}
+
+func (e AppOutdatedError) Error() string {
+	if e.cause != nil {
+		return fmt.Sprintf("AppOutdatedError: %v", e.cause.Error())
+	}
+	return fmt.Sprintf("AppOutdatedError")
+}
+
+//============================================================================
+
 type PushSecretWithoutPasswordError struct {
 	msg string
 }
