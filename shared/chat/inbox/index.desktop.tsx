@@ -1,5 +1,4 @@
 import * as Constants from '../../constants/chat2'
-import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as T from './index.d'
@@ -31,7 +30,6 @@ class Inbox extends React.Component<T.Props, State> {
 
   private mounted: boolean = false
   private list: VariableSizeList | null = null
-  private selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
   private firstOffscreenIdx: number = -1
@@ -61,7 +59,7 @@ class Inbox extends React.Component<T.Props, State> {
     // list changed
     if (
       this.props.rows.length !== prevProps.rows.length ||
-      !I.is(this.props.unreadIndices, prevProps.unreadIndices)
+      !shallowEqual(this.props.unreadIndices, prevProps.unreadIndices)
     ) {
       this.calculateShowFloating()
     }
@@ -102,11 +100,10 @@ class Inbox extends React.Component<T.Props, State> {
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted = index === 0 && !this.selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}, isHighlighted && styles.hover])}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -126,7 +123,7 @@ class Inbox extends React.Component<T.Props, State> {
     if (!this.mounted) {
       return
     }
-    if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
+    if (!this.props.unreadIndices.length || this.lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
     }
@@ -193,10 +190,24 @@ class Inbox extends React.Component<T.Props, State> {
     this.list = list
   }
 
+  private listChild = ({index, style}) => this.itemRenderer(index, style)
+
+  private sizeChild = ({height, width}) => (
+    <VariableSizeList
+      height={height}
+      width={width}
+      ref={this.setRef}
+      outerRef={this.scrollDiv}
+      onItemsRendered={this.onItemsRendered}
+      itemCount={this.props.rows.length}
+      itemSize={this.itemSizeGetter}
+      estimatedItemSize={56}
+    >
+      {this.listChild}
+    </VariableSizeList>
+  )
+
   render() {
-    this.selectedVisible = !!this.props.rows.find(
-      r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
-    )
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )
@@ -204,22 +215,7 @@ class Inbox extends React.Component<T.Props, State> {
       <ErrorBoundary>
         <div style={styles.container}>
           <div style={styles.list}>
-            <AutoSizer>
-              {({height, width}) => (
-                <VariableSizeList
-                  height={height}
-                  width={width}
-                  ref={this.setRef}
-                  outerRef={this.scrollDiv}
-                  onItemsRendered={this.onItemsRendered}
-                  itemCount={this.props.rows.length}
-                  itemSize={this.itemSizeGetter}
-                  estimatedItemSize={56}
-                >
-                  {({index, style}) => this.itemRenderer(index, style)}
-                </VariableSizeList>
-              )}
-            </AutoSizer>
+            <AutoSizer>{this.sizeChild}</AutoSizer>
           </div>
           {floatingDivider || <BuildTeam />}
           {this.state.showUnread && !this.state.showFloating && (
