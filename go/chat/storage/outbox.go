@@ -512,50 +512,7 @@ func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {
 	return msg.GetMessageID()
 }
 
-func (o *Outbox) insertMessage(ctx context.Context, thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
-	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
-	inserted := false
-	var res []chat1.MessageUnboxed
-
-	// Special case a prev of 0, just stick it at the front
-	if prev == 0 {
-		thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
-			thread.Messages...)
-		return nil
-	}
-
-	for index, msg := range thread.Messages {
-		ord := o.getMsgOrdinal(msg)
-		if !inserted && prev >= ord {
-			res = append(res, chat1.NewMessageUnboxedWithOutbox(obr))
-			o.Debug(ctx, "inserting at: %d msgID: %d total: %d obid: %s prev: %d", index,
-				msg.GetMessageID(), len(thread.Messages), obr.OutboxID, prev)
-			inserted = true
-		}
-		res = append(res, msg)
-	}
-
-	if !inserted {
-		// Check to see if outbox item is so old that it has no place in this thread view (but has
-		// a valid prev value)
-		if prev > 0 && len(thread.Messages) > 0 &&
-			prev < o.getMsgOrdinal(thread.Messages[len(thread.Messages)-1]) {
-			oldestMsg := thread.Messages[len(thread.Messages)-1]
-			o.Debug(ctx, "outbox item is too old to be included in this thread view: obid: %s prev: %d oldestMsg: %d", obr.OutboxID, prev, oldestMsg.GetMessageID())
-			return nil
-		}
-
-		// If we didn't insert this guy, then put it at the front just so the user can see it
-		o.Debug(ctx, "failed to insert instream, placing at front: obid: %s prev: %d", obr.OutboxID, prev)
-		res = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
-			res...)
-	}
-
-	thread.Messages = res
-	return nil
-}
-
-func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.ConversationID,
+func (o *Outbox) AppendToThread(ctx context.Context, convID chat1.ConversationID,
 	thread *chat1.ThreadView) error {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
@@ -566,7 +523,7 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 		return err
 	}
 
-	// Sprinkle each outbox message in
+	// Sprinkle each outbox message in once
 	threadOutboxIDs := make(map[string]bool)
 	for _, m := range thread.Messages {
 		outboxID := m.GetOutboxID()
@@ -574,6 +531,7 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 			threadOutboxIDs[outboxID.String()] = true
 		}
 	}
+
 	for _, obr := range obox.Records {
 		if !obr.ConvID.Eq(convID) {
 			continue
@@ -590,9 +548,8 @@ func (o *Outbox) SprinkleIntoThread(ctx context.Context, convID chat1.Conversati
 			o.Debug(ctx, "skipping sprinkle on duplicate message error: %s", obr.OutboxID)
 			continue
 		}
-		if err := o.insertMessage(ctx, thread, obr); err != nil {
-			return err
-		}
+		thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithOutbox(obr)},
+			thread.Messages...)
 	}
 	// Update prev values for outbox messages to point at correct place (in case it has changed since
 	// some messages got sent)

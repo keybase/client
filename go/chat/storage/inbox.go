@@ -1901,7 +1901,7 @@ func (i *Inbox) LocalConversationUpdates(ctx context.Context, uid gregor1.UID,
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
-	defer i.layoutNotifier.UpdateLayout(ctx, "local conversations update")
+	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "local conversations update")
 
 	i.Debug(ctx, "LocalConversationUpdates: updating %d convs", len(convUpdates))
 	ibox, err := i.readDiskInbox(ctx, uid, true)

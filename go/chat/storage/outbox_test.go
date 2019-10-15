@@ -148,7 +148,7 @@ func TestChatOutbox(t *testing.T) {
 		require.Equal(t, obrs[3].OutboxID, res[0].OutboxID, "wrong element")
 
 		var tv chat1.ThreadView
-		require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
+		require.NoError(t, ob.AppendToThread(context.TODO(), conv.GetConvID(), &tv))
 		require.Equal(t, 1, len(tv.Messages))
 		newObr, err = ob.MarkAsError(context.TODO(), obrs[3], chat1.OutboxStateError{
 			Message: "failed",
@@ -160,7 +160,7 @@ func TestChatOutbox(t *testing.T) {
 		require.Equal(t, chat1.OutboxStateType_ERROR, st)
 		require.Equal(t, chat1.OutboxErrorType_DUPLICATE, newObr.State.Error().Typ)
 		tv.Messages = nil
-		require.NoError(t, ob.SprinkleIntoThread(context.TODO(), conv.GetConvID(), &tv))
+		require.NoError(t, ob.AppendToThread(context.TODO(), conv.GetConvID(), &tv))
 		require.Zero(t, len(tv.Messages))
 	})
 }
