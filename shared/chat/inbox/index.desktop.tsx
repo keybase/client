@@ -86,6 +86,10 @@ class Inbox extends React.Component<T.Props, State> {
 
   private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
+    if (!row) {
+      // likely small teams were just collapsed
+      return null
+    }
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
       return (
