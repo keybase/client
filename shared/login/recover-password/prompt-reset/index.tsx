@@ -3,6 +3,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as AutoresetGen from '../../../actions/autoreset-gen'
+import * as AutoresetConstants from '../../../constants/autoreset'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
@@ -31,6 +32,7 @@ const PromptReset = (_: Props) => {
           label: 'Start account reset',
           onClick: onContinue,
           type: 'Default' as ButtonType,
+          waitingKey: AutoresetConstants.enterPipelineWaitingKey,
         },
       ]}
       banners={
