@@ -52,6 +52,15 @@
     },
     {
       "type": "enum",
+      "name": "ResetPromptResponse",
+      "symbols": [
+        "NOTHING_0",
+        "CANCEL_RESET_1",
+        "CONFIRM_RESET_2"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "PassphraseRecoveryPromptType",
       "symbols": [
         "ENCRYPTED_PGP_KEYS_0"
@@ -122,7 +131,7 @@
           "type": "ResetPrompt"
         }
       ],
-      "response": "boolean",
+      "response": "ResetPromptResponse",
       "doc": "Called during login / provisioning flows to ask the user whether they\n   would like to either enter the autoreset pipeline and perform the reset\n   of the account."
     },
     "displayResetProgress": {

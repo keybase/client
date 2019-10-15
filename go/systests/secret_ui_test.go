@@ -122,6 +122,8 @@ type loginUI struct {
 	libkb.Contextified
 }
 
+var _ libkb.LoginUI = (*loginUI)(nil)
+
 func (u *loginUI) DisplayPaperKeyPhrase(context.Context, keybase1.DisplayPaperKeyPhraseArg) error {
 	return nil
 }
@@ -134,8 +136,8 @@ func (u *loginUI) PromptRevokePaperKeys(context.Context, keybase1.PromptRevokePa
 func (u *loginUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return "t_alice", nil
 }
-func (u *loginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (u *loginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 func (u *loginUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil

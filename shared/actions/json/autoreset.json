@@ -5,7 +5,7 @@
   ],
   "actions": {
     "cancelReset": {
-      "_description": "Cancel an autoreset for the currently logged-in account."
+      "_description": "Cancel an autoreset for the currently logged-in account. Don't use with a temporary (web) session"
     },
     "displayProgress": {
       "endTime": "number",

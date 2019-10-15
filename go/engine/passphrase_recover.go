@@ -205,7 +205,7 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
 		// Flow cancelled
 		return nil
 	}
@@ -236,8 +236,8 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
-		// Cancel the engine as it successfully resulted in the user entering the reset pipeline.
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
+		// Cancel the engine as the user elected not to reset their account
 		return nil
 	}
 

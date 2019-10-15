@@ -54,7 +54,11 @@ function promptReset(
         RecoverPasswordGen.submitResetPrompt
       )
       response.result(action.payload.action)
-      yield Saga.put(AutoresetGen.createFinishedReset())
+      if (action.payload.action === RPCGen.ResetPromptResponse.confirmReset) {
+        yield Saga.put(AutoresetGen.createFinishedReset())
+      } else {
+        yield Saga.put(RouteTreeGen.createNavUpToScreen({routeName: 'login'}))
+      }
     } else {
       logger.info('Starting account reset process')
       yield Saga.put(AutoresetGen.createStartAccountReset({skipPassword: true}))

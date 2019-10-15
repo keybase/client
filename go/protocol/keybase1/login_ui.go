@@ -104,6 +104,35 @@ func (o ResetPrompt) DeepCopy() ResetPrompt {
 	}
 }
 
+type ResetPromptResponse int
+
+const (
+	ResetPromptResponse_NOTHING       ResetPromptResponse = 0
+	ResetPromptResponse_CANCEL_RESET  ResetPromptResponse = 1
+	ResetPromptResponse_CONFIRM_RESET ResetPromptResponse = 2
+)
+
+func (o ResetPromptResponse) DeepCopy() ResetPromptResponse { return o }
+
+var ResetPromptResponseMap = map[string]ResetPromptResponse{
+	"NOTHING":       0,
+	"CANCEL_RESET":  1,
+	"CONFIRM_RESET": 2,
+}
+
+var ResetPromptResponseRevMap = map[ResetPromptResponse]string{
+	0: "NOTHING",
+	1: "CANCEL_RESET",
+	2: "CONFIRM_RESET",
+}
+
+func (e ResetPromptResponse) String() string {
+	if v, ok := ResetPromptResponseRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type PassphraseRecoveryPromptType int
 
 const (
@@ -178,7 +207,7 @@ type LoginUiInterface interface {
 	// Called during login / provisioning flows to ask the user whether they
 	// would like to either enter the autoreset pipeline and perform the reset
 	// of the account.
-	PromptResetAccount(context.Context, PromptResetAccountArg) (bool, error)
+	PromptResetAccount(context.Context, PromptResetAccountArg) (ResetPromptResponse, error)
 	// In some flows the user will get notified of the reset progress
 	DisplayResetProgress(context.Context, DisplayResetProgressArg) error
 	// During recovery the service might want to explain to the user how they can change
@@ -343,7 +372,7 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 // Called during login / provisioning flows to ask the user whether they
 // would like to either enter the autoreset pipeline and perform the reset
 // of the account.
-func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res bool, err error) {
+func (c LoginUiClient) PromptResetAccount(ctx context.Context, __arg PromptResetAccountArg) (res ResetPromptResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.promptResetAccount", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
