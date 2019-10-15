@@ -312,7 +312,12 @@ func (t *Tree) Build(
 		return 0, nil, err
 	}
 
-	if err = t.eng.StoreRootMetadata(ctx, tr, newRootMetadata); err != nil {
+	_, newRootHash, err := t.cfg.Encoder.EncodeAndHashGeneric(newRootMetadata)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if err = t.eng.StoreRootMetadata(ctx, tr, newRootMetadata, newRootHash); err != nil {
 		return 0, nil, err
 	}
 

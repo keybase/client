@@ -116,13 +116,9 @@ func (i *InMemoryStorageEngine) StoreNode(c logger.ContextInterface, t Transacti
 	return nil
 }
 
-func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.ContextInterface, t Transaction, r RootMetadata) error {
+func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.ContextInterface, t Transaction, r RootMetadata, h Hash) error {
 	i.Roots[r.Seqno] = r
-	_, hash, err := i.cfg.Encoder.EncodeAndHashGeneric(r)
-	if err != nil {
-		panic(fmt.Sprintf("Error encoding %+v", r))
-	}
-	i.ReverseRootMap[string(hash)] = r.Seqno
+	i.ReverseRootMap[string(h)] = r.Seqno
 	return nil
 }
 

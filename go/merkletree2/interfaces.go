@@ -14,7 +14,7 @@ type StorageEngine interface {
 
 	StoreNodes(logger.ContextInterface, Transaction, Seqno, []PositionHashPair) error
 
-	StoreRootMetadata(logger.ContextInterface, Transaction, RootMetadata) error
+	StoreRootMetadata(logger.ContextInterface, Transaction, RootMetadata, Hash) error
 
 	// LookupLatestRoot returns the latest root metadata and sequence number in
 	// the tree. If no root is found, then a NoLatestRootFound error is returned.
