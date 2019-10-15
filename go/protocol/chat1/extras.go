@@ -2522,6 +2522,10 @@ func (m MessageSystem) String() string {
 	}
 }
 
+func (m MessageHeadline) String() string {
+	return fmt.Sprintf("set the channel description: %v", m.Headline)
+}
+
 func isZero(v []byte) bool {
 	for _, b := range v {
 		if b != 0 {
