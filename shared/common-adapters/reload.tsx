@@ -157,9 +157,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     error = ownProps.errorFilter(error) ? error : undefined
   }
   return {
+    _loggedIn: state.config.loggedIn,
     needsReload: !!error,
     reason: (error && error.message) || '',
-    _loggedIn: state.config.loggedIn,
   }
 }
 const mapDispatchToProps = dispatch => ({
