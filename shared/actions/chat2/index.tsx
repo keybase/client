@@ -246,7 +246,10 @@ const maybeChangeSelectedConv = (
     state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
   ) {
     if (isMobile) {
-      return Chat2Gen.createNavigateToInbox()
+      // on mobile just head back to the inbox if we have something selected
+      return Constants.isValidConversationIDKey(state.chat2.selectedConversation)
+        ? Chat2Gen.createNavigateToInbox()
+        : false
     }
     if (state.chat2.inboxLayout.reselectInfo.newConvID) {
       logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
