@@ -27,7 +27,7 @@ import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
-import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
+import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
@@ -2397,13 +2397,13 @@ function* mobileMessageAttachmentShare(
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield* downloadAttachment(true, message)
-  if (!fileName) {
+  const filePath = yield* downloadAttachment(true, message)
+  if (!filePath) {
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
   }
   try {
-    yield showShareActionSheetFromFile(fileName)
+    yield showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {
     logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }

@@ -17,63 +17,55 @@ type Props = {
   errorMsg: string
 }
 
-class FileAttachment extends React.PureComponent<Props> {
-  render() {
-    const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
-    const iconType = 'icon-file-32'
-    return (
-      <>
-        <ShowToastAfterSaving transferState={this.props.transferState} />
-        <Kb.ClickableBox onClick={this.props.onDownload} style={styles.fullWidth}>
-          <Kb.Box style={styles.containerStyle}>
-            <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-              <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
-              <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
-                <Kb.Text type="BodySemibold">{this.props.title}</Kb.Text>
-                {this.props.fileName !== this.props.title && (
-                  <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
-                )}
-              </Kb.Box2>
+const FileAttachment = React.memo((props: Props) => {
+  const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
+  const iconType = 'icon-file-32'
+  return (
+    <>
+      <ShowToastAfterSaving transferState={props.transferState} />
+      <Kb.ClickableBox onClick={props.onDownload} style={styles.fullWidth}>
+        <Kb.Box style={styles.containerStyle}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
+            <Kb.Icon type={iconType} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+              <Kb.Text type="BodySemibold">{props.title}</Kb.Text>
+              {props.fileName !== props.title && <Kb.Text type="BodyTiny">{props.fileName}</Kb.Text>}
             </Kb.Box2>
-            {!!this.props.arrowColor && (
-              <Kb.Box style={styles.downloadedIconWrapperStyle}>
-                <Kb.Icon
-                  type="iconfont-download"
-                  style={Kb.iconCastPlatformStyles(styles.downloadedIcon)}
-                  color={this.props.arrowColor}
-                />
-              </Kb.Box>
-            )}
-            {!!progressLabel && (
-              <Kb.Box style={styles.progressContainerStyle}>
-                <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
-                  {progressLabel}
-                </Kb.Text>
-                {this.props.hasProgress && <Kb.ProgressBar ratio={this.props.progress} />}
-              </Kb.Box>
-            )}
-            {!!this.props.errorMsg && (
-              <Kb.Box style={styles.progressContainerStyle}>
-                <Kb.Text type="BodySmall" style={styles.error}>
-                  Failed to download attachment, please retry
-                </Kb.Text>
-              </Kb.Box>
-            )}
-            {this.props.onShowInFinder && (
-              <Kb.Text
-                type="BodySmallPrimaryLink"
-                onClick={this.props.onShowInFinder}
-                style={styles.linkStyle}
-              >
-                Show in {Styles.fileUIName}
+          </Kb.Box2>
+          {!!props.arrowColor && (
+            <Kb.Box style={styles.downloadedIconWrapperStyle}>
+              <Kb.Icon
+                type="iconfont-download"
+                style={Kb.iconCastPlatformStyles(styles.downloadedIcon)}
+                color={props.arrowColor}
+              />
+            </Kb.Box>
+          )}
+          {!!progressLabel && (
+            <Kb.Box style={styles.progressContainerStyle}>
+              <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
+                {progressLabel}
               </Kb.Text>
-            )}
-          </Kb.Box>
-        </Kb.ClickableBox>
-      </>
-    )
-  }
-}
+              {props.hasProgress && <Kb.ProgressBar ratio={props.progress} />}
+            </Kb.Box>
+          )}
+          {!!props.errorMsg && (
+            <Kb.Box style={styles.progressContainerStyle}>
+              <Kb.Text type="BodySmall" style={styles.error}>
+                Failed to download attachment, please retry
+              </Kb.Text>
+            </Kb.Box>
+          )}
+          {props.onShowInFinder && (
+            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowInFinder} style={styles.linkStyle}>
+              Show in {Styles.fileUIName}
+            </Kb.Text>
+          )}
+        </Kb.Box>
+      </Kb.ClickableBox>
+    </>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
