@@ -15,6 +15,7 @@ const mapStateToProps = (state, ownProps) => {
   return {
     addee: ownProps.message.addee,
     adder: ownProps.message.adder,
+    bulkAdds: ownProps.message.bulkAdds,
     isAdmin: isAdmin(getRole(state, teamname)),
     role: ownProps.message.role,
     teamname,
@@ -50,6 +51,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   addee: stateProps.addee,
   adder: stateProps.adder,
+  bulkAdds: stateProps.bulkAdds,
   isAdmin: stateProps.isAdmin,
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
   onManageNotifications: () => dispatchProps._onManageNotifications(ownProps.message.conversationIDKey),

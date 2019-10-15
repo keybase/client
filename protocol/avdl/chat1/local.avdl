@@ -111,6 +111,7 @@ protocol local {
     string adder;
     string addee;
     keybase1.TeamRole role;
+    array<string> bulkAdds;
     array<string> owners;
     array<string> admins;
     array<string> writers;
