@@ -166,7 +166,7 @@ func (a *deleteEntryOptions) Check() error {
 }
 
 func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer) error {
-	var opts putEntryOptions
+	var opts deleteEntryOptions
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}

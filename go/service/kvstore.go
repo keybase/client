@@ -58,7 +58,7 @@ func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName s
 }
 
 type getEntryAPIRes struct {
-	Status            libkb.AppStatus               `json:"status"`
+	libkb.AppStatusEmbed
 	TeamID            keybase1.TeamID               `json:"team_id"`
 	Namespace         string                        `json:"namespace"`
 	EntryKey          string                        `json:"entry_key"`
@@ -69,10 +69,6 @@ type getEntryAPIRes struct {
 	WriterUID         keybase1.UID                  `json:"uid"`
 	WriterEldestSeqno keybase1.Seqno                `json:"eldest_seqno"`
 	WriterDeviceID    keybase1.DeviceID             `json:"device_id"`
-}
-
-func (k *getEntryAPIRes) GetAppStatus() *libkb.AppStatus {
-	return &k.Status
 }
 
 func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KVEntryID) (emptyRes getEntryAPIRes, err error) {
@@ -154,12 +150,8 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 }
 
 type putEntryAPIRes struct {
-	Status   libkb.AppStatus `json:"status"`
-	Revision int             `json:"revision"`
-}
-
-func (k *putEntryAPIRes) GetAppStatus() *libkb.AppStatus {
-	return &k.Status
+	libkb.AppStatusEmbed
+	Revision int `json:"revision"`
 }
 
 func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntryArg) (res keybase1.KVPutResult, err error) {
@@ -193,7 +185,6 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		return res, err
 	}
 	revision := getRes.Revision + 1
-	////////////////////////////////
 
 	mctx.Debug("updating %+v to revision %d", entryID, revision)
 	ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
@@ -269,7 +260,6 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 		mctx.Debug("error populating the cache in team storage DEL flow: %+v", err)
 	}
 	revision := getRes.Revision + 1
-	////////////////////////////////
 
 	mctx.Debug("deleting %+v at revision %d", entryID, revision)
 	err = mctx.G().GetKVRevisionCache().CheckDeletable(mctx, entryID, revision)
@@ -315,13 +305,9 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 }
 
 type getListNamespacesAPIRes struct {
-	Status     libkb.AppStatus `json:"status"`
+	libkb.AppStatusEmbed
 	TeamID     keybase1.TeamID `json:"team_id"`
 	Namespaces []string        `json:"namespaces"`
-}
-
-func (k *getListNamespacesAPIRes) GetAppStatus() *libkb.AppStatus {
-	return &k.Status
 }
 
 func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.ListKVNamespacesArg) (res keybase1.KVListNamespaceResult, err error) {
@@ -361,7 +347,7 @@ func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.List
 }
 
 type getListEntriesAPIRes struct {
-	Status    libkb.AppStatus      `json:"status"`
+	libkb.AppStatusEmbed
 	TeamID    keybase1.TeamID      `json:"team_id"`
 	Namespace string               `json:"namespace"`
 	EntryKeys []compressedEntryKey `json:"entry_keys"`
@@ -370,10 +356,6 @@ type getListEntriesAPIRes struct {
 type compressedEntryKey struct {
 	EntryKey string `json:"k"`
 	Revision int    `json:"r"`
-}
-
-func (k *getListEntriesAPIRes) GetAppStatus() *libkb.AppStatus {
-	return &k.Status
 }
 
 func (h *KVStoreHandler) ListKVEntries(ctx context.Context, arg keybase1.ListKVEntriesArg) (res keybase1.KVListEntryResult, err error) {

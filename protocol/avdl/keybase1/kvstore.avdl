@@ -15,7 +15,7 @@ protocol kvstore {
     string teamName;
     string namespace;
     string entryKey;
-    int revision;
+    int revision; // this is the server-confirmed revision of the entry after the request
   }
 
   // for passing around internally
@@ -59,7 +59,7 @@ protocol kvstore {
     string teamName;
     string namespace;
     string entryKey;
-    int revision;
+    int revision; // this is the revision at which the entry was deleted, and a future GET will have
   }
 
   KVDeleteEntryResult delKVEntry(int sessionID, string teamName, string namespace, string entryKey);
