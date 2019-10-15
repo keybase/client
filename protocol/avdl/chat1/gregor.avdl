@@ -30,6 +30,7 @@ protocol gregor {
         InboxVers inboxVers;
         TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
+        keybase1.TeamRole untrustedTeamRole;
 
         // Optionally the server can send down the new set of max messages
         array<MessageSummary> maxMsgs;

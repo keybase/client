@@ -82,7 +82,7 @@ class Pinentry extends React.Component<Props, State> {
     return (
       <Kb.Box
         style={styles.container}
-        className={this.props.darkMode ? 'darkMode' : ''}
+        className={this.props.darkMode ? 'darkMode' : 'lightMode'}
         key={this.props.darkMode ? 'darkMode' : 'light'}
       >
         <Kb.Header icon={false} title="" onClose={this.props.onCancel} windowDragging={true} />

@@ -59,6 +59,15 @@ func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
 func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("PassphraseRecover#Run", func() error { return err })()
 
+	// If no username was passed, ask for one
+	if e.arg.Username == "" {
+		res, err := mctx.UIs().LoginUI.GetEmailOrUsername(mctx.Ctx(), 0)
+		if err != nil {
+			return err
+		}
+		e.arg.Username = res
+	}
+
 	// Look up the passed username against the list of configured users
 	if err := e.processUsername(mctx); err != nil {
 		return err
@@ -252,7 +261,6 @@ func (e *PassphraseRecover) loginWithPaperKey(mctx libkb.MetaContext) (err error
 
 	if err := e.changePassword(mctx); err != nil {
 		// Log out before returning
-		// TODO FIX ME
 		if err2 := RunEngine2(mctx, NewLogout(libkb.LogoutOptions{KeepSecrets: false, Force: true})); err2 != nil {
 			mctx.Warning("Unable to log out after password change failed: %v", err2)
 		}

@@ -165,8 +165,11 @@ type _AddUsersToChannelPayload = {
   readonly usernames: Array<string>
 }
 type _AttachmentDownloadPayload = {readonly message: Types.Message}
-type _AttachmentDownloadedPayload = {readonly message: Types.Message; readonly path?: string}
-type _AttachmentDownloadedPayloadError = {readonly error: string; readonly message: Types.Message}
+type _AttachmentDownloadedPayload = {
+  readonly message: Types.Message
+  readonly error?: string
+  readonly path?: string
+}
 type _AttachmentFullscreenNextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -405,10 +408,7 @@ type _MetasReceivedPayload = {
   readonly initialTrustedLoad?: boolean
 }
 type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly muted: boolean}
-type _NavigateToInboxPayload = {
-  readonly avoidConversationID?: Types.ConversationIDKey
-  readonly findNewConversation: boolean
-}
+type _NavigateToInboxPayload = void
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -459,6 +459,7 @@ type _PreviewConversationPayload = {
     | 'requestedPayment'
     | 'teamMention'
     | 'appLink'
+    | 'search'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -548,8 +549,10 @@ type _SetMinWriterRolePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly role: TeamsTypes.TeamRoleType
 }
-type _SetPaymentConfirmInfoPayload = {readonly summary: RPCChatTypes.UIChatPaymentSummary}
-type _SetPaymentConfirmInfoPayloadError = {readonly error: RPCTypes.Status}
+type _SetPaymentConfirmInfoPayload = {
+  readonly error?: RPCTypes.Status
+  readonly summary?: RPCChatTypes.UIChatPaymentSummary
+}
 type _SetPrependTextPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly text: HiddenString | null
@@ -943,11 +946,8 @@ export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload): SetMi
  * Set the payment confirm modal payment data
  */
 export const createSetPaymentConfirmInfo = (
-  payload: _SetPaymentConfirmInfoPayload
+  payload: _SetPaymentConfirmInfoPayload = Object.freeze({})
 ): SetPaymentConfirmInfoPayload => ({payload, type: setPaymentConfirmInfo})
-export const createSetPaymentConfirmInfoError = (
-  payload: _SetPaymentConfirmInfoPayloadError
-): SetPaymentConfirmInfoPayloadError => ({error: true, payload, type: setPaymentConfirmInfo})
 /**
  * Set the remote exploding mode for a conversation.
  */
@@ -1142,9 +1142,6 @@ export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): A
 export const createAttachmentDownloaded = (
   payload: _AttachmentDownloadedPayload
 ): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
-export const createAttachmentDownloadedError = (
-  payload: _AttachmentDownloadedPayloadError
-): AttachmentDownloadedPayloadError => ({error: true, payload, type: attachmentDownloaded})
 export const createAttachmentFullscreenNext = (
   payload: _AttachmentFullscreenNextPayload
 ): AttachmentFullscreenNextPayload => ({payload, type: attachmentFullscreenNext})
@@ -1400,11 +1397,6 @@ export type AttachmentDownloadPayload = {
 }
 export type AttachmentDownloadedPayload = {
   readonly payload: _AttachmentDownloadedPayload
-  readonly type: typeof attachmentDownloaded
-}
-export type AttachmentDownloadedPayloadError = {
-  readonly error: true
-  readonly payload: _AttachmentDownloadedPayloadError
   readonly type: typeof attachmentDownloaded
 }
 export type AttachmentFullscreenNextPayload = {
@@ -1774,11 +1766,6 @@ export type SetPaymentConfirmInfoPayload = {
   readonly payload: _SetPaymentConfirmInfoPayload
   readonly type: typeof setPaymentConfirmInfo
 }
-export type SetPaymentConfirmInfoPayloadError = {
-  readonly error: true
-  readonly payload: _SetPaymentConfirmInfoPayloadError
-  readonly type: typeof setPaymentConfirmInfo
-}
 export type SetPrependTextPayload = {
   readonly payload: _SetPrependTextPayload
   readonly type: typeof setPrependText
@@ -1919,7 +1906,6 @@ export type Actions =
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
-  | AttachmentDownloadedPayloadError
   | AttachmentFullscreenNextPayload
   | AttachmentFullscreenSelectionPayload
   | AttachmentLoadingPayload
@@ -2023,7 +2009,6 @@ export type Actions =
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
-  | SetPaymentConfirmInfoPayloadError
   | SetPrependTextPayload
   | SetThreadLoadStatusPayload
   | SetThreadSearchQueryPayload

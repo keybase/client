@@ -14,7 +14,7 @@ function* checkPaperKey(_: Container.TypedState, action: UnlockFoldersGen.CheckP
     yield Saga.callUntyped(RPCTypes.loginPaperKeySubmitRpcPromise, {paperPhrase: paperKey})
     yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone())
   } catch (e) {
-    yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDoneError({error: e.message}))
+    yield Saga.put(UnlockFoldersGen.createCheckPaperKeyDone({error: e.message}))
   } finally {
     yield Saga.put(UnlockFoldersGen.createWaiting({waiting: false}))
   }

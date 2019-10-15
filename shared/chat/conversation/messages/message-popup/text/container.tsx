@@ -31,7 +31,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   if (_canPinMessage && meta.teamname) {
     _canPinMessage = yourOperations && yourOperations.pinMessage
   }
-  const _participantsCount = meta.participants.count()
+  const _participantsCount = meta.participants.length
   return {
     _canAdminDelete,
     _canDeleteHistory,

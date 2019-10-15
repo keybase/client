@@ -238,8 +238,8 @@
     "loadDownloadStatus": {},
     "loadDownloadInfo": {"downloadID": "string"},
     "loadedDownloadStatus": {
-      "regularDownloads": "I.List<string>",
-      "state": "I.Map<string, Types.DownloadState>"
+      "regularDownloads": "Array<string>",
+      "state": "Map<string, Types.DownloadState>"
     },
     "loadedDownloadInfo": {"downloadID": "string", "info": "Types.DownloadInfo"},
     "cancelDownload": {"downloadID": "string"},

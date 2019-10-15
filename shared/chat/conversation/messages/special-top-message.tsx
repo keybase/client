@@ -139,7 +139,7 @@ export default Container.namedConnect(
       hasLoadedEver &&
       loadMoreType === 'noMoreToLoad' &&
       meta.teamType === 'adhoc' &&
-      meta.participants.size > 2
+      meta.participants.length > 2
     const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
     // don't show default header in the case of the retention notice being visible
     const showRetentionNotice =

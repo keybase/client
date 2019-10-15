@@ -63,7 +63,7 @@ const ConnectedInfoPanel = Container.connect(
       _infoMap: state.users.infoMap,
       _participantToContactName: meta.participantToContactName,
       _participants: meta.participants,
-      _teamMembers: state.teams.teamNameToMembers.get(meta.teamname, I.Map()),
+      _teamMembers: state.teams.teamNameToMembers.get(meta.teamname),
       admin,
       attachmentsLoading,
       canDeleteHistory,
@@ -89,7 +89,7 @@ const ConnectedInfoPanel = Container.connect(
     dispatch: Container.TypedDispatch,
     {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
   ) => ({
-    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
+    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
     _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onEditChannel: (teamname: string) =>
       dispatch(
@@ -157,148 +157,169 @@ const ConnectedInfoPanel = Container.connect(
     onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    admin: stateProps.admin,
-    attachmentsLoading: stateProps.attachmentsLoading,
-    canDeleteHistory: stateProps.canDeleteHistory,
-    canEditChannel: stateProps.canEditChannel,
-    canSetMinWriterRole: stateProps.canSetMinWriterRole,
-    canSetRetention: stateProps.canSetRetention,
-    channelname: stateProps.channelname,
-    customCancelText: 'Done',
-    description: stateProps.description,
-    docs:
-      stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.doc
-        ? {
-            docs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
-              .map(m => ({
-                author: m.author,
-                ctime: m.timestamp,
-                downloading: m.transferState === 'downloading',
-                fileName: m.fileName,
-                message: m,
-                name: m.title || m.fileName,
-                onDownload:
-                  !Container.isMobile && !m.downloadPath ? () => dispatchProps._onDocDownload(m) : () => null,
-                onShowInFinder:
-                  !Container.isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
-                progress: m.transferProgress,
-              })),
-            onLoadMore: stateProps._fromMsgID
-              ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.doc, stateProps._fromMsgID)
-              : null,
-            status: stateProps._attachmentInfo.status,
-          }
-        : {docs: [], onLoadMore: () => {}, status: 'loading'},
-    ignored: stateProps.ignored,
-    isPreview: stateProps.isPreview,
-    links:
-      stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.link
-        ? {
-            links: stateProps._attachmentInfo.messages.reduce<
-              Array<{author: string; ctime: number; snippet: string; title?: string; url?: string}>
-            >((l, m) => {
-              if (m.type !== 'text') {
-                return l
-              }
-              if (!m.unfurls.size) {
-                l.push({
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    let participants = stateProps._participants
+    let teamMembers = stateProps._teamMembers
+    const isGeneral = stateProps.channelname === 'general'
+    const showAuditingBanner = isGeneral && !teamMembers
+    if (teamMembers && isGeneral) {
+      participants = teamMembers
+        .valueSeq()
+        .toArray()
+        .reduce<Array<string>>((l, mi) => {
+          l.push(mi.username)
+          return l
+        }, [])
+    } else {
+      teamMembers = I.Map()
+    }
+    return {
+      admin: stateProps.admin,
+      attachmentsLoading: stateProps.attachmentsLoading,
+      canDeleteHistory: stateProps.canDeleteHistory,
+      canEditChannel: stateProps.canEditChannel,
+      canSetMinWriterRole: stateProps.canSetMinWriterRole,
+      canSetRetention: stateProps.canSetRetention,
+      channelname: stateProps.channelname,
+      customCancelText: 'Done',
+      description: stateProps.description,
+      docs:
+        stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.doc
+          ? {
+              docs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
+                .map(m => ({
                   author: m.author,
                   ctime: m.timestamp,
-                  snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
-                })
-              } else {
-                m.unfurls.toList().forEach(u => {
-                  if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
-                    l.push({
-                      author: m.author,
-                      ctime: m.timestamp,
-                      snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
-                      title: u.unfurl.generic.title,
-                      url: u.unfurl.generic.url,
-                    })
-                  }
-                })
-              }
-              return l
-            }, []),
-            onLoadMore: stateProps._fromMsgID
-              ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.link, stateProps._fromMsgID)
-              : null,
-            status: stateProps._attachmentInfo.status,
+                  downloading: m.transferState === 'downloading',
+                  fileName: m.fileName,
+                  message: m,
+                  name: m.title || m.fileName,
+                  onDownload:
+                    !Container.isMobile && !m.downloadPath
+                      ? () => dispatchProps._onDocDownload(m)
+                      : () => null,
+                  onShowInFinder:
+                    !Container.isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
+                  progress: m.transferProgress,
+                })),
+              onLoadMore: stateProps._fromMsgID
+                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.doc, stateProps._fromMsgID)
+                : null,
+              status: stateProps._attachmentInfo.status,
+            }
+          : {docs: [], onLoadMore: () => {}, status: 'loading'},
+      ignored: stateProps.ignored,
+      isPreview: stateProps.isPreview,
+      links:
+        stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.link
+          ? {
+              links: stateProps._attachmentInfo.messages.reduce<
+                Array<{author: string; ctime: number; snippet: string; title?: string; url?: string}>
+              >((l, m) => {
+                if (m.type !== 'text') {
+                  return l
+                }
+                if (!m.unfurls.size) {
+                  l.push({
+                    author: m.author,
+                    ctime: m.timestamp,
+                    snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
+                  })
+                } else {
+                  m.unfurls.toList().forEach(u => {
+                    if (u.unfurl.unfurlType === RPCChatTypes.UnfurlType.generic && u.unfurl.generic) {
+                      l.push({
+                        author: m.author,
+                        ctime: m.timestamp,
+                        snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
+                        title: u.unfurl.generic.title,
+                        url: u.unfurl.generic.url,
+                      })
+                    }
+                  })
+                }
+                return l
+              }, []),
+              onLoadMore: stateProps._fromMsgID
+                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.link, stateProps._fromMsgID)
+                : null,
+              status: stateProps._attachmentInfo.status,
+            }
+          : {links: [], onLoadMore: () => {}, status: 'loading'},
+      media:
+        stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
+          ? {
+              onLoadMore: stateProps._fromMsgID
+                ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
+                : null,
+              status: stateProps._attachmentInfo.status,
+              thumbs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
+                .map(m => ({
+                  ctime: m.timestamp,
+                  height: m.previewHeight,
+                  isVideo: !!m.videoDuration,
+                  onClick: () => dispatchProps._onMediaClick(m),
+                  previewURL: m.previewURL,
+                  width: m.previewWidth,
+                })),
+            }
+          : {onLoadMore: () => {}, status: 'loading', thumbs: []},
+      onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
+      onBack: dispatchProps.onBack,
+      onCancel: dispatchProps.onCancel,
+      onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
+      onHideConv: dispatchProps.onHideConv,
+      onJoinChannel: dispatchProps.onJoinChannel,
+      onLeaveConversation: dispatchProps.onLeaveConversation,
+      onSelectTab: ownProps.onSelectTab,
+      onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
+      onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
+      onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
+      onShowProfile: dispatchProps.onShowProfile,
+      onUnhideConv: dispatchProps.onUnhideConv,
+      participants: participants
+        .map(p => ({
+          fullname:
+            (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
+            stateProps._participantToContactName.get(p) ||
+            '',
+          isAdmin: stateProps.teamname
+            ? TeamConstants.userIsRoleInTeamWithInfo(
+                // @ts-ignore
+                teamMembers,
+                p,
+                'admin'
+              )
+            : false,
+          isOwner: stateProps.teamname
+            ? TeamConstants.userIsRoleInTeamWithInfo(
+                // @ts-ignore
+                teamMembers,
+                p,
+                'owner'
+              )
+            : false,
+          username: p,
+        }))
+        .sort((l: ParticipantTyp, r: ParticipantTyp) => {
+          const leftIsAdmin = l.isAdmin || l.isOwner
+          const rightIsAdmin = r.isAdmin || r.isOwner
+          if (leftIsAdmin && !rightIsAdmin) {
+            return -1
+          } else if (!leftIsAdmin && rightIsAdmin) {
+            return 1
           }
-        : {links: [], onLoadMore: () => {}, status: 'loading'},
-    media:
-      stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
-        ? {
-            onLoadMore: stateProps._fromMsgID
-              ? () => dispatchProps._onLoadMore(RPCChatTypes.GalleryItemTyp.media, stateProps._fromMsgID)
-              : null,
-            status: stateProps._attachmentInfo.status,
-            thumbs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
-              .map(m => ({
-                ctime: m.timestamp,
-                height: m.previewHeight,
-                isVideo: !!m.videoDuration,
-                onClick: () => dispatchProps._onMediaClick(m),
-                previewURL: m.previewURL,
-                width: m.previewWidth,
-              })),
-          }
-        : {onLoadMore: () => {}, status: 'loading', thumbs: []},
-    onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
-    onBack: dispatchProps.onBack,
-    onCancel: dispatchProps.onCancel,
-    onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
-    onHideConv: dispatchProps.onHideConv,
-    onJoinChannel: dispatchProps.onJoinChannel,
-    onLeaveConversation: dispatchProps.onLeaveConversation,
-    onSelectTab: ownProps.onSelectTab,
-    onShowBlockConversationDialog: dispatchProps.onShowBlockConversationDialog,
-    onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
-    onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
-    onShowProfile: dispatchProps.onShowProfile,
-    onUnhideConv: dispatchProps.onUnhideConv,
-    participants: stateProps._participants
-      .map(p => ({
-        fullname:
-          stateProps._infoMap.getIn([p, 'fullname'], '') || stateProps._participantToContactName.get(p, ''),
-        isAdmin: stateProps.teamname
-          ? TeamConstants.userIsRoleInTeamWithInfo(
-              // @ts-ignore
-              stateProps._teamMembers,
-              p,
-              'admin'
-            )
-          : false,
-        isOwner: stateProps.teamname
-          ? TeamConstants.userIsRoleInTeamWithInfo(
-              // @ts-ignore
-              stateProps._teamMembers,
-              p,
-              'owner'
-            )
-          : false,
-        username: p,
-      }))
-      .sort((l: ParticipantTyp, r: ParticipantTyp) => {
-        const leftIsAdmin = l.isAdmin || l.isOwner
-        const rightIsAdmin = r.isAdmin || r.isOwner
-        if (leftIsAdmin && !rightIsAdmin) {
-          return -1
-        } else if (!leftIsAdmin && rightIsAdmin) {
-          return 1
-        }
-        return l.username.localeCompare(r.username)
-      })
-      .toArray(),
-    selectedAttachmentView: stateProps.selectedAttachmentView,
-    selectedConversationIDKey: stateProps.selectedConversationIDKey,
-    selectedTab: stateProps.selectedTab,
-    smallTeam: stateProps.smallTeam,
-    spinnerForHide: stateProps.spinnerForHide,
-    teamname: stateProps.teamname,
-  })
+          return l.username.localeCompare(r.username)
+        }),
+      selectedAttachmentView: stateProps.selectedAttachmentView,
+      selectedConversationIDKey: stateProps.selectedConversationIDKey,
+      selectedTab: stateProps.selectedTab,
+      showAuditingBanner,
+      smallTeam: stateProps.smallTeam,
+      spinnerForHide: stateProps.spinnerForHide,
+      teamname: stateProps.teamname,
+    }
+  }
   // TODO fix this type
 )(InfoPanel) as any
 
@@ -332,7 +353,7 @@ const mapStateToSelectorProps = (state: Container.TypedState, ownProps: Selector
 const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
   // Used by HeaderHoc.
   onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
+  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox()),
   onSelectAttachmentView: view => navigation.setParams({attachmentview: view}),
   onSelectTab: (tab: Panel) => navigation.setParams({tab}),
 })

@@ -37,7 +37,14 @@ const KnowPassword = () => {
         {label: 'No', onClick: onNo, type: 'Dim', waiting},
       ]}
     >
-      <Kb.Box2 direction="vertical" gap="medium" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Kb.Box2
+        direction="vertical"
+        gap="medium"
+        fullWidth={true}
+        fullHeight={true}
+        centerChildren={true}
+        style={styles.topGap}
+      >
         <Kb.Icon type="iconfont-password" color={Styles.globalColors.black} fontSize={24} />
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="Header" center={true}>
@@ -68,7 +75,7 @@ const EnterPassword = () => {
   )
 
   // If we're here because the timer has run out, change the title.
-  const title = Date.now() > endTime ? 'Almost done' : 'Your password'
+  const title = endTime > 0 && Date.now() > endTime ? 'Almost done' : 'Your password'
   return (
     <SignupScreen
       title={title}
@@ -113,6 +120,12 @@ const styles = Styles.styleSheetCreate(() => ({
   input: Styles.platformStyles({
     isElectron: {
       width: 368,
+    },
+  }),
+  topGap: Styles.platformStyles({
+    isMobile: {
+      justifyContent: 'flex-start',
+      marginTop: 120,
     },
   }),
 }))

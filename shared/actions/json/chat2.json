@@ -76,7 +76,8 @@
         "'sentPayment'",
         "'requestedPayment'",
         "'teamMention'",
-        "'appLink'"
+        "'appLink'",
+        "'search'"
       ]
     },
     "createConversation": {
@@ -340,8 +341,8 @@
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
       "message": "Types.Message",
-      "path?": "string",
-      "canError": {"error": "string", "message": "Types.Message"}
+      "error?": "string",
+      "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {
@@ -396,10 +397,7 @@
       "updateType": "RPCChatTypes.StaleUpdateType"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
-    "navigateToInbox": {
-      "avoidConversationID?": "Types.ConversationIDKey",
-      "findNewConversation": "boolean"
-    },
+    "navigateToInbox": {},
     "navigateToThread": {},
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
@@ -556,10 +554,8 @@
     },
     "setPaymentConfirmInfo": {
       "_description": "Set the payment confirm modal payment data",
-      "summary": "RPCChatTypes.UIChatPaymentSummary",
-      "canError": {
-        "error": "RPCTypes.Status"
-      }
+      "error?": "RPCTypes.Status",
+      "summary?": "RPCChatTypes.UIChatPaymentSummary"
     },
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",

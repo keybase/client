@@ -147,6 +147,7 @@ const (
 	StatusCode_SCTeamWritePermDenied                       StatusCode = 2625
 	StatusCode_SCTeamBadGeneration                         StatusCode = 2636
 	StatusCode_SCNoOp                                      StatusCode = 2638
+	StatusCode_SCTeamInviteBadCancel                       StatusCode = 2645
 	StatusCode_SCTeamInviteBadToken                        StatusCode = 2646
 	StatusCode_SCTeamTarDuplicate                          StatusCode = 2663
 	StatusCode_SCTeamTarNotFound                           StatusCode = 2664
@@ -376,6 +377,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamWritePermDenied":                       2625,
 	"SCTeamBadGeneration":                         2636,
 	"SCNoOp":                                      2638,
+	"SCTeamInviteBadCancel":                       2645,
 	"SCTeamInviteBadToken":                        2646,
 	"SCTeamTarDuplicate":                          2663,
 	"SCTeamTarNotFound":                           2664,
@@ -603,6 +605,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2625: "SCTeamWritePermDenied",
 	2636: "SCTeamBadGeneration",
 	2638: "SCNoOp",
+	2645: "SCTeamInviteBadCancel",
 	2646: "SCTeamInviteBadToken",
 	2663: "SCTeamTarDuplicate",
 	2664: "SCTeamTarNotFound",

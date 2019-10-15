@@ -5,18 +5,17 @@ import BuildTeam from '.'
 
 type OwnProps = {}
 
-const mapStateToProps = state => ({
-  metaMap: state.chat2.metaMap,
-})
-
-const mapDispatchToProps = dispatch => ({
-  // Route to the teams tab and open the NewTeamDialog component
-  _onBuildTeam: () => dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab})),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  onBuildTeam: dispatchProps._onBuildTeam,
-  showBuildATeam: !stateProps.metaMap.some(m => m.teamType !== 'adhoc'),
-})
-
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'BuildTeam')(BuildTeam)
+export default namedConnect(
+  state => ({
+    showBuildATeam: ((state.chat2.inboxLayout && state.chat2.inboxLayout.bigTeams) || []).length === 0,
+  }),
+  dispatch => ({
+    // Route to the teams tab and open the NewTeamDialog component
+    _onBuildTeam: () => dispatch(RouteTreeGen.createSwitchTab({tab: teamsTab})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    onBuildTeam: dispatchProps._onBuildTeam,
+    showBuildATeam: stateProps.showBuildATeam,
+  }),
+  'BuildTeam'
+)(BuildTeam)

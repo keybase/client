@@ -14,7 +14,7 @@ const ServiceIcon = (props: IconProps) => {
       onClick={props.onClick}
       onMouseOver={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{flex: 1}}
+      style={styles.serviceIconFlex}
     >
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
         <Kb.Box2
@@ -67,7 +67,9 @@ const ServiceIcon = (props: IconProps) => {
         direction="horizontal"
         fullWidth={true}
         style={Styles.collapseStyles([
-          props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+          props.isActive
+            ? styles.activeTabBar
+            : {...styles.inactiveTabBar, ...(props.minimalBorder ? {borderBottomWidth: 0} : undefined)},
           props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
         ])}
       />
@@ -134,8 +136,7 @@ export const ServiceTabBar = (props: Props) => {
     lastSelectedUnlockedService,
     setLastSelectedUnlockedService,
   ] = React.useState<ServiceIdWithContact | null>(null)
-  const {services, onChangeService: propsOnChangeService} = props
-  const nLocked = 3 // Services always out front on the left. Add one to get the number out front.
+  const {services, onChangeService: propsOnChangeService, servicesShown: nLocked = 3} = props
   const onChangeService = React.useCallback(
     (service: ServiceIdWithContact) => {
       if (services.indexOf(service) >= nLocked && service !== lastSelectedUnlockedService) {
@@ -170,6 +171,7 @@ export const ServiceTabBar = (props: Props) => {
           count={undefToNull(props.serviceResultCount[service])}
           showCount={props.showServiceResultCount}
           isActive={props.selectedService === service}
+          minimalBorder={props.minimalBorder}
         />
       ))}
       {moreServices.length > 0 && (
@@ -188,7 +190,7 @@ const styles = Styles.styleSheetCreate(
       },
       badgeContainerStyle: {
         position: 'absolute',
-        right: 0,
+        right: -4,
         top: 10,
       },
       badgeStyle: {backgroundColor: Styles.globalColors.blue},
@@ -253,6 +255,10 @@ const styles = Styles.styleSheetCreate(
       },
       serviceIconContainerInner: {
         justifyContent: 'flex-start',
+      },
+      serviceIconFlex: {
+        flex: 1,
+        maxWidth: 90,
       },
       tabBarContainer: {
         flexShrink: 0,

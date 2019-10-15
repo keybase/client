@@ -125,8 +125,8 @@ func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) e
 	return d.printf("User %s changed\n", uid)
 }
 
-func (d *notificationDisplay) PasswordChanged(_ context.Context) error {
-	return d.printf("Password changed\n")
+func (d *notificationDisplay) PasswordChanged(_ context.Context, state keybase1.PassphraseState) error {
+	return d.printf("Password changed:%+v\n", state)
 }
 
 func (d *notificationDisplay) FSOnlineStatusChanged(_ context.Context, online bool) error {

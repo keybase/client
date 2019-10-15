@@ -1,6 +1,8 @@
 import React from 'react'
 import Text from './text'
 import * as Styles from '../styles'
+import {WithProfileCardPopup} from './profile-card'
+import {isSpecialMention} from '../constants/chat2'
 
 export type OwnProps = {
   username: string
@@ -12,18 +14,25 @@ export type OwnProps = {
 export type Props = {
   onClick?: () => void
 } & OwnProps
-
-export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
-  <Text
-    type="BodySemibold"
-    onClick={onClick || undefined}
-    className={Styles.classNames({'hover-underline': !Styles.isMobile})}
-    style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
-    allowFontScaling={allowFontScaling}
-  >
-    @{username}
-  </Text>
-)
+export default ({username, theme, style, allowFontScaling, onClick}: Props) => {
+  const renderText = (onLongPress?: () => void) => (
+    <Text
+      type="BodySemibold"
+      onClick={onClick || undefined}
+      className={Styles.classNames({'hover-underline': !Styles.isMobile})}
+      style={Styles.collapseStyles([style, styles[theme || 'none'], styles.text])}
+      allowFontScaling={allowFontScaling}
+      onLongPress={onLongPress}
+    >
+      @{username}
+    </Text>
+  )
+  return isSpecialMention(username) ? (
+    renderText()
+  ) : (
+    <WithProfileCardPopup username={username}>{renderText}</WithProfileCardPopup>
+  )
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   follow: {

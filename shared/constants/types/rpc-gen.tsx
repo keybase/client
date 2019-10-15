@@ -204,7 +204,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyUsers.passwordChanged': {
-    inParam: void
+    inParam: {readonly state: PassphraseState}
     outParam: void
   }
   'keybase.1.NotifyUsers.userChanged': {
@@ -400,7 +400,7 @@ export type MessageTypes = {
     outParam: APIRes
   }
   'keybase.1.apiserver.GetWithSession': {
-    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null}
+    inParam: {readonly endpoint: String; readonly args?: Array<StringKVPair> | null; readonly httpStatus?: Array<Int> | null; readonly appStatusCode?: Array<Int> | null; readonly useText?: Boolean | null}
     outParam: APIRes
   }
   'keybase.1.apiserver.Post': {
@@ -868,7 +868,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.login.logout': {
-    inParam: {readonly force: Boolean}
+    inParam: {readonly force: Boolean; readonly keepSecrets: Boolean}
     outParam: void
   }
   'keybase.1.login.paperKey': {
@@ -1260,7 +1260,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamRemoveMember': {
-    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID}
+    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
     outParam: void
   }
   'keybase.1.teams.teamRename': {
@@ -2143,6 +2143,7 @@ export enum StatusCode {
   scteamwritepermdenied = 2625,
   scteambadgeneration = 2636,
   scnoop = 2638,
+  scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,

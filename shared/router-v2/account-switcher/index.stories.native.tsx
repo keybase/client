@@ -34,6 +34,7 @@ const props: Props = {
   ],
   title: ' ',
   username: 'alice',
+  waiting: false,
 }
 
 const load = () => {

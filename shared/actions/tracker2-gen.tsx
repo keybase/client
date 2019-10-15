@@ -58,7 +58,7 @@ type _UpdateFollowersPayload = {
 type _UpdateResultPayload = {
   readonly guiID: string
   readonly result: Types.DetailsState
-  readonly reason: string | null
+  readonly reason?: string
 }
 type _UpdatedDetailsPayload = {
   readonly guiID: string
@@ -71,7 +71,7 @@ type _UpdatedDetailsPayload = {
   readonly location: string
   readonly registeredForAirdrop: boolean
   readonly username: string
-  readonly teamShowcase: Array<Types._TeamShowcase>
+  readonly teamShowcase: Array<Types.TeamShowcase>
   readonly blocked: boolean
 }
 

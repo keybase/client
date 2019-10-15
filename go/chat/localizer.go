@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	"golang.org/x/sync/errgroup"
 )
@@ -581,7 +580,7 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 
 func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uid gregor1.UID,
 	conv chat1.Conversation) (*chat1.ConversationMinWriterRoleInfoLocal, error) {
-	if conv.ConvSettings == nil {
+	if conv.ConvSettings == nil || conv.ReaderInfo == nil {
 		return nil, nil
 	}
 	info := conv.ConvSettings.MinWriterRoleInfo
@@ -589,32 +588,11 @@ func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, uid g
 		return nil, nil
 	}
 
-	// determine if the current user can write.
-	teamID, err := keybase1.TeamIDFromString(conv.Metadata.IdTriple.Tlfid.String())
-	if err != nil {
-		return nil, err
-	}
-	extG := s.G().ExternalG()
-	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
-		ID:        teamID,
-		Public:    conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
-		AuditMode: keybase1.AuditMode_SKIP,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	upak, _, err := s.G().GetUPAKLoader().LoadV2(
-		libkb.NewLoadUserByUIDArg(ctx, extG, keybase1.UID(uid.String())))
-	if err != nil {
-		return nil, err
-	}
-
-	uv := upak.Current.ToUserVersion()
-	role, err := team.MemberRole(ctx, uv)
-	if err != nil {
-		return nil, err
-	}
+	// NOTE We use the UntrustedTeamRole here since MinWriterRole is based on
+	// server trust. A nefarious server could stop our messages by rejecting
+	// them or violate the MinWriterRole by allowing them; lying about our role
+	// here doesn't help.
+	role := conv.ReaderInfo.UntrustedTeamRole
 
 	// get the changed by username
 	name, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(info.Uid.String()))
@@ -756,9 +734,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		TeamType:     conversationRemote.Metadata.TeamType,
 		Version:      conversationRemote.Metadata.Version,
 		LocalVersion: conversationRemote.Metadata.LocalVersion,
+		FinalizeInfo: conversationRemote.Metadata.FinalizeInfo,
 		Draft:        rc.LocalDraft,
 	}
-	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 
 	conversationLocal.Supersedes = append(
 		conversationLocal.Supersedes, conversationRemote.Metadata.Supersedes...)
@@ -915,8 +893,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				maxValidID = mm.GetMessageID()
 			}
 		} else {
-			st, _ := mm.State()
-			s.Debug(ctx, "skipping invalid max msg: state: %v", st)
+			_, err := mm.State()
+			s.Debug(ctx, "skipping invalid max msg: state: %v", err)
 		}
 	}
 	// Resolve edits/deletes on snippet message
@@ -957,10 +935,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		tlfName := conversationLocal.Info.TlfName
+		if tlfName == "" {
+			tlfName = unverifiedTLFName
+		}
 		info, ierr = infoSource.LookupName(ctx,
 			conversationLocal.Info.Triple.Tlfid,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
-			conversationLocal.Info.TlfName,
+			tlfName,
 		)
 	default:
 		if len(conversationLocal.Info.TlfName) == 0 {

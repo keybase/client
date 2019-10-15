@@ -16,44 +16,41 @@ type OwnProps = {
   time: number
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const _conversationIDKey = ownProps.conversationIDKey
-  const _meta = Constants.getMeta(state, _conversationIDKey)
-  const youAreReset = _meta.membershipType === 'youAreReset'
-  const typers = state.chat2.typingMap.get(_conversationIDKey)
-  let snippet = _meta.snippet || ownProps.snippet || ''
-  let snippetDecoration = _meta.snippetDecoration || ownProps.snippetDecoration || ''
-  let isTypingSnippet = false
-  if (typers && typers.size > 0) {
-    isTypingSnippet = true
-    snippet = typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
-  }
-  return {
-    _draft: Constants.getDraft(state, _conversationIDKey),
-    _meta,
-    _username: state.config.username,
-    hasBadge: Constants.getHasBadge(state, _conversationIDKey),
-    hasUnread: Constants.getHasUnread(state, _conversationIDKey),
-    isMuted: Constants.isMuted(state, _conversationIDKey),
-    isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
-    isTypingSnippet,
-    snippet,
-    snippetDecoration,
-    youAreReset,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {conversationIDKey, navKey}: OwnProps) => ({
-  onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
-  onMuteConversation: (isMuted: boolean) =>
-    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
-  onSelectConversation: () =>
-    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxSmall'})),
-})
-
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const _conversationIDKey = ownProps.conversationIDKey
+    const _meta = Constants.getMeta(state, _conversationIDKey)
+    const youAreReset = _meta.membershipType === 'youAreReset'
+    const typers = state.chat2.typingMap.get(_conversationIDKey)
+    let snippet = _meta.snippet || ownProps.snippet || ''
+    const snippetDecoration = _meta.snippetDecoration || ownProps.snippetDecoration || ''
+    let isTypingSnippet = false
+    if (typers && typers.size > 0) {
+      isTypingSnippet = true
+      snippet =
+        typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
+    }
+    return {
+      _draft: Constants.getDraft(state, _conversationIDKey),
+      _meta,
+      _username: state.config.username,
+      hasBadge: Constants.getHasBadge(state, _conversationIDKey),
+      hasUnread: Constants.getHasUnread(state, _conversationIDKey),
+      isMuted: Constants.isMuted(state, _conversationIDKey),
+      isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
+      isTypingSnippet,
+      snippet,
+      snippetDecoration,
+      youAreReset,
+    }
+  },
+  (dispatch: Container.TypedDispatch, {conversationIDKey, navKey}: OwnProps) => ({
+    onHideConversation: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
+    onMuteConversation: (isMuted: boolean) =>
+      dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: !isMuted})),
+    onSelectConversation: () =>
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, navKey, reason: 'inboxSmall'})),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const isSelected = stateProps.isSelected
     const hasUnread = stateProps.hasUnread
@@ -62,9 +59,9 @@ export default Container.namedConnect(
     const youNeedToRekey = !participantNeedToRekey && stateProps._meta.rekeyers.has(stateProps._username)
     const isDecryptingSnippet =
       (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
-    const hasResetUsers = !stateProps._meta.resetParticipants.isEmpty()
-    const participants = stateProps._meta.participants.size
-      ? Constants.getRowParticipants(stateProps._meta, stateProps._username).toArray()
+    const hasResetUsers = stateProps._meta.resetParticipants.size !== 0
+    const participants = stateProps._meta.participants.length
+      ? Constants.getRowParticipants(stateProps._meta, stateProps._username)
       : !ownProps.isTeam
       ? ownProps.name.split(',')
       : [ownProps.name]

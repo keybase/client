@@ -121,7 +121,6 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 
 const mapStateToProps = (state: Container.TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
-  _edits: state.fs.edits,
   _externalRemoteWindowID: state.config.menubarWindowID,
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
@@ -191,7 +190,7 @@ export default Container.namedConnect(
       windowOpts: _windowOpts,
       windowParam: '',
       windowTitle: '',
-      ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
+      ...uploadsToUploadCountdownHOCProps(stateProps._pathItems, stateProps._uploads),
     }
   },
   'MenubarRemoteProxy'

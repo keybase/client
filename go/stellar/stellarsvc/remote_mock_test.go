@@ -1167,6 +1167,10 @@ func (r *BackendMock) UseAlternateExchangeRate() {
 	r.exchRate = alternateExchangeRate
 }
 
+func (r *BackendMock) SetExchangeRate(rate string) {
+	r.exchRate = rate
+}
+
 func (r *BackendMock) SubmitRequest(ctx context.Context, tc *TestContext, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
 	b, err := libkb.RandBytesWithSuffix(stellar1.KeybaseRequestIDLen, stellar1.KeybaseRequestIDSuffix)
 	if err != nil {

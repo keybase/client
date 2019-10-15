@@ -245,6 +245,7 @@ export type TypedActionsMap = {
   'config:setNavigator': config.SetNavigatorPayload
   'config:loggedOut': config.LoggedOutPayload
   'config:loggedIn': config.LoggedInPayload
+  'config:setUserSwitching': config.SetUserSwitchingPayload
   'config:updateMenubarWindowID': config.UpdateMenubarWindowIDPayload
   'config:copyToClipboard': config.CopyToClipboardPayload
   'config:checkForUpdate': config.CheckForUpdatePayload
@@ -724,7 +725,6 @@ export type TypedActionsMap = {
   'settings:clearAddedPhone': settings.ClearAddedPhonePayload
   'settings:invitesClearError': settings.InvitesClearErrorPayload
   'settings:invitesReclaim': settings.InvitesReclaimPayload
-  'settings:invitesReclaimed': settings.InvitesReclaimedPayload
   'settings:invitesRefresh': settings.InvitesRefreshPayload
   'settings:invitesRefreshed': settings.InvitesRefreshedPayload
   'settings:invitesSend': settings.InvitesSendPayload

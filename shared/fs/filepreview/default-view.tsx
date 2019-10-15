@@ -17,8 +17,8 @@ type DefaultViewProps = {
 }
 
 const DefaultView = (props: DefaultViewProps) => {
-  const fileContext = Container.useSelector(state =>
-    state.fs.fileContext.get(props.path, Constants.emptyFileContext)
+  const fileContext = Container.useSelector(
+    state => state.fs.fileContext.get(props.path) || Constants.emptyFileContext
   )
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>

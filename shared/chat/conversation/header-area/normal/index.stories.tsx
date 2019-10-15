@@ -5,7 +5,7 @@ import {UsernameHeader, ChannelHeader, PhoneOrEmailHeader} from '.'
 const defaultProps = {
   badgeNumber: 1,
   channelName: 'nyc',
-  contactNames: {},
+  contactNames: new Map(),
   infoPanelOpen: false,
   muted: false,
   onBack: Sb.action('onBack'),
@@ -20,7 +20,7 @@ const defaultProps = {
   unMuteConversation: Sb.action('unMuteConversation'),
 }
 const phones = ['ayoubd', '+15558675309@phone']
-const contactNames = {'+15558675309@phone': 'Max Goodman', '+17083585828@phone': 'Ian'}
+const contactNames = new Map([['+15558675309@phone', 'Max Goodman'], ['+17083585828@phone', 'Ian']])
 
 const load = () => {
   Sb.storiesOf('Chat/Header', module)

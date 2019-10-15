@@ -41,6 +41,7 @@ import switchStories from './switch.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
 import video from './video.stories'
+import profileCard from './profile-card.stories'
 
 const load = () => {
   ;[
@@ -76,6 +77,7 @@ const load = () => {
     placeholder,
     plainInput,
     popupDialog,
+    profileCard,
     proofBrokenBanner,
     radiobutton,
     reload,
