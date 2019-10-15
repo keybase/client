@@ -1123,30 +1123,28 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             u.targetMsgID
           ),
         }))
-        draftState.messageMap = draftState.messageMap.update(
-          conversationIDKey,
-          I.Map(),
-          (map: I.Map<Types.Ordinal, Types.Message>) =>
-            map.withMutations(mm => {
-              targetData.forEach(td => {
-                if (!td.targetOrdinal) {
-                  logger.info(
-                    `updateReactions: couldn't find target ordinal for targetMsgID=${
-                      td.targetMsgID
-                    } in convID=${conversationIDKey}`
-                  )
-                  return
-                }
-                mm.update(td.targetOrdinal, message => {
-                  if (!message || message.type === 'deleted' || message.type === 'placeholder') {
-                    return message
-                  }
-                  // @ts-ignore thinks `message` is the inner type
-                  return message.set('reactions', td.reactions)
-                })
-              })
+        const messageMap = new Map(draftState.messageMap)
+        const convToMessages = new Map(messageMap.get(conversationIDKey) || [])
+        targetData.forEach(td => {
+          if (!td.targetOrdinal) {
+            logger.info(
+              `updateReactions: couldn't find target ordinal for targetMsgID=${
+                td.targetMsgID
+              } in convID=${conversationIDKey}`
+            )
+            return
+          }
+          const old: Types.Message | undefined = convToMessages.get(td.targetOrdinal)
+          if (Constants.hasReactions(old)) {
+            convToMessages.set(td.targetOrdinal, {
+              ...old,
+              reactions: td.reactions,
             })
-        )
+          }
+        })
+
+        messageMap.set(conversationIDKey, convToMessages)
+        draftState.messageMap = messageMap
         return
       }
       case Chat2Gen.messagesWereDeleted: {

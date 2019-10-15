@@ -41,6 +41,13 @@ export type OutboxID = string
 export const stringToOutboxID = (s: string): OutboxID => s
 export const outboxIDToString = (o: OutboxID): string => o
 
+type Filter<T, U> = T extends U ? T : never
+type ReactionType = Filter<Message, {reactions: Reactions}>
+
+export function hasReactions(m: Message): m is ReactionType {
+  return Object.prototype.hasOwnProperty.call(m, 'reactions')
+}
+
 export type MentionsAt = Set<string>
 export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = Map<string, Common.ConversationIDKey>

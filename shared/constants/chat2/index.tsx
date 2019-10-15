@@ -410,8 +410,9 @@ export {
   getDeletableByDeleteHistory,
   getMapUnfurl,
   getMessageID,
-  getRequestMessageInfo,
   getPaymentMessageInfo,
+  getRequestMessageInfo,
+  hasReactions,
   hasSuccessfulInlinePayments,
   isPendingPaymentMessage,
   isSpecialMention,
@@ -423,8 +424,9 @@ export {
   makePendingAttachmentMessage,
   makePendingTextMessage,
   makeReaction,
-  messageExplodeDescriptions,
+  mergeMessage,
   messageAttachmentTransferStateToProgressLabel,
+  messageExplodeDescriptions,
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,
@@ -438,7 +440,6 @@ export {
   uiPaymentInfoToChatPaymentInfo,
   uiRequestInfoToChatRequestInfo,
   upgradeMessage,
-  mergeMessage,
 } from './message'
 
 export {
