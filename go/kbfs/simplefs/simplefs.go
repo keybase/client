@@ -2565,7 +2565,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 		}
 	}
 
-	tlfIDs := k.config.GetAllSyncedTlfs()
+	tlfMDs := k.config.KBFSOps().GetAllSyncedTlfMDs(ctx)
 
 	session, err := idutil.GetCurrentSessionIfPossible(
 		ctx, k.config.KBPKI(), true)
@@ -2574,9 +2574,10 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	}
 
 	res.Folders = make(
-		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfIDs))
+		[]keybase1.FolderSyncConfigAndStatusWithFolder, len(tlfMDs))
 	allNotStarted := true
-	for i, tlfID := range tlfIDs {
+	i := 0
+	for tlfID, md := range tlfMDs {
 		config, err := k.config.KBFSOps().GetSyncConfig(ctx, tlfID)
 		if err != nil {
 			return keybase1.SyncConfigAndStatusRes{}, err
@@ -2587,28 +2588,22 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 				"Folder %s has sync unexpectedly disabled", tlfID))
 		}
 
-		fb := data.FolderBranch{Tlf: tlfID, Branch: data.MasterBranch}
-		md, h, err := k.config.KBFSOps().GetRootNodeMetadata(ctx, fb)
-		if err != nil {
-			return keybase1.SyncConfigAndStatusRes{}, err
-		}
-
 		f := keybase1.Folder{
-			Name:       string(h.GetPreferredFormat(session.Name)),
+			Name:       string(md.Handle.GetPreferredFormat(session.Name)),
 			FolderType: tlfID.Type().FolderType(),
 			Private:    tlfID.Type() != tlf.Public,
 		}
 
 		res.Folders[i].Folder = f
 		res.Folders[i].Config = config
-		status := md.PrefetchStatus.ToProtocolStatus()
+		status := md.MD.PrefetchStatus.ToProtocolStatus()
 		res.Folders[i].Status.PrefetchStatus = status
 		if status != keybase1.PrefetchStatus_NOT_STARTED {
 			allNotStarted = false
 		}
-		if md.PrefetchProgress != nil {
+		if md.MD.PrefetchProgress != nil {
 			res.Folders[i].Status.PrefetchProgress =
-				md.PrefetchProgress.ToProtocolProgress(k.config.Clock())
+				md.MD.PrefetchProgress.ToProtocolProgress(k.config.Clock())
 		}
 		res.Folders[i].Status.LocalDiskBytesAvailable = bytesAvail
 		res.Folders[i].Status.LocalDiskBytesTotal = bytesTotal
@@ -2624,6 +2619,8 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 			}
 			res.Folders[i].Status.StoredBytesTotal = int64(size)
 		}
+
+		i++
 	}
 
 	// Sort by folder name.
@@ -2632,7 +2629,7 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 			res.Folders[j].Folder.ToString()
 	})
 
-	if len(tlfIDs) > 0 {
+	if len(tlfMDs) > 0 {
 		p := k.config.BlockOps().Prefetcher().OverallSyncStatus()
 		res.OverallStatus.PrefetchProgress = p.ToProtocolProgress(
 			k.config.Clock())
