@@ -2314,13 +2314,9 @@ const navigateToThread = (state: TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
-const maybeLoadTeamFromMeta = (state: TypedState, meta: Types.ConversationMeta) => {
+const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   const teamname = meta.teamname
   if (!meta.teamname) {
-    return false
-  }
-  const members = state.teams.teamNameToMembers.get(teamname)
-  if (members) {
     return false
   }
   return TeamsGen.createGetMembers({teamname})
@@ -2332,7 +2328,7 @@ const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasRecei
   if (!meta) {
     return false
   }
-  return maybeLoadTeamFromMeta(state, meta)
+  return maybeLoadTeamFromMeta(meta)
 }
 
 const ensureSelectedMeta = (state: TypedState) => {
@@ -2344,7 +2340,7 @@ const ensureSelectedMeta = (state: TypedState) => {
         noWaiting: true,
         reason: 'ensureSelectedMeta',
       })
-    : maybeLoadTeamFromMeta(state, meta)
+    : maybeLoadTeamFromMeta(meta)
 }
 
 const refreshPreviousSelected = (state: TypedState) => {
