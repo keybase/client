@@ -2314,13 +2314,7 @@ const navigateToThread = (state: TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
-const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const metas = action.payload.metas
-  const filtered = metas.filter(m => m.conversationIDKey === state.chat2.selectedConversation)
-  if (filtered.length === 0) {
-    return false
-  }
-  const meta = filtered[0]
+const maybeLoadTeamFromMeta = (state: TypedState, meta: Types.ConversationMeta) => {
   const teamname = meta.teamname
   if (!meta.teamname) {
     return false
@@ -2332,17 +2326,25 @@ const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasRecei
   return TeamsGen.createGetMembers({teamname})
 }
 
+const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
+  const metas = action.payload.metas
+  const meta = metas.find(m => m.conversationIDKey === state.chat2.selectedConversation)
+  if (!meta) {
+    return false
+  }
+  return maybeLoadTeamFromMeta(state, meta)
+}
+
 const ensureSelectedMeta = (state: TypedState) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
-  if (!meta) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys: [state.chat2.selectedConversation],
-      force: true,
-      noWaiting: true,
-      reason: 'ensureSelectedMeta',
-    })
-  }
-  return false
+  return !meta
+    ? Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys: [state.chat2.selectedConversation],
+        force: true,
+        noWaiting: true,
+        reason: 'ensureSelectedMeta',
+      })
+    : maybeLoadTeamFromMeta(state, meta)
 }
 
 const refreshPreviousSelected = (state: TypedState) => {
