@@ -355,10 +355,12 @@ const deriveRolePickerArrowKeyFns = memoize(
 const deriveOnChangeService = memoize(
   (
     onChangeService: OwnProps['onChangeService'],
+    incFocusInputCounter: OwnProps['incFocusInputCounter'],
     search: (text: string, service: Types.ServiceIdWithContact) => void,
     searchString: string
   ) => (service: Types.ServiceIdWithContact) => {
     onChangeService(service)
+    incFocusInputCounter()
     if (!Types.isContactServiceId(service)) {
       search(searchString, service)
     }
@@ -630,6 +632,7 @@ const mergeProps = (
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: deriveOnChangeService(
       ownProps.onChangeService,
+      ownProps.incFocusInputCounter,
       dispatchProps._search,
       ownProps.searchString
     ),
