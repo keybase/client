@@ -485,7 +485,7 @@ function* createNewTeamFromConversation(
         }
       }
       yield Saga.put(RouteTreeGen.createClearModals())
-      yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
+      yield Saga.put(Chat2Gen.createNavigateToInbox())
       yield Saga.put(
         Chat2Gen.createPreviewConversation({channelname: 'general', reason: 'convertAdHoc', teamname})
       )

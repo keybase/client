@@ -245,6 +245,9 @@ const maybeChangeSelectedConv = (
     !Constants.isValidConversationIDKey(state.chat2.selectedConversation) ||
     state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
   ) {
+    if (isMobile) {
+      return Chat2Gen.createNavigateToInbox()
+    }
     if (state.chat2.inboxLayout.reselectInfo.newConvID) {
       logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
       return Chat2Gen.createSelectConversation({
@@ -1200,7 +1203,7 @@ function* loadMoreMessages(
     logger.warn(e.message)
     // no longer in team
     if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
-      yield* maybeKickedFromTeam(conversationIDKey)
+      yield* maybeKickedFromTeam()
       return
     }
     if (e.code !== RPCTypes.StatusCode.scteamreaderror) {
@@ -1210,14 +1213,9 @@ function* loadMoreMessages(
   }
 }
 
-function* maybeKickedFromTeam(conversationIDKey: Types.ConversationIDKey) {
+function* maybeKickedFromTeam() {
   yield Saga.put(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
-  yield Saga.put(
-    Chat2Gen.createNavigateToInbox({
-      avoidConversationID: conversationIDKey,
-      findNewConversation: true,
-    })
-  )
+  yield Saga.put(Chat2Gen.createNavigateToInbox())
 }
 
 function* getUnreadline(
@@ -1264,7 +1262,7 @@ function* getUnreadline(
     )
   } catch (e) {
     if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
-      yield* maybeKickedFromTeam(conversationIDKey)
+      yield* maybeKickedFromTeam()
     }
     // ignore this error in general
   }
@@ -2519,7 +2517,7 @@ const updateNotificationSettings = async (
 }
 
 function* blockConversation(_: TypedState, action: Chat2Gen.BlockConversationPayload) {
-  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
+  yield Saga.put(Chat2Gen.createNavigateToInbox())
   yield Saga.put(ConfigGen.createPersistRoute({}))
   yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
     conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -2534,7 +2532,7 @@ function* hideConversation(_: TypedState, action: Chat2Gen.HideConversationPaylo
   // Nav to inbox but don't use findNewConversation since changeSelectedConversation
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
-  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
+  yield Saga.put(Chat2Gen.createNavigateToInbox())
   try {
     yield RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {
