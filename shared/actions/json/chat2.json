@@ -397,10 +397,7 @@
       "updateType": "RPCChatTypes.StaleUpdateType"
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
-    "navigateToInbox": {
-      "avoidConversationID?": "Types.ConversationIDKey",
-      "findNewConversation": "boolean"
-    },
+    "navigateToInbox": {},
     "navigateToThread": {},
     // Share to external app on mobile
     "messageAttachmentNativeShare": {
