@@ -2328,11 +2328,10 @@ const maybeLoadTeamFromMeta = (state: TypedState, meta: Types.ConversationMeta) 
 
 const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
   const metas = action.payload.metas
-  const filtered = metas.filter(m => m.conversationIDKey === state.chat2.selectedConversation)
-  if (filtered.length === 0) {
+  const meta = metas.find(m => m.conversationIDKey === state.chat2.selectedConversation)
+  if (!meta) {
     return false
   }
-  const meta = filtered[0]
   return maybeLoadTeamFromMeta(state, meta)
 }
 
