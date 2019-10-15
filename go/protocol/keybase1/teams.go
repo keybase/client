@@ -3390,11 +3390,12 @@ type TeamAddMembersMultiRoleArg struct {
 }
 
 type TeamRemoveMemberArg struct {
-	SessionID int          `codec:"sessionID" json:"sessionID"`
-	Name      string       `codec:"name" json:"name"`
-	Username  string       `codec:"username" json:"username"`
-	Email     string       `codec:"email" json:"email"`
-	InviteID  TeamInviteID `codec:"inviteID" json:"inviteID"`
+	SessionID     int          `codec:"sessionID" json:"sessionID"`
+	Name          string       `codec:"name" json:"name"`
+	Username      string       `codec:"username" json:"username"`
+	Email         string       `codec:"email" json:"email"`
+	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
+	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
 }
 
 type TeamLeaveArg struct {

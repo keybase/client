@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react'
+import React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {AllowedColors} from '../../../../common-adapters/text'
@@ -19,132 +19,131 @@ type Props = {
   draft?: string
 }
 
-class BottomLine extends PureComponent<Props> {
-  render() {
-    let content
-    const style = Styles.collapseStyles([
-      styles.bottomLine,
-      {
-        color: this.props.subColor,
-        ...(this.props.showBold ? Styles.globalStyles.fontBold : {}),
-      },
-      this.props.isTypingSnippet ? styles.typingSnippet : null,
-    ])
-    if (this.props.youNeedToRekey) {
-      content = null
-    } else if (this.props.youAreReset) {
-      content = (
-        <Kb.Text
-          type="BodySmallSemibold"
-          negative={true}
-          style={Styles.collapseStyles([
-            styles.youAreResetText,
-            {
-              color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.red,
-            },
-          ])}
-        >
-          You are locked out.
-        </Kb.Text>
-      )
-    } else if (this.props.participantNeedToRekey) {
-      content = (
-        <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
-      )
-    } else if (this.props.draft) {
-      content = (
-        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-          <Kb.Text
-            type="BodySmall"
-            style={Styles.collapseStyles([
-              styles.draftLabel,
-              this.props.isSelected ? {color: Styles.globalColors.white} : null,
-            ])}
-          >
-            Draft:
-          </Kb.Text>
-          <Kb.Markdown preview={true} style={style}>
-            {this.props.draft}
-          </Kb.Markdown>
-        </Kb.Box2>
-      )
-    } else if (this.props.isDecryptingSnippet) {
-      content = (
-        <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Styles.globalColors.blue} />
-      )
-    } else if (this.props.snippet) {
-      let snippetDecoration
-      let exploded = false
-
-      // `snippetDecoration` will either be an explosion emoji, bomb emoji, or empty string.
-      // We want to use these emojis to render the correct custom icon.
-      switch (this.props.snippetDecoration) {
-        case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
-          snippetDecoration = (
-            <Kb.Text
-              type="BodySmall"
-              style={{
-                color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
-              }}
-            >
-              Message exploded.
-            </Kb.Text>
-          )
-          exploded = true
-          break
-        case '\u{1F4A3}': // Bomb emoji (💣)
-          snippetDecoration = (
-            <Kb.Icon
-              color={this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50}
-              type="iconfont-timer"
-              fontSize={Styles.isMobile ? 16 : 12}
-              style={{alignSelf: 'flex-start'}}
-            />
-          )
-          break
-        default:
-          snippetDecoration =
-            !!this.props.snippetDecoration && !this.props.isTypingSnippet ? (
-              <Kb.Text type="BodySmall">{this.props.snippetDecoration}</Kb.Text>
-            ) : null
-      }
-      content = (
-        <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
-          {!!snippetDecoration && (
-            <Kb.Box2 direction="vertical" centerChildren={true}>
-              {snippetDecoration}
-            </Kb.Box2>
-          )}
-          {!exploded && !!this.props.snippet && (
-            <Kb.Markdown preview={true} style={style}>
-              {this.props.snippet}
-            </Kb.Markdown>
-          )}
-        </Kb.Box2>
-      )
-    } else {
-      return null
-    }
-    return (
-      <Kb.Box
+const BottomLine = React.memo((props: Props) => {
+  let content: React.ReactNode
+  const style = Styles.collapseStyles([
+    styles.bottomLine,
+    {
+      color: props.subColor,
+      ...(props.showBold ? Styles.globalStyles.fontBold : {}),
+    },
+    props.isTypingSnippet ? styles.typingSnippet : null,
+  ])
+  if (props.youNeedToRekey) {
+    content = null
+  } else if (props.youAreReset) {
+    content = (
+      <Kb.Text
+        type="BodySmallSemibold"
+        negative={true}
         style={Styles.collapseStyles([
-          styles.outerBox,
+          styles.youAreResetText,
           {
-            backgroundColor: Styles.isMobile ? this.props.backgroundColor : undefined,
+            color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.red,
           },
         ])}
       >
-        {this.props.hasResetUsers && (
-          <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
-        )}
-        {this.props.youNeedToRekey && (
-          <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
-        )}
-        <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
-      </Kb.Box>
+        You are locked out.
+      </Kb.Text>
     )
+  } else if (props.participantNeedToRekey) {
+    content = (
+      <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+    )
+  } else if (props.draft) {
+    content = (
+      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+        <Kb.Text
+          type="BodySmall"
+          style={Styles.collapseStyles([
+            styles.draftLabel,
+            props.isSelected ? {color: Styles.globalColors.white} : null,
+          ])}
+        >
+          Draft:
+        </Kb.Text>
+        <Kb.Markdown preview={true} style={style}>
+          {props.draft}
+        </Kb.Markdown>
+      </Kb.Box2>
+    )
+  } else if (props.isDecryptingSnippet) {
+    content = (
+      <Kb.Meta title="decrypting..." style={styles.alertMeta} backgroundColor={Styles.globalColors.blue} />
+    )
+  } else if (props.snippet) {
+    let snippetDecoration: React.ReactNode
+    let exploded = false
+
+    // `snippetDecoration` will either be an explosion emoji, bomb emoji, or empty string.
+    // We want to use these emojis to render the correct custom icon.
+    switch (props.snippetDecoration) {
+      case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
+        snippetDecoration = (
+          <Kb.Text
+            type="BodySmall"
+            style={{
+              color: props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50,
+            }}
+          >
+            Message exploded.
+          </Kb.Text>
+        )
+        exploded = true
+        break
+      case '\u{1F4A3}': // Bomb emoji (💣)
+        snippetDecoration = (
+          <Kb.Icon
+            color={props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_50}
+            type="iconfont-timer"
+            fontSize={Styles.isMobile ? 16 : 12}
+            style={{alignSelf: 'flex-start'}}
+          />
+        )
+        break
+      default:
+        snippetDecoration =
+          !!props.snippetDecoration && !props.isTypingSnippet ? (
+            <Kb.Text type="BodySmall">{props.snippetDecoration}</Kb.Text>
+          ) : null
+    }
+    content = (
+      <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+        {!!snippetDecoration && (
+          <Kb.Box2 direction="vertical" centerChildren={true}>
+            {snippetDecoration}
+          </Kb.Box2>
+        )}
+        {!exploded && !!props.snippet && (
+          <Kb.Markdown preview={true} style={style}>
+            {props.snippet}
+          </Kb.Markdown>
+        )}
+      </Kb.Box2>
+    )
+  } else {
+    return null
   }
-}
+  return (
+    <Kb.Box
+      style={Styles.collapseStyles([
+        styles.outerBox,
+        {
+          backgroundColor: Styles.isMobile ? props.backgroundColor : undefined,
+        },
+      ])}
+    >
+      {props.hasResetUsers && (
+        <Kb.Meta title="reset" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+      )}
+      {props.youNeedToRekey && (
+        <Kb.Meta title="rekey needed" style={styles.alertMeta} backgroundColor={Styles.globalColors.red} />
+      )}
+      <Kb.Box style={styles.innerBox}>{content}</Kb.Box>
+    </Kb.Box>
+  )
+})
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({

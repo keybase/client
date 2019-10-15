@@ -380,6 +380,7 @@ function* removeMemberOrPendingInvite(
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
       {
+        allowInaction: true,
         email,
         inviteID,
         name: teamname,
@@ -458,7 +459,7 @@ function* createNewTeamFromConversation(
   let participants: Array<string> = []
 
   const meta = ChatConstants.getMeta(state, conversationIDKey)
-  participants = meta.participants.toArray()
+  participants = meta.participants
 
   if (participants) {
     yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -729,7 +730,7 @@ const getChannelInfo = async (
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: meta.participants.size,
+    numParticipants: meta.participants.length,
   })
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})

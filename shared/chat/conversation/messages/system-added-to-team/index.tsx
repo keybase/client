@@ -35,7 +35,7 @@ const ManageComponent = (props: Props) => {
         <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
           Manage phone and computer notifications
         </Kb.Text>
-        {props.teamname && (
+        {!!props.teamname && (
           <Kb.Text onClick={props.onManageChannels} type={textType}>
             Browse other channels
           </Kb.Text>

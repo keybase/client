@@ -2609,3 +2609,11 @@ func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 		Username:            username,
 	}
 }
+
+func (r UIInboxReselectInfo) String() string {
+	newConvStr := "<none>"
+	if r.NewConvID != nil {
+		newConvStr = *r.NewConvID
+	}
+	return fmt.Sprintf("[oldconv: %s newconv: %s]", r.OldConvID, newConvStr)
+}

@@ -13,6 +13,7 @@ import * as SettingsGen from '../actions/settings-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
+import * as Styles from '../styles'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {memoizeShallow, memoize} from '../util/memoize'
@@ -20,6 +21,7 @@ import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constan
 import {getDisabledReasonsForRolePicker} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
+import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
 import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
 
@@ -586,8 +588,37 @@ const mergeProps = (
       }
     : emptyObj
 
+  const popupProps: PopupHocProps | null = Container.isMobile
+    ? null
+    : {
+        closeStyleOverrides:
+          ownProps.namespace === 'people'
+            ? {
+                display: 'none',
+              }
+            : null,
+        containerStyleOverrides:
+          ownProps.namespace === 'people'
+            ? {
+                width: '100%',
+                ...Styles.padding(0, Styles.globalMargins.xsmall),
+              }
+            : null,
+        coverStyleOverrides:
+          ownProps.namespace === 'people'
+            ? {
+                alignItems: 'flex-start',
+                backgroundColor: 'initial',
+                ...Styles.padding(Styles.globalMargins.mediumLarge, 0, Styles.globalMargins.large),
+              }
+            : null,
+        onClosePopup: dispatchProps._onCancelTeamBuilding,
+        tabBarShim: true,
+      }
+
   return {
     ...headerHocProps,
+    ...popupProps,
     ...contactProps,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,

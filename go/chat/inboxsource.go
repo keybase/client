@@ -1202,7 +1202,7 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 				s.Debug(ctx, "handleInboxError: skipping inbox clear because of offline error: %s", ferr)
 			}
 		}
-		s.G().UIInboxLoader.UpdateLayout(ctx, "inbox error")
+		s.G().UIInboxLoader.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "inbox error")
 	}()
 
 	if _, ok := err.(storage.MissError); ok {

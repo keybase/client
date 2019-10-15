@@ -8,7 +8,7 @@ import invert from 'lodash/invert'
 import {teamsTab} from './tabs'
 import {memoize} from '../util/memoize'
 import * as TeamBuildingConstants from './team-building'
-import {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
+import {RetentionPolicy} from './types/retention-policy'
 import {TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
@@ -136,10 +136,11 @@ export const makeTeamSettings = I.Record<Types._TeamSettings>({
   open: false,
 })
 
-export const makeRetentionPolicy = I.Record<_RetentionPolicy>({
+export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPolicy => ({
   seconds: 0,
   title: '',
   type: 'retain',
+  ...(r || {}),
 })
 
 export const makeState = I.Record<Types._State>({
@@ -414,14 +415,13 @@ const getSelectedTeamNames = (): Types.Teamname[] => {
  *  Gets the number of channels you're subscribed to on a team
  */
 const getNumberOfSubscribedChannels = (state: TypedState, teamname: Types.Teamname): number =>
-  state.chat2.metaMap.count(c => c.teamname === teamname)
+  [...state.chat2.metaMap.values()].reduce((count, c) => (count += c.teamname === teamname ? 1 : 0), 0)
 
 /**
  * Gets whether the team is big or small for teams you are a member of
  */
 const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' | 'small' | null => {
-  const mm = state.chat2.metaMap
-  const conv = mm.find(c => c.teamname === teamname)
+  const conv = [...state.chat2.metaMap.values()].find(c => c.teamname === teamname)
   if (conv) {
     if (conv.teamType === 'big' || conv.teamType === 'small') {
       return conv.teamType

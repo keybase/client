@@ -1215,14 +1215,15 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	if err := CancelEmailInvite(context.TODO(), tc.G, name, address); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false))
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, true))
+	require.NoError(t, CancelEmailInvite(context.TODO(), tc.G, name, address, true), "doesnt error when canceling a canceled invite with allowInaction")
+	require.Error(t, CancelEmailInvite(context.TODO(), tc.G, name, address, false), "errors when canceling a canceled invite without allowInaction")
 
 	assertNoInvite(tc, name, address, "email")
 
 	// check error type for an email address with no invite
-	err := CancelEmailInvite(context.TODO(), tc.G, name, "nope@keybase.io")
+	err := CancelEmailInvite(context.TODO(), tc.G, name, "nope@keybase.io", false)
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown email address")
 	}
@@ -1231,7 +1232,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 
 	// check error type for unknown team
-	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address)
+	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address, false)
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown team")
 	}

@@ -16,57 +16,66 @@ import throttle from 'lodash/throttle'
 import {inboxWidth, getRowHeight} from './row/sizes'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
+import shallowEqual from 'shallowequal'
 
 type State = {
   showFloating: boolean
   showUnread: boolean
 }
 
-class Inbox extends React.PureComponent<T.Props, State> {
+class Inbox extends React.Component<T.Props, State> {
   state = {
     showFloating: false,
     showUnread: false,
   }
 
-  _mounted: boolean = false
-  _list: VariableSizeList | null = null
-  _selectedVisible: boolean = false
+  private mounted: boolean = false
+  private list: VariableSizeList | null = null
+  private selectedVisible: boolean = false
 
   // stuff for UnreadShortcut
-  _firstOffscreenIdx: number = -1
-  _lastVisibleIdx: number = -1
-  _scrollDiv = React.createRef<HTMLDivElement>()
+  private firstOffscreenIdx: number = -1
+  private lastVisibleIdx: number = -1
+  private scrollDiv = React.createRef<HTMLDivElement>()
 
-  componentDidUpdate(prevProps: T.Props) {
+  shouldComponentUpdate(nextProps: T.Props, nextState: State) {
     let listRowsResized = false
-    if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
+    if (nextProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
     }
 
     // list changed
-    if (this.props.rows.length !== prevProps.rows.length) {
-      this._calculateShowFloating()
+    if (this.props.rows.length !== nextProps.rows.length) {
       listRowsResized = true
     }
 
     if (listRowsResized) {
-      this._list && this._list.resetAfterIndex(0, true)
+      this.list && this.list.resetAfterIndex(0, true)
+      // ^ this will force an update so just do it once instead of twice
+      return false
     }
+    return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState)
+  }
 
-    if (!I.is(this.props.unreadIndices, prevProps.unreadIndices)) {
-      this._calculateShowUnreadShortcut()
+  componentDidUpdate(prevProps: T.Props) {
+    // list changed
+    if (
+      this.props.rows.length !== prevProps.rows.length ||
+      !I.is(this.props.unreadIndices, prevProps.unreadIndices)
+    ) {
+      this.calculateShowFloating()
     }
   }
 
   componentDidMount() {
-    this._mounted = true
+    this.mounted = true
   }
 
   componentWillUnmount() {
-    this._mounted = false
+    this.mounted = false
   }
 
-  _itemSizeGetter = index => {
+  private itemSizeGetter = index => {
     const row = this.props.rows[index]
     if (!row) {
       return 0
@@ -75,7 +84,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
-  _itemRenderer = (index, style) => {
+  private itemRenderer = (index, style) => {
     const row = this.props.rows[index]
     const divStyle = Styles.collapseStyles([style, virtualListMarks && styles.divider])
     if (row.type === 'divider') {
@@ -93,7 +102,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
     const teamname = row.teamname || ''
-    const isHighlighted = index === 0 && !this._selectedVisible
+    const isHighlighted = index === 0 && !this.selectedVisible
 
     // pointer events on so you can click even right after a scroll
     return (
@@ -113,33 +122,33 @@ class Inbox extends React.PureComponent<T.Props, State> {
     )
   }
 
-  _calculateShowUnreadShortcut = () => {
-    if (!this._mounted) {
+  private calculateShowUnreadShortcut = () => {
+    if (!this.mounted) {
       return
     }
-    if (!this.props.unreadIndices.size || this._lastVisibleIdx < 0) {
+    if (!this.props.unreadIndices.size || this.lastVisibleIdx < 0) {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
       return
     }
 
-    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this._lastVisibleIdx)
+    const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this.lastVisibleIdx)
     if (firstOffscreenIdx) {
       this.setState(s => (s.showUnread ? null : {showUnread: true}))
-      this._firstOffscreenIdx = firstOffscreenIdx
+      this.firstOffscreenIdx = firstOffscreenIdx
     } else {
       this.setState(s => (s.showUnread ? {showUnread: false} : null))
-      this._firstOffscreenIdx = -1
+      this.firstOffscreenIdx = -1
     }
   }
 
-  _calculateShowUnreadShortcutThrottled = throttle(this._calculateShowUnreadShortcut, 100)
+  private calculateShowUnreadShortcutThrottled = throttle(this.calculateShowUnreadShortcut, 100)
 
-  _calculateShowFloating = () => {
-    if (this._lastVisibleIdx < 0) {
+  private calculateShowFloating = () => {
+    if (this.lastVisibleIdx < 0) {
       return
     }
     let showFloating = true
-    const row = this.props.rows[this._lastVisibleIdx]
+    const row = this.props.rows[this.lastVisibleIdx]
     if (!row || row.type !== 'small') {
       showFloating = false
     }
@@ -147,14 +156,14 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
   }
 
-  _onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
-    this._lastVisibleIdx = visibleStopIndex
-    this._calculateShowUnreadShortcutThrottled()
-    this._onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
+  private onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
+    this.lastVisibleIdx = visibleStopIndex
+    this.calculateShowUnreadShortcutThrottled()
+    this.onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
   }
 
-  _onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
-    if (!this._mounted) {
+  private onItemsRenderedDebounced = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    if (!this.mounted) {
       return
     }
     const toUnbox = this.props.rows
@@ -165,36 +174,27 @@ class Inbox extends React.PureComponent<T.Props, State> {
         }
         return arr
       }, [])
-    this._calculateShowFloating()
+    this.calculateShowFloating()
     this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
-  _scrollToUnread = () => {
-    if (this._firstOffscreenIdx <= 0 || !this._scrollDiv.current) {
+  private scrollToUnread = () => {
+    if (this.firstOffscreenIdx <= 0 || !this.scrollDiv.current) {
       return
     }
     let top = 100 // give it some space below
-    for (let i = this._lastVisibleIdx; i <= this._firstOffscreenIdx; i++) {
-      top += this._itemSizeGetter(i)
+    for (let i = this.lastVisibleIdx; i <= this.firstOffscreenIdx; i++) {
+      top += this.itemSizeGetter(i)
     }
-    this._scrollDiv.current.scrollBy({behavior: 'smooth', top})
+    this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
   }
 
-  _setRef = (list: VariableSizeList | null) => {
-    this._list = list
+  private setRef = (list: VariableSizeList | null) => {
+    this.list = list
   }
-
-  _prepareNewChat = () => {
-    this._list && this._list.scrollTo(0)
-    this.props.onNewChat()
-  }
-
-  _onEnsureSelection = () => this.props.onEnsureSelection()
-  _onSelectUp = () => this.props.onSelectUp()
-  _onSelectDown = () => this.props.onSelectDown()
 
   render() {
-    this._selectedVisible = !!this.props.rows.find(
+    this.selectedVisible = !!this.props.rows.find(
       r => r.conversationIDKey && r.conversationIDKey === this.props.selectedConversationIDKey
     )
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
@@ -209,21 +209,21 @@ class Inbox extends React.PureComponent<T.Props, State> {
                 <VariableSizeList
                   height={height}
                   width={width}
-                  ref={this._setRef}
-                  outerRef={this._scrollDiv}
-                  onItemsRendered={this._onItemsRendered}
+                  ref={this.setRef}
+                  outerRef={this.scrollDiv}
+                  onItemsRendered={this.onItemsRendered}
                   itemCount={this.props.rows.length}
-                  itemSize={this._itemSizeGetter}
+                  itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
                 >
-                  {({index, style}) => this._itemRenderer(index, style)}
+                  {({index, style}) => this.itemRenderer(index, style)}
                 </VariableSizeList>
               )}
             </AutoSizer>
           </div>
           {floatingDivider || <BuildTeam />}
           {this.state.showUnread && !this.state.showFloating && (
-            <UnreadShortcut onClick={this._scrollToUnread} />
+            <UnreadShortcut onClick={this.scrollToUnread} />
           )}
         </div>
       </ErrorBoundary>

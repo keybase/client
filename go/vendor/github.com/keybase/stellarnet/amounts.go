@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/pkg/errors"
+	"github.com/shopspring/decimal"
 	stellaramount "github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
@@ -63,6 +64,18 @@ func ParseAmount(s string) (*big.Rat, error) {
 		return nil, fmt.Errorf("expected decimal number: %s", s)
 	}
 	return v, nil
+}
+
+// ParseAmount parses a decimal number into a big decimal.
+func parseAmountIntoDecimal(s string) (ret decimal.Decimal, err error) {
+	if _, err = validateNumericalString(s); err != nil {
+		return ret, err
+	}
+	ret, err = decimal.NewFromString(s)
+	if err != nil {
+		return ret, fmt.Errorf("expected decimal number: %s %v", s, err)
+	}
+	return ret, nil
 }
 
 // ConvertXLMToOutside converts an amount of lumens into an amount of outside currency.

@@ -37,10 +37,7 @@ const ForgotUsername = (props: Props) => {
         ...(props.forgotUsernameResult === 'success'
           ? [
               <Kb.Banner key="successBanner" color="blue">
-                <Kb.BannerParagraph
-                  bannerColor="blue"
-                  content="A message with your username has been sent."
-                />
+                <Kb.BannerParagraph bannerColor="green" content="We just sent you your username." />
               </Kb.Banner>,
             ]
           : []),

@@ -20,7 +20,7 @@ export default Container.namedConnect(
   },
   dispatch => ({
     _onClose: () => {
-      dispatch(WalletsGen.createInflationDestinationReceivedError({error: ''}))
+      dispatch(WalletsGen.createInflationDestinationReceived({error: ''}))
       dispatch(RouteTreeGen.createNavigateUp())
     },
     _onSubmit: (accountID: Types.AccountID, destination: string, name: string) => {

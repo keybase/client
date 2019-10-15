@@ -25,6 +25,9 @@ If you're on the nth page and want to go back, set the previous field instead.
 Send a message:
     {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}}
 
+Send a reply:
+   {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}, "reply_to": 314}}}
+
 Delete a message:
     {"method": "delete", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314}}}
 

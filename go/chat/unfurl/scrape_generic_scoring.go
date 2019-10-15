@@ -139,13 +139,6 @@ var attrRankMap = map[string]attrRanker{
 		setter:  setTitle,
 	},
 
-	// url
-	"og:url": {
-		content: getContentAttr,
-		score:   getOpenGraphScore,
-		setter:  setURL,
-	},
-
 	// siteName
 	"application-name": {
 		content: getContentAttr,
