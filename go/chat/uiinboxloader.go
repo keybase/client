@@ -467,9 +467,12 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		res.ReselectInfo = &reselect
 	}
 	if !h.G().IsMobileAppType() {
+		sort.Slice(widgetList, func(i, j int) bool {
+			return widgetList[i].Time.After(widgetList[j].Time)
+		})
 		// only set widget entries on desktop to the top 3 overall convs
 		if len(widgetList) > 3 {
-			res.WidgetList = widgetList[:2]
+			res.WidgetList = widgetList[:3]
 		} else {
 			res.WidgetList = widgetList
 		}
