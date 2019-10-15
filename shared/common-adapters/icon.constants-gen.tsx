@@ -1054,10 +1054,10 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dark-fancy-encrypted-computer-mobile-226-96.png'),
   },
-  'icon-dark-fancy-encrypted-phone-desktop-150-72': {
+  'icon-dark-fancy-encrypted-location-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    require: require('../images/icons/icon-dark-fancy-encrypted-phone-desktop-150-72.png'),
+    require: require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png'),
   },
   'icon-dark-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',
@@ -2168,14 +2168,14 @@ const iconMeta_ = {
   'icon-fancy-encrypted-location-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-fancy-encrypted-location-phone-desktop-150-72',
     require: require('../images/icons/icon-fancy-encrypted-location-phone-desktop-150-72.png'),
+    requireDark: require('../images/icons/icon-dark-fancy-encrypted-location-phone-desktop-150-72.png'),
   },
   'icon-fancy-encrypted-phone-desktop-150-72': {
     extension: 'png',
     isFont: false,
-    nameDark: 'icon-dark-fancy-encrypted-phone-desktop-150-72',
     require: require('../images/icons/icon-fancy-encrypted-phone-desktop-150-72.png'),
-    requireDark: require('../images/icons/icon-dark-fancy-encrypted-phone-desktop-150-72.png'),
   },
   'icon-fancy-encrypted-phone-mobile-226-96': {
     extension: 'png',

@@ -9,8 +9,12 @@ import Transaction from '../transaction/container'
 import Airdrop from '../airdrop/container'
 
 const stripePatternName = Styles.isMobile
-  ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
-  : 'pattern-stripes-blue-5-black-5-desktop.png'
+  ? Styles.isDarkMode
+    ? require('../../images/icons/dark-pattern-stripes-blue-5-black-5-mobile.png')
+    : require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
+  : Styles.isDarkMode
+    ? 'dark-pattern-stripes-blue-5-black-5-desktop.png'
+    : 'pattern-stripes-blue-5-black-5-desktop.png'
 
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
