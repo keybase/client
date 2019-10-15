@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
-import * as AutoresetGen from '../../actions/autoreset-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/autoreset'
 import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 type Props = {}
@@ -14,15 +14,18 @@ const ConfirmReset = (_: Props) => {
   const dispatch = Container.useDispatch()
 
   const onContinue = React.useCallback(
-    () => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: true})),
+    () =>
+      dispatch(
+        RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.confirmReset})
+      ),
     [dispatch]
   )
   const onCancelReset = React.useCallback(() => {
-    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: false}))
-    dispatch(AutoresetGen.createCancelReset())
+    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.cancelReset}))
   }, [dispatch])
   const onClose = React.useCallback(
-    () => dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: false})),
+    () =>
+      dispatch(RecoverPasswordGen.createSubmitResetPrompt({action: RPCTypes.ResetPromptResponse.nothing})),
     [dispatch]
   )
 
@@ -121,6 +124,7 @@ const ConfirmReset = (_: Props) => {
             <Kb.Text type="BodyPrimaryLink" onClick={onCancelReset}>
               cancel the reset
             </Kb.Text>
+            .
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>

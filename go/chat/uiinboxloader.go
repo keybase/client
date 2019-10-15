@@ -260,6 +260,7 @@ func (h *UIInboxLoader) transmitLoop(shutdownCh chan struct{}) error {
 		case <-h.clock.After(h.batchDelay):
 			_ = h.flushConvBatch()
 		case <-shutdownCh:
+			h.Debug(context.Background(), "transmitLoop: shutting down")
 			return nil
 		}
 	}
@@ -529,6 +530,7 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 			// update layout again after we have done all this work to get everything in the right order
 			h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
 		case <-shutdownCh:
+			h.Debug(ctx, "bigTeamUnboxLoop: shutting down")
 			return nil
 		}
 	}
@@ -561,6 +563,7 @@ func (h *UIInboxLoader) layoutLoop(shutdownCh chan struct{}) error {
 				reset()
 			}
 		case <-shutdownCh:
+			h.Debug(context.Background(), "layoutLoop: shutting down")
 			return nil
 		}
 	}

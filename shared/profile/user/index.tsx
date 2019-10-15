@@ -90,6 +90,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
       avatarSize={avatarSize}
       size="huge"
       avatarImageOverride={p.sbsAvatarUrl}
+      withProfileCardPopup={false}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />

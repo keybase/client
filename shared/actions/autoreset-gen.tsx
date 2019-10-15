@@ -33,7 +33,7 @@ type _UpdateAutoresetStatePayload = {readonly active: boolean; readonly endTime:
 
 // Action Creators
 /**
- * Cancel an autoreset for the currently logged-in account.
+ * Cancel an autoreset for the currently logged-in account. Don't use with a temporary (web) session
  */
 export const createCancelReset = (payload: _CancelResetPayload): CancelResetPayload => ({
   payload,

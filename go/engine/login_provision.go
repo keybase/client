@@ -819,7 +819,7 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 			return err
 		}
 
-		if !enterReset {
+		if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
 			m.Debug("User decided not to enter the reset pipeline")
 			// User had to explicitly decline entering the pipeline so in order to prevent
 			// confusion prevent further prompts by completing a noop login flow.

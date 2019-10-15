@@ -174,7 +174,7 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	// accounts.
 	loginUI.Reset()
 	loginUI.PassphraseRecovery = true
-	loginUI.ResetAccount = true
+	loginUI.ResetAccount = keybase1.ResetPromptResponse_CONFIRM_RESET
 	uis.ProvisionUI = newTestProvisionUIChooseNoDevice()
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 
@@ -199,7 +199,7 @@ func TestPassphraseRecoverNoDevices(t *testing.T) {
 	loginUI := &TestLoginUIRecover{
 		TestLoginUI: libkb.TestLoginUI{
 			PassphraseRecovery: true,
-			ResetAccount:       true,
+			ResetAccount:       keybase1.ResetPromptResponse_CONFIRM_RESET,
 		},
 	}
 	uis := libkb.UIs{

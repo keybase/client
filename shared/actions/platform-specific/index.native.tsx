@@ -121,17 +121,24 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   }
 }
 
-export const showShareActionSheetFromURL = async (options: {
-  url?: any | null
+export const showShareActionSheet = async (options: {
+  filePath?: any | null
   message?: any | null
-  mimeType?: string | null
+  mimeType: string
 }) => {
   if (isIOS) {
     return new Promise((resolve, reject) =>
-      ActionSheetIOS.showShareActionSheetWithOptions(options, reject, resolve)
+      ActionSheetIOS.showShareActionSheetWithOptions(
+        {
+          message: options.message,
+          url: options.filePath,
+        },
+        reject,
+        resolve
+      )
     )
   } else {
-    if (!options.url && options.message) {
+    if (!options.filePath && options.message) {
       try {
         await NativeModules.ShareFiles.shareText(options.message, options.mimeType)
         return {completed: true, method: ''}
@@ -141,18 +148,12 @@ export const showShareActionSheetFromURL = async (options: {
     }
 
     try {
-      await NativeModules.ShareFiles.share(options.url, options.mimeType)
+      await NativeModules.ShareFiles.share(options.filePath, options.mimeType)
       return {completed: true, method: ''}
     } catch (_) {
       return {completed: false, method: ''}
     }
   }
-}
-
-// Shows the shareactionsheet for a file, and deletes the file afterwards
-export const showShareActionSheetFromFile = async (filePath: string) => {
-  await showShareActionSheetFromURL({url: 'file://' + filePath})
-  return RNFetchBlob.fs.unlink(filePath)
 }
 
 const openAppSettings = async () => {

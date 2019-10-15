@@ -230,16 +230,21 @@ func (e *AccountReset) loadResetStatus(mctx libkb.MetaContext) (*accountResetSta
 func (e *AccountReset) resetPrompt(mctx libkb.MetaContext, status *accountResetStatusResponse) error {
 	if status.EventType == libkb.AutoresetEventReady {
 		// Ask the user if they'd like to reset if we're in login + it's ready
-		shouldReset, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.Ctx(), keybase1.PromptResetAccountArg{
+		response, err := mctx.UIs().LoginUI.PromptResetAccount(mctx.
+			Ctx(), keybase1.PromptResetAccountArg{
 			Prompt: keybase1.NewResetPromptWithComplete(keybase1.ResetPromptInfo{HasWallet: status.HasWallet}),
 		})
 		if err != nil {
 			return err
 		}
-		if !shouldReset {
+		if response == keybase1.ResetPromptResponse_NOTHING {
 			// noop
 			mctx.Info("Reset not completed.")
 			return nil
+		} else if response == keybase1.ResetPromptResponse_CANCEL_RESET {
+			// noop
+			mctx.Info("Cancelling reset.")
+			return libkb.CancelResetPipeline(mctx)
 		}
 
 		arg := libkb.NewAPIArg("autoreset/reset")
