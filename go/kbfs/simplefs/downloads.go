@@ -66,7 +66,7 @@ func newDownloadManager(simpleFS *SimpleFS) *downloadManager {
 		k:           simpleFS,
 		publisher:   simpleFS.config.SubscriptionManagerPublisher(),
 		cacheDir:    simpleFS.config.KbEnv().GetCacheDir(),
-		downloadDir: filepath.Join(simpleFS.config.KbEnv().GetHome(), "Downloads"),
+		downloadDir: simpleFS.config.KbEnv().GetDownloadsDir(),
 		downloads:   make(map[string]download),
 	}
 }

@@ -346,8 +346,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q)", arg.Name, arg.Username, arg.Email, arg.InviteID),
-		func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s, u:%q, e:%q, i:%q, a:%v)", arg.Name, arg.Username, arg.Email, arg.InviteID, arg.AllowInaction), func() error { return err })()
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
@@ -369,11 +368,12 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 
 	if len(arg.Email) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
-		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
+		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.AllowInaction)
 	} else if len(arg.InviteID) > 0 {
 		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received inviteID, using CancelInviteByID for %q in team %q", arg.InviteID, arg.Name)
-		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID)
+		return teams.CancelInviteByID(ctx, h.G().ExternalG(), arg.Name, arg.InviteID, arg.AllowInaction)
 	}
+	// Note: AllowInaction is not supported for non-invite removes.
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
 	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }

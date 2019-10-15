@@ -54,19 +54,21 @@ func FmtAmount(amount string, precisionTwo bool, rounding FmtRoundingBehavior) (
 	if amount == "" {
 		return "", fmt.Errorf("empty amount")
 	}
-	x, err := ParseAmount(amount)
+	x, err := parseAmountIntoDecimal(amount)
 	if err != nil {
 		return "", fmt.Errorf("unable to parse amount %s: %v", amount, err)
 	}
-	precision := 7
+	var precision int32 = 7
 	if precisionTwo {
 		precision = 2
 	}
 	var s string
 	if rounding == Round {
-		s = x.FloatString(precision)
+		s = x.StringFixed(precision)
 	} else {
-		s = x.FloatString(precision + 1)
+		// bigdecimal is used instead of big.Rat because big.Rat.FloatString rounds the last digit.
+		// Which would turn 2.9999999 into 3.0 when we want 2.9.
+		s = x.Truncate(precision).StringFixed(precision + 1)
 		s = s[:len(s)-1]
 	}
 	parts := strings.Split(s, ".")

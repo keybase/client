@@ -441,7 +441,7 @@ func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion
 	require.Len(t, invites, 1)
 	for _, invite := range invites {
 		// Invite should be WAITING_FOR_PUK now and we can't cancel it anymore.
-		err := teams.CancelInviteByID(context.Background(), bee.tc.G, teamName.String(), invite.Id)
+		err := teams.CancelInviteByID(context.Background(), bee.tc.G, teamName.String(), invite.Id, false)
 		require.Error(t, err)
 	}
 

@@ -871,6 +871,11 @@ func doInit(
 	}
 	config.SetBlockServer(bserv)
 
+	// Don't trigger cache initialization warnings in single-op mode
+	// (e.g., during a git pull), because KBFS might be running in
+	// constrained mode and the cache remote proxy wouldn't be
+	// available (which is fine).
+	doSendWarnings := config.Mode().Type() != InitSingleOp
 	err = config.MakeDiskBlockCacheIfNotExists()
 	if err != nil {
 		log.CWarningf(ctx, "Could not initialize disk cache: %+v", err)
@@ -879,7 +884,9 @@ func doInit(
 			NotificationType: keybase1.FSNotificationType_INITIALIZED,
 			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
 		}
-		defer config.Reporter().Notify(ctx, notification)
+		if doSendWarnings {
+			defer config.Reporter().Notify(ctx, notification)
+		}
 	} else {
 		log.CDebugf(ctx, "Disk cache of type \"%s\" enabled",
 			params.DiskCacheMode.String())
@@ -893,7 +900,9 @@ func doInit(
 			NotificationType: keybase1.FSNotificationType_INITIALIZED,
 			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
 		}
-		defer config.Reporter().Notify(ctx, notification)
+		if doSendWarnings {
+			defer config.Reporter().Notify(ctx, notification)
+		}
 	} else {
 		log.CDebugf(ctx, "Disk MD cache enabled")
 	}
@@ -906,7 +915,9 @@ func doInit(
 			NotificationType: keybase1.FSNotificationType_INITIALIZED,
 			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
 		}
-		defer config.Reporter().Notify(ctx, notification)
+		if doSendWarnings {
+			defer config.Reporter().Notify(ctx, notification)
+		}
 	} else {
 		log.CDebugf(ctx, "Disk quota cache enabled")
 	}

@@ -776,10 +776,10 @@
 			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "O2pMKCLN0cVTYoSQumA11Xh6rEQ=",
+			"checksumSHA1": "f8oLbOSuAeeqqIVW8TrYYxj6rTw=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "1c653c09d9e05af8a1bd8689a3bd53303ff98ee3",
-			"revisionTime": "2019-10-10T20:01:06Z"
+			"revision": "5d2b2e13831d7d81f3a70357611483c00f36ca19",
+			"revisionTime": "2019-10-11T15:21:56Z"
 		},
 		{
 			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",
@@ -924,6 +924,12 @@
 			"path": "github.com/shirou/gopsutil/mem",
 			"revision": "db425313bfa86d78ce81b07d8898e0f9723e0ecd",
 			"revisionTime": "2018-12-31T15:08:26Z"
+		},
+		{
+			"checksumSHA1": "iQKxa7KhhJQ+gjQOWYaTxSjtZw8=",
+			"path": "github.com/shopspring/decimal",
+			"revision": "f1972eb1d1f519e2e5f4b51f2dea765e8c93a130",
+			"revisionTime": "2019-10-09T02:57:16Z"
 		},
 		{
 			"checksumSHA1": "8QeSG127zQqbA+YfkO1WkKx/iUI=",

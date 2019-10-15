@@ -3,7 +3,7 @@ import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import {serviceIdToIconFont, serviceIdToAccentColor, serviceIdToLabel} from './shared'
 import * as Constants from '../constants/team-building'
-import {ServiceIdWithContact} from '../constants/types/team-building'
+import {ServiceIdWithContact, AllowedNamespace} from '../constants/types/team-building'
 
 export type Props = {
   services: Array<ServiceIdWithContact>
@@ -11,6 +11,8 @@ export type Props = {
   onChangeService: (newService: ServiceIdWithContact) => void
   serviceResultCount: {[K in ServiceIdWithContact]?: number | null}
   showServiceResultCount: boolean
+  servicesShown?: number
+  minimalBorder?: boolean
 }
 
 export type IconProps = {
@@ -21,6 +23,7 @@ export type IconProps = {
   count: number | null
   showCount: boolean
   isActive: boolean
+  minimalBorder?: boolean
 }
 
 export class ServiceTabBar extends React.Component<Props> {}
