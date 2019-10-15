@@ -236,5 +236,6 @@ export {
   ordinalToNumber,
   outboxIDToString,
   stringToOutboxID,
+  MessagesWithReactions,
 } from './message'
 export {stringToConversationIDKey, conversationIDKeyToString} from './common'

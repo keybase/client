@@ -1320,3 +1320,7 @@ export const messageAttachmentTransferStateToProgressLabel = (
       return ''
   }
 }
+
+export function hasReactions(m?: Types.Message): m is Types.MessagesWithReactions {
+  return Object.prototype.hasOwnProperty.call(m, 'reactions')
+}

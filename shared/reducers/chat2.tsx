@@ -7,6 +7,7 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
+import * as MessageTypes from '../constants/types/chat2/message'
 import teamBuildingReducer from './team-building'
 import {isMobile} from '../constants/platform'
 import logger from '../logger'
@@ -1134,7 +1135,8 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
             )
             return
           }
-          const old: Types.Message | undefined = convToMessages.get(td.targetOrdinal)
+
+          const old = convToMessages.get(td.targetOrdinal)
           if (Constants.hasReactions(old)) {
             convToMessages.set(td.targetOrdinal, {
               ...old,
