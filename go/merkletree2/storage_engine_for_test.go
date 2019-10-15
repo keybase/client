@@ -17,6 +17,7 @@ type InMemoryStorageEngine struct {
 	SortedKVPRs      []*KVPRecord
 	Nodes            map[string]*NodeRecord
 	MasterSecretsMap map[Seqno]MasterSecret
+	ReverseRootMap   map[string]Seqno
 
 	// used to make prefix queries efficient. Not otherwise necessary
 	//PositionToKeys map[string](map[string]bool)
@@ -60,6 +61,7 @@ func NewInMemoryStorageEngine(cfg Config) *InMemoryStorageEngine {
 	i.MasterSecretsMap = make(map[Seqno]MasterSecret)
 	i.Roots = make(map[Seqno]RootMetadata)
 	i.Nodes = make(map[string]*NodeRecord)
+	i.ReverseRootMap = make(map[string]Seqno)
 	i.cfg = cfg
 	return &i
 }
@@ -116,6 +118,11 @@ func (i *InMemoryStorageEngine) StoreNode(c logger.ContextInterface, t Transacti
 
 func (i *InMemoryStorageEngine) StoreRootMetadata(c logger.ContextInterface, t Transaction, r RootMetadata) error {
 	i.Roots[r.Seqno] = r
+	_, hash, err := i.cfg.Encoder.EncodeAndHashGeneric(r)
+	if err != nil {
+		panic(fmt.Sprintf("Error encoding %+v", r))
+	}
+	i.ReverseRootMap[string(hash)] = r.Seqno
 	return nil
 }
 
@@ -136,6 +143,14 @@ func (i *InMemoryStorageEngine) LookupRoot(c logger.ContextInterface, t Transact
 	r, found := i.Roots[s]
 	if found {
 		return r, nil
+	}
+	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
+}
+
+func (i *InMemoryStorageEngine) LookupRootFromHash(c logger.ContextInterface, t Transaction, h Hash) (RootMetadata, error) {
+	s, found := i.ReverseRootMap[string(h)]
+	if found {
+		return i.Roots[s], nil
 	}
 	return RootMetadata{}, NewInvalidSeqnoError(s, fmt.Errorf("No root at seqno %v", s))
 }
@@ -182,14 +197,14 @@ func (i *InMemoryStorageEngine) LookupRootHashes(c logger.ContextInterface, t Tr
 func (i *InMemoryStorageEngine) LookupNode(c logger.ContextInterface, t Transaction, s Seqno, p *Position) (Hash, error) {
 	node, found := i.Nodes[string(p.GetBytes())]
 	if !found {
-		return nil, errors.New("No node found")
+		return nil, NewNodeNotFoundError()
 	}
 	for ; node != nil; node = node.next {
 		if node.s <= s {
 			return node.h, nil
 		}
 	}
-	return nil, errors.New("No node version found")
+	return nil, NewNodeNotFoundError()
 }
 
 func (i *InMemoryStorageEngine) LookupNodes(c logger.ContextInterface, t Transaction, s Seqno, positions []Position) (res []PositionHashPair, err error) {

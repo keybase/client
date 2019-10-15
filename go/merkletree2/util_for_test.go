@@ -209,10 +209,12 @@ func (i IdentityHasherBlinded) ComputeKeySpecificSecret(ms MasterSecret, k Key) 
 	return KeySpecificSecret(kss)
 }
 
-// returns a list of sorted and unique keys of size numPairs
-func makeRandomKeysForTesting(keysByteLength uint, numPairs int) ([]Key, error) {
+// returns two disjoint lists of sorted and unique keys of size numPairs1, numPairs2
+func makeRandomKeysForTesting(keysByteLength uint, numPairs1, numPairs2 int) ([]Key, []Key, error) {
+	numPairs := numPairs1 + numPairs2
+
 	if keysByteLength < 8 && numPairs > 1<<(keysByteLength*8) {
-		return nil, fmt.Errorf("too many keys requested !")
+		return nil, nil, fmt.Errorf("too many keys requested !")
 	}
 
 	keyMap := make(map[string]bool, numPairs)
@@ -220,25 +222,38 @@ func makeRandomKeysForTesting(keysByteLength uint, numPairs int) ([]Key, error) 
 		key := make([]byte, keysByteLength)
 		_, err := rand.Read(key)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		keyMap[string(key)] = true
 	}
 
-	keyStrings := make([]string, 0, numPairs)
+	keyStrings1 := make([]string, 0, numPairs1)
+	keyStrings2 := make([]string, 0, numPairs2)
 
+	i := 0
 	for k := range keyMap {
-		keyStrings = append(keyStrings, k)
+		if i < numPairs1 {
+			keyStrings1 = append(keyStrings1, k)
+			i++
+		} else {
+			keyStrings2 = append(keyStrings2, k)
+		}
 	}
 
-	sort.Strings(keyStrings)
+	sort.Strings(keyStrings1)
+	sort.Strings(keyStrings2)
 
-	keys := make([]Key, numPairs)
-	for i, k := range keyStrings {
-		keys[i] = Key(k)
+	keys1 := make([]Key, numPairs1)
+	for i, k := range keyStrings1 {
+		keys1[i] = Key(k)
 	}
 
-	return keys, nil
+	keys2 := make([]Key, numPairs2)
+	for i, k := range keyStrings2 {
+		keys2[i] = Key(k)
+	}
+
+	return keys1, keys2, nil
 }
 
 func makeRandomKVPFromKeysForTesting(keys []Key) ([]KeyValuePair, error) {
