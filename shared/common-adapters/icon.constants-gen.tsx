@@ -3170,11 +3170,6 @@ const iconMeta_ = {
     require: require('../images/icons/icon-paper-key-96.png'),
     requireDark: require('../images/icons/icon-dark-paper-key-96.png'),
   },
-  'icon-paper-key-corner': {
-    extension: 'png',
-    isFont: false,
-    require: require('../images/icons/icon-paper-key-corner.png'),
-  },
   'icon-paper-key-revoke-48': {
     extension: 'png',
     isFont: false,
