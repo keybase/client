@@ -54,9 +54,7 @@ func (k *KVRevisionCache) hash(ciphertext *string) string {
 	return hex.EncodeToString(b[:])
 }
 
-func (k *KVRevisionCache) Check(mctx libkb.MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
-	k.Lock()
-	defer k.Unlock()
+func (k *KVRevisionCache) checkLocked(mctx libkb.MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
 	k.ensureIntermediateLocked(entryID)
 
 	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
@@ -82,11 +80,22 @@ func (k *KVRevisionCache) Check(mctx libkb.MetaContext, entryID keybase1.KVEntry
 	return nil
 }
 
+func (k *KVRevisionCache) Check(mctx libkb.MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
+	k.Lock()
+	defer k.Unlock()
+
+	return k.checkLocked(mctx, entryID, ciphertext, teamKeyGen, revision)
+}
+
 func (k *KVRevisionCache) Put(mctx libkb.MetaContext, entryID keybase1.KVEntryID, ciphertext *string, teamKeyGen keybase1.PerTeamKeyGeneration, revision int) (err error) {
 	k.Lock()
 	defer k.Unlock()
 
-	k.ensureIntermediateLocked(entryID)
+	err = k.checkLocked(mctx, entryID, ciphertext, teamKeyGen, revision)
+	if err != nil {
+		return err
+	}
+
 	entryHash := k.hash(ciphertext)
 	newEntry := kvCacheEntry{
 		EntryHash:  entryHash,
@@ -97,14 +106,13 @@ func (k *KVRevisionCache) Put(mctx libkb.MetaContext, entryID keybase1.KVEntryID
 	return nil
 }
 
-func (k *KVRevisionCache) CheckDeletable(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
-	k.Lock()
-	defer k.Unlock()
+func (k *KVRevisionCache) checkDeletableLocked(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
 	k.ensureIntermediateLocked(entryID)
 
 	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if !ok {
-		return KVRevisionCacheError{fmt.Sprintf("cannot delete an unknown entry")}
+		// this should never happen
+		return KVRevisionCacheError{fmt.Sprintf("cache is corrupted - please restart")}
 	}
 	entryHash := DELETED_OR_NONEXISTENT
 	if revision < entry.Revision {
@@ -118,16 +126,26 @@ func (k *KVRevisionCache) CheckDeletable(mctx libkb.MetaContext, entryID keybase
 	return nil
 }
 
+func (k *KVRevisionCache) CheckDeletable(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
+	k.Lock()
+	defer k.Unlock()
+
+	return k.checkDeletableLocked(mctx, entryID, revision)
+}
+
 func (k *KVRevisionCache) MarkDeleted(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int) (err error) {
 	k.Lock()
 	defer k.Unlock()
-	k.ensureIntermediateLocked(entryID)
 
+	err = k.checkDeletableLocked(mctx, entryID, revision)
+	if err != nil {
+		return err
+	}
 	existingEntry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
 	if !ok {
-		return KVRevisionCacheError{fmt.Sprintf("cannot delete an unknown entry")}
+		// this should never happen
+		return KVRevisionCacheError{fmt.Sprintf("cache is corrupted - please restart")}
 	}
-
 	newEntry := kvCacheEntry{
 		EntryHash:  DELETED_OR_NONEXISTENT,
 		TeamKeyGen: existingEntry.TeamKeyGen, // nothing gets encrypted here, so this should just roll forward

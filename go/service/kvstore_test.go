@@ -100,7 +100,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	eveHandler := NewKVStoreHandler(nil, tcEve.G)
 	getRes, err = eveHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
-	require.IsType(t, teams.PrecheckAppendError{}, err)
+	require.Contains(t, err.Error(), "error resolving team")
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 
@@ -192,6 +192,7 @@ func TestKvStoreMultiUserTeam(t *testing.T) {
 	// Bob cannot read the entry anymore.
 	getRes, err = bobHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
+	require.Contains(t, err.Error(), "user does not have access to this entry")
 	require.IsType(t, err, libkb.AppStatusError{})
 	aerr, _ := err.(libkb.AppStatusError)
 	if aerr.Code != libkb.SCTeamBadMembership {
@@ -380,7 +381,6 @@ func TestRevisionCache(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
-	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "revision")
 
 	// bump the team key generation and verify error
@@ -392,7 +392,6 @@ func TestRevisionCache(t *testing.T) {
 	require.NoError(t, err)
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
-	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "team key generation")
 
 	// mutate the entry hash and verify error
@@ -406,7 +405,6 @@ func TestRevisionCache(t *testing.T) {
 
 	_, err = handler.GetKVEntry(mctx.Ctx(), getArg)
 	require.Error(t, err)
-	require.IsType(t, kvstore.KVRevisionCacheError{}, err)
 	require.Contains(t, err.Error(), "hash of entry")
 }
 

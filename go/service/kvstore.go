@@ -50,11 +50,17 @@ func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName s
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false /*public*/)
 		if err != nil {
 			mctx.Debug("error loading implicit team %s: %v", userInputTeamName, err)
+			err = fmt.Errorf("error resolving team with name %s: %v", userInputTeamName, err)
 			return teamID, err
 		}
 		return team.ID, nil
 	}
-	return teams.GetTeamIDByNameRPC(mctx, userInputTeamName)
+	teamID, err = teams.GetTeamIDByNameRPC(mctx, userInputTeamName)
+	if err != nil {
+		mctx.Debug("error resolving team with name %s: %v", userInputTeamName, err)
+		err = fmt.Errorf("error resolving team with name %s: %v", userInputTeamName, err)
+	}
+	return teamID, err
 }
 
 type getEntryAPIRes struct {
@@ -84,6 +90,7 @@ func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KV
 	}
 	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
 	if err != nil {
+		mctx.Debug("error fetching %+v from server: %v", entryID, err)
 		return emptyRes, err
 	}
 	if apiRes.TeamID != entryID.TeamID {
@@ -109,7 +116,6 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	}
 	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
-		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
 		return res, err
 	}
 	entryID := keybase1.KVEntryID{
@@ -125,7 +131,8 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	// check the server response against the local cache
 	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, &apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
 	if err != nil {
-		mctx.Debug("error comparing entry %v against cache: %v", entryID, err)
+		err = fmt.Errorf("error comparing the entry from the server to what's in the local cache: %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 	var cleartext string
@@ -138,6 +145,8 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	}
 	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, &apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.Revision)
 	if err != nil {
+		err = fmt.Errorf("error putting newly fetched values into the local cache: %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 	return keybase1.KVGetResult{
@@ -164,7 +173,6 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	}
 	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
-		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
 		return res, err
 	}
 	entryID := keybase1.KVEntryID{
@@ -181,7 +189,8 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		EntryKey:  arg.EntryKey,
 	})
 	if err != nil {
-		mctx.Debug("error populating the cache in team storage PUT flow: %+v", err)
+		err = fmt.Errorf("error fetching the revision before writing this entry: %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 	revision := getRes.Revision + 1
@@ -194,7 +203,8 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	}
 	err = mctx.G().GetKVRevisionCache().Check(mctx, entryID, &ciphertext, teamKeyGen, revision)
 	if err != nil {
-		mctx.Debug("error comparing new entry %v against existing cache: %v", entryID, err)
+		err = fmt.Errorf("error comparing the entry we want to write with what's in the local cache: %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 
@@ -223,7 +233,8 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	}
 	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, &ciphertext, teamKeyGen, revision)
 	if err != nil {
-		mctx.Debug("error putting %+v into the revision cache: %v", entryID, err)
+		err = fmt.Errorf("error caching this new entry (try fetching it again): %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 	return keybase1.KVPutResult{
@@ -244,7 +255,6 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 	}
 	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
-		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
 		return res, err
 	}
 	entryID := keybase1.KVEntryID{
@@ -257,14 +267,17 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 	getArg := keybase1.GetKVEntryArg(arg)
 	getRes, err := h.GetKVEntry(ctx, getArg)
 	if err != nil {
-		mctx.Debug("error populating the cache in team storage DEL flow: %+v", err)
+		err = fmt.Errorf("error fetching the revision before deleting this entry: %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
+		return res, err
 	}
 	revision := getRes.Revision + 1
 
 	mctx.Debug("deleting %+v at revision %d", entryID, revision)
 	err = mctx.G().GetKVRevisionCache().CheckDeletable(mctx, entryID, revision)
 	if err != nil {
-		mctx.Debug("error comparing new entry %v against existing cache: %v", entryID, err)
+		err = fmt.Errorf("error comparing the entry we want to delete with what's in the local cache: %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 	apiArg := libkb.APIArg{
@@ -285,6 +298,7 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 	responseRevision, err := apiRes.Body.AtKey("revision").GetInt()
 	if err != nil {
 		mctx.Debug("error getting the revision from the server response: %v", err)
+		err = fmt.Errorf("server response doesnt have a revision field: %s", err)
 		return res, err
 	}
 	if responseRevision != revision {
@@ -293,7 +307,8 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 	}
 	err = mctx.G().GetKVRevisionCache().MarkDeleted(mctx, entryID, revision)
 	if err != nil {
-		mctx.Debug("error loading delete of %+v into the revision cache: %v", entryID, err)
+		err = fmt.Errorf("error caching this now-deleted entry (try fetching it): %s", err)
+		mctx.Debug("%+v: %s", entryID, err)
 		return res, err
 	}
 	return keybase1.KVDeleteEntryResult{
@@ -320,7 +335,6 @@ func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.List
 	}
 	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
-		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
 		return res, err
 	}
 
@@ -368,7 +382,6 @@ func (h *KVStoreHandler) ListKVEntries(ctx context.Context, arg keybase1.ListKVE
 	}
 	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
-		mctx.Debug("error resolving team with name %s: %v", arg.TeamName, err)
 		return res, err
 	}
 	var apiRes getListEntriesAPIRes
