@@ -23,6 +23,7 @@ func newCardChecker(g *globals.Context) *cardChecker {
 }
 
 func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*chat1.MessageUnboxedJourneyCard, error) {
+	cc.MetaContext(ctx).Debug("xxx cardChecker.Next")
 	if conv == nil {
 		// if no verified conversation parameter, don't do anything
 		cc.Debug(ctx, "no conversation parameter")
@@ -43,6 +44,10 @@ func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.Co
 		cc.Debug(ctx, "not a team conversation")
 		return nil, nil
 	}
+
+	// xxx remove this paragraph
+	cc.MetaContext(ctx).Debug("xxx cardChecker.Next returning a card")
+	return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_WELCOME, Data: `{"msg": "hello"}`}, nil
 
 	// for testing, do special stuff based on channel name:
 	switch conv.Info.TopicName {

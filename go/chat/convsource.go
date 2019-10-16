@@ -88,6 +88,7 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 
 func (s *baseConversationSource) addConversationCards(ctx context.Context, uid gregor1.UID,
 	conv *chat1.ConversationLocal, thread *chat1.ThreadView) {
+	s.MetaContext(ctx).Debug("xxx addConversationCards")
 
 	// Maybe this should only be created once and reused, but for now, just make
 	// a new one.
@@ -114,6 +115,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	if q != nil && q.DisablePostProcessThread {
 		return nil
 	}
+	s.MetaContext(ctx).Debug("xxx postProcessThread")
 	s.Debug(ctx, "postProcessThread: thread messages starting out: %d", len(thread.Messages))
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
@@ -160,6 +162,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 		}
 	}
 	// Add attachment previews to pending messages
+	s.MetaContext(ctx).Debug("xxx somewhere xyz")
 	s.addPendingPreviews(ctx, thread)
 
 	// Add any conversation cards
