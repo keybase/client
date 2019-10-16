@@ -1839,6 +1839,31 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-dark-phone-success-background-9-48.png'),
   },
+  'icon-dark-placeholder-avatar-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-placeholder-avatar-32.png'),
+  },
+  'icon-dark-placeholder-avatar-circular-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-placeholder-avatar-circular-32.png'),
+  },
+  'icon-dark-placeholder-avatar-circular-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-placeholder-avatar-circular-48.png'),
+  },
+  'icon-dark-placeholder-avatar-circular-reversed-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png'),
+  },
+  'icon-dark-placeholder-avatar-circular-reversed-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png'),
+  },
   'icon-dark-placeholder-secret-user-16': {
     extension: 'png',
     isFont: false,
@@ -3877,7 +3902,9 @@ const iconMeta_ = {
   'icon-placeholder-avatar-32': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-32',
     require: require('../images/icons/icon-placeholder-avatar-32.png'),
+    requireDark: require('../images/icons/icon-dark-placeholder-avatar-32.png'),
   },
   'icon-placeholder-avatar-960': {
     extension: 'png',
@@ -3887,22 +3914,30 @@ const iconMeta_ = {
   'icon-placeholder-avatar-circular-32': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-32',
     require: require('../images/icons/icon-placeholder-avatar-circular-32.png'),
+    requireDark: require('../images/icons/icon-dark-placeholder-avatar-circular-32.png'),
   },
   'icon-placeholder-avatar-circular-48': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-48',
     require: require('../images/icons/icon-placeholder-avatar-circular-48.png'),
+    requireDark: require('../images/icons/icon-dark-placeholder-avatar-circular-48.png'),
   },
   'icon-placeholder-avatar-circular-reversed-32': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-reversed-32',
     require: require('../images/icons/icon-placeholder-avatar-circular-reversed-32.png'),
+    requireDark: require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-32.png'),
   },
   'icon-placeholder-avatar-circular-reversed-48': {
     extension: 'png',
     isFont: false,
+    nameDark: 'icon-dark-placeholder-avatar-circular-reversed-48',
     require: require('../images/icons/icon-placeholder-avatar-circular-reversed-48.png'),
+    requireDark: require('../images/icons/icon-dark-placeholder-avatar-circular-reversed-48.png'),
   },
   'icon-placeholder-avatar-lighter-192': {
     extension: 'png',
