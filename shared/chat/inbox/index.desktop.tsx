@@ -202,8 +202,6 @@ class Inbox extends React.Component<T.Props, State> {
     this.list = list
   }
 
-  private listChild = ({index, style}) => this.itemRenderer(index, style)
-
   render() {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
@@ -224,7 +222,7 @@ class Inbox extends React.Component<T.Props, State> {
                   itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
                 >
-                  {this.listChild}
+                  {({index, style}) => this.itemRenderer(index, style)}
                 </VariableSizeList>
               )}
             </AutoSizer>
