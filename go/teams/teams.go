@@ -2288,6 +2288,8 @@ func RetryIfPossible(ctx context.Context, g *libkb.GlobalContext, post func(ctx 
 			mctx.Debug("| retrying since the server wanted a ratchet and we didn't provide one %d", i)
 		case isHiddenAppendPrecheckError(err):
 			mctx.Debug("| retrying since we hit a hidden append precheck error")
+		case libkb.IsEphemeralRetryableError(err):
+			mctx.Debug("| retrying since we hit a retryable ephemeral error %v, attempt %d", err, i)
 		default:
 			return err
 		}
