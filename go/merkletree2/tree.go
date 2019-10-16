@@ -303,7 +303,7 @@ func (t *Tree) Build(
 
 	var newBareRootHash Hash
 	if newBareRootHash, err = t.hashTreeRecursive(ctx, tr, newSeqno, ms,
-		t.cfg.getRootPosition(), sortedKEVPairs); err != nil {
+		t.cfg.GetRootPosition(), sortedKEVPairs); err != nil {
 		return 0, nil, err
 	}
 
@@ -343,10 +343,10 @@ func (t *Tree) hashTreeRecursive(ctx logger.ContextInterface, tr Transaction, s 
 
 	pairsNotYetSelected := sortedKEVPairs
 	var nextChild *Position
-	for i, child := ChildIndex(0), t.cfg.getChild(p, ChildIndex(0)); i < ChildIndex(t.cfg.ChildrenPerNode); i++ {
+	for i, child := ChildIndex(0), t.cfg.GetChild(p, ChildIndex(0)); i < ChildIndex(t.cfg.ChildrenPerNode); i++ {
 		var end int
 		if i+1 < ChildIndex(t.cfg.ChildrenPerNode) {
-			nextChild = t.cfg.getChild(p, i+1)
+			nextChild = t.cfg.GetChild(p, i+1)
 			maxKey := t.cfg.getMinKey(nextChild)
 
 			end = sort.Search(len(pairsNotYetSelected), func(n int) bool {
