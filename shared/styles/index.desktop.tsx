@@ -1,4 +1,4 @@
-import {colors, darkColors} from './colors'
+import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import * as Shared from './shared'
@@ -72,7 +72,7 @@ export const globalStyles = {
 export const mobileStyles = {}
 export const desktopStyles = {
   get boxShadow() {
-    return {boxShadow: `0 2px 5px 0 ${colors.black_20OrBlack}`}
+    return {boxShadow: `0 2px 5px 0 ${themed.black_20OrBlack}`}
   },
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
