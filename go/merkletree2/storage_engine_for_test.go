@@ -170,6 +170,9 @@ func (i *InMemoryStorageEngine) LookupRoots(c logger.ContextInterface, t Transac
 }
 
 func (i *InMemoryStorageEngine) LookupRootHashes(c logger.ContextInterface, t Transaction, seqnos []Seqno) (hashes []Hash, err error) {
+	if len(seqnos) == 0 {
+		return nil, fmt.Errorf("No seqnos requested")
+	}
 	seqnosSorted := make([]Seqno, len(seqnos))
 	copy(seqnosSorted, seqnos)
 	sort.Sort(SeqnoSortedAsInt(seqnosSorted))

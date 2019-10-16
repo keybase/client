@@ -204,7 +204,7 @@ func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction,
 
 	// If there is no previous root, we do not need to include any skips, so
 	// return early.
-	if curr == nil {
+	if curr == nil || curr.Seqno == 0 {
 		root.Seqno = 1
 		return root, nil
 	}
