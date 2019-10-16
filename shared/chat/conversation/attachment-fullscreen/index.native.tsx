@@ -98,7 +98,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
                 resizeMode="contain"
               />
             </Kb.Box2>
-          ) : false ? (
+          ) : Styles.isIOS ? (
             <AutoMaxSizeImage
               source={{uri: `${this.props.path}`}}
               onLoad={this._setLoaded}
