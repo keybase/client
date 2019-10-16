@@ -135,7 +135,7 @@ const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, typ
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing, isHighlighted) => {
   if (isHighlighted) {
-    return styles.highlighted
+    return Styles.collapseStyles([styles.sent, styles.highlighted])
   } else if (type === 'sent') {
     return isEditing ? styles.sentEditing : styles.sent
   } else {
