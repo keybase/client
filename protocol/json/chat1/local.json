@@ -1643,7 +1643,7 @@
     },
     {
       "type": "enum",
-      "name": "MessageUnboxedCardType",
+      "name": "MessageUnboxedJourneyCardType",
       "symbols": [
         "WELCOME_0",
         "POPULAR_CHANNELS_1",
@@ -1657,10 +1657,10 @@
     },
     {
       "type": "record",
-      "name": "MessageUnboxedCard",
+      "name": "MessageUnboxedJourneyCard",
       "fields": [
         {
-          "type": "MessageUnboxedCardType",
+          "type": "MessageUnboxedJourneyCardType",
           "name": "cardType"
         },
         {
@@ -1707,10 +1707,10 @@
         },
         {
           "label": {
-            "name": "CARD",
+            "name": "JOURNEYCARD",
             "def": false
           },
-          "body": "MessageUnboxedCard"
+          "body": "MessageUnboxedJourneyCard"
         }
       ]
     },

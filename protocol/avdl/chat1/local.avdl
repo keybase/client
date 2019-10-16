@@ -514,7 +514,7 @@ protocol local {
     boolean hidden;
   }
 
-  enum MessageUnboxedCardType {
+  enum MessageUnboxedJourneyCardType {
     WELCOME_0,
     POPULAR_CHANNELS_1,
     ADD_PEOPLE_2,
@@ -525,8 +525,8 @@ protocol local {
     MSG_NO_ANSWER_7
   }
 
-  record MessageUnboxedCard {
-    MessageUnboxedCardType cardType;
+  record MessageUnboxedJourneyCard {
+    MessageUnboxedJourneyCardType cardType;
     string data;
   }
 
@@ -536,7 +536,7 @@ protocol local {
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
-    case CARD: MessageUnboxedCard;
+    case JOURNEYCARD: MessageUnboxedJourneyCard;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +
