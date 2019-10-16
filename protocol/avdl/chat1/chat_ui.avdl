@@ -55,6 +55,7 @@ protocol chatUi {
     array<UIInboxSmallTeamRow> smallTeams;
     array<UIInboxBigTeamRow> bigTeams;
     union { null, UIInboxReselectInfo } reselectInfo;
+    array<UIInboxSmallTeamRow> widgetList;
   }
 
   record UnverifiedInboxUIItemMetadata {
