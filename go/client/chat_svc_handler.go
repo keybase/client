@@ -523,7 +523,10 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 		}
 		if mv.ClientHeader.BotUID != nil {
 			botUID := mv.ClientHeader.BotUID.String()
-			msg.BotUID = &botUID
+			msg.BotInfo = &chat1.MsgBotInfo{
+				BotUID:      botUID,
+				BotUsername: mv.BotUsername,
+			}
 		}
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions

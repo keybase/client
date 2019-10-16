@@ -60,6 +60,14 @@ protocol api {
     string deviceName;
   }
 
+  record MsgBotInfo {
+    @jsonkey("bot_uid")
+    string botUID;
+    @jsonkey("bot_username")
+    @optional(true)
+    string botUsername;
+  }
+
   record MsgFlipContent {
     @jsonkey("text")
     string text;
@@ -160,8 +168,8 @@ protocol api {
     @jsonkey("channel_name_mentions")
     @optional(true)
     array<UIChannelNameMention> channelNameMentions;
-    @jsonkey("bot_uid")
-    union { null, string } botUID;
+    @jsonkey("bot_info")
+    union { null, MsgBotInfo } botInfo;
   }
 
 

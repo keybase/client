@@ -108,10 +108,10 @@ func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.Unboxi
 		IsEphemeral:        isEphemeral,
 		IsEphemeralExpired: isEphemeralExpired,
 		Etime:              etime,
+		BotUsername:        b.getBotInfoLocal(ctx, botUID),
 	}
 	e.SenderUsername, e.SenderDeviceName, e.SenderDeviceType = b.getSenderInfoLocal(ctx,
 		sender, senderDevice)
-	e.BotUsername = b.getBotInfoLocal(ctx, botUID)
 	return chat1.NewMessageUnboxedWithError(e)
 }
 
@@ -644,8 +644,6 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
-	botUsername := b.getBotInfoLocal(ctx, clientHeader.BotUID)
-
 	// create a chat1.MessageBody from versioned chat1.BodyPlaintext
 	// Will remain empty if the body was deleted.
 	var body chat1.MessageBody
@@ -694,7 +692,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
 		MaybeMentions:         maybeRes,
-		BotUsername:           botUsername,
+		BotUsername:           b.getBotInfoLocal(ctx, clientHeader.BotUID),
 	}, nil
 }
 
@@ -941,8 +939,6 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
-	botUsername := b.getBotInfoLocal(ctx, clientHeader.BotUID)
-
 	// Get at mention usernames
 	atMentions, atMentionUsernames, maybeRes, chanMention, channelNameMentions :=
 		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, conv, body)
@@ -967,7 +963,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		ChannelMention:        chanMention,
 		ChannelNameMentions:   channelNameMentions,
 		MaybeMentions:         maybeRes,
-		BotUsername:           botUsername,
+		BotUsername:           b.getBotInfoLocal(ctx, clientHeader.BotUID),
 	}, nil
 }
 

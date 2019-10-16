@@ -398,6 +398,10 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.RestrictedBotInfo},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
 				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
 			},
 			flexibletable.Cell{
@@ -417,6 +421,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		5,                                     // visualIndex
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
+		flexibletable.ColumnConstraint(w / 5), // restrictedBotInfo
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
 		flexibletable.ColumnConstraint(w / 5), // reactionInfo
 		flexibletable.ExpandableWrappable,     // body
