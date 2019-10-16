@@ -86,4 +86,6 @@ type Encoder interface {
 
 	HashKeyValuePairWithKeySpecificSecret(KeyValuePair, KeySpecificSecret) (Hash, error)
 	HashKeyEncodedValuePairWithKeySpecificSecret(KeyEncodedValuePair, KeySpecificSecret) (Hash, error)
+
+	GetEncodingType() EncodingType
 }
