@@ -11,7 +11,7 @@ export const makeState = (): Types.State => ({
   usernameToNonUserDetails: new Map(),
 })
 
-export const makeDetails = (): Types.Details => ({
+export const noDetails: Readonly<Types.Details> = Object.freeze({
   assertions: emptyMap,
   blocked: false,
   guiID: '',
@@ -23,7 +23,7 @@ export const makeDetails = (): Types.Details => ({
   username: '',
 })
 
-export const makeNonUserDetails = (): Types.NonUserDetails => ({
+export const noNonUserDetails: Readonly<Types.NonUserDetails> = Object.freeze({
   assertionKey: '',
   assertionValue: '',
   description: '',
@@ -34,7 +34,7 @@ export const makeNonUserDetails = (): Types.NonUserDetails => ({
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const makeAssertion = (): Types.Assertion => ({
+export const noAssertion: Readonly<Types.Assertion> = Object.freeze({
   assertionKey: '',
   belowFold: false,
   color: 'gray',
@@ -53,19 +53,6 @@ export const makeAssertion = (): Types.Assertion => ({
   timestamp: 0,
   type: '',
   value: '',
-})
-
-export const makeMeta = (): Types.AssertionMeta => ({
-  color: 'black',
-  label: '',
-})
-
-export const makeTeamShowcase = (): Types.TeamShowcase => ({
-  description: '',
-  isOpen: false,
-  membersCount: 0,
-  name: '',
-  publicAdmins: [],
 })
 
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
@@ -120,7 +107,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   assertionKey: `${row.key}:${row.value}`,
   color: rpcRowColorToColor(row.color),
   kid: row.kid || ',',
-  metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+  metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})),
   priority: row.priority,
   proofURL: row.proofURL,
   sigID: row.sigID,
@@ -141,7 +128,7 @@ export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Ass
     assertionKey: ourKey,
     belowFold: s.belowFold,
     color: 'gray',
-    metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+    metas: (s.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})),
     pickerIcon: s.pickerIcon || [],
     pickerSubtext: s.pickerSubtext,
     pickerText: s.pickerText,
@@ -200,9 +187,6 @@ export const sortAssertionKeys = (a: string, b: string) => {
   return scoreA - scoreB
 }
 
-export const noDetails = makeDetails()
-export const noNonUserDetails = makeNonUserDetails()
-export const noAssertion = makeAssertion()
 export const waitingKey = 'tracker2:waitingKey'
 export const profileLoadWaitingKey = 'tracker2:profileLoad'
 export const nonUserProfileLoadWaitingKey = 'tracker2:nonUserProfileLoad'

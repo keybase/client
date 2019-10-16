@@ -909,7 +909,7 @@ export type MessageTypes = {
   }
   'keybase.1.loginUi.promptResetAccount': {
     inParam: {readonly prompt: ResetPrompt}
-    outParam: Boolean
+    outParam: ResetPromptResponse
   }
   'keybase.1.loginUi.promptRevokePaperKeys': {
     inParam: {readonly device: Device; readonly index: Int}
@@ -1260,7 +1260,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamRemoveMember': {
-    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID}
+    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
     outParam: void
   }
   'keybase.1.teams.teamRename': {
@@ -1933,6 +1933,12 @@ export enum RekeyEventType {
   noGregorMessages = 8,
 }
 
+export enum ResetPromptResponse {
+  nothing = 0,
+  cancelReset = 1,
+  confirmReset = 2,
+}
+
 export enum ResetPromptType {
   complete = 0,
   enterNoDevices = 1,
@@ -2143,6 +2149,7 @@ export enum StatusCode {
   scteamwritepermdenied = 2625,
   scteambadgeneration = 2636,
   scnoop = 2638,
+  scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,

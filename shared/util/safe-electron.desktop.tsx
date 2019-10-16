@@ -27,6 +27,14 @@ export const getApp = () => {
   return app
 }
 
+// some kind of electron bug
+// https://github.com/electron/electron/issues/19125
+export const workingIsDarkMode = () => {
+  const platform = process.platform
+  const isDarwin = platform === 'darwin'
+  return isDarwin && getSystemPreferences().getUserDefault('AppleInterfaceStyle', 'string') == 'Dark'
+}
+
 export const getSystemPreferences = () => {
   const systemPreferences = Electron.systemPreferences || getRemote().systemPreferences
   if (!systemPreferences) {

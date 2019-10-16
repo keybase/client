@@ -1124,6 +1124,7 @@ func GetKBFSPathInfo(standardPath string) (pathInfo keybase1.KBFSPathInfo, err e
 }
 
 func GetSafeFilename(filename string) (safeFilename string) {
+	filename = filepath.Base(filename)
 	if !utf8.ValidString(filename) {
 		return url.PathEscape(filename)
 	}

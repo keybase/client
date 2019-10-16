@@ -59,6 +59,15 @@ func (e *PassphraseRecover) SubConsumers() []libkb.UIConsumer {
 func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("PassphraseRecover#Run", func() error { return err })()
 
+	// If no username was passed, ask for one
+	if e.arg.Username == "" {
+		res, err := mctx.UIs().LoginUI.GetEmailOrUsername(mctx.Ctx(), 0)
+		if err != nil {
+			return err
+		}
+		e.arg.Username = res
+	}
+
 	// Look up the passed username against the list of configured users
 	if err := e.processUsername(mctx); err != nil {
 		return err
@@ -196,7 +205,7 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
 		// Flow cancelled
 		return nil
 	}
@@ -227,8 +236,8 @@ func (e *PassphraseRecover) suggestReset(mctx libkb.MetaContext) (err error) {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
-		// Cancel the engine as it successfully resulted in the user entering the reset pipeline.
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
+		// Cancel the engine as the user elected not to reset their account
 		return nil
 	}
 

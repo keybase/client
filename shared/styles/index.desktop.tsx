@@ -71,7 +71,9 @@ export const globalStyles = {
 
 export const mobileStyles = {}
 export const desktopStyles = {
-  boxShadow: {boxShadow: `0 2px 5px 0 ${colors.black_20OrBlack}`},
+  get boxShadow() {
+    return {boxShadow: `0 2px 5px 0 ${colors.black_20OrBlack}`}
+  },
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},

@@ -107,11 +107,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
         })
       )
       if (selectedChatID in nextChannelState && !nextChannelState[selectedChatID]) {
-        dispatch(
-          Container.isMobile
-            ? RouteTreeGen.createNavigateUp()
-            : Chat2Gen.createNavigateToInbox({avoidConversationID: selectedChatID, findNewConversation: true})
-        )
+        dispatch(Container.isMobile ? RouteTreeGen.createNavigateUp() : Chat2Gen.createNavigateToInbox())
       } else {
         dispatch(RouteTreeGen.createNavigateUp())
       }

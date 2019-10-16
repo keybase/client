@@ -21,12 +21,18 @@ protocol loginUi {
     case COMPLETE: ResetPromptInfo;
     default: void;
   }
+
+  enum ResetPromptResponse {
+    NOTHING_0, // Don't reset but don't cancel the reset
+    CANCEL_RESET_1, // Cancel the reset
+    CONFIRM_RESET_2 // Reset the account
+  }
   /**
    Called during login / provisioning flows to ask the user whether they
    would like to either enter the autoreset pipeline and perform the reset
    of the account.
    */
-  boolean promptResetAccount(int sessionID, ResetPrompt prompt);
+  ResetPromptResponse promptResetAccount(int sessionID, ResetPrompt prompt);
 
   /**
    In some flows the user will get notified of the reset progress

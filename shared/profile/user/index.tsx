@@ -90,6 +90,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
       avatarSize={avatarSize}
       size="huge"
       avatarImageOverride={p.sbsAvatarUrl}
+      withProfileCardPopup={false}
     />
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Bio inTracker={false} username={p.username} />
@@ -534,7 +535,7 @@ export const styles = Styles.styleSheetCreate(() => ({
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      borderBottomColor: 'white',
+      borderBottomColor: Styles.globalColors.white,
       borderBottomWidth: 2,
       justifyContent: 'center',
     },

@@ -5,8 +5,6 @@ import {TypedState} from '../../../constants/reducer'
 import {memoize} from '../../../util/memoize'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
-export const maxShownConversations = 3
-
 export type RemoteConvMeta = any
 /* Exclude<
   {
@@ -20,6 +18,7 @@ export type RemoteConvMeta = any
 // To cache the list
 const valuesCached = memoize(
   (
+    inboxLayout: RPCChatTypes.UIInboxLayout | null,
     badgeMap,
     unreadMap,
     metaMap
@@ -28,42 +27,26 @@ const valuesCached = memoize(
     hasUnread: boolean
     conversation: ChatTypes.ConversationMeta
   }> =>
-    [...metaMap.entries()]
-      .filter(
-        ([id, v]) =>
-          Constants.isValidConversationIDKey(id) &&
-          v.status !== RPCChatTypes.ConversationStatus.ignored &&
-          v.status !== RPCChatTypes.ConversationStatus.blocked &&
-          v.status !== RPCChatTypes.ConversationStatus.muted &&
-          v.status !== RPCChatTypes.ConversationStatus.reported
-      )
-      .map(([, v]) => ({
-        conversation: v,
-        hasBadge: (badgeMap.get(v.conversationIDKey) || 0) > 0,
-        hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
-      }))
-      .sort((a, b) =>
-        a.hasBadge
-          ? b.hasBadge
-            ? b.conversation.timestamp - a.conversation.timestamp
-            : -1
-          : b.hasBadge
-          ? 1
-          : b.conversation.timestamp - a.conversation.timestamp
-      )
-      .reduce<Array<any>>((arr, c) => {
-        if (arr.length < maxShownConversations) {
-          arr.push(c)
-        }
-        return arr
-      }, [])
+    ((inboxLayout && inboxLayout.widgetList) || []).map(v => ({
+      conversation: metaMap.get(v.convID) || {
+        ...Constants.makeConversationMeta(),
+        conversationIDKey: v.convID,
+      },
+      hasBadge: (badgeMap.get(v.convID) || 0) > 0,
+      hasUnread: (unreadMap.get(v.convID) || 0) > 0,
+    }))
 )
 
 // A hack to store the username to avoid plumbing.
 let _username: string
 export const conversationsToSend = (state: TypedState) => {
   _username = state.config.username
-  return valuesCached(state.chat2.badgeMap, state.chat2.unreadMap, state.chat2.metaMap)
+  return valuesCached(
+    state.chat2.inboxLayout,
+    state.chat2.badgeMap,
+    state.chat2.unreadMap,
+    state.chat2.metaMap
+  )
 }
 
 export const changeAffectsWidget = (

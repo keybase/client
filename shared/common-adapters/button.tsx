@@ -47,7 +47,7 @@ export type Props = {
 const Progress = ({small, white}) => (
   <Kb.Box style={styles.progressContainer}>
     <Kb.Animation
-      animationType={white ? 'spinnerWhite' : 'spinnerGrey'}
+      animationType={white ? 'spinnerWhite' : 'spinner'}
       style={small ? styles.progressSmall : styles.progressNormal}
     />
   </Kb.Box>
@@ -252,7 +252,7 @@ const containerStyles = Styles.styleSheetCreate(() => {
 const commonLabel = () =>
   Styles.platformStyles({
     common: {
-      color: Styles.globalColors.white,
+      color: Styles.globalColors.whiteOrWhite,
       textAlign: 'center',
     },
     isElectron: {whiteSpace: 'pre'},
@@ -262,7 +262,7 @@ const commonLabel = () =>
 const labelStyles = Styles.styleSheetCreate(() => {
   const primaryWhiteBgLabel = {
     ...commonLabel(),
-    color: Styles.globalColors.white,
+    color: Styles.globalColors.whiteOrWhite,
   }
   return {
     PrimaryDefault: primaryWhiteBgLabel,
@@ -293,7 +293,7 @@ const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
   Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},
   Primarypurple: {...commonLabel(), color: Styles.globalColors.purpleDark},
   Primaryblack: {...commonLabel(), color: Styles.globalColors.black},
-  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75},
+  Primaryyellow: {...commonLabel(), color: Styles.globalColors.brown_75OrYellow},
   Secondary: {...commonLabel(), color: Styles.globalColors.white},
 }))
 

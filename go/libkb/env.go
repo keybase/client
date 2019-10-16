@@ -435,6 +435,7 @@ func (e *Env) getMobileSharedHomeFromCmdOrConfig() string {
 	)
 }
 
+func (e *Env) GetDownloadsDir() string     { return e.HomeFinder.DownloadsDir() }
 func (e *Env) GetHome() string             { return e.HomeFinder.Home(false) }
 func (e *Env) GetMobileSharedHome() string { return e.HomeFinder.MobileSharedHome(false) }
 func (e *Env) GetConfigDir() string        { return e.HomeFinder.ConfigDir() }
@@ -1723,6 +1724,7 @@ func (e *Env) GetStoredSecretServiceName() string {
 
 type AppConfig struct {
 	NullConfiguration
+	DownloadsDir                   string
 	HomeDir                        string
 	MobileSharedHomeDir            string
 	LogFile                        string
@@ -1778,6 +1780,10 @@ func (c AppConfig) GetLocalRPCDebug() string {
 
 func (c AppConfig) GetRunMode() (RunMode, error) {
 	return c.RunMode, nil
+}
+
+func (c AppConfig) GetDownloadsDir() string {
+	return c.DownloadsDir
 }
 
 func (c AppConfig) GetHome() string {

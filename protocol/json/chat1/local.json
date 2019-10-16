@@ -355,6 +355,13 @@
             "type": "array",
             "items": "string"
           },
+          "name": "bulkAdds"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
           "name": "owners"
         },
         {

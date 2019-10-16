@@ -34,7 +34,7 @@ type _StartRecoverPasswordPayload = {readonly username: string; readonly abortPr
 type _SubmitDeviceSelectPayload = {readonly id: string}
 type _SubmitPaperKeyPayload = {readonly paperKey: HiddenString}
 type _SubmitPasswordPayload = {readonly password: HiddenString}
-type _SubmitResetPromptPayload = {readonly action: boolean}
+type _SubmitResetPromptPayload = {readonly action: RPCTypes.ResetPromptResponse}
 
 // Action Creators
 export const createAbortDeviceSelect = (payload: _AbortDeviceSelectPayload): AbortDeviceSelectPayload => ({
