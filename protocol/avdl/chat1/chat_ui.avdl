@@ -361,9 +361,9 @@ protocol chatUi {
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
 
-  void chatInboxLayout(int sessionID, string layout);
-  void chatInboxUnverified(int sessionID, string inbox);
-  void chatInboxConversation(int sessionID, string convs);
+  void chatInboxLayout(int sessionID, string layout); // layout is JSON of UIInboxLayout
+  void chatInboxUnverified(int sessionID, string inbox); // inbox is JSON of array<UnverifiedInboxUIItems>
+  void chatInboxConversation(int sessionID, string convs); // convs is JSON of array<InboxUIItem>
   void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
 
   enum UIChatThreadStatusTyp {
@@ -378,7 +378,7 @@ protocol chatUi {
     case VALIDATING: int;
     case VALIDATED: void;
   }
-  void chatThreadCached(int sessionID, union { null, string } thread);
+  void chatThreadCached(int sessionID, union { null, string } thread); // thread is JSON of UIMessages
   void chatThreadFull(int sessionID, string thread);
   void chatThreadStatus(int sessionID, UIChatThreadStatus status);
 
