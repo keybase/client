@@ -4,9 +4,10 @@
 package keybase1
 
 import (
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type APIUserServiceID string
@@ -180,6 +181,7 @@ type NonUserDetails struct {
 	Contact        *ProcessedContact     `codec:"contact,omitempty" json:"contact,omitempty"`
 	Service        *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
 	SiteIcon       []SizedImage          `codec:"siteIcon" json:"siteIcon"`
+	SiteIconWhite  []SizedImage          `codec:"siteIconWhite" json:"siteIconWhite"`
 	SiteIconFull   []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
 }
 
@@ -214,6 +216,17 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			}
 			return ret
 		})(o.SiteIcon),
+		SiteIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconWhite),
 		SiteIconFull: (func(x []SizedImage) []SizedImage {
 			if x == nil {
 				return nil

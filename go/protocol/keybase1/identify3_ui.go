@@ -4,9 +4,10 @@
 package keybase1
 
 import (
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type Identify3RowState int
@@ -130,20 +131,21 @@ func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
 }
 
 type Identify3Row struct {
-	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
-	Key          string             `codec:"key" json:"key"`
-	Value        string             `codec:"value" json:"value"`
-	Priority     int                `codec:"priority" json:"priority"`
-	SiteURL      string             `codec:"siteURL" json:"siteURL"`
-	SiteIcon     []SizedImage       `codec:"siteIcon" json:"siteIcon"`
-	SiteIconFull []SizedImage       `codec:"siteIconFull" json:"siteIconFull"`
-	ProofURL     string             `codec:"proofURL" json:"proofURL"`
-	SigID        SigID              `codec:"sigID" json:"sigID"`
-	Ctime        Time               `codec:"ctime" json:"ctime"`
-	State        Identify3RowState  `codec:"state" json:"state"`
-	Metas        []Identify3RowMeta `codec:"metas" json:"metas"`
-	Color        Identify3RowColor  `codec:"color" json:"color"`
-	Kid          *KID               `codec:"kid,omitempty" json:"kid,omitempty"`
+	GuiID         Identify3GUIID     `codec:"guiID" json:"guiID"`
+	Key           string             `codec:"key" json:"key"`
+	Value         string             `codec:"value" json:"value"`
+	Priority      int                `codec:"priority" json:"priority"`
+	SiteURL       string             `codec:"siteURL" json:"siteURL"`
+	SiteIcon      []SizedImage       `codec:"siteIcon" json:"siteIcon"`
+	SiteIconFull  []SizedImage       `codec:"siteIconFull" json:"siteIconFull"`
+	SiteIconWhite []SizedImage       `codec:"siteIconWhite" json:"siteIconWhite"`
+	ProofURL      string             `codec:"proofURL" json:"proofURL"`
+	SigID         SigID              `codec:"sigID" json:"sigID"`
+	Ctime         Time               `codec:"ctime" json:"ctime"`
+	State         Identify3RowState  `codec:"state" json:"state"`
+	Metas         []Identify3RowMeta `codec:"metas" json:"metas"`
+	Color         Identify3RowColor  `codec:"color" json:"color"`
+	Kid           *KID               `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
 func (o Identify3Row) DeepCopy() Identify3Row {
@@ -175,6 +177,17 @@ func (o Identify3Row) DeepCopy() Identify3Row {
 			}
 			return ret
 		})(o.SiteIconFull),
+		SiteIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconWhite),
 		ProofURL: o.ProofURL,
 		SigID:    o.SigID.DeepCopy(),
 		Ctime:    o.Ctime.DeepCopy(),

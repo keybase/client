@@ -4,9 +4,10 @@
 package keybase1
 
 import (
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type TrackProof struct {
@@ -252,14 +253,15 @@ func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
 }
 
 type ProofSuggestion struct {
-	Key           string             `codec:"key" json:"key"`
-	BelowFold     bool               `codec:"belowFold" json:"belowFold"`
-	ProfileText   string             `codec:"profileText" json:"profileText"`
-	ProfileIcon   []SizedImage       `codec:"profileIcon" json:"profileIcon"`
-	PickerText    string             `codec:"pickerText" json:"pickerText"`
-	PickerSubtext string             `codec:"pickerSubtext" json:"pickerSubtext"`
-	PickerIcon    []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
-	Metas         []Identify3RowMeta `codec:"metas" json:"metas"`
+	Key              string             `codec:"key" json:"key"`
+	BelowFold        bool               `codec:"belowFold" json:"belowFold"`
+	ProfileText      string             `codec:"profileText" json:"profileText"`
+	ProfileIcon      []SizedImage       `codec:"profileIcon" json:"profileIcon"`
+	ProfileIconWhite []SizedImage       `codec:"profileIconWhite" json:"profileIconWhite"`
+	PickerText       string             `codec:"pickerText" json:"pickerText"`
+	PickerSubtext    string             `codec:"pickerSubtext" json:"pickerSubtext"`
+	PickerIcon       []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
+	Metas            []Identify3RowMeta `codec:"metas" json:"metas"`
 }
 
 func (o ProofSuggestion) DeepCopy() ProofSuggestion {
@@ -278,6 +280,17 @@ func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 			}
 			return ret
 		})(o.ProfileIcon),
+		ProfileIconWhite: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ProfileIconWhite),
 		PickerText:    o.PickerText,
 		PickerSubtext: o.PickerSubtext,
 		PickerIcon: (func(x []SizedImage) []SizedImage {
