@@ -1920,6 +1920,7 @@ func (i *Inbox) LocalConversationUpdates(ctx context.Context, uid gregor1.UID,
 
 	for idx, conv := range ibox.Conversations {
 		if update, ok := updateMap[conv.GetConvID().String()]; ok {
+			i.Debug(ctx, "LocalConversationUpdate: applying conv update: %v", update)
 			ibox.Conversations[idx].LocalMtime = update.Mtime
 			ibox.Conversations[idx].Conv.Metadata.LocalVersion++
 		}

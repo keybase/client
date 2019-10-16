@@ -737,7 +737,7 @@ func makeBadgeConversationInfo(convID keybase1.ChatConversationID, count int) ke
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
 	var convIDs []chat1.ConversationID
 	for _, info := range infos {
-		if info.UnreadMessages > 0 {
+		if !info.IsEmpty() {
 			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
 		}
 	}
@@ -780,15 +780,16 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 				chat1.OutboxErrorType_EXPIRED,
 				chat1.OutboxErrorType_TOOMANYATTEMPTS,
 				chat1.OutboxErrorType_UPLOADFAILED:
-
+				ctime := obr.Ctime
 				if update, ok := localUpdates[obr.ConvID.String()]; ok {
-					if obr.Ctime.After(*update.Mtime) {
-						update.Mtime = &obr.Ctime
+					if ctime.After(*update.Mtime) {
+						update.Mtime = &ctime
+						localUpdates[obr.ConvID.String()] = update
 					}
 				} else {
 					localUpdates[obr.ConvID.String()] = chat1.LocalConversationUpdate{
 						ConvID: obr.ConvID,
-						Mtime:  &obr.Ctime,
+						Mtime:  &ctime,
 					}
 				}
 
@@ -804,7 +805,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		updates = append(updates, update)
 	}
 	if err := s.createInbox().LocalConversationUpdates(ctx, s.uid, updates); err != nil {
-		s.Debug(ctx, "ApplyLocalChatState:updates %+v", updates)
+		s.Debug(ctx, "ApplyLocalChatState: unable to apply LocalConversationUpdates: %v", err)
 	}
 
 	for _, info := range infos {
@@ -826,7 +827,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	for convIDStr, failedCount := range failedOutboxMap {
 		convID, err := chat1.MakeConvID(convIDStr)
 		if err != nil {
-			s.Debug(ctx, "Unable to make convID: %v", err)
+			s.Debug(ctx, "ApplyLocalChatState: Unable to make convID: %v", err)
 			continue
 		}
 		newInfo := makeBadgeConversationInfo(keybase1.ChatConversationID(convID), failedCount)

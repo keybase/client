@@ -1397,10 +1397,10 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	var marked []chat1.OutboxRecord
 	switch oserr.Typ {
 	case chat1.OutboxErrorType_TOOMANYATTEMPTS:
-		s.Debug(ctx, "failMessage: too many attempts failure, marking whole outbox failed")
+		s.Debug(ctx, "failMessage: too many attempts failure, marking conv as failed")
 		if marked, err = s.outbox.MarkConvAsError(ctx, obr.ConvID, oserr); err != nil {
-			s.Debug(ctx, "failMessage: unable to mark all as error on outbox: uid: %s err: %v",
-				s.outbox.GetUID(), err)
+			s.Debug(ctx, "failMessage: unable to mark conv as error on outbox: uid: %s convID: %v, err: %v",
+				s.outbox.GetUID(), obr.ConvID, err)
 			return err
 		}
 	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_ALREADY_DELETED:
@@ -1685,6 +1685,7 @@ func (s *Deliverer) deliverLoop() {
 		for _, obr := range obrs {
 			bctx := globals.ChatCtx(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
+
 			if s.testingNameInfoSource != nil {
 				bctx = globals.CtxAddOverrideNameInfoSource(bctx, s.testingNameInfoSource)
 			}
