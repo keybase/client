@@ -86,6 +86,7 @@ project.ext.react = [
     // the root of your project, i.e. where "package.json" lives
     root: "../../",
     enableHermes: false,  // clean and rebuild if changing
+    bundleInDebug: true,
 ]
 
 
@@ -197,6 +198,11 @@ android {
             applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
         }
     }
     // applicationVariants are e.g. debug, release
