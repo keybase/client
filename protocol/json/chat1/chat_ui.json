@@ -1125,7 +1125,7 @@
         "ERROR_2",
         "OUTBOX_3",
         "PLACEHOLDER_4",
-        "CARD_5"
+        "JOURNEYCARD_5"
       ]
     },
     {
@@ -1166,10 +1166,10 @@
         },
         {
           "label": {
-            "name": "CARD",
+            "name": "JOURNEYCARD",
             "def": false
           },
-          "body": "MessageUnboxedCard"
+          "body": "MessageUnboxedJourneyCard"
         }
       ]
     },
