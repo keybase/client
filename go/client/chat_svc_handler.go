@@ -293,7 +293,6 @@ func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDevice
 	}
 	arg := keybase1.LoadUserPlusKeysV2Arg{
 		Uid: user.Uid,
-		Oa:  keybase1.OfflineAvailability_BEST_EFFORT,
 	}
 	them, err := client.LoadUserPlusKeysV2(ctx, arg)
 	if err != nil {
