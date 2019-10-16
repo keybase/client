@@ -44,7 +44,7 @@ const descStyleOverride = {
 } as any
 
 const Header = (p: Props) => {
-  let description = !!p.desc && (
+  let description = !!p.desc && p.desc !== '' && (
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
@@ -146,24 +146,27 @@ const Header = (p: Props) => {
               />
             )}
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-            {withoutSelf && withoutSelf.length === 1 ? (
-              <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
-                <Kb.ConnectedUsernames
-                  colorFollowing={true}
-                  underline={true}
-                  inline={true}
-                  commaColor={Styles.globalColors.black_50}
-                  type="BodySmallSemibold"
-                  usernames={[withoutSelf[0]]}
-                  onUsernameClicked="profile"
-                />
-                {description}
-              </Kb.Box2>
-            ) : (
-              description
-            )}
-          </Kb.Box2>
+          {/* if there is no description (and is not a 1-on-1), don't render the description box */}
+          {(description || (withoutSelf && withoutSelf.length === 1)) && (
+            <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
+              {withoutSelf && withoutSelf.length === 1 ? (
+                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                  <Kb.ConnectedUsernames
+                    colorFollowing={true}
+                    underline={true}
+                    inline={true}
+                    commaColor={Styles.globalColors.black_50}
+                    type="BodySmallSemibold"
+                    usernames={[withoutSelf[0]]}
+                    onUsernameClicked="profile"
+                  />
+                  {description}
+                </Kb.Box2>
+              ) : (
+                description
+              )}
+            </Kb.Box2>
+          )}
         </Kb.Box2>
         {p.showActions && (
           <Kb.Box2
