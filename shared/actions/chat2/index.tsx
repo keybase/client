@@ -3402,7 +3402,13 @@ function* chat2Saga() {
   )
 
   yield* Saga.chainAction2(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
+    [
+      Chat2Gen.navigateToInbox,
+      Chat2Gen.leaveConversation,
+      TeamsGen.leaveTeam,
+      TeamsGen.leftTeam,
+      TeamsGen.deleteChannelConfirmed,
+    ],
     navigateToInbox,
     'navigateToInbox'
   )
