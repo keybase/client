@@ -5,6 +5,10 @@ import {RetentionPolicy} from './retention-policy'
 import * as RPCChatTypes from './rpc-chat-gen'
 import {TeamBuildingSubState} from './team-building'
 
+export type TeamID = string
+export const stringToTeamID = (s: string): TeamID => s
+export const teamIDToString = (t: TeamID): string => t
+
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner' | 'bot' | 'restrictedbot'
 export type DisabledReasonsForRolePicker = {[K in TeamRoleType]?: string}
 export type MaybeTeamRoleType = 'none' | TeamRoleType
@@ -119,6 +123,7 @@ export type State = Readonly<{
   teamJoinSuccess: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
+  teamIDToName: Map<TeamID, string>
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>
   teamNameToID: I.Map<Teamname, string>
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>

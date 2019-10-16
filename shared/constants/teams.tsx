@@ -158,6 +158,7 @@ const emptyState: Types.State = {
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
+  teamIDToName: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
