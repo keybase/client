@@ -6,7 +6,7 @@ import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import {InviteBanner} from '.'
 import openSMS from '../../../util/sms'
-import {showShareActionSheetFromURL} from '../../../actions/platform-specific'
+import {showShareActionSheet} from '../../../actions/platform-specific'
 
 const installMessage = `I sent you encrypted messages on Keybase. You can install it here: https://keybase.io/phone-app`
 
@@ -95,7 +95,7 @@ export default Container.connect(
       onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
-        showShareActionSheetFromURL({
+        showShareActionSheet({
           message: installMessage,
           mimeType: 'text/plain',
         }),

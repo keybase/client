@@ -27,7 +27,7 @@ import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
-import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platform-specific'
+import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import HiddenString from '../../util/hidden-string'
@@ -245,6 +245,12 @@ const maybeChangeSelectedConv = (
     !Constants.isValidConversationIDKey(state.chat2.selectedConversation) ||
     state.chat2.selectedConversation === state.chat2.inboxLayout.reselectInfo.oldConvID
   ) {
+    if (isMobile) {
+      // on mobile just head back to the inbox if we have something selected
+      return Constants.isValidConversationIDKey(state.chat2.selectedConversation)
+        ? Chat2Gen.createNavigateToInbox()
+        : false
+    }
     if (state.chat2.inboxLayout.reselectInfo.newConvID) {
       logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
       return Chat2Gen.createSelectConversation({
@@ -1200,7 +1206,7 @@ function* loadMoreMessages(
     logger.warn(e.message)
     // no longer in team
     if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
-      yield* maybeKickedFromTeam(conversationIDKey)
+      yield* maybeKickedFromTeam()
       return
     }
     if (e.code !== RPCTypes.StatusCode.scteamreaderror) {
@@ -1210,14 +1216,9 @@ function* loadMoreMessages(
   }
 }
 
-function* maybeKickedFromTeam(conversationIDKey: Types.ConversationIDKey) {
+function* maybeKickedFromTeam() {
   yield Saga.put(Chat2Gen.createInboxRefresh({reason: 'maybeKickedFromTeam'}))
-  yield Saga.put(
-    Chat2Gen.createNavigateToInbox({
-      avoidConversationID: conversationIDKey,
-      findNewConversation: true,
-    })
-  )
+  yield Saga.put(Chat2Gen.createNavigateToInbox())
 }
 
 function* getUnreadline(
@@ -1264,7 +1265,7 @@ function* getUnreadline(
     )
   } catch (e) {
     if (e.code === RPCTypes.StatusCode.scchatnotinteam) {
-      yield* maybeKickedFromTeam(conversationIDKey)
+      yield* maybeKickedFromTeam()
     }
     // ignore this error in general
   }
@@ -2313,35 +2314,33 @@ const navigateToThread = (state: TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
-const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
-  const metas = action.payload.metas
-  const filtered = metas.filter(m => m.conversationIDKey === state.chat2.selectedConversation)
-  if (filtered.length === 0) {
-    return false
-  }
-  const meta = filtered[0]
+const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   const teamname = meta.teamname
   if (!meta.teamname) {
-    return false
-  }
-  const members = state.teams.teamNameToMembers.get(teamname)
-  if (members) {
     return false
   }
   return TeamsGen.createGetMembers({teamname})
 }
 
+const ensureSelectedTeamLoaded = (state: TypedState, action: Chat2Gen.MetasReceivedPayload) => {
+  const metas = action.payload.metas
+  const meta = metas.find(m => m.conversationIDKey === state.chat2.selectedConversation)
+  if (!meta) {
+    return false
+  }
+  return maybeLoadTeamFromMeta(meta)
+}
+
 const ensureSelectedMeta = (state: TypedState) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
-  if (!meta) {
-    return Chat2Gen.createMetaRequestTrusted({
-      conversationIDKeys: [state.chat2.selectedConversation],
-      force: true,
-      noWaiting: true,
-      reason: 'ensureSelectedMeta',
-    })
-  }
-  return false
+  return !meta
+    ? Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys: [state.chat2.selectedConversation],
+        force: true,
+        noWaiting: true,
+        reason: 'ensureSelectedMeta',
+      })
+    : maybeLoadTeamFromMeta(meta)
 }
 
 const refreshPreviousSelected = (state: TypedState) => {
@@ -2396,13 +2395,13 @@ function* mobileMessageAttachmentShare(
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield* downloadAttachment(true, message)
-  if (!fileName) {
+  const filePath = yield* downloadAttachment(true, message)
+  if (!filePath) {
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
   }
   try {
-    yield showShareActionSheetFromFile(fileName)
+    yield showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {
     logger.error('Failed to share attachment: ' + JSON.stringify(e))
   }
@@ -2519,7 +2518,7 @@ const updateNotificationSettings = async (
 }
 
 function* blockConversation(_: TypedState, action: Chat2Gen.BlockConversationPayload) {
-  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: true}))
+  yield Saga.put(Chat2Gen.createNavigateToInbox())
   yield Saga.put(ConfigGen.createPersistRoute({}))
   yield Saga.callUntyped(RPCChatTypes.localSetConversationStatusLocalRpcPromise, {
     conversationID: Types.keyToConversationID(action.payload.conversationIDKey),
@@ -2534,7 +2533,7 @@ function* hideConversation(_: TypedState, action: Chat2Gen.HideConversationPaylo
   // Nav to inbox but don't use findNewConversation since changeSelectedConversation
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
-  yield Saga.put(Chat2Gen.createNavigateToInbox({findNewConversation: false}))
+  yield Saga.put(Chat2Gen.createNavigateToInbox())
   try {
     yield RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {

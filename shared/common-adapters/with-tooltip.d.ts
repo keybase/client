@@ -3,6 +3,7 @@ import {StylesCrossPlatform} from '../styles'
 import {Position} from './relative-popup-hoc.types'
 
 export type Props = {
+  backgroundColor?: string
   disabled?: boolean
   tooltip: string | React.ReactNode
   multiline?: boolean

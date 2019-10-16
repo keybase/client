@@ -323,7 +323,7 @@ func (e *Login) suggestRecoveryForgotPassword(mctx libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	if !enterReset {
+	if enterReset != keybase1.ResetPromptResponse_CONFIRM_RESET {
 		// Cancel the engine as the user decided to end the flow early.
 		return nil
 	}
