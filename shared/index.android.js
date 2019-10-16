@@ -4,6 +4,14 @@ import './app/globals.native'
 import {NativeModules} from 'react-native'
 import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
 
+require.Systrace.beginEvent = message => {
+  global.nativeTest.traceBeginSection(message, 0)
+}
+
+require.Systrace.endEvent = () => {
+  global.nativeTest.traceEndSection()
+}
+
 // Load storybook or the app
 if (__STORYBOOK__) {
   const load = require('./storybook/index.native').default
