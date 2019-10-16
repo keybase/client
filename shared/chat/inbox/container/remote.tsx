@@ -30,7 +30,10 @@ const valuesCached = memoize(
     conversation: ChatTypes.ConversationMeta
   }> =>
     ((inboxLayout && inboxLayout.widgetList) || []).map(v => ({
-      conversation: metaMap.get(v.convID) || Constants.makeConversationMeta({conversationIDKey: v.convID}),
+      conversation: metaMap.get(v.convID) || {
+        ...Constants.makeConversationMeta(),
+        conversationIDKey: v.convID,
+      },
       hasBadge: badgeMap.get(v.convID, 0) > 0,
       hasUnread: unreadMap.get(v.convID, 0) > 0,
     }))
