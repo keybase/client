@@ -537,12 +537,23 @@ func (h *UIInboxLoader) bigTeamUnboxLoop(shutdownCh chan struct{}) error {
 	for {
 		select {
 		case convIDs := <-h.bigTeamUnboxCh:
-			h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
-			if err := h.UpdateConvs(ctx, convIDs); err != nil {
-				h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+			doneCh := make(chan struct{})
+			ctx, cancel := context.WithCancel(ctx)
+			go func(ctx context.Context) {
+				defer close(doneCh)
+				h.Debug(ctx, "bigTeamUnboxLoop: pulled %d convs to unbox", len(convIDs))
+				if err := h.UpdateConvs(ctx, convIDs); err != nil {
+					h.Debug(ctx, "bigTeamUnboxLoop: unbox convs error: %s", err)
+				}
+				// update layout again after we have done all this work to get everything in the right order
+				h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
+			}(ctx)
+			select {
+			case <-doneCh:
+			case <-shutdownCh:
+				h.Debug(ctx, "bigTeamUnboxLoop: shutdown during unboxing, going down")
 			}
-			// update layout again after we have done all this work to get everything in the right order
-			h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "big team unbox")
+			cancel()
 		case <-shutdownCh:
 			h.Debug(ctx, "bigTeamUnboxLoop: shutting down")
 			return nil
