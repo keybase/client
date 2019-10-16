@@ -445,13 +445,6 @@ func (t *Tree) GetKeyValuePair(ctx logger.ContextInterface, tr Transaction, s Se
 	return t.GetKeyValuePairUnsafe(ctx, tr, s, k)
 }
 
-type ProofVersion uint8
-
-const (
-	ProofVersionV1      ProofVersion = 1
-	CurrentProofVersion ProofVersion = ProofVersionV1
-)
-
 // A MerkleInclusionProof proves that a specific key value pair is stored in a
 // merkle tree, given the RootMetadata hash of such tree.
 type MerkleInclusionProof struct {
