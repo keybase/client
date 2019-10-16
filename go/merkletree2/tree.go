@@ -214,7 +214,7 @@ func (t *Tree) makeNextRootMetadata(ctx logger.ContextInterface, tr Transaction,
 
 	skips, err := t.eng.LookupRootHashes(ctx, tr, skipSeqnos)
 	if err != nil {
-		return RootMetadata{}, fmt.Errorf("makeNextRootMetadata: error retrieving previous hashes %+v", skips)
+		return RootMetadata{}, fmt.Errorf("makeNextRootMetadata: error retrieving previous hashes %+v: %v", skipSeqnos, err)
 	}
 
 	_, skipsHash, err := t.cfg.Encoder.EncodeAndHashGeneric(skips)
