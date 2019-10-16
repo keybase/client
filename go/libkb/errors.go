@@ -533,6 +533,25 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 	}
 }
 
+func IsEphemeralRetryableError(err error) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		switch keybase1.StatusCode(err.Code) {
+		case keybase1.StatusCode_SCSigWrongKey,
+			keybase1.StatusCode_SCSigOldSeqno,
+			keybase1.StatusCode_SCEphemeralKeyBadGeneration,
+			keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
+			keybase1.StatusCode_SCEphemeralKeyMissingBox,
+			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys:
+			return true
+		default:
+			return false
+		}
+	default:
+		return false
+	}
+}
+
 //=============================================================================
 
 type GpgError struct {
