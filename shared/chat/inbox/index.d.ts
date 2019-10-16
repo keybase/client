@@ -55,20 +55,14 @@ export type RouteState = I.RecordOf<{
 
 export type Props = {
   allowShowFloatingButton: boolean
-  children?: React.ReactNode
   navKey: string
   neverLoaded: boolean
-  nowOverride?: number
-  onEnsureSelection: () => void
   onNewChat: () => void
-  onSelectUp: () => void
-  onSelectDown: () => void
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void
   rows: Array<RowItem>
-  selectedConversationIDKey: ConversationIDKey
   smallTeamsExpanded: boolean
   toggleSmallTeamsExpanded: () => void
-  unreadIndices: I.List<number>
+  unreadIndices: Array<number>
   isSearching: boolean
   isLoading: boolean
 }
