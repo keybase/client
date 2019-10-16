@@ -47,8 +47,8 @@ class Inbox extends React.Component<T.Props, State> {
       listRowsResized = true
     }
 
-    if (listRowsResized) {
-      this.list && this.list.resetAfterIndex(0, true)
+    if (listRowsResized && this.list) {
+      this.list.resetAfterIndex(0, true)
       // ^ this will force an update so just do it once instead of twice
       return false
     }
@@ -57,11 +57,11 @@ class Inbox extends React.Component<T.Props, State> {
 
   componentDidUpdate(prevProps: T.Props) {
     // list changed
-    if (
-      this.props.rows.length !== prevProps.rows.length ||
-      !shallowEqual(this.props.unreadIndices, prevProps.unreadIndices)
-    ) {
+    if (this.props.rows.length !== prevProps.rows.length) {
       this.calculateShowFloating()
+    }
+    if (!shallowEqual(this.props.unreadIndices, prevProps.unreadIndices)) {
+      this.calculateShowUnreadShortcut()
     }
   }
 
@@ -124,16 +124,22 @@ class Inbox extends React.Component<T.Props, State> {
       return
     }
     if (!this.props.unreadIndices.length || this.lastVisibleIdx < 0) {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      if (this.state.showUnread) {
+        this.setState({showUnread: false})
+      }
       return
     }
 
     const firstOffscreenIdx = this.props.unreadIndices.find(idx => idx > this.lastVisibleIdx)
     if (firstOffscreenIdx) {
-      this.setState(s => (s.showUnread ? null : {showUnread: true}))
+      if (!this.state.showUnread) {
+        this.setState({showUnread: true})
+      }
       this.firstOffscreenIdx = firstOffscreenIdx
     } else {
-      this.setState(s => (s.showUnread ? {showUnread: false} : null))
+      if (this.state.showUnread) {
+        this.setState({showUnread: false})
+      }
       this.firstOffscreenIdx = -1
     }
   }
@@ -150,7 +156,9 @@ class Inbox extends React.Component<T.Props, State> {
       showFloating = false
     }
 
-    this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
+    if (this.state.showFloating !== showFloating) {
+      this.setState({showFloating})
+    }
   }
 
   private onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
