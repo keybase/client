@@ -755,6 +755,15 @@ const addEmail = async (state: TypedState, action: SettingsGen.AddEmailPayload, 
   }
 }
 
+const emailAddressVerified = (
+  _: TypedState,
+  action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload,
+  logger: Saga.SagaLogger
+) => {
+  logger.info(`email verified.`)
+  return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
+}
+
 function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
@@ -820,6 +829,11 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.editEmail, editEmail, 'editEmail')
   yield* Saga.chainAction2(SettingsGen.addEmail, addEmail, 'addEmail')
   yield* Saga.chainAction2(SettingsGen.onSubmitNewEmail, onSubmitNewEmail)
+  yield* Saga.chainAction2(
+    EngineGen.keybase1NotifyEmailAddressEmailAddressVerified,
+    emailAddressVerified,
+    'emailAddressVerified'
+  )
 }
 
 export default settingsSaga
