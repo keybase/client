@@ -97,14 +97,12 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 		s.Debug(ctx, "error getting next conversation card: %s", err)
 		return
 	}
-
 	if card == nil {
 		s.Debug(ctx, "card is nil")
 		return
 	}
-
 	s.Debug(ctx, "got a card for this conversation: %+v", card)
-	thread.Messages = append(thread.Messages, chat1.NewMessageUnboxedWithJourneycard(*card))
+	thread.Messages = append([]chat1.MessageUnboxed{chat1.NewMessageUnboxedWithJourneycard(*card)}, thread.Messages...)
 }
 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,

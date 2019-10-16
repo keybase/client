@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"runtime/debug"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -22,10 +23,15 @@ func newJourneyCardChecker(g *globals.Context) *journeyCardChecker {
 	}
 }
 
-func (cc *journeyCardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*chat1.MessageUnboxedJourneyCard, error) {
+func (cc *journeyCardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error) {
+	if !cc.G().GetEnv().GetDebugJourneycard() {
+		// Journey cards are gated by the client-side flag KEYBASE_DEBUG_JOURNEYCARD
+		return nil, nil
+	}
 	if conv == nil {
 		// if no verified conversation parameter, don't do anything
-		cc.Debug(ctx, "no conversation parameter")
+		// if this happens the first question will by "why?", hence the stack
+		cc.Debug(ctx, "no conversation parameter\n%v", string(debug.Stack()))
 		return nil, nil
 	}
 
@@ -40,31 +46,66 @@ func (cc *journeyCardChecker) Next(ctx context.Context, uid gregor1.UID, conv *c
 
 	if conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
 		// currently, cards only exist in team conversations
-		cc.Debug(ctx, "not a team conversation")
 		return nil, nil
+	}
+
+	// Pick a message to use as the base for a frontend ordinal.
+	// Get out of the way of any other messages that have taken ordinal offsets of that message.
+	prevID := conv.MaxVisibleMsgID()
+	ordinal := 1 // offset within
+	for _, message := range thread.Messages {
+		if message.GetMessageID() > prevID {
+			prevID = message.GetMessageID()
+			ordinal = 1
+		}
+		state, err := message.State()
+		if err != nil {
+			continue
+		}
+		foundOrdinal := func(foundOrdinal int) {
+			if prevID == message.GetMessageID() && foundOrdinal > ordinal {
+				ordinal = foundOrdinal + 1
+			}
+		}
+		switch state {
+		case chat1.MessageUnboxedState_OUTBOX:
+			foundOrdinal(message.Outbox().Ordinal)
+		case chat1.MessageUnboxedState_JOURNEYCARD:
+			foundOrdinal(message.Journeycard().Ordinal)
+		}
+	}
+	if prevID == 0 {
+		// No message found to use as base for ordinal.
+		return nil, nil
+	}
+
+	makeCard := func(cardType chat1.JourneycardType, highlightMsgID chat1.MessageID) (*chat1.MessageUnboxedJourneycard, error) {
+		return &chat1.MessageUnboxedJourneycard{
+			PrevID:         chat1.MessageID(prevID),
+			Ordinal:        ordinal,
+			CardType:       cardType,
+			HighlightMsgID: highlightMsgID,
+		}, nil
 	}
 
 	// for testing, do special stuff based on channel name:
 	switch conv.Info.TopicName {
 	case "kb_cards_0_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_WELCOME, Data: "{\"msg\": \"hello\"}"}, nil
+		return makeCard(chat1.JourneycardType_WELCOME, 0)
 	case "kb_cards_1_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_POPULAR_CHANNELS, Data: "{\"msg\": \"Other popular channels:\", \"channels\": [\"public\", \"announcements\"]}"}, nil
+		return makeCard(chat1.JourneycardType_POPULAR_CHANNELS, 0)
 	case "kb_cards_2_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_ADD_PEOPLE, Data: "{\"msg\": \"add some friends\"}"}, nil
+		return makeCard(chat1.JourneycardType_ADD_PEOPLE, 0)
 	case "kb_cards_3_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_CREATE_CHANNELS, Data: "{\"msg\": \"create some channels\"}"}, nil
+		return makeCard(chat1.JourneycardType_CREATE_CHANNELS, 0)
 	case "kb_cards_4_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_MSG_ATTENTION, Data: "{\"msg\": \"one of your messages got a lot of attention\", \"msgid\": 2}"}, nil
+		return makeCard(chat1.JourneycardType_MSG_ATTENTION, 3)
 	case "kb_cards_5_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_USER_AWAY_FOR_LONG, Data: "{\"msg\": \"see what you missed\", \"lastread_msgid\": 2}"}, nil
+		return makeCard(chat1.JourneycardType_USER_AWAY_FOR_LONG, 0)
 	case "kb_cards_6_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_CHANNEL_INACTIVE, Data: "{\"msg\": \"This channel isn't very active.  Revive it?\"}"}, nil
+		return makeCard(chat1.JourneycardType_CHANNEL_INACTIVE, 0)
 	case "kb_cards_7_kb":
-		return &chat1.MessageUnboxedJourneyCard{CardType: chat1.MessageUnboxedJourneyCardType_POPULAR_CHANNELS, Data: "{\"msg\": \"People haven't been talkative in a while. Perhaps post in another channel?\", \"channels\": [\"public\", \"announcements\", \"random\"]}"}, nil
+		return makeCard(chat1.JourneycardType_POPULAR_CHANNELS, 0)
 	}
-
-	cc.Debug(ctx, "no card needed")
-
 	return nil, nil
 }
