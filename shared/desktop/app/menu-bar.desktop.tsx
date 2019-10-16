@@ -1,5 +1,6 @@
 // Entrypoint for the menubar node part
 import * as ConfigGen from '../../actions/config-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
@@ -26,7 +27,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   const mb = menubar({
     browserWindow: {
       hasShadow: true,
-      height: 480,
+      height: 640,
       resizable: false,
       transparent: true,
       webPreferences: {
@@ -155,6 +156,11 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     }
 
     mb.on('show', () => {
+      mainWindowDispatch(
+        Chat2Gen.createInboxRefresh({
+          reason: 'widgetRefresh',
+        })
+      )
       adjustForWindows()
       isDarwin && updateIcon(true)
     })

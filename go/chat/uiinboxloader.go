@@ -471,8 +471,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			return widgetList[i].Time.After(widgetList[j].Time)
 		})
 		// only set widget entries on desktop to the top 3 overall convs
-		if len(widgetList) > 3 {
-			res.WidgetList = widgetList[:3]
+		if len(widgetList) > 5 {
+			res.WidgetList = widgetList[:5]
 		} else {
 			res.WidgetList = widgetList
 		}
