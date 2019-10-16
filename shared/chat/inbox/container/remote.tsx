@@ -5,8 +5,6 @@ import {TypedState} from '../../../constants/reducer'
 import {memoize} from '../../../util/memoize'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
-export const maxShownConversations = 5
-
 export type RemoteConvMeta = any
 /* Exclude<
   {
