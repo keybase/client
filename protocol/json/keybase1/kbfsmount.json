@@ -8,6 +8,11 @@
       "response": "string",
       "lint": "ignore"
     },
+    "WaitForDirectMount": {
+      "request": [],
+      "response": "boolean",
+      "lint": "ignore"
+    },
     "GetPreferredMountDirs": {
       "request": [],
       "response": {

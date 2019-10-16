@@ -2,7 +2,6 @@ import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
-import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -145,24 +144,6 @@ const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathIn
         }
       }) as Promise<void>)
 
-function waitForMount(attempt: number) {
-  return new Promise((resolve, reject) => {
-    // Read the KBFS path waiting for files to exist, which means it's mounted
-    // TODO: should handle current mount directory
-    fs.readdir(`${Config.defaultKBFSPath}${Config.defaultPrivatePrefix}`, (err, files) => {
-      if (!err && files.length > 0) {
-        resolve(true)
-      } else if (attempt > 15) {
-        reject(new Error(`${Config.defaultKBFSPath} is unavailable. Please try again.`))
-      } else {
-        setTimeout(() => {
-          waitForMount(attempt + 1).then(resolve, reject)
-        }, 1000)
-      }
-    })
-  })
-}
-
 const fuseStatusToUninstallExecPath = isWindows
   ? (status: RPCTypes.FuseStatus) => {
       const field =
@@ -257,7 +238,7 @@ const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload
     ]
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
-    await waitForMount(0)
+    await RPCTypes.kbfsMountWaitForDirectMountRpcPromise()
     return FsGen.createRefreshDriverStatus()
   }
 }

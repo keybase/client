@@ -4,6 +4,10 @@
 package service
 
 import (
+	"os"
+	"path/filepath"
+	"time"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -25,6 +29,35 @@ func NewKBFSMountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBFSMountH
 
 func (h *KBFSMountHandler) GetCurrentMountDir(ctx context.Context) (res string, err error) {
 	return h.G().Env.GetMountDir()
+}
+
+const waitForDirectMountTimeout = time.Second * 10
+const waitForDirectMountPollInterval = time.Second
+
+func (h *KBFSMountHandler) WaitForDirectMount(ctx context.Context) (active bool, err error) {
+	ctx, cancel := context.WithTimeout(ctx, waitForDirectMountTimeout)
+	defer cancel()
+	mount, err := h.GetCurrentMountDir(ctx)
+	if err != nil {
+		return false, err
+	}
+	p := filepath.Join(mount, ".kbfs_status")
+	ticker := time.NewTicker(waitForDirectMountPollInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			fi, err := os.Stat(p)
+			if err == nil && fi.IsDir() {
+				return true, nil
+			}
+			// Not check os.IsNotExist here because it can be permission
+			// error too. So just wait it out.
+			continue
+		case <-ctx.Done():
+			return false, ctx.Err()
+		}
+	}
 }
 
 func (h *KBFSMountHandler) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
