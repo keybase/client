@@ -204,21 +204,6 @@ class Inbox extends React.Component<T.Props, State> {
 
   private listChild = ({index, style}) => this.itemRenderer(index, style)
 
-  private sizeChild = ({height, width}) => (
-    <VariableSizeList
-      height={height}
-      width={width}
-      ref={this.setRef}
-      outerRef={this.scrollDiv}
-      onItemsRendered={this.onItemsRendered}
-      itemCount={this.props.rows.length}
-      itemSize={this.itemSizeGetter}
-      estimatedItemSize={56}
-    >
-      {this.listChild}
-    </VariableSizeList>
-  )
-
   render() {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
@@ -227,7 +212,22 @@ class Inbox extends React.Component<T.Props, State> {
       <ErrorBoundary>
         <div style={styles.container}>
           <div style={styles.list}>
-            <AutoSizer>{this.sizeChild}</AutoSizer>
+            <AutoSizer>
+              {({height, width}) => (
+                <VariableSizeList
+                  height={height}
+                  width={width}
+                  ref={this.setRef}
+                  outerRef={this.scrollDiv}
+                  onItemsRendered={this.onItemsRendered}
+                  itemCount={this.props.rows.length}
+                  itemSize={this.itemSizeGetter}
+                  estimatedItemSize={56}
+                >
+                  {this.listChild}
+                </VariableSizeList>
+              )}
+            </AutoSizer>
           </div>
           {floatingDivider || <BuildTeam />}
           {this.state.showUnread && !this.state.showFloating && (
