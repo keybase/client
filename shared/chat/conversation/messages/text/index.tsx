@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {View} from 'react-native'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
@@ -131,6 +132,7 @@ const MessageText = ({claim, isEditing, isHighlighted, message, reply, text, typ
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       {!!reply && <Reply {...reply} isParentHighlighted={isHighlighted} />}
       {markdown}
+      {text === 'TTI' && <View nativeID="tti_complete" />}
       {!!claim && <Claim {...claim} />}
     </Kb.Box2>
   )
