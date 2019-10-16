@@ -17,6 +17,9 @@ export const colors = {
   },
   black_05_on_white: 'rgb(242,242,242)',
   black_10: 'rgba(0, 0, 0, 0.10)',
+  get black_10OrBlack() {
+    return this.black_10
+  },
   black_10_on_white: 'rgb(229,229,229)',
   black_20: 'rgba(0, 0, 0, 0.20)',
   get black_20OrBlack() {
@@ -41,6 +44,9 @@ export const colors = {
   black_on_white: 'rgb(38,38,38)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrBlueLight() {
+    return this.blueDark
+  },
   get blueDarkOrGreyDarkest() {
     return this.blueDark
   },
@@ -48,6 +54,9 @@ export const colors = {
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(82,98,147)',
+  get blueDarkerOrBlack() {
+    return this.blueDarker
+  },
   get blueDarkerOrBlack_60() {
     return this.blueDarker
   },
@@ -72,6 +81,9 @@ export const colors = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
+  get brown_75OrYellow() {
+    return this.brown_75
+  },
   brown_75_on_white: 'rgb(117,87,78)',
   fastBlank: isIOS ? '#FFFFFF' : undefined, // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
@@ -163,9 +175,10 @@ export const colors = {
   white_90: 'rgba(255, 255, 255, 0.90)',
   white_90_on_white: '#FFFFFF',
   yellow: '#FFF75A',
+  yellowAlt: '#e0d733',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
-  get yellowOrYellowLight() {
+  get yellowOrYellowAlt() {
     return this.yellow
   },
 } as const
@@ -184,6 +197,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   black_05_on_white: 'rgb(13, 13, 13)',
   black_10: 'rgba(255, 255, 255, 0.10)',
+  get black_10OrBlack() {
+    return colors.black
+  },
   black_10_on_white: 'rgb(26, 26, 26)',
   black_20: 'rgba(255, 255, 255, 0.20)',
   get black_20OrBlack() {
@@ -208,6 +224,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   black_on_white: 'rgb(217, 217, 217)',
   blue: '#4C8EFF',
   blueDark: '#3663EA',
+  get blueDarkOrBlueLight() {
+    return colors.blueLight
+  },
   get blueDarkOrGreyDarkest() {
     return colors.greyDarkest
   },
@@ -215,6 +234,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blueDarker2: '#182D6E',
   blueDarker2_75: 'rgba(24, 45, 110, .75)',
   blueDarker2_75_on_white: 'rgb(173, 157, 108)',
+  get blueDarkerOrBlack() {
+    return colors.black
+  },
   get blueDarkerOrBlack_60() {
     return colors.black_60
   },
@@ -239,6 +261,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   blue_60_on_white: 'rgb(133,198,255)',
   brown: 'rgb(71, 31, 17)',
   brown_75: 'rgba(71, 31, 17, 0.75)',
+  get brown_75OrYellow() {
+    return colors.yellow
+  },
   brown_75_on_white: 'rgb(117,87,78)',
   fastBlank: isIOS ? '#191919' : undefined, // on iOS overdraw is eliminated if we use solid color, on Android it's eliminated if it's transparent /shrug
   green: '#37BD99',
@@ -259,7 +284,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   greyDark: '#666',
   greyDarker: '#999',
   greyDarkest: '#aaa',
-  greyLight: '#0F0F0F',
+  greyLight: '#444',
   orange: '#ff6f21',
   orange_90: 'rgba(255, 111, 33, 0.9)',
   purple: '#8852ff',
@@ -330,10 +355,11 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   white_90: 'rgba(25, 25, 25, 0.90)',
   white_90_on_white: '#191919',
   yellow: '#FFF75A',
+  yellowAlt: '#e0d733',
   yellowDark: '#FFB800',
   yellowLight: '#FFFDCC',
-  get yellowOrYellowLight() {
-    return colors.yellowLight
+  get yellowOrYellowAlt() {
+    return colors.yellowAlt
   },
 }
 

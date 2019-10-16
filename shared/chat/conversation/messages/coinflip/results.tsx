@@ -81,7 +81,7 @@ const cards = [
 
 const suits = {
   clubs: {
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.blackOrBlack,
     icon: 'iconfont-club',
   },
   diamonds: {
@@ -93,7 +93,7 @@ const suits = {
     icon: 'iconfont-heart',
   },
   spades: {
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.blackOrBlack,
     icon: 'iconfont-spade',
   },
 }
@@ -271,8 +271,8 @@ const styles = Styles.styleSheetCreate(
       }),
       card: Styles.platformStyles({
         common: {
-          backgroundColor: Styles.globalColors.white,
-          borderColor: Styles.globalColors.black_10,
+          backgroundColor: Styles.globalColors.whiteOrWhite,
+          borderColor: Styles.globalColors.black_10OrBlack,
           borderRadius: Styles.borderRadius,
           borderStyle: 'solid',
           borderWidth: 1,
