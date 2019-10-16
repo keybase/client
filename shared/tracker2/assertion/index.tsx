@@ -23,6 +23,7 @@ type Props = {
   proofURL: string
   siteIcon?: Types.SiteIconSet
   siteIconFull?: Types.SiteIconSet
+  siteIconWhite?: Types.SiteIconSet
   siteURL: string
   state: Types.AssertionState
   timestamp: number
@@ -325,7 +326,7 @@ class Assertion extends React.PureComponent<Props, State> {
     }
   }
   _siteIcon = (full: boolean) => {
-    const set = full ? this.props.siteIconFull : this.props.siteIcon
+    const set = full ? this.props.siteIconFull : Styles.isDarkMode ? this.props.siteIconWhite : this.props.siteIcon
     if (!set) return null
     let child = <SiteIcon full={full} set={set} />
     if (full) {

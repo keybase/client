@@ -317,12 +317,14 @@ func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
 type ParamProofLogoConfig struct {
 	SvgBlack string `codec:"svgBlack" json:"svg_black"`
 	SvgFull  string `codec:"svgFull" json:"svg_full"`
+	SvgWhite string `codec:"svgWhite" json:"svg_white"`
 }
 
 func (o ParamProofLogoConfig) DeepCopy() ParamProofLogoConfig {
 	return ParamProofLogoConfig{
 		SvgBlack: o.SvgBlack,
 		SvgFull:  o.SvgFull,
+		SvgWhite: o.SvgWhite,
 	}
 }
 

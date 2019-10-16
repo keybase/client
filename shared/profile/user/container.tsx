@@ -154,6 +154,7 @@ const connected = Container.namedConnect(
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
       service: stateProps.service,
       serviceIcon: stateProps.serviceIcon,
+      serviceIconWhite: stateProps.serviceIconWhite,
       showAirdropBanner: stateProps.showAirdropBanner,
       state: stateProps.state,
       suggestionKeys: stateProps._suggestionKeys

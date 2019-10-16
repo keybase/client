@@ -29,6 +29,7 @@ export const makeNonUserDetails = (): Types.NonUserDetails => ({
   description: '',
   siteIcon: emptyArray,
   siteIconFull: emptyArray,
+  siteIconWhite: emptyArray,
   siteURL: '',
 })
 
@@ -48,6 +49,7 @@ export const makeAssertion = (): Types.Assertion => ({
   sigID: '',
   siteIcon: [],
   siteIconFull: [],
+  siteIconWhite: [],
   siteURL: '',
   state: 'error',
   timestamp: 0,
@@ -126,6 +128,7 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
   sigID: row.sigID,
   siteIcon: row.siteIcon || [],
   siteIconFull: row.siteIconFull || [],
+  siteIconWhite: row.siteIconWhite || [],
   siteURL: row.siteURL,
   state: rpcRowStateToAssertionState(row.state),
   timestamp: row.ctime,

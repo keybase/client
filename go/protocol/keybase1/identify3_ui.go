@@ -4,10 +4,9 @@
 package keybase1
 
 import (
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type Identify3RowState int
