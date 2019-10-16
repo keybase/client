@@ -1066,6 +1066,8 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 		return "🚀 payment request"
 	case chat1.MessageType_SENDPAYMENT:
 		return "🚀 payment sent"
+	case chat1.MessageType_HEADLINE:
+		return msg.Valid().MessageBody.Headline().String()
 	}
 	return ""
 }

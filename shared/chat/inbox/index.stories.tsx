@@ -347,7 +347,6 @@ const propsInboxCommon = {
   isSearching: false,
   navKey: 'nav',
   neverLoaded: false,
-  nowOverride: 0, // just for dumb rendering
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
@@ -357,7 +356,7 @@ const propsInboxCommon = {
   selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
-  unreadIndices: I.List(),
+  unreadIndices: [],
 }
 
 const propsInboxEmpty = {
