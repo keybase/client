@@ -309,7 +309,7 @@ func (c *chatEcho) AddResetConvMemberV1(context.Context, addResetConvMemberOptio
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) GetDeviceInfoV1(context.Context) Reply {
+func (c *chatEcho) GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
