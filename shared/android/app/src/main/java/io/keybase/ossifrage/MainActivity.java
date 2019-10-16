@@ -52,7 +52,21 @@ import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactFragmentActivity {
+public class MainActivity extends ReactFragmentActivity implements ReactInstanceManager.ReactInstanceEventListener {
+  static {
+    // Load our jni
+    System.loadLibrary("test_module_jni");
+  }
+
+  @Override
+  public void onReactContextInitialized(ReactContext context) {
+    // Call our native function with the runtime pointer
+    install(context.getJavaScriptContextHolder().get());
+  }
+
+  public native void install(long jsContextNativePointer);
+
+
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
 
@@ -337,7 +351,9 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    getReactInstanceManager().addReactInstanceEventListener(this);
     Keybase.setAppStateForeground();
+
 
     // Emit the intent data to JS
     Intent intent = getIntent();

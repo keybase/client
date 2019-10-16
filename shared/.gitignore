@@ -7,6 +7,7 @@ android/app/.externalNativeBuild
 android/**/build/
 android/dist
 android/**/*.iml
+android/**/*.externalNativeBuild
 android/**/.classpath
 android/**/.project
 android/**/.settings/**

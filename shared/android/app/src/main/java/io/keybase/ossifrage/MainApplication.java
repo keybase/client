@@ -2,7 +2,13 @@ package io.keybase.ossifrage;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
+import android.os.Trace;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewTreeObserver;
 
+import androidx.annotation.RequiresApi;
 import androidx.multidex.MultiDex;
 
 import com.evernote.android.job.JobManager;
@@ -13,6 +19,9 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactMarker;
+import com.facebook.react.bridge.ReactMarkerConstants;
+import com.facebook.react.uimanager.util.ReactFindViewUtil;
 import com.facebook.soloader.SoLoader;
 
 import org.unimodules.adapters.react.ModuleRegistryAdapter;
@@ -22,7 +31,11 @@ import org.unimodules.core.interfaces.Package;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import expo.modules.barcodescanner.BarCodeScannerPackage;
 import expo.modules.constants.ConstantsPackage;
@@ -54,13 +67,54 @@ public class MainApplication extends Application implements ReactApplication {
         MultiDex.install(this);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     @Override
     public void onCreate() {
         NativeLogger.info("MainApplication created");
         super.onCreate();
+        Trace.beginSection("Loading RN native code");
         SoLoader.init(this, /* native exopackage */ false);
+        Trace.endSection();
         JobManager manager = JobManager.create(this);
         manager.addJobCreator(new BackgroundJobCreator());
+
+        // Profiling
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        addTTIEndListener();
+      }
+      ReactMarker.addListener(new ReactMarker.MarkerListener() {
+          private final HashSet<ReactMarkerConstants> seenTags = new HashSet<ReactMarkerConstants>();
+            @RequiresApi(api = Build.VERSION_CODES.Q)
+            @Override
+            public void logMarker(ReactMarkerConstants name, @Nullable String tag, int instanceKey) {
+                if (tag != null && tag.equals("Storybook")) {
+                  Log.d("Marker", "Storybook here" + System.currentTimeMillis());
+                }
+                if (name.toString().contains("START")) {
+//                    Trace.beginAsyncSection(tag, name.ordinal()*1000 + instanceKey);
+                    Trace.beginSection(name.toString() + tag);
+                } else if (name.toString().contains("END")) {
+                    Trace.endSection();
+//                    Trace.endAsyncSection(ReactMarkerConstants.values()[name.ordinal() -1].toString() + " " + tag, (name.ordinal()-1)*1000 + instanceKey);
+
+                } else {
+                  Trace.beginSection(name.toString() + " " + tag);
+                  Trace.endSection();
+                }
+//                if (seenTags.contains(name)) {
+//                    seenTags.remove(name);
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+//                        Trace.endSection();
+//                    }
+//                } else {
+//                    seenTags.add(name);
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+//                        Trace.beginSection(name + " " + tag);
+//                    }
+//                }
+              Log.i("Marker", name.toString() + "-" + name.ordinal() + " " + tag + ". instanceKey::" + instanceKey);
+            }
+        });
 
         // Make sure exactly one background job is scheduled.
         int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
@@ -72,6 +126,42 @@ public class MainApplication extends Application implements ReactApplication {
         }
     }
 
+   /**
+   * Waits for Loading to complete, also called a Time-To-Interaction (TTI) event. To indicate TTI
+   * completion, add a prop nativeID="tti_complete" to the component whose appearance indicates that
+   * the initial TTI or loading is complete
+   */
+  @RequiresApi(api = Build.VERSION_CODES.Q)
+  private void addTTIEndListener() {
+    Log.d("Marker", "Setting listener");
+    Trace.beginAsyncSection("Starting App", 0);
+    ReactFindViewUtil.addViewListener(
+        new ReactFindViewUtil.OnViewFoundListener() {
+          @Override
+          public String getNativeId() {
+            // This is the value of the nativeID property
+            return "tti_complete";
+          }
+
+          @Override
+          public void onViewFound(final View view) {
+            Log.d("Marker", "Found view");
+            // Once we find the view, we also need to wait for it to be drawn
+            view.getViewTreeObserver()
+                // TODO (axe) Should be OnDrawListener instead of this
+                .addOnPreDrawListener(
+                    new ViewTreeObserver.OnPreDrawListener() {
+                      @Override
+                      public boolean onPreDraw() {
+                        view.getViewTreeObserver().removeOnPreDrawListener(this);
+                        Trace.endAsyncSection("Starting App", 0);
+                        return true;
+                      }
+                    });
+          }
+        });
+  }
+
     private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
 
         @Override
@@ -79,6 +169,7 @@ public class MainApplication extends Application implements ReactApplication {
             return BuildConfig.DEBUG;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         protected List<ReactPackage> getPackages() {
             Context context = getApplicationContext();
@@ -90,6 +181,7 @@ public class MainApplication extends Application implements ReactApplication {
 //
 //            MainPackageConfig appConfig = new MainPackageConfig.Builder().setFrescoConfig(frescoConfig).build();
 
+            Trace.beginSection("getPackages");
             @SuppressWarnings("UnnecessaryLocalVariable")
             List<ReactPackage> packages = new PackageList(this).getPackages();
             // new MainReactPackage(appConfig),// removed from rn-diff but maybe we need it for fresco config?
@@ -107,6 +199,7 @@ public class MainApplication extends Application implements ReactApplication {
             });
 
             packages.add(new ModuleRegistryAdapter(mModuleRegistryProvider));
+            Trace.endSection();
 
             return packages;
         }

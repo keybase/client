@@ -87,6 +87,7 @@ project.ext.react = [
     root: "../../",
     enableHermes: false,  // clean and rebuild if changing
     enableV8: KB_USEV8 == 'true',  // clean and rebuild if changing
+    bundleInDebug: true,
 ]
 
 
@@ -199,6 +200,11 @@ android {
             applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
             matchingFallbacks = ['release']
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
         }
     }
     // applicationVariants are e.g. debug, release
