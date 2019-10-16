@@ -223,6 +223,7 @@ class Inbox extends React.Component<T.Props, State> {
                   itemCount={this.props.rows.length}
                   itemSize={this.itemSizeGetter}
                   estimatedItemSize={56}
+                  itemData={this.props.rows}
                 >
                   {this.listChild}
                 </VariableSizeList>
