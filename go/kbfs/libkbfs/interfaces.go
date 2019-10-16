@@ -244,6 +244,12 @@ type Node interface {
 	ChildName(name string) data.PathPartString
 }
 
+// SyncedTlfMD contains the node metadata and handle for a given synced TLF.
+type SyncedTlfMD struct {
+	MD     NodeMetadata
+	Handle *tlfhandle.Handle
+}
+
 // KBFSOps handles all file system operations.  Expands all indirect
 // pointers.  Operations that modify the server data change all the
 // block IDs along the path, and so must return a path with the new
@@ -588,6 +594,10 @@ type KBFSOps interface {
 	SetSyncConfig(
 		ctx context.Context, tlfID tlf.ID, config keybase1.FolderSyncConfig) (
 		<-chan error, error)
+	// GetAllSyncedTlfMDs returns the synced TLF metadata (and
+	// handle), only for those synced TLFs to which the current
+	// logged-in user has access.
+	GetAllSyncedTlfMDs(ctx context.Context) map[tlf.ID]SyncedTlfMD
 
 	// AddRootNodeWrapper adds a new root node wrapper for every
 	// existing TLF.  Any Nodes that have already been returned by

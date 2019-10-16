@@ -319,7 +319,7 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.red,
   },
   statWarning: {
-    color: Styles.globalColors.yellowOrYellowLight,
+    color: Styles.globalColors.yellowOrYellowAlt,
   },
 }))
 

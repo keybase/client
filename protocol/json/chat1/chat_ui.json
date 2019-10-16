@@ -201,6 +201,13 @@
             "UIInboxReselectInfo"
           ],
           "name": "reselectInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxSmallTeamRow"
+          },
+          "name": "widgetList"
         }
       ]
     },

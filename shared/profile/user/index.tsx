@@ -535,7 +535,7 @@ export const styles = Styles.styleSheetCreate(() => ({
   followTab: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      borderBottomColor: 'white',
+      borderBottomColor: Styles.globalColors.white,
       borderBottomWidth: 2,
       justifyContent: 'center',
     },

@@ -103,7 +103,8 @@
         "'joinedAConversation'",
         "'leftAConversation'",
         "'teamTypeChanged'",
-        "'maybeKickedFromTeam'"
+        "'maybeKickedFromTeam'",
+        "'widgetRefresh'"
       ]
     },
     // We want to unbox an inbox row
@@ -132,6 +133,7 @@
         "'membersUpdate'",
         "'scroll'",
         "'ensureSelectedMeta'",
+        "'ensureWidgetMetas'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"

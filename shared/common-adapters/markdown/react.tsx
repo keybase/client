@@ -73,7 +73,7 @@ const markdownStyles = Styles.styleSheetCreate(
           ...Styles.globalStyles.fontTerminal,
           ...Styles.globalStyles.rounded,
           backgroundColor: Styles.globalColors.redLighter,
-          color: Styles.globalColors.blueDark,
+          color: Styles.globalColors.blueDarkOrBlueLight,
           paddingLeft: Styles.globalMargins.xtiny,
           paddingRight: Styles.globalMargins.xtiny,
         },
