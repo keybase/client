@@ -2343,6 +2343,27 @@ const ensureSelectedMeta = (state: TypedState) => {
     : maybeLoadTeamFromMeta(meta)
 }
 
+const ensureWidgetMetas = (state: TypedState) => {
+  if (!state.chat2.inboxLayout || !state.chat2.inboxLayout.widgetList) {
+    return false
+  }
+  const missing = state.chat2.inboxLayout.widgetList.reduce<Array<Types.ConversationIDKey>>((l, v) => {
+    if (!state.chat2.metaMap.get(v.convID)) {
+      l.push(v.convID)
+    }
+    return l
+  }, [])
+  if (missing.length === 0) {
+    return false
+  }
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys: missing,
+    force: true,
+    noWaiting: true,
+    reason: 'ensureWidgetMetas',
+  })
+}
+
 const refreshPreviousSelected = (state: TypedState) => {
   if (state.chat2.previousSelectedConversation !== Constants.noConversationIDKey) {
     return Chat2Gen.createMetaRequestTrusted({
@@ -3278,6 +3299,7 @@ function* chat2Saga() {
     maybeChangeSelectedConv,
     'maybeChangeSelectedConv'
   )
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatInboxLayout, ensureWidgetMetas, 'ensureWidgetMetas')
 
   // Load the selected thread
   yield* Saga.chainGenerator<

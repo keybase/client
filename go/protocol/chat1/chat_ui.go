@@ -219,6 +219,7 @@ type UIInboxLayout struct {
 	SmallTeams   []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
 	BigTeams     []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
 	ReselectInfo *UIInboxReselectInfo  `codec:"reselectInfo,omitempty" json:"reselectInfo,omitempty"`
+	WidgetList   []UIInboxSmallTeamRow `codec:"widgetList" json:"widgetList"`
 }
 
 func (o UIInboxLayout) DeepCopy() UIInboxLayout {
@@ -252,6 +253,17 @@ func (o UIInboxLayout) DeepCopy() UIInboxLayout {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReselectInfo),
+		WidgetList: (func(x []UIInboxSmallTeamRow) []UIInboxSmallTeamRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIInboxSmallTeamRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.WidgetList),
 	}
 }
 
