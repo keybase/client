@@ -16,6 +16,7 @@ import {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 import logger from '../../logger'
 import {ServiceId} from 'util/platforms'
+import {assertNever} from '../../util/container'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -139,6 +140,9 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'text',
   'placeholder',
 ])
+
+// The types here are askew. It confuses frontend MessageType with protocol MessageType.
+// Placeholder is an example where it doesn't make sense.
 export const getDeletableByDeleteHistory = (state: TypedState) =>
   (!!state.chat2.staticConfig && state.chat2.staticConfig.deletableByDeleteHistory) || allMessageTypes
 
@@ -189,6 +193,13 @@ export const howLongBetweenTimestampsMs: number = 1000 * 60 * 15
 export const makeMessagePlaceholder = I.Record<MessageTypes._MessagePlaceholder>({
   ...makeMessageMinimum,
   type: 'placeholder',
+})
+
+export const makeMessageJourneycard = I.Record<MessageTypes._MessageJourneycard>({
+  ...makeMessageMinimum,
+  type: 'journeycard',
+  cardType: RPCChatTypes.JourneycardType.welcome,
+  highlightMsgID: Types.numberToMessageID(0),
 })
 
 export const makeMessageDeleted = I.Record<MessageTypes._MessageDeleted>({
@@ -1059,6 +1070,18 @@ const errorUIMessagetoMessage = (
   })
 }
 
+const journeycardUIMessageToMessage = (
+  conversationIDKey: Types.ConversationIDKey,
+  m: RPCChatTypes.UIMessageJourneycard
+) => {
+  return makeMessageJourneycard({
+    conversationIDKey,
+    ordinal: Types.numberToOrdinal(m.ordinal),
+    cardType: m.cardType,
+    highlightMsgID: m.highlightMsgID,
+  })
+}
+
 export const uiMessageToMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
@@ -1073,7 +1096,10 @@ export const uiMessageToMessage = (
       return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage.outbox)
     case RPCChatTypes.MessageUnboxedState.placeholder:
       return placeholderUIMessageToMessage(conversationIDKey, uiMessage.placeholder)
+    case RPCChatTypes.MessageUnboxedState.journeycard:
+      return journeycardUIMessageToMessage(conversationIDKey, uiMessage.journeycard)
     default:
+      assertNever(uiMessage) // A type error here means there is an unhandled message state
       return null
   }
 }

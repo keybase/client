@@ -1359,7 +1359,16 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
-	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
+	return computeOrdinal(obr.Msg.ClientHeader.OutboxInfo.Prev, obr.Ordinal)
+}
+
+// Compute an "ordinal". There are two senses of "ordinal".
+// The service considers ordinals ints, like 3, which are the offset after some message ID.
+// The frontend considers ordinals floats like "180.03" where before the dot is
+// a message ID, and after the dot is a sub-position in thousandths.
+// This function translates from the service's sense to the frontend's sense.
+func computeOrdinal(messageID chat1.MessageID, serviceOrdinal int) (frontendOrdinal float64) {
+	return float64(messageID) + float64(serviceOrdinal)/1000.0
 }
 
 func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
@@ -1792,6 +1801,16 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
 	case chat1.MessageUnboxedState_PLACEHOLDER:
 		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
+	case chat1.MessageUnboxedState_JOURNEYCARD:
+		journeycard := rawMsg.Journeycard()
+		res = chat1.NewUIMessageWithJourneycard(chat1.UIMessageJourneycard{
+			Ordinal:        computeOrdinal(journeycard.PrevID, journeycard.Ordinal),
+			CardType:       journeycard.CardType,
+			HighlightMsgID: journeycard.HighlightMsgID,
+		})
+	default:
+		g.MetaContext(ctx).Debug("PresentMessageUnboxed: unhandled MessageUnboxedState: %v", state)
+		// res = zero values
 	}
 	return res
 }

@@ -117,6 +117,9 @@ func (p CommandLine) GetDebug() (bool, bool) {
 	}
 	return p.GetBool("debug", true)
 }
+func (p CommandLine) GetDebugJourneycard() (bool, bool) {
+	return p.GetBool("debug-journeycard", true)
+}
 func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return p.GetBool("display-raw-untrusted-output", true)
 }
@@ -751,6 +754,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
+		},
+		cli.BoolFlag{
+			Name:  "debug-journeycard",
+			Usage: "Enable experimental journey cards",
 		},
 		cli.BoolFlag{
 			Name:  "disable-team-auditor",

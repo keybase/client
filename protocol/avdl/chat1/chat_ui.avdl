@@ -288,6 +288,12 @@ protocol chatUi {
     union { null, MakePreviewRes } preview;
   }
 
+  record UIMessageJourneycard {
+    double ordinal; // Position in conversation. A float like {msgID:4,offset:1} -> "4.001"
+    JourneycardType cardType;
+    MessageID highlightMsgID; // Message ID to highlight in MSG_ATTENTION
+  }
+
   enum MessageUnboxedState {
     VALID_1,
     ERROR_2,
@@ -301,7 +307,7 @@ protocol chatUi {
     case ERROR: MessageUnboxedError;
     case OUTBOX: UIMessageOutbox;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
-    case JOURNEYCARD: MessageUnboxedJourneyCard;
+    case JOURNEYCARD: UIMessageJourneycard;
   }
 
   record UIMessages {

@@ -24,6 +24,8 @@ type JSONConfigFile struct {
 	userConfigWrapper *UserConfigWrapper
 }
 
+var _ (ConfigReader) = (*JSONConfigFile)(nil)
+
 func NewJSONConfigFile(g *GlobalContext, s string) *JSONConfigFile {
 	return &JSONConfigFile{NewJSONFile(g, s, "config"), &UserConfigWrapper{}}
 }
@@ -572,6 +574,9 @@ func (f *JSONConfigFile) IsCertPinningEnabled() bool {
 }
 func (f *JSONConfigFile) GetDebug() (bool, bool) {
 	return f.GetTopLevelBool("debug")
+}
+func (f *JSONConfigFile) GetDebugJourneycard() (bool, bool) {
+	return f.GetTopLevelBool("debug_journeycard")
 }
 func (f *JSONConfigFile) GetDisplayRawUntrustedOutput() (bool, bool) {
 	return f.GetTopLevelBool("display_raw_untrusted_output")
