@@ -15,7 +15,7 @@ protocol kvstore {
     string teamName;
     string namespace;
     string entryKey;
-    int revision;
+    int revision; // this is the server-confirmed revision of the entry after the request
   }
 
   // for passing around internally
@@ -33,4 +33,34 @@ protocol kvstore {
 
   KVGetResult getKVEntry(int sessionID, string teamName, string namespace, string entryKey);
   KVPutResult putKVEntry(int sessionID, string teamName, string namespace, string entryKey, string entryValue);
+
+
+  record KVListNamespaceResult {
+    string teamName;
+    array<string> namespaces;
+  }
+
+  KVListNamespaceResult listKVNamespaces(int sessionID, string teamName);
+
+  record KVListEntryKey {
+    string entryKey;
+    int revision;
+  }
+
+  record KVListEntryResult {
+    string teamName;
+    string namespace;
+    array<KVListEntryKey> entryKeys;
+  }
+
+  KVListEntryResult listKVEntries(int sessionID, string teamName, string namespace);
+
+  record KVDeleteEntryResult {
+    string teamName;
+    string namespace;
+    string entryKey;
+    int revision; // this is the revision at which the entry was deleted, and a future GET will have
+  }
+
+  KVDeleteEntryResult delKVEntry(int sessionID, string teamName, string namespace, string entryKey);
 }
