@@ -107,7 +107,7 @@ const _TeamHeader = (props: Props) => (
             <Kb.Icon
               type="iconfont-chat"
               style={Kb.iconCastPlatformStyles(styles.chatIcon)}
-              color={Styles.globalColors.white}
+              color={Styles.globalColors.whiteOrWhite}
             />
           </Kb.Button>
         )}

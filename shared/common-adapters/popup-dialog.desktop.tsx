@@ -73,17 +73,19 @@ export function PopupDialog({
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  clipContainer: Styles.platformStyles({
-    isElectron: {
-      ...Styles.desktopStyles.boxShadow,
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.white,
-      borderRadius: Styles.borderRadius,
-      flex: 1,
-      maxWidth: '100%',
-      position: 'relative',
-    },
-  }),
+  get clipContainer() {
+    return Styles.platformStyles({
+      isElectron: {
+        ...Styles.desktopStyles.boxShadow,
+        ...Styles.globalStyles.flexBoxColumn,
+        backgroundColor: Styles.globalColors.white,
+        borderRadius: Styles.borderRadius,
+        flex: 1,
+        maxWidth: '100%',
+        position: 'relative',
+      },
+    })
+  },
   close: Styles.platformStyles({
     isElectron: {
       cursor: 'pointer',

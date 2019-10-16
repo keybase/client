@@ -251,6 +251,7 @@ type _InboxRefreshPayload = {
     | 'leftAConversation'
     | 'teamTypeChanged'
     | 'maybeKickedFromTeam'
+    | 'widgetRefresh'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -397,6 +398,7 @@ type _MetaRequestTrustedPayload = {
     | 'membersUpdate'
     | 'scroll'
     | 'ensureSelectedMeta'
+    | 'ensureWidgetMetas'
     | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }

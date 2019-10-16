@@ -8,7 +8,7 @@ export type AnimationType =
   | 'messageStatusError'
   | 'messageStatusSending'
   | 'messageStatusSent'
-  | 'spinnerGrey'
+  | 'spinner'
   | 'spinnerWhite'
   | 'typing'
 
