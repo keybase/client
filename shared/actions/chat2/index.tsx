@@ -2266,6 +2266,7 @@ const navigateToInbox = (
     | Chat2Gen.LeaveConversationPayload
     | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
