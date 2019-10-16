@@ -544,9 +544,12 @@ func IsEphemeralRetryableError(err error) bool {
 			keybase1.StatusCode_SCEphemeralKeyMissingBox,
 			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys:
 			return true
+		default:
+			return false
 		}
+	default:
+		return false
 	}
-	return false
 }
 
 //=============================================================================
