@@ -356,7 +356,7 @@ func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
 			t.Logf("msgID: ref: %d actual: %d", *ref[rindex].msgID, thread.Messages[index].GetMessageID())
 			require.NotZero(t, msg.GetMessageID(), "missing message ID")
 			require.Equal(t, *ref[rindex].msgID, msg.GetMessageID(), "invalid message ID")
-		} else if ref[index].outboxID != nil {
+		} else if ref[rindex].outboxID != nil {
 			t.Logf("obID: ref: %s actual: %s",
 				hex.EncodeToString(*ref[rindex].outboxID),
 				hex.EncodeToString(msg.Outbox().OutboxID))
@@ -439,7 +439,6 @@ func TestNonblockTimer(t *testing.T) {
 		obid := obr.OutboxID
 		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
-		sentRef = append(sentRef, sentRecord{outboxID: &obid})
 		obids = append(obids, obid)
 	}
 
@@ -473,6 +472,12 @@ func TestNonblockTimer(t *testing.T) {
 		msgID := msgBoxed.GetMessageID()
 		t.Logf("generated msgID: %d", msgID)
 		sentRef = append(sentRef, sentRecord{msgID: &msgID})
+	}
+
+	// Push the outbox records to the front of the thread.
+	for _, obid := range obids {
+		o := obid.DeepCopy()
+		sentRef = append(sentRef, sentRecord{outboxID: &o})
 	}
 
 	// Check get thread, make sure it makes sense
