@@ -2827,6 +2827,7 @@ type MessageUnboxedValid struct {
 	Reactions             ReactionMap                 `codec:"reactions" json:"reactions"`
 	Unfurls               map[MessageID]UnfurlResult  `codec:"unfurls" json:"unfurls"`
 	ReplyTo               *MessageUnboxed             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
+	BotUsername           string                      `codec:"botUsername" json:"botUsername"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -2930,6 +2931,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ReplyTo),
+		BotUsername: o.BotUsername,
 	}
 }
 
@@ -2987,6 +2989,7 @@ type MessageUnboxedError struct {
 	IsEphemeral        bool                    `codec:"isEphemeral" json:"isEphemeral"`
 	IsEphemeralExpired bool                    `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
 	Etime              gregor1.Time            `codec:"etime" json:"etime"`
+	BotUsername        string                  `codec:"botUsername" json:"botUsername"`
 }
 
 func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
@@ -3006,6 +3009,7 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 		IsEphemeral:        o.IsEphemeral,
 		IsEphemeralExpired: o.IsEphemeralExpired,
 		Etime:              o.Etime.DeepCopy(),
+		BotUsername:        o.BotUsername,
 	}
 }
 

@@ -910,7 +910,7 @@ type UIMessageValid struct {
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	PinnedMessageID       *MessageID             `codec:"pinnedMessageID,omitempty" json:"pinnedMessageID,omitempty"`
-	BotUID                *gregor1.UID           `codec:"botUID,omitempty" json:"botUID,omitempty"`
+	BotUsername           string                 `codec:"botUsername" json:"botUsername"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -1041,13 +1041,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.PinnedMessageID),
-		BotUID: (func(x *gregor1.UID) *gregor1.UID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.BotUID),
+		BotUsername: o.BotUsername,
 	}
 }
 

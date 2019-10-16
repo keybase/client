@@ -198,6 +198,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					Alignment: flexibletable.Right,
 					Content:   flexibletable.SingleCell{Item: "???"},
 				},
+				flexibletable.Cell{ // restrictedBotInfo
+					Alignment: flexibletable.Center,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
 				flexibletable.Cell{ // ephemeralInfo
 					Alignment: flexibletable.Center,
 					Content:   flexibletable.SingleCell{Item: "???"},
@@ -286,6 +290,10 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: mv.RestrictedBotInfo},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
 				Content:   flexibletable.SingleCell{Item: mv.EphemeralInfo},
 			},
 			flexibletable.Cell{
@@ -312,6 +320,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // convName
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
+		flexibletable.ColumnConstraint(w / 5), // RestrictedBotInfo
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
 		flexibletable.ColumnConstraint(w / 5), // reactionInfo
 		flexibletable.Expandable,              // body
@@ -433,6 +442,7 @@ type messageView struct {
 	AuthorAndTimeWithDeviceName string
 	Body                        string
 	EphemeralInfo               string
+	RestrictedBotInfo           string
 	ReactionInfo                string
 	FromRevokedDevice           bool
 
@@ -626,6 +636,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 			remainingEphemeralLifetime := m.RemainingEphemeralLifetime(time.Now())
 			mv.EphemeralInfo = fmt.Sprintf("[expires in %s]", remainingEphemeralLifetime)
 		}
+	}
+	if m.BotUsername != "" {
+		mv.RestrictedBotInfo = fmt.Sprintf("[encrypted for bot @%s]", m.BotUsername)
 	}
 
 	// sort reactions so the ordering is stable when rendering

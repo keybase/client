@@ -1042,11 +1042,8 @@
           "name": "pinnedMessageID"
         },
         {
-          "type": [
-            null,
-            "gregor1.UID"
-          ],
-          "name": "botUID"
+          "type": "string",
+          "name": "botUsername"
         }
       ]
     },
