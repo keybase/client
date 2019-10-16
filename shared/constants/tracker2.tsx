@@ -11,7 +11,7 @@ export const makeState = (): Types.State => ({
   usernameToNonUserDetails: new Map(),
 })
 
-export const noDetails: Types.Details = {
+export const noDetails: Readonly<Types.Details> = Object.freeze({
   assertions: emptyMap,
   blocked: false,
   guiID: '',
@@ -21,20 +21,20 @@ export const noDetails: Types.Details = {
   state: 'error',
   teamShowcase: emptyArray,
   username: '',
-}
+})
 
-export const noNonUserDetails: Types.NonUserDetails = {
+export const noNonUserDetails: Readonly<Types.NonUserDetails> = Object.freeze({
   assertionKey: '',
   assertionValue: '',
   description: '',
   siteIcon: emptyArray,
   siteIconFull: emptyArray,
   siteURL: '',
-}
+})
 
 export const generateGUIID = () => Math.floor(Math.random() * 0xfffffffffffff).toString(16)
 
-export const noAssertion: Types.Assertion = {
+export const noAssertion: Readonly<Types.Assertion> = Object.freeze({
   assertionKey: '',
   belowFold: false,
   color: 'gray',
@@ -53,7 +53,7 @@ export const noAssertion: Types.Assertion = {
   timestamp: 0,
   type: '',
   value: '',
-}
+})
 
 export const rpcResultToStatus = (result: RPCTypes.Identify3ResultType) => {
   switch (result) {
