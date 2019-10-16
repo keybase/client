@@ -132,6 +132,7 @@
         "'membersUpdate'",
         "'scroll'",
         "'ensureSelectedMeta'",
+        "'ensureWidgetMetas'",
         "'inboxSearchResults'"
       ],
       "conversationIDKeys": "Array<Types.ConversationIDKey>"
