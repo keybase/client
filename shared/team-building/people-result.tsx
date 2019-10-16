@@ -165,7 +165,7 @@ const PeopleResult = (props: Props) => {
         onChat()
       }}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
+      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
 

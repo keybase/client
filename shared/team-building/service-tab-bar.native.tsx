@@ -71,7 +71,7 @@ const ServiceIcon = (props: IconProps) => {
           </Kb.Box2>
         </Kb.Box2>
         {!!props.showCount && props.count === null && (
-          <Kb.Animation animationType="spinnerGrey" style={styles.pendingAnimation} />
+          <Kb.Animation animationType="spinner" style={styles.pendingAnimation} />
         )}
         {!!props.showCount && props.count !== null && (
           <Kb.Text type="BodyTinySemibold">{props.count && props.count === 11 ? '10+' : props.count}</Kb.Text>

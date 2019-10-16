@@ -202,7 +202,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         <Kb.ProgressIndicator type="Small" style={styles.spinnerMobile} white={!!this.props.negative} />
       ) : (
         <Kb.Animation
-          animationType={this.props.negative ? 'spinnerWhite' : 'spinnerGrey'}
+          animationType={this.props.negative ? 'spinnerWhite' : 'spinner'}
           containerStyle={styles.icon}
           style={this.props.size === 'full-width' ? styles.spinnerFullWidth : styles.spinnerSmall}
         />
