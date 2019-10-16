@@ -361,6 +361,28 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   routeToInitialScreenOnce = true
 
   if (state.config.loggedIn) {
+    // eslint-disable-next-line
+    if (true) {
+      // Short circuit for TTI testing
+      const actions = [
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey: '0000c469d455692f6f295394202342f45b0f6106804316b8aad04e538758d7bc'},
+              selected: 'chatConversation',
+            },
+          ],
+        }),
+      ]
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createResetStack({actions, index: 1, tab: Tabs.chatTab}),
+        ChatGen.createSelectConversation({
+          conversationIDKey: state.config.startupConversation,
+          reason: state.config.startupWasFromPush ? 'push' : 'savedLastState',
+        }),
+      ]
+    }
     // A chat
     if (
       state.config.startupConversation &&
