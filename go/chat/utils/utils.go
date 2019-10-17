@@ -1733,7 +1733,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			ReplyTo:               replyTo,
 			PinnedMessageID:       pinnedMessageID,
-			BotUID:                valid.ClientHeader.BotUID,
+			BotUsername:           valid.BotUsername,
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})

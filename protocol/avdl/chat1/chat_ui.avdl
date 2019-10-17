@@ -266,8 +266,8 @@ protocol chatUi {
     boolean isEditable;
     union { null, UIMessage } replyTo;
     union { null, MessageID} pinnedMessageID;
-    // TODO HOTPOT-330 convert to bot username
-    union { null, gregor1.UID } botUID;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   record UIMessageOutbox {

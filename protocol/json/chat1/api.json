@@ -129,6 +129,23 @@
     },
     {
       "type": "record",
+      "name": "MsgBotInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "botUID",
+          "jsonkey": "bot_uid"
+        },
+        {
+          "type": "string",
+          "name": "botUsername",
+          "jsonkey": "bot_username",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MsgFlipContent",
       "fields": [
         {
@@ -408,10 +425,10 @@
         {
           "type": [
             null,
-            "string"
+            "MsgBotInfo"
           ],
-          "name": "botUID",
-          "jsonkey": "bot_uid"
+          "name": "botInfo",
+          "jsonkey": "bot_info"
         }
       ]
     },

@@ -478,6 +478,8 @@ protocol local {
 
     // The message this replied to (if any)
     union { null, MessageUnboxed } replyTo;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   enum MessageUnboxedErrorType {
@@ -507,6 +509,8 @@ protocol local {
     boolean isEphemeral;
     boolean isEphemeralExpired;
     gregor1.Time etime;
+    // Non-empty if this message is keyed for a bot
+    string botUsername;
   }
 
   record MessageUnboxedPlaceholder {
