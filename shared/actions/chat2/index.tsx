@@ -2263,14 +2263,7 @@ function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversatio
   }
 }
 
-const clearModalsFromConvEvent = (
-  _: TypedState,
-  action:
-    | Chat2Gen.LeaveConversationPayload
-    | TeamsGen.LeaveTeamPayload
-    | TeamsGen.LeftTeamPayload
-    | TeamsGen.DeleteChannelConfirmedPayload
-) => {
+const clearModalsFromConvEvent = () => {
   return RouteTreeGen.createClearModals()
 }
 
