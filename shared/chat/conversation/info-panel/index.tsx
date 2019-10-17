@@ -124,11 +124,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   </Kb.Text>
 )
 
-class _InfoPanel extends React.Component<InfoPanelProps> {
-  componentDidMount() {
-    this._retryLoad()
-  }
-
+class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   _retryLoad = () => {
     this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
   }
@@ -173,6 +169,10 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   }
 
   _onSelectTab = (tab: React.ReactNode) => {
+    // @ts-ignore TODO avoid using key on a node
+    if (tab.key === 'attachments') {
+      this._retryLoad()
+    }
     // @ts-ignore TODO avoid using key on a node
     this.props.onSelectTab(tab.key)
   }
