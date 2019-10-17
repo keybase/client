@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Trace;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
@@ -107,18 +108,22 @@ public class MainActivity extends ReactFragmentActivity implements ReactInstance
 
 
   public static void setupKBRuntime(Context context, boolean shouldCreateDummyFile) {
+    Trace.beginSection("Setup Keystore");
     try {
       Keybase.setGlobalExternalKeyStore(new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
     } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
       NativeLogger.error("Exception in MainActivity.onCreate", e);
     }
+    Trace.endSection();
 
     if (shouldCreateDummyFile) {
       createDummyFile(context);
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
+    Trace.beginSection("Go InitOnce");
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
       new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+    Trace.endSection();
 
   }
 
