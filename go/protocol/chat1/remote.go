@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/remote.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -77,7 +78,7 @@ func (e MessageBoxedVersion) String() string {
 	if v, ok := MessageBoxedVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ThreadViewBoxed struct {
@@ -370,7 +371,7 @@ func (e ChannelMention) String() string {
 	if v, ok := ChannelMentionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnreadUpdateFull struct {
@@ -548,7 +549,7 @@ func (e SyncAllProtVers) String() string {
 	if v, ok := SyncAllProtVersRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SyncAllNotificationType int
@@ -574,7 +575,7 @@ func (e SyncAllNotificationType) String() string {
 	if v, ok := SyncAllNotificationTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SyncAllNotificationRes struct {
@@ -850,7 +851,7 @@ func (e ExternalAPIKeyTyp) String() string {
 	if v, ok := ExternalAPIKeyTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ExternalAPIKey struct {
@@ -1154,7 +1155,7 @@ func (e BotInfoResponseTyp) String() string {
 	if v, ok := BotInfoResponseTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type BotInfoResponse struct {
