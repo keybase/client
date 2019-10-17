@@ -82,9 +82,13 @@ const getFailureDescriptionAllowCancel = (message, you) => {
       if (resolveByEdit) {
         failureDescription += `, ${message.errorReason}`
       }
-      if (!!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.restrictedbot) {
-        failureDescription = `Unable to send, ${message.errorReason}`
-        allowRetry = false
+      if (!!message.outboxID && !!you) {
+        switch (message.errorTyp) {
+          case RPCChatTypes.OutboxErrorType.minwriter:
+          case RPCChatTypes.OutboxErrorType.restrictedbot:
+            failureDescription = `Unable to send, ${message.errorReason}`
+            allowRetry = false
+        }
       }
     }
   }

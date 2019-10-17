@@ -275,7 +275,8 @@ protocol local {
     TOOMANYATTEMPTS_6,
     ALREADY_DELETED_7,
     UPLOADFAILED_8,
-    RESTRICTEDBOT_9
+    RESTRICTEDBOT_9,
+    MINWRITER_10
   }
 
   record OutboxStateError {

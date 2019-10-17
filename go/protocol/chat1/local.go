@@ -1724,6 +1724,7 @@ const (
 	OutboxErrorType_ALREADY_DELETED OutboxErrorType = 7
 	OutboxErrorType_UPLOADFAILED    OutboxErrorType = 8
 	OutboxErrorType_RESTRICTEDBOT   OutboxErrorType = 9
+	OutboxErrorType_MINWRITER       OutboxErrorType = 10
 )
 
 func (o OutboxErrorType) DeepCopy() OutboxErrorType { return o }
@@ -1739,19 +1740,21 @@ var OutboxErrorTypeMap = map[string]OutboxErrorType{
 	"ALREADY_DELETED": 7,
 	"UPLOADFAILED":    8,
 	"RESTRICTEDBOT":   9,
+	"MINWRITER":       10,
 }
 
 var OutboxErrorTypeRevMap = map[OutboxErrorType]string{
-	0: "MISC",
-	1: "OFFLINE",
-	2: "IDENTIFY",
-	3: "TOOLONG",
-	4: "DUPLICATE",
-	5: "EXPIRED",
-	6: "TOOMANYATTEMPTS",
-	7: "ALREADY_DELETED",
-	8: "UPLOADFAILED",
-	9: "RESTRICTEDBOT",
+	0:  "MISC",
+	1:  "OFFLINE",
+	2:  "IDENTIFY",
+	3:  "TOOLONG",
+	4:  "DUPLICATE",
+	5:  "EXPIRED",
+	6:  "TOOMANYATTEMPTS",
+	7:  "ALREADY_DELETED",
+	8:  "UPLOADFAILED",
+	9:  "RESTRICTEDBOT",
+	10: "MINWRITER",
 }
 
 func (e OutboxErrorType) String() string {
