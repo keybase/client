@@ -7,7 +7,7 @@ import {AnimationType} from './animation'
 
 export {NavigationEvents} from '@react-navigation/core'
 
-export {default as Animated} from './animated'
+export {default as Animated, Transition} from './animated'
 export {default as Animation} from './animation'
 export type AnimationType = AnimationType
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'

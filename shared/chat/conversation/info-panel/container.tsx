@@ -346,8 +346,8 @@ type Props = {
 }
 
 const InfoPanelSelector = (props: Props) => {
+  const {shouldNavigateOut, onGoToInbox, onBack} = props
   const prevShouldNavigateOut = Container.usePrevious(props.shouldNavigateOut)
-  const {shouldNavigateOut, onGoToInbox} = props
   React.useEffect(() => {
     !prevShouldNavigateOut && shouldNavigateOut && onGoToInbox()
   }, [prevShouldNavigateOut, shouldNavigateOut, onGoToInbox])
@@ -355,6 +355,10 @@ const InfoPanelSelector = (props: Props) => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
+  const [show, setShow] = React.useState<boolean>(true)
+  const onDestroyed = React.useCallback(() => {
+    onBack()
+  }, [onBack])
 
   if (!props.conversationIDKey) {
     return null
@@ -371,24 +375,32 @@ const InfoPanelSelector = (props: Props) => {
       selectedAttachmentView={selectedAttachmentView}
     />
   ) : (
-    <Kb.Box onClick={props.onBack} style={styles.clickCatcher}>
-      <Kb.Animated from={{right: -320}} to={{right: 0}}>
-        {({right}) => (
-          <Kb.Box
-            style={Styles.collapseStyles([styles.panelContainer, {right}])}
-            onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}
-          >
-            <ConnectedInfoPanel
-              onBack={props.onBack}
-              onSelectTab={onSelectTab}
-              conversationIDKey={props.conversationIDKey}
-              selectedTab={selectedTab}
-              onSelectAttachmentView={onSelectAttachmentView}
-              selectedAttachmentView={selectedAttachmentView}
-            />
-          </Kb.Box>
-        )}
-      </Kb.Animated>
+    <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
+      <Kb.Transition
+        items={show}
+        from={{right: -320}}
+        enter={{right: 0}}
+        leave={{right: -320}}
+        onDestroyed={onDestroyed}
+      >
+        {show => ({right}) => {
+          return show ? (
+            <Kb.Box
+              style={Styles.collapseStyles([styles.panelContainer, {right}])}
+              onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}
+            >
+              <ConnectedInfoPanel
+                onBack={() => setShow(false)}
+                onSelectTab={onSelectTab}
+                conversationIDKey={props.conversationIDKey}
+                selectedTab={selectedTab}
+                onSelectAttachmentView={onSelectAttachmentView}
+                selectedAttachmentView={selectedAttachmentView}
+              />
+            </Kb.Box>
+          ) : null
+        }}
+      </Kb.Transition>
     </Kb.Box>
   )
 }

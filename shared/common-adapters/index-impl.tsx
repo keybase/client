@@ -304,6 +304,9 @@ module.exports = {
   get Toast() {
     return require('./toast').default
   },
+  get Transition() {
+    return require('./animated').Transition
+  },
   get UserCard() {
     return require('./user-card').default
   },
