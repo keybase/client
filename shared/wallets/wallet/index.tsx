@@ -8,14 +8,6 @@ import Asset from '../asset/container'
 import Transaction from '../transaction/container'
 import Airdrop from '../airdrop/container'
 
-const stripePatternName = Styles.isMobile
-  ? Styles.isDarkMode
-    ? require('../../images/icons/dark-pattern-stripes-blue-5-black-5-mobile.png')
-    : require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
-  : Styles.isDarkMode
-  ? 'dark-pattern-stripes-blue-5-black-5-desktop.png'
-  : 'pattern-stripes-blue-5-black-5-desktop.png'
-
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
 export type Props = {
@@ -117,8 +109,16 @@ class Wallet extends React.Component<Props> {
     return index
   }
 
-  _renderSectionHeader = ({section}) =>
-    section.stripeHeader ? (
+  _renderSectionHeader = ({section}) => {
+    const stripePatternName = Styles.isMobile
+      ? Styles.isDarkMode()
+        ? require('../../images/icons/dark-pattern-stripes-blue-5-black-5-mobile.png')
+        : require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
+      : Styles.isDarkMode()
+      ? 'dark-pattern-stripes-blue-5-black-5-desktop.png'
+      : 'pattern-stripes-blue-5-black-5-desktop.png'
+
+    return section.stripeHeader ? (
       <Kb.BackgroundRepeatBox
         imageHeight={stripePatternSize}
         imageName={stripePatternName}
@@ -131,6 +131,7 @@ class Wallet extends React.Component<Props> {
     ) : (
       <Kb.SectionDivider label={section.title} />
     )
+  }
 
   _onEndReached = () => {
     // React native's SectionList seems to call the onEndReached method twice each time it hits the end of the list
