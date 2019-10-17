@@ -519,12 +519,29 @@ protocol local {
     boolean hidden;
   }
 
+  enum MessageUnboxedJourneyCardType {
+    WELCOME_0,
+    POPULAR_CHANNELS_1,
+    ADD_PEOPLE_2,
+    CREATE_CHANNELS_3,
+    MSG_ATTENTION_4,
+    USER_AWAY_FOR_LONG_5,
+    CHANNEL_INACTIVE_6,
+    MSG_NO_ANSWER_7
+  }
+
+  record MessageUnboxedJourneyCard {
+    MessageUnboxedJourneyCardType cardType;
+    string data;
+  }
+
   // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;
     case OUTBOX: OutboxRecord;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case JOURNEYCARD: MessageUnboxedJourneyCard;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +

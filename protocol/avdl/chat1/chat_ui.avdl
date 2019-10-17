@@ -292,7 +292,8 @@ protocol chatUi {
     VALID_1,
     ERROR_2,
     OUTBOX_3,
-    PLACEHOLDER_4
+    PLACEHOLDER_4,
+    JOURNEYCARD_5
   }
 
   variant UIMessage switch (MessageUnboxedState state) {
@@ -300,6 +301,7 @@ protocol chatUi {
     case ERROR: MessageUnboxedError;
     case OUTBOX: UIMessageOutbox;
     case PLACEHOLDER: MessageUnboxedPlaceholder;
+    case JOURNEYCARD: MessageUnboxedJourneyCard;
   }
 
   record UIMessages {

@@ -1124,7 +1124,8 @@
         "VALID_1",
         "ERROR_2",
         "OUTBOX_3",
-        "PLACEHOLDER_4"
+        "PLACEHOLDER_4",
+        "JOURNEYCARD_5"
       ]
     },
     {
@@ -1162,6 +1163,13 @@
             "def": false
           },
           "body": "MessageUnboxedPlaceholder"
+        },
+        {
+          "label": {
+            "name": "JOURNEYCARD",
+            "def": false
+          },
+          "body": "MessageUnboxedJourneyCard"
         }
       ]
     },

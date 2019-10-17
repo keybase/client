@@ -1110,6 +1110,7 @@ const (
 	MessageUnboxedState_ERROR       MessageUnboxedState = 2
 	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
 	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
+	MessageUnboxedState_JOURNEYCARD MessageUnboxedState = 5
 )
 
 func (o MessageUnboxedState) DeepCopy() MessageUnboxedState { return o }
@@ -1119,6 +1120,7 @@ var MessageUnboxedStateMap = map[string]MessageUnboxedState{
 	"ERROR":       2,
 	"OUTBOX":      3,
 	"PLACEHOLDER": 4,
+	"JOURNEYCARD": 5,
 }
 
 var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
@@ -1126,6 +1128,7 @@ var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 	2: "ERROR",
 	3: "OUTBOX",
 	4: "PLACEHOLDER",
+	5: "JOURNEYCARD",
 }
 
 func (e MessageUnboxedState) String() string {
@@ -1141,6 +1144,7 @@ type UIMessage struct {
 	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
 	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
 	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
+	Journeycard__ *MessageUnboxedJourneyCard `codec:"journeycard,omitempty" json:"journeycard,omitempty"`
 }
 
 func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
@@ -1163,6 +1167,11 @@ func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_PLACEHOLDER:
 		if o.Placeholder__ == nil {
 			err = errors.New("unexpected nil value for Placeholder__")
+			return ret, err
+		}
+	case MessageUnboxedState_JOURNEYCARD:
+		if o.Journeycard__ == nil {
+			err = errors.New("unexpected nil value for Journeycard__")
 			return ret, err
 		}
 	}
@@ -1209,6 +1218,16 @@ func (o UIMessage) Placeholder() (res MessageUnboxedPlaceholder) {
 	return *o.Placeholder__
 }
 
+func (o UIMessage) Journeycard() (res MessageUnboxedJourneyCard) {
+	if o.State__ != MessageUnboxedState_JOURNEYCARD {
+		panic("wrong case accessed")
+	}
+	if o.Journeycard__ == nil {
+		return
+	}
+	return *o.Journeycard__
+}
+
 func NewUIMessageWithValid(v UIMessageValid) UIMessage {
 	return UIMessage{
 		State__: MessageUnboxedState_VALID,
@@ -1234,6 +1253,13 @@ func NewUIMessageWithPlaceholder(v MessageUnboxedPlaceholder) UIMessage {
 	return UIMessage{
 		State__:       MessageUnboxedState_PLACEHOLDER,
 		Placeholder__: &v,
+	}
+}
+
+func NewUIMessageWithJourneycard(v MessageUnboxedJourneyCard) UIMessage {
+	return UIMessage{
+		State__:       MessageUnboxedState_JOURNEYCARD,
+		Journeycard__: &v,
 	}
 }
 
@@ -1268,6 +1294,13 @@ func (o UIMessage) DeepCopy() UIMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Placeholder__),
+		Journeycard__: (func(x *MessageUnboxedJourneyCard) *MessageUnboxedJourneyCard {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Journeycard__),
 	}
 }
 
