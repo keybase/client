@@ -44,7 +44,7 @@ const descStyleOverride = {
 } as any
 
 const Header = (p: Props) => {
-  let description = !!p.desc && p.desc !== '' && (
+  let description = !!p.desc && (
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
