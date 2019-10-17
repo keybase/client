@@ -273,6 +273,13 @@
           "name": "profileIcon"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "profileIconWhite"
+        },
+        {
           "type": "string",
           "name": "pickerText"
         },
