@@ -78,14 +78,14 @@ const Connected = Container.withSafeNavigation(
   Container.connect(
     (state: Container.TypedState) => ({
       _deletedTeams: state.teams.deletedTeams,
-      _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-      _newTeams: state.teams.getIn(['newTeams'], I.Set()),
-      _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-      _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
-      _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
-      _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
+      _newTeamRequests: state.teams.newTeamRequests || I.List(),
+      _newTeams: state.teams.newTeams || I.Set(),
+      _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
+      _teamNameToRole: state.teams.teamNameToRole || I.Map(),
+      _teammembercounts: state.teams.teammembercounts || I.Map(),
+      _teamresetusers: state.teams.teamNameToResetUsers || I.Map(),
       loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
-      sawChatBanner: state.teams.getIn(['sawChatBanner'], false),
+      sawChatBanner: state.teams.sawChatBanner || false,
       teamnames: Constants.getSortedTeamnames(state),
     }),
     (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({

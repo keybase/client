@@ -143,7 +143,7 @@ export const makeRetentionPolicy = (r?: Partial<RetentionPolicy>): RetentionPoli
   ...(r || {}),
 })
 
-export const makeState = I.Record<Types._State>({
+const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
@@ -180,7 +180,10 @@ export const makeState = I.Record<Types._State>({
   teammembercounts: I.Map(),
   teamnames: I.Set(),
   teamsWithChosenChannels: I.Set(),
-})
+}
+
+export const makeState = (s?: Partial<Types.State>): Types.State =>
+  s ? Object.assign({...emptyState}, s) : emptyState
 
 export const initialCanUserPerform: RPCTypes.TeamOperation = {
   changeOpenTeam: false,
@@ -311,10 +314,10 @@ const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.Te
   state.teams.teamNameToCanPerform.get(teamname, initialCanUserPerform)
 
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameToCanPerform', teamname])
+  state.teams.teamNameToCanPerform.has(teamname)
 
 const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameToChannelInfos', teamname])
+  state.teams.teamNameToChannelInfos.has(teamname)
 
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.teammembercounts.get(teamname, 0)
@@ -460,7 +463,7 @@ const isInSomeTeam = (state: TypedState): boolean =>
   !!state.teams.teamNameToRole.find(role => role !== 'none')
 
 const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.hasIn(['teamNameAccessRequestsPending', teamname])
+  state.teams.teamAccessRequestsPending.has(teamname)
 
 const getTeamSubteams = (state: TypedState, teamname: Types.Teamname): I.Set<Types.Teamname> =>
   state.teams.teamNameToSubteams.get(teamname, I.Set())

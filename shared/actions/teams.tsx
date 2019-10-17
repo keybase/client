@@ -993,8 +993,8 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) 
   const {teamname, settings} = action.payload
   const waitingKey = Constants.settingsWaitingKey(teamname)
 
-  const teamSettings = state.teams.getIn(
-    ['teamNameToSettings', teamname],
+  const teamSettings = state.teams.teamNameToSettings.get(
+    teamname,
     Constants.makeTeamSettings({
       joinAs: RPCTypes.TeamRole['reader'],
       open: false,
@@ -1301,8 +1301,8 @@ const badgeAppForTeams = (state: TypedState, action: TeamsGen.BadgeAppForTeamsPa
     // Call getTeams if new teams come in.
     // Covers the case when we're staring at the teams page so
     // we don't miss a notification we clear when we tab away
-    const existingNewTeams = state.teams.getIn(['newTeams'], I.Set())
-    const existingNewTeamRequests = state.teams.getIn(['newTeamRequests'], I.List())
+    const existingNewTeams = state.teams.newTeams || I.Set()
+    const existingNewTeamRequests = state.teams.newTeamRequests || I.List()
     if (!newTeams.equals(existingNewTeams) && newTeams.size > 0) {
       // We have been added to a new team & we need to refresh the list
       actions.push(TeamsGen.createGetTeams())
