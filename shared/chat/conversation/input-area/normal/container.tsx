@@ -166,7 +166,9 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    cannotWrite: stateProps.cannotWrite,
+    // TEMP short term fix to allow input since the state management here is slightly laggy
+    cannotWrite: false,
+    // cannotWrite: stateProps.cannotWrite,
     clearInboxFilter: dispatchProps.clearInboxFilter,
     conversationIDKey: stateProps.conversationIDKey,
     editText: stateProps.editText,
