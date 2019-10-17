@@ -32,9 +32,9 @@ const AnimatedChild = React.memo(({children}) => {
       style={{overflow: 'hidden', transform: [{translateY}], width: '100%'}}
       onLayout={e => {
         const {height} = e.nativeEvent.layout
-        translateY.setValue(height)
+        translateY.setValue(height + 20)
         Animated.timing(translateY, {
-          duration: 3000,
+          duration: 300,
           toValue: 0,
           useNativeDriver: true,
         }).start()
