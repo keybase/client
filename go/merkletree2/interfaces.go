@@ -10,10 +10,17 @@ type StorageEngine interface {
 	// StoreKVPairs stores the []KeyEncodedValuePair in the tree.
 	StoreKEVPairs(logger.ContextInterface, Transaction, Seqno, []KeyEncodedValuePair) error
 
+	// StoreNode stores the Hash (of a tree node) at the provided Position,
+	// Seqno in the tree.
 	StoreNode(logger.ContextInterface, Transaction, Seqno, *Position, Hash) error
 
+	// StoreNode takes multiple pairs of a position and a hash, and stores each
+	// hash (of a tree node) at the corresponding position and at the supplied
+	// Seqno in the tree.
 	StoreNodes(logger.ContextInterface, Transaction, Seqno, []PositionHashPair) error
 
+	// StoreRootMetadata stores the supplied RootMetadata, along with the
+	// corresponding Hash.
 	StoreRootMetadata(logger.ContextInterface, Transaction, RootMetadata, Hash) error
 
 	// LookupLatestRoot returns the latest root metadata and sequence number in
