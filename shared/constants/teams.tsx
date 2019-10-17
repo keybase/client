@@ -176,7 +176,7 @@ const emptyState: Types.State = {
   teamNameToRole: I.Map(),
   teamNameToSettings: I.Map(),
   teamNameToSubteams: I.Map(),
-  teamProfileAddList: I.List(),
+  teamProfileAddList: [],
   teammembercounts: I.Map(),
   teamnames: I.Set(),
   teamsWithChosenChannels: new Set(),

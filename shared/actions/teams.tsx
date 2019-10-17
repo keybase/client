@@ -96,7 +96,7 @@ const getTeamProfileAddList = async (_: TypedState, action: TeamsGen.GetTeamProf
     teamName: team.teamName.parts ? team.teamName.parts.join('.') : '',
   }))
   teamlist.sort((a, b) => a.teamName.localeCompare(b.teamName))
-  return TeamsGen.createSetTeamProfileAddList({teamlist: I.List(teamlist)})
+  return TeamsGen.createSetTeamProfileAddList({teamlist})
 }
 
 function* deleteTeam(_: TypedState, action: TeamsGen.DeleteTeamPayload, logger: Saga.SagaLogger) {

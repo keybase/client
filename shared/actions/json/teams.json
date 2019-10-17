@@ -223,7 +223,7 @@
       "teamNameToID": "I.Map<Types.Teamname, string>"
     },
     "setTeamProfileAddList": {
-      "teamlist": "I.List<Types.TeamProfileAddList>"
+      "teamlist": "Array<Types.TeamProfileAddList>"
     },
     "setTeamAccessRequestsPending": {
       "accessRequestsPending": "Set<Types.Teamname>"

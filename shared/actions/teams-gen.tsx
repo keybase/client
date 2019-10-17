@@ -236,7 +236,7 @@ type _SetTeamLoadingInvitesPayload = {
   readonly invitees: string
   readonly loadingInvites: boolean
 }
-type _SetTeamProfileAddListPayload = {readonly teamlist: I.List<Types.TeamProfileAddList>}
+type _SetTeamProfileAddListPayload = {readonly teamlist: Array<Types.TeamProfileAddList>}
 type _SetTeamPublicitySettingsPayload = {
   readonly teamname: string
   readonly publicity: Types._PublicitySettings

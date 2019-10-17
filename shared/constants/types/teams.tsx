@@ -138,7 +138,7 @@ export type State = Readonly<{
   teamNameToIsShowcasing: I.Map<Teamname, boolean>
   teamnames: I.Set<Teamname>
   teammembercounts: I.Map<Teamname, number>
-  teamProfileAddList: I.List<TeamProfileAddList>
+  teamProfileAddList: Array<TeamProfileAddList>
   newTeams: I.Set<string>
   newTeamRequests: I.List<string>
   teamBuilding: TeamBuildingSubState
