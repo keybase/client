@@ -137,6 +137,7 @@ export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Ass
     pickerText: s.pickerText,
     proofURL: '',
     siteIcon: s.profileIcon || [],
+    siteIconWhite: s.profileIconWhite || [],
     siteURL: '',
     state: 'suggestion',
     type: ourKey,
