@@ -844,7 +844,7 @@ func TestInboxMembershipDupUpdate(t *testing.T) {
 		ConvID: conv.GetConvID(),
 	}}
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
-		nil, otherJoinedConvs, nil, nil, nil))
+		nil, otherJoinedConvs, nil, nil, nil, nil))
 
 	_, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
@@ -873,8 +873,10 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
 	var convs []types.RemoteConversation
+	tlfID := makeTlfID()
 	for i := numConvs - 1; i >= 0; i-- {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.Conv.Metadata.IdTriple.Tlfid = tlfID
 		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
 		convs = append(convs, conv)
 	}
@@ -884,6 +886,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	numJoinedConvs := 5
 	for i := 0; i < numJoinedConvs; i++ {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
+		conv.Conv.Metadata.IdTriple.Tlfid = tlfID
 		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
 		joinedConvs = append(joinedConvs, conv)
 	}
@@ -913,9 +916,13 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		Uid:    uid,
 		ConvID: userResetConvID,
 	}}
+
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, utils.PluckConvs(joinedConvs),
 		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
-		userResetConvs, otherResetConvs))
+		userResetConvs, otherResetConvs, &chat1.TeamMemberRoleUpdate{
+			TlfID: tlfID,
+			Role:  keybase1.TeamRole_WRITER,
+		}))
 
 	vers, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
@@ -923,11 +930,14 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	for _, c := range res {
 		if c.GetConvID().Eq(convs[5].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_LEFT, c.Conv.ReaderInfo.Status)
+			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[5].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			convs[5].Conv.Metadata.Version = chat1.ConversationVers(2)
+			convs[5].Conv.ReaderInfo.UntrustedTeamRole = keybase1.TeamRole_WRITER
 		}
 		if c.GetConvID().Eq(convs[6].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, c.Conv.ReaderInfo.Status)
+			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[6].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			convs[6].Conv.Metadata.Version = chat1.ConversationVers(2)
 		}
@@ -939,6 +949,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	for i := 0; i < len(res); i++ {
 		sort.Sort(chat1.ByUID(res[i].Conv.Metadata.AllList))
 		sort.Sort(chat1.ByUID(expected[i].Conv.Metadata.AllList))
+		require.Equal(t, keybase1.TeamRole_WRITER, res[i].Conv.ReaderInfo.UntrustedTeamRole)
 		if res[i].GetConvID().Eq(otherJoinConvID) {
 			allUsers := []gregor1.UID{uid, uid2, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))

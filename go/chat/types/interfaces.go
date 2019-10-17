@@ -196,7 +196,8 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
-		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
+		resets []chat1.ConversationMember, previews []chat1.ConversationID,
+		teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (MembershipUpdateRes, error)
 	ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convUpdates []chat1.ConversationUpdate) error
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,

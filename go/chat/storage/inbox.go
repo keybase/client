@@ -1707,7 +1707,8 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	userJoined []chat1.Conversation, userRemoved []chat1.ConversationMember,
 	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember,
-	userReset []chat1.ConversationMember, othersReset []chat1.ConversationMember) (err Error) {
+	userReset []chat1.ConversationMember, othersReset []chat1.ConversationMember,
+	teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
@@ -1719,8 +1720,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		}
 	}()
 
-	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
-		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
+	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d, teamMemberRoleUpdate: %+v",
+		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved), teamMemberRoleUpdate)
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -1757,6 +1758,10 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	ibox.Conversations = nil
 	for _, conv := range convs {
+		if teamMemberRoleUpdate != nil && conv.Conv.Metadata.IdTriple.Tlfid.Eq(teamMemberRoleUpdate.TlfID) {
+			conv.Conv.ReaderInfo.UntrustedTeamRole = teamMemberRoleUpdate.Role
+		}
+
 		if removedMap[conv.GetConvID().String()] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()

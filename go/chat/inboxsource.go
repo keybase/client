@@ -491,7 +491,7 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
-	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
+	previews []chat1.ConversationID, teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (res types.MembershipUpdateRes, err error) {
 	return res, err
 }
 
@@ -1467,7 +1467,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
-	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
+	previews []chat1.ConversationID, teamMemberRoleUpdate *chat1.TeamMemberRoleUpdate) (res types.MembershipUpdateRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
 	// Separate into joins and removed on uid, and then on other users
@@ -1524,7 +1524,8 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 
 	ib := s.createInbox()
 	if cerr := ib.MembershipUpdate(ctx, uid, vers, userJoinedConvs, res.UserRemovedConvs,
-		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs, res.OthersResetConvs); cerr != nil {
+		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs,
+		res.OthersResetConvs, teamMemberRoleUpdate); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return res, err
 	}
