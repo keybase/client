@@ -710,6 +710,7 @@ export type TypedActionsMap = {
   'settings:editEmail': settings.EditEmailPayload
   'settings:editPhone': settings.EditPhonePayload
   'settings:sentVerificationEmail': settings.SentVerificationEmailPayload
+  'settings:emailVerified': settings.EmailVerifiedPayload
   'settings:loadContactImportEnabled': settings.LoadContactImportEnabledPayload
   'settings:loadedContactImportEnabled': settings.LoadedContactImportEnabledPayload
   'settings:loadedContactPermissions': settings.LoadedContactPermissionsPayload
