@@ -113,7 +113,7 @@ export default Container.connect(
     _them: Container.getRouteProps(ownProps, 'username', ''),
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     addUserToTeamsState: state.teams.addUserToTeamsState,
-    teamProfileAddList: state.teams.get('teamProfileAddList'),
+    teamProfileAddList: state.teams.teamProfileAddList,
     teamnames: Constants.getSortedTeamnames(state),
     waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
   }),

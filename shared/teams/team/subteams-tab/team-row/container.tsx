@@ -11,39 +11,35 @@ type OwnProps = {
   teamname: string
 }
 
-const mapStateToProps = (state, {teamname}: OwnProps) => ({
-  _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
-  _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-  members: Constants.getTeamMemberCount(state, teamname),
-  yourRole: Constants.getRole(state, teamname),
-})
-
-const mapDispatchToProps = dispatch => ({
-  _onManageChat: (teamname: Types.Teamname) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
-  _onOpenFolder: (teamname: Types.Teamname) =>
-    dispatch(FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))),
-  _onViewTeam: (teamname: Types.Teamname) => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
-  return {
-    isNew: false,
-    isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
-    membercount: stateProps.members,
-    name: ownProps.teamname,
-    newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
-    onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
-    onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
-    onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
-  }
-}
-
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  (state, {teamname}: OwnProps) => ({
+    _newTeamRequests: state.teams.newTeamRequests || I.List(),
+    _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
+    members: Constants.getTeamMemberCount(state, teamname),
+    yourRole: Constants.getRole(state, teamname),
+  }),
+  dispatch => ({
+    _onManageChat: (teamname: Types.Teamname) =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
+    _onOpenFolder: (teamname: Types.Teamname) =>
+      dispatch(
+        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
+      ),
+    _onViewTeam: (teamname: Types.Teamname) => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'team'}]}))
+    },
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const youAreMember = stateProps.yourRole && stateProps.yourRole !== 'none'
+    return {
+      isNew: false,
+      isOpen: stateProps._teamNameToIsOpen.toObject()[ownProps.teamname],
+      membercount: stateProps.members,
+      name: ownProps.teamname,
+      newRequests: stateProps._newTeamRequests.toArray().filter(team => team === ownProps.teamname).length,
+      onManageChat: youAreMember ? () => dispatchProps._onManageChat(ownProps.teamname) : null,
+      onOpenFolder: youAreMember ? () => dispatchProps._onOpenFolder(ownProps.teamname) : null,
+      onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamname),
+    }
+  }
 )(TeamRow)

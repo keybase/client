@@ -12,13 +12,13 @@ type OwnProps = {}
 
 const mapStateToProps = (state: Container.TypedState) => {
   return {
-    _teamNameToAllowPromote: state.teams.getIn(['teamNameToAllowPromote'], I.Map()),
-    _teamNameToCanPerform: state.teams.getIn(['teamNameToCanPerform'], I.Map()),
-    _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
-    _teamNameToIsShowcasing: state.teams.getIn(['teamNameToIsShowcasing'], I.Map()),
-    _teamNameToPublicitySettings: state.teams.getIn(['teamNameToPublicitySettings'], I.Map()),
-    _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
-    _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
+    _teamNameToAllowPromote: state.teams.teamNameToAllowPromote || I.Map(),
+    _teamNameToCanPerform: state.teams.teamNameToCanPerform || I.Map(),
+    _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
+    _teamNameToIsShowcasing: state.teams.teamNameToIsShowcasing || I.Map(),
+    _teamNameToPublicitySettings: state.teams.teamNameToPublicitySettings || I.Map(),
+    _teamNameToRole: state.teams.teamNameToRole || I.Map(),
+    _teammembercounts: state.teams.teammembercounts || I.Map(),
     _waiting: state.waiting,
     _you: state.config.username,
     teamnames: getSortedTeamnames(state),
