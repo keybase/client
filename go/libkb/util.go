@@ -1065,7 +1065,7 @@ func FindPreferredKBFSMountDirs() (mountDirs []string) {
 }
 
 var kbfsPathInnerRegExp = func() *regexp.Regexp {
-	const regularAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+	const regularAssertion = `[-_a-zA-Z0-9.+]+@[a-zA-Z.]+`
 	const atContainingAssertion = `\[[-_a-zA-Z0-9.]+@[-_a-zA-Z0-9.]+\]@[a-zA-Z.]+`
 	const socialAssertion = `(?:` + regularAssertion + `)|(?:` + atContainingAssertion + `)`
 	const user = `(?:(?:` + kbun.UsernameRE + `)|(?:` + socialAssertion + `))`
