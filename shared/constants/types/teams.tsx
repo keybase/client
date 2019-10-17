@@ -105,7 +105,7 @@ export type EmailInviteError = I.RecordOf<_EmailInviteError>
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
-export type State = {
+export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
   channelCreationError: string
@@ -142,4 +142,4 @@ export type State = {
   newTeams: I.Set<string>
   newTeamRequests: I.List<string>
   teamBuilding: TeamBuildingSubState
-}
+}>
