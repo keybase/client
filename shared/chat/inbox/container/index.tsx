@@ -118,6 +118,7 @@ const Connected = Container.namedConnect(
       _canRefreshOnMount,
       _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
       _inboxLayout: inboxLayout,
+      _selectedConversationIDKey: state.chat2.selectedConversation,
       allowShowFloatingButton,
       isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
       isSearching: !!state.chat2.inboxSearch,
@@ -164,7 +165,11 @@ const Connected = Container.namedConnect(
         // only check big teams for large inbox perf
         break
       }
-      if (row.conversationIDKey && stateProps._badgeMap.get(row.conversationIDKey)) {
+      if (
+        row.conversationIDKey &&
+        stateProps._badgeMap.get(row.conversationIDKey) &&
+        row.conversationIDKey !== stateProps._selectedConversationIDKey
+      ) {
         // on mobile include all convos, on desktop only not currently selected convo
         unreadIndices.unshift(i)
       }
