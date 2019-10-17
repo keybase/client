@@ -9,20 +9,20 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type cardChecker struct {
+type journeyCardChecker struct {
 	globals.Contextified
 	utils.DebugLabeler
 }
 
-func newCardChecker(g *globals.Context) *cardChecker {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "cardChecker", false)
-	return &cardChecker{
+func newJourneyCardChecker(g *globals.Context) *journeyCardChecker {
+	labeler := utils.NewDebugLabeler(g.GetLog(), "journeyCardChecker", false)
+	return &journeyCardChecker{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
 	}
 }
 
-func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*chat1.MessageUnboxedJourneyCard, error) {
+func (cc *journeyCardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal, thread *chat1.ThreadView) (*chat1.MessageUnboxedJourneyCard, error) {
 	if conv == nil {
 		// if no verified conversation parameter, don't do anything
 		cc.Debug(ctx, "no conversation parameter")

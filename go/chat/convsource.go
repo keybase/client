@@ -91,7 +91,7 @@ func (s *baseConversationSource) addConversationCards(ctx context.Context, uid g
 
 	// Maybe this should only be created once and reused, but for now, just make
 	// a new one.
-	cc := newCardChecker(s.G())
+	cc := newJourneyCardChecker(s.G())
 	card, err := cc.Next(ctx, uid, conv, thread)
 	if err != nil {
 		s.Debug(ctx, "error getting next conversation card: %s", err)
