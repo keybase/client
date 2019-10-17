@@ -15,7 +15,7 @@ const ff: FeatureFlags = {
   chatIndexProfilingEnabled: false,
   conflictResolution: false,
   dbCleanEnabled: false,
-  fastAccountSwitch: false,
+  fastAccountSwitch: true,
   foldersInProfileTab: false,
   kbfsOfflineMode: false,
   lagRadar: false,
@@ -31,7 +31,6 @@ const ff: FeatureFlags = {
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   chatIndexProfilingEnabled: true,
   dbCleanEnabled: true,
-  fastAccountSwitch: true,
   kbfsOfflineMode: true,
   moveOrCopy: true,
   outOfDateBanner: true,
