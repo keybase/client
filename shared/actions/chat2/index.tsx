@@ -247,18 +247,23 @@ const maybeChangeSelectedConv = (
   ) {
     if (isMobile) {
       // on mobile just head back to the inbox if we have something selected
-      return Constants.isValidConversationIDKey(state.chat2.selectedConversation)
-        ? Chat2Gen.createNavigateToInbox()
-        : false
+      if (Constants.isValidConversationIDKey(state.chat2.selectedConversation)) {
+        logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
+        return Chat2Gen.createNavigateToInbox()
+      }
+      logger.info(`maybeChangeSelectedConv: mobile: ignoring conv change, no conv selected`)
+      return false
     }
     if (state.chat2.inboxLayout.reselectInfo.newConvID) {
-      logger.info(`onChatInboxLayout: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`)
+      logger.info(
+        `maybeChangeSelectedConv: selecting new conv: ${state.chat2.inboxLayout.reselectInfo.newConvID}`
+      )
       return Chat2Gen.createSelectConversation({
         conversationIDKey: state.chat2.inboxLayout.reselectInfo.newConvID,
         reason: 'findNewestConversation',
       })
     } else {
-      logger.info(`onChatInboxLayout: deselecting conv, service provided no new conv`)
+      logger.info(`maybeChangeSelectedConv: deselecting conv, service provided no new conv`)
       return Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.noConversationIDKey,
         reason: 'clearSelected',
@@ -266,7 +271,7 @@ const maybeChangeSelectedConv = (
     }
   } else {
     logger.info(
-      `onChatInboxLayout: selected conv mismatch on reselect (ignoring): selected: ${
+      `maybeChangeSelectedConv: selected conv mismatch on reselect (ignoring): selected: ${
         state.chat2.selectedConversation
       } srvold: ${state.chat2.inboxLayout.reselectInfo.oldConvID}`
     )
@@ -2258,6 +2263,10 @@ function* loadChannelInfos(state: TypedState, action: Chat2Gen.SelectConversatio
   }
 }
 
+const clearModalsFromConvEvent = () => {
+  return RouteTreeGen.createClearModals()
+}
+
 // Helpers to nav you to the right place
 const navigateToInbox = (
   _: TypedState,
@@ -2266,6 +2275,7 @@ const navigateToInbox = (
     | Chat2Gen.LeaveConversationPayload
     | TeamsGen.LeaveTeamPayload
     | TeamsGen.LeftTeamPayload
+    | TeamsGen.DeleteChannelConfirmedPayload
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
@@ -3400,7 +3410,11 @@ function* chat2Saga() {
     markThreadAsRead,
     'markThreadAsRead'
   )
-
+  yield* Saga.chainAction2(
+    [Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
+    clearModalsFromConvEvent,
+    'clearModalsFromConvEvent'
+  )
   yield* Saga.chainAction2(
     [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
     navigateToInbox,

@@ -85,10 +85,7 @@ const ConnectedEditChannel = Container.connect(
       errorText: upperFirst(stateProps.errorText),
       loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
       onCancel: dispatchProps._navigateUp,
-      onConfirmedDelete: () => {
-        dispatchProps._onConfirmedDelete(teamname, conversationIDKey)
-        dispatchProps._navigateUp()
-      },
+      onConfirmedDelete: () => dispatchProps._onConfirmedDelete(teamname, conversationIDKey),
       onSave: (newChannelName: string, newTopic: string) => {
         if (!deleteRenameDisabled && newChannelName !== channelName) {
           dispatchProps._onSetChannelCreationError('')
