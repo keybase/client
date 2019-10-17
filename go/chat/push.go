@@ -842,12 +842,12 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
-func (g *PushHandler) notifyConversationsUpdate(ctx context.Context, uid gregor1.UID,
-	updates []chat1.ConversationUpdate) {
+func (g *PushHandler) notifyConversationsStale(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID) {
 	var supdate []chat1.ConversationStaleUpdate
-	for _, update := range updates {
+	for _, convID := range convIDs {
 		supdate = append(supdate, chat1.ConversationStaleUpdate{
-			ConvID:     update.ConvID,
+			ConvID:     convID,
 			UpdateType: chat1.StaleUpdateType_CLEAR,
 		})
 	}
@@ -980,6 +980,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			g.notifyReset(ctx, uid, c.ConvID, c.TopicType)
 		}
 		g.notifyMembersUpdate(ctx, uid, updateRes)
+		g.notifyConversationsStale(ctx, uid, updateRes.RoleUpdates)
 
 		// Fire off badger updates
 		if update.UnreadUpdate != nil {
@@ -1029,7 +1030,11 @@ func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBan
 		}
 
 		// Send out notifications
-		g.notifyConversationsUpdate(ctx, uid, update.ConvUpdates)
+		convIDs := []chat1.ConversationID{}
+		for _, update := range update.ConvUpdates {
+			convIDs = append(convIDs, update.ConvID)
+		}
+		g.notifyConversationsStale(ctx, uid, convIDs)
 		return nil
 	}
 	go func() { _ = f(globals.BackgroundChatCtx(ctx, g.G())) }()

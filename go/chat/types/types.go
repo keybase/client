@@ -54,6 +54,7 @@ func NewNameInfo() *NameInfo {
 }
 
 type MembershipUpdateRes struct {
+	RoleUpdates        []chat1.ConversationID
 	UserJoinedConvs    []chat1.ConversationLocal
 	UserRemovedConvs   []chat1.ConversationMember
 	UserResetConvs     []chat1.ConversationMember

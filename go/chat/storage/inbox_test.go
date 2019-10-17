@@ -843,8 +843,10 @@ func TestInboxMembershipDupUpdate(t *testing.T) {
 		Uid:    uid2,
 		ConvID: conv.GetConvID(),
 	}}
-	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
-		nil, otherJoinedConvs, nil, nil, nil, nil))
+	roleUpdates, err := inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
+		nil, otherJoinedConvs, nil, nil, nil, nil)
+	require.NoError(t, err)
+	require.Nil(t, roleUpdates)
 
 	_, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
@@ -917,12 +919,14 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		ConvID: userResetConvID,
 	}}
 
-	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, utils.PluckConvs(joinedConvs),
+	roleUpdates, err := inbox.MembershipUpdate(context.TODO(), uid, 2, utils.PluckConvs(joinedConvs),
 		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
 		userResetConvs, otherResetConvs, &chat1.TeamMemberRoleUpdate{
 			TlfID: tlfID,
 			Role:  keybase1.TeamRole_WRITER,
-		}))
+		})
+	require.NoError(t, err)
+	require.NotNil(t, roleUpdates)
 
 	vers, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
@@ -933,7 +937,6 @@ func TestInboxMembershipUpdate(t *testing.T) {
 			require.Equal(t, keybase1.TeamRole_WRITER, c.Conv.ReaderInfo.UntrustedTeamRole)
 			convs[5].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			convs[5].Conv.Metadata.Version = chat1.ConversationVers(2)
-			convs[5].Conv.ReaderInfo.UntrustedTeamRole = keybase1.TeamRole_WRITER
 		}
 		if c.GetConvID().Eq(convs[6].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_RESET, c.Conv.ReaderInfo.Status)
@@ -944,12 +947,14 @@ func TestInboxMembershipUpdate(t *testing.T) {
 	}
 	expected := append(convs, joinedConvs...)
 	sort.Sort(utils.RemoteConvByConvID(expected))
+	sort.Sort(utils.ByConvID(roleUpdates))
 	sort.Sort(utils.RemoteConvByConvID(res))
 	require.Equal(t, len(expected), len(res))
 	for i := 0; i < len(res); i++ {
 		sort.Sort(chat1.ByUID(res[i].Conv.Metadata.AllList))
 		sort.Sort(chat1.ByUID(expected[i].Conv.Metadata.AllList))
 		require.Equal(t, keybase1.TeamRole_WRITER, res[i].Conv.ReaderInfo.UntrustedTeamRole)
+		require.True(t, expected[i].GetConvID().Eq(roleUpdates[i]))
 		if res[i].GetConvID().Eq(otherJoinConvID) {
 			allUsers := []gregor1.UID{uid, uid2, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))

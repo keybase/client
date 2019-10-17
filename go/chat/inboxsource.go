@@ -1523,12 +1523,14 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	}
 
 	ib := s.createInbox()
-	if cerr := ib.MembershipUpdate(ctx, uid, vers, userJoinedConvs, res.UserRemovedConvs,
+	roleUpdates, cerr := ib.MembershipUpdate(ctx, uid, vers, userJoinedConvs, res.UserRemovedConvs,
 		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs,
-		res.OthersResetConvs, teamMemberRoleUpdate); cerr != nil {
+		res.OthersResetConvs, teamMemberRoleUpdate)
+	if cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return res, err
 	}
+	res.RoleUpdates = roleUpdates
 
 	return res, nil
 }
