@@ -104,8 +104,8 @@ export const makeRequestInfo = I.Record<Types._RequestInfo>({
   username: '',
 })
 
-export const makeEmailInviteError = I.Record<Types._EmailInviteError>({
-  malformed: I.Set(),
+export const emptyEmailInviteError: Readonly<Types.EmailInviteError> = Object.freeze({
+  malformed: new Set<string>(),
   message: '',
 })
 
@@ -148,7 +148,7 @@ const emptyState: Types.State = {
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
   deletedTeams: [],
-  emailInviteError: makeEmailInviteError(),
+  emailInviteError: emptyEmailInviteError,
   newTeamRequests: I.List(),
   newTeams: I.Set(),
   sawChatBanner: false,

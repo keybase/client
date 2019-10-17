@@ -97,11 +97,10 @@ export type _ResetUser = {
 }
 export type ResetUser = I.RecordOf<_ResetUser>
 
-export type _EmailInviteError = {
-  malformed: I.Set<string>
+export type EmailInviteError = {
+  malformed: Set<string>
   message: string
 }
-export type EmailInviteError = I.RecordOf<_EmailInviteError>
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
