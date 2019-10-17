@@ -2102,6 +2102,9 @@ func (e ChatClientError) Error() string {
 }
 
 func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	if strings.HasPrefix(e.Msg, "Admins have set that you must be a team") {
+		return chat1.OutboxErrorType_MINWRITER, true
+	}
 	return chat1.OutboxErrorType_MISC, true
 }
 
