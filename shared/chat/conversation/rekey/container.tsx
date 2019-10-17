@@ -21,47 +21,30 @@ type Props = {
   youRekey: boolean
 }
 
-const mapStateToProps = (state, {conversationIDKey}) => ({
-  _you: state.config.username,
-  rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
-})
-
-const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onEnterPaperkey: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['enterPaperkey']})),
-  onRekey: () => dispatch(createOpenPopup()),
-  onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  onBack: dispatchProps.onBack,
-  onEnterPaperkey: dispatchProps.onEnterPaperkey,
-  onRekey: dispatchProps.onRekey,
-  onShowProfile: dispatchProps.onShowProfile,
-  rekeyers: stateProps.rekeyers.toArray(),
-  youRekey: stateProps.rekeyers.has(stateProps._you),
-})
-
-class Rekey extends React.PureComponent<Props> {
-  render() {
-    return this.props.youRekey ? (
-      <YouRekey
-        onEnterPaperkey={this.props.onEnterPaperkey}
-        onBack={this.props.onBack}
-        onRekey={this.props.onRekey}
-      />
-    ) : (
-      <ParticipantRekey
-        rekeyers={this.props.rekeyers}
-        onShowProfile={this.props.onShowProfile}
-        onBack={this.props.onBack}
-      />
-    )
-  }
-}
+const Rekey = (props: Props) =>
+  props.youRekey ? (
+    <YouRekey onEnterPaperkey={props.onEnterPaperkey} onBack={props.onBack} onRekey={props.onRekey} />
+  ) : (
+    <ParticipantRekey rekeyers={props.rekeyers} onShowProfile={props.onShowProfile} onBack={props.onBack} />
+  )
 
 export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
+  (state, {conversationIDKey}: OwnProps) => ({
+    _you: state.config.username,
+    rekeyers: Constants.getMeta(state, conversationIDKey).rekeyers,
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onEnterPaperkey: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['enterPaperkey']})),
+    onRekey: () => dispatch(createOpenPopup()),
+    onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
+    onBack: dispatchProps.onBack,
+    onEnterPaperkey: dispatchProps.onEnterPaperkey,
+    onRekey: dispatchProps.onRekey,
+    onShowProfile: dispatchProps.onShowProfile,
+    rekeyers: [...stateProps.rekeyers],
+    youRekey: stateProps.rekeyers.has(stateProps._you),
+  })
 )(Rekey)

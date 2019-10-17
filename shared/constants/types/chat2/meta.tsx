@@ -1,5 +1,4 @@
 // Metadata about a conversation.
-import * as I from 'immutable'
 import * as Common from './common'
 import * as Message from './message'
 import * as RPCChatTypes from '../rpc-chat-gen'
@@ -17,7 +16,7 @@ export type PinnedMessageInfo = {
   pinnerUsername: string
 }
 
-export type _ConversationMeta = {
+export type ConversationMeta = {
   botCommands: RPCChatTypes.ConversationCommandGroups
   cannotWrite: boolean
   channelname: string
@@ -34,17 +33,17 @@ export type _ConversationMeta = {
   maxVisibleMsgID: number
   membershipType: MembershipType
   minWriterRole: TeamTypes.TeamRoleType // minimum role to be able to write into a channel,
-  nameParticipants: I.List<string> // participants used for the conv name
+  nameParticipants: Array<string> // participants used for the conv name
   notificationsDesktop: NotificationsType
   notificationsGlobalIgnoreMentions: boolean
   notificationsMobile: NotificationsType
   offline: boolean
-  participantToContactName: I.Map<string, string>
-  participants: I.List<string> // participants to show in the info panel
-  pinnedMsg: PinnedMessageInfo | null
+  participantToContactName: Map<string, string>
+  participants: Array<string> // participants to show in the info panel
+  pinnedMsg?: PinnedMessageInfo
   readMsgID: number
-  rekeyers: I.Set<string>
-  resetParticipants: I.Set<string>
+  rekeyers: Set<string>
+  resetParticipants: Set<string>
   retentionPolicy: RetentionPolicy
   snippet: string
   snippetDecoration: string
@@ -63,5 +62,3 @@ export type _ConversationMeta = {
   trustedState: MetaTrustedState
   wasFinalizedBy: string // a conversation can be finalized but not superseded,
 }
-
-export type ConversationMeta = I.RecordOf<_ConversationMeta>

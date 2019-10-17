@@ -246,6 +246,8 @@ type testRecoverUIProvision struct {
 	paperkey   string
 }
 
+var _ libkb.LoginUI = (*testRecoverUIProvision)(nil)
+
 func (r *testRecoverUIProvision) GetEmailOrUsername(context.Context, int) (string, error) {
 	return r.username, nil
 }
@@ -297,8 +299,8 @@ func (r *testRecoverUIProvision) GetPassphrase(p keybase1.GUIEntryArg, terminal 
 	res.Passphrase = r.paperkey
 	return res, nil
 }
-func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (r *testRecoverUIProvision) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 func (r *testRecoverUIProvision) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil

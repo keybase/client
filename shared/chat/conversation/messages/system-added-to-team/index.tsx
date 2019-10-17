@@ -5,11 +5,14 @@ import UserNotice from '../user-notice'
 import SystemMessageTimestamp from '../system-message-timestamp'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {typeToLabel} from '../../../../constants/teams'
+import {formatTimeForChat} from '../../../../util/timestamp'
+import {getAddedUsernames} from '../system-users-added-to-conv'
 
 type Props = {
   isAdmin: boolean
   addee: string
   adder: string
+  bulkAdds: Array<string>
   role: TeamTypes.TeamRoleType
   onManageChannels: () => void
   onManageNotifications: () => void
@@ -35,7 +38,7 @@ const ManageComponent = (props: Props) => {
         <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
           Manage phone and computer notifications
         </Kb.Text>
-        {props.teamname && (
+        {!!props.teamname && (
           <Kb.Text onClick={props.onManageChannels} type={textType}>
             Browse other channels
           </Kb.Text>
@@ -69,12 +72,24 @@ const AddedToTeam = (props: Props) => {
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
+  if (props.bulkAdds.length === 0) {
+    return (
+      <Kb.Text type="BodySmall" style={{flex: 1}}>
+        was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
+        {typeToLabel[props.role] &&
+          ` as ${'aeiou'.includes(props.role[0]) ? 'an' : 'a'} ${typeToLabel[props.role].toLowerCase()}`}
+        . <ManageComponent {...props} />
+      </Kb.Text>
+    )
+  }
   return (
-    <Kb.Text type="BodySmall" style={{flex: 1}}>
-      was added by {youOrUsername({capitalize: false, username: props.adder, you: props.you})}
-      {typeToLabel[props.role] && ` as a ${typeToLabel[props.role].toLowerCase()}`}.{' '}
-      <ManageComponent {...props} />
-    </Kb.Text>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Text type="BodyTiny">{formatTimeForChat(props.timestamp)}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {youOrUsername({capitalize: true, username: props.adder, you: props.you})} added{' '}
+        {getAddedUsernames(props.bulkAdds)}. <ManageComponent {...props} />
+      </Kb.Text>
+    </Kb.Box2>
   )
 }
 

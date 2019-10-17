@@ -23,6 +23,14 @@ type StorageEngine interface {
 	// If there is no root for the specified Seqno, an InvalidSeqnoError is returned.
 	LookupRoot(logger.ContextInterface, Transaction, Seqno) (RootMetadata, error)
 
+	// LookupRoots returns the RootMetadata objects in the tree at the
+	// supplied Seqnos, ordered by seqno.
+	LookupRoots(logger.ContextInterface, Transaction, []Seqno) ([]RootMetadata, error)
+
+	// LookupRootHashes returns hashes of the RootMetadata in the tree at the
+	// corresponding Seqnos, ordered by seqno.
+	LookupRootHashes(logger.ContextInterface, Transaction, []Seqno) ([]Hash, error)
+
 	// LookupNode returns, for any position, the hash of the node with the
 	// highest Seqno s' <= s which was stored at position p. For example, if
 	// StoreNode(ctx, t, 5, p, hash5) and StoreNode(ctx, 6, p, hash6) and

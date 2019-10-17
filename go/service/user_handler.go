@@ -72,7 +72,7 @@ func (r *userHandler) passphraseStateUpdate(m libkb.MetaContext, cli gregor1.Inc
 		return err
 	}
 	libkb.MaybeSavePassphraseState(m, msg.PassphraseState)
-	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx())
+	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx(), msg.PassphraseState)
 	// Don't dismiss the item, so other devices know about it
 	return nil
 }

@@ -172,6 +172,18 @@ func (e *EKLib) KeygenIfNeeded(mctx libkb.MetaContext) (err error) {
 		if err = e.keygenIfNeeded(mctx, *merkleRootPtr, true /* shouldCleanup */); err == nil {
 			return nil
 		}
+
+		if !libkb.IsEphemeralRetryableError(err) {
+			return err
+		}
+
+		switch err.(type) {
+		case libkb.LoginRequiredError:
+			return err
+		default:
+			// retry
+		}
+
 		select {
 		case <-mctx.Ctx().Done():
 			mctx.Debug("aborting KeygenIfNeeded, context cancelled")

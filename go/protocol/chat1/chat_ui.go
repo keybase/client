@@ -197,9 +197,29 @@ func (o UIInboxBigTeamRow) DeepCopy() UIInboxBigTeamRow {
 	}
 }
 
+type UIInboxReselectInfo struct {
+	OldConvID string  `codec:"oldConvID" json:"oldConvID"`
+	NewConvID *string `codec:"newConvID,omitempty" json:"newConvID,omitempty"`
+}
+
+func (o UIInboxReselectInfo) DeepCopy() UIInboxReselectInfo {
+	return UIInboxReselectInfo{
+		OldConvID: o.OldConvID,
+		NewConvID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.NewConvID),
+	}
+}
+
 type UIInboxLayout struct {
-	SmallTeams []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
-	BigTeams   []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
+	SmallTeams   []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
+	BigTeams     []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
+	ReselectInfo *UIInboxReselectInfo  `codec:"reselectInfo,omitempty" json:"reselectInfo,omitempty"`
+	WidgetList   []UIInboxSmallTeamRow `codec:"widgetList" json:"widgetList"`
 }
 
 func (o UIInboxLayout) DeepCopy() UIInboxLayout {
@@ -226,6 +246,24 @@ func (o UIInboxLayout) DeepCopy() UIInboxLayout {
 			}
 			return ret
 		})(o.BigTeams),
+		ReselectInfo: (func(x *UIInboxReselectInfo) *UIInboxReselectInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReselectInfo),
+		WidgetList: (func(x []UIInboxSmallTeamRow) []UIInboxSmallTeamRow {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UIInboxSmallTeamRow, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.WidgetList),
 	}
 }
 

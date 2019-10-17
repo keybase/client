@@ -348,7 +348,7 @@ class MenubarRender extends React.Component<Props, State> {
         </Kb.Box>
         <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
         <Kb.ScrollView>
-          <ChatContainer convLimit={3} />
+          <ChatContainer convLimit={5} />
           {this.props.kbfsDaemonStatus.rpcStatus === FsTypes.KbfsDaemonRpcStatus.Connected ? (
             <FilesPreview />
           ) : (

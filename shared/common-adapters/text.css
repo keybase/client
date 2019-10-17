@@ -157,6 +157,19 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.text_BodyBold {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.85);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 700;
+}
+.darkMode .text_BodyBold {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .text_BodySemiboldItalic {
   font-size: 14px;
   font-style: italic;

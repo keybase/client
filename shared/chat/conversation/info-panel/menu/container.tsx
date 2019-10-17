@@ -25,7 +25,7 @@ const moreThanOneSubscribedChannel = (
   teamname?: string
 ) => {
   let found = 0
-  return metaMap.some(c => {
+  return [...metaMap.values()].some(c => {
     if (c.teamname === teamname) {
       found++
     }
@@ -41,8 +41,8 @@ export default Container.namedConnect(
   (state, {teamname, conversationIDKey, isSmallTeam, visible}: OwnProps) => {
     let convProps: ConvProps | null = null
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
-      const meta = state.chat2.metaMap.get(conversationIDKey, ChatConstants.makeConversationMeta())
-      const participants = ChatConstants.getRowParticipants(meta, state.config.username).toArray()
+      const meta = state.chat2.metaMap.get(conversationIDKey) || ChatConstants.makeConversationMeta()
+      const participants = ChatConstants.getRowParticipants(meta, state.config.username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
         participants.length === 1 ? (state.users.infoMap.get(participants[0]) || {fullname: ''}).fullname : ''

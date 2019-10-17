@@ -351,6 +351,8 @@ type testProvisionUI struct {
 	backupKey  backupKey
 }
 
+var _ libkb.LoginUI = (*testProvisionUI)(nil)
+
 func (r *testProvisionUI) GetEmailOrUsername(context.Context, int) (string, error) {
 	return r.username, nil
 }
@@ -397,8 +399,8 @@ func (r *testProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphraseA
 	ret.Passphrase = r.backupKey.secret
 	return ret, nil
 }
-func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
-	return false, nil
+func (r *testProvisionUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
+	return keybase1.ResetPromptResponse_NOTHING, nil
 }
 func (r *testProvisionUI) DisplayResetProgress(_ context.Context, arg keybase1.DisplayResetProgressArg) error {
 	return nil

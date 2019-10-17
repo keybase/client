@@ -2,7 +2,7 @@ import {Component} from 'react'
 export type Props = {
   badgeNumber?: number
   channelName?: string
-  contactNames: {[participant: string]: string}
+  contactNames: Map<string, string>
   muted: boolean
   onBack: () => void
   onOpenFolder?: () => void

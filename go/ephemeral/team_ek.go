@@ -286,29 +286,15 @@ func (k *TeamEphemeralKeyer) Unbox(mctx libkb.MetaContext, boxed keybase1.TeamEp
 // of posting a new key, causing the post to fail. Detect these conditions
 // and retry.
 func teamEKRetryWrapper(mctx libkb.MetaContext, retryFn func() error) (err error) {
-	knownRaceConditions := []keybase1.StatusCode{
-		keybase1.StatusCode_SCSigWrongKey,
-		keybase1.StatusCode_SCSigOldSeqno,
-		keybase1.StatusCode_SCEphemeralKeyBadGeneration,
-		keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
-		keybase1.StatusCode_SCEphemeralKeyMissingBox,
-		keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys,
-	}
 	for tries := 0; tries < maxRetries; tries++ {
 		if err = retryFn(); err == nil {
 			return nil
 		}
-		retryableError := false
-		for _, code := range knownRaceConditions {
-			if libkb.IsAppStatusCode(err, code) {
-				mctx.Debug("teamEKRetryWrapper found a retryable error on try %d: %s", tries, err)
-				retryableError = true
-				break
-			}
-		}
-		if !retryableError {
+		if !libkb.IsEphemeralRetryableError(err) {
 			return err
 		}
+		mctx.Debug("teamEKRetryWrapper found a retryable error on try %d: %v",
+			tries, err)
 	}
 	return err
 }

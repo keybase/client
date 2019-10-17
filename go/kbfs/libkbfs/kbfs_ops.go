@@ -373,7 +373,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		return keybase1.FavoritesResult{}, err
 	}
 
-	tlfIDs := fs.config.GetAllSyncedTlfs()
+	tlfMDs := fs.GetAllSyncedTlfMDs(ctx)
 
 	// If we have any synced TLFs, create a quick-index map for
 	// favorites based on name+type.
@@ -382,7 +382,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 		t    keybase1.FolderType
 	}
 	var indexedFavs map[mapKey]int
-	if len(tlfIDs) > 0 {
+	if len(tlfMDs) > 0 {
 		indexedFavs = make(map[mapKey]int, len(favs.FavoriteFolders))
 		for i, fav := range favs.FavoriteFolders {
 			indexedFavs[mapKey{fav.Name, fav.FolderType}] = i
@@ -390,7 +390,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 	}
 
 	// Add the sync config mode to each favorite.
-	for _, id := range tlfIDs {
+	for id, md := range tlfMDs {
 		config, err := fs.GetSyncConfig(ctx, id)
 		if err != nil {
 			return keybase1.FavoritesResult{}, err
@@ -401,13 +401,7 @@ func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (
 				"Folder %s has sync unexpectedly disabled", id))
 		}
 
-		fb := data.FolderBranch{Tlf: id, Branch: data.MasterBranch}
-		_, h, err := fs.GetRootNodeMetadata(ctx, fb)
-		if err != nil {
-			return keybase1.FavoritesResult{}, err
-		}
-
-		name := string(h.GetCanonicalName())
+		name := string(md.Handle.GetCanonicalName())
 		i, ok := indexedFavs[mapKey{name, id.Type().FolderType()}]
 		if ok {
 			favs.FavoriteFolders[i].SyncConfig = &config
@@ -1840,6 +1834,31 @@ func (fs *KBFSOpsStandard) SetSyncConfig(
 	return ops.SetSyncConfig(ctx, tlfID, config)
 }
 
+// GetAllSyncedTlfMDs implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetAllSyncedTlfMDs(
+	ctx context.Context) map[tlf.ID]SyncedTlfMD {
+	tlfIDs := fs.config.GetAllSyncedTlfs()
+	if len(tlfIDs) == 0 {
+		return nil
+	}
+
+	res := make(map[tlf.ID]SyncedTlfMD, len(tlfIDs))
+
+	// Add the sync config mode to each favorite.
+	for _, id := range tlfIDs {
+		fb := data.FolderBranch{Tlf: id, Branch: data.MasterBranch}
+		md, h, err := fs.GetRootNodeMetadata(ctx, fb)
+		if err != nil {
+			fs.log.CDebugf(
+				ctx, "Couldn't get sync config for TLF %s: %+v", id, err)
+			continue
+		}
+
+		res[id] = SyncedTlfMD{MD: md, Handle: h}
+	}
+	return res
+}
+
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
 	oldFav favorites.Folder, newHandle *tlfhandle.Handle) {
 	fs.opsLock.Lock()
@@ -2059,6 +2078,8 @@ func (fs *KBFSOpsStandard) initSyncedTlfs() {
 		fs.log.CDebugf(ctx, "Initializing synced TLF: %s", tlfID)
 		md, err := fs.config.MDOps().GetForTLF(ctx, tlfID, nil)
 		if err != nil {
+			// Could be that the logged-in user doesn't have access to
+			// read this particular synced TLF.
 			fs.log.CDebugf(ctx, "Couldn't initialize TLF %s: %+v", tlfID, err)
 			continue
 		}

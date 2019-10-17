@@ -107,7 +107,7 @@ export const TeamMember = (props: Props) => {
             style={{
               marginRight: 8,
             }}
-            color={Styles.globalColors.white}
+            color={Styles.globalColors.whiteOrWhite}
           />
         </Kb.Button>
         {props.admin && user.type !== 'bot' && user.type !== 'restrictedbot' && (

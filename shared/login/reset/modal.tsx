@@ -30,77 +30,73 @@ const ResetModal = (_: Props) => {
   }
 
   return (
-    <Kb.ScrollView>
-      <Kb.Box2 fullWidth={true} direction="vertical" style={styles.wrapper}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerContainer} alignItems="center">
-          <Kb.Text type="Header">Account reset initiated</Kb.Text>
-        </Kb.Box2>
-        <Kb.Box2
-          gap="small"
-          direction="vertical"
-          fullWidth={true}
-          style={styles.textContainer}
-          centerChildren={true}
-        >
-          <Kb.Icon type="iconfont-skull" color={Styles.globalColors.black_20} fontSize={48} />
-          <Kb.Text type="Body" center={true}>
-            {msg}
-          </Kb.Text>
-          <Kb.Text type="Body" center={true}>
-            But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
-            clearly you have access to your devices.
-          </Kb.Text>
-          {/* <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
-          <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.deviceContainer}>
-            <Kb.Image src={props.mapURL} style={{height: 100, width: 100}} />
-            <Kb.Box2 direction="vertical">
-              <Kb.Text type="BodySmallExtrabold">iPhone in New York, NY, US</Kb.Text>
-              <Kb.Text type="BodySmall">Verified using the password</Kb.Text>
-              <Kb.Text type="BodySmall">Entered on August 8, 2019</Kb.Text>
-              <Kb.Text type="BodySmall">IP address: 127.0.0.1</Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2> */}
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.buttonContainer}>
-          <Kb.WaitingButton
-            type="Danger"
+    <Kb.SafeAreaView style={{backgroundColor: Styles.globalColors.white}}>
+      <Kb.Modal
+        header={{title: 'Account reset initiated'}}
+        footer={{
+          content: (
+            <Kb.WaitingButton
+              type="Danger"
+              fullWidth={true}
+              onClick={onCancelReset}
+              waitingKey={Constants.cancelResetWaitingKey}
+              label="Cancel account reset"
+            />
+          ),
+        }}
+      >
+        <Kb.Box2 fullWidth={true} direction="vertical">
+          <Kb.Box2
+            gap="small"
+            direction="vertical"
             fullWidth={true}
-            onClick={onCancelReset}
-            waitingKey={Constants.cancelResetWaitingKey}
-            label="Cancel account reset"
-          />
-        </Kb.Box2>
+            fullHeight={true}
+            style={styles.textContainer}
+            centerChildren={true}
+          >
+            <Kb.Icon
+              type={Styles.isMobile ? 'icon-skull-64' : 'icon-skull-48'}
+              color={Styles.globalColors.black_20}
+              fontSize={48}
+            />
+            <Kb.Text type="Body" center={true}>
+              {msg}
+            </Kb.Text>
+            <Kb.Text type="Body" center={true}>
+              But... it looks like you’re already logged in. Congrats! You should cancel the reset, since
+              clearly you have access to your devices.
+            </Kb.Text>
+            {/* <Kb.Text type="Body">The reset was triggered by the following device:</Kb.Text>
+    <Kb.Box2 direction="horizontal" gap="small" fullWidth={true} style={styles.deviceContainer}>
+      <Kb.Image src={props.mapURL} style={{height: 100, width: 100}} />
+      <Kb.Box2 direction="vertical">
+        <Kb.Text type="BodySmallExtrabold">iPhone in New York, NY, US</Kb.Text>
+        <Kb.Text type="BodySmall">Verified using the password</Kb.Text>
+        <Kb.Text type="BodySmall">Entered on August 8, 2019</Kb.Text>
+        <Kb.Text type="BodySmall">IP address: 127.0.0.1</Kb.Text>
       </Kb.Box2>
-    </Kb.ScrollView>
+    </Kb.Box2> */}
+          </Kb.Box2>
+        </Kb.Box2>
+      </Kb.Modal>
+    </Kb.SafeAreaView>
   )
 }
-
 ResetModal.navigationOptions = {
   gesturesEnabled: false,
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  buttonContainer: {
-    padding: Styles.globalMargins.small,
-  },
-  deviceContainer: {},
-  headerContainer: {
-    borderColor: Styles.globalColors.black_10,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: Styles.globalMargins.small,
-  },
-  textContainer: {
-    ...Styles.globalStyles.flexGrow,
-    padding: Styles.globalMargins.small,
-    paddingBottom: 0,
-  },
-  wrapper: Styles.platformStyles({
+  textContainer: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
     isElectron: {
-      height: 415,
-      width: 360,
+      paddingBottom: Styles.globalMargins.xlarge,
+      paddingTop: Styles.globalMargins.xlarge,
     },
   }),
 }))
 
-export default Kb.HeaderOrPopupWithHeader(ResetModal)
+export default ResetModal

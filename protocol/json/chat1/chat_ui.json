@@ -162,6 +162,23 @@
     },
     {
       "type": "record",
+      "name": "UIInboxReselectInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "oldConvID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "newConvID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIInboxLayout",
       "fields": [
         {
@@ -177,6 +194,20 @@
             "items": "UIInboxBigTeamRow"
           },
           "name": "bigTeams"
+        },
+        {
+          "type": [
+            null,
+            "UIInboxReselectInfo"
+          ],
+          "name": "reselectInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIInboxSmallTeamRow"
+          },
+          "name": "widgetList"
         }
       ]
     },

@@ -170,7 +170,7 @@ const setupDarkMode = () => {
       () => {
         store.dispatch(
           ConfigGen.createSetSystemDarkMode({
-            dark: isDarwin && SafeElectron.getSystemPreferences().isDarkMode(),
+            dark: SafeElectron.workingIsDarkMode(),
           })
         )
       }

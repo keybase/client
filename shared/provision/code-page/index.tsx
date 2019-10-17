@@ -327,7 +327,7 @@ const Qr = (props: Props) =>
       direction="vertical"
     >
       <Kb.Box2 direction="vertical" style={styles.qrImageContainer}>
-        <QRImage code={props.textCode} cellSize={4} />
+        <QRImage code={props.textCode} />
       </Kb.Box2>
       <QRScan />
     </Kb.Box2>
@@ -554,8 +554,8 @@ const styles = Styles.styleSheetCreate(
         flexDirection: 'column-reverse',
       },
       qrImageContainer: {
-        paddingBottom: 32,
-        paddingTop: 32,
+        paddingBottom: 10,
+        paddingTop: 10,
       },
       qrOnlyContainer: {
         backgroundColor: Styles.globalColors.whiteOrWhite,

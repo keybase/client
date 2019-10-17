@@ -82,11 +82,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	newMsgs := t.groupGeneric(ctx, uid, tv.Messages,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
 			body := msg.Valid().MessageBody
-			mtyp, err := body.MessageType()
-			if err != nil {
-				return false
-			}
-			if !(mtyp == chat1.MessageType_JOIN || mtyp == chat1.MessageType_LEAVE) {
+			if !(body.IsType(chat1.MessageType_JOIN) || body.IsType(chat1.MessageType_LEAVE)) {
 				return false
 			}
 			if msg.Valid().ClientHeader.Sender.Eq(uid) {
@@ -123,13 +119,12 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
 			body := msg.Valid().MessageBody
-			mtyp, err := body.MessageType()
-			if err == nil && mtyp == chat1.MessageType_SYSTEM {
-				body := msg.Valid().MessageBody.System()
-				typ, err := body.SystemType()
-				return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
+			if !body.IsType(chat1.MessageType_SYSTEM) {
+				return false
 			}
-			return false
+			sysBod := msg.Valid().MessageBody.System()
+			typ, err := sysBod.SystemType()
+			return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
 		},
 		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
 			var filteredUsernames, usernames []string
@@ -168,6 +163,78 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
 			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
 				Usernames: filteredUsernames,
+			}))
+			msg := chat1.NewMessageUnboxedWithValid(mvalid)
+			return &msg
+		})
+
+	// group ADDEDTOTEAM system messages
+	var ownUsername *string
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
+		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+			body := msg.Valid().MessageBody
+			if !body.IsType(chat1.MessageType_SYSTEM) {
+				return false
+			}
+			sysBod := msg.Valid().MessageBody.System()
+			typ, err := sysBod.SystemType()
+			if !(err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM) {
+				return false
+			}
+			if ownUsername == nil {
+				un, err := t.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
+				if err != nil {
+					t.Debug(ctx, "unable to lookup username %v", err)
+				} else {
+					uns := un.String()
+					ownUsername = &uns
+				}
+			}
+			if ownUsername != nil && *ownUsername == sysBod.Addedtoteam().Addee {
+				return false
+			}
+			if sysBod.Addedtoteam().Role.IsRestrictedBot() {
+				return false
+			}
+
+			// only group messages from a single adder
+			if len(grouped) > 0 {
+				body := grouped[0].Valid().MessageBody
+				if body.IsType(chat1.MessageType_SYSTEM) {
+					sysBod2 := msg.Valid().MessageBody.System()
+					typ, err := sysBod2.SystemType()
+					return (err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM &&
+						sysBod2.Addedtoteam().Adder == sysBod.Addedtoteam().Adder)
+				}
+			}
+			return true
+		},
+		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+			usernames := map[string]struct{}{}
+			for _, j := range grouped {
+				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
+					body := j.Valid().MessageBody.System()
+					typ, err := body.SystemType()
+					if err == nil && typ == chat1.MessageSystemType_ADDEDTOTEAM {
+						sysBod := body.Addedtoteam()
+						usernames[sysBod.Addee] = struct{}{}
+					}
+				}
+			}
+			if len(usernames) == 0 {
+				return nil
+			}
+
+			bulkAdds := []string{}
+			for username := range usernames {
+				bulkAdds = append(bulkAdds, username)
+			}
+
+			mvalid := grouped[0].Valid()
+			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
+			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
+				BulkAdds: bulkAdds,
+				Adder:    mvalid.MessageBody.System().Addedtoteam().Adder,
 			}))
 			msg := chat1.NewMessageUnboxedWithValid(mvalid)
 			return &msg
@@ -413,6 +480,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.dispatchOldPagesJob(ctx, uid, convID, pagination, resultPagination)
 		}
 	}()
+	// Set last select conversation on syncer
+	t.G().Syncer.SelectConversation(ctx, convID)
+
 	// Lock conversation while this is running
 	if err := t.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
 		return err
@@ -432,9 +502,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		}
 		t.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
 	}
-
-	// Set last select conversation on syncer
-	t.G().Syncer.SelectConversation(ctx, convID)
 
 	// Decode presentation form pagination
 	if pagination, err = utils.DecodePagination(uipagination); err != nil {

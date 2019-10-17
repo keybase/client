@@ -89,7 +89,7 @@ const ConnectedInfoPanel = Container.connect(
     dispatch: Container.TypedDispatch,
     {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
   ) => ({
-    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
+    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
     _onDocDownload: message => dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onEditChannel: (teamname: string) =>
       dispatch(
@@ -158,7 +158,7 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    let participants = stateProps._participants.toArray()
+    let participants = stateProps._participants
     let teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
@@ -281,7 +281,8 @@ const ConnectedInfoPanel = Container.connect(
         .map(p => ({
           fullname:
             (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
-            stateProps._participantToContactName.get(p, ''),
+            stateProps._participantToContactName.get(p) ||
+            '',
           isAdmin: stateProps.teamname
             ? TeamConstants.userIsRoleInTeamWithInfo(
                 // @ts-ignore
@@ -352,7 +353,7 @@ const mapStateToSelectorProps = (state: Container.TypedState, ownProps: Selector
 const mapDispatchToSelectorProps = (dispatch, {navigation}) => ({
   // Used by HeaderHoc.
   onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: true})),
+  onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox()),
   onSelectAttachmentView: view => navigation.setParams({attachmentview: view}),
   onSelectTab: (tab: Panel) => navigation.setParams({tab}),
 })

@@ -3,7 +3,6 @@ import * as Constants from '../constants/signup'
 import * as SignupGen from '../actions/signup-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import HiddenString from '../util/hidden-string'
-import {actionHasError} from '../util/container'
 import trim from 'lodash/trim'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
@@ -30,12 +29,12 @@ export default function(state: Types.State = initialState, action: Actions): Typ
         usernameTaken: '',
       })
     case SignupGen.requestedAutoInvite:
-      return state.merge({inviteCode: actionHasError(action) ? '' : action.payload.inviteCode})
+      return state.merge({inviteCode: action.payload.error ? '' : action.payload.inviteCode})
     case SignupGen.checkInviteCode:
       return state.merge({inviteCode: action.payload.inviteCode})
     case SignupGen.checkedInviteCode:
       return action.payload.inviteCode === state.inviteCode
-        ? state.merge({inviteCodeError: actionHasError(action) ? action.payload.error : ''})
+        ? state.merge({inviteCodeError: action.payload.error ? action.payload.error : ''})
         : state
     case SignupGen.checkUsername: {
       const {username} = action.payload
@@ -60,8 +59,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case SignupGen.requestedInvite:
       return action.payload.email === state.email && action.payload.name === state.name
         ? state.merge({
-            emailError: actionHasError(action) ? action.payload.emailError : '',
-            nameError: actionHasError(action) ? action.payload.nameError : '',
+            emailError: action.payload.emailError || '',
+            nameError: action.payload.nameError || '',
           })
         : state
     case SignupGen.checkPassword: {
@@ -88,11 +87,11 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     }
     case SignupGen.checkedDevicename:
       return action.payload.devicename === state.devicename
-        ? state.merge({devicenameError: actionHasError(action) ? action.payload.error : ''})
+        ? state.merge({devicenameError: action.payload.error || ''})
         : state
     case SignupGen.signedup:
       return state.merge({
-        signupError: actionHasError(action) ? action.payload.error : null,
+        signupError: action.payload.error || null,
       })
     case SignupGen.setJustSignedUpEmail:
       return state.merge({

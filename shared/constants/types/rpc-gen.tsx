@@ -204,7 +204,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyUsers.passwordChanged': {
-    inParam: void
+    inParam: {readonly state: PassphraseState}
     outParam: void
   }
   'keybase.1.NotifyUsers.userChanged': {
@@ -909,7 +909,7 @@ export type MessageTypes = {
   }
   'keybase.1.loginUi.promptResetAccount': {
     inParam: {readonly prompt: ResetPrompt}
-    outParam: Boolean
+    outParam: ResetPromptResponse
   }
   'keybase.1.loginUi.promptRevokePaperKeys': {
     inParam: {readonly device: Device; readonly index: Int}
@@ -1260,7 +1260,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamRemoveMember': {
-    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID}
+    inParam: {readonly name: String; readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
     outParam: void
   }
   'keybase.1.teams.teamRename': {
@@ -1933,6 +1933,12 @@ export enum RekeyEventType {
   noGregorMessages = 8,
 }
 
+export enum ResetPromptResponse {
+  nothing = 0,
+  cancelReset = 1,
+  confirmReset = 2,
+}
+
 export enum ResetPromptType {
   complete = 0,
   enterNoDevices = 1,
@@ -2143,6 +2149,7 @@ export enum StatusCode {
   scteamwritepermdenied = 2625,
   scteambadgeneration = 2636,
   scnoop = 2638,
+  scteaminvitebadcancel = 2645,
   scteaminvitebadtoken = 2646,
   scteamtarduplicate = 2663,
   scteamtarnotfound = 2664,
@@ -2176,6 +2183,9 @@ export enum StatusCode {
   scteamprovisionalcankey = 2721,
   scteamprovisionalcannotkey = 2722,
   scteamftloutdated = 2736,
+  scteamstoragewrongrevision = 2760,
+  scteamstoragebadgeneration = 2761,
+  scteamstoragenotfound = 2762,
   scephemeralkeybadgeneration = 2900,
   scephemeralkeyunexpectedbox = 2901,
   scephemeralkeymissingbox = 2902,
@@ -2584,8 +2594,12 @@ export type KBFSRootHash = Bytes
 export type KBFSStatus = {readonly version: String; readonly installedVersion: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly mount: String}
 export type KBFSTeamSettings = {readonly tlfID: TLFID}
 export type KID = String
+export type KVDeleteEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KVEntryID = {readonly teamID: TeamID; readonly namespace: String; readonly entryKey: String}
 export type KVGetResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly entryValue: String; readonly revision: Int}
+export type KVListEntryKey = {readonly entryKey: String; readonly revision: Int}
+export type KVListEntryResult = {readonly teamName: String; readonly namespace: String; readonly entryKeys?: Array<KVListEntryKey> | null}
+export type KVListNamespaceResult = {readonly teamName: String; readonly namespaces?: Array<String> | null}
 export type KVPutResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KbClientStatus = {readonly version: String}
 export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String}
@@ -3496,6 +3510,9 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.Kex2Provisioner.kexStart'
 // 'keybase.1.kvstore.getKVEntry'
 // 'keybase.1.kvstore.putKVEntry'
+// 'keybase.1.kvstore.listKVNamespaces'
+// 'keybase.1.kvstore.listKVEntries'
+// 'keybase.1.kvstore.delKVEntry'
 // 'keybase.1.log.registerLogger'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'

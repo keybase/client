@@ -579,7 +579,8 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_TLFNAME:
 		mv.Renderable = false
 	case chat1.MessageType_HEADLINE:
-		mv.Renderable = false
+		mv.Renderable = true
+		mv.Body = fmt.Sprintf("[%s]", m.MessageBody.Headline())
 	case chat1.MessageType_ATTACHMENTUPLOADED:
 		mv.Renderable = false
 	case chat1.MessageType_JOIN:

@@ -21,7 +21,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
@@ -349,7 +348,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 // large (> chat1.MaxChanMentionConvSize member) team. The server drives this
 // for mobile push notifications, client checks this for desktop notifications
 func (g *PushHandler) squashChanMention(ctx context.Context, conv *chat1.ConversationLocal,
-	mvalid chat1.MessageUnboxedValid) (bool, error) {
+	mvalid chat1.MessageUnboxedValid, untrustedTeamRole keybase1.TeamRole) (bool, error) {
 	// Verify the chanMention is for a TEAM that is larger than
 	// MaxChanMentionConvSize
 	if conv == nil ||
@@ -357,35 +356,16 @@ func (g *PushHandler) squashChanMention(ctx context.Context, conv *chat1.Convers
 		len(conv.Info.Participants) < chat1.MaxChanMentionConvSize {
 		return false, nil
 	}
-	teamID, err := keybase1.TeamIDFromString(mvalid.ClientHeader.Conv.Tlfid.String())
-	if err != nil {
-		return false, err
-	}
-	extG := g.G().ExternalG()
-	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
-		ID:     teamID,
-		Public: mvalid.ClientHeader.TlfPublic,
-	})
-	if err != nil {
-		return false, err
-	}
-	senderUID := keybase1.UID(mvalid.ClientHeader.Sender.String())
-	upak, _, err := g.G().GetUPAKLoader().LoadV2(
-		libkb.NewLoadUserByUIDArg(ctx, extG, senderUID))
-	if err != nil {
-		return false, err
-	}
-	uv := upak.Current.ToUserVersion()
-	role, err := team.MemberRole(ctx, uv)
-	if err != nil {
-		return false, err
-	}
-	// if the sender is not an admin, large squash the mention.
-	return !role.IsOrAbove(keybase1.TeamRole_ADMIN), nil
+	// If the sender is not an admin, large squash the mention.
+	// We use the server trust team role here since notifications themselves
+	// are based on server trust.
+	return !untrustedTeamRole.IsOrAbove(keybase1.TeamRole_ADMIN), nil
 }
 
 func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
-	uid gregor1.UID, conv *chat1.ConversationLocal, msg chat1.MessageUnboxed) bool {
+	uid gregor1.UID, conv *chat1.ConversationLocal,
+	msg chat1.MessageUnboxed, untrustedTeamRole keybase1.TeamRole) bool {
+
 	if conv == nil || conv.Notifications == nil {
 		return false
 	}
@@ -400,7 +380,7 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		body := msg.Valid().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {
-			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %v", err.Error())
+			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %v", err)
 			return false
 		}
 		apptype := keybase1.DeviceType_DESKTOP
@@ -440,12 +420,13 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 			switch chanMention {
 			case chat1.ChannelMention_HERE, chat1.ChannelMention_ALL:
 				notifyFromChanMention = conv.Notifications.ChannelWide
-				shouldSquash, err := g.squashChanMention(ctx, conv, msg.Valid())
+				shouldSquash, err := g.squashChanMention(ctx, conv, msg.Valid(), untrustedTeamRole)
 				if err != nil {
 					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to squashChanMention: %v", err)
 				}
 				if shouldSquash {
-					notifyFromChanMention = false
+					g.Debug(ctx, "shouldDisplayDesktopNotification: squashing channel mention from untrustedTeamRole: %v", untrustedTeamRole)
+					return false
 				}
 			}
 			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
@@ -536,9 +517,9 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: error decoding newMessage: %v", err)
 				return
 			}
-			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s msgID: %d typ: %v",
+			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s msgID: %d typ: %v, untrustedTeamRole: %v",
 				nm.ConvID, nm.Message.ClientHeader.Sender, nm.Message.GetMessageID(),
-				nm.Message.GetMessageType())
+				nm.Message.GetMessageType(), nm.UntrustedTeamRole)
 			if nm.Message.ClientHeader.OutboxID != nil {
 				g.Debug(ctx, "chat activity: newMessage: outboxID: %s",
 					hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
@@ -595,7 +576,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					g.Debug(ctx, "chat activity: error making page: %v", err)
 				}
 
-				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
+				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg, nm.UntrustedTeamRole)
 				notificationSnippet := ""
 				if desktopNotification {
 					plaintextDesktopDisabled, err := getPlaintextDesktopDisabled(ctx, g.G())

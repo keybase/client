@@ -1066,6 +1066,8 @@ func GetMsgSnippetBody(msg chat1.MessageUnboxed) (snippet string) {
 		return "🚀 payment request"
 	case chat1.MessageType_SENDPAYMENT:
 		return "🚀 payment sent"
+	case chat1.MessageType_HEADLINE:
+		return msg.Valid().MessageBody.Headline().String()
 	}
 	return ""
 }
@@ -1151,7 +1153,7 @@ func StripUsernameFromConvName(name string, username string) (res string) {
 func PresentRemoteConversationAsSmallTeamRow(ctx context.Context, rc types.RemoteConversation,
 	username string, useSnippet bool) (res chat1.UIInboxSmallTeamRow) {
 	res.ConvID = rc.GetConvID().String()
-	res.IsTeam = rc.GetTeamType() == chat1.TeamType_SIMPLE
+	res.IsTeam = rc.GetTeamType() != chat1.TeamType_NONE
 	res.Name = StripUsernameFromConvName(GetRemoteConvDisplayName(rc), username)
 	res.Time = GetConvMtime(rc.Conv)
 	if useSnippet && rc.LocalMetadata != nil {

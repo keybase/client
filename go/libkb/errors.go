@@ -533,6 +533,25 @@ func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
 	}
 }
 
+func IsEphemeralRetryableError(err error) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		switch keybase1.StatusCode(err.Code) {
+		case keybase1.StatusCode_SCSigWrongKey,
+			keybase1.StatusCode_SCSigOldSeqno,
+			keybase1.StatusCode_SCEphemeralKeyBadGeneration,
+			keybase1.StatusCode_SCEphemeralKeyUnexpectedBox,
+			keybase1.StatusCode_SCEphemeralKeyMissingBox,
+			keybase1.StatusCode_SCEphemeralKeyWrongNumberOfKeys:
+			return true
+		default:
+			return false
+		}
+	default:
+		return false
+	}
+}
+
 //=============================================================================
 
 type GpgError struct {
@@ -2666,12 +2685,8 @@ func (e InvalidStellarAccountIDError) Verbose() string {
 type ResetWithActiveDeviceError struct {
 }
 
-func NewResetWithActiveDeviceError() error {
-	return ResetWithActiveDeviceError{}
-}
-
 func (e ResetWithActiveDeviceError) Error() string {
-	return "You cannot reset your account if you have an active device!"
+	return "You cannot reset your account from a logged-in device."
 }
 
 //=============================================================================
@@ -2700,6 +2715,25 @@ func NewChainLinkBadUnstubError(s string) error {
 
 func (c ChainLinkBadUnstubError) Error() string {
 	return c.msg
+}
+
+//============================================================================
+
+// AppOutdatedError indicates that an operation failed because the client does
+// not support some necessary feature and needs to be updated.
+type AppOutdatedError struct {
+	cause error
+}
+
+func NewAppOutdatedError(cause error) AppOutdatedError {
+	return AppOutdatedError{cause: cause}
+}
+
+func (e AppOutdatedError) Error() string {
+	if e.cause != nil {
+		return fmt.Sprintf("AppOutdatedError: %v", e.cause.Error())
+	}
+	return fmt.Sprintf("AppOutdatedError")
 }
 
 //============================================================================
