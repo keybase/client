@@ -8,7 +8,7 @@
       "response": "string",
       "lint": "ignore"
     },
-    "WaitForDirectMount": {
+    "WaitForMounts": {
       "request": [],
       "response": "boolean",
       "lint": "ignore"

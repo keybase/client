@@ -238,7 +238,7 @@ const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload
     ]
   } else {
     await RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
-    await RPCTypes.kbfsMountWaitForDirectMountRpcPromise()
+    await RPCTypes.kbfsMountWaitForMountsRpcPromise()
     return FsGen.createRefreshDriverStatus()
   }
 }

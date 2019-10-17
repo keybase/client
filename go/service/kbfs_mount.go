@@ -31,33 +31,41 @@ func (h *KBFSMountHandler) GetCurrentMountDir(ctx context.Context) (res string, 
 	return h.G().Env.GetMountDir()
 }
 
-const waitForDirectMountTimeout = time.Second * 10
+const waitForDirectMountTimeout = 10 * time.Second
 const waitForDirectMountPollInterval = time.Second
 
-func (h *KBFSMountHandler) WaitForDirectMount(ctx context.Context) (active bool, err error) {
+func (h *KBFSMountHandler) WaitForMounts(ctx context.Context) (active bool, err error) {
 	ctx, cancel := context.WithTimeout(ctx, waitForDirectMountTimeout)
 	defer cancel()
 	mount, err := h.GetCurrentMountDir(ctx)
 	if err != nil {
 		return false, err
 	}
-	p := filepath.Join(mount, ".kbfs_status")
+	directMountFileToCheck := filepath.Join(mount, ".kbfs_error")
 	ticker := time.NewTicker(waitForDirectMountPollInterval)
 	defer ticker.Stop()
-	for {
+	directMountFound, preferredMountFound := false, false
+	for !directMountFound || !preferredMountFound {
 		select {
 		case <-ticker.C:
-			fi, err := os.Stat(p)
-			if err == nil && fi.IsDir() {
-				return true, nil
+			if !directMountFound {
+				fi, err := os.Stat(directMountFileToCheck)
+				if err == nil && !fi.IsDir() {
+					directMountFound = true
+				}
+			}
+			if !preferredMountFound {
+				if len(libkb.FindPreferredKBFSMountDirs()) > 0 {
+					preferredMountFound = true
+				}
 			}
 			// Not check os.IsNotExist here because it can be permission
 			// error too. So just wait it out.
-			continue
 		case <-ctx.Done():
 			return false, ctx.Err()
 		}
 	}
+	return true, nil
 }
 
 func (h *KBFSMountHandler) GetPreferredMountDirs(ctx context.Context) (res []string, err error) {
