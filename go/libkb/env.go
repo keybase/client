@@ -351,8 +351,12 @@ func (e *Env) GetMountDirDefault() string {
 	case keybase1.RuntimeGroup_DARWINLIKE:
 		volumes := "/Volumes"
 		user, err := user.Current()
+		var username string
 		if err != nil {
-			panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+			// The iOS simulator may not have a proper user set,
+			username = "<unknown>"
+		} else {
+			username = user.Username
 		}
 		var runmodeName string
 		switch e.GetRunMode() {
@@ -366,7 +370,7 @@ func (e *Env) GetMountDirDefault() string {
 			panic("Invalid run mode")
 		}
 		return filepath.Join(volumes, fmt.Sprintf(
-			"%s (%s)", runmodeName, user.Username))
+			"%s (%s)", runmodeName, username))
 	case keybase1.RuntimeGroup_LINUXLIKE:
 		return filepath.Join(e.GetRuntimeDir(), "kbfs")
 	// kbfsdokan depends on an empty default
@@ -435,6 +439,7 @@ func (e *Env) getMobileSharedHomeFromCmdOrConfig() string {
 	)
 }
 
+func (e *Env) GetDownloadsDir() string     { return e.HomeFinder.DownloadsDir() }
 func (e *Env) GetHome() string             { return e.HomeFinder.Home(false) }
 func (e *Env) GetMobileSharedHome() string { return e.HomeFinder.MobileSharedHome(false) }
 func (e *Env) GetConfigDir() string        { return e.HomeFinder.ConfigDir() }
@@ -1723,6 +1728,7 @@ func (e *Env) GetStoredSecretServiceName() string {
 
 type AppConfig struct {
 	NullConfiguration
+	DownloadsDir                   string
 	HomeDir                        string
 	MobileSharedHomeDir            string
 	LogFile                        string
@@ -1778,6 +1784,10 @@ func (c AppConfig) GetLocalRPCDebug() string {
 
 func (c AppConfig) GetRunMode() (RunMode, error) {
 	return c.RunMode, nil
+}
+
+func (c AppConfig) GetDownloadsDir() string {
+	return c.DownloadsDir
 }
 
 func (c AppConfig) GetHome() string {

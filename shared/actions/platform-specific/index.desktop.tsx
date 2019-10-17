@@ -17,10 +17,7 @@ import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
 
-export function showShareActionSheetFromURL() {
-  throw new Error('Show Share Action - unsupported on this platform')
-}
-export function showShareActionSheetFromFile() {
+export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
 }
 export function saveAttachmentDialog() {

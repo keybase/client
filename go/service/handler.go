@@ -52,7 +52,8 @@ func (u *LoginUI) DisplayPrimaryPaperKey(ctx context.Context, arg keybase1.Displ
 	return u.cli.DisplayPrimaryPaperKey(ctx, arg)
 }
 
-func (u *LoginUI) PromptResetAccount(ctx context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+func (u *LoginUI) PromptResetAccount(ctx context.Context,
+	arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	arg.SessionID = u.sessionID
 	return u.cli.PromptResetAccount(ctx, arg)
 }

@@ -309,6 +309,7 @@ const makeMessageSystemAddedToTeam = I.Record<MessageTypes._MessageSystemAddedTo
   ...makeMessageCommonNoDeleteNoEdit,
   addee: '',
   adder: '',
+  bulkAdds: Array(),
   isAdmin: false,
   reactions: I.Map(),
   role: 'none',
@@ -542,10 +543,12 @@ const uiMessageToSystemMessage = (
       const roleEnum = body.addedtoteam ? body.addedtoteam.role : undefined
       const role = roleEnum ? TeamConstants.teamRoleByEnum[roleEnum] : 'none'
       const isAdmin = (admins || []).includes(minimum.author)
+      const bulkAdds = body.addedtoteam.bulkAdds || []
       return makeMessageSystemAddedToTeam({
         ...minimum,
         addee,
         adder,
+        bulkAdds,
         isAdmin,
         reactions,
         role,

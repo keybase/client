@@ -9,7 +9,7 @@ const Kb = {
 
 const ProgressIndicator = ({white, style, type}: Props) => (
   <Kb.Animation
-    animationType={white ? 'spinnerWhite' : 'spinnerGrey'}
+    animationType={white ? 'spinnerWhite' : 'spinner'}
     style={Styles.collapseStyles([
       type === 'Small' && styles.small,
       type === 'Large' && styles.large,

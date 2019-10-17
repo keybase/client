@@ -3,14 +3,18 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as RecoverPasswordGen from '../../../actions/recover-password-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import {SignupScreen, InfoIcon} from '../../../signup/common'
 import {ButtonType} from '../../../common-adapters/button'
 
 const ResetPassword = () => {
   const dispatch = Container.useDispatch()
-  const onContinue = (action: boolean) => {
-    dispatch(RecoverPasswordGen.createSubmitResetPrompt({action}))
-  }
+  const onContinue = (startReset: boolean) =>
+    dispatch(
+      RecoverPasswordGen.createSubmitResetPrompt({
+        action: startReset ? RPCTypes.ResetPromptResponse.confirmReset : RPCTypes.ResetPromptResponse.nothing,
+      })
+    )
 
   return (
     <SignupScreen
@@ -25,7 +29,14 @@ const ResetPassword = () => {
       onBack={() => onContinue(false)}
       title="Reset password"
     >
-      <Kb.Box2 alignItems="center" direction="vertical" fullHeight={true} fullWidth={true} gap="medium">
+      <Kb.Box2
+        alignItems="center"
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        gap="medium"
+        style={styles.topGap}
+      >
         <Kb.Icon type="iconfont-skull" sizeType="Bigger" />
         <Kb.Box2 alignItems="center" direction="vertical">
           <Kb.Text type="Body">If you have forgotten your password you can reset it here.</Kb.Text>
@@ -52,3 +63,12 @@ ResetPassword.navigationOptions = {
 }
 
 export default ResetPassword
+
+const styles = Styles.styleSheetCreate(() => ({
+  topGap: Styles.platformStyles({
+    isMobile: {
+      justifyContent: 'flex-start',
+      marginTop: 120,
+    },
+  }),
+}))

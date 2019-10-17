@@ -192,7 +192,6 @@ export type TeamType = Meta.TeamType
 export type AttachmentType = Message.AttachmentType
 export type ChatPaymentInfo = Message.ChatPaymentInfo
 export type ChatRequestInfo = Message.ChatRequestInfo
-export type MessageWithReactionPopup = Message.MessageWithReactionPopup
 export type DecoratedMessage = Message.DecoratedMessage
 export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel

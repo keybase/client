@@ -441,6 +441,7 @@ type MessageSystemAddedToTeam struct {
 	Adder          string            `codec:"adder" json:"adder"`
 	Addee          string            `codec:"addee" json:"addee"`
 	Role           keybase1.TeamRole `codec:"role" json:"role"`
+	BulkAdds       []string          `codec:"bulkAdds" json:"bulkAdds"`
 	Owners         []string          `codec:"owners" json:"owners"`
 	Admins         []string          `codec:"admins" json:"admins"`
 	Writers        []string          `codec:"writers" json:"writers"`
@@ -455,6 +456,17 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 		Adder: o.Adder,
 		Addee: o.Addee,
 		Role:  o.Role.DeepCopy(),
+		BulkAdds: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BulkAdds),
 		Owners: (func(x []string) []string {
 			if x == nil {
 				return nil

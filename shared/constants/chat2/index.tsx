@@ -1,4 +1,3 @@
-import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'

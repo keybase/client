@@ -284,6 +284,7 @@ export type MessageSystemGitPush = {
 export type MessageSystemAddedToTeam = {
   addee: string
   adder: string
+  bulkAdds: Array<string>
   role: TeamTypes.MaybeTeamRoleType
   isAdmin: boolean
   team: string

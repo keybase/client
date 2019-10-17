@@ -27,7 +27,7 @@
   margin-right: 12px;
 }
 .darkMode .tab .tab-icon {
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.85);
 }
 .tab:hover .tab-icon,
 .tab-selected .tab-icon {

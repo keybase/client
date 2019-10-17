@@ -112,6 +112,10 @@ func (i IdentityHasher) Encode(o interface{}) ([]byte, error) {
 	return msgpack.EncodeCanonical(o)
 }
 
+func (i IdentityHasher) GetEncodingType() EncodingType {
+	return EncodingTypeForTesting
+}
+
 func (i IdentityHasher) Decode(dest interface{}, src []byte) error {
 	return msgpack.Decode(dest, src)
 }
@@ -148,6 +152,10 @@ func (i IdentityHasher) ComputeKeySpecificSecret(ms MasterSecret, k Key) KeySpec
 type IdentityHasherBlinded struct{}
 
 var _ Encoder = IdentityHasherBlinded{}
+
+func (i IdentityHasherBlinded) GetEncodingType() EncodingType {
+	return EncodingTypeForTesting
+}
 
 func (i IdentityHasherBlinded) EncodeAndHashGeneric(o interface{}) ([]byte, Hash, error) {
 	enc, err := msgpack.EncodeCanonical(o)
@@ -254,6 +262,10 @@ func ConstructStringValueContainer() interface{} {
 type SHA512_256Encoder struct{}
 
 var _ Encoder = SHA512_256Encoder{}
+
+func (e SHA512_256Encoder) GetEncodingType() EncodingType {
+	return EncodingTypeForTesting
+}
 
 func (e SHA512_256Encoder) Encode(o interface{}) ([]byte, error) {
 	return msgpack.EncodeCanonical(o)

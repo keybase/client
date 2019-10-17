@@ -1092,7 +1092,7 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	}
 	err = c.BlockOps().Shutdown(ctx)
 	if err != nil {
-		return err
+		errorList = append(errorList, err)
 	}
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
@@ -1138,6 +1138,8 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 		kbfsServ.Shutdown()
 	}
 
+	c.subscriptionManager.Shutdown(ctx)
+
 	if len(errorList) == 1 {
 		return errorList[0]
 	} else if len(errorList) > 1 {
@@ -1150,8 +1152,6 @@ func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	for _, cancel := range c.tlfClearCancels {
 		cancel()
 	}
-
-	c.subscriptionManager.Shutdown(ctx)
 
 	return nil
 }

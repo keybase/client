@@ -13,6 +13,7 @@ export type Props = {
   styleContainer?: any
   styleClose?: any
   styleClipContainer?: any
+  tabBarShim?: boolean
 }
 
 export default class PopupDialog extends React.Component<Props> {}

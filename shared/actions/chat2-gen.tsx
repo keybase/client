@@ -251,6 +251,7 @@ type _InboxRefreshPayload = {
     | 'leftAConversation'
     | 'teamTypeChanged'
     | 'maybeKickedFromTeam'
+    | 'widgetRefresh'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {
@@ -397,6 +398,7 @@ type _MetaRequestTrustedPayload = {
     | 'membersUpdate'
     | 'scroll'
     | 'ensureSelectedMeta'
+    | 'ensureWidgetMetas'
     | 'inboxSearchResults'
   readonly conversationIDKeys: Array<Types.ConversationIDKey>
 }
@@ -408,10 +410,7 @@ type _MetasReceivedPayload = {
   readonly initialTrustedLoad?: boolean
 }
 type _MuteConversationPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly muted: boolean}
-type _NavigateToInboxPayload = {
-  readonly avoidConversationID?: Types.ConversationIDKey
-  readonly findNewConversation: boolean
-}
+type _NavigateToInboxPayload = void
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -462,6 +461,7 @@ type _PreviewConversationPayload = {
     | 'requestedPayment'
     | 'teamMention'
     | 'appLink'
+    | 'search'
 }
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

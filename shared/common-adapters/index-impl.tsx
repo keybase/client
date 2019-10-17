@@ -73,6 +73,9 @@ module.exports = {
   get CopyableText() {
     return require('./copyable-text').default
   },
+  get DelayedMounting() {
+    return require('./delayed-mounting').default
+  },
   get DesktopStyle() {
     return require('./desktop-style').default
   },

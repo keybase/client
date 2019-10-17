@@ -477,9 +477,11 @@ type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
 	CalledGetEmailOrUsername int
-	ResetAccount             bool
+	ResetAccount             keybase1.ResetPromptResponse
 	PassphraseRecovery       bool
 }
+
+var _ LoginUI = (*TestLoginUI)(nil)
 
 func (t *TestLoginUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	t.CalledGetEmailOrUsername++
@@ -498,7 +500,7 @@ func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.Dis
 	return nil
 }
 
-func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (bool, error) {
+func (t *TestLoginUI) PromptResetAccount(_ context.Context, arg keybase1.PromptResetAccountArg) (keybase1.ResetPromptResponse, error) {
 	return t.ResetAccount, nil
 }
 

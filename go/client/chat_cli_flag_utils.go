@@ -242,6 +242,7 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 		chat1.MessageType_JOIN,
 		chat1.MessageType_LEAVE,
 		chat1.MessageType_SYSTEM,
+		chat1.MessageType_HEADLINE,
 		chat1.MessageType_SENDPAYMENT,
 		chat1.MessageType_REQUESTPAYMENT,
 	}
