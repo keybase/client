@@ -177,16 +177,16 @@ helpers.rootLinuxNode(env, {
         parallel (
           test_linux_deps: {
             if (hasGoChanges) {
-              // Check protocol diffs
-              // Clean the index first
-              sh "git add -A"
-              // Generate protocols
-              dir ('protocol') {
-                sh "npm i"
-                sh "make clean"
-                sh "make"
-              }
-              checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
+              // // Check protocol diffs
+              // // Clean the index first
+              // sh "git add -A"
+              // // Generate protocols
+              // dir ('protocol') {
+              //   sh "npm i"
+              //   sh "make clean"
+              //   sh "make"
+              // }
+              // checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
             }
             parallel (
               test_linux: {
