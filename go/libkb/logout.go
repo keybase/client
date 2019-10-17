@@ -53,13 +53,6 @@ func (mctx MetaContext) LogoutUsernameWithOptions(username NormalizedUsername, o
 		return err
 	}
 
-	if options.KeepSecrets {
-		err = g.Env.GetConfigWriter().SetStayLoggedOut(true)
-		if err != nil {
-			mctx.Warning("Could not save logged out state to config.json: %v", err)
-		}
-	}
-
 	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
 
 	mctx.Debug("+ MetaContext#logoutWithSecretKill: calling logout hooks")
