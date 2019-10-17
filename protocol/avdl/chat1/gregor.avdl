@@ -117,8 +117,14 @@ protocol gregor {
         boolean typing;
     }
 
+    record TeamMemberRoleUpdate {
+        TLFID tlfID;
+        keybase1.TeamRole role;
+    }
+
     record UpdateConversationMembership {
         InboxVers inboxVers;
+        union { null, TeamMemberRoleUpdate } teamMemberRoleUpdate;
         array<ConversationMember> joined;
         array<ConversationMember> removed;
         array<ConversationMember> reset;
