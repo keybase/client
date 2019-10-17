@@ -43,7 +43,6 @@ func (e *PassphraseRecover) Prereqs() Prereqs {
 func (e *PassphraseRecover) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
-		libkb.ProvisionUIKind,
 		libkb.SecretUIKind,
 	}
 }
@@ -166,9 +165,8 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 		expDevices = append(expDevices, *d.ProtExport())
 		idMap[d.ID] = d
 	}
-	id, err := mctx.UIs().ProvisionUI.ChooseDevice(mctx.Ctx(), keybase1.ChooseDeviceArg{
-		Devices:           expDevices,
-		CanSelectNoDevice: true,
+	id, err := mctx.UIs().LoginUI.ChooseDeviceToRecoverWith(mctx.Ctx(), keybase1.ChooseDeviceToRecoverWithArg{
+		Devices: expDevices,
 	})
 	if err != nil {
 		return err
@@ -225,7 +223,12 @@ func (e *PassphraseRecover) resetPassword(mctx libkb.MetaContext) (err error) {
 	if res.AppStatus.Code == libkb.SCBadLoginUserNotFound {
 		return libkb.NotFoundError{Msg: "User not found"}
 	}
-	mctx.Info("A reset link has been sent to primary email")
+	// done
+	if err := mctx.UIs().LoginUI.DisplayResetMessage(mctx.Ctx(), keybase1.DisplayResetMessageArg{
+		Kind: keybase1.ResetMessage_RESET_LINK_SENT,
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -291,7 +294,6 @@ func (e *PassphraseRecover) changePassword(mctx libkb.MetaContext) (err error) {
 			return err
 		}
 		if !proceed {
-			mctx.Info("Password recovery canceled")
 			return libkb.NewCanceledError("Password recovery canceled")
 		}
 	}

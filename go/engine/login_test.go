@@ -4146,6 +4146,14 @@ func (p *paperLoginUI) PromptPassphraseRecovery(_ context.Context, arg keybase1.
 	return false, nil
 }
 
+func (p *paperLoginUI) ChooseDeviceToRecoverWith(_ context.Context, arg keybase1.ChooseDeviceToRecoverWithArg) (keybase1.DeviceID, error) {
+	return "", nil
+}
+
+func (p *paperLoginUI) DisplayResetMessage(_ context.Context, arg keybase1.DisplayResetMessageArg) error {
+	return nil
+}
+
 func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error {
 	var sink bytes.Buffer
 
