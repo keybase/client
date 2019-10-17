@@ -73,18 +73,6 @@ func (e *PassphraseRecover) Run(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// If the reset pipeline is not enabled, we'll want this to act exactly the same way as before
-	// Autoreset hardcoded on for now.
-	// TODO: Y2K-3 cleanup for autoreset.
-	autoresetEnabled := true
-	if !autoresetEnabled {
-		// The device has to be preprovisioned for this account in this flow
-		if !e.usernameFound {
-			return libkb.NotProvisionedError{}
-		}
-		return e.legacyRecovery(mctx)
-	}
-
 	// In the new flow we noop if we're already logged in
 	if loggedIn, _ := isLoggedIn(mctx); loggedIn {
 		mctx.Warning("Already logged in with unlocked device keys")
@@ -137,15 +125,6 @@ func (e *PassphraseRecover) processUsername(mctx libkb.MetaContext) error {
 	_, ok := usernamesMap[normalized]
 	e.usernameFound = ok
 	return nil
-}
-
-// TODO CORE-10851: Remove
-func (e *PassphraseRecover) legacyRecovery(mctx libkb.MetaContext) (err error) {
-	if loggedIn, _ := isLoggedIn(mctx); loggedIn {
-		return e.changePassword(mctx)
-	}
-
-	return e.loginWithPaperKey(mctx)
 }
 
 func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.ComputedKeyFamily) (err error) {
