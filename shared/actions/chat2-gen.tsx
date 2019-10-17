@@ -311,6 +311,7 @@ type _MessageEditPayload = {
 type _MessageErroredPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reason: string
+  readonly errorTyp: number | null
   readonly outboxID: Types.OutboxID
 }
 type _MessageReplyPrivatelyPayload = {
