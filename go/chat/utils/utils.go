@@ -1786,6 +1786,10 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
 	case chat1.MessageUnboxedState_PLACEHOLDER:
 		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
+	default:
+		state = 80
+		g.MetaContext(ctx).Debug("PresentMessageUnboxed: unhandled MessageUnboxedState: %v", state)
+		// res = garbage
 	}
 	return res
 }

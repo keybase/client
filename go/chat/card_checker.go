@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"runtime/debug"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -26,7 +27,7 @@ func (cc *cardChecker) Next(ctx context.Context, uid gregor1.UID, conv *chat1.Co
 	cc.MetaContext(ctx).Debug("xxx cardChecker.Next")
 	if conv == nil {
 		// if no verified conversation parameter, don't do anything
-		cc.Debug(ctx, "no conversation parameter")
+		cc.Debug(ctx, "no conversation parameter\n%v", string(debug.Stack()))
 		return nil, nil
 	}
 
