@@ -50,6 +50,7 @@ const Actions = (p: Props) => {
       onBrowsePublicFolder={p.onBrowsePublicFolder}
       onSendLumens={p.onSendLumens}
       onRequestLumens={p.onRequestLumens}
+      onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
       onBlock={p.onBlock}
       onUnblock={p.onUnblock}
       blocked={p.blocked}
@@ -148,7 +149,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
     {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
     {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
-    p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'},
+    p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
     p.blocked
       ? {danger: true, onClick: p.onUnblock, title: 'Unblock'}
       : {danger: true, onClick: p.onBlock, title: 'Block'},

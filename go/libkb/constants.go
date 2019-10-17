@@ -375,6 +375,9 @@ const (
 	SCPhoneNumberLimitExceeded                  = int(keybase1.StatusCode_SCPhoneNumberLimitExceeded)
 	SCNoPaperKeys                               = int(keybase1.StatusCode_SCNoPaperKeys)
 	SCTeambotKeyGenerationExists                = int(keybase1.StatusCode_SCTeambotKeyGenerationExists)
+	SCTeamStorageWrongRevision                  = int(keybase1.StatusCode_SCTeamStorageWrongRevision)
+	SCTeamStorageBadGeneration                  = int(keybase1.StatusCode_SCTeamStorageBadGeneration)
+	SCTeamStorageNotFound                       = int(keybase1.StatusCode_SCTeamStorageNotFound)
 )
 
 const (

@@ -26,46 +26,46 @@ const emptyArray = []
 const emptySet = new Set()
 
 export const makeState = (): Types.State => ({
-  accountsInfoMap: I.Map(),
+  accountsInfoMap: new Map(),
   attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
-  badgeMap: I.Map(), // id to the badge count
-  botCommandsUpdateStatusMap: I.Map(),
+  badgeMap: new Map(), // id to the badge count
+  botCommandsUpdateStatusMap: new Map(),
   channelSearchText: '',
-  commandMarkdownMap: I.Map(),
+  commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
-  containsLatestMessageMap: I.Map(),
+  containsLatestMessageMap: new Map(),
   createConversationError: null,
-  dismissedInviteBannersMap: I.Map(),
+  dismissedInviteBannersMap: new Map(),
   draftMap: new Map(),
-  editingMap: I.Map(),
-  explodingModeLocks: I.Map(), // locks set on exploding mode while user is inputting text,
-  explodingModes: I.Map(), // seconds to exploding message expiration,
-  flipStatusMap: I.Map(),
+  editingMap: new Map(),
+  explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
+  explodingModes: new Map(), // seconds to exploding message expiration,
+  flipStatusMap: new Map(),
   focus: null,
-  giphyResultMap: I.Map(),
-  giphyWindowMap: I.Map(),
+  giphyResultMap: new Map(),
+  giphyWindowMap: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
   inboxSearch: undefined,
   inboxShowNew: false,
   isWalletsNew: true,
   lastCoord: undefined,
-  maybeMentionMap: I.Map(),
+  maybeMentionMap: new Map(),
   messageCenterOrdinals: I.Map(), // ordinals to center threads on,
   messageMap: I.Map(), // messages in a thread,
   messageOrdinals: I.Map(), // ordered ordinals in a thread,
   metaMap: new Map(), // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoadMap: I.Map(), // if we have more data to load,
+  moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
-  orangeLineMap: I.Map(), // last message we've seen,
+  orangeLineMap: new Map(), // last message we've seen,
   paymentConfirmInfo: undefined,
-  paymentStatusMap: I.Map(),
+  paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: I.Map(), // messages waiting to be sent,
-  prependTextMap: I.Map(),
+  prependTextMap: new Map(),
   previousSelectedConversation: noConversationIDKey,
   quote: undefined,
-  replyToMap: I.Map(),
+  replyToMap: new Map(),
   selectedConversation: noConversationIDKey,
   smallTeamsExpanded: false,
   staticConfig: undefined,
@@ -76,7 +76,7 @@ export const makeState = (): Types.State => ({
   trustedInboxHasLoaded: false,
   typingMap: new Map(), // who's typing currently,
   unfurlPromptMap: new Map(),
-  unreadMap: I.Map(),
+  unreadMap: new Map(),
   unsentTextMap: new Map(),
   userReacjis: defaultUserReacjis,
 })
@@ -159,12 +159,12 @@ export const isDecoratedMessage = (message: Types.Message): message is Types.Dec
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.badgeMap.get(id, 0) > 0
+  (state.chat2.badgeMap.get(id) || 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.unreadMap.get(id, 0) > 0
+  (state.chat2.unreadMap.get(id) || 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 export const getReplyToOrdinal = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  return state.chat2.replyToMap.get(conversationIDKey, null)
+  return state.chat2.replyToMap.get(conversationIDKey) || null
 }
 export const getReplyToMessageID = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
   const ordinal = getReplyToOrdinal(state, conversationIDKey)
@@ -276,9 +276,9 @@ export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
 export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
-  let mode = state.chat2.explodingModeLocks.get(c, null)
+  let mode = state.chat2.explodingModeLocks.get(c) || null
   if (mode === null) {
-    mode = state.chat2.explodingModes.get(c, 0)
+    mode = state.chat2.explodingModes.get(c) || 0
   }
   const meta = getMeta(state, c)
   const convRetention = getEffectiveRetentionPolicy(meta)
@@ -286,7 +286,7 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
-  state.chat2.explodingModeLocks.get(c, null) !== null
+  (state.chat2.explodingModeLocks.get(c) || null) !== null
 
 export const getTeamMentionName = (name: string, channel: string) => {
   return name + (channel ? `#${channel}` : '')

@@ -6,12 +6,6 @@ import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
 import {Props} from '.'
 import SharedTimer, {SharedTimerID} from '../../../../../util/shared-timers'
 
-const explodedIllustration = resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')
-const explodedIllustrationDark = resolveRootAsURL('../images/icons/dark-pattern-ashes-desktop-400-68.png')
-const explodedIllustrationUrl = Styles.isDarkMode
-  ? urlsToImgSet({'68': explodedIllustrationDark}, 68)
-  : urlsToImgSet({'68': explodedIllustration}, 68)
-
 const copyChildren = (children: React.ReactNode): React.ReactNode =>
   // @ts-ignore
   React.Children.map(children, child => (child ? React.cloneElement(child) : child))
@@ -191,12 +185,17 @@ class Flame extends React.Component<{}, {color: string; timer: number; width: nu
   }
 }
 
+const explodedIllustrationUrl = () =>
+  Styles.isDarkMode()
+    ? urlsToImgSet({'68': resolveRootAsURL('../images/icons/dark-pattern-ashes-desktop-400-68.png')}, 68)
+    : urlsToImgSet({'68': resolveRootAsURL('../images/icons/pattern-ashes-desktop-400-68.png')}, 68)
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
       ashBox: {
         backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
-        backgroundImage: explodedIllustrationUrl,
+        backgroundImage: explodedIllustrationUrl(),
         backgroundRepeat: 'repeat',
         backgroundSize: '400px 68px',
         bottom: 0,
