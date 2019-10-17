@@ -962,7 +962,7 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         return
       }
       case Chat2Gen.messageErrored: {
-        const {conversationIDKey, outboxID, reason} = action.payload
+        const {conversationIDKey, errorTyp, outboxID, reason} = action.payload
         const ordinal = draftState.pendingOutboxToOrdinal.getIn([conversationIDKey, outboxID])
         if (!ordinal) {
           return
@@ -970,10 +970,16 @@ export default (_state: Types.State = initialState, action: Actions): Types.Stat
         draftState.messageMap = draftState.messageMap.updateIn([conversationIDKey, ordinal], message => {
           if (message) {
             if (message.type === 'text') {
-              return message.set('errorReason', reason).set('submitState', 'failed')
+              return message
+                .set('errorReason', reason)
+                .set('submitState', 'failed')
+                .set('errorTyp', errorTyp)
             }
             if (message.type === 'attachment') {
-              return message.set('errorReason', reason).set('submitState', 'failed')
+              return message
+                .set('errorReason', reason)
+                .set('submitState', 'failed')
+                .set('errorTyp', errorTyp)
             }
           }
           return message

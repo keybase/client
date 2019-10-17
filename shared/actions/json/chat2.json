@@ -182,6 +182,7 @@
     "messageErrored": {
       "conversationIDKey": "Types.ConversationIDKey",
       "reason": "string",
+      "errorTyp": "number | null",
       "outboxID": "Types.OutboxID"
     },
     // Start editing a message / or edit the last message / or clear editing
