@@ -760,7 +760,7 @@ const emailAddressVerified = (
   action: EngineGen.Keybase1NotifyEmailAddressEmailAddressVerifiedPayload,
   logger: Saga.SagaLogger
 ) => {
-  logger.info(`email verified.`)
+  logger.info('email verified')
   return SettingsGen.createEmailVerified({email: action.payload.params.emailAddress})
 }
 
