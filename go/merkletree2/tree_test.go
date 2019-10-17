@@ -315,37 +315,56 @@ func TestHonestMerkleProofsVerifySuccesfully(t *testing.T) {
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1[:len(test.kvps1)-1], nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 1, s1)
 
-			for _, kvp := range test.kvps1 {
+			for _, kvp := range test.kvps1[:len(test.kvps1)-1] {
 				kvpRet, proof, err := tree.GetKeyValuePairWithProof(NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.True(t, kvp.Key.Equal(kvpRet.Key))
 				require.Equal(t, kvp.Value, kvpRet.Value)
 				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 			}
+			// test absence proofs
+			kvp := test.kvps1[len(test.kvps1)-1]
+			eVal, proof, err := tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash1, kvp.Key)
+			require.NoError(t, err)
+			require.Nil(t, eVal)
+			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), kvp.Key, &proof, rootHash1))
 
-			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2, nil)
+			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps2[:len(test.kvps2)-1], nil)
 			require.NoError(t, err)
 			require.EqualValues(t, 2, s2)
 
-			for _, kvp := range test.kvps2 {
+			for _, kvp := range test.kvps2[:len(test.kvps2)-1] {
 				kvpRet, proof, err := tree.GetKeyValuePairWithProof(NewLoggerContextTodoForTesting(t), nil, 2, kvp.Key)
 				require.NoError(t, err)
 				require.Equal(t, kvp.Key, kvpRet.Key)
 				require.Equal(t, kvp.Value, kvpRet.Value)
 				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash2))
 			}
+			// test absence proofs
+			kvp = test.kvps2[len(test.kvps2)-1]
+			eVal, proof, err = tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash2, kvp.Key)
+			require.NoError(t, err)
+			require.Nil(t, eVal)
+			t.Logf("proof: %+v", proof)
+			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), kvp.Key, &proof, rootHash2))
 
-			for _, kvp := range test.kvps1 {
+			for _, kvp := range test.kvps1[:len(test.kvps1)-1] {
 				kvpRet, proof, err := tree.GetKeyValuePairWithProof(NewLoggerContextTodoForTesting(t), nil, 1, kvp.Key)
 				require.NoError(t, err)
 				require.True(t, kvp.Key.Equal(kvpRet.Key))
 				require.Equal(t, kvp.Value, kvpRet.Value)
 				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp, &proof, rootHash1))
 			}
+			// test absence proofs
+			kvp = test.kvps1[len(test.kvps1)-1]
+			eVal, proof, err = tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash1, kvp.Key)
+			require.NoError(t, err)
+			require.Nil(t, eVal)
+			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), kvp.Key, &proof, rootHash1))
 
 		})
 	}
@@ -374,17 +393,18 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 	tests := []struct {
 		cfg         Config
 		step        int
-		numPairs    int
+		numIncPairs int
+		numExcPairs int
 		rootVersion RootVersion
 	}{
-		{blindedBinaryTreeConfig, 63, 8000, RootVersionV1},
-		{blindedBinaryTreeConfig, 1, 200, RootVersionV1},
-		{blindedBinaryTreeConfig, 2, 200, RootVersionV1},
-		{blindedBinaryTreeConfig, 80, 200, RootVersionV1},
-		{unblindedBinaryTreeConfig, 16, 1000, RootVersionV1},
-		{blinded16aryTreeConfig, 16, 1000, RootVersionV1},
-		{blindedBinaryShallowTreeConfig, 16, 1000, RootVersionV1},
-		{blinded16aryShallowTreeConfig, 16, 1000, RootVersionV1},
+		{blindedBinaryTreeConfig, 63, 8000, 800, RootVersionV1},
+		{blindedBinaryTreeConfig, 1, 200, 200, RootVersionV1},
+		{blindedBinaryTreeConfig, 2, 200, 200, RootVersionV1},
+		{blindedBinaryTreeConfig, 80, 200, 200, RootVersionV1},
+		{unblindedBinaryTreeConfig, 16, 1000, 200, RootVersionV1},
+		{blinded16aryTreeConfig, 16, 1000, 200, RootVersionV1},
+		{blindedBinaryShallowTreeConfig, 16, 1000, 200, RootVersionV1},
+		{blinded16aryShallowTreeConfig, 16, 1000, 200, RootVersionV1},
 	}
 
 	for _, test := range tests {
@@ -393,7 +413,7 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 			require.NoError(t, err)
 			verifier := MerkleProofVerifier{cfg: test.cfg}
 
-			keys, err := makeRandomKeysForTesting(uint(test.cfg.KeysByteLength), test.numPairs)
+			keys, keysNotInTree, err := makeRandomKeysForTesting(uint(test.cfg.KeysByteLength), test.numIncPairs, test.numExcPairs)
 			require.NoError(t, err)
 			kvp1, err := makeRandomKVPFromKeysForTesting(keys)
 			require.NoError(t, err)
@@ -411,6 +431,12 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 				require.Equal(t, kvp1[i].Value, kvpRet.Value)
 				err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp1[i], &proof, rootHash1)
 				require.NoErrorf(t, err, "Error verifying proof for key %v: %v", key, err)
+			}
+			for _, key := range keysNotInTree {
+				eVal, proof, err := tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash1, key)
+				require.NoError(t, err)
+				require.Nil(t, eVal)
+				require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), key, &proof, rootHash1))
 			}
 
 			s2, rootHash2, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, kvp2, nil)
@@ -430,12 +456,23 @@ func TestHonestMerkleProofsVerifySuccesfullyLargeTree(t *testing.T) {
 				require.Equal(t, kvp1[i].Value, kvpRet.Value)
 				require.NoError(t, verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), kvp1[i], &proof, rootHash1))
 			}
+			for _, key := range keysNotInTree {
+				eVal, proof, err := tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash2, key)
+				require.NoError(t, err)
+				require.Nil(t, eVal)
+				require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), key, &proof, rootHash2))
+
+				eVal, proof, err = tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash2, key)
+				require.NoError(t, err)
+				require.Nil(t, eVal)
+				require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), key, &proof, rootHash2))
+			}
 		})
 	}
 
 }
 
-func TestSomeMaliciousProofsFail(t *testing.T) {
+func TestSomeMaliciousInclusionProofsFail(t *testing.T) {
 	config1bitU, config2bitsU, config3bitsU := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
 	config1bitB, config2bitsB, config3bitsB := getTreeCfgsWith1_2_3BitsPerIndexBlinded(t)
 	defaultStep := 2
@@ -526,7 +563,84 @@ func TestSomeMaliciousProofsFail(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestSomeMaliciousExclusionProofsFail(t *testing.T) {
+	config1bitU, config2bitsU, config3bitsU := getTreeCfgsWith1_2_3BitsPerIndexUnblinded(t)
+	config1bitB, config2bitsB, config3bitsB := getTreeCfgsWith1_2_3BitsPerIndexBlinded(t)
+	defaultStep := 2
+	kvps1_1bit, _, _ := getSampleKVPS1bit()
+	kvps1_3bits, _, _ := getSampleKVPS3bits()
+
+	config3bits2valsPerLeafU, err := NewConfig(IdentityHasher{}, false, 3, 2, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+	config3bits2valsPerLeafB, err := NewConfig(IdentityHasherBlinded{}, true, 3, 2, 3, ConstructStringValueContainer)
+	require.NoError(t, err)
+
+	tests := []struct {
+		cfg      Config
+		kvps1    []KeyValuePair
+		extraKey Key
+	}{
+		{config1bitU, kvps1_1bit, []byte{0xaa}},
+		{config2bitsU, kvps1_1bit, []byte{0xaa}},
+		{config3bitsU, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+		{config3bits2valsPerLeafU, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+		{config1bitB, kvps1_1bit, []byte{0xaa}},
+		{config2bitsB, kvps1_1bit, []byte{0xaa}},
+		{config3bitsB, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+		{config3bits2valsPerLeafB, kvps1_3bits, []byte{0xaa, 0xaa, 0xaa}},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("%v bits %v values per leaf tree (blinded %v)", test.cfg.BitsPerIndex, test.cfg.MaxValuesPerLeaf, test.cfg.UseBlindedValueHashes), func(t *testing.T) {
+			tree, err := NewTree(test.cfg, defaultStep, NewInMemoryStorageEngine(test.cfg), RootVersionV1)
+			require.NoError(t, err)
+			verifier := MerkleProofVerifier{cfg: test.cfg}
+
+			s1, rootHash1, err := tree.Build(NewLoggerContextTodoForTesting(t), nil, test.kvps1, nil)
+			require.NoError(t, err)
+			require.EqualValues(t, 1, s1)
+
+			// First, sanity check that honest proofs pass
+			eVal, proof, err := tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash1, test.extraKey)
+			require.NoError(t, err)
+			require.Nil(t, eVal)
+			require.NoError(t, verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), test.extraKey, &proof, rootHash1))
+
+			// This key is in the tree, so the exclusion proof should fail
+			keyFake := test.kvps1[0].Key
+			err = verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), keyFake, &proof, rootHash1)
+			require.Error(t, err)
+			require.IsType(t, ProofVerificationFailedError{}, err)
+			// Even an inclusion proof for the right key should fail when verified as an exclusion proof
+			eVal, incProof, err := tree.GetEncodedValueWithInclusionOrExclusionProofFromRootHash(NewLoggerContextTodoForTesting(t), nil, rootHash1, keyFake)
+			require.NoError(t, err)
+			require.NotNil(t, eVal)
+			err = verifier.VerifyInclusionProof(NewLoggerContextTodoForTesting(t), test.kvps1[0], &incProof, rootHash1)
+			require.NoError(t, err)
+			err = verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), test.kvps1[0].Key, &incProof, rootHash1)
+			require.Error(t, err)
+			require.IsType(t, ProofVerificationFailedError{}, err)
+
+			// Change the root hash
+			rootHashFake := Hash(append([]byte(nil), ([]byte(rootHash1))...))
+			([]byte(rootHashFake))[0] = 1 + ([]byte(rootHashFake))[0]
+			err = verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), test.extraKey, &proof, rootHashFake)
+			require.Error(t, err)
+			require.IsType(t, ProofVerificationFailedError{}, err)
+
+			// nil root hash
+			err = verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), test.extraKey, &proof, nil)
+			require.Error(t, err)
+			require.IsType(t, ProofVerificationFailedError{}, err)
+
+			// empty proof
+			err = verifier.VerifyExclusionProof(NewLoggerContextTodoForTesting(t), test.extraKey, &MerkleInclusionProof{}, rootHash1)
+			require.Error(t, err)
+			require.IsType(t, ProofVerificationFailedError{}, err)
+		})
+	}
 }
 
 func TestVerifyInclusionProofFailureBranches(t *testing.T) {
@@ -762,7 +876,7 @@ func TestInclusionExtensionProofsPass(t *testing.T) {
 	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
-	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
+	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0)
 	require.NoError(t, err)
 
 	rootHashes := make(map[Seqno]Hash)
@@ -855,7 +969,7 @@ func TestExtensionProofsFailureBranches(t *testing.T) {
 	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
-	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
+	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0)
 	require.NoError(t, err)
 
 	rootHashes := make(map[Seqno]Hash)
@@ -971,7 +1085,7 @@ func TestInclusionExtensionProofsFailureBranches(t *testing.T) {
 	tree, err := NewTree(cfg, 2, NewInMemoryStorageEngine(cfg), RootVersionV1)
 	require.NoError(t, err)
 
-	keys, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5)
+	keys, _, err := makeRandomKeysForTesting(uint(cfg.KeysByteLength), 5, 0)
 	require.NoError(t, err)
 
 	rootHashes := make(map[Seqno]Hash)

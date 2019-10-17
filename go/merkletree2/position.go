@@ -14,11 +14,11 @@ import (
 // (0b00000101).
 type Position big.Int
 
-func (t *Config) getRootPosition() *Position {
+func (t *Config) GetRootPosition() *Position {
 	return (*Position)(big.NewInt(1))
 }
 
-func (t *Config) getChild(p *Position, c ChildIndex) *Position {
+func (t *Config) GetChild(p *Position, c ChildIndex) *Position {
 	var q big.Int
 	q.Lsh((*big.Int)(p), uint(t.BitsPerIndex))
 	q.Bits()[0] = q.Bits()[0] | big.Word(c)

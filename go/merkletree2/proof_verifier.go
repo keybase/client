@@ -15,52 +15,80 @@ func NewMerkleProofVerifier(c Config) MerkleProofVerifier {
 	return MerkleProofVerifier{cfg: c}
 }
 
-func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionProof, expRootHash Hash) error {
+func (m *MerkleProofVerifier) VerifyInclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionProof, expRootHash Hash) (err error) {
+	if kvp.Value == nil {
+		return NewProofVerificationFailedError(fmt.Errorf("Keys cannot have nil values in the tree"))
+	}
+	return m.verifyInclusionOrExclusionProof(ctx, kvp, proof, expRootHash)
+}
+
+// VerifyExclusionProof uses a MerkleInclusionProof to assert that a specific key is not part of the tree
+func (m *MerkleProofVerifier) VerifyExclusionProof(ctx logger.ContextInterface, k Key, proof *MerkleInclusionProof, expRootHash Hash) (err error) {
+	return m.verifyInclusionOrExclusionProof(ctx, KeyValuePair{Key: k}, proof, expRootHash)
+}
+
+// if kvp.Value == nil, this functions checks that kvp.Key is not included in the tree. Otherwise, it checks that kvp is included in the tree.
+func (m *MerkleProofVerifier) verifyInclusionOrExclusionProof(ctx logger.ContextInterface, kvp KeyValuePair, proof *MerkleInclusionProof, expRootHash Hash) (err error) {
 	if proof == nil {
 		return NewProofVerificationFailedError(fmt.Errorf("nil proof"))
+	}
+
+	var kvpHash Hash
+	// Hash the key value pair if necessary
+	if kvp.Value != nil {
+		kvpHash, err = m.cfg.Encoder.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)
+		if err != nil {
+			return NewProofVerificationFailedError(err)
+		}
 	}
 
 	if proof.RootMetadataNoHash.RootVersion != RootVersionV1 {
 		return NewProofVerificationFailedError(libkb.NewAppOutdatedError(fmt.Errorf("RootVersion %v is not supported (this client can only handle V1)", proof.RootMetadataNoHash.RootVersion)))
 	}
 
-	// Hash the key value pair
-	kvpHash, err := m.cfg.Encoder.HashKeyValuePairWithKeySpecificSecret(kvp, proof.KeySpecificSecret)
-	if err != nil {
-		return NewProofVerificationFailedError(err)
-	}
-
 	if len(kvp.Key) != m.cfg.KeysByteLength {
 		return NewProofVerificationFailedError(fmt.Errorf("Key has wrong length for this tree: %v (expected %v)", len(kvp.Key), m.cfg.KeysByteLength))
 	}
 
-	if len(proof.OtherPairsInLeaf)+1 > m.cfg.MaxValuesPerLeaf {
+	// inclusion proofs for existing values can have at most MaxValuesPerLeaf - 1
+	// other pairs in the leaf, while exclusion proofs can have at most
+	// MaxValuesPerLeaf.
+	if (kvp.Value != nil && len(proof.OtherPairsInLeaf)+1 > m.cfg.MaxValuesPerLeaf) || (kvp.Value == nil && len(proof.OtherPairsInLeaf) > m.cfg.MaxValuesPerLeaf) {
 		return NewProofVerificationFailedError(fmt.Errorf("Too many keys in leaf: %v > %v", len(proof.OtherPairsInLeaf)+1, m.cfg.MaxValuesPerLeaf))
 	}
 
-	// Reconstruct the leaf node
-	leaf := Node{LeafHashes: make([]KeyHashPair, len(proof.OtherPairsInLeaf)+1)}
+	// Reconstruct the leaf node if necessary
+	var nodeHash Hash
+	if kvp.Value != nil || len(proof.OtherPairsInLeaf) > 0 {
+		valueToInsert := false
+		leafHashesLength := len(proof.OtherPairsInLeaf)
+		if kvp.Value != nil {
+			leafHashesLength++
+			valueToInsert = true
+		}
+		leaf := Node{LeafHashes: make([]KeyHashPair, leafHashesLength)}
 
-	// LeafHashes is obtained by adding kvp into OtherPairsInLeaf while maintaining sorted order
-	for i, j, isInserted := 0, 0, false; i < len(proof.OtherPairsInLeaf)+1; i++ {
-		if (j < len(proof.OtherPairsInLeaf) && !isInserted && proof.OtherPairsInLeaf[j].Key.Cmp(kvp.Key) > 0) || j >= len(proof.OtherPairsInLeaf) {
-			leaf.LeafHashes[i] = KeyHashPair{Key: kvp.Key, Hash: kvpHash}
-			isInserted = true
-		} else {
-			leaf.LeafHashes[i] = proof.OtherPairsInLeaf[j]
-			j++
+		// LeafHashes is obtained by adding kvp into OtherPairsInLeaf while maintaining sorted order
+		for i, j := 0, 0; i < leafHashesLength; i++ {
+			if (j < len(proof.OtherPairsInLeaf) && valueToInsert && proof.OtherPairsInLeaf[j].Key.Cmp(kvp.Key) > 0) || j >= len(proof.OtherPairsInLeaf) {
+				leaf.LeafHashes[i] = KeyHashPair{Key: kvp.Key, Hash: kvpHash}
+				valueToInsert = false
+			} else {
+				leaf.LeafHashes[i] = proof.OtherPairsInLeaf[j]
+				j++
+			}
+
+			// Ensure all the KeyHashPairs in the leaf node are different
+			if i > 0 && leaf.LeafHashes[i-1].Key.Cmp(leaf.LeafHashes[i].Key) >= 0 {
+				return NewProofVerificationFailedError(fmt.Errorf("Error in Leaf Key ordering or duplicated key: %v >= %v", leaf.LeafHashes[i-1].Key, leaf.LeafHashes[i].Key))
+			}
 		}
 
-		// Ensure all the KeyHashPairs in the leaf node are different
-		if i > 0 && leaf.LeafHashes[i-1].Key.Cmp(leaf.LeafHashes[i].Key) >= 0 {
-			return NewProofVerificationFailedError(fmt.Errorf("Error in Leaf Key ordering or duplicated key: %v >= %v", leaf.LeafHashes[i-1].Key, leaf.LeafHashes[i].Key))
+		// Recompute the hashes on the nodes on the path from the leaf to the root.
+		_, nodeHash, err = m.cfg.Encoder.EncodeAndHashGeneric(leaf)
+		if err != nil {
+			return NewProofVerificationFailedError(err)
 		}
-	}
-
-	// Recompute the hashes on the nodes on the path from the leaf to the root.
-	_, nodeHash, err := m.cfg.Encoder.EncodeAndHashGeneric(leaf)
-	if err != nil {
-		return NewProofVerificationFailedError(err)
 	}
 
 	sibH := proof.SiblingHashesOnPath
