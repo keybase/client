@@ -762,6 +762,7 @@ export enum OutboxErrorType {
   alreadyDeleted = 7,
   uploadfailed = 8,
   restrictedbot = 9,
+  minwriter = 10,
 }
 
 export enum OutboxStateType {
