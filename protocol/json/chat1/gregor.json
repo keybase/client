@@ -393,6 +393,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
           "type": "keybase1.TeamRole",
           "name": "role"
         },
