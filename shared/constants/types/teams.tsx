@@ -135,10 +135,10 @@ export type State = Readonly<{
   teamNameToPublicitySettings: I.Map<Teamname, _PublicitySettings>
   teamNameToAllowPromote: I.Map<Teamname, boolean>
   teamNameToIsShowcasing: I.Map<Teamname, boolean>
-  teamnames: I.Set<Teamname>
+  teamnames: Set<Teamname>
   teammembercounts: I.Map<Teamname, number>
   teamProfileAddList: Array<TeamProfileAddList>
-  newTeams: I.Set<string>
-  newTeamRequests: I.List<string>
+  newTeams: Set<string>
+  newTeamRequests: Array<string>
   teamBuilding: TeamBuildingSubState
 }>

@@ -214,7 +214,7 @@
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
-      "teamnames": "I.Set<Types.Teamname>",
+      "teamnames": "Set<Types.Teamname>",
       "teammembercounts": "I.Map<Types.Teamname, number>",
       "teamNameToIsOpen": "I.Map<Types.Teamname, boolean>",
       "teamNameToRole": "I.Map<Types.Teamname, Types.MaybeTeamRoleType>",
@@ -230,8 +230,8 @@
     },
     "setNewTeamInfo": {
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
-      "newTeams": "I.Set<string>",
-      "newTeamRequests": "I.List<string>",
+      "newTeams": "Set<string>",
+      "newTeamRequests": "Array<string>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},

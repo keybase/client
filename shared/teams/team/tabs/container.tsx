@@ -1,5 +1,4 @@
 import * as Constants from '../../../constants/teams'
-import * as I from 'immutable'
 import * as Types from '../../../constants/types/teams'
 import Tabs from '.'
 import * as Container from '../../../util/container'
@@ -15,7 +14,7 @@ export default Container.connect(
   (state, {teamname, selectedTab, setSelectedTab}: OwnProps) => {
     const yourOperations = Constants.getCanPerform(state, teamname)
     return {
-      _newTeamRequests: state.teams.newTeamRequests || I.List(),
+      _newTeamRequests: state.teams.newTeamRequests,
       admin: yourOperations.manageMembers,
       loading: anyWaiting(state, Constants.teamWaitingKey(teamname), Constants.teamTarsWaitingKey(teamname)),
       memberCount: Constants.getTeamMemberCount(state, teamname),
@@ -35,7 +34,7 @@ export default Container.connect(
       admin: stateProps.admin,
       loading: stateProps.loading,
       memberCount: stateProps.memberCount,
-      newTeamRequests: stateProps._newTeamRequests.toArray(),
+      newTeamRequests: stateProps._newTeamRequests,
       numInvites: stateProps.numInvites,
       numRequests: stateProps.numRequests,
       numSubteams: stateProps.numSubteams,

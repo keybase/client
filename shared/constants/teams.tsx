@@ -149,8 +149,8 @@ const emptyState: Types.State = {
   channelCreationError: '',
   deletedTeams: [],
   emailInviteError: emptyEmailInviteError,
-  newTeamRequests: I.List(),
-  newTeams: I.Set(),
+  newTeamRequests: [],
+  newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
   teamAccessRequestsPending: new Set(),
@@ -178,7 +178,7 @@ const emptyState: Types.State = {
   teamNameToSubteams: I.Map(),
   teamProfileAddList: [],
   teammembercounts: I.Map(),
-  teamnames: I.Set(),
+  teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
 }
 
@@ -493,7 +493,7 @@ function sortTeamnames(a: string, b: string) {
   }
 }
 
-const _memoizedSorted = memoize(names => names.toArray().sort(sortTeamnames))
+const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(sortTeamnames))
 const getSortedTeamnames = (state: TypedState): Types.Teamname[] => _memoizedSorted(state.teams.teamnames)
 
 const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'

@@ -194,8 +194,8 @@ type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase:
 type _SetMembersPayload = {readonly teamname: string; readonly members: I.Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  readonly newTeams: I.Set<string>
-  readonly newTeamRequests: I.List<string>
+  readonly newTeams: Set<string>
+  readonly newTeamRequests: Array<string>
   readonly teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
@@ -220,7 +220,7 @@ type _SetTeamDetailsPayload = {
   readonly requests: I.Map<string, I.Set<Types.RequestInfo>>
 }
 type _SetTeamInfoPayload = {
-  readonly teamnames: I.Set<Types.Teamname>
+  readonly teamnames: Set<Types.Teamname>
   readonly teammembercounts: I.Map<Types.Teamname, number>
   readonly teamNameToIsOpen: I.Map<Types.Teamname, boolean>
   readonly teamNameToRole: I.Map<Types.Teamname, Types.MaybeTeamRoleType>
