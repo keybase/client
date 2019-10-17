@@ -32,8 +32,8 @@ const valuesCached = memoize(
         ...Constants.makeConversationMeta(),
         conversationIDKey: v.convID,
       },
-      hasBadge: badgeMap.get(v.convID, 0) > 0,
-      hasUnread: unreadMap.get(v.convID, 0) > 0,
+      hasBadge: (badgeMap.get(v.convID) || 0) > 0,
+      hasUnread: (unreadMap.get(v.convID) || 0) > 0,
     }))
 )
 

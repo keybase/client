@@ -39,7 +39,7 @@ const getRowCounts = memoize((badges, rows) => {
 
   rows.forEach(row => {
     if (row.type === 'small') {
-      badgeCount -= badges.get(row.conversationIDKey, 0)
+      badgeCount -= badges.get(row.conversationIDKey) || 0
       hiddenCount -= 1
     }
   })

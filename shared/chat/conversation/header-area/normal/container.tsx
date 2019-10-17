@@ -61,8 +61,8 @@ const HeaderBranch = (props: Props) => {
 
 export default Container.withSafeNavigation(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps) => ({
-    badgeNumber: stateProps._badgeMap.reduce(
-      (res, currentValue, currentConvID) =>
+    badgeNumber: [...stateProps._badgeMap.entries()].reduce(
+      (res, [currentConvID, currentValue]) =>
         // only show sum of badges that aren't for the current conversation
         currentConvID !== stateProps._conversationIDKey ? res + currentValue : res,
       0
