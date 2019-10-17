@@ -386,12 +386,8 @@
     },
     {
       "type": "record",
-      "name": "UpdateConversationMembership",
+      "name": "TeamMemberRoleUpdate",
       "fields": [
-        {
-          "type": "InboxVers",
-          "name": "inboxVers"
-        },
         {
           "type": "TLFID",
           "name": "tlfID"
@@ -399,6 +395,23 @@
         {
           "type": "keybase1.TeamRole",
           "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateConversationMembership",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "TeamMemberRoleUpdate"
+          ],
+          "name": "teamMemberRoleUpdate"
         },
         {
           "type": {
