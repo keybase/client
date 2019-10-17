@@ -119,6 +119,7 @@ protocol gregor {
 
     record UpdateConversationMembership {
         InboxVers inboxVers;
+        keybase1.TeamRole role;
         array<ConversationMember> joined;
         array<ConversationMember> removed;
         array<ConversationMember> reset;

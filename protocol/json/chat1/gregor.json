@@ -393,6 +393,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        },
+        {
           "type": {
             "type": "array",
             "items": "ConversationMember"

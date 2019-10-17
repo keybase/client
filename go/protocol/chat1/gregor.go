@@ -322,6 +322,7 @@ func (o RemoteUserTypingUpdate) DeepCopy() RemoteUserTypingUpdate {
 
 type UpdateConversationMembership struct {
 	InboxVers     InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Role          keybase1.TeamRole    `codec:"role" json:"role"`
 	Joined        []ConversationMember `codec:"joined" json:"joined"`
 	Removed       []ConversationMember `codec:"removed" json:"removed"`
 	Reset         []ConversationMember `codec:"reset" json:"reset"`
@@ -333,6 +334,7 @@ type UpdateConversationMembership struct {
 func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 	return UpdateConversationMembership{
 		InboxVers: o.InboxVers.DeepCopy(),
+		Role:      o.Role.DeepCopy(),
 		Joined: (func(x []ConversationMember) []ConversationMember {
 			if x == nil {
 				return nil
