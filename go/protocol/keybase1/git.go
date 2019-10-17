@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/git.avdl
 
 package keybase1
@@ -57,7 +57,7 @@ func (e GitLocalMetadataVersion) String() string {
 	if v, ok := GitLocalMetadataVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GitLocalMetadataV1 struct {
@@ -160,7 +160,7 @@ func (e GitPushType) String() string {
 	if v, ok := GitPushTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GitRefMetadata struct {
@@ -256,7 +256,7 @@ func (e GitRepoResultState) String() string {
 	if v, ok := GitRepoResultStateRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GitRepoResult struct {

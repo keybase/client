@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/login_ui.avdl
 
 package keybase1
@@ -39,7 +39,7 @@ func (e ResetPromptType) String() string {
 	if v, ok := ResetPromptTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ResetPromptInfo struct {
@@ -130,7 +130,7 @@ func (e ResetPromptResponse) String() string {
 	if v, ok := ResetPromptResponseRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PassphraseRecoveryPromptType int
@@ -153,7 +153,7 @@ func (e PassphraseRecoveryPromptType) String() string {
 	if v, ok := PassphraseRecoveryPromptTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GetEmailOrUsernameArg struct {

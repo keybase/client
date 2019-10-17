@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/ctl.avdl
 
 package keybase1
@@ -35,7 +35,7 @@ func (e ExitCode) String() string {
 	if v, ok := ExitCodeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DbType int
@@ -73,7 +73,7 @@ func (e DbType) String() string {
 	if v, ok := DbTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DbKey struct {

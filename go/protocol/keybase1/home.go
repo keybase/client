@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/home.avdl
 
 package keybase1
@@ -42,7 +42,7 @@ func (e HomeScreenItemType) String() string {
 	if v, ok := HomeScreenItemTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HomeScreenItemData struct {
@@ -253,7 +253,7 @@ func (e AppLinkType) String() string {
 	if v, ok := AppLinkTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HomeScreenAnnouncementID int
@@ -366,7 +366,7 @@ func (e HomeScreenTodoType) String() string {
 	if v, ok := HomeScreenTodoTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 // Most of TODO items do not carry additional data, but some do. e.g. TODO
@@ -580,7 +580,7 @@ func (e HomeScreenPeopleNotificationType) String() string {
 	if v, ok := HomeScreenPeopleNotificationTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type HomeScreenPeopleNotificationFollowed struct {

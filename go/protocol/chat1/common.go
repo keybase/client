@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/common.avdl
 
 package chat1
@@ -169,7 +169,7 @@ func (e ConversationExistence) String() string {
 	if v, ok := ConversationExistenceRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationMembersType int
@@ -201,7 +201,7 @@ func (e ConversationMembersType) String() string {
 	if v, ok := ConversationMembersTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SyncInboxResType int
@@ -230,7 +230,7 @@ func (e SyncInboxResType) String() string {
 	if v, ok := SyncInboxResTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type MessageType int
@@ -354,7 +354,7 @@ func (e TeamType) String() string {
 	if v, ok := TeamTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type NotificationKind int
@@ -408,7 +408,7 @@ func (e GlobalAppNotificationSetting) String() string {
 	if v, ok := GlobalAppNotificationSettingRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GlobalAppNotificationSettings struct {
@@ -467,7 +467,7 @@ func (e ConversationStatus) String() string {
 	if v, ok := ConversationStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ConversationMember struct {
@@ -579,7 +579,7 @@ func (e ConversationMemberStatus) String() string {
 	if v, ok := ConversationMemberStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Pagination struct {
@@ -1632,7 +1632,7 @@ func (e InboxResType) String() string {
 	if v, ok := InboxResTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type InboxViewFull struct {
@@ -1749,7 +1749,7 @@ func (e RetentionPolicyType) String() string {
 	if v, ok := RetentionPolicyTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type RetentionPolicy struct {
@@ -1972,7 +1972,7 @@ func (e GetThreadReason) String() string {
 	if v, ok := GetThreadReasonRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ReIndexingMode int
@@ -2001,7 +2001,7 @@ func (e ReIndexingMode) String() string {
 	if v, ok := ReIndexingModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SearchOpts struct {
@@ -2461,7 +2461,7 @@ func (e BotCommandsAdvertisementTyp) String() string {
 	if v, ok := BotCommandsAdvertisementTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type TeamMember struct {

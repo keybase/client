@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/stellar1/bundle.avdl
 
 package stellar1
@@ -83,7 +83,7 @@ func (e BundleVersion) String() string {
 	if v, ok := BundleVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type BundleSecretVersioned struct {
@@ -553,7 +553,7 @@ func (e AccountBundleVersion) String() string {
 	if v, ok := AccountBundleVersionRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type AccountBundleSecretVersioned struct {

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/unfurl.avdl
 
 package chat1
@@ -38,7 +38,7 @@ func (e UnfurlType) String() string {
 	if v, ok := UnfurlTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnfurlVideo struct {
@@ -800,7 +800,7 @@ func (e UnfurlMode) String() string {
 	if v, ok := UnfurlModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UnfurlSettings struct {

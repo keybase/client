@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/simple_fs.avdl
 
 package keybase1
@@ -53,7 +53,7 @@ func (e KBFSArchivedType) String() string {
 	if v, ok := KBFSArchivedTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type KBFSArchivedParam struct {
@@ -256,7 +256,7 @@ func (e PathType) String() string {
 	if v, ok := PathTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Path struct {
@@ -394,7 +394,7 @@ func (e DirentType) String() string {
 	if v, ok := DirentTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PrefetchStatus int
@@ -423,7 +423,7 @@ func (e PrefetchStatus) String() string {
 	if v, ok := PrefetchStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PrefetchProgress struct {
@@ -501,7 +501,7 @@ func (e RevisionSpanType) String() string {
 	if v, ok := RevisionSpanTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ErrorNum int
@@ -545,7 +545,7 @@ func (e OpenFlags) String() string {
 	if v, ok := OpenFlagsRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Progress int
@@ -637,7 +637,7 @@ func (e AsyncOps) String() string {
 	if v, ok := AsyncOpsRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ListFilter int
@@ -666,7 +666,7 @@ func (e ListFilter) String() string {
 	if v, ok := ListFilterRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ListArgs struct {
@@ -1165,7 +1165,7 @@ func (e FolderSyncMode) String() string {
 	if v, ok := FolderSyncModeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type FolderSyncConfig struct {
@@ -1323,7 +1323,7 @@ func (e SubscriptionTopic) String() string {
 	if v, ok := SubscriptionTopicRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PathSubscriptionTopic int
@@ -1349,7 +1349,7 @@ func (e PathSubscriptionTopic) String() string {
 	if v, ok := PathSubscriptionTopicRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DownloadInfo struct {
@@ -1459,7 +1459,7 @@ func (e GUIViewType) String() string {
 	if v, ok := GUIViewTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type GUIFileContext struct {

@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/config.avdl
 
 package keybase1
@@ -501,7 +501,7 @@ func (e ForkType) String() string {
 	if v, ok := ForkTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type Config struct {
@@ -632,7 +632,7 @@ func (e UpdateInfoStatus) String() string {
 	if v, ok := UpdateInfoStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UpdateInfo struct {
@@ -705,7 +705,7 @@ func (e UpdateInfoStatus2) String() string {
 	if v, ok := UpdateInfoStatus2RevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UpdateDetails struct {
@@ -826,7 +826,7 @@ func (e ProxyType) String() string {
 	if v, ok := ProxyTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ProxyData struct {

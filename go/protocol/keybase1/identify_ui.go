@@ -1,4 +1,4 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/keybase1/identify_ui.avdl
 
 package keybase1
@@ -235,7 +235,7 @@ func (e CheckResultFreshness) String() string {
 	if v, ok := CheckResultFreshnessRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type CheckResult struct {
@@ -421,7 +421,7 @@ func (e DismissReasonType) String() string {
 	if v, ok := DismissReasonTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type DismissReason struct {
