@@ -13,7 +13,7 @@ type OwnProps = {
 
 export default connect(
   (state, {teamname}: OwnProps) => ({
-    _newTeamRequests: state.teams.newTeamRequests || [],
+    _newTeamRequests: state.teams.newTeamRequests,
     _teamNameToIsOpen: state.teams.teamNameToIsOpen || I.Map(),
     members: Constants.getTeamMemberCount(state, teamname),
     yourRole: Constants.getRole(state, teamname),
