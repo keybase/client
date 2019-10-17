@@ -5,6 +5,7 @@ import * as Types from '../constants/types/teams'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as Container from '../util/container'
+import {TeamBuildingSubState} from '../constants/types/team-building'
 import teamBuildingReducer from './team-building'
 import {ifTSCComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch} from '../util/switch'
 
@@ -196,7 +197,11 @@ export default (
       case TeamBuildingGen.selectRole:
       case TeamBuildingGen.labelsSeen:
       case TeamBuildingGen.changeSendNotification:
-        draftState.teamBuilding = teamBuildingReducer('teams', draftState.teamBuilding, action)
+        draftState.teamBuilding = teamBuildingReducer(
+          'teams',
+          draftState.teamBuilding as TeamBuildingSubState,
+          action
+        )
         return
       // Saga-only actions
       case TeamsGen.addUserToTeams:
