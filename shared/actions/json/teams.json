@@ -161,7 +161,7 @@
       "error": "string"
     },
     "setTeamsWithChosenChannels": {
-      "teamsWithChosenChannels": "I.Set<Types.Teamname>"
+      "teamsWithChosenChannels": "Set<Types.Teamname>"
     },
     "setTeamCreationError": {
       "error": "string"
@@ -226,10 +226,10 @@
       "teamlist": "I.List<Types.TeamProfileAddList>"
     },
     "setTeamAccessRequestsPending": {
-      "accessRequestsPending": "I.Set<Types.Teamname>"
+      "accessRequestsPending": "Set<Types.Teamname>"
     },
     "setNewTeamInfo": {
-      "deletedTeams": "I.List<RPCTypes.DeletedTeamInfo>",
+      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "I.Set<string>",
       "newTeamRequests": "I.List<string>",
       "teamNameToResetUsers": "I.Map<Types.Teamname, I.Set<Types.ResetUser>>"
@@ -265,9 +265,9 @@
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "badgeAppForTeams": {
-      "deletedTeams": "I.List<RPCTypes.DeletedTeamInfo>",
-      "newTeamNames": "I.List<string>",
-      "newTeamAccessRequests": "I.List<string>",
+      "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
+      "newTeamNames": "Array<string>",
+      "newTeamAccessRequests": "Array<string>",
       "teamsWithResetUsers": "ReadonlyArray<{id: Buffer, teamname: string, username: string, uid: string}>"
     },
     "checkRequestedAccess": {

@@ -110,7 +110,7 @@ const Connected = Container.withSafeNavigation(
     }),
 
     (stateProps, dispatchProps, _: OwnProps) => ({
-      deletedTeams: stateProps._deletedTeams.toArray(),
+      deletedTeams: stateProps._deletedTeams,
       loaded: stateProps.loaded,
       newTeams: stateProps._newTeams.toArray(),
       sawChatBanner: stateProps.sawChatBanner,

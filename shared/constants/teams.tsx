@@ -147,13 +147,13 @@ const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   channelCreationError: '',
-  deletedTeams: I.List(),
+  deletedTeams: [],
   emailInviteError: makeEmailInviteError(),
   newTeamRequests: I.List(),
   newTeams: I.Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
-  teamAccessRequestsPending: I.Set(),
+  teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamCreationError: '',
   teamInviteError: '',
@@ -179,7 +179,7 @@ const emptyState: Types.State = {
   teamProfileAddList: I.List(),
   teammembercounts: I.Map(),
   teamnames: I.Set(),
-  teamsWithChosenChannels: I.Set(),
+  teamsWithChosenChannels: new Set(),
 }
 
 export const makeState = (s?: Partial<Types.State>): Types.State =>

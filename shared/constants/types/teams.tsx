@@ -109,12 +109,12 @@ export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
   channelCreationError: string
-  deletedTeams: I.List<RPCTypes.DeletedTeamInfo>
+  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   emailInviteError: EmailInviteError
-  teamsWithChosenChannels: I.Set<Teamname>
+  teamsWithChosenChannels: Set<Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
-  teamAccessRequestsPending: I.Set<Teamname>
+  teamAccessRequestsPending: Set<Teamname>
   teamInviteError: string
   teamJoinError: string
   teamJoinSuccess: boolean
