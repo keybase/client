@@ -1,9 +1,10 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/stellar1/local.avdl
 
 package stellar1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
@@ -121,7 +122,7 @@ func (e BalanceDelta) String() string {
 	if v, ok := BalanceDeltaRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PaymentStatus int
@@ -162,7 +163,7 @@ func (e PaymentStatus) String() string {
 	if v, ok := PaymentStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ParticipantType int
@@ -197,7 +198,7 @@ func (e ParticipantType) String() string {
 	if v, ok := ParticipantTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type PaymentOrErrorLocal struct {
@@ -548,7 +549,7 @@ func (e AdvancedBanner) String() string {
 	if v, ok := AdvancedBannerRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type SendBannerLocal struct {

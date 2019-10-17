@@ -5,6 +5,7 @@ package stellar1
 
 import (
 	"errors"
+	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"

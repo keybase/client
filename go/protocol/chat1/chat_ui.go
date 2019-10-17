@@ -1,10 +1,11 @@
-// Auto-generated to Go types and interfaces using avdl-compiler v1.4.4 (https://github.com/keybase/node-avdl-compiler)
+// Auto-generated to Go types and interfaces using avdl-compiler v1.4.5 (https://github.com/keybase/node-avdl-compiler)
 //   Input file: avdl/chat1/chat_ui.avdl
 
 package chat1
 
 import (
 	"errors"
+	"fmt"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
@@ -94,7 +95,7 @@ func (e UIInboxBigTeamRowTyp) String() string {
 	if v, ok := UIInboxBigTeamRowTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIInboxBigTeamChannelRow struct {
@@ -480,7 +481,7 @@ func (e UIParticipantType) String() string {
 	if v, ok := UIParticipantTypeRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIParticipant struct {
@@ -1141,7 +1142,7 @@ func (e MessageUnboxedState) String() string {
 	if v, ok := MessageUnboxedStateRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIMessage struct {
@@ -1424,7 +1425,7 @@ func (e UITextDecorationTyp) String() string {
 	if v, ok := UITextDecorationTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIMaybeMentionStatus int
@@ -1456,7 +1457,7 @@ func (e UIMaybeMentionStatus) String() string {
 	if v, ok := UIMaybeMentionStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UILinkDecoration struct {
@@ -1790,7 +1791,7 @@ func (e UIChatThreadStatusTyp) String() string {
 	if v, ok := UIChatThreadStatusTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIChatThreadStatus struct {
@@ -2018,7 +2019,7 @@ func (e UICoinFlipPhase) String() string {
 	if v, ok := UICoinFlipPhaseRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICoinFlipErrorParticipant struct {
@@ -2094,7 +2095,7 @@ func (e UICoinFlipErrorTyp) String() string {
 	if v, ok := UICoinFlipErrorTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICoinFlipError struct {
@@ -2337,7 +2338,7 @@ func (e UICoinFlipResultTyp) String() string {
 	if v, ok := UICoinFlipResultTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICoinFlipHand struct {
@@ -2679,7 +2680,7 @@ func (e UIWatchPositionPerm) String() string {
 	if v, ok := UIWatchPositionPermRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICommandStatusDisplayTyp int
@@ -2708,7 +2709,7 @@ func (e UICommandStatusDisplayTyp) String() string {
 	if v, ok := UICommandStatusDisplayTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UICommandStatusActionTyp int
@@ -2731,7 +2732,7 @@ func (e UICommandStatusActionTyp) String() string {
 	if v, ok := UICommandStatusActionTypRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type UIBotCommandsUpdateStatus int
@@ -2763,7 +2764,7 @@ func (e UIBotCommandsUpdateStatus) String() string {
 	if v, ok := UIBotCommandsUpdateStatusRevMap[e]; ok {
 		return v
 	}
-	return ""
+	return fmt.Sprintf("%v", int(e))
 }
 
 type ChatAttachmentDownloadStartArg struct {
