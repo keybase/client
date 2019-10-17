@@ -339,6 +339,7 @@ type SelectorOwnProps = Container.RouteProps<{
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  initialTab: Panel | null
   onBack: () => void
   onGoToInbox: () => void
   shouldNavigateOut: boolean
@@ -350,7 +351,7 @@ const InfoPanelSelector = (props: Props) => {
   React.useEffect(() => {
     !prevShouldNavigateOut && shouldNavigateOut && onGoToInbox()
   }, [prevShouldNavigateOut, shouldNavigateOut, onGoToInbox])
-  const [selectedTab, onSelectTab] = React.useState<Panel | null>(null)
+  const [selectedTab, onSelectTab] = React.useState<Panel | null>(props.initialTab)
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
@@ -432,8 +433,9 @@ const InfoConnected = Container.connect(
     onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
     onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox()),
   }),
-  (stateProps, dispatchProps, _: SelectorOwnProps) => ({
+  (stateProps, dispatchProps, ownProps: SelectorOwnProps) => ({
     conversationIDKey: stateProps.conversationIDKey,
+    initialTab: Container.getRouteProps(ownProps, 'tab', null),
     onBack: dispatchProps.onBack,
     onGoToInbox: dispatchProps.onGoToInbox,
     shouldNavigateOut: stateProps.shouldNavigateOut,

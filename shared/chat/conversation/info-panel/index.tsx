@@ -125,6 +125,12 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
+  componentDidMount() {
+    if (this.props.selectedTab === 'attachments') {
+      this._retryLoad()
+    }
+  }
+
   _retryLoad = () => {
     this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
   }
