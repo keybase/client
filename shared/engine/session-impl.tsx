@@ -116,6 +116,7 @@ class Session {
   }
 
   end() {
+    global.nativeTest.traceEndAsyncSection(`RPC-${this._startMethod}`, this._id)
     if (this._startMethod) {
       measureStop(`engine:${this._startMethod}:${this.getId()}`)
     }
@@ -126,6 +127,7 @@ class Session {
   start(method: MethodKey, param: Object, callback: (() => void) | undefined) {
     this._startMethod = method
     this._startCallback = callback
+    global.nativeTest.traceBeginAsyncSection(`RPC-${this._startMethod}`, this._id)
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {

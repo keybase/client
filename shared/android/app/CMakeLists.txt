@@ -3,8 +3,10 @@
 
 # Sets the minimum version of CMake required to build the native library.
 
+set(CMAKE_SYSTEM_NAME Android)
+set(CMAKE_SYSTEM_VERSION 29)
+set(CMAKE_ANDROID_API 29)
 cmake_minimum_required(VERSION 3.4.1)
-set(CMAKE_SYSTEM_VERSION 25)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.

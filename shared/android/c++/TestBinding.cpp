@@ -69,6 +69,30 @@ jsi::Value TestBinding::get(jsi::Runtime &runtime,
         });
   }
 
+  if (methodName == "traceBeginAsyncSection") {
+    return jsi::Function::createFromHostFunction(
+        runtime, name, 2,
+        [](jsi::Runtime &runtime, const jsi::Value &thisValue,
+           const jsi::Value *arguments, size_t count) -> jsi::Value {
+          auto name = arguments[0].toString(runtime).utf8(runtime);
+          int cookie = (int)arguments[1].asNumber();
+          ATrace_beginAsyncSection(name.c_str(), cookie);
+          return 0;
+        });
+  }
+
+  if (methodName == "traceEndAsyncSection") {
+    return jsi::Function::createFromHostFunction(
+        runtime, name, 0,
+        [](jsi::Runtime &runtime, const jsi::Value &thisValue,
+           const jsi::Value *arguments, size_t count) -> jsi::Value {
+          auto name = arguments[0].toString(runtime).utf8(runtime);
+          int cookie = (int)arguments[1].asNumber();
+          ATrace_endAsyncSection(name.c_str(), cookie);
+          return 0;
+        });
+  }
+
   if (methodName == "runTest") {
     __android_log_print(ANDROID_LOG_VERBOSE, APPNAME,
                         "!!!!!! HI FROM NATIVE CODE %d", __ANDROID_API__);
