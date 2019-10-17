@@ -27,7 +27,7 @@ window.console._info = window.console.info
 // require('InteractionStallDebugger').install({thresholdMS: 100})
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config = {
   allowMultipleInstances: false,
@@ -39,7 +39,8 @@ let config = {
   ignoreDisconnectOverlay: false,
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false, // Use a dev push token
-  isTesting: nativeBridge.test === '1' || (__DEV__ && NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
+  isTesting:
+    nativeBridge.test === '1' || (__DEV__ && NativeModules.Storybook && NativeModules.Storybook.isStorybook), // Is running a unit test
   partyMode: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
