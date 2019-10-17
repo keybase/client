@@ -32,10 +32,14 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _canPinMessage = yourOperations && yourOperations.pinMessage
   }
   const _participantsCount = meta.participants.length
+  // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
+  const _canReplyPrivately =
+    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || _participantsCount > 2)
   return {
     _canAdminDelete,
     _canDeleteHistory,
     _canPinMessage,
+    _canReplyPrivately,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
     _participantsCount,
@@ -116,6 +120,7 @@ export default Container.namedConnect(
     const yourMessage = message.author === stateProps._you
     const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
     const isEditable = stateProps._isEditable && yourMessage
+    const canReplyPrivately = stateProps._canReplyPrivately
     const mapUnfurl = Constants.getMapUnfurl(message)
     const onViewMap = mapUnfurl ? () => openURL(mapUnfurl.url) : undefined
     return {
@@ -137,9 +142,7 @@ export default Container.namedConnect(
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
-        message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
-          ? () => dispatchProps._onReplyPrivately(message)
-          : undefined,
+        !yourMessage && canReplyPrivately ? () => dispatchProps._onReplyPrivately(message) : undefined,
       onViewMap,
       onViewProfile:
         message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,
