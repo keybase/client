@@ -50,7 +50,7 @@ func (h *SignupHandler) CheckUsernameAvailable(ctx context.Context, arg keybase1
 		return libkb.AppStatusError{
 			Code: libkb.SCBadUsername,
 			Name: "BAD_USERNAME",
-			Desc: "Usernames must be 2-16 characters long, and can use letters, numbers, and underscore.",
+			Desc: "Usernames must be 2-16 characters long, and can use letters, numbers, and underscores.",
 		}
 	case "user":
 		// User found, so the name is taken.
