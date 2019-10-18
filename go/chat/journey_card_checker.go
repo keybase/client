@@ -81,7 +81,7 @@ func (cc *journeyCardChecker) Next(ctx context.Context, uid gregor1.UID, conv *c
 
 	makeCard := func(cardType chat1.JourneycardType, highlightMsgID chat1.MessageID) (*chat1.MessageUnboxedJourneycard, error) {
 		return &chat1.MessageUnboxedJourneycard{
-			PrevID:         chat1.MessageID(prevID),
+			PrevID:         prevID,
 			Ordinal:        ordinal,
 			CardType:       cardType,
 			HighlightMsgID: highlightMsgID,

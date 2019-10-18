@@ -197,9 +197,9 @@ export const makeMessagePlaceholder = I.Record<MessageTypes._MessagePlaceholder>
 
 export const makeMessageJourneycard = I.Record<MessageTypes._MessageJourneycard>({
   ...makeMessageMinimum,
-  type: 'journeycard',
   cardType: RPCChatTypes.JourneycardType.welcome,
   highlightMsgID: Types.numberToMessageID(0),
+  type: 'journeycard',
 })
 
 export const makeMessageDeleted = I.Record<MessageTypes._MessageDeleted>({
@@ -1075,10 +1075,10 @@ const journeycardUIMessageToMessage = (
   m: RPCChatTypes.UIMessageJourneycard
 ) => {
   return makeMessageJourneycard({
-    conversationIDKey,
-    ordinal: Types.numberToOrdinal(m.ordinal),
     cardType: m.cardType,
+    conversationIDKey,
     highlightMsgID: m.highlightMsgID,
+    ordinal: Types.numberToOrdinal(m.ordinal),
   })
 }
 
