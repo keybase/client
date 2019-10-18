@@ -123,6 +123,7 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
+export const startAudioRecording = 'chat2:startAudioRecording'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const tabSelected = 'chat2:tabSelected'
 export const threadSearch = 'chat2:threadSearch'
@@ -577,6 +578,7 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
+type _StartAudioRecordingPayload = void
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _TabSelectedPayload = void
 type _ThreadSearchPayload = {
@@ -1362,6 +1364,9 @@ export const createSendTyping = (payload: _SendTypingPayload): SendTypingPayload
 export const createSetConversationOffline = (
   payload: _SetConversationOfflinePayload
 ): SetConversationOfflinePayload => ({payload, type: setConversationOffline})
+export const createStartAudioRecording = (
+  payload: _StartAudioRecordingPayload
+): StartAudioRecordingPayload => ({payload, type: startAudioRecording})
 export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload): ToggleInfoPanelPayload => ({
   payload,
   type: toggleInfoPanel,
@@ -1793,6 +1798,10 @@ export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
   readonly type: typeof setWalletsOld
 }
+export type StartAudioRecordingPayload = {
+  readonly payload: _StartAudioRecordingPayload
+  readonly type: typeof startAudioRecording
+}
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
@@ -2018,6 +2027,7 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
+  | StartAudioRecordingPayload
   | StaticConfigLoadedPayload
   | TabSelectedPayload
   | ThreadSearchPayload
