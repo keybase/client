@@ -156,7 +156,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       pending: {
-        backgroundColor: Styles.globalColors.black_05OrBlack_60,
+        backgroundColor: Styles.globalColors.greyLight,
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.black_50OrWhite,
       },
