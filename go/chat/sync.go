@@ -316,6 +316,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 
 func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "Sync")()
 	s.Lock()
 	if !s.isConnected {
 		defer s.Unlock()
