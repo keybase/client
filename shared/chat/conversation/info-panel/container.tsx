@@ -17,6 +17,7 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 // and this thing is just a holder of tabs
 
 type OwnProps = {
+  loadDelay?: number
   conversationIDKey: Types.ConversationIDKey
   onBack?: () => void
   onCancel?: () => void
@@ -254,6 +255,7 @@ const ConnectedInfoPanel = Container.connect(
               status: stateProps._attachmentInfo.status,
             }
           : noLinks,
+      loadDelay: ownProps.loadDelay,
       media:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {
@@ -390,6 +392,7 @@ const InfoPanelSelector = (props: Props) => {
               onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}
             >
               <ConnectedInfoPanel
+                loadDelay={400}
                 onBack={() => setShow(false)}
                 onSelectTab={onSelectTab}
                 conversationIDKey={props.conversationIDKey}
