@@ -62,7 +62,7 @@ func (h *KBFSMountHandler) WaitForMounts(ctx context.Context) (active bool, err 
 			// Not check os.IsNotExist here because it can be permission
 			// error too. So just wait it out.
 		case <-ctx.Done():
-			return false, ctx.Err()
+			return false, nil
 		}
 	}
 	return true, nil
