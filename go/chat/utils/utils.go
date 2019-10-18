@@ -910,10 +910,7 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 	return h.Sum(nil), nil
 }
 
-func GetConvMtime(rc types.RemoteConversation) gregor1.Time {
-	if rc.LocalMtime != nil {
-		return *rc.LocalMtime
-	}
+func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 	conv := rc.Conv
 	var summaries []chat1.MessageSummary
 	for _, typ := range chat1.VisibleChatMessageTypes() {
@@ -922,11 +919,16 @@ func GetConvMtime(rc types.RemoteConversation) gregor1.Time {
 			summaries = append(summaries, summary)
 		}
 	}
-	if len(summaries) == 0 {
-		return conv.ReaderInfo.Mtime
-	}
 	sort.Sort(ByMsgSummaryCtime(summaries))
-	return summaries[len(summaries)-1].Ctime
+	if len(summaries) == 0 {
+		res = conv.ReaderInfo.Mtime
+	} else {
+		res = summaries[len(summaries)-1].Ctime
+	}
+	if res > rc.LocalMtime {
+		return res
+	}
+	return rc.LocalMtime
 }
 
 type MessageSummaryContainer interface {

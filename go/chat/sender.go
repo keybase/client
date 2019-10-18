@@ -1069,7 +1069,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// If this message was sent from the Outbox, then we can remove it now
 	if boxed.ClientHeader.OutboxID != nil {
-		if _, err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
+		if err = storage.NewOutbox(s.G(), sender).RemoveMessage(ctx, *boxed.ClientHeader.OutboxID); err != nil {
 			s.Debug(ctx, "unable to remove outbox message: %v", err)
 		}
 	}
@@ -1406,7 +1406,7 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 	case chat1.OutboxErrorType_DUPLICATE, chat1.OutboxErrorType_ALREADY_DELETED:
 		// Here we don't send a notification to the frontend, we just want
 		// these to go away
-		if _, err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
+		if err = s.outbox.RemoveMessage(ctx, obr.OutboxID); err != nil {
 			s.Debug(ctx, "deliverLoop: failed to remove duplicate delete msg: %v", err)
 			return err
 		}
@@ -1627,7 +1627,7 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 		// Since we're just toggling the reaction on/off, we should abort here
 		// and remove ourselves from the outbox since our message wouldn't
 		// change the reaction state.
-		_, err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
+		err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
 		return true, err
 	}
 	return false, nil
@@ -1748,7 +1748,7 @@ func (s *Deliverer) deliverLoop() {
 			} else {
 				// BlockingSender actually does this too, so this will likely fail, but to maintain
 				// the types.Sender abstraction we will do it here too and likely fail.
-				if _, err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
+				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %v", err)
 				}
 			}

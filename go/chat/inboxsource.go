@@ -554,7 +554,7 @@ func (s *RemoteInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 
 }
 
-func (s *RemoteInboxSource) LocalConversationUpdates(ctx context.Context, uid gregor1.UID, updates []chat1.LocalConversationUpdate) error {
+func (s *RemoteInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error {
 	return nil
 }
 
@@ -765,60 +765,52 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	// convID -> unreadCount
 	failedOutboxMap := make(map[string]int)
 	// convID -> mtime
-	localUpdates := make(map[string]chat1.LocalConversationUpdate)
+	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
 	for _, obr := range obrs {
 		state, err := obr.State.State()
 		if err != nil {
 			s.Debug(ctx, "ApplyLocalChatState: unknown state item: skipping: err: %v", err)
 			continue
 		}
-		if state == chat1.OutboxStateType_ERROR {
-			switch obr.State.Error().Typ {
-			case chat1.OutboxErrorType_MISC,
-				chat1.OutboxErrorType_OFFLINE,
-				chat1.OutboxErrorType_TOOLONG,
-				chat1.OutboxErrorType_EXPIRED,
-				chat1.OutboxErrorType_TOOMANYATTEMPTS,
-				chat1.OutboxErrorType_UPLOADFAILED:
-				ctime := obr.Ctime
-				if update, ok := localUpdates[obr.ConvID.String()]; ok {
-					if ctime.After(*update.Mtime) {
-						update.Mtime = &ctime
-						localUpdates[obr.ConvID.String()] = update
-					}
-				} else {
-					localUpdates[obr.ConvID.String()] = chat1.LocalConversationUpdate{
-						ConvID: obr.ConvID,
-						Mtime:  &ctime,
-					}
+		if state == chat1.OutboxStateType_ERROR && obr.State.Error().Typ.IsBadgableError() {
+			ctime := obr.Ctime
+			if update, ok := localUpdates[obr.ConvID.String()]; ok {
+				if ctime.After(update.Mtime) {
+					localUpdates[obr.ConvID.String()] = update
 				}
-
-				failedOutboxMap[obr.ConvID.String()]++
-			default:
-				continue
+			} else {
+				localUpdates[obr.ConvID.String()] = chat1.LocalMtimeUpdate{
+					ConvID: obr.ConvID,
+					Mtime:  ctime,
+				}
 			}
+			failedOutboxMap[obr.ConvID.String()]++
 		}
 	}
 
-	updates := []chat1.LocalConversationUpdate{}
+	updates := []chat1.LocalMtimeUpdate{}
 	for _, update := range localUpdates {
 		updates = append(updates, update)
 	}
-	if err := s.createInbox().LocalConversationUpdates(ctx, s.uid, updates); err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: unable to apply LocalConversationUpdates: %v", err)
+	if err := s.createInbox().UpdateLocalMtime(ctx, s.uid, updates); err != nil {
+		s.Debug(ctx, "ApplyLocalChatState: unable to apply UpdateLocalMtime: %v", err)
 	}
 
 	for _, info := range infos {
 		// mark this conv as read
 		if readConvMap[info.ConvID.String()] {
 			info = makeBadgeConversationInfo(info.ConvID, 0)
+			s.Debug(ctx, "ApplyLocalChatState, marking as read %+v", info)
 		}
 		// badge qualifying failed outbox items
 		if failedCount, ok := failedOutboxMap[info.ConvID.String()]; ok {
-			info.BadgeCounts[keybase1.DeviceType_DESKTOP] += failedCount
-			info.BadgeCounts[keybase1.DeviceType_MOBILE] += failedCount
-			info.UnreadMessages += failedCount
+			newInfo := makeBadgeConversationInfo(info.ConvID, failedCount)
+			newInfo.BadgeCounts[keybase1.DeviceType_DESKTOP] += info.BadgeCounts[keybase1.DeviceType_DESKTOP]
+			newInfo.BadgeCounts[keybase1.DeviceType_MOBILE] += info.BadgeCounts[keybase1.DeviceType_MOBILE]
+			newInfo.UnreadMessages += info.UnreadMessages
+			info = newInfo
 			delete(failedOutboxMap, info.ConvID.String())
+			s.Debug(ctx, "ApplyLocalChatState, applying failed to existing info %+v", info)
 		}
 		res = append(res, info)
 	}
@@ -831,6 +823,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			continue
 		}
 		newInfo := makeBadgeConversationInfo(keybase1.ChatConversationID(convID), failedCount)
+		s.Debug(ctx, "ApplyLocalChatState, applying failed to new info %+v", newInfo)
 		res = append(res, newInfo)
 	}
 	return res
@@ -844,8 +837,8 @@ func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID c
 	return nil
 }
 
-func (s *HybridInboxSource) LocalConversationUpdates(ctx context.Context, uid gregor1.UID, updates []chat1.LocalConversationUpdate) error {
-	if err := s.createInbox().LocalConversationUpdates(ctx, uid, updates); err != nil {
+func (s *HybridInboxSource) UpdateLocalMtime(ctx context.Context, uid gregor1.UID, updates []chat1.LocalMtimeUpdate) error {
+	if err := s.createInbox().UpdateLocalMtime(ctx, uid, updates); err != nil {
 		return err
 	}
 	return nil

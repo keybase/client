@@ -477,14 +477,14 @@ func (o *Outbox) CancelMessagesWithPredicate(ctx context.Context, shouldCancel f
 	return numCancelled, nil
 }
 
-func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (ret chat1.OutboxRecord, err error) {
+func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (err error) {
 	locks.Outbox.Lock()
 	defer locks.Outbox.Unlock()
 
 	// Read outbox for the user
 	obox, err := o.readStorage(ctx)
 	if err != nil {
-		return ret, err
+		return err
 	}
 
 	// Scan to find the message and don't include it
@@ -492,17 +492,12 @@ func (o *Outbox) RemoveMessage(ctx context.Context, obid chat1.OutboxID) (ret ch
 	for _, obr := range obox.Records {
 		if !obr.OutboxID.Eq(&obid) {
 			recs = append(recs, obr)
-		} else {
-			ret = obr
 		}
 	}
 	obox.Records = recs
 
 	// Write out box
-	if err := o.writeStorage(ctx, obox); err != nil {
-		return ret, err
-	}
-	return ret, nil
+	return o.writeStorage(ctx, obox)
 }
 
 func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) chat1.MessageID {

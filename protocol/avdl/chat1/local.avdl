@@ -265,6 +265,9 @@ protocol local {
     ERROR_1
   }
 
+
+  // NOTE When adding a type here consider if it should be included in
+  // chat1/extras.go#IsBadgableError
   enum OutboxErrorType {
     MISC_0,
     OFFLINE_1,
@@ -1238,8 +1241,8 @@ protocol local {
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
 
-  record LocalConversationUpdate {
+  record LocalMtimeUpdate {
     ConversationID convID;
-    union { null, gregor1.Time } mtime;
+    gregor1.Time mtime;
   }
 }

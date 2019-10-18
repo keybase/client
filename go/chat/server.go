@@ -1224,21 +1224,11 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 		return err
 	}
 	outbox := storage.NewOutbox(h.G(), uid)
-	obr, err := outbox.RemoveMessage(ctx, outboxID)
-	if err != nil {
+	if err := outbox.RemoveMessage(ctx, outboxID); err != nil {
 		return err
 	}
 	// Alert the attachment uploader as well, in case this outboxID corresponds to an attachment upload
 	if err := h.G().AttachmentUploader.Cancel(ctx, outboxID); err != nil {
-		return err
-	}
-
-	if err := h.G().InboxSource.LocalConversationUpdates(ctx, uid, []chat1.LocalConversationUpdate{
-		{
-			ConvID: obr.ConvID,
-			Mtime:  nil, // zero out the conv's LocalMtime
-		},
-	}); err != nil {
 		return err
 	}
 	return h.G().Badger.Send(ctx)

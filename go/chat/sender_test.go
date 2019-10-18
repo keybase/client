@@ -475,9 +475,9 @@ func TestNonblockTimer(t *testing.T) {
 	}
 
 	// Push the outbox records to the front of the thread.
-	for _, obid := range obids {
-		o := obid.DeepCopy()
-		sentRef = append(sentRef, sentRecord{outboxID: &o})
+	for _, o := range obids {
+		obid := o
+		sentRef = append(sentRef, sentRecord{outboxID: &obid})
 	}
 
 	// Check get thread, make sure it makes sense

@@ -3610,17 +3610,14 @@
     },
     {
       "type": "record",
-      "name": "LocalConversationUpdate",
+      "name": "LocalMtimeUpdate",
       "fields": [
         {
           "type": "ConversationID",
           "name": "convID"
         },
         {
-          "type": [
-            null,
-            "gregor1.Time"
-          ],
+          "type": "gregor1.Time",
           "name": "mtime"
         }
       ]

@@ -5761,21 +5761,15 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 	}
 }
 
-type LocalConversationUpdate struct {
+type LocalMtimeUpdate struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
-	Mtime  *gregor1.Time  `codec:"mtime,omitempty" json:"mtime,omitempty"`
+	Mtime  gregor1.Time   `codec:"mtime" json:"mtime"`
 }
 
-func (o LocalConversationUpdate) DeepCopy() LocalConversationUpdate {
-	return LocalConversationUpdate{
+func (o LocalMtimeUpdate) DeepCopy() LocalMtimeUpdate {
+	return LocalMtimeUpdate{
 		ConvID: o.ConvID.DeepCopy(),
-		Mtime: (func(x *gregor1.Time) *gregor1.Time {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Mtime),
+		Mtime:  o.Mtime.DeepCopy(),
 	}
 }
 

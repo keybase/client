@@ -1136,7 +1136,6 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	}
 	conv.Conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
 	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-	conv.LocalMtime = nil
 	conv.Conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
 		conv.Conv.Metadata.ActiveList)
 
@@ -1200,7 +1199,6 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 			i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.Conv.ReaderInfo.ReadMsgid,
 				msgID)
 			conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-			conv.LocalMtime = nil
 			conv.Conv.ReaderInfo.ReadMsgid = msgID
 		}
 		conv.Conv.Metadata.Version = vers.ToConvVers()
@@ -1240,7 +1238,6 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 		i.Debug(ctx, "SetStatus: no conversation found: convID: %s", convID)
 	} else {
 		conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-		conv.LocalMtime = nil
 		conv.Conv.Metadata.Status = status
 		conv.Conv.Metadata.Version = vers.ToConvVers()
 	}
@@ -1895,15 +1892,15 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	return i.writeDiskInbox(ctx, uid, ibox)
 }
 
-func (i *Inbox) LocalConversationUpdates(ctx context.Context, uid gregor1.UID,
-	convUpdates []chat1.LocalConversationUpdate) (err Error) {
-	defer i.Trace(ctx, func() error { return err }, "LocalConversationUpdates")()
+func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
+	convUpdates []chat1.LocalMtimeUpdate) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "UpdateLocalMtime")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	defer i.layoutNotifier.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "local conversations update")
 
-	i.Debug(ctx, "LocalConversationUpdates: updating %d convs", len(convUpdates))
+	i.Debug(ctx, "UpdateLocalMtime: updating %d convs", len(convUpdates))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -1913,14 +1910,14 @@ func (i *Inbox) LocalConversationUpdates(ctx context.Context, uid gregor1.UID,
 	}
 
 	// Process our own changes
-	updateMap := make(map[string]chat1.LocalConversationUpdate)
+	updateMap := make(map[string]chat1.LocalMtimeUpdate)
 	for _, u := range convUpdates {
 		updateMap[u.ConvID.String()] = u
 	}
 
 	for idx, conv := range ibox.Conversations {
 		if update, ok := updateMap[conv.GetConvID().String()]; ok {
-			i.Debug(ctx, "LocalConversationUpdate: applying conv update: %v", update)
+			i.Debug(ctx, "UpdateLocalMtime: applying conv update: %v", update)
 			ibox.Conversations[idx].LocalMtime = update.Mtime
 			ibox.Conversations[idx].Conv.Metadata.LocalVersion++
 		}
