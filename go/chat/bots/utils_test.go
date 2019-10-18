@@ -125,18 +125,32 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	g.BotCommandManager = &MockBotCommandManager{}
 	mockCmdOutput = []chat1.UserBotCommandOutput{
 		{
-			Name:     "status",
+			Name:     "remind me",
 			Username: "botua",
 		},
 	}
 	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "!status",
+		Body: "!remind me ",
 	})
 	assertMatch(false)
 	botSettings.Cmds = true
 	assertMatch(true)
+
+	// make sure we only match if the given bot username also matches
+	mockCmdOutput = []chat1.UserBotCommandOutput{
+		{
+			Name:     "remind me",
+			Username: "notbotua",
+		},
+	}
 	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "!help",
+		Body: "!remind me ",
+	})
+	assertMatch(false)
+
+	// make sure we don't match an erroneous command
+	msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "!help ",
 	})
 	assertMatch(false)
 }
