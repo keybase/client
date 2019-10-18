@@ -19,7 +19,7 @@ const debug = debugEnabled ? s => logger.debug('scroll: ' + s) : () => {}
 const targetHitArea = 1
 
 // Bookkeep whats animating so it finishes and isn't replaced
-const animatingMap = new Map<string, React.ReactNode>()
+const animatingMap = new Map<string, React.ReactElement<any>>()
 
 type AnimatedChildProps = {
   animatingKey: string
@@ -46,7 +46,7 @@ const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) 
             useNativeDriver: true,
           }),
         ]).start(() => {
-          animatingMap.set(animatingKey, undefined)
+          animatingMap.delete(animatingKey)
         })
       }}
     >
@@ -56,7 +56,7 @@ const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) 
 })
 
 type SentProps = {
-  children: React.ReactNode
+  children?: React.ReactElement<any>
   conversationIDKey: Types.ConversationIDKey
   ordinal: Types.Ordinal
 }
@@ -78,7 +78,7 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
     animatingMap.set(key, c)
     return c
   } else {
-    return children
+    return children || null
   }
 })
 
