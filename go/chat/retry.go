@@ -299,9 +299,9 @@ func (f *FetchRetrier) spawnRetrier(ctx context.Context, uid gregor1.UID, desc t
 
 // Failure indicates a failure of type kind has happened when loading a conversation.
 func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.RetryDescription) {
+	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Failure(%s)", desc))()
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return nil }, fmt.Sprintf("Failure(%s)", desc))()
 	if !f.running {
 		f.Debug(ctx, "Failure: not starting new retrier, not running")
 		return
@@ -356,9 +356,9 @@ func (f *FetchRetrier) IsOffline(ctx context.Context) bool {
 
 // Force forces a run of the retry loop.
 func (f *FetchRetrier) Force(ctx context.Context) {
+	defer f.Trace(ctx, func() error { return nil }, "Force")()
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return nil }, "Force")()
 	for _, control := range f.retriers {
 		control.Force()
 	}
@@ -386,9 +386,9 @@ func (f *FetchRetrier) Rekey(ctx context.Context, name string, membersType chat1
 }
 
 func (f *FetchRetrier) Stop(ctx context.Context) chan struct{} {
+	defer f.Trace(ctx, func() error { return nil }, "Shutdown")()
 	f.Lock()
 	defer f.Unlock()
-	defer f.Trace(ctx, func() error { return nil }, "Shutdown")()
 	f.running = false
 	for _, control := range f.retriers {
 		control.Shutdown()
